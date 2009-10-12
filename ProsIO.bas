@@ -348,7 +348,7 @@ end function
 function infect(a as short,dis as short) as short
     dim as short roll
     roll=rnd_range(1,6)+rnd_range(1,6)+player.doctor
-    if roll<maximum(3,dis) then
+    if roll<maximum(3,dis) and crew(a).hp>0 and crew(a).hpmax>0 then
         crew(a).disease=dis
         crew(a).duration=disease(dis).duration
         if dis>player.disease then player.disease=dis
@@ -359,11 +359,12 @@ end function
 
 function diseaserun(onship as short) as short
     dim as short a,dam,total,affected,dis,dead
+    dim text as string
     for a=2 to 128
-        if crew(a).disease>0 then
+        if crew(a).hpmax>0 and crew(a).hp>0 and crew(a).disease>0 then
             if crew(a).disease>dis then dis=crew(a).disease
             if crew(a).duration>0 then 
-                if crew(a).duration=disease(crew(a).disease).duration then print "A crewmember gets sick.",14,14
+                if crew(a).duration=disease(crew(a).disease).duration then dprint "A crewmember gets sick.",14,14
                 crew(a).duration-=1
                 if crew(a).duration=0 then crew(a).disease=0
                 if crew(a).duration>0 then
@@ -380,11 +381,11 @@ function diseaserun(onship as short) as short
                 endif
                 if crew(a).duration=0 then
                     if rnd_range(1,100)<disease(crew(a).disease).fatality then
-                        if crew(a).onship=onship then dprint "A crewmember dies of disease",10,10
+                        if crew(a).onship=onship then dprint "A crewmember dies of disease.",12,12
                         crew(a)=crew(0)
                         crew(a).disease=0
                     else
-                        if crew(a).onship=onship then dprint "A crewmember recovers",12,12
+                        if crew(a).onship=onship then dprint " A crewmember recovers.",10,10
                         crew(a).disease=0
                     endif
                 endif
@@ -392,26 +393,30 @@ function diseaserun(onship as short) as short
         endif
         if a=2 and crew(a).hp<=0 and player.pilot>0 then 
             player.pilot=-5
-            dprint "Your pilot dies of disease!",10,10
+            dead-=1
+            dprint " Your pilot dies of disease!",12,12
         endif
         if a=3 and crew(a).hp<=0 and player.gunner>0 then 
             player.gunner=-5
-            dprint "Your gunner dies of disease!",10,10
+            dead-=1
+            dprint " Your gunner dies of disease!",12,12
         endif
         if a=4 and crew(a).hp<=0 and player.science>0 then 
             player.science=-5
-            dprint "Your science officer dies of disease!",10,10
+            dead-=1
+            dprint " Your science officer dies of disease!",12,12
         endif
         if a=5 and crew(a).hp<=0 and player.doctor>0 then 
             player.doctor=-5   
-            dprint "Your doctor dies of disease!",10,10
+            dprint " Your doctor dies of disease!",12,12
         endif
     next
     if dis>0 then player.disease=dis
-    if total=1 then dprint "A crewmember suffer "& total &" damage from disease.",14,14
+    if total=1 then dprint " A crewmember suffer "& total &" damage from disease.",14,14
     if total>1 then dprint affected &" crewmembers suffer "& total &" damage from disease.",14,14
-    if dead=1 then dprint "A crewmember dies from disease.",10,10
-    if dead>1 then dprint dead &" crewmembers die from disease.",10,10
+    if dead=1 then dprint " A crewmember dies from disease.",12,12
+    if dead>1 then dprint dead &" crewmembers die from disease.",12,12
+    
     return 0
 end function
 
@@ -446,24 +451,22 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     do
         t=rnd_range(1,last)
         if crew(target(t)).hp>0 then
-            select case ap
-                case ap=1
+            if ap=2 then
+                dam=dam-crew(target(t)).hp
+                crew(target(t)).hp=dam
+            endif
+            if ap=3 then
+                crew(target(t)).hp=crew(target(t)).hp-dam
+                dam=0
+            endif
+            if ap=0 or ap=1 then
+                if rnd_range(1,20)>2+a.secarmo(target(t))+player.tactic or ap=1 then
                     crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
-                case ap=2
-                    dam=dam-crew(target(t)).hp
-                    crew(target(t)).hp=dam
-                case ap=3
-                    crew(target(t)).hp=crew(target(t)).hp-dam
-                    dam=0
-                case ap=0
-                    if rnd_range(1,20)>2+a.secarmo(target(t))+player.tactic then
-                        crew(target(t)).hp=crew(target(t)).hp-1
-                        dam=dam-1
-                    else
-                        armeff+=1
-                    endif
-            end select
+                else
+                    armeff+=1
+                endif
+            endif
         endif
         ex=1
         for b=1 to last
@@ -808,9 +811,9 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     print using "####.#";p.temp;
     print " "&chr(248)&"c"
     locate 18,63
-    print "Rotation:";
+    print "Rot.:";
     if p.rot>0 then
-        print using "##.#";p.rot*24;
+        print using "####.#";p.rot*24;
         print " h"
     else
         print " Nil"
@@ -1335,6 +1338,8 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
     dim key as string
     dim as short a,b,i,tog1,tog2,tog3,tog4,ctr,f,it
     if walking<>0 then sleep 50
+    flip
+    
     do 
      do        
       If (ScreenEvent(@evkey)) Then
@@ -1369,6 +1374,8 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
           end if
          sleep 1
         loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run=1
+        
+        
         if key<>"" then walking=0 
         if blocked=0 then
             if key=key_manual then 
@@ -1459,6 +1466,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
     loop until key<>"" or walking <>0 or just_run=1
     while inkey<>""
     wend
+    screenset 0,1
     return key
 end function
 
@@ -1556,6 +1564,7 @@ sub dtile(x as short,y as short, tiles as _tile)
     if _tiles=0 then
         put (x*8,y*16),gtiles(tiles.no+19),pset
     else
+        'if _showvis=1 then bgcol=1
         color col,bgcol
         print chr(tiles.tile)
     endif
@@ -2200,7 +2209,15 @@ sub displayship(show as byte=0)
             locate 8+b+1,63
             print "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 ;
             if player.weapons(a).ammomax>0 then print " A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ";
-            if player.weapons(a).desig="Tractor Beam" then player.tractor=1
+            if player.weapons(a).desig="Tractor Beam" then 
+                player.tractor=1
+                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<9 then
+                    dprint "Your tractor beam breaks down",14,14
+                    player.tractor=0
+                    player.towed=0
+                    player.weapons(a)=makeweapon(0)
+                endif
+            endif
         else
             locate 8+b,63
             print spc(15)
@@ -2285,6 +2302,8 @@ function gettext(x as short, y as short, ml as short, text as string) as string
     dim key as string
     dim p as cords
     l=len(text)
+    flip
+    screenset 0,0
     sleep 150
     if l>ml and text<>"" then
         text=left(text,ml-1)

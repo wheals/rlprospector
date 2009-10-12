@@ -14,7 +14,7 @@
 #include once "spacecom.bas"
 #include once "fileIO.bas"
  
-on error goto errormessage
+'on error goto errormessage
 
 cls
 ' Load 
@@ -71,7 +71,7 @@ sound(2)= FSOUND_Sample_Load(FSOUND_FREE, "alarm_2.wav", 0, 0, 0)
 sound(3)= FSOUND_Sample_Load(FSOUND_FREE, "weap_1.wav", 0, 0, 0)
 sound(4)= FSOUND_Sample_Load(FSOUND_FREE, "weap_2.wav", 0, 0, 0)
 sound(5)= FSOUND_Sample_Load(FSOUND_FREE, "wormhole.wav", 0, 0, 0)
-sound(6)= FSOUND_Sample_Load(FSOUND_FREE, "title.wav", 0, 0, 0)
+'sound(6)= FSOUND_Sample_Load(FSOUND_FREE, "title.wav", 0, 0, 0)
 sound(7)= FSOUND_Sample_Load(FSOUND_FREE, "weap_4.wav", 0, 0, 0)
 sound(8)= FSOUND_Sample_Load(FSOUND_FREE, "weap_3.wav", 0, 0, 0)
 sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "weap_5.wav", 0, 0, 0)
@@ -83,7 +83,7 @@ do
 '
 ' Variables
 '
-if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(6))                    
+'if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(6))                    
     
 
 awayteamcomp(0)=1
@@ -726,9 +726,6 @@ player.c=basis(e).c
 next
 
 ' The probesp
-if map(sysfrommap(specialplanet(17))).c.x>=sm_x-4 then map(sysfrommap(specialplanet(17))).c.x-=4
-if map(sysfrommap(specialplanet(17))).c.y>=sm_y-4 then map(sysfrommap(specialplanet(17))).c.y-=4
-spacemap(map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3),map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3))=12
 
 for a=1 to lastdrifting
     lastplanet=lastplanet+1
@@ -738,7 +735,8 @@ for a=1 to lastdrifting
     drifting(a).m=lastplanet
     if a=1 then drifting(a).s=17
     if a=2 then drifting(a).s=18 
-    if drifting(a).s<=18 then makedrifter(drifting(a))
+    if a=3 then drifting(a).s=19 
+    if drifting(a).s<=19 then makedrifter(drifting(a))
     drifting(a).p=show_all
 next
 drifting(1).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
@@ -765,6 +763,22 @@ planets(drifting(2).m).noamax=26
 planets(drifting(2).m).flags(6)=66
 planets(drifting(2).m).flags(7)=66
 planets(drifting(2).m).flags(4)=6
+
+
+planets(drifting(3).m).flavortext="You dock at the ancient space probe."
+planets(drifting(3).m).darkness=1
+planets(drifting(3).m).atmos=1
+planets(drifting(3).m).depth=1
+planets(drifting(3).m).mon=0
+planets(drifting(3).m).noamin=0
+planets(drifting(3).m).noamax=0
+
+if map(sysfrommap(specialplanet(17))).c.x>=sm_x-4 then map(sysfrommap(specialplanet(17))).c.x-=4
+if map(sysfrommap(specialplanet(17))).c.y>=sm_y-4 then map(sysfrommap(specialplanet(17))).c.y-=4
+drifting(3).x=map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3)
+drifting(3).y=map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3)
+
+
 do
     for c=0 to 2    
         d=0
@@ -960,6 +974,7 @@ if key="1" or key="2" and player.dead=0 then
 if key="2" then show_stars(1)  
 key=""
 bload "tiles.bmp"
+flip
 cls
 show_stars(1)
 displayship()
@@ -2355,6 +2370,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     lsp=0    
     for x=0 to 60
         for y=0 to 20
+            if show_all=1 and planetmap(x,y,map)<0 then planetmap(x,y,map)=-planetmap(x,y,map)
             tmap(x,y)=tiles(0)
             tmap(x,y)=tiles(abs(planetmap(x,y,map)))
             mapmask(x,y)=0
@@ -2407,6 +2423,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
         if orbit=8 then lastenemy=lastenemy-rnd_range(1,8)-rnd_range(1,5)
         if orbit=9 then lastenemy=lastenemy-rnd_range(1,8)-rnd_range(1,6)
         lastenemy=(lastenemy*planets(map).life)/10
+        if planets(map).atmos=1 then lastenemy=lastenemy-rnd_range(1,10)
         if lastenemy<0 then lastenemy=0
         if lastenemy>25 then lastenemy=25
         
@@ -2453,8 +2470,13 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     for a=0 to _NoPB
         if pirateplanet(a)=map then x=1
     next
+    
     if planets(map).visited=0 and planets(map).depth=0 and x=0 then 
-        adaptmap(map,enemy(),lastenemy)    
+        adaptmap(map,enemy(),lastenemy)  
+        if rnd_range(1,100)<5 and rnd_range(1,100)<disnbase(player.c) then
+            lastenemy=lastenemy+1
+            enemy(lastenemy)=makemonster(46,awayteam,map,spawnmask(),lsp,0,0,lastenemy)
+        endif
     else
         moverover(map)
     endif
@@ -2489,7 +2511,6 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     
     if map=specialplanet(1) then 'apollos planet
         lastenemy=rnd_range(1,5)+rnd_range(1,5)
-        dprint "A huge guy in a robe claims to be apollo and demands you to worship him. he gets very agressive as you refuse"
         ship.x=rnd_range(0,60)
         ship.y=rnd_range(0,20)
     endif
@@ -3873,9 +3894,6 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                 endif
             endif
             
-            
-            
-            
             if tmap(awayteam.c.x,awayteam.c.y).gives=30 then              
                 dprint "Shipyard"
                 if map<>pirateplanet(0) or player.pirate_agr<=0 then
@@ -3914,7 +3932,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=33 then specialflag(27)=1              
             
-            if tmap(awayteam.c.x,awayteam.c.y).gives=34 then player=buyweapon(2)              
+            if tmap(awayteam.c.x,awayteam.c.y).gives=34 then player=buyweapon(1)              
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=35 then shipyard(3) 'Special ship weapons shop              
             
@@ -3967,8 +3985,30 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                     endif
                     if tmap(awayteam.c.x,awayteam.c.y).turnsinto=234 then dprint "You fail."
                 endif
-                
             endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=58 then 'shutting down reactor
+                if askyn("Do you want to shut it down? (y/n)") then
+                    for x=0 to 60
+                        for y=0 to 20
+                            if planetmap(x,y,specialplanet(9))=-18 then planetmap(x,y,specialplanet(9))=-4 
+                            if planetmap(x,y,specialplanet(9))=18 then planetmap(x,y,specialplanet(9))=4
+                        next
+                    next
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science<10 then
+                        dprint "Something went wrong... this thing is about to blow up!"
+                        sf=sf+1
+                        if sf>15 then sf=0
+                        shipfire(sf)=p
+                        sf_when(sf)=3
+                        sf_what(sf)=11+sf
+                        sf_tile(sf)=item(c).icon
+                        player.weapons(sf_what(sf))=makeweapon(item(c).v1)
+                        player.weapons(sf_what(sf)).ammomax=0 'Sets color to blueish
+                    endif
+                endif
+            endif
+                    
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=60 then 'Town hall in settlements
                 if askyn("Do you want to trade with the locals?(y/n)") then 
@@ -4035,7 +4075,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=111 then
-                dprint "This is a data collection about all the 'enhanced pets' of the ancient aliens. They used the tree beings as scientific advisors, and made a silicium based lifeform they were somehow able to use as a powersource. It doesn't really go into detail about that."
+                dprint "This is a data collection about all the 'enhanced pets' of the ancient aliens. They used the tree beings as scientific advisors, and made a silicium based lifeform they were somehow able to use as a powersource. It doesn't really go into detail about that. Also missing is any information on the aliens themselves."
                 player.questflag(1)=1
             endif
             
@@ -4315,7 +4355,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             next
             b=0
             if _autoinspect=1 then dprint "You search the area: "&tmap(awayteam.c.x,awayteam.c.y).desc
-            if tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143 then 
+            if (tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143) or tmap(awayteam.c.x,awayteam.c.y).no=241 then 
                 
                 'Jump ship
                 if tmap(awayteam.c.x,awayteam.c.y).hp=0 then
@@ -4342,7 +4382,9 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                         dprint "The repair was succesfull!"
                         a=player.h_no 'Old hullnumber 
                         if askyn("Do you want to abandon your ship and use this one?") then                            
-                            if upgradehull(tmap(awayteam.c.x,awayteam.c.y).no-127,player)=-1 then
+                            b=tmap(awayteam.c.x,awayteam.c.y).no-127
+                            if tmap(awayteam.c.x,awayteam.c.y).no=241 then b=18
+                            if upgradehull(b,player)=-1 then
                                 player.hull=int(player.hull*0.8)
                                 tmap(ship.x,ship.y)=tiles(127+a)
                                 changetile(ship.x,ship.y,map,127+a)
@@ -4525,7 +4567,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             endif
         endif
         
-        if planets(map).atmos>8 and rnd_range(1,150)<((planets(map).atmos)*planets(map).weat) and map<>specialplanet(28) then            
+        if planets(map).atmos>6 and rnd_range(1,150)<(planets(map).dens*planets(map).weat) and map<>specialplanet(28) then            
             dprint "its raining sulphuric acid! "&damawayteam(awayteam,1),,12
             player.killedby=" hostile environment"
         endif
@@ -5002,24 +5044,26 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
         
         if key=key_la then
             if awayteam.c.y=ship.y and awayteam.c.x=ship.x and map=player.landed.m then 
-                if map=specialplanet(27) then
-                    if specialflag(27)=0 then 
-                        dprint "As you attempt to start you realize that your landing struts have sunk into the surface of the planet. You try to dig free, but the surface closes around them faster than you can dig. You are stuck!"
-                    else
-                        dprint "You successfully break free of the living planet."
-                        nextmap.m=-1
-                        if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
+                if map=specialplanet(2) or map=specialplanet(27)  then
+                    if map=specialplanet(27) then
+                        if specialflag(27)=0 then 
+                            dprint "As you attempt to start you realize that your landing struts have sunk into the surface of the planet. You try to dig free, but the surface closes around them faster than you can dig. You are stuck!"
+                        else
+                            dprint "You successfully break free of the living planet."
+                            nextmap.m=-1
+                            if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
+                        endif
                     endif
-                endif
-                if map=specialplanet(2) then
-                    if specialflag(2)=0 then 
-                        dprint "As soon as you attempt to start the planetary defense system fires. You won't be able to start until you disable it."
-                    else
-                        dprint "You start without incident"
-                        nextmap.m=-1
-                        if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
-                        exit do
-                    endif                    
+                    if map=specialplanet(2) then
+                        if specialflag(2)=0 then 
+                            dprint "As soon as you attempt to start the planetary defense system fires. You won't be able to start until you disable it."
+                        else
+                            dprint "You start without incident"
+                            nextmap.m=-1
+                            if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
+                            exit do
+                        endif                    
+                    endif
                 else
                     nextmap.m=-1
                     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
@@ -5124,6 +5168,8 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             if b>0 and key=key_co then communicate(awayteam,enemy(b),map,li(),lastlocalitem,b)
             if b>0 and key=key_of then giveitem(enemy(b),b,li(),lastlocalitem)
         endif
+        
+        if awayteam.move=3 and  player.teleportload<15 then player.teleportload+=1
         
         if key=key_te and awayteam.move=3 then 
             if planets(map).teleport=0 then
@@ -5474,15 +5520,19 @@ function teleport(from as cords,map as short) as cords
         if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=1
         if key=key_quit or multikey(SC_ESCAPE) then ex=-1    
     loop until ex<>0
-    if ex=1 then 
-        from.x=target.x
-        from.y=target.y
+    if ex=1 then
+        if player.teleportload>=10 then 
+            from.x=target.x
+            from.y=target.y
+            player.teleportload=0
+        else
+            dprint "The teleportation device still needs some time to recharge"
+        endif
     endif
     return from
 end function
 
 function poolandtransferweapons(m as short) as short
-    
     dim as short e,f,c,g,d
     dim as string text,help,desc
     dim weapons(10) as _weap
@@ -5751,22 +5801,22 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dprint text,,col
     return defender
 end function
-
-ERRORMESSAGE:
-e=err
-text="error #"&e &" in "& " "&erl &" " & *ERFN() &" " & *ERMN()
-f=freefile
-open "error.log" for append as #f
-print #f,text 
-close #f
-locate 10,10
-color 12,0
-print "ERROR: Please inform the author and send him the file error.log"
-print "matthias.mennel@gmail.com"
-color 14,0
-print text
-sleep
-print "attempting to save game"
-savegame()
-print "key to exit"
-sleep
+'
+'ERRORMESSAGE:
+'e=err
+'text="error #"&e &" in "& " "&erl &" " & *ERFN() &" " & *ERMN()
+'f=freefile
+'open "error.log" for append as #f
+'print #f,text 
+'close #f
+'locate 10,10
+'color 12,0
+'print "ERROR: Please inform the author and send him the file error.log"
+'print "matthias.mennel@gmail.com"
+'color 14,0
+'print text
+'sleep
+'print "attempting to save game"
+'savegame()
+'print "key to exit"
+'sleep

@@ -150,6 +150,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_weapons")>0 then key_weapons=right(text,1)
                 if instr(lctext,"key_equipped")>0 then key_equipped=right(text,1)
                 if instr(lctext,"key_quest")>0 then key_quests=right(text,1)
+                if instr(lctext,"key_tow")>0 then key_tow=right(text,1)
                 
                 if instr(lctext,"key_landing")>0 then key_la=right(text,1)
                 if instr(lctext,"key_scanning")>0 then key_sc=right(text,1)

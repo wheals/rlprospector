@@ -1560,19 +1560,29 @@ function buyweapon(sh as short=0) as _ship
         next
     endif
     if sh=1 then
-        last=20
-        mod1=16
-        mod2=17
-        mod3=18
-        mod4=19
-        for a=1 to 4
-            w=makeweapon(a+10)
+        last=19
+        mod1=15
+        mod2=16
+        mod3=17
+        mod4=18
+        for a=1 to 14
+            w=makeweapon(a)
             weapons=weapons &"/ " &w.desig &" - "&w.p 
             help=help &"/ "&w.desig &" | | "
-            if a=1 then help=help &"Several light ship guns combined into a battery. "
-            if a=2 then help=help &"Several light rail guns combined into a battery "
-            if a=3 then help=help &"Several light rockets combined into a battery "
-            if a=4 then help=help &"Several rockets combined into a battery "
+            if a=1 then help=help &"A simple gun firing metal shells propelled by an explosion. "
+            if a=2 then help=help &"Metal shells accelerated to high speeds using electric fields "
+            if a=3 then help=help &"Self propelled rockets with chemical explosives"
+            if a=4 then help=help &"Self propelled rockets with nuclear warheads"
+            if a=5 then help=help &"Self propelled rockets with nuclear warheads and increased range"
+            if a=6 then help=help &"Ionized hydrogen. Low impact damage, low penetration. A targetable ships drive basically"
+            if a=7 then help=help &"Lasers burn through the enemys ships armor"
+            if a=8 then help=help &"Higher energy per particle increases the damage of a Laser"
+            if a=9 then help=help &"Bremsstrahlung wreaks havocs inside the target even if the particles don't penetrate the hull."
+            if a=10 then help=help &"Heavy particles accelerated to near light speeds penetrate and rip apart the enemys armor."
+            if a=11 then help=help &"Several light ship guns combined into a battery. "
+            if a=12 then help=help &"Several light rail guns combined into a battery "
+            if a=13 then help=help &"Several light rockets combined into a battery "
+            if a=14 then help=help &"Several rockets combined into a battery "
             help=help &" | | Damage: "&w.dam &" | Rate of Fire: "&w.ROF &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3 
             if w.ammomax>0 then help=help &" | Ammuniton: "&w.ammomax 
         next

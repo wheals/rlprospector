@@ -96,206 +96,201 @@ end sub
 
 sub makeplatform(slot as short,platforms as short,rooms as short, translate as short, adddoors as short=0)
     
-dim map(60,20) as short
-dim as short x,y,a,w,h,c,d,b,n,flag,door
-dim as cords p(platforms)
-dim sides(4) as byte
-for x=0 to 60
-    for y=0 to 20
-        'map(x,y)=99
-    next
-next
-
-
-n=rnd_range(5,12)
-
-
-for a=1 to platforms
-    d=0
-    do
-        p(a).x=rnd_range(1,50)
-        p(a).y=rnd_range(1,14)
-        w=rnd_range(5,9)
-        h=rnd_range(3,5)
-        c=0
-        for x=p(a).x-1 to p(a).x+w+1
-            for y=p(a).y-1 to p(a).y+h+1
-                if map(x,y)>0 then c=1
-            next
-        next
-        d+=1
-    loop until c=0 or d>=100
-    if c=0 then
-        for x=p(a).x to p(a).x+w
-            for y=p(a).y to p(a).y+h
-                map(x,y)=1
-            next
-        next
-        map(p(a).x,p(a).y)=0
-        map(p(a).x,p(a).y+h)=0
-        map(p(a).x+w,p(a).y)=0
-        map(p(a).x+w,p(a).y+h)=0
-        p(a).x=p(a).x+w/2
-        p(a).y=p(a).y+h/2
-    endif
-next
-
-for a=1 to platforms-1       
-    do
-        while p(a).x<>p(a+1).x 
-            if p(a).x>p(a+1).x then p(a).x-=1
-            if p(a).x<p(a+1).x then p(a).x+=1
-            if (map(p(a).x,p(a).y-1)<>2 and map(p(a).x,p(a).y+1)<>2) and p(a).x<>p(a+1).x and map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
-        wend
-        if map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
-        while p(a).y<>p(a+1).y 
-            if p(a).y>p(a+1).y then p(a).y-=1
-            if p(a).y<p(a+1).y then p(a).y+=1
-            if (map(p(a).x-1,p(a).y)<>2 and map(p(a).x+1,p(a).y)<>2) and p(a).y<>p(a+1).y and map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
-        wend
-    loop until (p(a).x=p(a+1).x and p(a).y=p(a+1).y) 'or map(p(0).x,p(0).y)=1
-    c=0
-next
-
-for a=0 to rooms
-    do
-        p(0).x=rnd_range(1,49)
-        p(0).y=rnd_range(1,14)
-        p(1).x=p(0).x+rnd_range(3,10)
-        p(1).y=p(0).y+rnd_range(3,5)
-        flag=0
-        for x=p(0).x-1 to p(1).x+1
-            for y=p(0).y-1 to p(1).y+1
-                if map(x,y)=3 then flag=1
-                if (x=p(0).x-1 or x=p(0).x+1 or y=p(0).y-1 or y=p(0).y+1) and map(x,y)=4 then flag=1 
-            next
-        next
-    loop until flag=0
-    flag=0
-    
-    
-    for x=p(0).x to p(1).x
-        for y=p(0).y to p(1).y
-            if x=p(0).x or x=p(1).x or y=p(0).y or y=p(1).y then
-                map(x,y)=4
-            else
-                map(x,y)=3
-            endif
-        next
-    next
-    sides(1)=0
-    sides(2)=0
-    sides(3)=0
-    sides(4)=0
-    for x=p(0).x to p(1).x
-        for y=p(0).y to p(1).y
-            if x=p(0).x or x=p(1).x or y=p(0).y or y=p(1).y then
-                    if (map(x-1,y)<4 and map(x+1,y)<4 and map(x-1,y)>0 and map(x+1,y)>0 and map(x,y-1)=4 and map(x,y+1)=4) then
-                        door=5
-                        if x=p(0).x and sides(1)=1 then door=4
-                        if x=p(1).x and sides(2)=1 then door=4
-                        if y=p(0).y and sides(3)=1 then door=4
-                        if y=p(1).y and sides(4)=1 then door=4
-                        map(x,y)=door
-                        if x=p(0).x then sides(1)=1
-                        if x=p(1).x then sides(2)=1
-                        if y=p(0).y then sides(3)=1
-                        if y=p(1).y then sides(4)=1
-                    endif
-                    if (map(x,y-1)<4 and map(x,y+1)<4 and map(x,y-1)>0 and map(x,y+1)>0 and map(x-1,y)=4 and map(x+1,y)=4) then
-                        door=5
-                        if x=p(0).x and sides(1)=1 then door=4
-                        if x=p(1).x and sides(2)=1 then door=4
-                        if y=p(0).y and sides(3)=1 then door=4
-                        if y=p(1).y and sides(4)=1 then door=4
-                        map(x,y)=door
-                        if x=p(0).x then sides(1)=1
-                        if x=p(1).x then sides(2)=1
-                        if y=p(0).y then sides(3)=1
-                        if y=p(1).y then sides(4)=1
-                    endif
-            endif
-        next
-    next
-next
-
-for x=0 to 60
-    for y=0 to 20
-        if translate=1 then
-            if map(x,y)=0 then planetmap(x,y,slot)=-rnd_range(175,177) 'gasclouds
-            if map(x,y)=1 then planetmap(x,y,slot)=-68 'platform
-            if map(x,y)=2 then 'corridor
-                planetmap(x,y,slot)=-80
-                if rnd_range(1,100)<10 then planetmap(x,y,slot)=-81
-            endif
-            if map(x,y)=3 then planetmap(x,y,slot)=-80 'internal of room
-            if map(x,y)=4 then planetmap(x,y,slot)=-52 'wall
-            if map(x,y)=5 then planetmap(x,y,slot)=-54 'door
-        endif
-    
-        if translate=2 then
-            if map(x,y)=0 then 
-                planetmap(x,y,slot)=-rnd_range(49,51) 'stone walls
-                p(0).x=x
-                p(0).y=y
-                c=0
-                for b=1 to 9
-                    p(2)=movepoint(p(0),b)
-                    if planetmap(p(2).x,p(2).y,slot)=-158 then c=c+5
-                next
-                if rnd_range(1,100)<30+c-adddoors*3 then planetmap(p(0).x,p(0).y,slot)=-158
-            endif
-            if map(x,y)=1 then planetmap(x,y,slot)=-80 'platform
-            if map(x,y)=2 then 'corridor
-                planetmap(x,y,slot)=-80
-                if rnd_range(1,100)<10 then planetmap(x,y,slot)=-81
-            endif
-            if map(x,y)=3 then planetmap(x,y,slot)=-80 'internal of room
-            if map(x,y)=4 then planetmap(x,y,slot)=-52 'wall
-            if map(x,y)=5 then 
-                if rnd_range(1,100)>66 then 'door
-                    planetmap(x,y,slot)=-54
-                else 
-                    planetmap(x,y,slot)=-55
-                endif
-            endif
-            if rnd_range(1,100)<adddoors and x>0 and x<60 and y>0 and y<20 then
-                if map(x+1,y)>0 and map(x+1,y)<4 and map(x-1,y)>0 and map(x-1,y)<4 and map(x,y+1)=4 and map(x,y-1)=4 then planetmap(x,y,slot)=-54
-                if map(x,y+1)>0 and map(x,y+1)<4 and map(x,y-1)>0 and map(x,y-1)<4 and map(x+1,y)=4 and map(x-1,y)=4 then planetmap(x,y,slot)=-54
-            endif            
-        endif
-        
-        
-        if translate=3 then
-            if map(x,y)=0 then 
-                planetmap(x,y,slot)=-rnd_range(49,51) 'stone walls
-                p(0).x=x
-                p(0).y=y
-                c=0
-                for b=1 to 9
-                    p(2)=movepoint(p(0),b)
-                    if planetmap(p(2).x,p(2).y,slot)=-158 then c=c+(10-adddoors)
-                next
-                if rnd_range(1,100)<adddoors+c then planetmap(p(0).x,p(0).y,slot)=-158
-            endif
-            if map(x,y)=1 then planetmap(x,y,slot)=-4 'platform
-            if map(x,y)=2 then planetmap(x,y,slot)=-4
-            
-            if map(x,y)=3 then planetmap(x,y,slot)=-4 'internal of room
-            if map(x,y)=4 then planetmap(x,y,slot)=-51 'wall
-            if map(x,y)=5 then planetmap(x,y,slot)=-156 
-                        
-        endif
-    next
-next
-
-if show_all=1 then
+    dim map(60,20) as short
+    dim as short x,y,a,w,h,c,d,b,n,flag,door,c0
+    dim as cords p(platforms)
+    dim sides(4) as byte
     for x=0 to 60
         for y=0 to 20
-            planetmap(x,y,slot)=-planetmap(x,y,slot)
+            'map(x,y)=99
         next
     next
-endif
+    
+    
+    n=rnd_range(5,12)
+    
+    
+    for a=1 to platforms
+        d=0
+        do
+            p(a).x=rnd_range(1,50)
+            p(a).y=rnd_range(1,14)
+            w=rnd_range(5,9)
+            h=rnd_range(3,5)
+            c=0
+            for x=p(a).x-1 to p(a).x+w+1
+                for y=p(a).y-1 to p(a).y+h+1
+                    if map(x,y)>0 then c=1
+                next
+            next
+            d+=1
+        loop until c=0 or d>=100
+        if c=0 then
+            for x=p(a).x to p(a).x+w
+                for y=p(a).y to p(a).y+h
+                    map(x,y)=1
+                next
+            next
+            map(p(a).x,p(a).y)=0
+            map(p(a).x,p(a).y+h)=0
+            map(p(a).x+w,p(a).y)=0
+            map(p(a).x+w,p(a).y+h)=0
+            p(a).x=p(a).x+w/2
+            p(a).y=p(a).y+h/2
+        endif
+    next
+    
+    for a=1 to platforms-1       
+        do
+            while p(a).x<>p(a+1).x 
+                if p(a).x>p(a+1).x then p(a).x-=1
+                if p(a).x<p(a+1).x then p(a).x+=1
+                if (map(p(a).x,p(a).y-1)<>2 and map(p(a).x,p(a).y+1)<>2) and p(a).x<>p(a+1).x and map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
+            wend
+            if map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
+            while p(a).y<>p(a+1).y 
+                if p(a).y>p(a+1).y then p(a).y-=1
+                if p(a).y<p(a+1).y then p(a).y+=1
+                if (map(p(a).x-1,p(a).y)<>2 and map(p(a).x+1,p(a).y)<>2) and p(a).y<>p(a+1).y and map(p(a).x,p(a).y)=0 then map(p(a).x,p(a).y)=2
+            wend
+        loop until (p(a).x=p(a+1).x and p(a).y=p(a+1).y) 'or map(p(0).x,p(0).y)=1
+        c=0
+    next
+    
+    for a=0 to rooms
+        do
+            p(0).x=rnd_range(1,49)
+            p(0).y=rnd_range(1,14)
+            p(1).x=p(0).x+rnd_range(3,10)
+            p(1).y=p(0).y+rnd_range(3,5)
+            flag=0
+            for x=p(0).x-1 to p(1).x+1
+                for y=p(0).y-1 to p(1).y+1
+                    if map(x,y)=0 then c0+=1
+                    if map(x,y)=3 then flag=1
+                    if (x=p(0).x-1 or x=p(0).x+1 or y=p(0).y-1 or y=p(0).y+1) and map(x,y)=4 then flag=1 
+                next
+            next
+        loop until flag=0 and c0<(2+p(1).x-p(0).x)*(2+p(1).y-p(0).y)
+        flag=0
+        c0=0
+        
+        
+        for x=p(0).x to p(1).x
+            for y=p(0).y to p(1).y
+                if x=p(0).x or x=p(1).x or y=p(0).y or y=p(1).y then
+                    map(x,y)=4
+                else
+                    map(x,y)=3
+                endif
+            next
+        next
+        sides(1)=0
+        sides(2)=0
+        sides(3)=0
+        sides(4)=0
+        for x=p(0).x to p(1).x
+            for y=p(0).y to p(1).y
+                if x=p(0).x or x=p(1).x or y=p(0).y or y=p(1).y then
+                        if (map(x-1,y)<4 and map(x+1,y)<4 and map(x-1,y)>0 and map(x+1,y)>0 and (map(x,y-1)=4 or map(x,y+1)=4)) then
+                            door=5
+                            if x=p(0).x and sides(1)=1 then door=4
+                            if x=p(1).x and sides(2)=1 then door=4
+                            if y=p(0).y and sides(3)=1 then door=4
+                            if y=p(1).y and sides(4)=1 then door=4
+                            map(x,y)=door
+                            if x=p(0).x then sides(1)=1
+                            if x=p(1).x then sides(2)=1
+                            if y=p(0).y then sides(3)=1
+                            if y=p(1).y then sides(4)=1
+                        endif
+                        if (map(x,y-1)<4 and map(x,y+1)<4 and map(x,y-1)>0 and map(x,y+1)>0 and (map(x-1,y)=4 or map(x+1,y)=4)) then
+                            door=5
+                            if x=p(0).x and sides(1)=1 then door=4
+                            if x=p(1).x and sides(2)=1 then door=4
+                            if y=p(0).y and sides(3)=1 then door=4
+                            if y=p(1).y and sides(4)=1 then door=4
+                            map(x,y)=door
+                            if x=p(0).x then sides(1)=1
+                            if x=p(1).x then sides(2)=1
+                            if y=p(0).y then sides(3)=1
+                            if y=p(1).y then sides(4)=1
+                        endif
+                endif
+            next
+        next
+    next
+    
+    for x=0 to 60
+        for y=0 to 20
+            if translate=1 then
+                if map(x,y)=0 then planetmap(x,y,slot)=-rnd_range(175,177) 'gasclouds
+                if map(x,y)=1 then planetmap(x,y,slot)=-68 'platform
+                if map(x,y)=2 then 'corridor
+                    planetmap(x,y,slot)=-80
+                    if rnd_range(1,100)<10 then planetmap(x,y,slot)=-81
+                endif
+                if map(x,y)=3 then planetmap(x,y,slot)=-80 'internal of room
+                if map(x,y)=4 then planetmap(x,y,slot)=-52 'wall
+                if map(x,y)=5 then planetmap(x,y,slot)=-54 'door
+            endif
+        
+            if translate=2 then
+                if map(x,y)=0 then 
+                    planetmap(x,y,slot)=-rnd_range(49,51) 'stone walls
+                    p(0).x=x
+                    p(0).y=y
+                    c=0
+                    for b=1 to 9
+                        p(2)=movepoint(p(0),b)
+                        if planetmap(p(2).x,p(2).y,slot)=-158 then c=c+5
+                    next
+                    if rnd_range(1,100)<30+c-adddoors*3 then planetmap(p(0).x,p(0).y,slot)=-158
+                endif
+                if map(x,y)=1 then planetmap(x,y,slot)=-80 'platform
+                if map(x,y)=2 then 'corridor
+                    planetmap(x,y,slot)=-80
+                    if rnd_range(1,100)<10 then planetmap(x,y,slot)=-81
+                endif
+                if map(x,y)=3 then planetmap(x,y,slot)=-80 'internal of room
+                if map(x,y)=4 then planetmap(x,y,slot)=-52 'wall
+                if map(x,y)=5 then 
+                    if rnd_range(1,100)>66 then 'door
+                        planetmap(x,y,slot)=-54
+                    else 
+                        planetmap(x,y,slot)=-55
+                    endif
+                endif
+                if rnd_range(1,100)<adddoors and x>0 and x<60 and y>0 and y<20 then
+                    if map(x+1,y)>0 and map(x+1,y)<4 and map(x-1,y)>0 and map(x-1,y)<4 and map(x,y+1)=4 and map(x,y-1)=4 then planetmap(x,y,slot)=-54
+                    if map(x,y+1)>0 and map(x,y+1)<4 and map(x,y-1)>0 and map(x,y-1)<4 and map(x+1,y)=4 and map(x-1,y)=4 then planetmap(x,y,slot)=-54
+                endif            
+            endif
+            
+            
+            if translate=3 then
+                if map(x,y)=0 then 
+                    planetmap(x,y,slot)=-rnd_range(49,51) 'stone walls
+                    p(0).x=x
+                    p(0).y=y
+                    c=0
+                    for b=1 to 9
+                        p(2)=movepoint(p(0),b)
+                        if planetmap(p(2).x,p(2).y,slot)=-158 then c=c+(10-adddoors)
+                    next
+                    if rnd_range(1,100)<adddoors+c then planetmap(p(0).x,p(0).y,slot)=-158
+                endif
+                if map(x,y)=1 then planetmap(x,y,slot)=-4 'platform
+                if map(x,y)=2 then planetmap(x,y,slot)=-4
+                
+                if map(x,y)=3 then planetmap(x,y,slot)=-4 'internal of room
+                if map(x,y)=4 then planetmap(x,y,slot)=-51 'wall
+                if map(x,y)=5 then planetmap(x,y,slot)=-156 
+                            
+            endif
+        next
+    next
+
 
 end sub
 
@@ -314,9 +309,17 @@ sub makecomplex(byref enter as gamecords, down as short)
     dim  as integer counter,bigc
     slot=enter.m
 
+    if planets(slot).depth=0 then planets(slot).depth=1
     planets(slot).darkness=5
     planets(slot).vault=r(0)
     planets(slot).teleport=1
+    
+    planets(slot).temp=25
+    planets(slot).atmos=3    
+    planets(slot).grav=.8
+    planets(slot).mon=9
+    planets(slot).noamin=16
+    planets(slot).noamax=26+planets(slot).depth
 do   
     last=0
     for a=0 to 255
@@ -516,10 +519,11 @@ do
         planetmap(portal(a).from.x,portal(a).from.y,slot)=0
     endif
     
-    planets(slot).temp=25
-    planets(slot).atmos=3    
-    planets(slot).grav=0
-    planets(slot).mon=9
+    if rnd_range(1,100)<planets(slot).depth*2 then
+        planets(slot).vault=r(rnd_range(0,last))
+        planets(slot).vault.wd(5)=1
+    endif
+    
 end sub
 
 sub makelabyrinth(slot as short)
@@ -1253,7 +1257,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     planets(a).life=(((planets(a).water/10)+1)*planets(a).atmos)/10
     if planets(a).orbit>2 and planets(a).orbit<6 then planets(a).life=planets(a).life+rnd_range(1,5)
     if planets(a).life>10 then planets(a).life=10 
-    planets(a).rot=(rnd_range(0,6)+rnd_range(0,6)-3)/10
+    planets(a).rot=(rnd_range(0,10)+rnd_range(0,5)+rnd_range(0,5)-4)/10
     if planets(a).rot<0 then planets(a).rot=0 
     'Flowers
     if rnd_range(1,200)<planets(a).atmos+planets(a).life and planets(a).atmos>1 then
@@ -1346,7 +1350,6 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next
     endif
     
-    makespecialplanet(a)
     
     if planets(a).temp<0 then
         for x=0 to 60
@@ -1408,6 +1411,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             next
         next
     endif
+    makespecialplanet(a)
 end sub
 
 sub makecraters(a as short, o as short)
@@ -1784,10 +1788,14 @@ sub makespecialplanet(a as short)
     dim it as _items
     ' UNIQUE PLANETS
     '
-    
-    
+    for b=0 to lastspecial
+        if a=specialplanet(b) then
+            planets(a).temp=22+rnd_range(2,20)/10
+            planets(a).rot=1
+        endif
+    next
+
     if a=specialplanet(0) then 'Woodworld
-        
         for x=0 to 60
             for y=0 to 20
                 if rnd_range(1,100)<77 then
@@ -1840,6 +1848,7 @@ sub makespecialplanet(a as short)
     
     if a=specialplanet(1) then 'apollos temple
         planetmap(rnd_range(1,60),rnd_range(0,20),a)=-56
+        planets(a).flavortext="A huge guy in a robe claims to be apollo and demands you to worship him. he gets very agressive as you refuse. Also your Ship suddenly disappears."        
     endif
     
     if a=specialplanet(2) then 'Defense town
@@ -2129,52 +2138,46 @@ sub makespecialplanet(a as short)
         
     endif
     
-    if specialplanet(9)=a then 'Secret Base thingy
-        wx=rnd_range(0,53)
-        wy=rnd_range(0,13)
-        for x=wx to wx+7
-            for y=wy to wy+7
+    
+    if a=specialplanet(9) then
+        planets(a).water=25
+        makeislands(a,3)
+        planets(a).atmos=4
+        planets(a).temp=15.5
+        for x=4 to 16
+            for y=4 to 16
+                if x=4 or y=4 or x=16 or y=16 then planetmap(x,y,a)=-18
+            next
+        next
+        for x=5 to 15
+            for y=5 to 15
+                if x=5 or y=5 or x=15 or y=15 then
+                    planetmap(x,y,a)=-16
+                else
+                    if frac(x/2)=0 and frac(y/2)=0 then planetmap(x,y,a)=-68
+                endif
+            next
+        next
+        for x=6 to 8
+            for y=6 to 8
                 planetmap(x,y,a)=-18
             next
         next
-        for x=wx+1 to wx+6
-            for y=wy+1 to wy+6
-                planetmap(x,y,a)=-16
-            next
+        planetmap(7,7,a)=-241
+        for b=0 to 1
+            gc.m=a
+            gc.x=rnd_range(20,60)
+            gc.y=rnd_range(1,18)
+            lastplanet+=1
+            gc1.m=lastplanet
+            p1=rnd_point(lastplanet,0)
+            gc1.x=p1.x
+            gc1.y=p1.y
+            makecomplex(gc1,1)
+            addportal(gc,gc1,0,asc("o"),"A shaft",14)
         next
-        planetmap(wx+4,wy+4,a)=-4
-        planets(a).depth=7
-        lastportal=lastportal+1
-        portal(lastportal).desig="A building still in good condition. "
-        portal(lastportal).tile=ASC("#")
-        portal(lastportal).col=14
-        portal(lastportal).from.m=a
-        portal(lastportal).from.x=wx+4
-        portal(lastportal).from.y=wy+4
-        portal(lastportal).dest.m=lastplanet+1
-        'specialplanet(11)=portal(lastportal).dest.m
-        portal(lastportal).dest.x=rnd_range(1,59)
-        portal(lastportal).dest.y=rnd_range(1,19)
-        portal(lastportal).discovered=show_portals
-        portal(lastportal).tumod=10
-        portal(lastportal).dimod=-3
-        lastplanet=lastplanet+1
-        
-        wx=rnd_range(0,53)
-        wy=rnd_range(0,13)
-        for x=wx to wx+4
-            for y=wy to wy+4
-                planetmap(x,y,a)=-18
-            next
-        next
-        for x=wx+1 to wx+3
-            for y=wy+1 to wy+3
-                planetmap(x,y,a)=-80
-                if rnd_range(1,100)<33 then planetmap(x,y,a)=-81
-                placeitem(makeitem(rnd_range(96,99)),x,y,a)
-            next
-        next
-        
+        p1=rnd_point(lastplanet,0)
+        planetmap(p1.x,p1.y,lastplanet)=-242
     endif
     
     if specialplanet(10)=a or a=pirateplanet(0) then 'Settlement
@@ -3060,24 +3063,55 @@ sub makespecialplanet(a as short)
         planets(a).noamax=0
     endif
     
-    
-    
-    if a=specialplanet(30) then
-        planets(a).water=25
-        makeislands(a,3)
-        planets(a).atmos=4
-        planets(a).temp=15.5
-        
-        for x=5 to 15
-            for y=5 to 15
-                if x=5 or y=5 or x=15 or y=15 then
-                    planetmap(x,y,a)=-16
-                else
-                    if frac(x/2)=0 and frac(y/2)=0 then planetmap(x,y,a)=-68
-                endif
+    if specialplanet(30)=a then 'Secret Base thingy
+        wx=rnd_range(0,53)
+        wy=rnd_range(0,13)
+        for x=wx to wx+7
+            for y=wy to wy+7
+                planetmap(x,y,a)=-18
             next
         next
+        for x=wx+1 to wx+6
+            for y=wy+1 to wy+6
+                planetmap(x,y,a)=-16
+            next
+        next
+        planetmap(wx+4,wy+4,a)=-4
+        planets(a).depth=7
+        lastportal=lastportal+1
+        portal(lastportal).desig="A building still in good condition. "
+        portal(lastportal).tile=ASC("#")
+        portal(lastportal).col=14
+        portal(lastportal).from.m=a
+        portal(lastportal).from.x=wx+4
+        portal(lastportal).from.y=wy+4
+        portal(lastportal).dest.m=lastplanet+1
+        'specialplanet(11)=portal(lastportal).dest.m
+        portal(lastportal).dest.x=rnd_range(1,59)
+        portal(lastportal).dest.y=rnd_range(1,19)
+        portal(lastportal).discovered=show_portals
+        portal(lastportal).tumod=10
+        portal(lastportal).dimod=-3
+        lastplanet=lastplanet+1
+        
+        wx=rnd_range(0,53)
+        wy=rnd_range(0,13)
+        for x=wx to wx+4
+            for y=wy to wy+4
+                planetmap(x,y,a)=-18
+            next
+        next
+        for x=wx+1 to wx+3
+            for y=wy+1 to wy+3
+                planetmap(x,y,a)=-80
+                if rnd_range(1,100)<33 then planetmap(x,y,a)=-81
+                placeitem(makeitem(rnd_range(96,99)),x,y,a)
+            next
+        next
+        
+        
     endif
+    
     
     if a=specialplanet(31)then
         makemossworld(a,4)
@@ -3238,12 +3272,14 @@ sub makespecialplanet(a as short)
                 if distance(pa(0),p)<4 then planetmap(x,y,a)=-4
                 if distance(pa(1),p)<4 then planetmap(x,y,a)=-4
                 if distance(pa(2),p)<4 then planetmap(x,y,a)=-4
-                if x>10 and x<25 and y=10 then planetmap(x,y,a)=-4
+                
+                if x>10 and x<30 and y=10 then planetmap(x,y,a)=-4
                 
             next
         next
         for b=0 to 5
             p=rnd_point(a,0)
+            if p.y=10 then p.y=11
             planetmap(p.x,p.y,a)=-67
         next
         p=rnd_point(a,2)
@@ -3316,9 +3352,9 @@ sub makespecialplanet(a as short)
     endif
     
     if a=specialplanet(34) then
-        planets(a).water=45
+        planets(a).water=15
         makeislands(a,3)
-        for c=1 to 12
+        for c=1 to 12+rnd_range(1,6)
             p1=rnd_point
             b=rnd_range(0,2)+rnd_range(0,2)+2
             for x=p1.x-4 to p1.x+4
@@ -3326,10 +3362,8 @@ sub makespecialplanet(a as short)
                     if x>=0 and y>=0 and x<=60 and y<=20 then
                         p2.x=x
                         p2.y=y
-                        if abs(planetmap(x,y,a))>2 then
-                            if distance(p1,p2)<b then planetmap(x,y,a)=-160
-                            if distance(p1,p2)=b then planetmap(x,y,a)=-159
-                        endif    
+                        if distance(p1,p2)<b then planetmap(x,y,a)=-160
+                        if distance(p1,p2)=b then planetmap(x,y,a)=-159
                     endif
                 next
             next
@@ -3426,19 +3460,19 @@ sub makespecialplanet(a as short)
         gc1.x=rnd_range(0,60)
         gc1.y=rnd_range(0,20)
         gc1.m=lastplanet
-        addportal(gc,gc1,0,asc("o"),"A natural tunnel",7)
         makecavemap(gc1,2-rnd_range(1,4),4-rnd_range(1,8),0,0)
+        addportal(gc,gc1,0,asc("o"),"A natural tunnel",7)
         
+        gc.m=lastplanet   
         p1=rnd_point(lastplanet,0)
-        lastplanet+=1
         gc.x=p1.x
         gc.y=p1.y
-        gc.m=a    
+        lastplanet+=1
         gc1.x=rnd_range(0,60)
         gc1.y=rnd_range(0,20)
         gc1.m=lastplanet
-        addportal(gc,gc1,0,asc("o"),"A shaft",14)
         makecomplex(gc1,2)
+        addportal(gc,gc1,0,asc("o"),"A shaft",14)
         p1=rnd_point(lastplanet,0)
         planetmap(p1.x,p1.y,lastplanet)=-240
     endif
@@ -4181,7 +4215,8 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
     endif
     
     if houses(0)=0 and houses(1)=0 and houses(2)=0 and rnd_range(1,100)<25 and planets(slot).atmos>1 and planets(slot).atmos<7 then makesettlement(rnd_point,slot,rnd_range(0,4))
-                        
+       
+       
     if rnd_range(1,100)<pyr+7 and pyr>0 then         
         planetmap(p.x,p.y,slot)=-150
         if show_all=1 then planetmap(p.x,p.y,slot)=-planetmap(p.x,p.y,slot)

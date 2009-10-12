@@ -350,9 +350,9 @@ function makepiratefleet(modifier as short=0) as _fleet
     f.ty=2
     f.t=9 'All pirates start with target 9 (random point)
     f.c=map(piratebase(b)).c
-    maxroll=player.turn/150
-    if maxroll>50 then maxroll=50
-    for a=1 to rnd_range(1,2)    
+    maxroll=player.turn/120
+    if maxroll>60 then maxroll=60
+    for a=1 to rnd_range(1,2)+maxroll/20    
         r=rnd_range(1,maxroll)+modifier
         f.mem(a)=makeship(2)
         if r>15 then f.mem(a)=makeship(3)
@@ -2321,7 +2321,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.tile=asc("T")
         enemy.sprite=277
         enemy.cmmod=3
-        enemy.col=163
+        enemy.col=2
         enemy.move=.1
         enemy.respawns=1
         enemy.biomod=4
@@ -2330,8 +2330,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             enemy.c.x=x
             enemy.c.y=y
             enemy.biomod=0
-            enemy.sdesc="Ted Rofes, a shipsdoctor. "
-            enemy.ldesc="Ted Rofes, a shipsdoctor."
+            enemy.sdesc="Ted Rofes, the shipsdoctor. "
+            enemy.ldesc="Ted Rofes, the shipsdoctor."
             enemy.lang=22
             enemy.dhurt="hurt"
             enemy.dkill="dies"
@@ -2350,6 +2350,50 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         endif
     endif
         
+        
+    if a=46 then 'Vault bots
+        enemy.sdesc="defense robot"
+        enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
+        enemy.dhurt="damaged"
+        enemy.dkill="destroyed"
+        enemy.swhat=" a disintegrator beam "
+        enemy.scol=12
+        enemy.respawns=0
+        enemy.armor=1
+        enemy.lang=-3
+        enemy.sight=5
+        enemy.atcost=rnd_range(6,8)/10
+        for l=1 to c+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,b)
+        next
+        enemy.hp=15+enemy.hp+b+planets(a).depth
+        
+        enemy.weapon=rnd_range(1,6)-3+awayteam.weapon
+        if enemy.weapon<0 then enemy.weapon=0
+        enemy.range=4
+        if enemy.range<1.5 then enemy.range=1.5
+        enemy.hpmax=enemy.hp
+        enemy.biomod=0
+        enemy.aggr=0
+        enemy.move=0.7
+        enemy.tile=ASC("R")
+        enemy.col=137
+        enemy.sight=rnd_range(1,3)+rnd_range(1,3)-1
+        enemy.sprite=278
+        enemy.move=0
+        enemy.col=20
+        enemy.sdesc="armored robot"
+        enemy.sight=enemy.sight+3
+        enemy.armor=5
+        enemy.weapon=enemy.weapon+1
+        enemy.range=1.5
+        enemy.atcost=rnd_range(7,9)/10
+        enemy.sprite=282
+        for b=0 to rnd_range(1,6)+rnd_range(1,6)
+            if rnd_range(1,100)<33 then placeitem(makeitem(94),x,y,map,mslot)
+        next
+    endif
+    
     if easy_fights=1 then
         enemy.armor=0
         enemy.weapon=0
@@ -2414,7 +2458,7 @@ dim as short c,b
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
-        p.money=5000
+        p.money=500
         p.pilot=1
         p.gunner=1
         p.science=1

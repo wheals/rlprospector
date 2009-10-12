@@ -5,8 +5,8 @@ Const Show_NPCs=0 'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
-Const make_files=1 'outputs statistics to txt files
-Const show_all=1
+Const make_files=0 'outputs statistics to txt files
+Const show_all=0
 const show_items=0 'shows entire maps
 const alien_scanner=0'player has alien scanner
 Const show_critters=0 
@@ -35,6 +35,7 @@ const key_space = Chr(32)
 const lastflag=20
 const sm_x=75
 const sm_y=35
+
 
 dim shared as byte _NoPB=2
 dim shared as byte wormhole=8
@@ -266,6 +267,7 @@ type _ship
     discovered(9) as byte
     towed as byte
     tractor as byte
+    teleportload as byte
     col as short
     bcol as short
     mcol as short
@@ -595,7 +597,7 @@ dim shared fleet(255) as _fleet
 dim shared targetlist(9) as cords
 dim shared drifting(128) as gamecords
 dim shared crew(128) as _crewmember
-dim shared shiptypes(18) as string
+dim shared shiptypes(19) as string
 dim shared disease(17) as _disease
 dim shared awayteamcomp(4) as byte
 dim shared fightmatrix(5,5) as byte
