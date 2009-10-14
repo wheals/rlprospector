@@ -880,6 +880,10 @@ function shipupgrades() as short
                 if d>0 and d<11 then
                     if player.money>=shopitem(d,20).price then
                         if shopitem(d,20).ty=50 then
+                            if shopitem(d,20).v1>player.h_maxsensors then
+                                dprint "your ship is too small for those"
+                                player.money=player.money+shopitem(d,20).price
+                            endif
                             if shopitem(d,20).v1<player.sensors then
                                 dprint "you already have better sensors"
                                 player.money=player.money+shopitem(d,20).price
@@ -888,7 +892,7 @@ function shipupgrades() as short
                                 dprint "that is the same as your current sensor system"
                                 player.money=player.money+shopitem(d,20).price
                             endif
-                            if shopitem(d,20).v1>player.sensors then
+                            if shopitem(d,20).v1>player.sensors and shopitem(d,20).v1<player.h_maxsensors then
                                 player.sensors=shopitem(d,20).v1
                                 player.money=player.money-shopitem(d,20).price
                                 dprint "You buy "&shopitem(d,20).desig

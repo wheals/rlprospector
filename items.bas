@@ -847,9 +847,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=53 then
         i.id=53
         i.ty=27
-        i.desig="simple automated mining robot"
-        i.desigp="simple autmated mining robot"
-        i.ldesc="A small robot, collecting small deposits and traces, autonomously."
+        i.desig="simple mining robot"
+        i.desigp="simple mining robot"
+        i.ldesc="A small stationary robot, collecting small deposits and traces, autonomously."
         i.icon="X"
         i.col=54
         i.discovered=1
@@ -865,9 +865,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=54 then
         i.id=54
         i.ty=27
-        i.desig="simple automated mining robot"
-        i.desigp="simple automated mining robot"
-        i.ldesc="A small robot, collecting and drilling for small deposits and traces, autonomously."
+        i.desig="mining robot"
+        i.desigp="mining robot"
+        i.ldesc="A small stationary robot, collecting and drilling for small deposits and traces, autonomously."
         i.icon="X"
         i.col=60
         i.discovered=1
@@ -883,9 +883,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=55 then
         i.id=55
         i.ty=27
-        i.desig="automated mining robot"
-        i.desigp="automated mining robot"
-        i.ldesc="A small robot drilling for ore autonomously, collecting small deposits and traces from the ground and atmosphere."
+        i.desig="improved mining robot"
+        i.desigp="improved mining robot"
+        i.ldesc="A small stationary robot drilling for ore autonomously, collecting small deposits and traces from the ground and atmosphere."
         i.icon="X"
         i.discovered=1
         i.col=66
@@ -1330,11 +1330,12 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
     'Equip lamps
     
-    if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
-    if findbest(20,-1)>-1 then awayteam.sight=item(findbest(20,-1)).v1
     
     awayteam.sight=3
-    if findbest(8,-1)>-1 then awayteam.sight=3+item(findbest(8,-1)).v1
+    if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
+    if findbest(20,-1)>-1 then awayteam.sight=item(findbest(20,-1)).v1
+    if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
+    
     
     awayteam.oxymax=200+oxytanks
     if artflag(9)=1 then awayteam.move=3

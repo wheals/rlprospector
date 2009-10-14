@@ -493,8 +493,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     for b=1 to 8
+        player.deadredshirts=player.deadredshirts+killed(b)
         if killed(b)>0 then
-            if injured(b)>1 then
+            if killed(b)>1 then
                 text=text &killed(b) &" "&desc(b)&"s killed. "
             else
                 text=text &desc(b)&" killed. "

@@ -8,7 +8,7 @@ sub postmortem
     dim expp as short
     dim tp as short
     dim st as string
-    dim per(2) as double
+    dim per(3) as double
     dim discovered(lastspecial) as short
     dim descr(lastspecial) as string
     dim flagst(13) as string
@@ -131,6 +131,7 @@ sub postmortem
         print " Credits in trading goods. (";
         color 14,0
         if player.tradingmoney>0 and player.money>0 then per(1)=100*(player.tradingmoney/player.money)
+        if per(1)>100 then per(1)=100        
         print int(per(1));
         color 11,0
         print "%)"
@@ -144,6 +145,7 @@ sub postmortem
         print " Credits were from bountys for destroyed pirate ships (";
         color 14,0
         if player.piratekills>0 and player.money>0 then per(2)=100*(player.piratekills/player.money)
+        if per(2)>100 then per(2)=100
         print int(per(2));
         color 11,0
         print "%)"
@@ -203,7 +205,9 @@ sub postmortem
     print "Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (";
     color 14,0
     if ext>0 and total>0 then
-        print int((ext/total)*100) &"%";
+        per(3)=((ext/total)*100)
+        if per(3)>100 then per(3)=100
+        print int(per(3)) &"%";
     endif
     color 11,0
     print ") ";

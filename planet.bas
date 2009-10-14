@@ -1396,7 +1396,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next
     next
     planets(a).water=(b/1200)*100
-    planets(a).darkness=cint((5-planets(a).orbit)/2)
+    planets(a).darkness=3-cint((5-planets(a).orbit)/2)
     planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
     if spect=8 then
         makecraters(a,9)
