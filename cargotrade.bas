@@ -744,6 +744,7 @@ function sickbay(sh as short=20, pir as short=1) as short
                 dprint "You have no sick crewmembers."
             endif
         endif
+        displayship
     loop until a=3
     return player.disease
 end function

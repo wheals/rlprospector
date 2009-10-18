@@ -365,9 +365,9 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             a=rnd_range(1,6)
             if a=1 then dprint "The Citizen welcomes you to the colony"
             if a=2 then dprint "The Citizen says: 'You have chosen the right time of the year to visit our colony!'"
-            if a=3 then dprint "The Citizen says: 'You are an offworlder, aren't you? You should visit Mr. Grey, he collects native art.'"
-            if a=4 then dprint "The Citizen says: 'We are indipendent and neutral. Has served us good in the past years.' "
-            if a=5 then dprint "The Citizen says: 'When we settled here we found alien ruins. In an underground vault was a cache with weapons and armor. we don't need it. We sell it.' "
+            if a=3 then dprint "The Citizen says: 'You are an offworlder, aren't you? We don't get visitors often'"
+            if a=4 then dprint "The Citizen says: 'We only settled here recently.' "
+            if a=5 then dprint "The Citizen says: 'Did you bring supplies?' "
             if a=6 then dprint "The Citizen says: 'I used to do spaceship security. But that's a really dangerous job! Life is a lot safer here.' "
         endif
         if e.aggr=2 then dprint "He sobs: 'Why did you do this? We only wanted to live in peace!"

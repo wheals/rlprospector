@@ -727,6 +727,10 @@ endif
 player.c=basis(e).c
 next
 
+print "checking for starmap errors: ";
+fixstarmap()
+
+
 ' The probesp
 
 for a=1 to lastdrifting
@@ -804,8 +808,6 @@ for a=0 to 15
     p1=rnd_point(drifting(2).m,0)
     planetmap(p1.x,p1.y,drifting(2).m)=-158
 next
-print "checking for starmap errors: ";
-fixstarmap()
 
 color 14,0
 print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
@@ -2273,7 +2275,7 @@ function spacestation(st as short) as _ship
             if player.money<0 then text=text &"You still have debts of "& player.money &" credits to pay. "
             if text<>"" and player.dead=0 then
                 if askyn(text &"Do you want to leave anyway?(y/n)",14) then
-                    a=8
+                    a=9
                 else 
                     a=0
                 endif
