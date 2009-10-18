@@ -17,12 +17,12 @@ function earthquake(t as _tile,dam as short)as _tile
 end function
 
 
-function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short,byref map as short, byref walking as short) as short
+function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short,byref slot as short, byref walking as short) as short
     dim as short a,b,x,y
     dim as cords p
     if disease(awayteam.disease).bli>0 then return 0
     ' Stuff on ground    
-        makevismask(vismask(),awayteam,map)        
+        makevismask(vismask(),awayteam,slot)        
         for x=awayteam.c.x-2-awayteam.sight to awayteam.c.x+2+awayteam.sight 
             for y=awayteam.c.y-2-awayteam.sight to awayteam.c.y+2+awayteam.sight
                 if x>=0 and x<=60 and y>=0 and y<=20 then
@@ -30,16 +30,16 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                     p.y=y
                     'if awayteam.sight>cint(distance(awayteam.c,p)) then
                     if vismask(x,y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then 
-                        if planetmap(x,y,map)<0 then 
-                            planetmap(x,y,map)=planetmap(x,y,map)*-1
+                        if planetmap(x,y,slot)<0 then 
+                            planetmap(x,y,slot)=planetmap(x,y,slot)*-1
                             reward(0)=reward(0)+1
-                            reward(7)=reward(7)+planets(map).mapmod
-                            if tiles(planetmap(x,y,map)).stopwalking>0 then walking=0
-                            if player.questflag(9)=1 and planetmap(x,y,map)=100 then player.questflag(9)=2
+                            reward(7)=reward(7)+planets(slot).mapmod
+                            if tiles(planetmap(x,y,slot)).stopwalking>0 then walking=0
+                            if player.questflag(9)=1 and planetmap(x,y,slot)=100 then player.questflag(9)=2
                         endif
                         if rnd_range(1,100)<disease(awayteam.disease).hal then
                             dtile(x,y,tiles(rnd_range(1,255)))
-                            planetmap(x,y,map)=planetmap(x,y,map)*-1 
+                            planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
                         else
                             dtile(x,y,tmap(x,y))
                         endif
@@ -49,7 +49,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         next
         
         for a=0 to lastportal
-            if portal(a).from.m=map then
+            if portal(a).from.m=slot then
                 p.x=portal(a).from.x
                 p.y=portal(a).from.y
                 if (vismask(portal(a).from.x,portal(a).from.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
@@ -62,7 +62,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 endif
             endif
             if portal(a).oneway=0 then
-                if portal(a).dest.m=map then
+                if portal(a).dest.m=slot then
                     p.x=portal(a).dest.x
                     p.y=portal(a).dest.y
                     if (vismask(portal(a).dest.x,portal(a).dest.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
@@ -77,14 +77,14 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         next
         
         for a=1 to lastlocalitem
-            if item(li(a)).w.m=map and item(li(a)).w.s=0 and item(li(a)).w.p=0 then
+            if item(li(a)).w.m=slot and item(li(a)).w.s=0 and item(li(a)).w.p=0 then
                 p.x=item(li(a)).w.x
                 p.y=item(li(a)).w.y
-                if (vismask(item(li(a)).w.x,item(li(a)).w.y)>0 and tiles(abs(planetmap(p.x,p.y,map))).hides=0 and awayteam.sight>cint(distance(awayteam.c,p))) or item(li(a)).discovered=1 then
+                if (vismask(item(li(a)).w.x,item(li(a)).w.y)>0 and tiles(abs(planetmap(p.x,p.y,slot))).hides=0 and awayteam.sight>cint(distance(awayteam.c,p))) or item(li(a)).discovered=1 then
                     if item(li(a)).discovered=0 then walking=0
                     item(li(a)).discovered=1
-                    if tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,map))).walktru>0 and item(li(a)).bgcol=0 then
-                        color item(li(a)).col,tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,map))).col
+                    if tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).walktru>0 and item(li(a)).bgcol=0 then
+                        color item(li(a)).col,tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
                     else
                         color item(li(a)).col,item(li(a)).bgcol
                     
@@ -266,13 +266,14 @@ function cureawayteam(where as short) as short
             endif
         endif
         if pack>0 then
+            dprint "Using "&item(pack).desig &".",10,10
             bonus=item(pack).v1
             destroyitem(pack)
         else
             bonus=-3
         endif
     else
-        bonus=3
+        bonus=findbest(21,-1)+3
     endif
     
     for a=0 to 128
@@ -285,11 +286,10 @@ function cureawayteam(where as short) as short
             if crew(a).disease>0 then sick+=1
         endif
     next
-    if cured>1 then text=cured &" members of your crew where cured. "
-    if cured=1 then text=cured &" member of your crew was cured. "
-    if cured=0 and sick>0 then text="No members of your crew where cured. "
-    if sick>0 and cured>0 then text=text &sick &" are still sick."
-    if text<>"" then dprint text
+    if cured>1 then dprint cured &" members of your crew where cured.",10,10
+    if cured=1 then dprint cured &" member of your crew was cured.",10,10
+    if cured=0 and sick>0 then dprint "No members of your crew where cured.",14,14
+    if sick>0 then dprint sick &" are still sick.",14,14
     return 0
 end function
 
@@ -358,11 +358,10 @@ function infect(a as short,dis as short) as short
 end function
 
 function diseaserun(onship as short) as short
-    dim as short a,dam,total,affected,dis,dead
+    dim as short a,dam,total,affected,dis,dead,distotal
     dim text as string
     for a=2 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and crew(a).disease>0 then
-            if crew(a).disease>dis then dis=crew(a).disease
             if crew(a).duration>0 then 
                 if crew(a).duration=disease(crew(a).disease).duration then dprint "A crewmember gets sick.",14,14
                 crew(a).duration-=1
@@ -389,7 +388,7 @@ function diseaserun(onship as short) as short
                         crew(a).disease=0
                     endif
                 endif
-            endif        
+            endif
         endif
         if a=2 and crew(a).hp<=0 and player.pilot>0 then 
             player.pilot=-5
@@ -410,13 +409,13 @@ function diseaserun(onship as short) as short
             player.doctor=-5   
             dprint " Your doctor dies of disease!",12,12
         endif
+        if crew(a).disease>dis then dis=crew(a).disease
     next
-    if dis>0 then player.disease=dis
+    player.disease=dis
     if total=1 then dprint " A crewmember suffer "& total &" damage from disease.",14,14
     if total>1 then dprint affected &" crewmembers suffer "& total &" damage from disease.",14,14
     if dead=1 then dprint " A crewmember dies from disease.",12,12
     if dead>1 then dprint dead &" crewmembers die from disease.",12,12
-    
     return 0
 end function
 
@@ -1404,7 +1403,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 logbook
                 screenshot(2)
             endif
-            if key=key_equipped then
+            if key=key_weapons then
                 it=getitem
                 if it>0 then dprint item(it).ldesc
             endif
@@ -1661,8 +1660,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         endif
         locate 22,15
         color 15,0
-        if loctime=3 then print "Night"
-        if loctime=0 then print " Day "
+        if loctime=3 then print " Day"
+        if loctime=0 then print "Night"
         if loctime=1 then print "Dawn "
         if loctime=2 then print "Dusk "
         color 11,1
@@ -2395,8 +2394,8 @@ end function
 
 
 function dprint(t as string, delay as short=5, col as short=11) as short
-    dim a as short
-    dim b as short
+
+    dim as short a,b
     dim text as string
     dim wtext as string
     dim offset as short
@@ -2443,7 +2442,6 @@ function dprint(t as string, delay as short=5, col as short=11) as short
             locate b,1,0
             color dtextcol(b),0
             print displaytext(b);
-            
         next
         if displaytext(25)<>"" then
         for b=0 to 29
@@ -2768,7 +2766,6 @@ function countasteroidfields(sys as short) as short
     return b
 end function
 
-
 function countgasgiants(sys as short) as short
     dim as short a,b
     for a=1 to 9
@@ -2779,33 +2776,23 @@ end function
 
 function checkcomplex(map as short,fl as short) as integer
     dim result as integer
-    dim flags(254) as short
     dim maps(36) as short
-    dim as short nextmap,lastmap,a,b,done
+    dim as short nextmap,lastmap,foundport,a,b,done
+    maps(0)=map
     do
-        nextmap=0
-        for a=0 to lastportal
-            if portal(a).from.m=map then 
-                nextmap=portal(a).dest.m
-                lastmap+=1
-                maps(lastmap)=portal(a).dest.m
-            endif
-            if portal(a).dest.m=map then 
-                nextmap=portal(a).from.m
-                lastmap+=1
-                maps(lastmap)=portal(a).from.m
-            endif
+    ' Suche portal auf maps(lastmap)
+        lastmap=nextmap
+        nextmap+=1
+        for a=1 to lastportal
+            'if portal(a).dest.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
+            if portal(a).from.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
         next
-    loop until nextmap=0
+        locate 1,1
+        print lastmap;nextmap;"   "
+    loop until maps(nextmap)=0
+    
     for a=1 to lastmap
-        for b=1 to lastmap
-            if a<>b then
-                if maps(a)=maps(b) then maps(b)=0
-            endif
-        next
-    next
-    for a=1 to lastmap
-        if maps(a)>0 and planets(maps(a)).genozide=1 then result+=1
+        if maps(a)>0 and planets(maps(a)).genozide=0 then result+=1
     next
     return result
 end function

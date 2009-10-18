@@ -58,6 +58,7 @@ dim shared as byte _autoinspect=1
 dim shared as byte _warnings=0
 dim shared as byte _volume=9
 dim shared as byte _easy=0
+dim shared as byte _resolution=2
 
 dim shared as string*1 key_manual="?"
 dim shared as string*1 key_messages="m"
@@ -521,11 +522,6 @@ type _crewmember
     armo as single
 end type
 
-type _dialog
-    question(7) as string
-    answer as string
-end type
-
 '
 '
 'reward slots
@@ -570,7 +566,7 @@ for a=0 to 2047
     planets(a).darkness=5
 next
 dim shared item(25000) as _items
-dim shared shopitem(20,20) as _items
+dim shared shopitem(20,21) as _items
 dim shared lastitem as integer
 
 dim shared tiles(255) as _tile
@@ -613,7 +609,7 @@ dim shared lastplanet as short
 dim shared lastcom as short
 dim shared lastwaypoint as short
 dim shared lastfleet as short
-dim shared lastdrifting as short=10
+dim shared lastdrifting as short=16
 dim shared liplanet as short 'last input planet
 
 

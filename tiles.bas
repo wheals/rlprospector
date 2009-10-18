@@ -123,6 +123,7 @@ tiles(18).desc="forcefield"
 tiles(18).firetru=1
 tiles(18).dam=1
 tiles(18).tohit=101
+tiles(18).walktru=1
 tiles(18).range=0
 tiles(18).hitt="You get zapped by a forcefield"
 

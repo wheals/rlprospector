@@ -1,7 +1,7 @@
 function loadmap(m as short,slot as short)as short
     dim as short f,b,x,y
     f=freefile
-    open "deckplans.dat" for binary as #f
+    open "data/deckplans.dat" for binary as #f
     for b=1 to m
         for x=0 to 60
             for y=0 to 20
@@ -88,7 +88,7 @@ function background(fn as string) as short
     dim scr(81,25) as short
     dim pal(32) as integer
     f=freefile
-    open fn for binary as #f
+    open "data/"&fn for binary as #f
     for x=0 to 80
         for y=0 to 25
             get #f,,c
@@ -268,6 +268,11 @@ function loadconfig() as short
                     if instr(text,"3")>0 then _volume=3
                     if instr(text,"4")>0 then _volume=4
                 endif
+                if instr(text,"resolution")>0 then
+                    if instr(text,"0")>0 then _resolution=0
+                    if instr(text,"1")>0 then _resolution=1
+                    if instr(text,"2")>0 then _resolution=2
+                endif
             endif                
         loop until eof(f)
         close #f
@@ -281,6 +286,7 @@ function configuration() as short
     dim text as string
     dim onoff(1) as string
     dim warn(2) as string
+    dim res(2) as string
     dim c as short
     dim f as integer
     onoff(0)=" On "
@@ -288,11 +294,14 @@ function configuration() as short
     warn(0)="On  "
     warn(1)="Off "
     warn(2)="High"
+    res(0)="Low"
+    res(1)="Med"
+    res(2)="High"
     screenshot(1)
     do
         text="Prospector 0.1.7 Configuration/ Autopickup :"& onoff(_autopickup)
         text=text &"/ Always chose best item :"& onoff(_chosebest)
-        text=text &"/ Beep on low oxygen :"& warn(_sound)
+        text=text &"/ Sound effects :"& warn(_sound)
         text=text &"/ Automatically chose diagonal:" & onoff(_diagonals)
         text=text &"/ Always sell all:" & onoff(_autosell)
         text=text &"/ Start with random ship:"& onoff(_startrandom)
@@ -304,7 +313,8 @@ function configuration() as short
         text=text &"/ Navigational Warnings(Gasclouds & 1HP landings):" & onoff(_warnings)
         text=text &"/ Graphic tiles:" & onoff(_tiles)
         text=text &"/ Easy start:" & onoff(_easy)
-        text=text &"/ Volume:" & _volume
+        text=text &"/ Volume (0-5):" & _volume
+        text=text &"/ Resolution: "&res(_resolution)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -424,7 +434,14 @@ function configuration() as short
             IF _volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
             IF _volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
         endif
-    loop until c=16
+        
+        
+        if c=16 then
+            _resolution+=1
+            if _resolution>2 then _resolution=0
+            dprint "Resolution will be changed next time you start prospector."
+        endif
+    loop until c=17
     screenshot(2)
     f=freefile
     open "config.txt" for output as #f
@@ -445,6 +462,7 @@ function configuration() as short
     print #f,"tiles:"&_tiles
     print #f,"easy:"&_easy
     print #f,"volume:"&_volume
+    print #f,"resolution:"&_resolution
     close #f
     return 0
 end function

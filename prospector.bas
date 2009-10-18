@@ -21,9 +21,13 @@ cls
 print
 loadconfig
 if _tiles=0 then
-    screen 17,,,GFX_FULLSCREEN
+    if _resolution=0 then screenres 640,25*8,,GFX_FULLSCREEN
+    if _resolution=1 then screenres 640,25*14,,GFX_FULLSCREEN
+    if _resolution=2 then screenres 640,25*16,,GFX_FULLSCREEN
 else
-    screen 17,,,GFX_WINDOWED
+    if _resolution=0 then screenres 640,25*8,,GFX_WINDOWED
+    if _resolution=1 then screenres 640,25*14,,GFX_WINDOWED
+    if _resolution=2 then screenres 640,25*16,,GFX_WINDOWED
 endif
 width 80,25
 
@@ -66,16 +70,16 @@ IF _Volume = 2 THEN FSOUND_SetSFXMasterVolume(128)
 IF _Volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
 IF _Volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
         
-sound(1)= FSOUND_Sample_Load(FSOUND_FREE, "alarm_1.wav", 0, 0, 0)
-sound(2)= FSOUND_Sample_Load(FSOUND_FREE, "alarm_2.wav", 0, 0, 0)
-sound(3)= FSOUND_Sample_Load(FSOUND_FREE, "weap_1.wav", 0, 0, 0)
-sound(4)= FSOUND_Sample_Load(FSOUND_FREE, "weap_2.wav", 0, 0, 0)
-sound(5)= FSOUND_Sample_Load(FSOUND_FREE, "wormhole.wav", 0, 0, 0)
-sound(7)= FSOUND_Sample_Load(FSOUND_FREE, "weap_4.wav", 0, 0, 0)
-sound(8)= FSOUND_Sample_Load(FSOUND_FREE, "weap_3.wav", 0, 0, 0)
-sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "weap_5.wav", 0, 0, 0)
-sound(10)= FSOUND_Sample_Load(FSOUND_FREE, "start.wav", 0, 0, 0)
-sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "land.wav", 0, 0, 0)
+sound(1)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_1.wav", 0, 0, 0)
+sound(2)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_2.wav", 0, 0, 0)
+sound(3)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_1.wav", 0, 0, 0)
+sound(4)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_2.wav", 0, 0, 0)
+sound(5)= FSOUND_Sample_Load(FSOUND_FREE, "data/wormhole.wav", 0, 0, 0)
+sound(7)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_4.wav", 0, 0, 0)
+sound(8)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_3.wav", 0, 0, 0)
+sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_5.wav", 0, 0, 0)
+sound(10)= FSOUND_Sample_Load(FSOUND_FREE, "data/start.wav", 0, 0, 0)
+sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "data/land.wav", 0, 0, 0)
 '
 do
     
@@ -279,22 +283,23 @@ for a=0 to 10
 next
 
 
-if fileexists("ships.csv") then
-f=freefile
-open "ships.csv" for input as #f
-b=1
-do
-    line input #f,text
-    do
-        shiptypes(c)=shiptypes(c)&mid(text,b,1)
-        b=b+1
-    loop until mid(text,b,1)=";"
-    c=c+1
+if fileexists("data/ships.csv") then
+    f=freefile
+    open "data/ships.csv" for input as #f
     b=1
-loop until eof(f)
-close #f
-shiptypes(17)="an alien vessel"
-shiptypes(18)="An ancient alien scoutship. It's hull covered in tiny impact craters"
+    do
+        line input #f,text
+        do
+            shiptypes(c)=shiptypes(c)&mid(text,b,1)
+            b=b+1
+        loop until mid(text,b,1)=";"
+        c=c+1
+        b=1
+    loop until eof(f)
+    close #f
+    shiptypes(17)="an alien vessel"
+    shiptypes(18)="An ancient alien scoutship. It's hull covered in tiny impact craters"
+    shiptypes(19)="A primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
 else
     color 14,0
     print "ships.csv not found. Can't start game"
@@ -813,17 +818,21 @@ print "Asteroid belts:";astcou
 print "Gas giants:";gascou
 sleep 1250
 cls
+
+if _resolution=0 then a=9
+if _resolution=1 then a=13
+if _resolution=2 then a=17
 do
     background("title.gfx")
     color 11,0
     'draw string(457,244),"P R O S P E C T O R"
     color 15,0
-    draw string(462,273),"1) start new game" 
-    draw string(462,291),"2) load saved game"
-    draw string(462,309),"3) display highscore"
-    draw string(462,327),"4) read documentation"
-    draw string(462,345),"5) configuration"
-    draw string(462,363),"6) exit"
+    draw string(462,15*a),"1) start new game" 
+    draw string(462,16*a),"2) load saved game"
+    draw string(462,17*a),"3) display highscore"
+    draw string(462,18*a),"4) read documentation"
+    draw string(462,19*a),"5) configuration"
+    draw string(462,20*a),"6) exit"
     key=keyin("123456")
     if key="2" then
         c=0
@@ -951,7 +960,7 @@ if key="1" then
         print "You start your career with a nice little "&player.h_desig
         print "You christen the beauty:"
     endif
-    player.desig=gettext(0,10,16,"")
+    player.desig=gettext(0,10,13,"")
     if player.desig="" then player.desig=randomname()
     a=freefile
     text="savegames\"&player.desig &".sav"
@@ -959,7 +968,7 @@ if key="1" then
         close a
         do
             print "That ship is already registered."
-            player.desig=gettext(1,10,16,"")
+            player.desig=gettext(1,10,13,"")
             if player.desig="" then player.desig=randomname()
             text="savegames\"&player.desig &".sav"    
         loop until fileexists(text)=0    
@@ -1980,7 +1989,7 @@ end sub
 
 sub driftingship(a as short)
     dim as short m,b,c,x,y
-    dim p(15) as cords
+    dim p(1024) as cords
     dim land as gamecords
     m=drifting(a).m
     for x=0 to 60
@@ -2190,7 +2199,7 @@ function spacestation(st as short) as _ship
         if quarantine>6 then mtext=mtext &"(Quar.)"
         mtext=mtext &"/ Equipment "
         if quarantine>6 then mtext=mtext &"(Quar.)"
-        mtext=mtext &"/ Fuel & Ammuniton / Repair / Hire Crew / Trading "
+        mtext=mtext &"/ Sickbay / Fuel & Ammuniton / Repair / Hire Crew / Trading "
         if quarantine>5 then mtext=mtext &"(Quar.)"
         mtext=mtext &"/ Casino "
         if quarantine>4 then mtext=mtext &"(Quar.)"
@@ -2198,14 +2207,14 @@ function spacestation(st as short) as _ship
         displayship()
         a=menu(mtext)
         if a=1 then 
-            if quarantine<7 then
+            if quarantine<8 then
                 company(st,questroll)
             else
                 dprint "you are under quarantine and not allowed to enter there"
             endif
         endif
         if a=2 then'refit
-            if quarantine<7 then
+            if quarantine<9 then
                 do
                     cls
                     displayship()
@@ -2224,24 +2233,37 @@ function spacestation(st as short) as _ship
                 dprint "you are under quarantine and not allowed to enter there"
             endif
         endif
-        if a=3 then refuel()
-        if a=4 then repairhull()            
-        if a=5 then hiring(st,hiringpool,4)            
-        if a=6 then 
-            if quarantine<6 then
+        if a=3 then 
+            quarantine=sickbay()
+            mtext="Station "& st+1 &"/ "
+            mtext=mtext & basis(st).repname &" Office "
+            if quarantine>6 then mtext=mtext &"(Quar.)"
+            mtext=mtext &"/ Equipment "
+            if quarantine>6 then mtext=mtext &"(Quar.)"
+            mtext=mtext &"/ Sickbay / Fuel & Ammuniton / Repair / Hire Crew / Trading "
+            if quarantine>5 then mtext=mtext &"(Quar.)"
+            mtext=mtext &"/ Casino "
+            if quarantine>4 then mtext=mtext &"(Quar.)"
+            mtext=mtext &"/Exit"            
+        endif
+        if a=4 then refuel()
+        if a=5 then repairhull()            
+        if a=6 then hiring(st,hiringpool,4)            
+        if a=7 then 
+            if quarantine<7 then
                 trading(st)
             else
                 dprint "you are under quarantine and not allowed to enter there"
             endif
         endif
-        if a=7 then 
+        if a=8 then 
             if quarantine<5 then
                 b=casino(0,st)
             else
                 dprint "you are under quarantine and not allowed to enter there"
             endif
         endif
-        if a=8 then
+        if a=9 then
             text=""
             if player.pilot<0 then text=text &"You dont have a pilot. "
             if player.gunner<0 then text=text &"You dont have a gunner. "
@@ -2257,7 +2279,7 @@ function spacestation(st as short) as _ship
                 endif
             endif
         endif
-    loop until a=8
+    loop until a=9
     cls
     player.lastvisit.s=st
     player.lastvisit.t=player.turn
@@ -2470,7 +2492,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     
     if planets(slot).visited=0 and planets(slot).depth=0 and x=0 then 
         adaptmap(slot,enemy(),lastenemy)  
-        if rnd_range(1,100)<5 and rnd_range(1,100)<disnbase(player.c) then
+        if rnd_range(1,100)<5 and rnd_range(1,100)<disnbase(player.c) and lastenemy>10 and planets(slot).atmos>1 then
             lastenemy=lastenemy+1
             enemy(lastenemy)=makemonster(46,awayteam,slot,spawnmask(),lsp,0,0,lastenemy)
         endif
@@ -3568,7 +3590,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
         next
         if text<>"" then dprint text
         
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal then
+        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_i then
             for a=0 to lastportal
                 if portal(a).from.m=slot then
                     if awayteam.c.x=portal(a).from.x and awayteam.c.y=portal(a).from.y then
@@ -3676,7 +3698,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             b=rnd_range(1,6)+rnd_range(1,6)-3
             no_key=keyin
             if b>0 then
-                if askyn( b &" security personel want to join your crew "&maxsecurity &" (y/n)") then 
+                if askyn( b &" security personel want to join your crew. (y/n)") then 
                     if b>maxsecurity then b=maxsecurity
                     for a=1 to b
                         addmember(8)
@@ -3687,19 +3709,19 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             if b>6 then b=6
             c=rnd_range(1,100)
             if c<33 then 
-                if askyn("a pilot, skillevel " & b & " wants to join you (y/n)") then 
+                if askyn("a pilot, skillevel " & b & " wants to join you. (y/n)") then 
                     player.pilot=b
                     addmember(2)
                 endif
             endif
             if c>32 and c<66 then 
-                if askyn("a gunner, skillevel " & b & " wants to join you (y/n)") then 
+                if askyn("a gunner, skillevel " & b & " wants to join you. (y/n)") then 
                     player.gunner=b
                     addmember(3)
                 endif
             endif
             if c>65 then 
-                if askyn("a science officer, skillevel " & b & " wants to join you (y/n)") then 
+                if askyn("a science officer, skillevel " & b & " wants to join you. (y/n)") then 
                     player.science=b
                     addmember(4)
                 endif
@@ -3707,7 +3729,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             planetmap(awayteam.c.x,awayteam.c.y,slot)=62 
         endif
         if tmap(awayteam.c.x,awayteam.c.y).resources>rnd_range(1,100) then
-            dprint "you plunder the resources of the ship and move on"
+            dprint "you plunder the resources of the ship and move on."
             for a=0 to 2
                 reward(a)=reward(a)+rnd_range(10,50)+rnd_range(10,50)+500
             next
@@ -3843,7 +3865,11 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                         if slot=pirateplanet(0) then
                             c=shop(5,0.8,"Equipment")   
                         else
-                            c=shop(4,0.9,"Equipment")   
+                            if slot=specialplanet(14) then
+                                c=shop(6,0.9,"Equipment")
+                            else
+                                c=shop(4,0.9,"Equipment")
+                            endif
                         endif
                     loop until c=-1
                 else
@@ -3996,10 +4022,10 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                     if rnd_range(1,6)+rnd_range(1,6)+player.science<10 then
                         dprint "Something went wrong... this thing is about to blow up!"
                         sf=sf+1
-                        if sf>16 then sf=0
+                        if sf>15 then sf=0
                         shipfire(sf)=awayteam.c
                         sf_when(sf)=3
-                        sf_what(sf)=11+sf
+                        sf_what(sf)=10+sf
                         player.weapons(sf_what(sf))=makeweapon(rnd_range(1,5))
                         sf=sf+1 'Sets color to blueish
                     endif
@@ -4299,14 +4325,17 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
         if slot=specialplanet(12) then 'Exploding planet warnings
             if planets(specialplanet(12)).death=8 then 
                 dprint "Science officer: I wouldn't recommend staying much longer.",15,15
+                no_key=keyin
                 planets(specialplanet(12)).death=planets(specialplanet(12)).death-1
             endif
             if planets(specialplanet(12)).death=4 then 
                 dprint "Science officer: We really should get back to the ship now!",14,14
+                no_key=keyin
                 planets(specialplanet(12)).death=planets(specialplanet(12)).death-1
             endif
             if planets(specialplanet(12)).death=2 then 
                 dprint "Science officer: This planet is about to fall apart! We must leave! NOW!",12,12
+                no_key=keyin
                 planets(specialplanet(12)).death=planets(specialplanet(12)).death-1
             endif
         endif    
@@ -4525,7 +4554,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                 sf=sf+1
                 if sf>15 then sf=0
                 sf_when(sf)=1
-                sf_what(sf)=11+sf
+                sf_what(sf)=10+sf
                 r=5
                 if rnd_range(1,100)<66 then r=3
                 if rnd_range(1,100)<66 then r=2
@@ -4764,12 +4793,12 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
             if sf>16 then sf=0
             shipfire(sf)=rnd_point
             sf_when(sf)=1
-            sf_what(sf)=11+sf
+            sf_what(sf)=10+sf
             player.weapons(sf_what(sf))=makeweapon(rnd_range(1,5))
             sf=sf+1
         endif
         
-        if key=key_weapons then
+        if key=key_equipped then
             a=getitem(-2)
             if a>0 then dprint item(a).ldesc
             key=keyin()
@@ -5543,7 +5572,6 @@ function poolandtransferweapons(m as short) as short
             player.weapons(f)=makeweapon(0)
             e=e+1
         endif
-        print e;
     next
     'new weapons
     for f=6 to 10 
@@ -5568,7 +5596,7 @@ function poolandtransferweapons(m as short) as short
         text="Transfer weapons to slot "&f &":/"
         help="/"
         d=0
-        for c=0 to e
+        for c=1 to e
             if weapons(c).desig<>"" then
                 d=d+1
                 text=text &weapons(c).desig &"/"
@@ -5577,8 +5605,18 @@ function poolandtransferweapons(m as short) as short
         next
         text=text &"Exit"
         help=help &"/"
-        if d>1 then g=menu(text,help)
-        if g<d then player.weapons(f)=weapons(d)
+        if d>1 then 
+            g=menu(text,help)
+        else
+            if d=1 then
+                player.weapons(f)=weapons(d)
+                weapons(d)=makeweapon(-1)
+            endif
+        endif    
+        if g>0 and g<d then 
+            player.weapons(f)=weapons(g)
+            weapons(d)=makeweapon(-1)
+        endif
     next
     return 0
 end function

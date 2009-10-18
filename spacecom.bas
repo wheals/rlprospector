@@ -137,13 +137,13 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     if combatmap(defender.c.x,defender.c.y)>0 and rnd_Range(1,6)+rnd_range(1,6)+player.pilot<combatmap(defender.c.x,defender.c.y)*2 then
                         defender.shield=defender.shield-1
                         if defender.shield<0 then
-                            defender.hull=defender.hull-defender.shield
-                            defender.shield=0
-                        endif
-                        if combatmap(defender.c.x,defender.c.y)=1 or combatmap(defender.c.x,defender.c.y)=6 then 
-                            dprint "You damage your ship hitting an asteroid"
-                        else
-                            dprint "You damage your ship hitting a glas cloud"
+                            defender.hull=defender.hull+defender.shield
+                            defender.shield=0                        
+                            if combatmap(defender.c.x,defender.c.y)=1 or combatmap(defender.c.x,defender.c.y)=6 then 
+                                dprint "You damage your ship hitting an asteroid!",14,14
+                            else
+                                dprint "You damage your ship hitting a glas cloud!",14,14
+                            endif
                         endif
                     endif
                 endif                    

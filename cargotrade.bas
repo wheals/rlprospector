@@ -86,7 +86,7 @@ function gethullspecs(t as short) as _ship
     dim as string l
     dim as _ship n
     f=freefile
-    open "ships.csv" for input as #f
+    open "data/ships.csv" for input as #f
     line input #f,l
     for a=1 to t
         line input #f,l
@@ -335,7 +335,7 @@ function company(st as short,byref questroll as short) as short
         dprint basis(st).repname &":"
     endif
     
-    if questroll<24 then questroll=givequest(st,questroll)    
+    if questroll<33 then questroll=givequest(st,questroll)    
     
     if reward(0)>1 then
         if _autosell=1 then q=askyn("do you want to sell map data? (y/n)")
@@ -710,6 +710,45 @@ function repairhull() as short
     return 0
 end function
 
+function sickbay(sh as short=20, pir as short=1) as short
+    dim text as string
+    dim as short a,b,price,cured
+    do
+        a=menu("Sick bay/ Buy supplies / Treat crewmembers/Exit")
+        if a=1 then
+            shop(21,1,"Medical Supplies")
+        endif
+        if a=2 then
+            for b=1 to 128
+                if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
+                    price=price+10*crew(b).disease
+                endif
+            next
+            if price>0 then
+                if askyn("Treatment will cost "&price &" Cr. Do you want the treatment to begin?") then
+                    if price<=player.money then
+                        player.money=player.money-price
+                        for b=1 to 128
+                            if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
+                                price=price+10*crew(b).disease
+                                cured+=1
+                            endif
+                        next
+                        dprint cured &" crewmembers were cured."
+                        player.disease=0
+                    else
+                        dprint "You don't have enough money"
+                    endif
+                endif
+            else
+                dprint "You have no sick crewmembers."
+            endif
+        endif
+    loop until a=3
+    return player.disease
+end function
+
+
 function shipyard(pir as short=1) as short
     dim as short a,b,c,d,e,last
     dim as string men,des
@@ -787,7 +826,6 @@ function shipupgrades() as short
     shopitem(1,20).desig="Sensors MK I"
     shopitem(1,20).price=200
     shopitem(1,20).v1=1
-    shopitem(1,20).v4=1
     shopitem(1,20).ty=50
     shopitem(1,20).ldesc="Basic ship sensor set. 1 Parsec Range" 
     
@@ -801,7 +839,6 @@ function shipupgrades() as short
     shopitem(3,20).desig="Sensors MK III"
     shopitem(3,20).price=1600
     shopitem(3,20).v1=3
-    shopitem(3,20).v4=1
     shopitem(3,20).ty=50
     shopitem(3,20).ldesc="Ship sensor set. 3 Parsec Range" 
     
@@ -809,7 +846,6 @@ function shipupgrades() as short
     shopitem(4,20).desig="Sensors MK IV"
     shopitem(4,20).price=3200
     shopitem(4,20).v1=4
-    shopitem(4,20).v4=1
     shopitem(4,20).ty=50
     shopitem(4,20).ldesc="Advanced ship sensor set. 4 Parsec Range" 
     
@@ -817,7 +853,6 @@ function shipupgrades() as short
     shopitem(5,20).price=6400                        
     shopitem(5,20).ty=50
     shopitem(5,20).v1=5
-    shopitem(5,20).v4=1
     shopitem(5,20).ldesc="Advanced ship sensor set. 5 Parsec Range" 
     
     shopitem(6,20).desig="ship detection system"
@@ -826,7 +861,6 @@ function shipupgrades() as short
     shopitem(6,20).id=1001
     shopitem(6,20).ty=51
     shopitem(6,20).v1=1
-    shopitem(6,20).v4=1
     shopitem(6,20).ldesc="Filters out ship signatures out of longrange sensor noise."
     
     shopitem(7,20).desig="imp. ship detection sys."
@@ -835,7 +869,6 @@ function shipupgrades() as short
     shopitem(7,20).id=1002
     shopitem(7,20).ty=51
     shopitem(7,20).v1=2
-    shopitem(7,20).v4=1
     shopitem(7,20).ldesc="Filters out ship signatures, and friend-foe signals out of longrange sensor noise."
     
     shopitem(8,20).desig="navigational computer"
@@ -844,7 +877,6 @@ function shipupgrades() as short
     shopitem(8,20).id=1003
     shopitem(8,20).ty=52
     shopitem(8,20).v1=1
-    shopitem(8,20).v4=1
     shopitem(8,20).ldesc="A system keeping track of sensor input. Shows you where you are and allows you to see where you have already been." 
     
     shopitem(9,20).desig="ECM I system"
@@ -853,7 +885,6 @@ function shipupgrades() as short
     shopitem(9,20).ty=53
     shopitem(9,20).id=1004
     shopitem(9,20).v1=1
-    shopitem(9,20).v4=1
     shopitem(9,20).ldesc="Designed to prevent sensor locks, especially effective against missiles"
         
     shopitem(10,20).desig="ECM II system"
@@ -862,7 +893,6 @@ function shipupgrades() as short
     shopitem(10,20).ty=53
     shopitem(10,20).id=1005
     shopitem(10,20).v1=2
-    shopitem(10,20).v4=1
     shopitem(10,20).ldesc="Designed to prevent sensor locks, and decrease sensor echo. especially effective against missiles"
     
     do 
@@ -873,13 +903,14 @@ function shipupgrades() as short
             
             
             do
-            d=menu("Sensors:/ Sensors MKI - 200 Cr/ Sensors MKII 800 Cr/ Sensors MKIII 1600 Cr/ Sensors MK IV 3200 Cr/ Sensors MK V 6400 Cr/ Ship detection system 1500 Cr / Imp. ship detection system 3000 Cr/ Navigational computer 350 Cr/ ECM System I 3000 Cr/ ECM System II 9000 Cr/Exit")
+            d=menu("Sensors:/ Sensors MKI - 200 Cr/ Sensors MKII - 800 Cr/ Sensors MKIII - 1600 Cr/ Sensors MK IV - 3200 Cr/ Sensors MK V - 6400 Cr/ Ship detection system - 1500 Cr / Imp. ship detection system - 3000 Cr/ Navigational computer - 350 Cr/ ECM System I - 3000 Cr/ ECM System II - 9000 Cr/Exit")
                     
             displayship
             if d<>-1 then
                 if d>0 and d<11 then
                     if player.money>=shopitem(d,20).price then
                         if shopitem(d,20).ty=50 then
+                            player.money=player.money-shopitem(d,20).price
                             if shopitem(d,20).v1>player.h_maxsensors then
                                 dprint "your ship is too small for those"
                                 player.money=player.money+shopitem(d,20).price
@@ -892,9 +923,8 @@ function shipupgrades() as short
                                 dprint "that is the same as your current sensor system"
                                 player.money=player.money+shopitem(d,20).price
                             endif
-                            if shopitem(d,20).v1>player.sensors and shopitem(d,20).v1<player.h_maxsensors then
+                            if shopitem(d,20).v1>player.sensors and shopitem(d,20).v1<=player.h_maxsensors then
                                 player.sensors=shopitem(d,20).v1
-                                player.money=player.money-shopitem(d,20).price
                                 dprint "You buy "&shopitem(d,20).desig
                             endif
                         endif
@@ -1635,7 +1665,7 @@ function rerollshops() as short
                 if a<10 then
                     it=rnd_item(20)
                 else
-                    it=rnd_item(11)
+                    it=rnd_item(12)
                 endif
             endif
             if i=4 then 'Colony I
@@ -1649,7 +1679,7 @@ function rerollshops() as short
                 it=makeitem(rnd_range(1,lstcomit))
             endif
             if i=6 then 'Black market
-                it=rnd_item(11)
+                it=rnd_item(12)
             endif
             if i>6 then
                 it=rnd_item(rnd_range(1,11))
@@ -1665,6 +1695,66 @@ function rerollshops() as short
             loop until it.desig="" or a=20
         loop until a=20
     next
+    a=1
+    if rnd_range(1,100)<85 then    
+        shopitem(a,21)=makeitem(31)
+        a+=1
+    endif
+    
+    if rnd_range(1,100)<55 then    
+        shopitem(a,21)=makeitem(32)
+        a+=1
+    endif
+    if rnd_range(1,100)<15 then    
+        shopitem(a,21)=makeitem(33)
+        a+=1
+    endif
+    
+    if rnd_range(1,100)<85 then    
+        shopitem(a,21)=makeitem(56)
+        a+=1
+    endif
+    if rnd_range(1,100)<55 then    
+        shopitem(a,21)=makeitem(57)
+        a+=1
+    endif
+    if rnd_range(1,100)<15 then    
+        shopitem(a,21)=makeitem(58)
+        a+=1
+    endif
+    if rnd_range(1,100)<85 then    
+        shopitem(a,21)=makeitem(36)
+        a+=1
+    endif
+    if rnd_range(1,100)<55 then    
+        shopitem(a,21)=makeitem(37)
+        a+=1
+    endif
+    if rnd_range(1,100)<35 then    
+        shopitem(a,21)=makeitem(62)
+        a+=1
+    endif
+    if rnd_range(1,100)<25 then    
+        shopitem(a,21)=makeitem(63)
+        a+=1
+    endif
+    if rnd_range(1,100)<15 then    
+        shopitem(a,21)=makeitem(64)
+        a+=1
+    endif
+    if rnd_range(1,100)<55 then    
+        shopitem(a,21)=makeitem(67)
+        a+=1
+    endif
+    if rnd_range(1,100)<25 then    
+        shopitem(a,21)=makeitem(68)
+        a+=1
+    endif
+    if rnd_range(1,100)<15 then    
+        shopitem(a,21)=makeitem(69)
+        a+=1
+    endif
+    
     return 0
 end function
 
@@ -1677,7 +1767,7 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
     endif
     if askyn(ques) then
         for a=1 to lastitem
-            if item(a).ty=ty and item(a).w.s<0  then
+            if item(a).ty=ty and item(a).w.s=-1  then
                 if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "&cint(item(a).price*per) &" Cr.?(y/n)")             
                 if b=-1 then    
                     dprint "you sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr."

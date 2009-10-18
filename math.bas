@@ -264,7 +264,9 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     xr=cx+10
     
     if m>0 then
-        a.sight=a.sight-sub0(a.dark,a.light)
+        a.dark=a.dark-a.light
+        if a.dark<0 then a.dark=0
+        a.sight=a.sight-a.dark
         if a.sight<2 then a.sight=2
         mx=60
         my=20

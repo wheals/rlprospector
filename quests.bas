@@ -866,10 +866,13 @@ end function
 
 
 function givequest(st as short, byref questroll as short) as short
-    dim as short a,bay, s,pl,car,st2,m,o,m2,o2,x,y
+    dim as short a,b,bay, s,pl,car,st2,m,o,m2,o2,x,y
     dim as cords p
     static stqroll as short
     if st<>player.lastvisit.s then stqroll=rnd_range(0,2)
+    do
+        st2=rnd_range(0,2)
+    loop until st2<>st
     a=stqroll
     if questroll>8 then
         'standard quest by office
@@ -899,10 +902,8 @@ function givequest(st as short, byref questroll as short) as short
         
         if basis(st).repname="Triax Traders Its." then
             car=rnd_range(3,4)
-            do
-                st2=rnd_range(0,2)
-            loop until st2<>st
-            if askyn("The company rep offers you a contract to deliver "&car &" tons of carge to station " &st2+1 &". They will pay 200 cr per ton. Do you accept?(y/n)") then
+            dprint "The company rep offers you a contract to deliver "&car &" tons of cargo to station " &st2+1 &"."
+            if askyn(" They will pay 200 cr per ton. Do you accept?(y/n)") then
                 do
                     bay=getnextfreebay
                     if bay>0 then
@@ -942,14 +943,26 @@ function givequest(st as short, byref questroll as short) as short
         'other quests
         if a<>st and player.h_maxcargo>0 then
             'Deliver package
-            if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 500 credits. do you accept?" ) then
-                bay=getnextfreebay
-                if bay<0 then 
-                    if askyn("Do you want to make room for the cargo (losing "& basis(st).inv(player.cargo(1).x-1).n &")?(y/n)") then bay=1
+            if rnd_range(1,100)<50 or player.questflag(8)<>0 then
+                if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 500 credits. Do you accept? (y/n)" ) then
+                    bay=getnextfreebay
+                    if bay<0 then 
+                        if askyn("Do you want to make room for the cargo (losing "& basis(st).inv(player.cargo(1).x-1).n &")?(y/n)") then bay=1
+                    endif
+                    if bay>0 then
+                        player.cargo(bay).x=7 'type=specialcargo
+                        player.cargo(bay).y=a 'Destination
+                    endif
                 endif
-                if bay>0 then
-                    player.cargo(bay).x=7 'type=specialcargo
-                    player.cargo(bay).y=a 'Destination
+            else
+                b=rnd_range(1,16)
+                if askyn("The company rep needs a "&shiptypes(b) &" hull towed to station "&a+1 &" for refits. He is willing to pay "& b*50 &" Cr. Do you accept(y/n)?") then
+                    if player.tractor=0 then
+                        dprint "You need a tractor beam for this job.",14,14
+                    else
+                        player.towed=-b
+                        player.questflag(8)=a
+                    endif
                 endif
             endif
         else
@@ -1074,6 +1087,7 @@ function showquests() as short
     color 15,0
     print "Missions:"
     print
+    color 11,0
     for a=1 to 10
         if player.cargo(a).x=7 or player.cargo(a).x=8 then 
             b+=1
@@ -1081,20 +1095,25 @@ function showquests() as short
         endif
     next
     if b>0 then
+        color 15,0
         print "Cargo:"
         for a=1 to b
+            color 11,0
             print "  Cargo for Station-"&dest(a)
         next
     endif
+    if player.questflag(8)>0 and player.towed<0 then print " Deliver a "&shiptypes(-player.towed) &" hull to Station "&player.questflag(8)+1
     print
     if player.questflag(7)>0 then print "  Map a planet at "&map(sysfrommap(player.questflag(7))).c.x &":"&map(sysfrommap(player.questflag(7))).c.y
-    if player.questflag(9)=0 then print "  Find a working robot factory"
-    if player.questflag(10)>0 then print "  Find a planet without life and a "&atmdes(player.questflag(8))&" atmosphere."
+    if player.questflag(9)=1 then print "  Find a working robot factory"
+    if player.questflag(10)>0 then print "  Find a planet without life and a "&atmdes(player.questflag(10))&" atmosphere."
     if player.questflag(11)=1 then print "  Find a missing company battleship"
     if player.questflag(2)=1 then print "  Rescue the company executive from pirates"
     if player.questflag(12)=1 then print "  A small green alien told you about a monster in their mushroom caves."
     print
+    color 15,0
     print "Headhunting"
+    color 11,0
     if player.questflag(15)=1 then print "  Bring down the pirate battleship 'Anne Bonny'"
     if player.questflag(16)=1 then print "  Bring down the pirate destroyer 'Black Corsair'"
     if player.questflag(17)=1 then print "  Bring down the pirate cruiser 'Hussar'"
@@ -1125,6 +1144,15 @@ function checkquestcargo(player as _ship, st as short) as _ship
             b=b+1
         endif
     next
+    if player.questflag(8)=st then
+        if player.towed<0 then
+            dprint "you deliver the " &shiptypes(-player.towed) &" hull and get payed "&abs(player.towed)*50 &" Cr."
+            player.money=player.money+abs(player.towed)*50
+        endif
+        player.towed=0
+        player.questflag(8)=0
+    endif
+    
     if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders its and get payed "& b*200 &" credits."
     return player
 end function

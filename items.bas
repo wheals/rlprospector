@@ -1,5 +1,6 @@
 function rnd_item(t as short) as _items
     dim i as _items
+    dim r as short
     if t=20 then 
         if rnd_range(1,100)<88 then
             t=rnd_range(2,4) 'weapons and armor
@@ -57,6 +58,34 @@ function rnd_item(t as short) as _items
             endif
         endif
     endif
+    if t=12 then 'All but weapons and meds
+        r=rnd_range(1,24)
+        if r=1 then i=makeitem(1)
+        if r=2 then i=makeitem(2)
+        if r=3 then i=makeitem(21)
+        if r=4 then i=makeitem(22)
+        if r=5 then i=makeitem(23)
+        if r=6 then i=makeitem(24)
+        if r=7 then i=makeitem(25)
+        if r=8 then i=makeitem(26)
+        if r=9 then i=makeitem(27)
+        if r=10 then i=makeitem(28)
+        if r=11 then i=makeitem(29)
+        if r=12 then i=makeitem(30)
+        if r=13 then i=makeitem(38)
+        if r=14 then i=makeitem(39)
+        if r=15 then i=makeitem(48)
+        if r=16 then i=makeitem(49)
+        if r=17 then i=makeitem(50)
+        if r=18 then i=makeitem(51)
+        if r=19 then i=makeitem(52)
+        if r=20 then i=makeitem(53)
+        if r=21 then i=makeitem(54)
+        if r=22 then i=makeitem(55)
+        if r=23 then i=makeitem(59)
+        if r=24 then i=makeitem(60)
+    endif
+        
     return i
 end function
 
@@ -480,7 +509,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ldesc="a handheld device for magnifiying far away objects."
         i.icon=":"
         i.col=7
-        i.v1=3
+        i.v1=2
         i.price=90
         i.res=15
     endif
@@ -493,7 +522,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ldesc="Added to a spacesuit this device enhances the sensor input, if you know how to read it." 
         i.icon=":"
         i.col=8
-        i.v1=6
+        i.v1=4
         i.price=500
         i.res=25
     endif
@@ -1036,6 +1065,51 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=100
     endif
     
+    if a=67 then
+        i.id=67
+        i.ty=21
+        i.desig="Basic Infirmary"
+        i.desigp="Basic Infirmary"
+        i.ldesc="The basic supplies and devices for your ships infirmary."
+        i.icon="X"
+        i.col=10
+        i.v1=1
+        i.price=500
+        i.bgcol=15
+        i.res=100
+    endif
+    
+    
+    if a=68 then
+        i.id=68
+        i.ty=21
+        i.desig="Infirmary"
+        i.desigp="Infirmary"
+        i.ldesc="The supplies and devices for your ships infirmary."
+        i.icon="X"
+        i.col=10
+        i.v1=3
+        i.price=1000
+        i.bgcol=15
+        i.res=100
+    endif
+    
+    
+    if a=69 then
+        i.id=69
+        i.ty=21
+        i.desig="Advanced Infirmary"
+        i.desigp="Advanced Infirmary"
+        i.ldesc="State of the art supplies and devices for your ships infirmary."
+        i.icon="X"
+        i.col=10
+        i.v1=5
+        i.price=1500
+        i.bgcol=15
+        i.res=100
+    endif
+    
+    
     if a=88 then
         i.id=94
         i.ty=23
@@ -1333,7 +1407,6 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     
     awayteam.sight=3
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
-    if findbest(20,-1)>-1 then awayteam.sight=item(findbest(20,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
     
     
@@ -1772,7 +1845,7 @@ function makeweapon(a as short) as _weap
         
         
     if a=11 then
-        w.desig="Ships Gun battery"
+        w.desig="Gunbattery"
         w.dam=1
         w.range=1
         w.ROF=3
@@ -1785,7 +1858,7 @@ function makeweapon(a as short) as _weap
     endif
         
     if a=12 then
-        w.desig="Rail Gun battery"
+        w.desig="Railgunbat."
         w.dam=2
         w.range=1
         w.ROF=3
@@ -1799,7 +1872,7 @@ function makeweapon(a as short) as _weap
     
     
     if a=13 then
-        w.desig="Rocket battery"
+        w.desig="Rocketbat."
         w.dam=3
         w.range=1
         w.ROF=2
@@ -1811,8 +1884,8 @@ function makeweapon(a as short) as _weap
   '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
     endif
     
-    if a=13 then
-        w.desig="Improved Rocket battery"
+    if a=14 then
+        w.desig="I. Rocketbat."
         w.dam=4
         w.range=1
         w.ROF=2
@@ -1835,7 +1908,6 @@ function makeweapon(a as short) as _weap
         w.col=12
  '       w.desc="You are uncertain how this wapon works, but it seems to disrupt the bonds formed by strong interaction in subatomic particles. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
     endif
-    
     
     if a=96 then
         w.desig="Tractor Beam"

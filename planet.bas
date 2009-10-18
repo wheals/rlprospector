@@ -59,7 +59,7 @@ sub makefinalmap(m as short)
     planets(m).darkness=5
     planets(m).teleport=1
     f=freefile
-    open "lstlvl.dat" for binary as #f
+    open "data/lstlvl.dat" for binary as #f
     for y=0 to 20
         for x=0 to 60
             get #f,,planetmap(x,y,m)
@@ -88,8 +88,8 @@ sub makefinalmap(m as short)
     next
     
      planets(m).mon=19
-     planets(m).noamax=13
-     planets(m).noamin=8
+     planets(m).noamax=28
+     planets(m).noamin=22
      planets(m).grav=0.5
      planets(m).atmos=3
 end sub
@@ -3540,7 +3540,7 @@ sub makedrifter(d as gamecords, bg as short=0)
         lastplanet+=1
     endif
     f=freefile
-    open "pods.dat" for binary as #f
+    open "data/pods.dat" for binary as #f
     for a=0 to 1
         for y=0 to 5
             for x=0 to 6

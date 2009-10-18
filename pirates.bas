@@ -2380,10 +2380,11 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.col=137
         enemy.sight=rnd_range(1,3)+rnd_range(1,3)-1
         enemy.sprite=278
-        enemy.move=0
+        enemy.move=-1
         enemy.col=20
         enemy.sdesc="armored robot"
         enemy.sight=enemy.sight+3
+        enemy.range=enemy.sight
         enemy.armor=5
         enemy.weapon=enemy.weapon+1
         enemy.range=1.5
