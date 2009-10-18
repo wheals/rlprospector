@@ -37,7 +37,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                             if tiles(planetmap(x,y,slot)).stopwalking>0 then walking=0
                             if player.questflag(9)=1 and planetmap(x,y,slot)=100 then player.questflag(9)=2
                         endif
-                        if rnd_range(1,100)<disease(awayteam.disease).hal then
+                        if rnd_range(1,100)<disease(awayteam.disease).hal or (slot=specialplanet(28) and specialflag(28)=0) then
                             dtile(x,y,tiles(rnd_range(1,255)))
                             planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
                         else
