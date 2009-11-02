@@ -244,29 +244,20 @@ function movepoint(byval c as cords, a as short, eo as short=0, border as short=
 end function
 
 function makevismask(vismask()as byte,byval a as _monster,m as short) as short
-    dim as single dx,dy 'delta
-    dim as single cx,cy 'center
-    dim as single ex,ey
-    dim as short mx,my
-    dim l as short
-    dim length as single
-    dim dis as single 
-    dim as short yt,yb,xr,xl 'Y top, Y bottom, Xright, Xleft
-    dim as single x,y 'point we are looking at
+    dim as short illu
+    dim as short x2,x1,y2,y1,mx,my
+    Dim As Integer i, deltax, deltay, numtiles
+    Dim As Integer d, dinc1, dinc2
+    Dim As Integer x, xinc1, xinc2
+    Dim As Integer y, yinc1, yinc2
+    dim as byte mask
     dim as cords p
-    dim as short tile
-    dim as short mask
-    cx=a.c.x
-    cy=a.c.y
-    yt=cy-10
-    yb=cy+10
-    xl=cx-10
-    xr=cx+10
-    
+    x1=a.c.x
+    y1=a.c.y
     if m>0 then
-        a.dark=a.dark-a.light
-        if a.dark<0 then a.dark=0
-        a.sight=a.sight-a.dark
+        illu=10-a.dark
+        if a.light>illu then illu=a.light
+        if a.sight>illu then a.sight=illu
         if a.sight<2 then a.sight=2
         mx=60
         my=20
@@ -274,74 +265,195 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         mx=sm_x
         my=sm_y
     endif
-    if yt<0 then yt=0
-    if xl<0 then xl=0
-    if m>0 then
-        if yb>20 then yb=20
-        if xr>60 then xr=60
-    else
-        if yb>sm_y then yb=sm_y
-        if xr>sm_x then xr=sm_x
-    endif
-    'clear old
-    for x=0 to mx
-        for y=0 to my
-            vismask(x,y)=0
-            p.x=x
-            p.y=y
-            if distance(p,a.c)<=a.sight or distance(p,a.c)<1.5 then vismask(x,y)=1
-        next
-    next
-    for ex=xl to xr 
-        for ey=yt to yb 
-            if ex=xl or ex=xr or ey=yt or ey=yb then  
-                mask=1
-                x=cx
-                y=cy
-                dx=ex-cx
-                dy=ey-cy
-                length=sqr((dx*dx)+(dy*dy))
-                dx=dx/length
-                dy=dy/length
-                for l=1 to length
-                    x=x+dx
-                    y=y+dy
-                    dis=sqr(((cx-x)*(cx-x))+((cy-y)*(cy-y)))                    
-                    if x>=0 and y>=0 and x<=mx and y<=my then    
-                        if dis>a.sight  then mask=0
-                        if vismask(x,y)=1 then vismask(x,y)=mask
-                        if m>0 then
-                            if tmap(x,y).seetru=1 then mask=0
-'                            if tiles(tile).seetru=0 and mask=1 then
-'                                if x-1>=0 then vismask(x-1,y)=1
-'                                if x+1<=mx then vismask(x+1,y)=1
-'                                if y-1>=0 then vismask(x,y-1)=1
-'                                if y+1<=my then vismask(x,y+1)=1
-'                            endif
+    
+    for x2=x1-12 to x1+12
+        for y2=y1-12 to y1+12
+            mask=1
+            deltax = Abs(x2 - x1)
+            deltay = Abs(y2 - y1)
+        
+            If deltax >= deltay Then
+                numtiles = deltax + 1
+                d = (2 * deltay) - deltax
+                dinc1 = deltay Shl 1
+                dinc2 = (deltay - deltax) Shl 1
+                xinc1 = 1
+                xinc2 = 1
+                yinc1 = 0
+                yinc2 = 1
+            Else
+                numtiles = deltay + 1
+                d = (2 * deltax) - deltay
+                dinc1 = deltax Shl 1
+                dinc2 = (deltax - deltay) Shl 1
+                xinc1 = 0
+                xinc2 = 1
+                yinc1 = 1
+                yinc2 = 1
+            End If
+        
+            If x1 > x2 Then
+                xinc1 = - xinc1
+                xinc2 = - xinc2
+            End If
+           
+            If y1 > y2 Then
+                yinc1 = - yinc1
+                yinc2 = - yinc2
+            End If
+        
+            x = x1
+            y = y1
+           
+            For i = 2 To numtiles
+                if mask>0 then mask+=1
+                
+                If d < 0 Then
+                  d = d + dinc1
+                  x = x + xinc1
+                  y = y + yinc1
+                Else
+                  d = d + dinc2
+                  x = x + xinc2
+                  y = y + yinc2
+                End If
+                if x>=0 and y>=0 and x<=mx and y<=my then
+                    p.x=x
+                    p.y=y
+                    vismask(x,y)=mask
+                    if m>0 then
+                        If tiles(abs(planetmap(x,y,m))).seetru=1 or distance(a.c,p)>a.sight Then
+                            mask=0
                         else
-                            if abs(spacemap(x,y))=2 then mask=0
+                            if x<mx then vismask(x+1,y)=mask
+                            if x>0 then vismask(x-1,y)=mask
+                            if y<my then vismask(x,y+1)=mask
+                            if y>0 then vismask(x,y-1)=mask
+                        endif
+                    else
+                        If spacemap(x,y)>1 or distance(a.c,p)>a.sight Then
+                            mask=0
+                        else
+                            if x<mx then vismask(x+1,y)=mask
+                            if x>0 then vismask(x-1,y)=mask
+                            if y<my then vismask(x,y+1)=mask
+                            if y>0 then vismask(x,y-1)=mask
                         endif
                     endif
-                next
-    
-            endif
-        next
-    next
-    for x=0 to mx
-        for y=0 to my
-            p.x=x
-            p.y=y
-            if distance(p,a.c)>a.sight then vismask(x,y)=0
+                endif
+            Next
         next
     next
     
-    for x=cx-1 to cx+1
-        for y=cy-1 to cy+1
-            if x>=0 and y>=0 and x<=mx and y<=my then vismask(x,y)=1
+    for x2=x1-1 to x1+1
+        for y2=y1-1 to y1+1
+            if x2>=0 and y2>=0 and x2<=mx and y2<=my then vismask(x2,y2)=1
         next
     next
+    
     return 0
 end function
+
+'
+'function makevismask(vismask()as byte,byval a as _monster,m as short) as short
+'    dim as single dx,dy 'delta
+'    dim as single cx,cy 'center
+'    dim as single ex,ey
+'    dim as short mx,my
+'    dim l as short
+'    dim length as single
+'    dim dis as single 
+'    dim as short yt,yb,xr,xl 'Y top, Y bottom, Xright, Xleft
+'    dim as single x,y 'point we are looking at
+'    dim as cords p
+'    dim as short tile
+'    dim as short mask
+'    cx=a.c.x
+'    cy=a.c.y
+'    yt=cy-10
+'    yb=cy+10
+'    xl=cx-10
+'    xr=cx+10
+'    
+'    if m>0 then
+'        a.dark=a.dark-a.light
+'        if a.dark<0 then a.dark=0
+'        a.sight=a.sight-a.dark
+'        if a.sight<2 then a.sight=2
+'        mx=60
+'        my=20
+'    else
+'        mx=sm_x
+'        my=sm_y
+'    endif
+'    if yt<0 then yt=0
+'    if xl<0 then xl=0
+'    if m>0 then
+'        if yb>20 then yb=20
+'        if xr>60 then xr=60
+'    else
+'        if yb>sm_y then yb=sm_y
+'        if xr>sm_x then xr=sm_x
+'    endif
+'    'clear old
+'    for x=0 to mx
+'        for y=0 to my
+'            vismask(x,y)=0
+'            p.x=x
+'            p.y=y
+'            if distance(p,a.c)<=a.sight or distance(p,a.c)<1.5 then vismask(x,y)=1
+'        next
+'    next
+'    for ex=xl to xr 
+'        for ey=yt to yb 
+'            if ex=xl or ex=xr or ey=yt or ey=yb then  
+'                mask=1
+'                x=cx
+'                y=cy
+'                dx=ex-cx
+'                dy=ey-cy
+'                length=sqr((dx*dx)+(dy*dy))
+'                dx=dx/length
+'                dy=dy/length
+'                for l=1 to length
+'                    x=x+dx
+'                    y=y+dy
+'                    dis=sqr(((cx-x)*(cx-x))+((cy-y)*(cy-y)))                    
+'                    if x>=0 and y>=0 and x<=mx and y<=my then    
+'                        if dis>a.sight  then mask=0
+'                        if vismask(x,y)=1 then vismask(x,y)=mask
+'                        if m>0 then
+'                            if tmap(x,y).seetru=1 then mask=0
+''                            if tiles(tile).seetru=0 and mask=1 then
+''                                if x-1>=0 then vismask(x-1,y)=1
+''                                if x+1<=mx then vismask(x+1,y)=1
+''                                if y-1>=0 then vismask(x,y-1)=1
+''                                if y+1<=my then vismask(x,y+1)=1
+''                            endif
+'                        else
+'                            if abs(spacemap(x,y))=2 then mask=0
+'                        endif
+'                    endif
+'                next
+'    
+'            endif
+'        next
+'    next
+'    for x=0 to mx
+'        for y=0 to my
+'            p.x=x
+'            p.y=y
+'            if distance(p,a.c)>a.sight then vismask(x,y)=0
+'        next
+'    next
+'    
+'    for x=cx-1 to cx+1
+'        for y=cy-1 to cy+1
+'            if x>=0 and y>=0 and x<=mx and y<=my then vismask(x,y)=1
+'        next
+'    next
+'    return 0
+'end function
 
 function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype as short=1,col as short=0) as short
     dim as single px,py
@@ -446,14 +558,10 @@ function fill_rect(r as _rect,wall as short, floor as short,map() as short) as s
     return 0
 end function
 
-function rnd_point(m as short=-1,w as short=-1)as cords
+function rnd_point(m as short=-1,w as short=-1,t as short=0)as cords
     dim p(1281) as cords
     dim as short last,x,y,a
-    if m=-1 and w=-1 then
-        p(0).x=rnd_range(0,60)
-        p(0).y=rnd_range(0,20)
-        return p(0)
-    else
+    if m>-1 and w>-1 then
         for x=0 to 60
             for y=0 to 20
                 if tiles(abs(planetmap(x,y,m))).walktru=w then
@@ -465,7 +573,24 @@ function rnd_point(m as short=-1,w as short=-1)as cords
         next
         if a>0 then return p(rnd_range(0,a-1))
     endif
-    dprint "Error looking for point",14,14
+    if m>0 and t>0 then
+        for x=0 to 60
+            for y=0 to 20
+                if tiles(abs(planetmap(x,y,m))).walktru=t then
+                    p(a).x=x
+                    p(a).y=y
+                    a=a+1
+                endif
+            next
+        next
+        if a>0 then return p(rnd_range(0,a-1))
+    endif
+    
+    p(0).x=rnd_range(0,60)
+    p(0).y=rnd_range(0,20)
+    return p(0)
+    
+    dprint "ERROR: looking for point",14,14
 end function
 
 function rndrectwall(r as _rect,d as short=5) as cords

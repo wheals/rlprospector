@@ -47,6 +47,11 @@ tiles(7).desc="High Mountains"
 tiles(7).seetru=1
 tiles(7).walktru=2
 tiles(7).firetru=1
+tiles(7).shootable=1
+tiles(7).dr=100
+tiles(7).hp=55
+tiles(7).succt="You bore some tunnels."
+tiles(7).turnsinto=244
 
 tiles(8).tile=94
 tiles(8).col=7
@@ -55,6 +60,11 @@ tiles(8).desc="Mountains"
 tiles(8).seetru=1
 tiles(8).walktru=2
 tiles(8).firetru=1
+tiles(8).dr=100
+tiles(8).shootable=1
+tiles(8).hp=25
+tiles(8).succt="You bore some tunnels."
+tiles(8).turnsinto=244
 
 tiles(9).tile=64
 tiles(9).col=11
@@ -1353,7 +1363,7 @@ tiles(194).tile=176
 tiles(194).col=-1
 tiles(194).bgcol=-77
 tiles(194).seetru=1
-tiles(194).walktru=2
+tiles(194).walktru=5
 tiles(194).firetru=1
 tiles(194).desc="crystal wall"
 
@@ -1626,3 +1636,54 @@ tiles(242).col=11
 tiles(242).desc="A reactor control console."
 tiles(242).gives=58
 tiles(242).turnsinto=236
+
+tiles(243).tile=176
+tiles(243).col=7
+tiles(243).bgcol=7
+tiles(243).walktru=5
+tiles(243).seetru=1
+tiles(243).firetru=1
+tiles(243).shootable=1
+tiles(243).dr=2
+tiles(243).hp=15
+tiles(243).succt="You damage the wall"
+tiles(243).failt="The walls are to strong for you to seriously damage"
+tiles(243).desc="wall"
+
+
+tiles(244).tile=94
+tiles(244).col=11
+tiles(244).bgcol=0
+tiles(244).desc="Tunneled Mountains"
+tiles(244).seetru=1
+tiles(244).walktru=0
+tiles(244).firetru=1
+
+
+tiles(245).tile=147
+tiles(245).col=12
+tiles(245).desc="Vulcano"
+tiles(245).tohit=20
+tiles(245).dam=1
+tiles(245).hitt="You get hit with flying rocks and magma!"
+tiles(245).causeaeon=5
+tiles(245).aetype=5
+
+
+tiles(246).tile=64 
+tiles(246).col=11
+tiles(246).bgcol=0
+tiles(246).desc="Another scoutship"
+tiles(246).seetru=1
+tiles(246).walktru=0
+tiles(246).firetru=1
+tiles(246).shootable=1
+tiles(246).locked=0
+tiles(246).turnsinto=62
+tiles(246).dr=2
+tiles(246).hp=225
+tiles(246).succt="It is slightly dented now"
+tiles(246).failt="Your handwapons arent powerful enough to damage a spaceship"
+tiles(246).killt="That will teach them a lesson!"
+tiles(246).hides=2
+tiles(246).gives=2

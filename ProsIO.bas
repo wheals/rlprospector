@@ -1,4 +1,3 @@
-declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
 
 
 function earthquake(t as _tile,dam as short)as _tile
@@ -20,8 +19,28 @@ end function
 function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short,byref slot as short, byref walking as short) as short
     dim as short a,b,x,y
     dim as cords p
-    if disease(awayteam.disease).bli>0 then return 0
+    if disease(awayteam.disease).bli>0 then 
+        x=awayteam.c.x
+        y=awayteam.c.y
+        vismask(x,y)=1
+        dtile(x,y,tmap(x,y),vismask(x,y))
+        return 0
+    endif
     ' Stuff on ground    
+    
+        makevismask(vismask(),awayteam,slot)        
+        for x=awayteam.c.x-2-awayteam.sight to awayteam.c.x+2+awayteam.sight 
+            for y=awayteam.c.y-2-awayteam.sight to awayteam.c.y+2+awayteam.sight
+                if x>=0 and x<=60 and y>=0 and y<=20 then
+                    p.x=x
+                    p.y=y
+                    'if awayteam.sight>cint(distance(awayteam.c,p)) then
+                    if planetmap(x,y,slot)>0 then dtile(x,y,tmap(x,y))
+                endif
+            next
+        next
+        
+                                                
         makevismask(vismask(),awayteam,slot)        
         for x=awayteam.c.x-2-awayteam.sight to awayteam.c.x+2+awayteam.sight 
             for y=awayteam.c.y-2-awayteam.sight to awayteam.c.y+2+awayteam.sight
@@ -41,7 +60,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                             dtile(x,y,tiles(rnd_range(1,255)))
                             planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
                         else
-                            dtile(x,y,tmap(x,y))
+                            dtile(x,y,tmap(x,y),vismask(x,y))
                         endif
                     endif
                 endif
@@ -107,13 +126,15 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         for a=1 to lastenemy
             if enemy(a).hp<=0 then
                 p=enemy(a).c
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
-                    locate enemy(a).c.y+1,enemy(a).c.x+1
-                    color 12,0
-                    if _tiles=0 then
-                        if enemy(a).hpmax>0 then put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(270),trans
-                    else
-                        if enemy(a).hpmax>0 then print "%"
+                if p.x>=0 and p.x<=60 and p.y>=0 and p.y<=20 then
+                    if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
+                        locate p.y+1,p.x+1
+                        color 12,0
+                        if _tiles=0 then
+                            if enemy(a).hpmax>0 then put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(270),trans
+                        else
+                            if enemy(a).hpmax>0 then print "%"
+                        endif
                     endif
                 endif
             endif
@@ -122,17 +143,19 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         for a=1 to lastenemy
             if enemy(a).hp>0 then
                 p=enemy(a).c
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
-                    locate enemy(a).c.y+1,enemy(a).c.x+1
-                    color enemy(a).col,0
-                    if enemy(a).invis=0 then
-                        if _tiles=0 then
-                            put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(enemy(a).sprite),trans
-                        else
-                            print chr(enemy(a).tile)
+                if p.x>=0 and p.x<=60 and p.y>=0 and p.y<=20 then                
+                    if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
+                        locate p.y+1,p.x+1
+                        color enemy(a).col,0
+                        if enemy(a).invis=0 then
+                            if _tiles=0 then
+                                put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(enemy(a).sprite),trans
+                            else
+                                print chr(enemy(a).tile)
+                            endif
+                            walking=0
+                            
                         endif
-                        walking=0
-                        
                     endif
                 endif
             endif                    
@@ -164,52 +187,291 @@ function skillcheck(targetnumber as short,skill as short, modifier as short) as 
     endif
 end function
 
+function addtalent(cr as short, ta as short, value as single) as single
+    dim total as short
+    if cr>0 then
+        if crew(cr).hp>0 and crew(cr).talents(ta)>0 then return value*crew(cr).talents(ta)
+    else
+        value=0
+        for cr=1 to 128
+            if crew(cr).hp>0 and crew(cr).onship=0 and crew(cr).talents(ta)>0 then 
+                total+=1
+                value=value+crew(cr).talents(ta)
+            endif
+        next
+        if total=0 then return 0
+        value=value/total
+        return value
+    endif
+    return 0
+end function
+    
+function changemoral(value as short, where as short) as short
+    dim a as short
+    for a=2 to 128
+        if crew(a).hp>0 and crew(a).onship=where then crew(a).morale=crew(a).morale+value
+    next
+    return 0
+end function
+
+
+function showteam(from as short) as short
+    dim as short b,p,offset,bg,last,a
+    dim n as string
+    dim skills as string
+    for b=1 to 128
+        if crew(b).hpmax>0 then last+=1
+    next
+    p=1
+    do
+        color 11,0
+            
+        cls
+        
+        if no_key=key_enter then
+            if from=0 then
+                if p>1 then
+                    if crew(p).onship=0 then 
+                        crew(p).onship=1
+                    else
+                        crew(p).onship=0
+                    endif
+                else
+                    locate 22,1
+                    color 14,0
+                    print "The captain must stay in the awayteam."
+                    locate 1,1
+                endif
+            else
+                locate 22,1
+                color 14,0
+                print "You need to be at the ship to reassign."
+                locate 1,1
+            endif
+        endif
+        
+        for b=1 to 8
+            if b=p+offset then
+                bg=5
+            else
+                bg=0
+            endif
+            if b-offset>0 then  
+                if crew(b-offset).hpmax>0 then
+                    skills=""
+                    for a=1 to 25
+                        if crew(b-offset).talents(a)>0 then 
+                            if skills<>"" then 
+                                skills=skills &", "&talent_desig(a)&"("&crew(b-offset).talents(a)&")"
+                            else
+                                skills=talent_desig(a)&"("&crew(b-offset).talents(a)&")"
+                            endif
+                        endif
+                    next
+                    if skills<>"" then skills=skills &" "
+                    color 15,bg
+                    if b-offset>9 then
+                        print b-offset;" ";
+                    else
+                        print " ";b-offset;" ";
+                    endif
+                    if crew(b-offset).hp>0 then
+                        if b-offset>5 then
+                            color 10,bg
+                            print crew(b-offset).icon;
+                        else
+                            if b-offset=1 then print "Captain";
+                            if b-offset=2 then print "Pilot  ";
+                            if b-offset=3 then print "Gunner ";
+                            if b-offset=4 then print "Science";
+                            if b-offset=5 then print "Doctor ";
+                        endif
+                    else
+                        color 12,0
+                        print "X";
+                    endif
+                    
+                    color 15,bg
+                    if crew(b-offset).hp=0 then color 12,bg
+                    if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
+                    if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
+                    print " ";crew(b-offset).hpmax;
+                    color 15,bg
+                    print "/";
+                    if crew(b-offset).hp=0 then color 12,bg
+                    if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
+                    if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
+                    print crew(b-offset).hp;
+                    color 15,bg
+                    print " ";crew(b-offset).n;
+                    if crew(b-offset).onship=1 and crew(b-offset).hp>0 then
+                        color 14,bg
+                        print "  On ship ";
+                    endif
+                    if crew(b-offset).onship=0 and crew(b-offset).hp>0 then
+                        color 10,bg
+                        print " Awayteam ";
+                    endif
+                    if crew(b-offset).hp<=0 then
+                        color 12,bg
+                        print " Dead ";
+                    endif
+                    color 15,bg
+                    if crew(b-offset).xp>=0 then 
+                        print " XP:" &crew(b-offset).xp;
+                    else
+                        print " XP: -";
+                    endif
+                    print space(70-pos)
+                    color 15,bg
+                    print "   ";
+                    if crew(b-offset).armo>0 then 
+                        color 15,bg
+                        print " ";trim(item(crew(b-offset).armo).desig);", ";
+                    else
+                        color 14,bg
+                        print " None,";
+                    endif
+                    if crew(b-offset).weap>0 then 
+                        color 15,bg
+                        print " ";trim(item(crew(b-offset).weap).desig);", ";
+                    else
+                        color 14,bg
+                        print " None,";
+                    endif
+                    if crew(b-offset).blad>0 then 
+                        color 15,bg
+                        print " ";trim(item(crew(b-offset).blad).desig);" ";
+                    else
+                        color 14,bg
+                        print " None";
+                    endif
+                    color 11,bg
+                    if crew(b-offset).jp>0 then print " Jetpack";
+                    print space(70-pos)
+                    
+                    color 15,bg
+                    print "   ";
+                    print skills;
+                    if crew(b-offset).disease>0 then
+                        color 14,bg
+                        print "Suffers from "&trim(disease(crew(b-offset).disease).desig);
+                    endif
+                    print space(70-pos)
+                    
+                    color 11,bg
+                endif
+            endif
+        next
+        color 11,0
+        locate 25,1
+        print key_rename &" to rename a member, enter to add/remove from awaytem";
+        no_key=keyin
+        if keyplus(no_key) or no_key="2" then p+=1
+        if keyminus(no_key) or no_key="8" then p-=1
+        if no_key=key_rename then
+            if p<6 then
+                n=gettext(18,(p-1+offset)*3,16,n)
+            else
+                n=gettext(12,(p-1+offset)*3,16,n)
+            endif
+            if n<>"" then crew(p).n=n
+            n=""
+        endif
+        if p<1 then p=1
+        if p>last then p=last
+        if p+offset>8 then offset=8-p
+        if p+offset<1 then offset=1-p
+        
+    loop until no_key=key_esc or no_key=" "
+    return 0
+end function
+
+function removemember(n as short, f as short) as short
+    dim as short a,s,todo
+    
+    if f=0 then s=6
+    if f=1 then s=2
+    for a=128 to s step-1
+        if crew(a).hp>0 and todo<n then
+            crew(a).hp=0
+            todo+=1
+        endif
+    next
+    return 0
+end function
+
 
 function addmember(a as short) as short
-    dim as short slot,b
+    dim as short slot,b,f,c,cc
+    dim _del as _crewmember
+    dim as string n(200,1)
+    dim as short ln(1)
+    f=freefile
+    open "data\crewnames.txt" for input as #f
+    do
+        ln(cc)+=1
+        line input #f,n(ln(cc),cc)
+        if n(ln(cc),cc)="####" then
+            ln(0)-=1
+            cc=1
+        endif
+        
+    loop until eof(f) or ln(0)>=199 or ln(1)>=199
+    close #f
     'find empty slot
-    for b=128 to 1 step -1
+    for b=128 to 6 step -1
         if crew(b).hp<=0 then slot=b
     next
+    if a<6 then slot=a
     if slot>0 then
+        
+        crew(slot)=_del
+        if rnd_range(1,100)<80 then
+            crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&n((rnd_range(1,ln(0))),0)
+        else
+            crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&CHR(rnd_range(65,87))&". "&n((rnd_range(1,ln(0))),0)
+        endif
+        crew(slot).morale=100+(Wage-10)^3*(5/100)
+        if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
+        if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
+        'crew(slot).talents(rnd_range(1,25))=1
+        'crew(slot).talents(rnd_range(1,25))=1
+        'crew(slot).talents(rnd_range(1,25))=1
+        'crew(slot).disease=rnd_range(1,17)
         if a=1 then 'captain
-            slot=1
             crew(slot).hpmax=6
             crew(slot).hp=6
             crew(slot).icon="C"
             crew(slot).typ=1
         endif
         if a=2 then 'Pilot
-            slot=2
             crew(slot).hpmax=player.pilot+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="P"
             crew(slot).typ=2
-            crew(slot).paymod=1
+            crew(slot).paymod=player.pilot*player.pilot
         endif
         if a=3 then 'Gunner
-            slot=3
             crew(slot).hpmax=player.gunner+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="G"
             crew(slot).typ=3
-            crew(slot).paymod=1
+            crew(slot).paymod=player.gunner*player.gunner
         endif
         if a=4 then 'SO
-            slot=4
             crew(slot).hpmax=player.science+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="S"
             crew(slot).typ=4
-            crew(slot).paymod=1
+            crew(slot).paymod=player.science^2
         endif
         if a=5 then 'doctor
-            slot=5 
             crew(slot).hpmax=player.doctor+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="D"
             crew(slot).typ=5
-            crew(slot).paymod=1
+            crew(slot).paymod=player.doctor^2
         endif
         if a=6 then 'green
             crew(slot).hpmax=2
@@ -223,31 +485,75 @@ function addmember(a as short) as short
             crew(slot).hpmax=3
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="@"
-            crew(slot).typ=6
+            crew(slot).typ=7
             crew(slot).paymod=1
         endif
         if a=8 then 'elite
             crew(slot).hpmax=4
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="@"
-            crew(slot).typ=6
+            crew(slot).typ=8
             crew(slot).paymod=1
         endif
         if a=9 then 'insect warrior
             crew(slot).hpmax=5
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="I"
-            crew(slot).typ=7
+            crew(slot).typ=9
             crew(slot).paymod=1
+            crew(slot).n=ucase(chr(rnd_range(97,122)))
+            crew(slot).xp=-1
+            for c=0 to rnd_range(1,6)+3
+                crew(slot).n=crew(slot).n &chr(rnd_range(97,122))
+            next
+            crew(slot).morale=25000
         endif
         if a=10 then 'cephalopod
             crew(slot).hpmax=6
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="Q"
-            crew(slot).typ=8
+            crew(slot).typ=10
             crew(slot).paymod=0
+            crew(slot).xp=-1
+            crew(slot).n=ucase(chr(rnd_range(97,122)))
+            for c=0 to rnd_range(1,6)+3
+                crew(slot).n=crew(slot).n &chr(rnd_range(97,122))
+            next
+            crew(slot).morale=25000
         endif
-        crew(slot).disease=0
+        if a=11 then
+            crew(slot).equips=1
+            crew(slot).hpmax=2
+            crew(slot).hp=crew(slot).hpmax
+            crew(slot).icon="d"
+            crew(slot).typ=11
+            crew(slot).paymod=0
+            crew(slot).n="Neodog"
+            crew(slot).xp=-1
+            crew(slot).morale=25000
+        endif
+        if a=12 then
+            crew(slot).equips=0
+            crew(slot).hpmax=3
+            crew(slot).hp=crew(slot).hpmax
+            crew(slot).icon="a"
+            crew(slot).typ=12
+            crew(slot).paymod=0
+            crew(slot).n="Neoape"
+            crew(slot).xp=-1
+            crew(slot).morale=25000
+        endif
+        if a=13 then
+            crew(slot).equips=1
+            crew(slot).hpmax=6
+            crew(slot).hp=crew(slot).hpmax
+            crew(slot).icon="R"
+            crew(slot).typ=13
+            crew(slot).paymod=0
+            crew(slot).n="Robot"
+            crew(slot).xp=-1
+            crew(slot).morale=25000
+        endif
     endif     
     return 0
 end function    
@@ -278,7 +584,7 @@ function cureawayteam(where as short) as short
     
     for a=0 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and (crew(a).onship=where or where=1) then
-            if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor>5+crew(a).disease/2 then
+            if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor+addtalent(5,16,1)>5+crew(a).disease/2 then
                 crew(a).disease=0
                 crew(a).onship=0
                 cured+=1
@@ -308,9 +614,9 @@ function healawayteam(byref a as _monster,heal as short) as short
         if item(fac).v1>0 then reg=reg+0.1
     endif
     if player.doctor>0 and crew(5).onship=0 then
-       doc=doc+player.doctor/25
+       doc=doc+player.doctor/25+addtalent(5,17,.1)
     endif
-    if heal>0 then heal=heal+player.doctor
+    if heal>0 then heal=heal+player.doctor+addtalent(5,18,3)
     if reg>=1 then 
         heal=heal+reg
         reg=0
@@ -370,8 +676,9 @@ function diseaserun(onship as short) as short
                     dam=rnd_range(0,abs(disease(crew(a).disease).dam))
                     if dam>0 then
                         crew(a).hp=crew(a).hp-dam
-                        if onship=1 and crew(a).hp<=0 then 
-                            crew(a).hpmax=0
+                        if crew(a).hp<=0 then 
+                            crew(a).hp=0
+                            crew(a).disease=0
                             dead+=1
                         endif
                         total=total+dam
@@ -391,22 +698,22 @@ function diseaserun(onship as short) as short
             endif
         endif
         if a=2 and crew(a).hp<=0 and player.pilot>0 then 
-            player.pilot=-5
+            player.pilot=captainskill
             dead-=1
             dprint " Your pilot dies of disease!",12,12
         endif
         if a=3 and crew(a).hp<=0 and player.gunner>0 then 
-            player.gunner=-5
+            player.gunner=captainskill
             dead-=1
             dprint " Your gunner dies of disease!",12,12
         endif
         if a=4 and crew(a).hp<=0 and player.science>0 then 
-            player.science=-5
+            player.science=captainskill
             dead-=1
             dprint " Your science officer dies of disease!",12,12
         endif
         if a=5 and crew(a).hp<=0 and player.doctor>0 then 
-            player.doctor=-5   
+            player.doctor=captainskill
             dprint " Your doctor dies of disease!",12,12
         endif
         if crew(a).disease>dis then dis=crew(a).disease
@@ -421,20 +728,24 @@ end function
 
 function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as short ex,b,t,last,armeff
+    dim as short ex,b,t,last,armeff,reequip
     dim target(128) as short
     dim stored(128) as short
-    dim injured(8) as short
-    dim killed(8) as short
-    dim desc(8) as string
+    dim injured(12) as short
+    dim killed(12) as short
+    dim desc(12) as string
     desc(1)="Captain"
     desc(2)="Pilot"
     desc(3)="Gunner"
     desc(4)="Science officer"
     desc(5)="Ships doctor"
     desc(6)="Sec. member"
-    desc(7)="Insect warrior"
-    desc(8)="Cephalopod"
+    desc(7)="Sec. member"
+    desc(8)="Sec. member"
+    desc(9)="Insect warrior"
+    desc(10)="Cephalopod"
+    desc(11)="Neodog"
+    desc(12)="Neoape"
     'ap=1 Ignores Armor
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
@@ -459,7 +770,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 dam=0
             endif
             if ap=0 or ap=1 then
-                if rnd_range(1,20)>2+a.secarmo(target(t))+player.tactic or ap=1 then
+                if rnd_range(1,20)>2+a.secarmo(target(t))+player.tactic*(1+addtalent(3,10,1))+addtalent(t,20,1) or ap=1 then
                     crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
                 else
@@ -476,6 +787,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         if stored(b)>crew(target(b)).hp then
             if crew(target(b)).hp<=0 then
                 killed(crew(target(b)).typ)+=1
+                reequip=1
             else
                 injured(crew(target(b)).typ)+=1
             endif
@@ -499,14 +811,16 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             else
                 text=text &desc(b)&" killed. "
             endif
+            changemoral(-3*killed(b),0)
         endif
     next
     if armeff>0 then text=text &armeff &" prevented by armor"
     hpdisplay(a)
-    if killed(2)>0 then player.pilot=-5
-    if killed(3)>0 then player.gunner=-5
-    if killed(4)>0 then player.science=-5
-    if killed(5)>0 then player.doctor=-5
+    if killed(2)>0 then player.pilot=captainskill
+    if killed(3)>0 then player.gunner=captainskill
+    if killed(4)>0 then player.science=captainskill
+    if killed(5)>0 then player.doctor=captainskill
+    if reequip=1 then equipawayteam(player,a,-1)
     return trim(text)
 end function
 
@@ -636,18 +950,14 @@ function hpdisplay(a as _monster) as short
         locate y,63
         for x=1 to 15
             c=c+1
-            if c<=a.hpmax and crew(c).onship=0 then
+            if crew(c).hpmax>0 and crew(c).onship=0 then
                 if crew(c).hp>0  then
                     color 14,0
                     if crew(c).hp=crew(c).hpmax then color 10,0
                     print crew(c).icon;       
                 else
                     color 12,0
-                    if c<6 then 
-                        if awayteamcomp(c-1)=1 then print "X";
-                    else
-                        print "X";
-                    endif
+                    print "X";
                 endif
             endif
         next
@@ -655,117 +965,272 @@ function hpdisplay(a as _monster) as short
     return 0
 end function
 
+function gainxp(slot as short) as short
+    if crew(slot).hp>0 and crew(slot).xp>=0 then crew(slot).xp+=1
+    return 0
+end function
+    
+function gaintalent(slot as short) as string
+    dim text as string
+    dim roll as short
+    ' roll for talent
+    roll=rnd_range(1,25)
+    ' check if can have it
+    if roll<=6 and slot=1 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+        if roll=1 then
+            captainskill=captainskill+1
+        endif
+        'haggler
+        'confident
+        'charming
+        'gambler
+        'merchant
+    endif
+    
+    if roll>=7 and roll<=9 and slot=2 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+    endif
+    
+    if roll>=10 and roll<=12 and slot=3 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+    endif
+    
+    if roll>=13 and roll<=15 and slot=3 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+    endif
+    
+    if roll>=16 and roll<=18 and slot=4 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+    endif
+    
+    if roll>18 then
+        crew(slot).talents(roll)+=1
+        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+    endif
+    if roll=19 then crew(slot).hpmax+=1
+    return text
+end function
+
+
 function levelup(p as _ship) as _ship
     dim a as short
     dim vet as short
     dim elite as short
     dim text as string
     dim roll as short
+    dim secret as short
     dim target as short
-    'dprint "P:"&p.skillmarks(1) &" G:" &p.skillmarks(2) & " S:"&p.skillmarks(3)
-    if p.pilot>0 then
-        roll=rnd_range(1,100)\(p.pilot+1)
-        target=33
-        if p.pilot<6 and p.skillmarks(1)>0 then
-            if roll<p.pilot then
-                dprint "your pilot retired",14,14
-                p.pilot=-5
-                roll=0
-                crew(2).hpmax=0
-                crew(2).hp=0
-            endif
-            if roll+p.skillmarks(1)>target and roll>1 then
-                p.pilot=p.pilot+1
-                dprint "your pilot is now skill level "&p.pilot,10,10 
-                addmember(2)
-            endif
-        endif
-    endif
+    dim _del as _crewmember
     
-    if p.gunner>0 then
-        roll=rnd_range(1,100)\(p.gunner+1)
-        target=33
-        if p.gunner<6 and p.skillmarks(2)>0 then
-            if roll<p.gunner then
-                dprint "your gunner retired",14,14
-                p.gunner=-5
-                crew(3).hpmax=0
-                crew(3).hp=0
-                roll=0
+    dim lev(128) as byte
+    for a=1 to 128
+        if crew(a).hp>0  then
+            roll=rnd_range(1,crew(a).xp)
+            if roll>5+crew(a).hp^2 and crew(a).xp>0 then
+                lev(a)+=1
+            'else
+             '   dprint "Rolled "&roll &", needed "&5+crew(a).hp^2,14,14
             endif
-            if roll+p.skillmarks(2)>target and roll>1 then
-                p.gunner=p.gunner+1
-                dprint "your gunner is now skill level "&p.gunner,10,10 
-                addmember(3)
-            endif
-        endif
-    endif
-    
-    if p.science>0 then
-        roll=rnd_range(1,100)\(p.science+1)
-        target=33
-        if p.science<6 and p.skillmarks(3)>0 then
-            if roll<p.science then
-                dprint "your science officer retired",14,14
-                p.science=-5
-                crew(4).hpmax=0
-                crew(4).hp=0
-                roll=0
-            endif
-            if roll+p.skillmarks(3)>target and roll>1 then
-                p.science=p.science+1
-                dprint "your science officer is now skill level "&p.science,10,10 
-                addmember(4)
-            endif
-        endif
-    endif
-    
-    if p.doctor>0 then
-        roll=rnd_range(1,100)\(p.doctor+1)
-        target=33
-        if p.doctor<6 and p.skillmarks(4)>0 then
-            if roll<p.doctor then
-                dprint "your ships doctor retired",14,14
-                p.doctor=-5
-                crew(5).hpmax=0
-                crew(5).hp=0
-                roll=0
-            endif
-            if roll+p.skillmarks(4)>target and roll>1 then
-                p.doctor+=1
-                dprint "your ships doctor is now skill level "&p.doctor,10,10 
-                addmember(5)
-            endif
-        endif
-    endif
-    if p.security>0 then
-        for a=6 to 6+p.security
-            roll=rnd_range(1,100)+p.skillmarks(5)
-            if roll>25*crew(a).hpmax then
-                if crew(a).hpmax<5 and p.skillmarks(5)>0 then
-                    crew(a).hpmax+=1
-                    crew(a).hp=crew(a).hpmax
-                    if crew(a).hp=4 then 
-                        elite=elite+1
-                        p.skillmarks(5)=p.skillmarks(5)-20
+            if a>1 then
+                if rnd_range(1,100)>crew(a).morale+addtalent(1,4,10) then
+                    if a=2 then 
+                        text =text &" Pilot "&crew(a).n &" retired."
+                        player.pilot=captainskill
                     endif
-                    if crew(a).hp=3 then 
-                        vet=vet+1
-                        p.skillmarks(5)=p.skillmarks(5)-10
+                    if a=3 then 
+                        text =text &" Gunner "&crew(a).n &" retired."
+                        player.gunner=captainskill
                     endif
+                    if a=4 then 
+                        text =text &" Science Officer "&crew(a).n &" retired."
+                        player.science=captainskill
+                    endif
+                    if a=5 then 
+                        text =text &" Doctor "&crew(a).n &" retired."
+                        player.doctor=captainskill
+                    endif
+                    if a>5 then secret+=1
+                    crew(a).hp=0
+                    lev(a)=0
                 endif
             endif
-        next
-      
-        if elite=1 then text= "one of your security force is now elite "
-        if vet=1 then text=text & " one of your security force is now a veteran " 
-        if elite>1 then text=elite &" of your security force are now elite "
-        if vet>1 then text=text &vet &" of your security force are now veterans " 
-        if text<>"" then dprint text,10,10
-    endif
-    for a=1 to 5
-        p.skillmarks(a)=0
+        endif
     next
+    if secret>1 then text=text &" " & secret &" of your security personal retired."
+    if text<>"" then dprint text,10,10
+    text=""
+    if lev(1)=1 then
+        if rnd_range(1,100)<crew(1).xp*4 then
+            'add talent
+            text=text &gaintalent(1)
+            crew(1).xp=0
+        endif
+    endif
+    if p.pilot>0 and p.pilot<=5 and lev(2)=1 then
+        p.pilot+=1
+        crew(2).hpmax+=1
+        text=text &" Your pilot is now skill "&p.pilot &"."
+        if rnd_range(1,100)<crew(2).xp*3 then text=text &gaintalent(2)
+        crew(2).xp=0
+    endif
+    if p.gunner>0 and p.gunner<=5 and lev(3)=1 then
+        p.gunner+=1
+        crew(3).hpmax+=1
+        text=text &" Your gunner is now skill "&p.gunner &"."
+        if rnd_range(1,100)<crew(3).xp*3 then text=text &gaintalent(3)
+        crew(3).xp=0
+    endif
+    if p.science>0 and p.science<=5 and lev(4)=1 then
+        p.science+=1
+        crew(4).hpmax+=1
+        text=text &" Your science officer is now skill "&p.science &"."
+        if rnd_range(1,100)<crew(4).xp*3 then text=text &gaintalent(4)
+        crew(4).xp=0
+    endif
+    if p.doctor>0 and p.doctor<=5 and lev(5)=1 then
+        p.doctor+=1
+        crew(5).hpmax+=1
+        text=text &" Your doctor is now skill "&p.doctor &"."
+        if rnd_range(1,100)<crew(5).xp*3 then text=text &gaintalent(5)
+        crew(5).xp=0
+    endif
+    for a=6 to 128
+        if crew(a).hp>0 and lev(a)=1 and crew(a).typ>=6 and crew(a).typ<=7 then
+            crew(a).hpmax+=1
+            crew(a).typ+=1
+            if rnd_range(1,100)<crew(a).xp*3 then text=text &gaintalent(a)
+            crew(a).xp=0
+            if crew(a).typ=7 then 
+                vet+=1
+            endif
+            if crew(a).typ=8 then
+                elite+=1
+            endif
+        endif
+    next
+    if vet=1 then
+        for a=6 to 128
+            if lev(a)=1 and crew(a).typ=7 then text=text &crew(a).n &" is now a veteran."
+        next
+    endif
+    if elite=1 then
+        for a=6 to 128
+            if lev(a)=1 and crew(a).typ=8 then text=text &crew(a).n &" is now elite."
+        next
+    endif
+    if vet>1 then text=text &" "&vet &" of your security are now veterans."
+    if elite>1 then text=text &" "&elite &" of your security are now veterans."
+    if text<>"" then dprint text,10,10
+    displayship()
+    '    'dprint "P:"&p.skillmarks(1) &" G:" &p.skillmarks(2) & " S:"&p.skillmarks(3)
+'    if p.pilot>0 then
+'        roll=rnd_range(1,100)\(p.pilot+1)
+'        target=33
+'        if p.pilot<6 and p.skillmarks(1)>0 then
+'            if roll<p.pilot then
+'                dprint "your pilot retired",14,14
+'                p.pilot=-5
+'                roll=0
+'                crew(2).hpmax=0
+'                crew(2).hp=0
+'            endif
+'            if roll+p.skillmarks(1)>target and roll>1 then
+'                p.pilot=p.pilot+1
+'                dprint "your pilot is now skill level "&p.pilot,10,10 
+'                addmember(2)
+'            endif
+'        endif
+'    endif
+'    
+'    if p.gunner>0 then
+'        roll=rnd_range(1,100)\(p.gunner+1)
+'        target=33
+'        if p.gunner<6 and p.skillmarks(2)>0 then
+'            if roll<p.gunner then
+'                dprint "your gunner retired",14,14
+'                p.gunner=-5
+'                crew(3).hpmax=0
+'                crew(3).hp=0
+'                roll=0
+'            endif
+'            if roll+p.skillmarks(2)>target and roll>1 then
+'                p.gunner=p.gunner+1
+'                dprint "your gunner is now skill level "&p.gunner,10,10 
+'                addmember(3)
+'            endif
+'        endif
+'    endif
+'    
+'    if p.science>0 then
+'        roll=rnd_range(1,100)\(p.science+1)
+'        target=33
+'        if p.science<6 and p.skillmarks(3)>0 then
+'            if roll<p.science then
+'                dprint "your science officer retired",14,14
+'                p.science=-5
+'                crew(4).hpmax=0
+'                crew(4).hp=0
+'                roll=0
+'            endif
+'            if roll+p.skillmarks(3)>target and roll>1 then
+'                p.science=p.science+1
+'                dprint "your science officer is now skill level "&p.science,10,10 
+'                addmember(4)
+'            endif
+'        endif
+'    endif
+'    if p.doctor>0 then
+'        roll=rnd_range(1,100)\(p.doctor+1)
+'        target=33
+'        if p.doctor<6 and p.skillmarks(4)>0 then
+'            if roll<p.doctor then
+'                dprint "your ships doctor retired",14,14
+'                p.doctor=-5
+'                crew(5).hpmax=0
+'                crew(5).hp=0
+'                roll=0
+'            endif
+'            if roll+p.skillmarks(4)>target and roll>1 then
+'                p.doctor+=1
+'                dprint "your ships doctor is now skill level "&p.doctor,10,10 
+'                addmember(5)
+'            endif
+'        endif
+'    endif
+'    if p.security>0 then
+'        for a=6 to 6+p.security
+'            roll=rnd_range(1,100)+p.skillmarks(5)
+'            if roll>25*crew(a).hpmax then
+'                if crew(a).hpmax<5 and p.skillmarks(5)>0 then
+'                    crew(a).hpmax+=1
+'                    crew(a).hp=crew(a).hpmax
+'                    if crew(a).hp=4 then 
+'                        elite=elite+1
+'                        p.skillmarks(5)=p.skillmarks(5)-20
+'                    endif
+'                    if crew(a).hp=3 then 
+'                        vet=vet+1
+'                        p.skillmarks(5)=p.skillmarks(5)-10
+'                    endif
+'                endif
+'            endif
+'        next
+'      
+'        if elite=1 then text= "one of your security force is now elite "
+'        if vet=1 then text=text & " one of your security force is now a veteran " 
+'        if elite>1 then text=elite &" of your security force are now elite "
+'        if vet>1 then text=text &vet &" of your security force are now veterans " 
+'        if text<>"" then dprint text,10,10
+'    endif
+'    for a=1 to 5
+'        p.skillmarks(a)=0
+'    next
     
     
     return p
@@ -913,7 +1378,7 @@ sub show_stars(bg as short=0)
             for y=0 to 20
                 locate y+1,x+1,0
                 color 1,0
-                if spacemap(x+player.osx,y+player.osy)=1 or spacemap(x+player.osx,y+player.osy)=5 and navcom>0 then 
+                if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then 
                     if _tiles=0 then
                         put (x*8+1,y*16+1),gtiles(11),pset
                     else
@@ -1407,11 +1872,6 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 it=getitem
                 if it>0 then dprint item(it).ldesc
             endif
-            if key=key_awayteam then
-                screenshot(1)
-                awayteamsetup
-                screenshot(2)
-            endif 
             if key=key_quests then
                 screenshot(1)
                 showquests
@@ -1549,7 +2009,7 @@ sub displaystation(a as short)
     endif
 end sub
 
-sub dtile(x as short,y as short, tiles as _tile)
+sub dtile(x as short,y as short, tiles as _tile,bg as short=0)
     dim as short col,bgcol
     locate y+1,x+1,0
     col=tiles.col
@@ -1564,7 +2024,9 @@ sub dtile(x as short,y as short, tiles as _tile)
     if _tiles=0 then
         put (x*8,y*16),gtiles(tiles.no+19),pset
     else
-        'if _showvis=1 then bgcol=1
+        if _showvis=0 and bg>0 and bgcol=0 then 
+            bgcol=234
+        endif
         color col,bgcol
         print chr(tiles.tile)
     endif
@@ -1660,8 +2122,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         endif
         locate 22,15
         color 15,0
-        if loctime=3 then print " Day"
-        if loctime=0 then print "Night"
+        if loctime=3 then print "Night"
+        if loctime=0 then print " Day "
         if loctime=1 then print "Dawn "
         if loctime=2 then print "Dusk "
         color 11,1
@@ -1762,29 +2224,32 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             if awayteam.jpfuel<10 then color 14,0
             if awayteam.jpfuel<5 then color 12,0
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
-            if awayteam.jpfuel=awayteam.jpfuelmax then wj=0
             print using "##";awayteam.jpfuel
-            if int(awayteam.jpfuel/awayteam.jpfuelmax)<.5 and wj=0 then 
-                wj=1
-                for a=1 to wj
-                    if _sound=0 or _sound=2 then    
-                        sleep 1150
-                        FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
-                        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-                    endif
-                next    
-                dprint ("Jetpack fuel low",14,14)
-            endif
-            if int(awayteam.jpfuel/awayteam.jpfuelmax)<.3 and wj=1 then 
-                wj=2
-                for a=1 to wj
-                    if _sound=0 or _sound=2 then    
-                        sleep 1150
-                        FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
-                        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-                    endif
-                next    
-                dprint ("Jetpack fuel very low",14,14)
+            if awayteam.jpfuel<awayteam.jpfuelmax then
+                if int(awayteam.jpfuel/awayteam.jpfuelmax)<.5 and wj=0 then 
+                    wj=1
+                    for a=1 to wj
+                        if _sound=0 or _sound=2 then    
+                            sleep 1150
+                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                        endif
+                    next    
+                    dprint ("Jetpack fuel low",14,14)
+                endif
+                if int(awayteam.jpfuel/awayteam.jpfuelmax)<.3 and wj=1 then 
+                    wj=2
+                    for a=1 to wj
+                        if _sound=0 or _sound=2 then    
+                            sleep 1150
+                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                        endif
+                    next    
+                    dprint ("Jetpack fuel very low",14,14)
+                endif
+            else
+                wj=0
             endif
         endif
         color 11,0
@@ -1997,11 +2462,11 @@ sub shipstatus(heading as short=0)
     print player.cryo
     
     for a=6 to 128
-       if crew(a).hpmax=2 then c1=c1+1
-       if crew(a).hpmax=3 then c2=c2+1
-       if crew(a).hpmax=4 then c3=c3+1
-       if crew(a).hpmax=5 then c4=c4+1
-       if crew(a).hpmax=6 then c5=c5+1
+       if crew(a).typ=6 then c1=c1+1
+       if crew(a).typ=7 then c2=c2+1
+       if crew(a).typ=8 then c3=c3+1
+       if crew(a).typ=9 then c4=c4+1
+       if crew(a).typ=10 then c5=c5+1
        if crew(a).disease>0 then sick+=1
     next
     locate 12,31
@@ -2244,7 +2709,7 @@ sub displayship(show as byte=0)
         if player.cargo(a).x=7 then print "?"
         if player.cargo(a).x=8 then print "C"
     next
-    if show=0 then
+    if show=1 then
         if _tiles=0 then
             put ((player.c.x-player.osx)*8,(player.c.y-player.osy)*16),gtiles(12),trans
         else
@@ -2369,7 +2834,7 @@ function textbox(text as string,x as short,y as short,w as short, fg as short=11
     dim words(1023) as string
     dim addt(24) as string
     addt(24)=text
-    if len(text)<=w then addt(0)=text
+    'if len(text)<=w then addt(0)=text
     for p=0 to len(text)
         words(wcount)=words(wcount)&mid(text,p,1)
         if mid(text,p,1)=" " or mid(text,p,1)="|" then wcount=wcount+1
@@ -2571,6 +3036,11 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if loca<1 then loca=c
         if loca>c then loca=1
         if key=key_enter then e=loca
+        if key=key_awayteam then 
+            screenshot(1)
+            showteam(1)
+            screenshot(2)
+        endif
         for a=0 to c
             if ucase(key)=shrt(a) and getdirection(key)=0 then loca=a
         next
@@ -2710,7 +3180,7 @@ function getplanet(sys as short) as short
         x=31+(p*2)
         if map(sys).planets(p)>0 then
             locate 22,x
-            color 15,1
+            color 15,3
             if isgasgiant(map(sys).planets(p))=0 and isasteroidfield(map(sys).planets(p))=0 then print "o"
             if isgasgiant(map(sys).planets(p))>0 then print "O"
             if isasteroidfield(map(sys).planets(p))=1 then print chr(176)
@@ -2719,7 +3189,7 @@ function getplanet(sys as short) as short
         
         if map(sys).planets(p)<0 then
             locate 22,x
-            color 15,1
+            color 15,3
             if isgasgiant(map(sys).planets(p))=0 then
                 print chr(176)
             else
@@ -2740,6 +3210,17 @@ function getplanet(sys as short) as short
     endif
     return r
 end function
+
+function isgardenworld(m as short) as short
+    if planets(m).grav>1.1 then return 0
+    if planets(m).atmos<3 or planets(m).atmos>5 then return 0
+    if planets(m).temp<-20 or planets(m).temp>55 then return 0
+    if planets(m).weat>1 then return 0
+    if planets(m).water<30 then return 0
+    if planets(m).rot<0.5 or planets(m).rot>1.5 then return 0
+    return -1
+end function
+
 
 function isgasgiant(m as short) as short
     if m<-20000 then return 1
@@ -2766,6 +3247,7 @@ function countasteroidfields(sys as short) as short
     return b
 end function
 
+
 function countgasgiants(sys as short) as short
     dim as short a,b
     for a=1 to 9
@@ -2784,11 +3266,8 @@ function checkcomplex(map as short,fl as short) as integer
         lastmap=nextmap
         nextmap+=1
         for a=1 to lastportal
-            'if portal(a).dest.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
             if portal(a).from.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
         next
-        locate 1,1
-        print lastmap;nextmap;"   "
     loop until maps(nextmap)=0
     
     for a=1 to lastmap

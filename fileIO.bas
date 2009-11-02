@@ -273,6 +273,10 @@ function loadconfig() as short
                     if instr(text,"1")>0 then _resolution=1
                     if instr(text,"2")>0 then _resolution=2
                 endif
+                if instr(text,"showvis")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then _showvis=0
+                    if instr(text,"1")>0 or instr(text,"of") then _showvis=1
+                endif
             endif                
         loop until eof(f)
         close #f
@@ -315,6 +319,7 @@ function configuration() as short
         text=text &"/ Easy start:" & onoff(_easy)
         text=text &"/ Volume (0-5):" & _volume
         text=text &"/ Resolution: "&res(_resolution)
+        text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -441,7 +446,16 @@ function configuration() as short
             if _resolution>2 then _resolution=0
             dprint "Resolution will be changed next time you start prospector."
         endif
-    loop until c=17
+        
+        if c=17 then
+            select case _showvis
+            case is=1
+                _showvis=0
+            case is=0
+                _showvis=1
+            end select
+        endif
+    loop until c=18
     screenshot(2)
     f=freefile
     open "config.txt" for output as #f
@@ -463,6 +477,7 @@ function configuration() as short
     print #f,"easy:"&_easy
     print #f,"volume:"&_volume
     print #f,"resolution:"&_resolution
+    print #f,"showvis:"&_showvis
     close #f
     return 0
 end function
@@ -536,9 +551,8 @@ function savegame() as short
     for a=1 to 128
         put #f,,crew(a)
     next
-    for a=1 to 4
-        put #f,,awayteamcomp(a)
-    next
+    put #f,,captainskill
+    put #f,,wage
     
     print ".";
     for a=0 to 16
@@ -672,10 +686,9 @@ function loadgame(filename as string) as short
         for a=1 to 128
             get #f,,crew(a)
         next
-        for a=1 to 4
-            get #f,,awayteamcomp(a)
-        next
-    
+        get #f,,captainskill
+        get #f,,wage
+        
         
         print ".";
         

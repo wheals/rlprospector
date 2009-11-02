@@ -90,6 +90,12 @@ function meetfleet(f as short, player as _ship)as _ship
             if total>0 and player.dead=0 then trading(10)
             fleet(f).ty=0
             if player.dead=-1 then player.dead=0
+            if player.dead>0 then
+                for a=1 to 128
+                    if crew(a).hp>0 then player.deadredshirts+=1
+                next
+            endif
+                
             cls
         endif
         lastturncalled=player.turn
@@ -151,11 +157,11 @@ function collidefleets() as short
                                 if rnd_range(1,100)<10 and lastdrifting<128 then
                                     lastdrifting+=1                                    
                                     lastplanet+=1
-                                    drifting(a).x=fleet(a).c.x
-                                    drifting(a).y=fleet(a).c.y
-                                    drifting(a).s=rnd_range(1,16)
-                                    drifting(a).m=lastplanet
-                                    makedrifter(drifting(a))
+                                    drifting(lastdrifting).x=fleet(a).c.x
+                                    drifting(lastdrifting).y=fleet(a).c.y
+                                    drifting(lastdrifting).s=rnd_range(1,16)
+                                    drifting(lastdrifting).m=lastplanet
+                                    makedrifter(drifting(lastdrifting))
                                     planets(lastplanet).darkness=0
                                     planets(lastplanet).depth=1
                                     planets(lastplanet).atmos=4
@@ -169,11 +175,11 @@ function collidefleets() as short
                                 if rnd_range(1,100)<10 and lastdrifting<128 then
                                     lastdrifting+=1                                    
                                     lastplanet+=1
-                                    drifting(a).x=fleet(a).c.x
-                                    drifting(a).y=fleet(a).c.y
-                                    drifting(a).s=rnd_range(1,16)
-                                    drifting(a).m=lastplanet
-                                    makedrifter(drifting(a))
+                                    drifting(lastdrifting).x=fleet(a).c.x
+                                    drifting(lastdrifting).y=fleet(a).c.y
+                                    drifting(lastdrifting).s=rnd_range(1,16)
+                                    drifting(lastdrifting).m=lastplanet
+                                    makedrifter(drifting(lastdrifting))
                                     planets(lastplanet).darkness=0
                                     planets(lastplanet).depth=1
                                     planets(lastplanet).atmos=4
@@ -328,8 +334,12 @@ function makemerchantfleet() as _fleet
     next
     if rnd_range(1,100)>80-makepat*2 then
         for b=a+1 to a+2
-            f.mem(b)=makeship(7) 'escorts
-            text=text &f.mem(b).icon
+            if rnd_range(1,100)<45+makepat then
+                f.mem(b)=makeship(7) 'escorts
+                text=text &f.mem(b).icon
+            else
+                f.mem(b)=makeship(12)
+            endif
         next
     endif
     if show_NPCs=1 then dprint ""&a &":"& b &":"& text
@@ -718,6 +728,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         else
             if rnd_range(1,100)<33 then
+            enemy.hasoxy=1
             select case planets(map).temp
                    case is>200
                     enemy.armor=2
@@ -785,7 +796,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.c.x=x
         enemy.c.y=y
         enemy.atcost=rnd_range(7,9)/10
-        
+        enemy.hasoxy=1
+            
         'Fighting Stats
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
@@ -894,6 +906,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         for l=1 to 5
             enemy.stuff(l)=1
         next
+        enemy.hasoxy=1
+            
         enemy.sight=7
         enemy.biomod=2
         enemy.respawns=0
@@ -947,6 +961,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.respawns=0
         enemy.lang=-3
         enemy.sight=5
+        enemy.hasoxy=1
+            
         for l=1 to c
             enemy.hp=enemy.hp+rnd_range(1,b)
         next
@@ -1000,6 +1016,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.armor=1
         enemy.lang=-3
         enemy.sight=5
+        enemy.hasoxy=1
+            
         enemy.atcost=rnd_range(6,8)/10
         for l=1 to c+planets(a).depth
             enemy.hp=enemy.hp+rnd_range(1,b)
@@ -1097,6 +1115,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.col=14
         enemy.atcost=rnd_range(3,5)/10
         enemy.sight=4
+        enemy.hasoxy=1
+            
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.sdesc="Sandworm"
@@ -1167,7 +1187,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.sight=4
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
-        
+        enemy.hasoxy=1
+            
         enemy.tile=Asc("C")
         enemy.sprite=286
         enemy.hpmax=4
@@ -1189,6 +1210,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.dkill="dies"
         enemy.cmmod=3
         enemy.aggr=1
+        enemy.hasoxy=1
+            
         enemy.diet=4 'Resources
         enemy.pumod=60
         enemy.atcost=rnd_range(6,8)/10
@@ -1213,8 +1236,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.move=.6
         enemy.respawns=0
         for l=0 to rnd_range(2,6)
-            if rnd_range(1,100)<33 then placeitem(rnd_item(21),x,y,map,mslot)
-            if rnd_range(1,100)<15 then placeitem(makeitem(96),x,y,map,mslot)
+            if rnd_range(1,100)<33 then placeitem(rnd_item(21),x,y,map,mslot,0)
+            if rnd_range(1,100)<15 then placeitem(makeitem(96),x,y,map,mslot,0)
         next
     endif
     
@@ -1346,6 +1369,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.armor=2
         enemy.lang=-3
         enemy.sight=5
+        enemy.hasoxy=1
+            
         r=rnd_range(1,6)
         if r<4 then
             enemy.invis=1
@@ -1540,6 +1565,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.aggr=0
         enemy.diet=1 'Resources
         enemy.pumod=60
+        enemy.hasoxy=1
+            
         enemy.range=rnd_range(1,4)+0.5
         if enemy.range<=2.5 then
             enemy.scol=11
@@ -1552,7 +1579,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,1)
         enemy.weapon=rnd_range(1,3)
-        enemy.tile=asc("T")
+        enemy.tile=asc("@")
         enemy.sprite=277
         
         enemy.col=75
@@ -1589,6 +1616,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.cmmod=15
         enemy.col=rnd_range(108,113)
         enemy.move=1
+        enemy.hasoxy=1
+            
         enemy.lang=-11
         if a=26 then enemy.lang=-13
         if a=25 and rnd_range(1,100)<25 then
@@ -1613,7 +1642,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.dkill="dies"
         enemy.biomod=1
         r=rnd_range(1,4)
-        
+        enemy.hasoxy=1
+            
         
         if r=1 then
             enemy.sdesc="floater"
@@ -1699,6 +1729,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.col=5
         enemy.move=.8
         enemy.aggr=1
+        enemy.hasoxy=1
+            
     endif
     
     if a=29 then
@@ -1717,6 +1749,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.weapon=4
         enemy.atcost=1.1
         enemy.armor=7
+        enemy.hasoxy=1
+            
         enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
@@ -1790,6 +1824,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.weapon=4
         enemy.atcost=1.1
         enemy.armor=7
+        enemy.hasoxy=1
+            
         enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
@@ -1833,6 +1869,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.cmmod=3
         enemy.aggr=1
         enemy.diet=0
+        enemy.hasoxy=1
+            
         enemy.pumod=60
         enemy.atcost=rnd_range(6,8)/10
         enemy.range=rnd_range(1,4)+0.5
@@ -1963,6 +2001,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             enemy.col=39
             enemy.biomod=1
             enemy.sight=5
+            enemy.hasoxy=1
+            
             enemy.sdesc="batlike creature"
             enemy.ldesc="a small creature with 3 eyes, no mouth or legs, using 2 skin wings to fly"
         else
@@ -1977,6 +2017,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             enemy.sight=3
             enemy.range=1.5
             enemy.biomod=1
+            enemy.hasoxy=1
+            
             enemy.tile=asc("j")
             enemy.col=208
             enemy.sdesc="blob"
@@ -1993,6 +2035,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.tile=asc("Q")
         enemy.col=192
         enemy.aggr=0
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
         enemy.sdesc="bouncing ball"
         enemy.ldesc="a orange ball. It has several yellow eyespots, and moves by jumping and bouncing. It has two yellow birdlike claws at the lower end. It appears to be hollow, with no recognizable organs. How exactly it is alive is a mystery."        
         enemy.biomod=5.2
@@ -2000,6 +2044,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.atcost=.3
         enemy.range=2.5
         enemy.sight=3.5
+        enemy.hasoxy=1
+            
         enemy.weapon=0
         enemy.scol=192
         else
@@ -2019,6 +2065,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
     
     
     if a=39 then
+        enemy.hasoxy=1
+            
         if rnd_range(1,100)<66 then
             enemy.c.x=x
             enemy.c.y=y
@@ -2077,6 +2125,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
     endif
         
     if a=40 then 'zombies
+        enemy.hasoxy=1
+            
         enemy.made=40
         enemy.c.x=x
         enemy.c.y=y
@@ -2305,7 +2355,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.c.y=y
         enemy.sight=3
         enemy.sdesc="tree"
-        enemy.ldesc="a small tree or big brush with a cone shaped trunk, and a wide surface root system. It has several small openings and a few flexible branches near the top that end in big blue globes. It is obviously capable of moving slowly!"
+        enemy.ldesc="a small tree or big bush with a cone shaped trunk, and a wide surface root system. It has several small openings and a few flexible branches near the top that end in big blue globes. It is obviously capable of moving slowly!"
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.intel=4
@@ -2352,6 +2402,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         
         
     if a=46 then 'Vault bots
+        enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
         enemy.dhurt="damaged"
@@ -2761,6 +2812,23 @@ dim as short c,b
         p.weapons(2)=makeweapon(3)
         p.weapons(2)=makeweapon(3)
         p.col=7
+        p.bcol=0
+        p.mcol=14
+    endif
+    
+    if a=12 then
+        'pirate fighter
+        p.c.x=rnd_range(0,60)
+        p.c.y=rnd_range(0,20)
+        p.sensors=3
+        p.hull=2
+        p.pilot=1
+        p.gunner=1
+        p.engine=4
+        p.desig="Fighter"
+        p.icon="F"
+        p.weapons(1)=makeweapon(7)
+        p.col=10
         p.bcol=0
         p.mcol=14
     endif

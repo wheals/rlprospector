@@ -118,6 +118,7 @@ end function
 function upgradehull(t as short,byref s as _ship) as short
     dim as short f,flg,a,b,cargobays,weapons,tfrom,tto
     dim n as _ship
+    dim d as _crewmember
     dim as string ques
     dim as string word(10)
     dim as string text
@@ -160,7 +161,7 @@ function upgradehull(t as short,byref s as _ship) as short
         if s.engine<6 and s.engine>s.h_maxengine then s.engine=s.h_maxengine
         if s.sensors<6 and s.sensors>s.h_maxsensors then s.sensors=s.h_maxsensors
         if s.shield>s.h_maxshield then s.shield=s.h_maxshield
-        if s.security>s.h_maxcrew then s.security=s.h_maxcrew
+        
         s.h_maxweaponslot=n.h_maxweaponslot
         s.h_maxfuel=n.h_maxfuel
         if s.hull=0 then s.hull=s.h_maxhull*0.8
@@ -196,6 +197,13 @@ function upgradehull(t as short,byref s as _ship) as short
         endif
         
         recalcshipsbays
+        
+        if s.security>s.h_maxcrew+player.crewpod+player.cryo then
+            s.security=s.h_maxcrew
+            for a=s.h_maxcrew+player.crewpod+player.cryo to 128
+                crew(a)=d
+            next
+        endif
         s.fuelmax=s.h_maxfuel+s.fuelpod
     endif
     return flg
@@ -217,6 +225,8 @@ function company(st as short,byref questroll as short) as short
         endif
         if askyn("The Rep offers to buy your data on the ancients pets for "&a &" Cr. Do you accept?(y/n)") then
             player.money=player.money+a
+            player.questflag(1)=2
+            if a=25000 then player.questflag(1)=3
         endif
         a=0
     endif
@@ -265,7 +275,7 @@ function company(st as short,byref questroll as short) as short
         player.money=player.money+5000
         player.merchant_agr=player.merchant_agr-5
         dprint "The company rep pays your contract for finding a robot factory."
-        player.questflag(9)=0
+        player.questflag(9)=3
     endif
     if player.questflag(10)<0 and basis(st).repname="Omega Bioengineering" then
         player.money=player.money+2500
@@ -340,8 +350,8 @@ function company(st as short,byref questroll as short) as short
     if reward(0)>1 then
         if _autosell=1 then q=askyn("do you want to sell map data? (y/n)")
         if q=-1 then
-            dprint "you transfer new map data on "&reward(0)&" km2. you get paid "&cint((reward(7)/15)*basis(st).mapmod)&" credits"
-            player.money=player.money+cint((reward(7)/15)*basis(st).mapmod)
+            dprint "you transfer new map data on "&reward(0)&" km2. you get paid "&cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2)))&" credits"
+            player.money=player.money+cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2)))
             reward(0)=0
             reward(7)=0
             k=keyin
@@ -350,8 +360,8 @@ function company(st as short,byref questroll as short) as short
     if reward(1)>1 then
         if _autosell=1 then q=askyn("do you want to sell bio data? (y/n)")
         if q=-1 then
-            dprint "you transfer data on alien lifeforms worth "& cint(reward(1)*basis(st).biomod) &" credits."
-            player.money=player.money+cint(reward(1)*basis(st).biomod)
+            dprint "you transfer data on alien lifeforms worth "& cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2))) &" credits."
+            player.money=player.money+cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2)))
             reward(1)=0
             for a=1 to lastitem
                 if item(a).ty=26 and item(a).w.s=-1 then item(a).v1=0
@@ -362,8 +372,8 @@ function company(st as short,byref questroll as short) as short
     if reward(2)>1 then
         if _autosell=1 then q=askyn("do you want to sell resources? (y/n)")
         if q=-1 then
-            dprint "you transfer resources for "& cint(reward(2)*basis(st).resmod) &" credits."
-            player.money=player.money+cint(reward(2)*basis(st).resmod)
+            dprint "you transfer resources for "& cint(reward(2)*basis(st).resmod*(1+0.1*crew(1).talents(2))) &" credits."
+            player.money=player.money+cint(reward(2)*basis(st).resmod*(1+0.1*crew(1).talents(2)))
             reward(2)=0
             for b=0 to 1
                 for a=0 to lastitem
@@ -379,8 +389,8 @@ function company(st as short,byref questroll as short) as short
     if reward(3)>1 then
         if _autosell=1 then q=askyn("do you want to collect your bounty for destroyed pirate ships? (y/n)")
         if q=-1 then
-            dprint "You recieve "&cint(reward(3)*basis(st).pirmod) &" credits as bounty for destroyed pirate ships."
-            player.money=player.money+cint(reward(3)*basis(st).pirmod)
+            dprint "You recieve "&cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2))) &" credits as bounty for destroyed pirate ships."
+            player.money=player.money+cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2)))
             reward(3)=0
             no_key=keyin
         endif
@@ -535,7 +545,18 @@ function casino(staked as short=0, st as short=-1) as short
                         print " "&num &" "
                         sleep d*d*2
                     endif
-                    
+                    if crew(1).talents(5)=1 then
+                        if b=1 and fi<>num then num=rnd_range(0,36)
+                        if b=2 and frac(num/2)<>0 then num=rnd_range(0,36)
+                        if b=3 and frac(num/2)=0 then num=rnd_range(0,36)
+                        if b=4 and coltable(num)=15 then num=rnd_range(0,36)
+                        if b=5 and coltable(num)=12 then num=rnd_range(0,36)                        
+                        col=coltable(num)
+                        locate 15,25
+                        color col,0
+                        print " "&num &" "
+                        sleep d*d*2
+                    endif
                     times=0
                     if num=0 then dprint "Bank wins"
                     if b=1 and fi=num then times=35
@@ -710,7 +731,7 @@ function repairhull() as short
     return 0
 end function
 
-function sickbay(sh as short=20, pir as short=1) as short
+function sickbay() as short
     dim text as string
     dim as short a,b,price,cured
     do
@@ -719,11 +740,13 @@ function sickbay(sh as short=20, pir as short=1) as short
             shop(21,1,"Medical Supplies")
         endif
         if a=2 then
+            'if player.disease>0 then price=price+10*player.disease
             for b=1 to 128
                 if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
                     price=price+10*crew(b).disease
                 endif
             next
+            if player.disease>0 then price=price+10*player.disease
             if price>0 then
                 if askyn("Treatment will cost "&price &" Cr. Do you want the treatment to begin?") then
                     if price<=player.money then
@@ -742,6 +765,7 @@ function sickbay(sh as short=20, pir as short=1) as short
                 endif
             else
                 dprint "You have no sick crewmembers."
+                player.disease=0
             endif
         endif
         displayship
@@ -773,6 +797,7 @@ function shipyard(pir as short=1) as short
             last=last+1
         next
     endif
+    
     if pir=2 then
         for b=pir to 16 step pir            
             s=gethullspecs(b)
@@ -803,16 +828,16 @@ function shipyard(pir as short=1) as short
         displayship
         c=menu(men,des)
         if c<last+1 then
-            if paystuff(pr(st(c))) then
+            if paystuff(pr(c)) then
                 if st(c)<>player.h_no then
                     if upgradehull(st(c),player)=-1 then
                         dprint "you buy a "&ds(c)&" hull"
                     else
-                        player.money=player.money+pr(st(c))
+                        player.money=player.money+pr(c)
                     endif             
                 else
                     dprint "You already have that hull."
-                    player.money=player.money+pr(st(c))
+                    player.money=player.money+pr(c)
                 endif
             endif
             displayship
@@ -824,13 +849,13 @@ end function
 
 function shipupgrades() as short
     dim as short b,c,d,e
-    shopitem(1,20).desig="Sensors MK I"
+    shopitem(1,20).desig="sensors MK I"
     shopitem(1,20).price=200
     shopitem(1,20).v1=1
     shopitem(1,20).ty=50
     shopitem(1,20).ldesc="Basic ship sensor set. 1 Parsec Range" 
     
-    shopitem(2,20).desig="Sensors MK II"
+    shopitem(2,20).desig="sensors MK II"
     shopitem(2,20).price=800
     shopitem(2,20).v1=2
     shopitem(2,20).v4=1
@@ -844,13 +869,13 @@ function shipupgrades() as short
     shopitem(3,20).ldesc="Ship sensor set. 3 Parsec Range" 
     
     
-    shopitem(4,20).desig="Sensors MK IV"
+    shopitem(4,20).desig="sensors MK IV"
     shopitem(4,20).price=3200
     shopitem(4,20).v1=4
     shopitem(4,20).ty=50
     shopitem(4,20).ldesc="Advanced ship sensor set. 4 Parsec Range" 
     
-    shopitem(5,20).desig="Sensors MK V"
+    shopitem(5,20).desig="sensors MK V"
     shopitem(5,20).price=6400                        
     shopitem(5,20).ty=50
     shopitem(5,20).v1=5
@@ -913,15 +938,15 @@ function shipupgrades() as short
                         if shopitem(d,20).ty=50 then
                             player.money=player.money-shopitem(d,20).price
                             if shopitem(d,20).v1>player.h_maxsensors then
-                                dprint "your ship is too small for those"
+                                dprint "Your ship is too small for those"
                                 player.money=player.money+shopitem(d,20).price
                             endif
                             if shopitem(d,20).v1<player.sensors then
-                                dprint "you already have better sensors"
+                                dprint "You already have better sensors"
                                 player.money=player.money+shopitem(d,20).price
                             endif
                             if shopitem(d,20).v1=player.sensors then
-                                dprint "that is the same as your current sensor system"
+                                dprint "That is the same as your current sensor system"
                                 player.money=player.money+shopitem(d,20).price
                             endif
                             if shopitem(d,20).v1>player.sensors and shopitem(d,20).v1<=player.h_maxsensors then
@@ -978,10 +1003,10 @@ function shipupgrades() as short
                                 player.money=player.money-d*d*300
                                 player.shieldmax=d
                                 player.shield=d
-                                dprint "you upgrade your Shields"
+                                dprint "You upgrade your shields"
                                 d=6
                             else
-                                dprint "not enough money"
+                                dprint "Not enough money"
                             endif
                         endif
                     else
@@ -997,17 +1022,17 @@ function shipupgrades() as short
                     d=menu("Engine:/ Engine MKI - 300 Cr/ Engine MKII - 1200 Cr/ Engine MKIII - 2700 Cr/ Engine MK IV - 4800 Cr/ Engine MK V - 7500 Cr/ Exit")
                     if d<6 and d<=player.h_maxengine then
                         
-                        if d<player.engine then dprint "you already have a better Engine"
-                        if d=player.engine then dprint "You arelady have this Engine"
+                        if d<player.engine then dprint "You already have a better engine"
+                        if d=player.engine then dprint "You already have this engine"
                         if d>player.engine and d<6 then
                             if player.money>=d*d*300 then
                                 player.money=player.money-d*d*300
                                 player.engine=d
-                                dprint "you upgrade your Engine"
+                                dprint "You upgrade your engine"
                                 displayship()
                                 d=6
                             else
-                                dprint "not enough money"
+                                dprint "Not enough money"
                             endif
                         endif
                     else
@@ -1027,94 +1052,161 @@ end function
     
 
 function hiring(st as short,byref hiringpool as short,hp as short) as short
-    dim as short b,c,d,e,officers,maxsec
-    cls
-        
+    dim as short b,c,d,e,officers,maxsec,neodog,robots
+    dim as short f,g
+    dim as string text
+    text="Hiring/ Pilot/ Gunner/ Science Officer/ Ships Doctor/ Security/"
+    if basis(st).repname="Omega Bioengineering" and player.questflag(1)=3 then neodog=1
+    if basis(st).repname="Smith Heavy Industries" and player.questflag(9)=3 then robots=1
+    if neodog=1 then text=text & " Neodog/ Neoape/"
+    if robots=1 then text=text & " Robot/"
+    text=text & " Set Wage/Exit"
+    cls        
         do
-        officers=1
-        if player.pilot>0 then officers=officers+1
-        if player.gunner>0 then officers=officers+1
-        if player.science>0 then officers=officers+1
-    
-        displayship()
-        b=menu("Hiring/ Pilot/ Gunner/ Science Officer/ Ships Doctor/ Security/Exit")
-        d=rnd_range(1,100)
-        c=5
-        if d<90 then c=4
-        if d<75 then c=3
-        if d<60 then c=2
-        if d<40 then c=1
-        if c<1 then c=1
-        e=((player.pilot+player.gunner+player.science+player.doctor)/4)+1
-        if e<=0 then e=2
-        if c>e then c=e+rnd_range(0,2)-1
-        if c<=0 then c=2
-        if b<5 and hiringpool>0 then
-            if b=1 then
-                if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*10 &" (Current:"&player.pilot &") hire? (y/n)") then
-                    if player.money>=c*c*10 then
-                        player.money=player.money-c*c*10 
-                        player.pilot=c
-                        hiringpool+=addmember(2)
-                    else
-                        dprint "not enough Credits for first wage."
-                    endif
-                endif
-            endif
-            if b=2 then
-                if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*10 & " (Current:"&player.gunner &") hire? (y/n)") then
-                    if player.money>=c*c*10 then
-                        player.money=player.money-c*c*10 
-                        player.gunner=c
-                        hiringpool+=addmember(3)
-                    else
-                        dprint "not enough Credits for first wage."
-                    endif
-                endif
-            endif
-            if b=3 then
-                if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*10 &" (Current:"&player.science &") hire? (y/n)") then
-                    if player.money>=c*c*10 then
-                        player.money=player.money-c*c*10 
-                        player.science=c
-                        hiringpool+=addmember(4)
-                    else
-                       dprint "not enough Credits for first wage."
-                    endif
-                endif
-            endif
-            if b=4 then
-                if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*10 &" (Current:"&player.doctor &") hire? (y/n)") then
-                    if player.money>=c*c*10 then
-                        player.money=player.money-c*c*10 
-                        player.doctor=c
-                        hiringpool+=addmember(5)
-                    else
-                       dprint "not enough Credits for first wage."
-                    endif
-                endif
-            endif
-            hiringpool=hiringpool-1
-        else
-            if b<5 then dprint "Nobody availiable for the position. try again later."
-        endif
-        if b=5 then
-            dprint "No. of security personel to hire."
-            maxsec=maxsecurity()
-            c=getnumber(0,maxsec,0)
-            if c>0 then
-            if player.money<c*10 then
-                dprint "not enough Credits for first wage."
-            else
-                for d=1 to c
-                    hiringpool+=addmember(6)
-                next
-                player.money=player.money-c*10
-            endif
-            endif
-        endif
+            officers=1
+            if player.pilot>0 then officers=officers+1
+            if player.gunner>0 then officers=officers+1
+            if player.science>0 then officers=officers+1
+            if player.doctor>0 then officers=officers+1
         
-        loop until b=6
+            displayship()
+            b=menu(text)
+                
+            d=rnd_range(1,100)
+            c=5
+            if d<90 then c=4
+            if d<75 then c=3
+            if d<60 then c=2
+            if d<40 then c=1
+            if c<1 then c=1
+            e=((player.pilot+player.gunner+player.science+player.doctor)/4)+1
+            if e<=0 then e=2
+            if c>e then c=e+rnd_range(0,2)-1
+            if c<=0 then c=2
+            if b<5 and hiringpool>0 then
+                if b=1 then
+                    if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*Wage &" (Current:"&player.pilot &") hire? (y/n)") then
+                        if player.money>=c*c*Wage then
+                            player.money=player.money-c*c*Wage 
+                            player.pilot=c
+                            hiringpool+=addmember(2)
+                        else
+                            dprint "Not enough Credits for first wage."
+                        endif
+                    endif
+                endif
+                if b=2 then
+                    if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*Wage & " (Current:"&player.gunner &") hire? (y/n)") then
+                        if player.money>=c*c*Wage then
+                            player.money=player.money-c*c*Wage 
+                            player.gunner=c
+                            hiringpool+=addmember(3)
+                        else
+                            dprint "Not enough Credits for first wage."
+                        endif
+                    endif
+                endif
+                if b=3 then
+                    if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current:"&player.science &") hire? (y/n)") then
+                        if player.money>=c*c*Wage then
+                            player.money=player.money-c*c*Wage 
+                            player.science=c
+                            hiringpool+=addmember(4)
+                        else
+                           dprint "Not enough Credits for first wage."
+                        endif
+                    endif
+                endif
+                if b=4 then
+                    if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current:"&player.doctor &") hire? (y/n)") then
+                        if player.money>=c*c*Wage then
+                            player.money=player.money-c*c*Wage 
+                            player.doctor=c
+                            hiringpool+=addmember(5)
+                        else
+                           dprint "Not enough Credits for first wage."
+                        endif
+                    endif
+                endif
+                hiringpool=hiringpool-1
+            else
+                if b<5 then dprint "Nobody availiable for the position. try again later."
+            endif
+            if b=5 then
+                dprint "No. of security personel to hire."
+                maxsec=maxsecurity()
+                c=getnumber(0,maxsec,0)
+                if c>0 then
+                if player.money<c*Wage then
+                    dprint "Not enough Credits for first wage."
+                else
+                    for d=1 to c
+                        hiringpool+=addmember(6)
+                    next
+                    player.money=player.money-c*Wage
+                endif
+                endif
+            endif
+            if b=6 and neodog=1 then
+                dprint "How many Neodogs do you want to buy?"
+                maxsec=maxsecurity()
+                c=getnumber(0,maxsec,0)
+                if c>0 then
+                    if player.money<c*50 then
+                        dprint "Not enough Credits."
+                    else
+                        dprint "you buy "&c &" Neodogs."
+                        for d=1 to c
+                            addmember(11)
+                        next
+                        player.money=player.money-c*50
+                    endif
+                endif
+            endif
+            
+            if b=6 and robots=1 then
+                dprint "How many Robots do you want to buy?"
+                maxsec=maxsecurity()
+                c=getnumber(0,maxsec,0)
+                if c>0 then
+                    if player.money<c*150 then
+                        dprint "Not enough Credits."
+                    else
+                        dprint "you buy "&c &" Neodogs."
+                        for d=1 to c
+                            addmember(13)
+                        next
+                        player.money=player.money-c*150
+                    endif
+                endif
+            endif
+            
+            if b=7 and neodog=1 then
+                dprint "How many Neoapes do you want to buy?"
+                maxsec=maxsecurity()
+                c=getnumber(0,maxsec,0)
+                if c>0 then
+                    if player.money<c*75 then
+                        dprint "Not enough Credits."
+                    else
+                        dprint "you buy "&c &" Neoapes."
+                        for d=1 to c
+                            addmember(12)
+                        next
+                        player.money=player.money-c*75
+                    endif
+                endif
+            endif
+            if (neodog=0 and b=6) or (neodog=1 and b=8) or (robots=1 and b=7) then
+                dprint "Set standard wage from "&wage &" to:"
+                Wage=getnumber(1,20,Wage)
+                f=0
+                for g=2 to 128
+                    if Crew(g).paymod>0 and crew(g).hpmax>0 and crew(g).hp>0 then f=f+Wage*Crew(g).paymod
+                next
+                dprint "Set to " &Wage &"Cr. Your crew now gets "&f &" Cr. in wages"        
+            endif
+        loop until (neodog=0 and b=7) or (neodog=1 and b=9) or (robots=1 and b=8)
     return 0
 end function
 ' trading
@@ -1285,7 +1377,19 @@ sub buygoods(st as short)
     text=stationgoods(st)
         cls
         displayship
-        c=menu(text)
+            
+        color 15,0 
+        locate 2,2
+        print "Wares"
+        locate 2,24
+        print "Price"
+        locate 2,35
+        print "Qut."
+        locate 3,20
+        print "Buy"
+        locate 3,28
+        print "Sell"
+        c=menu(text,"",2,3)
         if c<6 then
             
             m=basis(st).inv(c).v
@@ -1343,11 +1447,11 @@ sub sellgoods(st as short)
                 m=getinvbytype(player.cargo(c).x-1) ' wie viele insgesamt
                 sold=getnumber(0,m,0)
                 if sold>0 then
-                    player.money=player.money+sold*basis(st).inv(player.cargo(c).x-1).p
-                    player.tradingmoney=player.tradingmoney+sold*basis(st).inv(player.cargo(c).x-1).p
+                    player.money=player.money+sold*basis(st).inv(player.cargo(c).x-1).p*(0.8+addtalent(1,6,.01))
+                    player.tradingmoney=player.tradingmoney+(0.8+addtalent(1,6,.01))*sold*basis(st).inv(player.cargo(c).x-1).p
     
                     basis(st).inv(player.cargo(c).x-1).v=basis(st).inv(player.cargo(c).x-1).v+sold
-                    dprint "sold " & sold & " tons of " & basis(st).inv(player.cargo(c).x-1).n & " for " & basis(st).inv(player.cargo(c).x-1).p*sold &" Cr."
+                    dprint "sold " & sold & " tons of " & basis(st).inv(player.cargo(c).x-1).n & " for " & basis(st).inv(player.cargo(c).x-1).p*sold*(0.8+addtalent(1,6,.01)) &" Cr."
                     removeinvbytype(player.cargo(c).x-1,sold)
                     no_key=keyin
                     c=b+1
@@ -1367,18 +1471,24 @@ function displaywares(st as short) as short
     color 15,0 
     locate 2,2
     print "Wares"
-    locate 2,20 
+    locate 2,24
     print "Price"
-    locate 2,28
+    locate 2,35
     print "Qut."
+    locate 3,20
+    print "Buy"
+    locate 3,28
+    print "Sell"
     for a=1 to 5
         color 11,0
         locate 3+a,2
         print basis(st).inv(a).n
         locate 3+a,20
-        print basis(st).inv(a).p
+        print using"####"; basis(st).inv(a).p
         locate 3+a,28
-        print basis(st).inv(a).v
+        print using"####";cint(basis(st).inv(a).p*.8+addtalent(1,6,.01))
+        locate 3+a,36
+        print using "##";basis(st).inv(a).v
         
     next
     return 0
@@ -1467,13 +1577,23 @@ function changeprices(st as short,etime as short) as short
 end function
 
 function stationgoods(st as short) as string
-    dim text as string
+    dim as string text,pl 
     dim a as short
-    text="Buy:/"
+    dim off as short
+    text=space(18)&"Buy     Sell/"
     for a=1 to 5
-        text=text & basis(st).inv(a).n & "- P:"
-        text=text & basis(st).inv(a).p & " Q:"
-        text=text & basis(st).inv(a).v
+        text=text & trim(basis(st).inv(a).n)&space(17-len(trim(basis(st).inv(a).n))) 
+        pl=""& basis(st).inv(a).p
+        text=text & space(5-len(pl))
+        text=text & basis(st).inv(a).p 
+        pl=""& cint(basis(st).inv(a).p*.8+addtalent(1,6,.01))
+        text=text & space(8-len(pl))
+        text=text & cint(basis(st).inv(a).p*.8+addtalent(1,6,.01)) &space(4)
+        if basis(st).inv(a).v>=10 then
+            text=text & basis(st).inv(a).v
+        else
+            text=text & " "& basis(st).inv(a).v
+        endif
         text=text & "/"
     next
     text=text & "Exit"
@@ -1657,8 +1777,14 @@ end function
 function rerollshops() as short
     dim as short a,b,i,flag,roll
     dim it as _items 
-
+    for a=0 to 20
+        for b=0 to 21
+            shopitem(a,b)=makeitem(-1)
+        next
+    next
+    
     for i=0 to 19
+        a=0
         do
             flag=0
             it=makeitem(0)

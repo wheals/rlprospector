@@ -6,7 +6,7 @@ function dodialog(no as short) as short
     dim p as short
     if no=1 then
         
-        dprint "Subjugate or be destroyed."
+        dprint "SUBJUGATE OR BE DESTROYED."
         do
             text=ucase(gettext(pos,csrlin-1,46," "))
             if instr(text,"WHO")>0 or instr(text,"YOU")>0 then dprint "WE ARE THE INTELLIGENCE INHABITING THIS WORLD" 
@@ -42,7 +42,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     dim as short roll,a,b
     dim it as _items
     dim p as cords
-    roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel
+    roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,13,2)
     if e.lang<0 then
         if roll>9 then
             dprint "Your Science Officer established communication with the " & e.sdesc &"."
@@ -67,7 +67,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                         e.cmmod=e.cmmod+1
                     endif
                 endif
-                if rnd_range(1,100)>e.intel*6 then
+                if rnd_range(1,100)>(e.intel+addtalent(4,13,1))*6 then
                     dprint rndsentence(e.aggr,e.intel)
                 else
                     select case rnd_range(1,100)
@@ -154,8 +154,8 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                 b=findbest(13,-1)
                 if b>0 then 
                     if askyn("It says 'Got food?'. Do you want to give it a an anastaethic?") then
-                        dprint "The "&e.sdesc &" eats the "& item(a).desig
-                        e.sleeping=e.sleeping+item(a).v1
+                        dprint "The "&e.sdesc &" eats the "& item(b).desig
+                        e.sleeping=e.sleeping+item(b).v1
                         if e.sleeping>0 then dprint "And falls asleep!"
                         destroyitem(b)
                     endif
@@ -439,6 +439,14 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                         if askyn("Your science officer is better than the tree creature. Do you want to take it with you regardless? (y/n)") then
                             player.science=3
                             crew(4).paymod=0
+                            crew(4).hp=3
+                            crew(4).hpmax=3
+                            crew(4).talents(24)=2
+                            crew(4).n=ucase(chr(rnd_range(97,122)))
+                            for b=0 to rnd_range(1,6)+3
+                                crew(4).n=crew(4).n &chr(rnd_range(97,122))
+                            next
+                            
                             e.hp=0
                             e.hpmax=0
                         endif
@@ -473,6 +481,9 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                 if askyn("Ted Rofes asks if you would let him join your crew 'you seem more reasonable than my old captain' (y/n)") then
                     player.doctor=6
                     crew(5).paymod=1
+                    crew(5).hpmax=6
+                    crew(5).hp=6
+                    crew(5).n="Ted Rofes"
                     e.hp=0
                     e.hpmax=0
                 endif        
@@ -501,7 +512,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
          
      
      select case e.intel
-        case is>4
+        case is>6
             if rnd_range(1,6)+rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
                 dprint "The "&e.sdesc &" accepts the gift."
                 e.cmmod=e.cmmod+2
@@ -689,7 +700,7 @@ function plantname(ti as _tile) as string
 end function
 
 
-function randomcritterdescription(spec as short,weight as short,flies as short,byref pumod as short,diet as short,water as short,depth as short) as string
+function randomcritterdescription(spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as string
 
 dim as string text
 dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(6),wings(4),horns(4),tails(5)
@@ -1153,6 +1164,6 @@ function checkquestcargo(player as _ship, st as short) as _ship
         player.questflag(8)=0
     endif
     
-    if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders its and get payed "& b*200 &" credits."
+    if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders and get payed "& b*200 &" credits."
     return player
 end function

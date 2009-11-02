@@ -75,7 +75,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     senbat2=defender.sensors
     cls
     player=defender
-    displayship(1)
+    displayship(0)
     do
         nexsen=senac
         'movement
@@ -94,7 +94,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             tick(a)=0
         next
         player=defender
-        displayship(1)
+        displayship(0)
         com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last)
    '
         for a=1 to 10
@@ -214,7 +214,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     t=com_gettarget(defender,a,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last)
                     if t>0 then
                         if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(a).col)=-1 then
-                            attacker(t)=com_fire(attacker(t),defender.weapons(a),defender.gunner,distance(defender.c,attacker(t).c),senac)
+                            attacker(t)=com_fire(attacker(t),defender.weapons(a),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
                             if attacker(t).hull<=0 then
                                 dprint "Target destroyed",,10
                                 reward(3)=reward(3)+attacker(t).money
@@ -229,7 +229,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 endif
             next
             player=defender
-            displayship(1)
+            displayship(0)
         endif
         if key=key_ru then victory=com_flee(defender,lastenemy)
         if victory=1 then 
@@ -251,7 +251,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 if pathblock(defender.c,attacker(a).c,0,2,attacker(a).weapons(b).col)=-1 then
                                     defender=com_fire(defender,attacker(a).weapons(b),attacker(a).gunner,distance(attacker(a).c,defender.c),senac)
                                     player=defender
-                                    displayship(1)
+                                    displayship(0)
                                 endif
                             endif
                         endif
@@ -510,10 +510,6 @@ function com_fire(target as _ship, w as _weap, gunner as short, range as short,s
         endif
         ROF-=1
     loop until ROF<=0
-    'if w.ammomax>0 and w.ROF>0 and (_sound=0 or _sound=2) then FSOUND_StopSound(FSOUND_FREE, sound(7)) 'Laser         
-    'if w.ammomax>0 and w.ROF=0 and (_sound=0 or _sound=2) then FSOUND_StopSound(FSOUND_FREE, sound(8)) 'Missile battery          
-    'if w.ammomax=0 and (_sound=0 or _sound=2) then FSOUND_StopSound(FSOUND_FREE, sound(9)) 'Missile                                           
-    
     return target
 end function
 
@@ -655,24 +651,30 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                 t.security=0
             endif
             dprint "Crew quaters hit! "& b &" casualties!",12,12
+            removemember(b,0)
+            player.deadredshirts=player.deadredshirts+1
         endif 
 
         if a=8 then
             dprint "A direct hit on the bridge!"
             
             if rnd_range(1,6)+rnd_range(1,6)>7 then
-                b=rnd_range(1,3)
+                b=rnd_range(1,4)
                 if b=1 and t.pilot>0 then 
-                    t.pilot=-5
+                    t.pilot=captainskill
                     text="Pilot "
                 endif
                 if b=2 and t.gunner>0 then 
-                    t.gunner=-5
+                    t.gunner=captainskill
                     text="Gunner "
                 endif
                 if b=3 and t.science>0 then 
-                    t.science=-5
+                    t.science=captainskill
                     text="Science Officer "
+                endif
+                if b=4 and t.Doctor>0 then 
+                    t.doctor=captainskill
+                    text="Doctor "
                 endif
                 if t.desig=player.desig then 
                     dprint "An Explosion! Our "&text &"was killed!"
@@ -686,14 +688,14 @@ end function
 function com_flee(defender as _ship,lastenemy as short) as short
     dim as short roll,victory 
     if defender.c.x=0 or defender.c.x=60 or defender.c.y=0 or defender.c.y=20 then
-        roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot
+        roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot+addtalent(2,7,1)
         if findbest(25,-1)>0 then roll=roll+5
         if roll>6+lastenemy then
                 dprint "you manage to get away",,10
                 victory=1            
             else
                 cls
-                displayship(1)
+                displayship(0)
                 dprint "you dont get away",,12
                 defender.c.x=30
                 defender.c.y=10

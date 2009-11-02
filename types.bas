@@ -36,12 +36,12 @@ const lastflag=20
 const sm_x=75
 const sm_y=35
 
-
+dim shared as integer fmod_error
 dim shared as byte _NoPB=2
 dim shared as byte wormhole=8
 dim shared as short countpatrol,makepat
 
-dim shared as byte _chosebest=0
+dim shared as byte _chosebest=1
 dim shared as byte _showspacemap=0
 dim shared as byte _sound=1
 dim shared as byte _diagonals=1
@@ -59,6 +59,10 @@ dim shared as byte _warnings=0
 dim shared as byte _volume=9
 dim shared as byte _easy=0
 dim shared as byte _resolution=2
+dim shared as byte _showvis=0
+
+dim shared as byte captainskill=-5
+dim shared as byte wage=10
 
 dim shared as string*1 key_manual="?"
 dim shared as string*1 key_messages="m"
@@ -120,13 +124,6 @@ dim shared as string*1 key_logbook="L"
 dim shared as string*1 no_key
 using FB
 randomize timer
-
-enum skill
-    pilot=1
-    gunner
-    science
-    doctor
-end enum
 
 type cords
     x as short
@@ -222,7 +219,7 @@ type _ship
     security as short
     'seclevel(128) as short
     disease as byte
-    skillmarks(5) as ushort
+    'skillmarks(5) as ushort
     engine as short
     weapons(25) as _weap    
     hull as integer
@@ -300,28 +297,28 @@ type _monster
     lang as short
     faction as short
     desc as string*127
-    sdesc as string*16
+    sdesc as string*64
     ldesc as string*512
     dhurt as string*16
     dkill as string*16
     swhat as string*16
-    scol as short
-    invis as short
-    aggr as short
+    scol as ubyte
+    invis as byte
+    aggr as byte
     tile as short
     sprite as short
-    col as short
-    dcol as short
+    col as ubyte
+    dcol as ubyte
     move as single
     track as short
     range as short
     weapon as short
     armor as short
-    respawns as short
-    breedson as short
+    respawns as byte
+    breedson as byte
     nearest as ubyte
-    cmmod as short 'Change Mood mod
-    pumod as short 'Pick up mod
+    cmmod as byte 'Change Mood mod
+    pumod as byte 'Pick up mod
     oxymax as single
     oxygen as single
     sleeping as single
@@ -329,14 +326,9 @@ type _monster
     jpfuelmax as byte
     c as cords
     target as cords
+    hasoxy as byte
     atcost as single
     stuff(16) as single
-end type
-
-type _treenode
-    parent as integer
-    content as _monster
-    children(16) as integer
 end type
 
 type _stars
@@ -363,15 +355,15 @@ type _planet
     death as short
     genozide as byte
     teleport as byte
-    mon as short
-    mon2 as short 'Powerfull critter
-    mon3 as short 'always 1
-    noamin as short
-    noamax as short
+    mon as byte
+    mon2 as byte 'Powerfull critter
+    mon3 as byte 'always 1
+    noamin as byte
+    noamax as byte
     plantsfound as short
     vault as _rect
     discovered as short
-    visited as byte
+    visited as integer
     mapped as integer
     mapmod as single
     rot as single
@@ -509,7 +501,8 @@ end type
 
 type _crewmember
     icon as string*1
-    typ as short
+    n as string*20
+    typ as byte
     paymod as byte
     hpmax as byte
     hp as byte
@@ -517,9 +510,15 @@ type _crewmember
     incubation as ubyte
     duration as ubyte
     onship as byte
+    jp as byte
+    equips as byte
     weap as single
+    blad as single
     tohi as single
     armo as single
+    talents(25) as byte
+    xp as short
+    morale as short
 end type
 
 '
@@ -535,6 +534,7 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
+dim shared talent_desig(25) as string
 dim shared evkey as EVENT
 dim shared reward(9) as single
 
@@ -558,7 +558,7 @@ dim shared stationroll as short
 dim shared player as _ship
 dim shared map(laststar+wormhole) as _stars
 dim shared basis(10) as _station
-dim shared spacemap(sm_x,sm_y) as byte
+dim shared spacemap(sm_x,sm_y) as short
 dim shared combatmap(60,20) as byte
 dim shared planetmap(60,20,2047) as short
 dim shared planets(2047) as _planet
@@ -615,7 +615,7 @@ dim shared liplanet as short 'last input planet
 
 dim shared tmap(60,20) as _tile
 dim as cords p1,p2,p3
-dim pwa(128) as cords 'Points working array
+dim shared pwa(128) as cords 'Points working array
 dim dummy as _monster
 dim dummycords as gamecords
 dim text as string
@@ -654,6 +654,15 @@ declare function configuration() as short
 declare function loadmap(m as short,slot as short) as short
 
 ' prosIO.bas
+declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
+declare function showteam(from as short) as short
+declare function gainxp(slot as short) as short
+declare function gaintalent(slot as short) as string
+declare function addtalent(cr as short, ta as short, value as single) as single
+declare function removemember(n as short, f as short) as short
+declare function changemoral(value as short, where as short) as short
+declare function isgardenworld(m as short) as short
+
 
 declare sub shipstatus(heading as short=0)
 declare sub show_stars(bg as short=0)
@@ -663,7 +672,7 @@ declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
 declare sub displaysystem(sys as _stars)
 declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as gamecords,loctime as short)
-declare sub dtile (x as short,y as short, tiles as _tile)
+declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
 
 declare function hpdisplay(a as _monster) as short
 declare function infect(a as short, dis as short) as short
@@ -760,7 +769,7 @@ declare function makevault(r as _rect,slot as short,nsp as cords, typ as short) 
 declare function rndwallpoint(r as _rect, w as byte) as cords
 declare function rndwall(r as _rect) as short
 declare function digger(byval p as cords,map() as short,d as byte,ti as short=2,stopti as short=0) as short
-declare function flood_fill(x as short,y as short,map()as short) as short
+declare function flood_fill(x as short,y as short,map()as short, flag as short=0) as short
 declare function findsmartest(start as short, iq as short, enemy() as _monster, lastenemy as short) as short
 declare function makeroad(byval s as cords,byval e as cords, a as short) as short
 declare function addportal(from as gamecords, dest as gamecords, twoway as short, tile as short,desig as string, col as short) as short
@@ -831,7 +840,7 @@ declare function getrnditem(fr as short,ty as short) as short
 declare function sub0(a as single,b as single) as single
 declare function disnbase(c as cords) as single
 declare function dispbase(c as cords) as single
-declare function rnd_point(m as short=0,w as short=0)as cords
+declare function rnd_point(m as short=0,w as short=0, t as short=0)as cords
 declare function rndrectwall(r as _rect,d as short=5) as cords
 declare function fillmap(map() as short,tile as short) as short
 declare function fill_rect(r as _rect,t1 as short, t2 as short,map() as short) as short
@@ -852,7 +861,7 @@ declare function minimum(a as double,b as double) as double
 'quest
 declare function dodialog(no as short) as short
 declare function plantname(ti as _tile) as string
-declare function randomcritterdescription(spec as short,weight as short,flies as short, byref pumod as short,diet as short, water as short,depth as short) as string
+declare function randomcritterdescription(spec as short,weight as short,flies as short, byref pumod as byte,diet as byte, water as short,depth as short) as string
 declare function givequest(st as short, byref questroll as short) as short
 declare function checkquestcargo(player as _ship, st as short) as _ship
 declare function getunusedplanet() as short

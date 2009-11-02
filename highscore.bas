@@ -76,7 +76,7 @@ sub postmortem
     descr(20)="A creepy colony"
     descr(26)="A crystal planet"
     descr(27)="A living planet"
-    descr(28)="A planet with highly halluzinogenic plant life"
+    descr(28)="A planet with highly hallucinogenic plant life"
     descr(29)="A very boring planet"
     descr(30)="The last outpost of an ancient race"
     descr(31)="An asteroid base of an ancient race"
@@ -322,7 +322,6 @@ sub postmortem
                 print c &" refuel platforms of an ancient civilication"
             endif
             b=b+1
-            print c &" refuel platforms of an ancient civilication"
         endif
     endif
         

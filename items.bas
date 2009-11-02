@@ -271,7 +271,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=.7
         i.v2=5
         i.v3=1
-        i.price=400
+        i.price=600
         i.res=30
     endif
     
@@ -287,7 +287,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=.8
         i.v2=5
         i.v3=0
-        i.price=500
+        i.price=700
         i.res=30
     endif
     
@@ -410,7 +410,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=3
         i.desig="p. Forcefield"
         i.desigp="p. forcefields"
-        i.ldesc="The ultimate in protective equipment. A small forcefield surrounds the wearer." 
+        i.ldesc="A small forcefield surrounds the wearer." 
         i.icon="&"
         i.col=2
         i.bgcol=0
@@ -424,7 +424,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=3
         i.desig="layered p. forcefield"
         i.desigp="layered p. forcefields"
-        i.ldesc="The ultimate in protective equipment. Several small forcefields surround the wearer." 
+        i.ldesc="The ultimate in protective equipment. Several layered forcefields surround the wearer." 
         i.icon="&"
         i.col=6
         i.bgcol=0
@@ -453,7 +453,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desig="mining drill"
         i.desigp="mining drills"
         i.ldesc="Highspeed drills for digging tunnels" 
-        i.v1=5
+        i.v1=2
         i.icon="["
         i.col=7
         i.bgcol=0
@@ -467,7 +467,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desig="laser drill"
         i.desigp="laser drills"
         i.ldesc="like normal laserweapons, but they tradeoff damage dealt for a bigger area affected. The result: a convenient tunnel instead of a dead enemy." 
-        i.v1=10
+        i.v1=5
         i.icon="["
         i.col=8
         i.bgcol=0
@@ -824,7 +824,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=18
         i.desig="simple rover"
         i.desigp="simple rovers"
-        i.ldesc="A small wheeled robot to collect map data autonomously."
+        i.ldesc="A small wheeled robot to collect map data autonomously. To use a rover drop it on a planet and collect it later"
         i.icon="X"
         i.col=192
         i.discovered=1
@@ -842,7 +842,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=18
         i.desig="rover"
         i.desigp="rovers"
-        i.ldesc="A small robot with 4 legs and decent sensors to collect map data autonomously. It can also operate under water."
+        i.ldesc="A small robot with 4 legs and decent sensors to collect map data autonomously. It can also operate under water. To use a rover drop it on a planet and collect it later"
         i.icon="X"
         i.col=204
         i.discovered=1
@@ -860,7 +860,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=18
         i.desig="improved rover"
         i.desigp="improved rovers"
-        i.ldesc="A small robot with 6 legs, jets for flying short distances, and good sensors. It is used to collect map data autonomously. It can also operate under water and climb mountains."
+        i.ldesc="A small robot with 6 legs, jets for flying short distances, and good sensors. It is used to collect map data autonomously. It can also operate under water and climb mountains. To use a rover drop it on a planet and collect it later"
         i.icon="X"
         i.discovered=1
         i.col=14
@@ -878,7 +878,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=27
         i.desig="simple mining robot"
         i.desigp="simple mining robot"
-        i.ldesc="A small stationary robot, collecting small deposits and traces, autonomously."
+        i.ldesc="A small stationary robot, extracting small deposits and traces of ore from its immediate surroundings, autonomously. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
         i.col=54
         i.discovered=1
@@ -896,7 +896,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=27
         i.desig="mining robot"
         i.desigp="mining robot"
-        i.ldesc="A small stationary robot, collecting and drilling for small deposits and traces, autonomously."
+        i.ldesc="A small stationary robot, extracting and drilling small deposits and traces of ore from its surroundings, autonomously. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
         i.col=60
         i.discovered=1
@@ -914,7 +914,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=27
         i.desig="improved mining robot"
         i.desigp="improved mining robot"
-        i.ldesc="A small stationary robot drilling for ore autonomously, collecting small deposits and traces from the ground and atmosphere."
+        i.ldesc="A small stationary robot drilling for ore autonomously, collecting small deposits and traces of ore from the ground and atmosphere. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
         i.discovered=1
         i.col=66
@@ -1140,7 +1140,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.id=90
         i.ty=24
         i.desig="nanobot factory"
-        i.desigp="Nanobot Factorys"
+        i.desigp="nanobot factorys"
         i.col=9
         i.v1=1000
         i.icon="*"
@@ -1233,8 +1233,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=15
         
         i.desigp="resources"
-        i.v1=rnd_range(1,4)+mod1
-        i.v2=rnd_range(1,6)+mod2
+        i.v1=rnd_range(1,3)+mod1
+        i.v2=rnd_range(1,4)+mod2
         
         if i.v2>4 then i.v1=i.v1-1
         if i.v2>5 then i.v1=i.v1-1
@@ -1304,7 +1304,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=1
         i.v2=6
         i.v3=2
-        i.res=100
+        i.res=120
         i.price=22000
     endif
     
@@ -1318,7 +1318,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=10
         i.bgcol=0
         i.v1=10
-        i.res=100
+        i.res=120
         i.price=19000
     endif  
     
@@ -1341,8 +1341,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
 end function
 
 function equipawayteam(player as _ship,awayteam as _monster, m as short) as short
-    dim as short a,b,wavg,aavg,tdev,jpacks,hovers
+    dim as short a,b,wavg,aavg,tdev,jpacks,hovers,cmove
     dim as single oxytanks
+    cmove=awayteam.move
     awayteam.stuff(1)=0
     awayteam.stuff(2)=0
     awayteam.guns_to=0
@@ -1351,36 +1352,46 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     for a=0 to lastitem
         if item(a).w.s=-2 then item(a).w.s=-1
     next
-    for a=1 to awayteam.hp
+    for a=1 to awayteam.hpmax+1
         'find best ranged weapon
         b=findbest(2,-1)
         'give to redshirt
-        if b>-1 then
-            'dprint "Equipping "&item(b).desig & b
-            awayteam.secweap(a)=item(b).v1
-            awayteam.secweapran(a)=item(b).v2
-            awayteam.secweapthi(a)=item(b).v3
-            awayteam.guns_to=awayteam.guns_to+item(b).v1
-            item(b).w.s=-2
-        endif
-        'find best armor        
-        b=findbest(3,-1)
-        'give to redshirt
-        if b>-1 then
-            awayteam.secarmo(a)=item(b).v1
-            awayteam.stuff(2)=awayteam.stuff(2)+item(b).v1
-            item(b).w.s=-2
+        crew(a).weap=0
+        crew(a).armo=0
+        crew(a).blad=0
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
+            if b>-1 then
+                'dprint "Equipping "&item(b).desig & b
+                awayteam.secweap(a)=item(b).v1
+                awayteam.secweapran(a)=item(b).v2
+                awayteam.secweapthi(a)=item(b).v3
+                awayteam.guns_to=awayteam.guns_to+item(b).v1
+                crew(a).weap=b
+                item(b).w.s=-2
+            endif
+            'find best armor        
+            b=findbest(3,-1)
+            'give to redshirt
+            if b>-1 then
+                awayteam.secarmo(a)=item(b).v1
+                awayteam.stuff(2)=awayteam.stuff(2)+item(b).v1
+                crew(a).armo=b
+                item(b).w.s=-2
+            endif
         endif
     next
     
-    for a=awayteam.hp to 1 step -1
+    for a=awayteam.hpmax+1 to 1 step -1
         b=findbest(4,-1)
         'give to redshirt
-        if b>-1 then
-            'dprint "Equipping "&item(b).desig & b
-            awayteam.secweapc(a)=item(b).v1
-            awayteam.blades_to=awayteam.blades_to+item(b).v1
-            item(b).w.s=-2
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
+            if b>-1 then
+                'dprint "Equipping "&item(b).desig & b
+                awayteam.secweapc(a)=item(b).v1
+                awayteam.blades_to=awayteam.blades_to+item(b).v1
+                crew(a).blad=b
+                item(b).w.s=-2
+            endif
         endif
     next
     'count teleportation devices
@@ -1389,6 +1400,12 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
         if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
         if item(a).ty=14 and item(a).w.s<0 then oxytanks=oxytanks+item(a).v1
+    next
+    for a=1 to jpacks
+        crew(a).jp=1
+    next
+    for a=jpacks+1 to 128
+        crew(a).jp=0
     next
     'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
     if awayteam.move<3 and awayteam.hp<=hovers*5 then awayteam.move=1
@@ -1402,13 +1419,12 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
+    if awayteam.move=2 and cmove<2 then awayteam.jpfuel=awayteam.jpfuelmax
     'Equip lamps
-    
-    
     awayteam.sight=3
+    awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
-    
     
     awayteam.oxymax=200+oxytanks
     if artflag(9)=1 then awayteam.move=3
@@ -1690,9 +1706,8 @@ function buyweapon(sh as short=0) as _ship
                 if player.weapons(c).desig<>"" and d<>5 then 
                     if not(askyn("Do you want to replace that weapon?(y/n)")) then d=9
                 endif
-                if d>0 and d<11 then 
-                    if sh=0 then w=makeweapon(d)
-                    if sh=1 then w=makeweapon(d+10)
+                if (sh=0 and d>0 and d<11) or (sh=1 and d>0 and d<15) then 
+                    w=makeweapon(d)
                     if paystuff(w.p) then player.weapons(c)=w
                 endif
                 if d=mod1 then
@@ -1748,7 +1763,7 @@ function makeweapon(a as short) as _weap
     endif
     
     if a=3 then
-        w.desig="Rocket Launcher"
+        w.desig="Rocketlauncher"
         w.dam=3
         w.range=3
         w.ammo=10
@@ -1927,7 +1942,6 @@ function makeweapon(a as short) as _weap
         w.ammomax=0
         w.p=1500
 '        w.desc="Crew Quaters | | A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
-    
     endif
     
     if a=98 then
