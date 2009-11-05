@@ -2514,7 +2514,7 @@ dim as short c,b
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
-        p.money=50000
+        p.money=500
         p.pilot=1
         p.gunner=1
         p.science=1
