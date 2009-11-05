@@ -306,8 +306,6 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             y = y1
            
             For i = 2 To numtiles
-                if mask>0 then mask+=1
-                
                 If d < 0 Then
                   d = d + dinc1
                   x = x + xinc1

@@ -21,13 +21,13 @@ cls
 print
 loadconfig
 if _tiles=0 then
-    if _resolution=0 then screenres 640,25*8,,GFX_FULLSCREEN
-    if _resolution=1 then screenres 640,25*14,,GFX_FULLSCREEN
-    if _resolution=2 then screenres 640,25*16,,GFX_FULLSCREEN
+    if _resolution=0 then screenres 640,_lines*8,,GFX_FULLSCREEN
+    if _resolution=1 then screenres 640,_lines*14,,GFX_FULLSCREEN
+    if _resolution=2 then screenres 640,_lines*16,,GFX_FULLSCREEN
 else
-    if _resolution=0 then screenres 640,25*8,,GFX_WINDOWED
-    if _resolution=1 then screenres 640,25*14,,GFX_WINDOWED
-    if _resolution=2 then screenres 640,25*16,,GFX_WINDOWED
+    if _resolution=0 then screenres 640,_lines*8,,GFX_WINDOWED
+    if _resolution=1 then screenres 640,_lines*14,,GFX_WINDOWED
+    if _resolution=2 then screenres 640,_lines*16,,GFX_WINDOWED
 endif
 width 80,25
 
@@ -320,8 +320,10 @@ if fileexists("data/ships.csv") then
     f=freefile
     open "data/ships.csv" for input as #f
     b=1
+    c=0
     do
         line input #f,text
+        shiptypes(c)=""
         do
             shiptypes(c)=shiptypes(c)&mid(text,b,1)
             b=b+1
@@ -681,18 +683,17 @@ for a=0 to laststar+wormhole
     map(a).c=pwa(a)
     print ".";
 next
-makeclouds
 do
     c=c+1
     b=0
     for a=0 to _nopb
        if _minsafe=0 and disnbase(map(piratebase(a)).c)<4 then 
-           d=rnd_range(0,laststar)
+           d=getrandomsystem(0)
            swap map(piratebase(a)),map(d)
            piratebase(a)=d
        endif
        if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
-           d=rnd_range(0,laststar)
+           d=getrandomsystem(0)
            swap map(piratebase(a)),map(d)
            piratebase(a)=d
        endif
@@ -700,6 +701,7 @@ do
     next
 loop until b>24 or c>255
 
+makeclouds
 
 a=sysfrommap(specialplanet(20))
 c=999
@@ -963,11 +965,12 @@ if key="1" then
         player.weapons(1)=makeweapon(rnd_range(1,3))
     endif
     if b=5 then
-        player.weapons(1)=makeweapon(rnd_range(1,7))
+        player.weapons(1)=makeweapon(rnd_range(3,7))
         player.weapons(2)=makeweapon(99)
+        player.weapons(3)=makeweapon(99)
         recalcshipsbays()
-        player.security=1
         player.engine=2
+        player.hull=10
         player.pirate_agr=-100
         player.merchant_agr=100
         player.c=map(piratebase(0)).c
@@ -2416,7 +2419,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     dim lsp as short
     dim ti as short
     'dim localitem(128) as items
-    dim li(128) as short
+    dim li(256) as short
     dim lastlocalitem as short
     dim lastenemy as short
     dim diesize as short
@@ -2771,9 +2774,14 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
     for a=1 to lastitem
         if item(a).w.m=slot and item(a).w.s=0 then
             c=c+1
-            li(c)=a
+            
+            if c<=256 then 
+                li(c)=a
+                if slot=pirateplanet(0) and item(li(c)).w.s=0 and item(li(c)).w.p=0 then item(li(c)).w.p=rnd_range(1,lastenemy) 'Pirates get all the goods
+            endif
         endif
     next
+    if c>256 then c=256
     lastlocalitem=c
     
     lsp=0    
@@ -3328,6 +3336,10 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
         locate old.y+1,old.x+1
         print " ";
         for a=1 to lastenemy
+            if enemy(a).c.x<0 then enemy(a).c.x=0
+            if enemy(a).c.y<0 then enemy(a).c.y=0
+            if enemy(a).c.x>60 then enemy(a).c.x=60
+            if enemy(a).c.y>20 then enemy(a).c.x=20
             locate enemy(a).c.y+1,enemy(a).c.x+1
             if enemy(a).hp>0 then            
                 'changes mood
@@ -4593,7 +4605,7 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                             dprint "Recording biodata: "&enemy(a).ldesc 
                             if enemy(a).lang=8 then dprint "While this beings biochemistry is no doubt remarkable it does not explain it's extraordinarily long lifespan"
                             if enemy(a).hpmax<0 then enemy(a).hpmax=0
-                            reward(1)=reward(1)+cint((enemy(a).hpmax*5*enemy(a).biomod*biomod))+maximum(player.science,player.doctor/2+addtalent(4,14,1))*2
+                            reward(1)=reward(1)+abs(cint((enemy(a).hpmax*5*enemy(a).biomod*biomod))+maximum(player.science,player.doctor/2)+addtalent(4,14,1)*2)
                             enemy(a).hpmax=0
                             b=1                    
                         else
@@ -5488,7 +5500,8 @@ function exploreplanet(awayteam as _monster, from as gamecords, orbit as short) 
                 endif
             next
         next
-        
+        if lastenemy>255 then lastenemy=255
+        if lastlocalitem>255 then lastlocalitem=255
         if tmap(awayteam.c.x,awayteam.c.y).no=175 or tmap(awayteam.c.x,awayteam.c.y).no=176 or tmap(awayteam.c.x,awayteam.c.y).no=177 then
             dprint "Aaaaaaaaaaaaaaaahhhhhhhhhhhhhhh",12,12
             player.dead=27

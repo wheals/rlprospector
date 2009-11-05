@@ -859,7 +859,11 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.hpmax=enemy.hp
         enemy.cmmod=4
         enemy.lang=9
-        if a=7 then enemy.aggr=1
+        if player.pirate_agr>0 or a=3 then 
+            enemy.aggr=0
+        else
+            enemy.aggr=1
+        endif
     endif
     
     if a=4 then 'Plantmonster 
@@ -2510,7 +2514,7 @@ dim as short c,b
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
-        p.money=500
+        p.money=50000
         p.pilot=1
         p.gunner=1
         p.science=1

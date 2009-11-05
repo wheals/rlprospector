@@ -2,9 +2,9 @@
 
 
 sub makeclouds()
-    dim map(sm_x,sm_y)as ubyte
+    dim wmap(sm_x,sm_y)as ubyte
     dim as short x,y,bx,by,highest,count,a,r
-    
+    dim as single attempt
     dim as cords p1,p2,p3,p4
     print
     print "Creating clouds";
@@ -12,7 +12,7 @@ sub makeclouds()
         print ".";
         for x=0 to sm_x
             for y=0 to sm_y
-                map(x,y)=0
+                wmap(x,y)=0
                 spacemap(x,y)=0
             next
         next
@@ -31,23 +31,24 @@ sub makeclouds()
                 for y=0 to sm_y
                     p2.x=x
                     p2.y=y
-                    if distance(p1,p2)<bx then map(x,y)=map(x,y)+rnd_range(1,6)
-                    if map(x,y)>highest then highest=map(x,y)
-                    if map(x,y)>=8 then count+=1
+                    if distance(p1,p2)<bx then wmap(x,y)=wmap(x,y)+rnd_range(1,6)
+                    if wmap(x,y)>highest then highest=wmap(x,y)
+                    if wmap(x,y)>=8 then count+=1
                 next
             next
-        loop until count>=sm_x*sm_y*0.20
+        loop until count>=sm_x*sm_y*(0.20-attempt)
         for x=0 to sm_x
             for y=0 to sm_y
-                if map(x,y)=8 or map(x,y)=9  then spacemap(x,y)=-2                    
-                if map(x,y)=10 or map(x,y)=11  then spacemap(x,y)=-3                    
-                if map(x,y)=12 or map(x,y)=13  then spacemap(x,y)=-4                    
-                if map(x,y)>13 then spacemap(x,y)=-5                    
+                if wmap(x,y)=8 or wmap(x,y)=9  then spacemap(x,y)=-2                    
+                if wmap(x,y)=10 or wmap(x,y)=11  then spacemap(x,y)=-3                    
+                if wmap(x,y)=12 or wmap(x,y)=13  then spacemap(x,y)=-4                    
+                if wmap(x,y)>13 then spacemap(x,y)=-5                    
                 if abs(spacemap(x,y))>2 then count+=1
             next
         next
+        attempt=attempt+.1
         flood_fill(35,20,spacemap(),1)
-    loop until spacemap(10,30)=11 and spacemap(60,10)=11
+    loop until spacemap(10,30)=11 and spacemap(60,10)=11 and spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)=11
     
     for x=0 to sm_x
         for y=0 to sm_y
@@ -1207,157 +1208,159 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     '
     
     ' 
-    if planets(a).depth=0 and rnd_range(1,100)<15-disnbase(player.c) then
-        p1=rnd_point
-        planetmap(p1.x,p1.y,a)=-86 '2nd landingparty
-    endif
-    
-    if rnd_range(1,200)<16 and planets(a).atmos>1 then
-        if rnd_range(1,100)<66 then
+    if a<>piratebase(0) then
+        if planets(a).depth=0 and rnd_range(1,100)<15-disnbase(player.c) then
             p1=rnd_point
-            if p1.x>56 then p1.x=56
-            if p1.y>16 then p1.y=16
-            planetmap(p1.x+1,p1.y,a)=-8
-            planetmap(p1.x+2,p1.y,a)=-8
-            planetmap(p1.x,p1.y+1,a)=-8
-            planetmap(p1.x+3,p1.y+1,a)=-8
-            planetmap(p1.x,p1.y+2,a)=-8
-            planetmap(p1.x+3,p1.y+2,a)=-8
-            planetmap(p1.x+1,p1.y+3,a)=-8
-            planetmap(p1.x+2,p1.y+3,a)=-8
-            
-            
-            planetmap(p1.x+1,p1.y+1,a)=-2
-            planetmap(p1.x+2,p1.y+1,a)=-2
-            planetmap(p1.x+1,p1.y+2,a)=-2
-            planetmap(p1.x+2,p1.y+2,a)=-2
-        else
+            planetmap(p1.x,p1.y,a)=-86 '2nd landingparty
+        endif
+        
+        if rnd_range(1,200)<16 and planets(a).atmos>1 then
+            if rnd_range(1,100)<66 then
+                p1=rnd_point
+                if p1.x>56 then p1.x=56
+                if p1.y>16 then p1.y=16
+                planetmap(p1.x+1,p1.y,a)=-8
+                planetmap(p1.x+2,p1.y,a)=-8
+                planetmap(p1.x,p1.y+1,a)=-8
+                planetmap(p1.x+3,p1.y+1,a)=-8
+                planetmap(p1.x,p1.y+2,a)=-8
+                planetmap(p1.x+3,p1.y+2,a)=-8
+                planetmap(p1.x+1,p1.y+3,a)=-8
+                planetmap(p1.x+2,p1.y+3,a)=-8
+                
+                
+                planetmap(p1.x+1,p1.y+1,a)=-2
+                planetmap(p1.x+2,p1.y+1,a)=-2
+                planetmap(p1.x+1,p1.y+2,a)=-2
+                planetmap(p1.x+2,p1.y+2,a)=-2
+            else
+                p1=rnd_point
+                b=rnd_range(3,5)
+                for x=0 to 60
+                    for y=0 to 20
+                        p2.x=x
+                        p2.y=y
+                        if distance(p1,p2)<=b then planetmap(x,y,a)=-8
+                        if distance(p1,p2)<b-1 then planetmap(x,y,a)=-2
+                    next
+                next
+                if rnd_range(1,100)>33 then planetmap(p1.x,p1.y,a)=-7
+                if rnd_range(1,100)>33 then placeitem(makeitem(96,10,-1),p1.x,p1.y,a)
+            endif
+        
+        endif
+        
+        if rnd_range(1,200)<15 then 'Geyser
+            for b=0 to rnd_range(1,8)+rnd_range(1,8)+planets(a).atmos
+                p1=rnd_point
+                planetmap(p1.x,p1.y,a)=-29
+                if planets(a).temp<-100 then planetmap(p1.x,p1.y,a)=-30
+                if planets(a).temp>-10 and planets(a).temp<130 then planetmap(p1.x,p1.y,a)=-28
+            next
+        endif
+        
+        if rnd_range(1,380)<disnbase(player.c)/5 then
+            p2=rnd_point
+            for b=1 to rnd_range(1,6)+rnd_range(1,3)
+                p1=movepoint(p2,b)
+                planetmap(p1.x,p1.y,a)=-148
+            next
+            planetmap(p2.x,p2.y,a)=-100 'Lone factory
+        endif
+        
+        'pink sand
+        if rnd_range(1,200)<9 then
             p1=rnd_point
-            b=rnd_range(3,5)
-            for x=0 to 60
-                for y=0 to 20
-                    p2.x=x
-                    p2.y=y
-                    if distance(p1,p2)<=b then planetmap(x,y,a)=-8
-                    if distance(p1,p2)<b-1 then planetmap(x,y,a)=-2
+            b=rnd_range(1,3)+rnd_range(0,2)+1
+            for x=p1.x-4 to p1.x+4
+                for y=p1.y-4 to p1.y+4
+                    if x>=0 and y>=0 and x<=60 and y<=20 then
+                        p2.x=x
+                        p2.y=y
+                        if distance(p1,p2)<b then 
+                            if rnd_range(1,100)<88 then planetmap(x,y,a)=-13
+                            if rnd_range(1,100)<15 then placeitem(makeitem(96,-2,-3),x,y,a)
+                        endif
+                    endif
                 next
             next
-            if rnd_range(1,100)>33 then planetmap(p1.x,p1.y,a)=-7
-            if rnd_range(1,100)>33 then placeitem(makeitem(96,10,-1),p1.x,p1.y,a)
         endif
-    
-    endif
-    
-    if rnd_range(1,200)<15 then 'Geyser
-        for b=0 to rnd_range(1,8)+rnd_range(1,8)+planets(a).atmos
-            p1=rnd_point
-            planetmap(p1.x,p1.y,a)=-29
-            if planets(a).temp<-100 then planetmap(p1.x,p1.y,a)=-30
-            if planets(a).temp>-10 and planets(a).temp<130 then planetmap(p1.x,p1.y,a)=-28
-        next
-    endif
-    
-    if rnd_range(1,380)<disnbase(player.c)/5 then
-        p2=rnd_point
-        for b=1 to rnd_range(1,6)+rnd_range(1,3)
-            p1=movepoint(p2,b)
-            planetmap(p1.x,p1.y,a)=-148
-        next
-        planetmap(p2.x,p2.y,a)=-100 'Lone factory
-    endif
-    
-    'pink sand
-    if rnd_range(1,200)<9 then
-        p1=rnd_point
-        b=rnd_range(1,3)+rnd_range(0,2)+1
-        for x=p1.x-4 to p1.x+4
-            for y=p1.y-4 to p1.y+4
-                if x>=0 and y>=0 and x<=60 and y<=20 then
-                    p2.x=x
-                    p2.y=y
-                    if distance(p1,p2)<b then 
-                        if rnd_range(1,100)<88 then planetmap(x,y,a)=-13
-                        if rnd_range(1,100)<15 then placeitem(makeitem(96,-2,-3),x,y,a)
-                    endif
-                endif
-            next
-        next
-    endif
-    
-    planets(a).life=(((planets(a).water/10)+1)*planets(a).atmos)/10
-    if planets(a).orbit>2 and planets(a).orbit<6 then planets(a).life=planets(a).life+rnd_range(1,5)
-    if planets(a).life>10 then planets(a).life=10 
-    planets(a).rot=(rnd_range(0,10)+rnd_range(0,5)+rnd_range(0,5)-4)/10
-    if planets(a).rot<0 then planets(a).rot=0 
-    'Flowers
-    if rnd_range(1,200)<planets(a).atmos+planets(a).life and planets(a).atmos>1 then
-        b=rnd_range(0,12)+rnd_range(0,12)+rnd_range(0,12)+1
-        for x=1 to b
-            p2=rnd_point
-            if rnd_range(1,100)<88 then planetmap(p2.x,p2.y,a)=-146
-        next
-    endif
-    
-    'Stranded ship
-    if rnd_range(1,300)<15-disnbase(player.c)/10 then
-        p1=rnd_point
-        b=rnd_range(1,100+player.turn/150)
-        c=rnd_range(1,6)
-        if c=5 or c=6 then c=1
-        d=0
-        if b>50 then d=4
-        if b>75 then d=8
-        if b>95 then d=12
-        planetmap(p1.x,p1.y,a)=-127-c-d
-        for b=0 to 1+d
-            if rnd_range(1,100)<11 then placeitem(rnd_item(21),p1.x,p1.y,a)
-        next
-    endif
-    
-    'Mining
-    if rnd_range(1,200)<15-disnbase(player.c) then
-        p1=rnd_point
-        planetmap(p1.x,p1.y,a)=-76
-        if rnd_range(1,100)<22 then 
-            planetmap(p1.x,p1.y,a)=-77
-            for b=0 to rnd_range(1,4)
-                if rnd_range(1,100)<25 then placeitem(rnd_item(6),p1.x,p1.y,a)
-                if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a)
-            next
-        endif
-    endif
-    
-    if rnd_range(1,100)<planets(a).grav then
-        for b=1 to rnd_range(1,planets(a).grav*2)
-            p=rnd_point
-            planetmap(p1.x,p1.y,a)=-245
-        next
-    endif
         
-    
-    'radioactive crater   
-    if rnd_range(1,200)<1+disnbase(player.c)/10 then
-        p1=rnd_point
-        b=rnd_range(0,2)+rnd_range(0,2)+2
-        for x=p1.x-4 to p1.x+4
-            for y=p1.y-4 to p1.y+4
-                if x>=0 and y>=0 and x<=60 and y<=20 then
-                    p2.x=x
-                    p2.y=y
-                    if distance(p1,p2)<b then planetmap(x,y,a)=-160
-                    if distance(p1,p2)=b then planetmap(x,y,a)=-159
-                        
-                endif
+        planets(a).life=(((planets(a).water/10)+1)*planets(a).atmos)/10
+        if planets(a).orbit>2 and planets(a).orbit<6 then planets(a).life=planets(a).life+rnd_range(1,5)
+        if planets(a).life>10 then planets(a).life=10 
+        planets(a).rot=(rnd_range(0,10)+rnd_range(0,5)+rnd_range(0,5)-4)/10
+        if planets(a).rot<0 then planets(a).rot=0 
+        'Flowers
+        if rnd_range(1,200)<planets(a).atmos+planets(a).life and planets(a).atmos>1 then
+            b=rnd_range(0,12)+rnd_range(0,12)+rnd_range(0,12)+1
+            for x=1 to b
+                p2=rnd_point
+                if rnd_range(1,100)<88 then planetmap(p2.x,p2.y,a)=-146
             next
-        next
-        it=makeitem(96,9,9)
-        it.v2=6
-        it.col=11
-        it.desig="transuranic metals"
-        it.v5=(it.v1+rnd_range(1,player.science+it.v2))*(it.v2*rnd_range(1,10-player.science))
-        placeitem(it,p1.x,p1.y,a)        
+        endif
+        
+        'Stranded ship
+        if rnd_range(1,300)<15-disnbase(player.c)/10 then
+            p1=rnd_point
+            b=rnd_range(1,100+player.turn/150)
+            c=rnd_range(1,6)
+            if c=5 or c=6 then c=1
+            d=0
+            if b>50 then d=4
+            if b>75 then d=8
+            if b>95 then d=12
+            planetmap(p1.x,p1.y,a)=-127-c-d
+            for b=0 to 1+d
+                if rnd_range(1,100)<11 then placeitem(rnd_item(21),p1.x,p1.y,a)
+            next
+        endif
+        
+        'Mining
+        if rnd_range(1,200)<15-disnbase(player.c) then
+            p1=rnd_point
+            planetmap(p1.x,p1.y,a)=-76
+            if rnd_range(1,100)<22 then 
+                planetmap(p1.x,p1.y,a)=-77
+                for b=0 to rnd_range(1,4)
+                    if rnd_range(1,100)<25 then placeitem(rnd_item(6),p1.x,p1.y,a)
+                    if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a)
+                next
+            endif
+        endif
+        
+        if rnd_range(1,100)<planets(a).grav then
+            for b=1 to rnd_range(1,planets(a).grav*2)
+                p=rnd_point
+                planetmap(p1.x,p1.y,a)=-245
+            next
+        endif
+            
+        
+        'radioactive crater   
+        if rnd_range(1,200)<1+disnbase(player.c)/10 then
+            p1=rnd_point
+            b=rnd_range(0,2)+rnd_range(0,2)+2
+            for x=p1.x-4 to p1.x+4
+                for y=p1.y-4 to p1.y+4
+                    if x>=0 and y>=0 and x<=60 and y<=20 then
+                        p2.x=x
+                        p2.y=y
+                        if distance(p1,p2)<b then planetmap(x,y,a)=-160
+                        if distance(p1,p2)=b then planetmap(x,y,a)=-159
+                            
+                    endif
+                next
+            next
+            it=makeitem(96,9,9)
+            it.v2=6
+            it.col=11
+            it.desig="transuranic metals"
+            it.v5=(it.v1+rnd_range(1,player.science+it.v2))*(it.v2*rnd_range(1,10-player.science))
+            placeitem(it,p1.x,p1.y,a)        
+        endif
     endif
-       
+    
     planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
     if planets(a).atmos>=7 then
         for x=0 to 60
@@ -2303,7 +2306,7 @@ sub makespecialplanet(a as short)
         planets(a).noamax=17
             
         if a=pirateplanet(0) then 'add spaceport
-            c=rnd_range(1,55)
+            c=rnd_range(1,53)
             if c>p4.x then 
                 b=1
             else
@@ -2314,13 +2317,13 @@ sub makespecialplanet(a as short)
             next
             'c=ende der strasse
             d=0
-            if p4.y-2<0 then p4.y=p4.y+2
-            if p4.y+2>60 then p4.y=p4.y-2
-            for x=c to c+3
-                for y=p4.y-2 to p4.y+2
+            if p4.y-3<0 then p4.y=p4.y+3
+            if p4.y+3>60 then p4.y=p4.y-3
+            for x=c to c+5
+                for y=p4.y-3 to p4.y+3
                     planetmap(x,y,a)=68
-                    if rnd_range(1,100)<35 then planetmap(x,y,a)=67
-                    if x=c and d<5 then
+                    if rnd_range(1,100)<25 then planetmap(x,y,a)=67
+                    if x=c+1 and y>p4.y-3 and d<5 then
                         planetmap(x,y,a)=69+d
                         d=d+1
                     endif
@@ -2331,6 +2334,9 @@ sub makespecialplanet(a as short)
             loop until tiles(abs(planetmap(p.x,p.y,a))).walktru>0 or abs(planetmap(p.x,p.y,a))<15
             planetmap(p.x,p.y,a)=-197
             planets(a).mon=10
+            planets(a).grav=.8+rnd_range(1,2)/2
+            planets(a).atmos=5
+            planets(a).temp=33+rnd_range(1,20)-10
             planets(a).noamin=8
             planets(a).noamax=15
         endif
@@ -2338,13 +2344,12 @@ sub makespecialplanet(a as short)
     
     
         'Turn all around
-        if not(player.pirate_agr=0 and a=pirateplanet(0)) then
-        
-        for x=0 to 60
-            for y=0 to 20
-                if planetmap(x,y,a)>0 then planetmap(x,y,a)=-planetmap(x,y,a)
+        if not(player.pirate_agr=-100 and a=pirateplanet(0)) then        
+            for x=0 to 60
+                for y=0 to 20
+                    if planetmap(x,y,a)>0 then planetmap(x,y,a)=-planetmap(x,y,a)
+                next
             next
-        next
         endif
         
     endif
@@ -2934,7 +2939,10 @@ sub makespecialplanet(a as short)
         
         p=rnd_point(b,0)
         planetmap(p.x,p.y,b)=-191
-    
+        
+        p=rnd_point(b,0)
+        portal(lastportal).dest.x=p.x
+        portal(lastportal).dest.y=p.y
     endif
         
     if a=specialplanet(27) then
@@ -2978,6 +2986,10 @@ sub makespecialplanet(a as short)
             
             next
         next
+        p=rnd_point()
+        planetmap(p.x,p.y,a)=-rnd_range(140,143)
+        p=rnd_point()
+        planetmap(p.x,p.y,a)=-rnd_range(140,143)
         planets(a).mon=36
         planets(a).noamin=5
         planets(a).noamax=10

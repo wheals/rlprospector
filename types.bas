@@ -60,6 +60,7 @@ dim shared as byte _volume=9
 dim shared as byte _easy=0
 dim shared as byte _resolution=2
 dim shared as byte _showvis=0
+dim shared as byte _lines=24
 
 dim shared as byte captainskill=-5
 dim shared as byte wage=10
@@ -121,6 +122,7 @@ dim shared as string*1 key_se="3"
 dim shared as string*1 key_wait="5"
 dim shared as string*1 key_portal="<"
 dim shared as string*1 key_logbook="L"
+dim shared as string*1 key_yes="y"
 dim shared as string*1 no_key
 using FB
 randomize timer
@@ -695,7 +697,7 @@ declare function move_ship(key as string) as _ship
 
 declare function getplanet(sys as short) as short
 declare function getsystem(player as _ship) as short
-declare function getrandomsystem() as short
+declare function getrandomsystem(unique as short=1) as short
 declare function getrandomplanet(s as short) as short
 declare function sysfrommap(a as short)as short
 
@@ -734,6 +736,7 @@ declare function screenshot(a as short) as short
 declare function logbook() as short
 declare function messages() as short
 declare function storescreen(as short) as short
+declare function alienname(flag as short) as string
 declare function communicate(awayteam as _monster, e as _monster, mapslot as short,li() as short,lastlocalitem as short,monslot as short) as short
 declare function artifact(c as short,awayteam as _monster) as short
 declare function getshipweapon() as short

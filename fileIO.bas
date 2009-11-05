@@ -176,6 +176,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_dropshield")>0 then key_sh=right(text,1)
                 if instr(lctext,"key_activatesensors")>0 then key_ac=right(text,1)
                 if instr(lctext,"key_run")>0 then key_ru=right(text,1)
+                if instr(lctext,"key_yes")>0 then key_yes=right(text,1)
 
             endif
         loop until eof(f)
@@ -277,6 +278,10 @@ function loadconfig() as short
                     if instr(text,"0")>0 or instr(text,"on") then _showvis=0
                     if instr(text,"1")>0 or instr(text,"of") then _showvis=1
                 endif
+                
+                if instr(text,"lines")>0 then
+                    _lines=val(right(text,2))
+                endif
             endif                
         loop until eof(f)
         close #f
@@ -320,6 +325,7 @@ function configuration() as short
         text=text &"/ Volume (0-5):" & _volume
         text=text &"/ Resolution: "&res(_resolution)
         text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
+        text=text &"/ Lines: "& _lines
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -455,7 +461,11 @@ function configuration() as short
                 _showvis=1
             end select
         endif
-    loop until c=18
+        if c=18 then 
+            _lines=getnumber(25,35,_lines)
+            dprint "Number of lines will be changed next time you start prospector."
+        endif
+    loop until c=19
     screenshot(2)
     f=freefile
     open "config.txt" for output as #f
@@ -478,6 +488,7 @@ function configuration() as short
     print #f,"volume:"&_volume
     print #f,"resolution:"&_resolution
     print #f,"showvis:"&_showvis
+    print #f,"lines:"&_lines
     close #f
     return 0
 end function

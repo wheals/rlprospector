@@ -366,9 +366,9 @@ function showteam(from as short) as short
         color 11,0
         locate 25,1
         print key_rename &" to rename a member, enter to add/remove from awaytem";
-        no_key=keyin
-        if keyplus(no_key) or no_key="2" then p+=1
-        if keyminus(no_key) or no_key="8" then p-=1
+        no_key=keyin(,,1)
+        if keyplus(no_key) or getdirection(no_key)=2 then p+=1
+        if keyminus(no_key) or getdirection(no_key)=8 then p-=1
         if no_key=key_rename then
             if p<6 then
                 n=gettext(18,(p-1+offset)*3,16,n)
@@ -515,10 +515,7 @@ function addmember(a as short) as short
             crew(slot).typ=10
             crew(slot).paymod=0
             crew(slot).xp=-1
-            crew(slot).n=ucase(chr(rnd_range(97,122)))
-            for c=0 to rnd_range(1,6)+3
-                crew(slot).n=crew(slot).n &chr(rnd_range(97,122))
-            next
+            crew(slot).n=alienname(2)
             crew(slot).morale=25000
         endif
         if a=11 then
@@ -999,12 +996,12 @@ function gaintalent(slot as short) as string
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=13 and roll<=15 and slot=3 then
+    if roll>=13 and roll<=15 and slot=4 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=16 and roll<=18 and slot=4 then
+    if roll>=16 and roll<=18 and slot=5 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
@@ -2216,7 +2213,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             locate 22,63
             print "Transporter"
         endif
-        if awayteam.jpfuelmax>0 then
+        if awayteam.move=2 then
             color 11,0
             locate 23,63
             print "Jetpackfuel:";
@@ -2226,27 +2223,39 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
             print using "##";awayteam.jpfuel
             if awayteam.jpfuel<awayteam.jpfuelmax then
-                if int(awayteam.jpfuel/awayteam.jpfuelmax)<.5 and wj=0 then 
+                if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
                     wj=1
                     for a=1 to wj
                         if _sound=0 or _sound=2 then    
-                            sleep 1150
+                            sleep 350
                             FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
                     next    
                     dprint ("Jetpack fuel low",14,14)
                 endif
-                if int(awayteam.jpfuel/awayteam.jpfuelmax)<.3 and wj=1 then 
+                if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
                     wj=2
                     for a=1 to wj
                         if _sound=0 or _sound=2 then    
-                            sleep 1150
+                            sleep 350
                             FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
                     next    
                     dprint ("Jetpack fuel very low",14,14)
+                endif
+                
+                if awayteam.jpfuel<5 and wj=2 then 
+                    wj=3
+                    for a=1 to wj
+                        if _sound=0 or _sound=2 then    
+                            sleep 350
+                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                        endif
+                    next    
+                    dprint ("Switching to jetpack fuel reserve",12,12)
                 endif
             else
                 wj=0
@@ -2857,7 +2866,6 @@ function textbox(text as string,x as short,y as short,w as short, fg as short=11
     return lcount
 end function
 
-
 function dprint(t as string, delay as short=5, col as short=11) as short
 
     dim as short a,b
@@ -2937,14 +2945,14 @@ function askyn(q as string,col as short=11) as short
     while screenevent(@evkey)
     wend
     do
-        key=ucase(keyin)
+        key=keyin
         displaytext(24)=displaytext(24)&key
         if key <>"" then 
             dprint ""
-            if _anykeyno=0 and key<>"Y" then key="N"
+            if _anykeyno=0 and key<>key_yes then key="N"
         endif
-    loop until key="N" or key=" " or key=key_esc or key=key_enter or key="Y"  
-    if key="Y" or key=key_enter then a=-1
+    loop until key="N" or key="n" or key=" " or key=key_esc or key=key_enter or key="Y"  
+    if key=key_yes or key=key_enter then a=-1
     return a
 end function
 
@@ -3057,15 +3065,23 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     return e
 end function
 
-function getrandomsystem() as short
-    dim a as short
-    dim b as short
-    dim c as short
+function getrandomsystem(unique as short=1) as short
+    dim as short a,b,c,p,u,add
     dim pot(laststar) as short
     for a=0 to laststar
         if map(a).discovered=0 and map(a).spec<8 then
-            pot(b)=a
-            b=b+1
+            if unique=0 then
+                add=0
+                for u=0 to lastspecial
+                    for p=1 to 9
+                        if map(a).planets(p)=specialplanet(u) then add=1
+                    next
+                next
+            endif
+            if add=0 then
+                pot(b)=a
+                b=b+1
+            endif
         endif
     next
     b=b-1

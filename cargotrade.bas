@@ -325,10 +325,18 @@ function company(st as short,byref questroll as short) as short
             a=towed.h_price
             if planets(drifting(player.towed).m).genozide<>1 then a=a/3
             a=a/2
-            if askyn ("the company offers you "&a &" Cr. for the "&towed.h_desig &" you have in tow. Do you accept?(y/n)") then
+            if planets(drifting(player.towed).m).mon<>32 then
+                if askyn ("the company offers you "&a &" Cr. for the "&towed.h_desig &" you have in tow. Do you accept?(y/n)") then
+                    drifting(player.towed)=drifting(lastdrifting)
+                    lastdrifting-=1
+                    player.money=player.money+towed.h_price/2
+                    player.towed=0
+                endif
+            else
+                dprint "The company pays you 500 Cr. for towing in the ship."
                 drifting(player.towed)=drifting(lastdrifting)
                 lastdrifting-=1
-                player.money=player.money+towed.h_price/2
+                player.money=player.money+500
                 player.towed=0
             endif
         endif

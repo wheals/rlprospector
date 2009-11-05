@@ -525,6 +525,7 @@ function com_hit(target as _ship, w as _weap, range as short, senac as short) as
         else
             desig=target.desig 
         endif
+        gainxp(3)
     endif
     
     target.shield=target.shield-w.dam

@@ -1352,7 +1352,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     for a=0 to lastitem
         if item(a).w.s=-2 then item(a).w.s=-1
     next
-    for a=1 to awayteam.hpmax+1
+    for a=1 to 128
         'find best ranged weapon
         b=findbest(2,-1)
         'give to redshirt
@@ -1381,7 +1381,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         endif
     next
     
-    for a=awayteam.hpmax+1 to 1 step -1
+    for a=128 to 1 step -1
         b=findbest(4,-1)
         'give to redshirt
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
@@ -1410,23 +1410,24 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
     if awayteam.move<3 and awayteam.hp<=hovers*5 then awayteam.move=1
     if awayteam.move<3 and awayteam.hp<=jpacks then awayteam.move=2
-    if awayteam.move=2 and awayteam.jpfuelmax=0 then 
-        awayteam.jpfuelmax=25
-        if findbest(19,-1)>0 then awayteam.jpfuelmax=50
-    endif
+        
     awayteam.nohp=hovers
     awayteam.nojp=jpacks
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
-    if awayteam.move=2 and cmove<2 then awayteam.jpfuel=awayteam.jpfuelmax
-    'Equip lamps
     awayteam.sight=3
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
-    
     awayteam.oxymax=200+oxytanks
+    if findbest(19,-1)>0 then 
+        awayteam.jpfuelmax=50
+    else
+        awayteam.jpfuelmax=25
+    endif
+    if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
+    if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     if artflag(9)=1 then awayteam.move=3
     return 0
 end function

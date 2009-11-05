@@ -1,4 +1,45 @@
- 
+
+function alienname(flag as short) as string
+    dim as string n,vokal,cons
+    dim as short a,b
+    if flag=1 then
+        for a=1 to 2
+            if len(n)>0 then n=n &"-"
+            do
+                vokal=CHR(rnd_range(65,90))
+            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
+            do
+                cons=CHR(rnd_range(65,90))
+            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
+            n=n &cons
+            if flag=2 then n=n &"l"
+            for b=1 to rnd_range(1,5)
+                n=n &lcase(vokal)
+            next
+        next
+    endif
+    if flag=2 then
+        for a=1 to 2
+            do
+                vokal=CHR(rnd_range(65,90))
+            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
+            do
+                cons=CHR(rnd_range(65,90))
+            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
+            if len(n)>1 then 
+                n=n &lcase(cons)
+            else
+                n=n &cons 
+            endif
+            n=n &"l"
+            for b=1 to rnd_range(1,2)
+                n=n &lcase(vokal)
+            next
+        next
+    if rnd_range(1,100)<50 then n=n &lcase(cons)
+    endif
+    return n
+end function 
 
 function dodialog(no as short) as short
     dim text as string
@@ -442,17 +483,17 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                             crew(4).hp=3
                             crew(4).hpmax=3
                             crew(4).talents(24)=2
-                            crew(4).n=ucase(chr(rnd_range(97,122)))
-                            for b=0 to rnd_range(1,6)+3
-                                crew(4).n=crew(4).n &chr(rnd_range(97,122))
-                            next
-                            
+                            crew(4).n=alienname(1)
                             e.hp=0
                             e.hpmax=0
                         endif
                     else
                         player.science=3
                         crew(4).paymod=0
+                        crew(4).hp=3
+                        crew(4).hpmax=3
+                        crew(4).talents(24)=2
+                        crew(4).n=alienname(1)
                         e.hp=0
                         e.hpmax=0
                     endif
@@ -1092,7 +1133,7 @@ return questroll
 end function
 
 function showquests() as short
-    dim as short a,b,c
+    dim as short a,b,c,d,sys,p
     dim dest(10) as short
     cls
     color 15,0
@@ -1115,11 +1156,17 @@ function showquests() as short
     endif
     if player.questflag(8)>0 and player.towed<0 then print " Deliver a "&shiptypes(-player.towed) &" hull to Station "&player.questflag(8)+1
     print
-    if player.questflag(7)>0 then print "  Map a planet at "&map(sysfrommap(player.questflag(7))).c.x &":"&map(sysfrommap(player.questflag(7))).c.y
+    if player.questflag(7)>0 then 
+        sys=sysfrommap(player.questflag(7))
+        for d=1 to 9
+            if map(sys).planets(d)=player.questflag(7) then p=d
+        next
+        print "  Map planet in orbit "&p &" in the system at "&map(sys).c.x &":"&map(sys).c.y
+    endif
     if player.questflag(9)=1 then print "  Find a working robot factory"
     if player.questflag(10)>0 then print "  Find a planet without life and a "&atmdes(player.questflag(10))&" atmosphere."
     if player.questflag(11)=1 then print "  Find a missing company battleship"
-    if player.questflag(2)=1 then print "  Rescue the company executive from pirates"
+    if player.questflag(2)=1 then print "  Rescue a company executive from pirates"
     if player.questflag(12)=1 then print "  A small green alien told you about a monster in their mushroom caves."
     print
     color 15,0
