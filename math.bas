@@ -61,23 +61,23 @@ function disnbase(c as cords) as single
 end function
 
 function dispbase(c as cords) as single
-    dim r as single
+    dim as single r,r2
     dim a as short
     r=65
     for a=0 to _NoPB
-        if distance(c,map(piratebase(a)).c)<r then r=distance(c,map(piratebase(a)).c)
+        if piratebase(a)>0 then
+            r2=distance(c,map(piratebase(a)).c)
+        endif
     next
-    return r
+    return r2
 end function 
 
 function findrect(tile as short,map() as short,er as short=10,fi as short=60) as _rect
     dim as _rect best,current
     dim as short x,y,x2,y2,com,dx,dy,u,besta
     
-    '
     ' er = fehlerrate, up to er sqares may be something else
     ' fi = stop looking if one is larger than fi
-    
     
     besta=15
     for x=0 to 60
@@ -455,54 +455,102 @@ end function
 
 function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype as short=1,col as short=0) as short
     dim as single px,py
-    dim dx as single
-    dim dy as single
+    dim deltax as single
+    dim deltay as single
+    dim numtiles as single
     dim l as single
-    dim result as short
+    dim  as short result
     dim text as string
-    dim as short co
-    l=distance(c,b)
-    dx=(c.x-b.x)/l
-    dy=(c.y-b.y)/l
-    px=b.x
-    py=b.y
+    dim as short co,i
+    Dim As Integer d, dinc1, dinc2
+    Dim As Integer x, xinc1, xinc2
+    Dim As Integer y, yinc1, yinc2
+    
+    deltax = Abs(c.x - b.x)
+    deltay = Abs(c.y - b.y)
+
+    If deltax >= deltay Then
+        numtiles = deltax + 1
+        d = (2 * deltay) - deltax
+        dinc1 = deltay Shl 1
+        dinc2 = (deltay - deltax) Shl 1
+        xinc1 = 1
+        xinc2 = 1
+        yinc1 = 0
+        yinc2 = 1
+    Else
+        numtiles = deltay + 1
+        d = (2 * deltax) - deltay
+        dinc1 = deltax Shl 1
+        dinc2 = (deltax - deltay) Shl 1
+        xinc1 = 0
+        xinc2 = 1
+        yinc1 = 1
+        yinc2 = 1
+    End If
+
+    If c.x > b.x Then
+        xinc1 = - xinc1
+        xinc2 = - xinc2
+    End If
+   
+    If c.y > b.y Then
+        yinc1 = - yinc1
+        yinc2 = - yinc2
+    End If
+
+    x = c.x
+    y = c.y
     result=-1
-    if l>1.5 then
-        for co=0 to l
-            if blocktype=1 then 'check for firetru
-               if px<0 then px=0
-               if px>60 then px=60
-               if py<0 then py=0
-               if py>20 then py=20
-               if tiles(abs(planetmap(px,py,mapslot))).firetru=1 then 
-                   result=0
+    For i = 2 To numtiles
+        
+        If d < 0 Then
+          d = d + dinc1
+          x = x + xinc1
+          y = y + yinc1
+        Else
+          d = d + dinc2
+          x = x + xinc2
+          y = y + yinc2
+        End If
+    
+            if blocktype=1 or blocktype=3 then 'check for firetru
+               if x<0 then x=0
+               if x>60 then x=60
+               if y<0 then y=0
+               if y>20 then y=20
+               if tiles(abs(planetmap(x,y,mapslot))).firetru=1 then 
+                    result=0
+                    if blocktype=3 then
+                       b.x=x
+                       b.y=y
+                       return 0
+                    endif
                endif
                 if col>0 then 
-                    locate py+1,px+1
+                    locate y+1,x+1
                     color col,0
                     print "*"
                     sleep 100
                 endif
             endif
-            px=px+dx
-            py=py+dy
             if blocktype=2 then
-                if px<0 then px=0
-                if px>60 then px=60
-                if py<0 then py=0
-                if py>20 then py=20
-                if combatmap(px,py)=7 or combatmap(px,py)=8 then
-                    combatmap(px,py)=0
+                if x<0 then x=0
+                if x>60 then x=60
+                if y<0 then y=0
+                if y>20 then y=20
+                if combatmap(x,y)=7 or combatmap(x,y)=8 then
+                    combatmap(x,y)=0
                     return 0
                 endif
                 if col>0 and co<l then 
-                    locate py+1,px+1
+                    locate y+1,x+1
                     color col,0
                     print "*"
                 endif
             endif
         next
-    endif
+
     if blocktype=2 then sleep 150
     return result
 end function

@@ -300,9 +300,9 @@ tiles(43).gives=26
 tiles(43).turnsinto=43
 tiles(43).hides=2
 
-tiles(45).tile=176 'lava
-tiles(45).col=14
-tiles(45).bgcol=12
+tiles(45).tile=247 'lava
+tiles(45).col=12
+tiles(45).bgcol=0
 tiles(45).desc="Lava"
 tiles(45).stopwalking=1
 
@@ -1412,6 +1412,7 @@ tiles(201).hp=15
 tiles(201).succt="You damage the wall"
 tiles(201).failt="The walls are to strong for you to seriously damage"
 tiles(201).desc="wall"
+tiles(201).turnsinto=202
 
 tiles(202).tile=asc(".")
 tiles(202).col=8
@@ -1509,6 +1510,7 @@ tiles(255).bgcol=1
 tiles(225).desc="cryogenic chamber"
 tiles(225).gives=886
 tiles(255).turnsinto=202
+tiles(255).hides=2
 
 tiles(226).tile=asc("*")
 tiles(226).col=-180
@@ -1638,7 +1640,7 @@ tiles(242).gives=58
 tiles(242).turnsinto=236
 
 tiles(243).tile=176
-tiles(243).col=7
+tiles(243).col=17
 tiles(243).bgcol=7
 tiles(243).walktru=5
 tiles(243).seetru=1
@@ -1649,6 +1651,7 @@ tiles(243).hp=15
 tiles(243).succt="You damage the wall"
 tiles(243).failt="The walls are to strong for you to seriously damage"
 tiles(243).desc="wall"
+tiles(243).turnsinto=202
 
 
 tiles(244).tile=94
@@ -1659,7 +1662,6 @@ tiles(244).seetru=1
 tiles(244).walktru=0
 tiles(244).firetru=1
 
-
 tiles(245).tile=147
 tiles(245).col=12
 tiles(245).desc="Vulcano"
@@ -1668,6 +1670,7 @@ tiles(245).dam=1
 tiles(245).hitt="You get hit with flying rocks and magma!"
 tiles(245).causeaeon=5
 tiles(245).aetype=5
+tiles(245).walktru=5
 
 
 tiles(246).tile=64 
@@ -1686,4 +1689,4 @@ tiles(246).succt="It is slightly dented now"
 tiles(246).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(246).killt="That will teach them a lesson!"
 tiles(246).hides=2
-tiles(246).gives=2
+tiles(246).gives=36

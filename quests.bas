@@ -83,7 +83,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     dim as short roll,a,b
     dim it as _items
     dim p as cords
-    roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,13,2)
+    roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,14,2)
     if e.lang<0 then
         if roll>9 then
             dprint "Your Science Officer established communication with the " & e.sdesc &"."
@@ -108,7 +108,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                         e.cmmod=e.cmmod+1
                     endif
                 endif
-                if rnd_range(1,100)>(e.intel+addtalent(4,13,1))*6 then
+                if rnd_range(1,100)>(e.intel-addtalent(4,14,1))*6 then
                     dprint rndsentence(e.aggr,e.intel)
                 else
                     select case rnd_range(1,100)

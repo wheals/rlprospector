@@ -36,6 +36,11 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     dim e_track_p(128) as cords
     dim e_track_v(128) as short
     dim e_last as short
+    
+    dim mines_p(128) as cords
+    dim mines_v(128) as short
+    dim mines_last as short
+    
     dim old as cords
     for x=0 to 60
         for y=0 to 20
@@ -50,7 +55,6 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             endif
         next
     next
-    
     victory=0
     col=12
     for a=1 to 15
@@ -95,17 +99,17 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         next
         player=defender
         displayship(0)
-        com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last)
+        com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
    '
         for a=1 to 10
     
-            if a>=tick(0) and speed(0)>0 then 'playermovement
+            if a>=tick(0) and speed(0)>0 and defender.hull>0 then 'playermovement
                     
                 color 11,0
                 locate 6,63
                 print "Engine :"&player.engine &" ("&speed(0)&" MP)"
                 if defender.c.x=0 or defender.c.y=0 or defender.c.x=60 or defender.c.y=20 then dprint "Press "&key_ru &" to run and flee."
-                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc)
+                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc &key_dr)
                 if key=key_ac then
                     if senac=2 then nexsen=1
                     if senac=1 then nexsen=2
@@ -127,8 +131,14 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         return defender
                     endif
                 endif
+                
+                if key=key_dr then
+                    com_dropmine(defender,mines_p(),mines_v(),mines_last)
+                endif
+                
                 old=defender.c
                 defender.c=movepoint(defender.c,getdirection(key))
+                
                 if old.x<>defender.c.x or old.y<>defender.c.y then
                     e_last=e_last+1
                     if e_last>128 then e_last=1
@@ -146,10 +156,18 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             endif
                         endif
                     endif
-                endif                    
+                    if mines_last>0 then
+                        for c=1 to mines_last
+                            if defender.c.x=mines_p(c).x and defender.c.y=mines_p(c).y then 
+                                com_detonatemine(c,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
+                            endif
+                        next
+                    endif
+                endif      
+                
                 tick(0)=tick(0)+tickr(0)
                 speed(0)=speed(0)-1
-                com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last)
+                com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
             endif
             for b=1 to lastenemy 'enemymovement
                 if a>=tick(b)and speed(b)>0 then
@@ -184,7 +202,14 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             'boarding attempt
                         endif
                     endif
-                    com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last)
+                    if mines_last>0 then
+                        for c=1 to mines_last
+                            if attacker(b).c.x=mines_p(c).x and attacker(b).c.y=mines_p(c).y then 
+                                com_detonatemine(c,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
+                            endif
+                        next
+                    endif
+                    com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
                 endif
             next b
             
@@ -199,20 +224,24 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     '
     f=0
     for e=1 to lastenemy
-        if distance(attacker(e).c,defender.c)<=senbat*senac then f=f+1
+        if distance(attacker(e).c,defender.c)<senbat*senac then f=f+1
+    next
+    for e=1 to mines_last
+        if distance(mines_p(e),defender.c)<senbat*senac then f=f+1
     next
     if defender.c.x=0 or defender.c.y=0 or defender.c.x=60 or defender.c.y=20 then f=-1
-    if f<>0 then
-        dprint key_fi &" to fire weapons,"& key_sh & " to skip fire, "&key_ru & " to run and flee."
-        do
-            key=keyin(key_fi &key_sh &key_ru)
-        loop until key=key_fi or key=key_sh or key=key_ru
+    if f<>0 and defender.hull>0 then
+        dprint key_fi &" to fire weapons, ESC to skip fire, "&key_dr &" to drop mines, "&key_ru & " to run and flee."
+        key=keyin(key_fi &key_sh &key_ru &key_dr)
+        if key=key_dr then
+            com_dropmine(defender,mines_p(),mines_v(),mines_last)
+        endif
+
         if key=key_fi then
-            
             for a=1 to player.h_maxweaponslot
-                if com_testweap(defender.weapons(a),defender.c,attacker(),lastenemy) then
-                    t=com_gettarget(defender,a,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last)
-                    if t>0 then
+                if com_testweap(defender.weapons(a),defender.c,attacker(),lastenemy,mines_p(),mines_last) then
+                    t=com_gettarget(defender,a,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
+                    if t>0 and t<100 then 
                         if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(a).col)=-1 then
                             attacker(t)=com_fire(attacker(t),defender.weapons(a),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
                             if attacker(t).hull<=0 then
@@ -226,6 +255,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             no_key=keyin()
                         endif
                     endif
+                    if t>100 then com_detonatemine(t-100,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
                 endif
             next
             player=defender
@@ -263,12 +293,6 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         
         'boarding
 
-        if defender.shield<defender.shieldmax and shieldshut=0 then 
-            defender.shield=defender.shield+1
-            speed(0)=-1
-        else
-            speed(0)=0
-        endif
         
         for a=1 to e_last
             if e_track_v(a)>0 then
@@ -297,18 +321,37 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     defender.shield=defender.shield-e_track_v(a)
                     text="The "&defender.desig &"ran into plasma stream! "
                     if defender.shield<0 and defender.shieldmax>0 then text=text &"Shields penetrated! "
-                    defender.hull=defender.hull+defender.shield
+                    if defender.shield<0 then 
+                        defender.hull=defender.hull+defender.shield
+                        defender.shield=0
+                    endif
                     if defender.hull<=0 then text=text &defender.desig &" destroyed!"                        
                     dprint text,12,12
                     no_key=keyin
-                endif                
+                endif
+                
+                if mines_last>0 then
+                    for c=1 to mines_last
+                        if e_track_p(a).x=mines_p(c).x and e_track_p(a).y=mines_p(c).y then 
+                            com_detonatemine(c,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
+                        endif
+                    next
+                endif
             endif
         next
+        
+        
+        if defender.shield<defender.shieldmax and shieldshut=0 then 
+            defender.shield=defender.shield+1
+            speed(0)=-2
+        else
+            speed(0)=0
+        endif
         
         for a=1 to lastenemy
             if attacker(a).shield<attacker(a).shieldmax then 
                 attacker(a).shield=attacker(a).shield+1
-                speed(a)=-1
+                speed(a)=-2
             else
                 speed(a)=0
             endif
@@ -321,14 +364,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         endif
         senac=nexsen
         if lastenemy<=0 then victory=2
-        if defender.hull<=0 then 
-            victory=3
-            if col=12 then
-                defender.dead=5
-            else 
-                defender.dead=13
-            endif
-        endif
+        if defender.hull<=0 then victory=3
         
         'merchant flee atempt
         for a=1 to lastenemy
@@ -357,6 +393,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     cls
     defender.shield=defender.shieldmax
     defender.c=p
+    if victory=3 then defender.dead=13
     if victory=2 then defender.dead=0
     if victory=1 and player.towed<>0 then
         dprint "You leave behind the ship you had in tow.",14,14
@@ -368,14 +405,31 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     return defender
 end function
 
-function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as cords,e_track_v() as short,e_last as short) as short
-    dim as short x,y,b,c
+function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
+    dim as short x,y,a,b,c
     dim p1 as cords
     dim as short senbat,senbat1,senbat2,denemy
-    '
-    'display stuff
-    '
+    dim list_c(128) as cords
+    dim list_e(128) as short
+    dim last as short
     
+    for a=1 to lastenemy
+        'if distance(attacker(a).c,defender.c)<senbat*senac then
+            last+=1
+            list_c(last)=attacker(a).c
+            list_e(last)=a
+        'endif
+    next
+    if mines_last>0 then
+        for a=1 to mines_last
+            'if distance(mines_p(a),defender.c)<senbat*senac then
+                last+=1
+                list_c(last)=mines_p(a)
+                list_e(last)=a
+            'endif
+        next
+    endif
+
     senbat=defender.sensors+2
     senbat1=defender.sensors+1
     senbat2=defender.sensors
@@ -414,72 +468,130 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
         e_track_v(b)=e_track_v(b)-1
     next
     
-    for b=1 to lastenemy
-        if b= marked then
-            color attacker(b).bcol,attacker(b).col
-        else
-            color attacker(b).col,attacker(b).bcol
-        endif
-        locate attacker(b).c.y+1,attacker(b).c.x+1
-        if distance(attacker(b).c,defender.c)<senbat*senac then
-            denemy=denemy+1
-            print "?"
-        endif
-        if distance(attacker(b).c,defender.c)<=senbat1*senac or distance(attacker(b).c,defender.c)<=sqr(2) then
+    if mines_last>0 then
+        for b=1 to mines_last
+            locate mines_p(b).y+1,mines_p(b).x+1,0
+            color 0,0
+            print " ";
+            locate mines_p(b).y+1,mines_p(b).x+1,0
+            if b+lastenemy=marked then 
+                color 8,11
+            else
+                color 8,0
+            endif
+            if distance(mines_p(b),defender.c)<senbat*(senac+1) then 
+                print "ö";
+                denemy+=1
+            endif
+        next
+    endif
+    
+    for c=1 to last
+        if c<=lastenemy then
+            b=list_e(c)
+            if c=marked then
+                color attacker(b).bcol,attacker(b).col
+            else
+                color attacker(b).col,attacker(b).bcol
+            endif
             locate attacker(b).c.y+1,attacker(b).c.x+1
-            print attacker(b).icon
+            if distance(attacker(b).c,defender.c)<senbat*senac then
+                denemy=denemy+1
+                print "?"
+            endif
+            if distance(attacker(b).c,defender.c)<=senbat1*senac or distance(attacker(b).c,defender.c)<=sqr(2) then
+                locate attacker(b).c.y+1,attacker(b).c.x+1
+                print attacker(b).icon
+            endif
+        else
+            b=list_e(c)
+            if c=marked then
+                color 0,7
+                locate mines_p(b).y+1,mines_p(b).x+1,0
+                print "ö";
+            endif
         endif
     next 
-    
     color 15,0
     locate defender.c.y+1,defender.c.x+1
     print "@"
     return denemy
 end function
 
-function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short) as short
+function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
     
     dim targetno as short
     dim as short a,d
     dim as short senbat,senbat1,senbat2
     dim as string key,text,id
+    dim list_c(128) as cords
+    dim list_e(128) as short
+    dim last as short
+    
     senbat=defender.sensors+2
     senbat1=defender.sensors+1
     senbat2=defender.sensors
     
     if marked=0 then
-    for a=1 to lastenemy
-        if distance(attacker(a).c,defender.c)<senbat*senac then marked=a
-    next
+        for a=1 to lastenemy
+            if distance(attacker(a).c,defender.c)<senbat*senac then marked=a
+        next        
     endif
-    if marked<1 then marked=1
-    if marked>lastenemy then marked=lastenemy
+    
+    for a=1 to lastenemy
+        'if distance(attacker(a).c,defender.c)<senbat*senac then
+            last+=1
+            list_e(last)=a
+            list_c(last)=attacker(a).c
+        'endif
+    next
+    if mines_last>0 then
+        for a=1 to mines_last
+        '    if distance(mines_p(a),defender.c)<senbat*senac then
+                last+=1
+                list_e(last)=a
+                list_c(last)=mines_p(a)
+        '    endif
+        next
+    endif
+    
+    
             
     do
-        a=com_display(defender,attacker(),lastenemy,marked,senac,e_track_p(),e_track_v(),e_last)
-        
+        a=com_display(defender,attacker(),lastenemy,marked,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
         if a>0 then 'ships to target
             d=0
-            if distance(defender.c,attacker(marked).c)<senbat*senac then id="?"
-            if distance(defender.c,attacker(marked).c)<senbat1*senac then id=attacker(marked).desig
-            
             text="+/- to move, enter to select, esc to skip. "
-            text=text &id &com_wstring(defender.weapons(wn),distance(attacker(marked).c,defender.c))
-            dprint text
-            do
-                key=inkey
-            loop until key<>""
+            if marked>0 and marked<=lastenemy then
+                if distance(defender.c,attacker(list_e(marked)).c)<senbat*senac then id="?"
+                if distance(defender.c,attacker(list_e(marked)).c)<senbat1*senac then id=attacker(marked).desig
+                text=text &id &com_wstring(defender.weapons(wn),distance(attacker(list_e(marked)).c,defender.c))
+            endif
+            if marked>lastenemy and marked<=last then 
+                text="Mine"&com_wstring(defender.weapons(wn),distance(list_c(marked),defender.c))
+            endif
+            dprint text 
+            key=keyin("+-"&key_esc &key_enter,,1)
             if keyplus(key) then d=1
             if keyminus(key) then d=-1
-            if key=key_enter then targetno=marked
-            if key=key_esc then targetno=-1
             do
                 marked=marked+d
-                if marked<1 then marked=lastenemy
-                if marked>lastenemy then marked=1
-            loop until distance(defender.c,attacker(marked).c)<senbat*senac or d=0
+                if marked<1 then marked=last
+                if marked>last then marked=1
+            loop until list_e(marked)<>0 and distance(defender.c,list_c(marked))<senbat*senac
+            if key=key_enter then targetno=marked
+            if key=key_esc then targetno=-1
+            
         endif
-    loop until targetno<>0 or a=0
+        
+    loop until targetno<>0 or a=0 or last=0
+    if targetno>0 then
+        if targetno<=lastenemy then 
+            targetno=list_e(marked)
+        else
+            targetno=list_e(marked)+100
+        endif
+    endif
     return targetno
 end function
 
@@ -494,10 +606,10 @@ function com_fire(target as _ship, w as _weap, gunner as short, range as short,s
         if w.ammomax>0 then w.ammo=w.ammo-1 
         if w.ammo>0 or w.ammomax=0 then
             roll=rnd_range(1,6)+rnd_range(1,6)+gunner+senac-(target.ecm*w.ecmmod)
-            if range<=w.range*3 then roll=roll+1
+            'if range<=w.range*3 then roll=roll+1
             if range<=w.range*2 then roll=roll+1
-            if range<=w.range then roll=roll+1
-            if roll>10 then 
+            if range<=w.range then roll=roll+2
+            if roll>12 then 
                 target=com_hit(target,w,range, senac)
             else
                 if w.p>0 then
@@ -562,6 +674,185 @@ function com_hit(target as _ship, w as _weap, range as short, senac as short) as
     if text<>"" then no_key=keyin
     if target.shield<0 then target.shield=0
     return target
+end function
+
+function com_dropmine(defender as _ship,mines_p() as cords,mines_v() as short,byref mines_last as short) as short
+    dim p as cords
+    dim as short a,b,c,mine,mtype(15),no(15),mwhere(15),storedead,dam
+    dim mdesig(15) as _items
+    dim as string text,key
+    c=getitemlist(mdesig(),no(),40)
+    for a=0 to c-1
+        text=text &"/ "&mdesig(a).desig &"(" &no(a) &")"
+        for b=1 to lastitem
+            if mdesig(a).id=item(b).id and item(b).w.s=-1 then 
+                mwhere(a+1)=b
+                exit for
+            endif
+        next
+    next    
+    
+    if addtalent(3,13,1)>0 then 
+        text=text &"/ Improvised mine"
+        c+=1
+        mwhere(c)=-1
+    endif
+    if text<>"" then
+        text="Choose mine:"&text &"/Exit"
+        storedead=player.dead
+        player.dead=0
+        mine=menu(text)
+        player.dead=storedead
+        if mine<=0 or mine>c then return 0
+        if addtalent(3,13,1)>0 and mine=c then
+            player.fuel=player.fuel-5
+            placeitem(makeitem(74),0,0,0,0,-1)
+            for b=1 to lastitem
+                if item(b).id=74 and item(b).ty=40 and item(b).w.s=-1 then 
+                    mwhere(mine)=b
+                    exit for
+                endif                
+            next
+        endif
+            
+        mine=mwhere(mine)
+    else
+        dprint "You don't have mines"
+        return 0
+    endif
+    dprint "Direction"&mine &lastitem
+    key=keyin("12345678")
+    a=getdirection(key)
+        
+    if a>0 then
+        p=movepoint(defender.c,a)
+        mines_last+=1
+        if mines_last<=128 then
+            mines_p(mines_last).x=p.x
+            mines_p(mines_last).y=p.y
+            mines_v(mines_last)=mine
+            item(mine).w.s=0
+        endif
+    endif
+    return 0
+end function
+
+function com_detonatemine(d as short,mines_p() as cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
+    dim as short x,y,t,r,dis,a,dam
+    dim as cords p
+    if mines_last<=0 then
+        mines_last=0
+        return 0
+    end if
+    if rnd_range(1,100)>item(mines_v(d)).v3 then
+        dprint "The mine was a dud"
+        destroyitem(mines_v(d))
+        mines_p(d)=mines_p(mines_last)
+        mines_v(d)=mines_v(mines_last)
+        mines_last-=1
+        return 0
+    endif
+    dam=item(mines_v(d)).v1
+    r=item(mines_v(d)).v2
+    
+    for t=1 to 5
+        for x=mines_p(d).x-6 to mines_p(d).x+6
+            for y=mines_p(d).y-6 to mines_p(d).y+6
+                p.x=x
+                p.y=y
+                dis=distance(p,mines_p(d))
+                if dis<=r and t>dis and p.x>=0 and p.y>=0 and p.x<=60 and p.y<=20 then
+                    locate p.y+1,p.x+1,0
+                    color 242+dis,0
+                    print "*";
+                else
+                    if p.x>=0 and p.y>=0 and p.x<=60 and p.y<=20 then
+                        locate p.y+1,p.x+1,0
+                        color 0,0
+                        print " ";
+                    endif
+                endif
+            next
+        next
+        sleep 50
+    next
+    
+    for t=5 to 1 step -1
+        for x=mines_p(d).x-5 to mines_p(d).x+5
+            for y=mines_p(d).y-5 to mines_p(d).y+5
+                p.x=x
+                p.y=y
+                dis=distance(p,mines_p(d))
+                if dis<=r and t>dis and p.x>=0 and p.y>=0 and p.x<=60 and p.y<=20 then
+                    locate p.y+1,p.x+1,0
+                    color 242+dis
+                    print "*";
+                else
+                    if p.x>=0 and p.y>=0 and p.x<=60 and p.y<=20 then
+                        locate p.y+1,p.x+1,0
+                        color 0,0
+                        print " ";
+                    endif
+                endif
+            next
+        next
+        sleep 50
+    next
+    
+    if distance(mines_p(d),defender.c)<r then 
+        defender=com_damship(defender,dam-2*distance(mines_p(d),defender.c),12)
+        player=defender
+        displayship(0)
+    endif
+    for a=1 to lastenemy
+        if distance(mines_p(d),attacker(a).c)<r then 
+            attacker(a)=com_damship(attacker(a),dam-2*distance(mines_p(d),attacker(a).c),10)
+            if attacker(a).hull<=0 then
+                dprint attacker(a).desig &" destroyed",,10
+                reward(3)=reward(3)+attacker(a).money
+                defender.piratekills=defender.piratekills+attacker(a).money
+                lastenemy=com_remove(attacker(),a,lastenemy)
+                t=0
+                no_key=keyin
+            endif
+        endif
+    next
+    
+    p=mines_p(d)    
+    destroyitem(mines_v(d))
+    mines_p(d)=mines_p(mines_last)
+    mines_v(d)=mines_v(mines_last)
+    mines_last-=1
+    
+    
+    for a=1 to mines_last
+        if distance(p,mines_p(a))<r then com_detonatemine(a,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
+    next
+    
+    
+    return 0
+    
+end function
+    
+function com_damship(byref t as _ship, dam as short, col as short) as _ship
+    dim text as string
+    if dam<0 then return t
+    t.shield=t.shield-dam
+    dprint t.desig &" is hit! ",col
+    if t.shield<0 then
+        if t.shieldmax>0 then
+            text=t.desig &" is hit, shields penetrated! " 
+        else
+            text=t.desig &" is hit! "
+        endif
+        t.hull=t.hull+t.shield
+        text=text & -t.shield & " Damage!"
+    else
+        text="shields hold!"
+    endif
+    if t.shield<0 then t.shield=0
+    dprint text,,col
+    return t
 end function
 
 function com_criticalhit(t as _ship, roll as short) as _ship
@@ -716,7 +1007,7 @@ function com_wstring(w as _weap, range as short) as string
     return text
 end function
 
-function com_testweap(w as _weap, p1 as cords,attacker() as _ship,lastenemy as short) as short
+function com_testweap(w as _weap, p1 as cords,attacker() as _ship,lastenemy as short,mines_p() as cords ,mines_last as short) as short
     dim r as short
     dim a as short
     dim b as short
@@ -726,11 +1017,13 @@ function com_testweap(w as _weap, p1 as cords,attacker() as _ship,lastenemy as s
         if w.ammomax>0 and w.ammo<=0 then r=0 'waffe braucht ammo und hat keine
     endif
     if r=-1 then
-            
         for a=1 to lastenemy
             if distance(p1,attacker(a).c)<w.range*3 then b=1
         next
-    if b=0 then r=0
+        for a=1 to mines_last
+            if distance(p1,mines_p(a))<w.range*3 then b=1
+        next
+        if b=0 then r=0
     endif
     return r
 end function

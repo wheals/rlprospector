@@ -78,24 +78,27 @@ function meetfleet(f as short, player as _ship)as _ship
                 basis(10).inv(a).v=0
                 basis(10).inv(a).p=0
             next
-            
             fleet(f)=unload_f(fleet(f),10)
             player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
-            if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)+=1
+            if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
             if player.dead>0 and fleet(f).ty=5 then player.dead=21
             for a=1 to 5
                 total=total+basis(10).inv(a).v
             next 
             'dprint ""&total
             if total>0 and player.dead=0 then trading(10)
-            fleet(f).ty=0
             if player.dead=-1 then player.dead=0
             if player.dead>0 then
                 for a=1 to 128
-                    if crew(a).hp>0 then player.deadredshirts+=1
+                    if crew(a).hpmax>0 then player.deadredshirts+=1
                 next
+                if fleet(f).ty=2 then
+                    player.dead=5
+                else 
+                    player.dead=13
+                endif
             endif
-                
+            fleet(f).ty=0
             cls
         endif
         lastturncalled=player.turn
@@ -822,7 +825,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.sprite=276
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
-        enemy.swhat=" with laser guns "
+        enemy.swhat="shoot laser guns "
         r=rnd_range(1,10)
         if r<5 then
             enemy.col=192
@@ -844,7 +847,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             enemy.armor=2
             enemy.weapon=enemy.weapon+2
             enemy.hp=enemy.hp+rnd_range(1,6)
-            enemy.swhat=" with plasmarifles "
+            enemy.swhat="shoot plasmarifles "
             enemy.scol=20
             enemy.move=.9
             enemy.atcost=rnd_range(5,7)/10
@@ -886,7 +889,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.atcost=rnd_range(6,8)/10
         enemy.dhurt="hurt"
         enemy.dkill="dies"
-        enemy.swhat="a volley of sharp thorns"
+        enemy.swhat="shoots a volley of sharp thorns"
         enemy.sdesc="Plantmonster"
         enemy.ldesc="A squat brownish trunk, 1.5 to 2m high, covered by dark green leaves. Extremly long vines are used to gather food for this immobile creature"
     endif
@@ -917,7 +920,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.respawns=0
         enemy.dhurt="hurt"
         enemy.dkill="dies"   
-        enemy.swhat=" shoots a lightning bolt "
+        enemy.swhat="shoots a lightning bolt "
         enemy.sdesc="Apollo"
         enemy.ldesc="3 Meters tall, a mountain of muscles, lightning strikes wherever he points"
     endif
@@ -959,7 +962,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
         enemy.dkill="destroyed"
-        enemy.swhat=" a disintegrator beam "
+        enemy.swhat="shots a disintegrator beam "
         enemy.scol=12
         enemy.armor=2
         enemy.respawns=0
@@ -1014,7 +1017,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
         enemy.dkill="destroyed"
-        enemy.swhat=" a disintegrator beam "
+        enemy.swhat="shoots a disintegrator beam "
         enemy.scol=12
         enemy.respawns=0
         enemy.armor=1
@@ -1028,9 +1031,9 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         next
         enemy.hp=15+enemy.hp+b+planets(a).depth
         
-        enemy.weapon=rnd_range(1,6)-3+awayteam.weapon
+        enemy.weapon=rnd_range(1,6)-2+awayteam.weapon
         if enemy.weapon<0 then enemy.weapon=0
-        enemy.range=enemy.weapon-1
+        enemy.range=enemy.weapon+1
         if enemy.range<1.5 then enemy.range=1.5
         enemy.hpmax=enemy.hp
         enemy.biomod=0
@@ -1308,7 +1311,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.scol=15
         enemy.dhurt="hurt"
         enemy.dkill="dies"
-        enemy.swhat="a volley of sharp stones"
+        enemy.swhat="shoots a volley of sharp stones"
         enemy.sdesc="Stonemonster"
         enemy.ldesc="a 3m tall stalactite, yet obviously alive. roots run across the floor, some of them connecting to the carcasses of other cave dwellers."
         enemy.sprite=288
@@ -1366,7 +1369,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.ldesc="the air shimmers showing some kind of cloaking device."
         enemy.dhurt="damaged"
         enemy.dkill="destroyed"
-        enemy.swhat=" a disintegrator beam "
+        enemy.swhat="shoots a disintegrator beam "
         enemy.scol=12
         enemy.respawns=0
         enemy.atcost=rnd_range(3,5)/10
@@ -1435,7 +1438,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.c.x=x
         enemy.c.y=y
         enemy.atcost=rnd_range(6,8)/10
-        enemy.sdesc="Armed Reptile"
+        enemy.sdesc="armed reptile"
         if rnd_range(1,100)<50 then
             enemy.ldesc="A 3m tall reptile with yellow scales. It has 3 tentacles as arms, and 4 legs. It wears clothes and a blue helmet, and wields an obviously human made Gauss gun!"
             enemy.lang=6
@@ -1455,7 +1458,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.sight=3
         enemy.range=3.5
         enemy.weapon=2
-        enemy.swhat="its gaussgun!"
+        enemy.swhat="shoots its gaussgun!"
         enemy.scol=11
         enemy.hp=rnd_range(1,b)
         for l=1 to c
@@ -1467,7 +1470,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.aggr=1
         enemy.tile=Asc("R")
         enemy.col=14
-        if rnd_range(1,100)<66 then placeitem(makeitem(5),x,y,map,mslot)
+        if rnd_range(1,100)<66 then placeitem(makeitem(7),x,y,map,mslot)
            
     endif  
     
@@ -1765,7 +1768,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         if rnd_range(1,100)<20 then
             enemy.tile=asc("@")
             enemy.sdesc="crystal hybrid"
-            enemy.ldesc="this once was a human being. It's arms, legs and head are encased in crystal tubes, fused to bare flesh. The torso is still bare. You can see the torn uniform of a scout ship security team member."
+            enemy.ldesc="this once was a human being. It's arms, legs and head are encased in crystal tubes, fused to bare flesh. The torso is covered in the torn remains of a starship uniform. The half covered head looks like a grotesque helmet."
             enemy.hpmax=rnd_range(2,5)+rnd_range(2,5)
             enemy.armor=3
             enemy.atcost=0.7
@@ -2411,7 +2414,7 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
         enemy.dhurt="damaged"
         enemy.dkill="destroyed"
-        enemy.swhat=" a disintegrator beam "
+        enemy.swhat="shoots a disintegrator beam "
         enemy.scol=12
         enemy.respawns=0
         enemy.armor=1
@@ -2449,6 +2452,8 @@ function makemonster(a as short,awayteam as _monster,map as short,spawnmask()as 
             if rnd_range(1,100)<33 then placeitem(makeitem(94),x,y,map,mslot)
         next
     endif
+    
+    if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     
     if easy_fights=1 then
         enemy.armor=0
@@ -2535,7 +2540,7 @@ dim as short c,b
         p.sensors=3
         p.hull=2
         p.pilot=1
-        p.gunner=2
+        p.gunner=3
         p.engine=5
         p.desig="Pirate Fighter"
         p.icon="F"
@@ -2549,10 +2554,10 @@ dim as short c,b
         'pirate Cruiser
         p.c.x=rnd_range(0,60)
         p.c.y=rnd_range(0,20)
-        p.sensors=4
+        p.sensors=3
         p.hull=10
         p.pilot=1
-        p.gunner=2
+        p.gunner=4
         p.engine=4
         p.desig="Pirate Cruiser"
         p.icon="C"
@@ -2569,21 +2574,22 @@ dim as short c,b
         'pirate Destroyer
         p.c.x=rnd_range(0,60)
         p.c.y=rnd_range(0,20)
-        p.sensors=3
+        p.sensors=4
         p.hull=15
         p.shieldmax=1
         p.shield=1
         p.pilot=2
-        p.gunner=3
+        p.gunner=5
         p.engine=3
         p.desig="Pirate Destroyer"
         p.icon="D"
         p.money=3000
         
-        p.weapons(4)=makeweapon(8)       
         p.weapons(1)=makeweapon(8)
         p.weapons(2)=makeweapon(3)
         p.weapons(3)=makeweapon(1)
+        p.weapons(4)=makeweapon(8)       
+        
         p.col=12
         p.bcol=0
         p.mcol=14
@@ -2597,19 +2603,20 @@ dim as short c,b
         p.shieldmax=2
         p.shield=2
         p.pilot=1
-        p.gunner=3
+        p.gunner=6
         p.engine=2
         p.desig="Pirate Battleship"
         p.icon="B"
         p.money=5000
         p.ecm=1
-        
-        p.weapons(6)=makeweapon(9)       
+               
         p.weapons(1)=makeweapon(9)
         p.weapons(2)=makeweapon(9)
         p.weapons(3)=makeweapon(4)
         p.weapons(4)=makeweapon(3)
         p.weapons(5)=makeweapon(3)
+        p.weapons(6)=makeweapon(9)
+        
         p.col=12
         p.bcol=0
         p.mcol=14
@@ -2640,7 +2647,7 @@ dim as short c,b
             
             p.sensors=3
             p.pilot=1
-            p.gunner=2
+            p.gunner=1
             p.engine=3
         
             for b=1 to 4
@@ -2657,7 +2664,7 @@ dim as short c,b
             
             p.sensors=3
             p.pilot=1
-            p.gunner=3
+            p.gunner=2
             p.engine=3
         
             for b=1 to 5
@@ -2675,7 +2682,7 @@ dim as short c,b
             
             p.sensors=4
             p.pilot=1
-            p.gunner=4
+            p.gunner=2
             p.engine=4
         
             for b=1 to 6
@@ -2708,7 +2715,7 @@ dim as short c,b
         p.shieldmax=1
         p.shield=1
         p.pilot=4
-        p.gunner=2
+        p.gunner=3
         p.engine=2
         p.weapons(3)=makeweapon(7)
         p.weapons(1)=makeweapon(1)
@@ -2731,7 +2738,7 @@ dim as short c,b
         p.shieldmax=3
         p.shield=3
         p.pilot=1
-        p.gunner=4
+        p.gunner=7
         p.engine=3
         p.desig="Anne Bonny"
         p.icon="A"
@@ -2756,7 +2763,7 @@ dim as short c,b
         p.shieldmax=2
         p.shield=2
         p.pilot=1
-        p.gunner=2
+        p.gunner=4
         p.engine=3
         p.desig="Company Battleship"
         p.icon="U"
@@ -2780,7 +2787,7 @@ dim as short c,b
         p.shieldmax=3
         p.shield=3
         p.pilot=1
-        p.gunner=3
+        p.gunner=5
         p.engine=3
         p.desig="Black Corsair"
         p.icon="D"
@@ -3001,7 +3008,7 @@ dim as short c,b
         p.shieldmax=2
         p.shield=2
         p.pilot=1
-        p.gunner=2
+        p.gunner=5
         p.engine=2
         p.desig="Hussar"
         p.icon="C"
@@ -3025,7 +3032,7 @@ dim as short c,b
         p.shieldmax=1
         p.shield=1
         p.pilot=1
-        p.gunner=3
+        p.gunner=4
         p.engine=3
         p.desig="Adder"
         p.icon="F"
@@ -3047,7 +3054,7 @@ dim as short c,b
         p.shieldmax=2
         p.shield=2
         p.pilot=1
-        p.gunner=3
+        p.gunner=4
         p.engine=2
         p.desig="Black Widow"
         p.icon="F"

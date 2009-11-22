@@ -147,8 +147,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_tactics")>0 then key_tactics=right(text,1)
                 if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
                 if instr(lctext,"key_logbook")>0 then key_comment=right(text,1)
-                if instr(lctext,"key_weapons")>0 then key_weapons=right(text,1)
-                if instr(lctext,"key_equipped")>0 then key_equipped=right(text,1)
+                if instr(lctext,"key_equipment")>0 then key_equipment=right(text,1)
                 if instr(lctext,"key_quest")>0 then key_quests=right(text,1)
                 if instr(lctext,"key_tow")>0 then key_tow=right(text,1)
                 
@@ -176,6 +175,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_dropshield")>0 then key_sh=right(text,1)
                 if instr(lctext,"key_activatesensors")>0 then key_ac=right(text,1)
                 if instr(lctext,"key_run")>0 then key_ru=right(text,1)
+                if instr(lctext,"key_dropmine")>0 then key_dr=right(text,1)
                 if instr(lctext,"key_yes")>0 then key_yes=right(text,1)
 
             endif
@@ -269,7 +269,7 @@ function loadconfig() as short
                     if instr(text,"3")>0 then _volume=3
                     if instr(text,"4")>0 then _volume=4
                 endif
-                if instr(text,"resolution")>0 then
+                if instr(text,"resolut")>0 then
                     if instr(text,"0")>0 then _resolution=0
                     if instr(text,"1")>0 then _resolution=1
                     if instr(text,"2")>0 then _resolution=2
@@ -277,6 +277,11 @@ function loadconfig() as short
                 if instr(text,"showvis")>0 then
                     if instr(text,"0")>0 or instr(text,"on") then _showvis=0
                     if instr(text,"1")>0 or instr(text,"of") then _showvis=1
+                endif
+                
+                if instr(text,"onbar")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then _onbar=0
+                    if instr(text,"1")>0 or instr(text,"of") then _onbar=1
                 endif
                 
                 if instr(text,"lines")>0 then
@@ -308,7 +313,7 @@ function configuration() as short
     res(2)="High"
     screenshot(1)
     do
-        text="Prospector 0.1.7 Configuration/ Autopickup :"& onoff(_autopickup)
+        text="Prospector 0.1.8 Configuration/ Autopickup :"& onoff(_autopickup)
         text=text &"/ Always chose best item :"& onoff(_chosebest)
         text=text &"/ Sound effects :"& warn(_sound)
         text=text &"/ Automatically chose diagonal:" & onoff(_diagonals)
@@ -325,7 +330,7 @@ function configuration() as short
         text=text &"/ Volume (0-5):" & _volume
         text=text &"/ Resolution: "&res(_resolution)
         text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
-        text=text &"/ Lines: "& _lines
+        text=text &"/ Starmap on bar: "& onoff(_onbar)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -462,8 +467,13 @@ function configuration() as short
             end select
         endif
         if c=18 then 
-            _lines=getnumber(25,35,_lines)
-            dprint "Number of lines will be changed next time you start prospector."
+            
+            select case _onbar
+            case is=1
+                _onbar=0
+            case is=0
+                _onbar=1
+            end select
         endif
     loop until c=19
     screenshot(2)
@@ -488,7 +498,7 @@ function configuration() as short
     print #f,"volume:"&_volume
     print #f,"resolution:"&_resolution
     print #f,"showvis:"&_showvis
-    print #f,"lines:"&_lines
+    print #f,"onbar:"&_onbar
     close #f
     return 0
 end function

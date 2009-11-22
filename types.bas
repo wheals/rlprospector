@@ -60,7 +60,8 @@ dim shared as byte _volume=9
 dim shared as byte _easy=0
 dim shared as byte _resolution=2
 dim shared as byte _showvis=0
-dim shared as byte _lines=24
+dim shared as byte _lines=25
+dim shared as byte _onbar=1
 
 dim shared as byte captainskill=-5
 dim shared as byte wage=10
@@ -72,8 +73,7 @@ dim shared as string*1 key_configuration="="
 dim shared as string*1 key_autoinspect="I"
 dim shared as string*1 key_autopickup="P"
 dim shared as string*1 key_shipstatus="@"
-dim shared as string*1 key_weapons="W"
-dim shared as string*1 key_equipped="E"
+dim shared as string*1 key_equipment="E"
 dim shared as string*1 key_tactics="T"
 dim shared as string*1 key_awayteam="A"
 dim shared as string*1 key_quests="Q"
@@ -110,6 +110,7 @@ dim shared as string*1 key_close="C"
 dim shared as string*1 key_sh="s"
 dim shared as string*1 key_ac="a"
 dim shared as string*1 key_ru="r"
+dim shared as string*1 key_dr="d"
 
 dim shared as string*1 key_nw="7"
 dim shared as string*1 key_north="8"
@@ -211,7 +212,7 @@ type _ship
     landed as gamecords
     turn as integer
     money as integer
-    desig as string *16
+    desig as string *24
     icon as string *1
     sensors as short
     pilot as short
@@ -518,7 +519,7 @@ type _crewmember
     blad as single
     tohi as single
     armo as single
-    talents(25) as byte
+    talents(26) as byte
     xp as short
     morale as short
 end type
@@ -536,7 +537,7 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
-dim shared talent_desig(25) as string
+dim shared talent_desig(26) as string
 dim shared evkey as EVENT
 dim shared reward(9) as single
 
@@ -672,7 +673,7 @@ declare sub displaystar(a as short)
 declare sub displayplanetmap(a as short)
 declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
-declare sub displaysystem(sys as _stars)
+declare sub displaysystem(sys as _stars,forcebar as byte=0)
 declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as gamecords,loctime as short)
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
 
@@ -695,7 +696,7 @@ declare function cursor(target as cords,map as short) as string
 declare function menu(text as string,help as string="", x as short=2, y as short=2,blocked as short=0) as short
 declare function move_ship(key as string) as _ship
 
-declare function getplanet(sys as short) as short
+declare function getplanet(sys as short, forcebar as byte=0) as short
 declare function getsystem(player as _ship) as short
 declare function getrandomsystem(unique as short=1) as short
 declare function getrandomplanet(s as short) as short
@@ -721,15 +722,21 @@ declare function getfilename() as string
 declare function savegame()as short
 declare function loadgame(filename as string) as short
 declare function copytile (byval a as short) as _tile
-declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as cords,e_track_v()as short,e_last as short) as short
-declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short) as short
+
+
+declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as cords,e_track_v()as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
+declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
 declare function com_fire(target as _ship,w as _weap, gunner as short, range as short, senac as short) as _ship
 declare function com_hit(target as _ship, w as _weap, range as short, senac as short) as _ship
 declare function com_criticalhit(t as _ship, roll as short) as _ship
 declare function com_flee(defender as _ship,lastenemy as short) as short
 declare function com_wstring(w as _weap, range as short) as string
-declare function com_testweap(w as _weap,p1 as cords,attacker() as _ship,lastenemy as short) as short
+declare function com_testweap(w as _weap, p1 as cords,attacker() as _ship,lastenemy as short,mines_p() as cords ,mines_last as short) as short
 declare function com_remove(attacker() as _ship, t as short, lastenemy as short) as short
+declare function com_dropmine(defender as _ship,mines_p() as cords,mines_v() as short,byref mines_last as short) as short
+declare function com_detonatemine(d as short,mines_p() as cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
+declare function com_damship(byref t as _ship, dam as short, col as short) as _ship
+
 declare function chr850(c as short) as string
 declare function keyin(allowed as string ="", byref walking as short=0,blocked as short=0)as string
 declare function screenshot(a as short) as short
@@ -821,7 +828,7 @@ declare function stationgoods(st as short) as string
 declare function cargobay(st as short) as string
 declare function getinvbytype(t as short) as short
 declare function removeinvbytype(t as short, am as short) as short
-declare function getitemlist(inv() as _items, invn()as short) as short
+declare function getitemlist(inv() as _items, invn()as short, ty as short=0) as short
 
 'Items
 declare function equipawayteam(player as _ship,awayteam as _monster, m as short) as short

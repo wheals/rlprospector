@@ -47,19 +47,23 @@ function rnd_item(t as short) as _items
         if rnd_range(1,100)<33 then
             i=makeitem(rnd_range(1,2))
         else
-            if rnd_range(1,100)<66 then
+            if rnd_range(1,100)<33 then
                 i=makeitem(rnd_range(15,33))
             else
                 if rnd_range(1,100)<50 then
                     i=makeitem(rnd_range(50,58))
                 else
-                    i=makeitem(rnd_range(21,30))
+                    if rnd_range(1,100)<75 then
+                        i=makeitem(rnd_range(21,30))
+                    else
+                        i=makeitem(rnd_range(70,71))
+                    endif
                 endif
             endif
         endif
     endif
     if t=12 then 'All but weapons and meds
-        r=rnd_range(1,24)
+        r=rnd_range(1,28)
         if r=1 then i=makeitem(1)
         if r=2 then i=makeitem(2)
         if r=3 then i=makeitem(21)
@@ -84,6 +88,10 @@ function rnd_item(t as short) as _items
         if r=22 then i=makeitem(55)
         if r=23 then i=makeitem(59)
         if r=24 then i=makeitem(60)
+        if r=25 then i=makeitem(70)
+        if r=26 then i=makeitem(71)
+        if r=27 then i=makeitem(72)
+        if r=28 then i=makeitem(73)
     endif
         
     return i
@@ -1109,6 +1117,73 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=100
     endif
     
+    if a=70 then
+        i.id=70
+        i.ty=36
+        i.desig="Emergency beacon"
+        i.desigp="emergency beacons"
+        i.ldesc="An external transmitter with autonomous energy supply. It transmits a distress signal on a reserved frequency, increases your chances to find help in case of an emergency."
+        i.icon="s"
+        i.col=15
+        i.v1=3
+        i.price=500
+        i.res=100
+    endif
+    
+    if a=71 then
+        i.id=71
+        i.ty=36
+        i.desig="Imp. Emergency beacon"
+        i.desigp="Imp. emergency beacons"
+        i.ldesc="An external transmitter with autonomous energy supply. It transmits a distress signal on a reserved frequency and performs a spiral search pattern, to increase your chances to find help in case of an emergency."
+        i.icon="s"
+        i.col=15
+        i.v1=6
+        i.price=900
+        i.res=100
+    endif
+    
+    if a=72 then
+        i.id=72
+        i.ty=40
+        i.desig="anti-ship mine"
+        i.desigp="anti-ship mines"
+        i.icon="ö"
+        i.col=7
+        i.v1=5
+        i.v2=3
+        i.v3=75
+        i.res=100
+        i.price=50
+    endif
+    
+    if a=73 then
+        i.id=73
+        i.ty=40
+        i.desig="anti-ship mine MKII"
+        i.desigp="anti-ship mines MKII"
+        i.icon="ö"
+        i.col=7
+        i.v1=10
+        i.v2=4
+        i.v3=90
+        i.res=100
+        i.price=100
+    endif
+    
+    if a=74 then
+        i.id=74
+        i.ty=40
+        i.desig="improvised mine"
+        i.desigp="improvised mines"
+        i.icon="ö"
+        i.col=7
+        i.v1=3
+        i.v2=2
+        i.v3=90
+        i.res=100
+        i.price=100
+    endif
     
     if a=88 then
         i.id=94
@@ -1399,7 +1474,6 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
         if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
-        if item(a).ty=14 and item(a).w.s<0 then oxytanks=oxytanks+item(a).v1
     next
     for a=1 to jpacks
         crew(a).jp=1
@@ -1420,7 +1494,10 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
+    if findbest(14,-1)>-1 then oxytanks=oxytanks+item(a).v1
+    
     awayteam.oxymax=200+oxytanks
+    
     if findbest(19,-1)>0 then 
         awayteam.jpfuelmax=50
     else
@@ -1440,10 +1517,10 @@ function removeequip() as short
     return 0
 end function
 
-function getitemlist(inv() as _items, invn()as short) as short
+function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
     dim as short b,a,set,lastinv
     for a=0 to lastitem
-        if item(a).w.s<0 then 'Item on ship
+        if item(a).w.s<0 and (ty=0 or item(a).ty=ty) then 'Item on ship
             set=0
             for b=0 to lastinv
                 if inv(b).id=item(a).id then
@@ -1480,7 +1557,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function getitem(fr as short=-1) as short
+function getitem(fr as short=999) as short
     dim as short i,offset,a,b,c,li,cu,set,k
     dim mls(127) as string
     dim mno(127) as short
@@ -1490,7 +1567,7 @@ function getitem(fr as short=-1) as short
     dim as string key,mstr
     screenshot(1)
     for a=0 to lastitem
-        if item(a).w.s=fr then
+        if (fr<>999 and item(a).w.s=fr) or (fr=999 and item(a).w.s<0) then
             set=0
             for c=0 to li
                 if item(a).desig=mls(c) then
@@ -1509,7 +1586,7 @@ function getitem(fr as short=-1) as short
         endif
     next
     if li=0 then return -1
-    if li=1 then return mit(1)
+    if li=1 and fr<>999 then return mit(1)
     cu=1
     do
         if k=8 then cu=cu-1
