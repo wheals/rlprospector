@@ -370,10 +370,16 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                     dprint "How much do you want to charge per ton of fuel?"
                     a=getnumber(0,99,0)
                     if a>0 then
-                        player.fuel=player.fuel-disnbase(player.c)
-                        player.money=player.money+cint(disnbase(player.c)*a)
-                        dprint "You sell fuel for "&cint(disnbase(player.c)*a) &" credits."
-                        planets(mapslot).flags(0)=1
+                        if rnd_range(10,50)+rnd_range(5,50)>a-awayteam.hp then
+                            player.fuel=player.fuel-disnbase(player.c)
+                            player.money=player.money+cint(disnbase(player.c)*a)
+                            dprint "You sell fuel for "&cint(disnbase(player.c)*a) &" credits."
+                            planets(mapslot).flags(0)=1
+                        else
+                            dprint "They decide to rather take what they want by force than pay this outragous price."
+                            e.aggr=0
+                            e.target=awayteam.c
+                        endif
                     endif
                 else
                     dprint "You don't have enough fuel yourself... that's actually quite alarming."
@@ -518,7 +524,8 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=6 then dprint "Ted Rofes, the shipsdoctor says 'The tree creatures assume the ancient aliens are their creators.'"
             if a=7 then dprint "Ted Rofes, the shipsdoctor says 'The tree creatures assume the ancient aliens have had a very complex nerval system, with several nodes distributed about their body, making them very suspectible to telepathy.'"
             if a=8 then dprint "Ted Rofes, the shipsdoctor says 'There is a cave here that leads to an underground complex of the ancient aliens. I haven't fully explored it. When I found it an ancient robot almost killed me.'"
-            if a>8 then
+            if a=9 then dprint "Ted Rofes, the shipsdoctor says 'Staying here was interesting, but I would like to get back on a ship. I am a doctor, not a tourist.'"
+            if a>9 then
                 if askyn("Ted Rofes asks if you would let him join your crew 'you seem more reasonable than my old captain' (y/n)") then
                     player.doctor=6
                     crew(5).paymod=1
@@ -530,6 +537,98 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                 endif        
             endif
         endif
+    endif
+    
+    
+    if e.lang=23 then
+        if e.aggr=0 then dprint "He growls:'Get off our world war monger!'"
+        if e.aggr=1 then
+            a=rnd_range(1,9)
+            if a=1 then dprint "The Citizen welcomes you to the colony"
+            if a=2 then dprint "The Citizen says: 'The soil, the weather, the plants, everything on this world is perfect for growing crops! As if someone made it for that!'"
+            if a=3 then dprint "The Citizen says: 'The only problem we have are the burrowers: Huge insects that hide in the soil and eat whatever comes their way.'"
+            if a=4 then dprint "The Citizen says: 'Burrowers aside, this world is a paradise.' "
+            if a=5 then dprint "The Citizen says: 'We have got more food than we could ever need' "
+            if a=6 then dprint "The Citizen says: 'There is a bounty of 10 Cr. per dead burrower' "
+            if a=7 then dprint "The Citizen says: 'Pssst... I am hunting burrowers! Its a bounty of 10 Cr. per dead burrower' "
+            if a=8 then dprint "The Citizen says: 'The crops are great this year, but they are always great here.' "
+            if a=9 then dprint "The Citizen says: 'If you killed a burrower you can get your bounty at the town hall.' "
+        endif
+        if e.aggr=2 then dprint "He sobs: 'Why did you do this? We only wanted to live in peace!"
+    endif
+    
+    if e.lang=24 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "Can you show me some sort of ID?"
+            if a=2 then dprint "What are you doing here?"
+            if a=3 then dprint "I don't think you are supposed to be here."
+            if a=4 then dprint "This planet belongs to eridiani explorations."
+            if a=5 then dprint "This planet belongs to eridiani explorations."
+            if a=6 then dprint "They look at you suspicously"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    
+    if e.lang=25 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "Can you show me some sort of ID?"
+            if a=2 then dprint "What are you doing here?"
+            if a=3 then dprint "I don't think you are supposed to be here."
+            if a=4 then dprint "This is Smith Heavy Industries property."
+            if a=5 then dprint "This planet belongs to Smith Heavy Industries."
+            if a=6 then dprint "They look at you suspicously"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    
+    if e.lang=26 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "Can you show me some sort of ID?"
+            if a=2 then dprint "What are you doing here?"
+            if a=3 then dprint "I don't think you are supposed to be here."
+            if a=4 then dprint "This Ship belongs to Triax Traders."
+            if a=5 then dprint "You need a Triax Traders authorization."
+            if a=6 then dprint "They look at you suspicously"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    
+    if e.lang=27 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "Can you show me some sort of ID?"
+            if a=2 then dprint "What are you doing here?"
+            if a=3 then dprint "I don't think you are supposed to be here."
+            if a=4 then dprint "This planet belongs to Omega Bionegineering."
+            if a=5 then dprint "This planet belongs to Omega Bionegineering."
+            if a=6 then dprint "They look at you suspicously"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    
+    if e.lang=28 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "He says in a sarcastic tone 'You sure you want to talk to a hardened criminal like me?'"
+            if a=2 then dprint "He says 'We are being held here against our will'"
+            if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
+            if a=4 then dprint "He says 'This can't be legal! Forcing us to live like this!'"
+            if a=5 then dprint "He says 'I know, i made a mistake, but I don't think they can treat us like this!'."
+            if a=6 then dprint "He says 'Don't owe SHI money, or you'll end up here too!'"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
     endif
     
     return 0
@@ -547,10 +646,18 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
          it=makeitem(96,-1,-3)
          placeitem(it,0,0,0,0,-1)
          reward(2)=reward(2)+it.v5
-         dprint "The reptile gladly accepts the weapon 'This will help us in erradicating the other side' and hands you some "&it.desig
+         dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
          return 0
      endif
-         
+     
+     if (e.lang=28) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
+         item(a).w.p=nr
+         item(a).w.s=0
+         dprint "The worker hides the "&item(a).sdesc &"quickly saying 'Thank you, now if i only had a way to get off this rock'" 
+         if rnd_range(1,6)<3 then e.faction=2
+         return 0
+     endif
+     
      
      select case e.intel
         case is>6
@@ -993,12 +1100,13 @@ function givequest(st as short, byref questroll as short) as short
         endif
     else
         'other quests
+        a=rnd_range(0,2)
         if a<>st and player.h_maxcargo>0 then
             'Deliver package
             if rnd_range(1,100)<50 or player.questflag(8)<>0 then
                 if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 500 credits. Do you accept? (y/n)" ) then
                     bay=getnextfreebay
-                    if bay<0 then 
+                    if bay<=0 then 
                         if askyn("Do you want to make room for the cargo (losing "& basis(st).inv(player.cargo(1).x-1).n &")?(y/n)") then bay=1
                     endif
                     if bay>0 then
@@ -1084,10 +1192,10 @@ function givequest(st as short, byref questroll as short) as short
                 planets(m).darkness=0
                 planets(m).depth=1
                 planets(m).atmos=6
-                planets(m).mon=29
-                planets(m).mon2=29
-                planets(m).noamin=10
-                planets(m).noamax=25
+        
+                planets(m).mon_template(0)=makemonster(29,m)
+                planets(m).mon_noamin(0)=10
+                planets(m).mon_noamax(0)=20
                 planets(m).flavortext="No hum from the engines is heard as you enter the Battleship. Emergency lighting bathes the corridors in red light, and the air smells stale."
             endif
             
@@ -1121,7 +1229,7 @@ function givequest(st as short, byref questroll as short) as short
             
             if a=9 and player.questflag(19)=0 then'other quests
                 dprint "The company rep informs you that there is a special 2500 Cr bounty for bringing down a pirate fighter, called 'Widow'.",15,15
-                player.questflag(18)=1
+                player.questflag(19)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(5)
             endif
@@ -1131,6 +1239,122 @@ function givequest(st as short, byref questroll as short) as short
     endif
 return questroll
 end function
+
+function planetbounty() as short
+    dim p as cords
+    
+    if planets(specialplanet(2)).visited>0 and planets(specialplanet(2)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient city you found. Do you want to sell the coordinates for 2500 Cr?(y/n)") then
+            player.money=player.money+2500
+            planets(specialplanet(2)).flags(21)=1
+            planets(specialplanet(2)).mon_template(8)=makemonster(7,specialplanet(2))
+            planets(specialplanet(2)).mon_noamin(8)=10
+            planets(specialplanet(2)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(2),0)
+            planetmap(p.x,p.y,specialplanet(2))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(3)).visited>0 and planets(specialplanet(3)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient city you found. Do you want to sell the coordinates for 2500 Cr?(y/n)") then
+            player.money=player.money+2500
+            planets(specialplanet(3)).flags(21)=1
+            planets(specialplanet(3)).mon_template(8)=makemonster(7,specialplanet(3))
+            planets(specialplanet(3)).mon_noamin(8)=10
+            planets(specialplanet(3)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(3),0)
+            planetmap(p.x,p.y,specialplanet(3))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(4)).visited>0 and planets(specialplanet(4)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient city you found. Do you want to sell the coordinates for 2500 Cr?(y/n)") then
+            player.money=player.money+2500
+            planets(specialplanet(4)).flags(21)=1
+            planets(specialplanet(4)).mon_template(8)=makemonster(7,specialplanet(4))
+            planets(specialplanet(4)).mon_noamin(8)=10
+            planets(specialplanet(4)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(4),0)
+            planetmap(p.x,p.y,specialplanet(4))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(16)).visited>0 and planets(specialplanet(16)).flags(21)=0 then
+        if askyn("He's interested in the position of Eden. Do you want to sell the coordinates for 10000 Cr?(y/n)") then
+            player.money=player.money+10000
+            planets(specialplanet(16)).flags(21)=1
+            planets(specialplanet(16)).mon_template(8)=makemonster(7,specialplanet(16))
+            planets(specialplanet(16)).mon_noamin(8)=10
+            planets(specialplanet(16)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(16),0)
+            planetmap(p.x,p.y,specialplanet(16))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(21)).visited>0 and planets(specialplanet(21)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient refueling platform you found. Do you want to sell the coordinates for 1000 Cr?(y/n)") then
+            player.money=player.money+1000
+            planets(specialplanet(21)).flags(21)=1
+            planets(specialplanet(21)).mon_template(8)=makemonster(7,specialplanet(21))
+            planets(specialplanet(21)).mon_noamin(8)=10
+            planets(specialplanet(21)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(21),0)
+            planetmap(p.x,p.y,specialplanet(21))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(22)).visited>0 and planets(specialplanet(22)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient refueling platform you found. Do you want to sell the coordinates for 1000 Cr?(y/n)") then
+            player.money=player.money+1000
+            planets(specialplanet(22)).flags(21)=1
+            planets(specialplanet(22)).mon_template(8)=makemonster(7,specialplanet(22))
+            planets(specialplanet(22)).mon_noamin(8)=10
+            planets(specialplanet(22)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(22),0)
+            planetmap(p.x,p.y,specialplanet(22))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(23)).visited>0 and planets(specialplanet(23)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient refueling platform you found. Do you want to sell the coordinates for 1000 Cr?(y/n)") then
+            player.money=player.money+1000
+            planets(specialplanet(23)).flags(21)=1
+            planets(specialplanet(23)).mon_template(8)=makemonster(7,specialplanet(23))
+            planets(specialplanet(23)).mon_noamin(8)=10
+            planets(specialplanet(23)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(23),0)
+            planetmap(p.x,p.y,specialplanet(23))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(24)).visited>0 and planets(specialplanet(24)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient refueling platform you found. Do you want to sell the coordinates for 1000 Cr?(y/n)") then
+            player.money=player.money+1000
+            planets(specialplanet(24)).flags(21)=1
+            planets(specialplanet(24)).mon_template(8)=makemonster(7,specialplanet(24))
+            planets(specialplanet(24)).mon_noamin(8)=10
+            planets(specialplanet(24)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(24),0)
+            planetmap(p.x,p.y,specialplanet(24))=-67
+        endif
+    endif
+    
+    if planets(specialplanet(25)).visited>0 and planets(specialplanet(25)).flags(21)=0 then
+        if askyn("He's interested in the position of the ancient refueling platform you found. Do you want to sell the coordinates for 1000 Cr?(y/n)") then
+            player.money=player.money+1000
+            planets(specialplanet(25)).flags(21)=1
+            planets(specialplanet(25)).mon_template(8)=makemonster(7,specialplanet(25))
+            planets(specialplanet(25)).mon_noamin(8)=10
+            planets(specialplanet(25)).mon_noamax(8)=15
+            p=rnd_point(specialplanet(25),0)
+            planetmap(p.x,p.y,specialplanet(25))=-67
+        endif
+    endif
+    
+    
+    return 0
+end function
+
 
 function showquests() as short
     dim as short a,b,c,d,sys,p
@@ -1143,7 +1367,7 @@ function showquests() as short
     for a=1 to 10
         if player.cargo(a).x=7 or player.cargo(a).x=8 then 
             b+=1
-            dest(b)=player.cargo(a).y
+            dest(b)=player.cargo(a).y+1
         endif
     next
     if b>0 then

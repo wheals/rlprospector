@@ -441,7 +441,7 @@ tiles(56).hides=2
 tiles(57).tile=46
 tiles(57).col=15
 tiles(57).bgcol=6
-tiles(57).desc="ruins of a temple. You find"
+tiles(57).desc="ruins of a temple."
 tiles(57).gives=1
 tiles(57).turnsinto=58
 tiles(57).hides=2
@@ -1237,10 +1237,12 @@ tiles(175).tile=176
 tiles(175).walktru=4
 tiles(175).col=186
 tiles(175).desc="clouds"
+
 tiles(176).tile=176
 tiles(176).walktru=4
 tiles(176).desc="clouds"
 tiles(176).col=198
+
 tiles(177).tile=176
 tiles(177).walktru=4
 tiles(177).col=210
@@ -1407,8 +1409,8 @@ tiles(201).walktru=5
 tiles(201).seetru=1
 tiles(201).firetru=1
 tiles(201).shootable=1
-tiles(201).dr=2
-tiles(201).hp=15
+tiles(201).dr=3
+tiles(201).hp=25
 tiles(201).succt="You damage the wall"
 tiles(201).failt="The walls are to strong for you to seriously damage"
 tiles(201).desc="wall"
@@ -1488,12 +1490,20 @@ tiles(221).bgcol=15
 tiles(221).hides=2
 tiles(221).desc="locker"
 tiles(221).locked=3
+tiles(221).shootable=1
+tiles(221).dr=-1
+tiles(221).hp=2
+tiles(221).turnsinto=202
 
 tiles(222).tile=179
 tiles(222).col=0
 tiles(222).bgcol=15
 tiles(222).hides=2
 tiles(222).desc="locker"
+tiles(222).shootable=1
+tiles(222).dr=-1
+tiles(222).hp=2
+tiles(222).turnsinto=202
 
 tiles(223).tile=asc("C")
 tiles(233).col=114
@@ -1690,3 +1700,160 @@ tiles(246).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(246).killt="That will teach them a lesson!"
 tiles(246).hides=2
 tiles(246).gives=36
+
+tiles(247).tile=asc("#")
+tiles(247).desc="Town hall"
+tiles(247).col=14
+tiles(247).gives=39
+tiles(247).turnsinto=247
+
+tiles(248).tile=46
+tiles(248).col=7
+tiles(248).bgcol=0
+tiles(248).desc="rock"
+tiles(248).turnsinto=4
+tiles(248).hitt="You trigger am alarm!"
+tiles(248).shootable=1
+tiles(248).dr=-1
+tiles(248).hp=1
+tiles(248).gives=51
+tiles(248).killt="You destroy the alarm sensors"
+tiles(248).turnsoninspect=249
+tiles(248).turntext="sensors for an alarm"
+
+tiles(249).tile=asc("_")
+tiles(249).col=7
+tiles(249).bgcol=0
+tiles(249).desc="tripwire"
+tiles(249).turnsinto=4
+tiles(249).hitt="You trigger an alarm!"
+tiles(249).shootable=1
+tiles(249).dr=-1
+tiles(249).hp=1
+tiles(249).gives=51
+tiles(249).killt="You destroy the tripwire"
+
+tiles(250).tile=asc("C")
+tiles(250).col=11
+tiles(250).desc="Computer"
+tiles(250).gives=61
+tiles(250).turnsinto=251
+
+tiles(251).tile=asc("C")
+tiles(251).col=11
+tiles(251).desc="Computer"
+
+
+tiles(252).tile=asc("C")
+tiles(252).col=11
+tiles(252).desc="Computer"
+tiles(252).gives=62
+tiles(252).turnsinto=252
+
+tiles(253).tile=asc("C")
+tiles(253).col=11
+tiles(253).desc="Computer"
+
+tiles(254).tile=asc("C")
+tiles(254).col=11
+tiles(254).desc="Computer"
+tiles(254).gives=63
+tiles(254).turnsinto=254
+
+
+tiles(255).tile=asc("C")
+tiles(255).col=11
+tiles(255).desc="Computer"
+tiles(255).gives=64
+tiles(255).turnsinto=256
+
+tiles(256).tile=asc("C")
+tiles(256).col=11
+tiles(256).desc="Computer"
+
+tiles(257).tile=asc("C")
+tiles(257).col=11
+tiles(257).desc="Computer"
+tiles(257).gives=65
+tiles(257).turnsinto=258
+
+tiles(258).tile=asc("C")
+tiles(258).col=11
+tiles(258).desc="Computer"
+
+tiles(259).tile=ASC("#")
+tiles(259).col=15
+tiles(259).bgcol=0
+tiles(259).desc="Hullrefits"
+tiles(259).gives=42
+tiles(259).turnsinto=259
+
+
+tiles(401).tile=ASC("#")
+tiles(401).col=210
+tiles(401).bgcol=230
+tiles(401).desc="colony"
+tiles(401).gives=401
+tiles(401).turnsinto=401
+
+tiles(402).tile=ASC("0")
+tiles(402).col=8
+tiles(402).desc="mining base"
+tiles(402).gives=402
+tiles(402).turnsinto=402
+
+tiles(403).tile=157
+tiles(403).col=15
+tiles(403).desc="defense tower"
+tiles(403).gives=403
+tiles(403).turnsinto=403
+
+tiles(404).tile=ASC("0")
+tiles(404).col=189
+tiles(404).desc="raffinery"
+tiles(404).gives=404
+tiles(404).turnsinto=404
+
+tiles(405).tile=ASC("0")
+tiles(405).col=14
+tiles(405).desc="factory"
+tiles(405).gives=405
+tiles(405).turnsinto=405
+
+tiles(406).tile=ASC("#")
+tiles(406).col=14
+tiles(406).bgcol=3
+tiles(406).desc="power plant"
+tiles(406).gives=406
+tiles(406).turnsinto=406
+
+tiles(407).tile=238
+tiles(407).col=10
+tiles(407).desc="life support"
+tiles(407).gives=407
+tiles(407).turnsinto=407
+
+tiles(408).tile=ASC("#")
+tiles(408).col=15
+tiles(408).desc="storage facility"
+tiles(408).gives=408
+tiles(408).turnsinto=408
+
+tiles(409).tile=ASC("0")
+tiles(409).col=245
+tiles(409).desc="hydroponic garden"
+tiles(409).gives=409
+tiles(409).turnsinto=409
+
+tiles(410).tile=ASC("#")
+tiles(410).col=11
+tiles(410).bgcol=1
+tiles(410).desc="office building"
+tiles(410).gives=410
+tiles(410).turnsinto=410
+
+tiles(411).tile=ASC("#")
+tiles(411).col=7
+tiles(411).desc="habitat"
+tiles(411).gives=411
+tiles(411).turnsinto=411

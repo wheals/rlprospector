@@ -22,7 +22,7 @@ function fixstarmap() as short
                     map(a).planets(b)=lastplanet
                 endif
                 for c=0 to lastspecial
-                    if specialplanet(c)=map(a).planets(b) then sp(c)=sp(c)+1
+                    if specialplanet(c)=map(a).planets(b) and specialplanet(c)>0 then sp(c)=sp(c)+1
                 next
             endif
         next
@@ -48,7 +48,19 @@ function fixstarmap() as short
     return 0
 end function
 
-
+function nearestbase(c as cords) as short
+    dim r as single
+    dim a as short
+    dim b as short
+    r=65
+    for a=0 to 2
+        if distance(c,basis(a).c)<r then 
+            r=distance(c,basis(a).c)
+            b=a
+        endif
+    next
+    return b
+end function
 
 function disnbase(c as cords) as single
     dim r as single
@@ -453,6 +465,18 @@ end function
 '    return 0
 'end function
 
+function nextpoint(byval start as cords, byval target as cords) as cords
+    dim as short dx,dy,d,x1,x2,y1,y2 
+    x1=start.x
+    y1=start.y
+    d=abs(x1-x2)
+    if abs(y1-y2)>d then d=abs(y1-y2)
+    start.x=x1+(x2-x1)/d
+    start.y=y1+(y2-y1)/d
+    return start
+end function
+
+
 function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype as short=1,col as short=0) as short
     dim as single px,py
     dim deltax as single
@@ -519,12 +543,14 @@ function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype 
                if x>60 then x=60
                if y<0 then y=0
                if y>20 then y=20
-               if tiles(abs(planetmap(x,y,mapslot))).firetru=1 then 
-                    result=0
-                    if blocktype=3 then
-                       b.x=x
-                       b.y=y
-                       return 0
+               if tiles(abs(planetmap(x,y,mapslot))).firetru=1  then 
+                    if not (x=b.x and y=b.y) then
+                        result=0
+                        if blocktype=3 then
+                           b.x=x
+                           b.y=y
+                           return 0
+                        endif
                     endif
                endif
                 if col>0 then 

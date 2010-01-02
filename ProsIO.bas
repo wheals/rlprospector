@@ -190,13 +190,19 @@ end function
 function addtalent(cr as short, ta as short, value as single) as single
     dim total as short
     if cr>0 then
+        if crew(cr).hp>0 and crew(cr).talents(ta)>0 and ta=10 then
+            if player.tactic>0 then return crew(cr).talents(ta)
+            if player.tactic<0 then return -crew(cr).talents(ta)
+            return 0
+        endif
         if crew(cr).hp>0 and crew(cr).talents(ta)>0 then return value*crew(cr).talents(ta)
     else
         value=0
         for cr=1 to 128
-            if crew(cr).hp>0 and crew(cr).onship=0 and crew(cr).talents(ta)>0 then 
+            if crew(cr).hp>0 and crew(cr).onship=0 then 
                 total+=1
                 value=value+crew(cr).talents(ta)
+                if ta=24 then value=value+crew(cr).augment(4)/5
             endif
         next
         if total=0 then return 0
@@ -215,40 +221,78 @@ function changemoral(value as short, where as short) as short
 end function
 
 
-function showteam(from as short) as short
-    dim as short b,p,offset,bg,last,a
+function showteam(from as short, r as short=0) as short
+    dim as short b,bg,last,a,sit
+    dim dummy as _monster
+    dim p as short
+    dim offset as short
     dim n as string
     dim skills as string
+    dim augments as string
     for b=1 to 128
         if crew(b).hpmax>0 then last+=1
     next
     p=1
-    do
-        color 11,0
-            
-        cls
+    no_key=""
+    equipawayteam(player,dummy,0)
         
+    do
+        cls
+        color 11,0
         if no_key=key_enter then
-            if from=0 then
-                if p>1 then
-                    if crew(p).onship=0 then 
-                        crew(p).onship=1
+            if r=0 then
+                if from=0 then
+                    if p>1 then
+                        if crew(p).onship=0 then 
+                            crew(p).onship=1
+                        else
+                            crew(p).onship=0
+                        endif
                     else
-                        crew(p).onship=0
+                        locate 22,1
+                        color 14,0
+                        print "The captain must stay in the awayteam."
+                        locate 1,1
                     endif
                 else
                     locate 22,1
                     color 14,0
-                    print "The captain must stay in the awayteam."
+                    print "You need to be at the ship to reassign."
                     locate 1,1
                 endif
-            else
-                locate 22,1
-                color 14,0
-                print "You need to be at the ship to reassign."
-                locate 1,1
+            endif
+            if r=1 then return p
+                
+        endif
+        
+        if no_key="s" then
+            sit=getitem(999)
+            if sit>0 then
+                if item(sit).ty=2 then 
+                    crew(p).pref_lrweap=item(sit).uid
+                    crew(p).weap=sit
+                endif
+                if item(sit).ty=4 then 
+                    crew(p).pref_ccweap=item(sit).uid
+                    crew(p).blad=sit
+                endif
+                if item(sit).ty=3 then 
+                    crew(p).pref_armor=item(sit).uid
+                    crew(p).armo=sit
+                endif
+                equipawayteam(player,dummy,0)
             endif
         endif
+        
+        if no_key="c" then
+            crew(p).pref_lrweap=0
+            crew(p).pref_ccweap=0
+            crew(p).pref_armor=0
+            equipawayteam(player,dummy,0)
+        
+        endif
+        
+        cls
         
         for b=1 to 8
             if b=p+offset then
@@ -259,6 +303,7 @@ function showteam(from as short) as short
             if b-offset>0 then  
                 if crew(b-offset).hpmax>0 then
                     skills=""
+                    augments=""
                     for a=1 to 25
                         if crew(b-offset).talents(a)>0 then 
                             if skills<>"" then 
@@ -268,6 +313,14 @@ function showteam(from as short) as short
                             endif
                         endif
                     next
+                    
+                    if crew(b-offset).augment(1)>0 then augments=augments &"Targeting "
+                    if crew(b-offset).augment(2)>0 then augments=augments &"Muscle Enh. "
+                    if crew(b-offset).augment(3)>0 then augments=augments &"Imp. Lungs "
+                    if crew(b-offset).augment(4)>0 then augments=augments &"Speed Enh. "
+                    if crew(b-offset).augment(5)>0 then augments=augments &"Exosceleton "
+                    if crew(b-offset).augment(6)>0 then augments=augments &"Imp. Metabolism "
+                    
                     if skills<>"" then skills=skills &" "
                     color 15,bg
                     if b-offset>9 then
@@ -327,21 +380,36 @@ function showteam(from as short) as short
                     print "   ";
                     if crew(b-offset).armo>0 then 
                         color 15,bg
-                        print " ";trim(item(crew(b-offset).armo).desig);", ";
+                        if crew(b-offset).pref_armor>0 then
+                            print "*";
+                        else
+                            print " ";
+                        endif
+                        print trim(item(crew(b-offset).armo).desig);", ";
                     else
                         color 14,bg
                         print " None,";
                     endif
                     if crew(b-offset).weap>0 then 
                         color 15,bg
-                        print " ";trim(item(crew(b-offset).weap).desig);", ";
+                        if crew(b-offset).pref_lrweap>0 then
+                            print "*";
+                        else
+                            print " ";
+                        endif
+                        print trim(item(crew(b-offset).weap).desig);", ";
                     else
                         color 14,bg
                         print " None,";
                     endif
                     if crew(b-offset).blad>0 then 
                         color 15,bg
-                        print " ";trim(item(crew(b-offset).blad).desig);" ";
+                        if crew(b-offset).pref_ccweap>0 then
+                            print "*";
+                        else
+                            print " ";
+                        endif
+                        print trim(item(crew(b-offset).blad).desig);" ";
                     else
                         color 14,bg
                         print " None";
@@ -353,6 +421,7 @@ function showteam(from as short) as short
                     color 15,bg
                     print "   ";
                     print skills;
+                    print augments;
                     if crew(b-offset).disease>0 then
                         color 14,bg
                         print "Suffers from "&trim(disease(crew(b-offset).disease).desig);
@@ -365,7 +434,8 @@ function showteam(from as short) as short
         next
         color 11,0
         locate 25,1
-        print key_rename &" to rename a member, enter to add/remove from awaytem, esc to exit";
+        if r=0 then print key_rename &" rename a member, enter add/remove from awaytem, s set Item, c clear, esc exit";
+        if r=1 then print "Enter to chose crewmember";
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
@@ -383,7 +453,11 @@ function showteam(from as short) as short
         if p+offset>8 then offset=8-p
         if p+offset<1 then offset=1-p
         
+        
+        
+       
     loop until no_key=key_esc or no_key=" "
+    cls
     return 0
 end function
 
@@ -433,8 +507,6 @@ function addmember(a as short) as short
             crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&CHR(rnd_range(65,87))&". "&n((rnd_range(1,ln(0))),0)
         endif
         crew(slot).morale=100+(Wage-10)^3*(5/100)
-        if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
-        if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
         'crew(slot).talents(rnd_range(1,25))=1
         'crew(slot).talents(rnd_range(1,25))=1
         'crew(slot).talents(rnd_range(1,25))=1
@@ -551,6 +623,8 @@ function addmember(a as short) as short
             crew(slot).xp=-1
             crew(slot).morale=25000
         endif
+        if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
+        if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
     endif     
     return 0
 end function    
@@ -727,7 +801,7 @@ end function
 
 function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as short ex,b,t,last,armeff,reequip
+    dim as short ex,b,t,last,armeff,reequip,roll
     dim target(128) as short
     dim stored(128) as short
     dim injured(13) as short
@@ -749,7 +823,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     'ap=1 Ignores Armor
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
-    if abs(player.tactic)=2 and dam>2 then dam=dam-player.tactic
+    if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     for b=1 to 128
         if crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0 then
@@ -771,7 +845,8 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 dam=0
             endif
             if ap=0 or ap=1 then
-                if rnd_range(1,20)>2+a.secarmo(target(t))+player.tactic*(1+addtalent(3,10,1))+addtalent(t,20,1) or ap=1 then
+                roll=rnd_range(1,20)
+                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=1 then
                     crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
                 else
@@ -795,7 +870,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     
-    for b=1 to 12
+    for b=1 to 13
         if injured(b)>0 then
             if injured(b)>1 then
                 text=text &injured(b) &" "&desc(b)&"s injured. "
@@ -804,7 +879,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             endif
         endif
     next
-    for b=1 to 12
+    for b=1 to 13
         player.deadredshirts=player.deadredshirts+killed(b)
         if killed(b)>0 then
             if killed(b)>1 then
@@ -1042,7 +1117,7 @@ function levelup(p as _ship) as _ship
              '   dprint "Rolled "&roll &", needed "&5+crew(a).hp^2,14,14
             endif
             if a>1 then
-                if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) then
+                if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 then
                     if a=2 then 
                         text =text &" Pilot "&crew(a).n &" retired."
                         player.pilot=captainskill
@@ -1060,7 +1135,7 @@ function levelup(p as _ship) as _ship
                         player.doctor=captainskill
                     endif
                     if a>5 then secret+=1
-                    crew(a).hp=0
+                    crew(a)=_del
                     lev(a)=0
                 endif
             endif
@@ -1273,7 +1348,9 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
         textbox(text,63,7,16,11,0)    
     endif
     locate 12,63
-    print "Gravity:"&p.grav &" g"
+    print "Gravity:";
+    print using "####.#";p.grav;
+    print " g"
     locate 14,63
     print "Avg. Temperature"
     locate 16,63
@@ -1359,7 +1436,7 @@ function mondis(enemy as _monster) as string
 end function
 
 sub show_stars(bg as short=0)
-    dim as short a,x,y,navcom,mask
+    dim as short a,b,x,y,navcom,mask
     dim as cords p,p1,p2
     dim range as integer
     dim as single dx,dy,l,x1,y1,vis
@@ -1453,24 +1530,26 @@ sub show_stars(bg as short=0)
 
     a=findbest(51,-1)
     if a>0 then
-        for x=1 to lastfleet
-            locate fleet(x).c.y+1-player.osy,fleet(x).c.x+1-player.osx,0
-            if vismask(fleet(x).c.x,fleet(x).c.y)=1 and distance(player.c,fleet(x).c)<player.sensors then
+        for b=1 to lastfleet
+            x=fleet(b).c.x
+            y=fleet(b).c.y
+            locate y+1-player.osy,x+1-player.osx,0
+            if vismask(x,y)=1 and distance(player.c,fleet(b).c)<player.sensors then
                 color 11,0 
                 if item(a).v1=1 then
                     color 11,0 
                     print "s"
                 else
-                    if fleet(x).ty=1 or fleet(x).ty=3 then color 10,0
-                    if fleet(x).ty=2 or fleet(x).ty=4 then color 12,0
+                    if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
+                    if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
                     print "s"
                 endif
             else
                 color 1,0
                 if navcom>0 then 
-                   if spacemap(fleet(x).c.x,fleet(x).c.y)=1 then print ".";
+                   if spacemap(x,y)=1 then print ".";
                 else
-                   if spacemap(fleet(x).c.x,fleet(x).c.y)>=2 and spacemap(fleet(x).c.x,fleet(x).c.y)<=5 then
+                   if spacemap(x,y)>=2 and spacemap(x,y)<=5 then
                         color rnd_range(9,14),1
                         if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
                         if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
@@ -1652,28 +1731,56 @@ function awayteamsetup() as short
     return 0
 end function
 
+function bioreport(slot as short) as short
+    dim a as short
+    dim as string t,h
+    t="Bio Report for /"
+    h="/"
+    for a=0 to 16
+        if planets(slot).mon_seen(a)>0 or planets(slot).mon_killed(a)>0 or planets(slot).mon_caught(a)>0 then 
+            t=t & planets(slot).mon_template(a).sdesc &"/"
+            h=h & " | "&planets(slot).mon_template(a).ldesc &" | | Visual  :"
+            if planets(slot).mon_seen(a)>0 then
+                h=h &" Yes"
+            else
+                h=h &" No"
+            endif
+            h=h & " | Disected: "&planets(slot).mon_killed(a)
+            h=h & " | Caught  : "&planets(slot).mon_caught(a) &" | /"
+        endif
+    next
+    t=t &"Exit"
+    do
+    loop until menu(t,h)
+    return 0
+end function
+
+
 function logbook() as short
     cls
     dim lobk(5,20) as string
     dim lobn(5,20) as short
-    static curs as cords
+    static as cords curs,curs2
     dim as short x,y,a,p,m,lx
     dim key as string
-    for a=0 to laststar
-        if map(a).desig<>"" then
-            if map(a).spec<8 or map(a).discovered>1 then
-                lobk(x,y)=trim(map(a).desig)
-                lobn(x,y)=a
-                y=y+1
-                if y>20 then
-                    y=0
-                    x=x+1
+    do
+        x=0
+        y=0
+        for a=0 to laststar
+            if map(a).desig<>"" then
+                if map(a).spec<8 or map(a).discovered>1 then
+                    lobk(x,y)=trim(map(a).desig)
+                    if map(a).comment<>"" then lobk(x,y)=lobk(x,y) &" (c)"
+                    lobn(x,y)=a
+                    y=y+1
+                    if y>20 then
+                        y=0
+                        x=x+1
+                    endif
                 endif
             endif
-        endif
-    next
-    lx=x
-    do
+        next
+        lx=x
         cls
         displayship(1)
         for x=0 to 5
@@ -1696,28 +1803,47 @@ function logbook() as short
         else
             dprint "Only long range data"
         endif
+        if map(lobn(curs.x,curs.y)).comment<>"" then dprint map(lobn(curs.x,curs.y)).comment
         key=keyin
+        curs2=movepoint(curs,getdirection(key))
+        if lobn(curs2.x,curs2.y)<>0 then curs=curs2
+        if key=key_comment and lobn(curs.x,curs.y)<>0 then
+            dprint "Enter comment on system"
+            map(lobn(curs.x,curs.y)).comment=gettext(pos,csrlin-1,60,map(lobn(curs.x,curs.y)).comment)
+        endif
+        
         if key=key_enter and map(lobn(curs.x,curs.y)).discovered>1 then
             p=getplanet(lobn(curs.x,curs.y),1)
-            m=map(lobn(curs.x,curs.y)).planets(p)
-            if m>0 then
-                if planetmap(0,0,m)=0 then
-                    cls
-                    displayship(1)
-                    locate 10,15
-                    color 15,0
-                    print"No map data for this planet"
-                    no_key=keyin
-                else
-                    cls
-                    dplanet(planets(m),p,planets(m).mapped)
-                    displayplanetmap(m)
-                    no_key=keyin
+            if p>0 then
+                m=map(lobn(curs.x,curs.y)).planets(p)
+                if m>0 then
+                    if planets(m).comment<>"" then dprint planets(m).comment
+                    if planetmap(0,0,m)=0 then
+                        cls
+                        displayship(1)
+                        locate 10,15
+                        color 15,0
+                        print"No map data for this planet"
+                        no_key=keyin
+                    else
+                        cls
+                        do
+                            dplanet(planets(m),p,planets(m).mapped)
+                            displayplanetmap(m)
+                            no_key=keyin(key_comment &key_report &key_esc)
+                            if no_key=key_comment then
+                                dprint "Enter comment on planet"
+                                planets(m).comment=gettext(pos,csrlin-1,60,planets(m).comment)
+                            endif
+                            if no_key=key_report then
+                                bioreport(m)
+                            endif    
+                        loop until no_key<>key_comment or no_key<>key_report
+                    endif
                 endif
             endif
+            key=""
         endif
-                
-        curs=movepoint(curs,getdirection(key))
         if curs.x>lx then curs.x=lx
         if curs.y>20 then curs.y=20
     loop until key=key_esc or player.dead<>0
@@ -1971,7 +2097,7 @@ sub displaystar(a as short)
                 color 11,0
                 locate 1,1
                 if map(a).planets(p)=specialplanet(n) and planetmap(0,0,map(a).planets(p))<>0 then 
-                    bg=1
+                    bg=233
                 endif
                 if show_specials<>0 and map(a).planets(p)=specialplanet(show_specials) then
                     locate map(a).c.y-player.osy+2,map(a).c.x-player.osx+2,0
@@ -1979,6 +2105,7 @@ sub displaystar(a as short)
                     print ""&n
                 endif
             next
+            if planets(map(a).planets(p)).colony<>0 then bg=246
         endif
     next
     if map(a).discovered=0 then 
@@ -2057,7 +2184,7 @@ sub displaysystem(sys as _stars,forcebar as byte=0)
         x=sys.c.x-12-player.osx
         y=sys.c.y+2-player.osy
         if x<1 then x=1
-        if x+18>58 then x=39
+        if x+21>59 then x=39
         locate y,x
         color 11,1
         print "[";
@@ -2077,10 +2204,12 @@ sub displaysystem(sys as _stars,forcebar as byte=0)
         bg=0
         for a=0 to lastspecial
             if sys.planets(b)>0 then
-                if sys.planets(b)=specialplanet(a) and planetmap(0,0,sys.planets(b))<>0 then bg=1
+                if sys.planets(b)=specialplanet(a) and planetmap(0,0,sys.planets(b))<>0 then bg=233
             endif
         next
         if sys.planets(b)>0 and isgasgiant(sys.planets(b))=0 and isasteroidfield(sys.planets(b))=0 then
+            
+            if planets(sys.planets(b)).colony>0 then bg=246
             if planets(sys.planets(b)).visited>0 then  
                 if planets(sys.planets(b)).atmos=1 then color 15,bg      
                 if planets(sys.planets(b)).atmos>1 and planets(sys.planets(b)).atmos<7 then color 101,bg
@@ -2132,12 +2261,18 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         dim c as short
         dim x as short
         dim y as short
+        dim xoffset as short
         dim t as string
         static wg as byte
         static wj as byte
         dim thp as short
         dim as string poi
-        if awayteam.oxygen=200 then wg=0
+        xoffset=22
+        if awayteam.oxygen=awayteam.oxymax then wg=0
+        if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.move=2 then wj=0
+        locate 22,1
+        color 15,0
+        print space(32)
         if awayteam.stuff(8)=1 and player.landed.m=map and planets(map).depth=0 then
             color 15,0
             locate 22,3
@@ -2154,10 +2289,22 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         if loctime=0 then print " Day "
         if loctime=1 then print "Dawn "
         if loctime=2 then print "Dusk "
+        color 10,0
+        locate 22,xoffset
+        if awayteam.invis>0 then
+            print "Camo"
+            xoffset=xoffset+5
+        endif
+        locate 22,xoffset
+        if addtalent(-1,24,0)>0 then 
+            print "Fast"
+            xoffset=xoffset+5
+        endif
         color 11,1
-        locate 22,20
+        locate 22,xoffset
         print chr(195)
-        for a=21 to 61
+        
+        for a=xoffset+1 to 61
             locate 22,a,0
             print CHR(196)
         next
@@ -2244,7 +2391,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             locate 22,63
             print "Transporter"
         endif
-        if awayteam.move=2 then
+        if awayteam.move=2 and awayteam.hp>0 then
             color 11,0
             locate 23,63
             print "Jetpackfuel:";
@@ -2252,7 +2399,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             if awayteam.jpfuel<awayteam.jpfuelmax*.5 then color 14,0
             if awayteam.jpfuel<awayteam.jpfuelmax*.3 then color 12,0
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
-            print using "##";awayteam.jpfuel
+            print using "###";awayteam.jpfuel/awayteam.hp
             if awayteam.jpfuel<awayteam.jpfuelmax then
                 if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
                     wj=1
@@ -2298,8 +2445,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         color 10,0
         if awayteam.oxygen<50 then color 14,0
         if awayteam.oxygen<25 then color 12,0
-        print using "###";awayteam.oxygen
-        if int(awayteam.oxygen<100) and wg=0 then 
+        print using "####";awayteam.oxygen/awayteam.hp
+        if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
             dprint ("Reporting oxygen tanks half empty",14,14)
             wg=1
             for a=1 to wg
@@ -2309,7 +2456,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             next
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
         endif
-        if int(awayteam.oxygen<50) and wg=1 then 
+        if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
             dprint ("Oxygen low.",14,14)
             wg=2
             for a=1 to wg
@@ -2320,7 +2467,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             next
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
         endif
-        if int(awayteam.oxygen<25) and wg=2 then
+        if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
             dprint ("Switching to oxygen reserve!",12,12)
             wg=3
             for a=1 to wg
@@ -2590,9 +2737,9 @@ sub shipstatus(heading as short=0)
                 locate 2+a,50
                 
                 if invn(a+offset)>1 then
-                    print invn(a+offset)&" "&inv(a+offset).desigp;
+                    print invn(a+offset)&" "&left(inv(a+offset).desigp,27);
                 else
-                    if invn(a+offset)=1 then print invn(a+offset)&" "&inv(a+offset).desig;
+                    if invn(a+offset)=1 then print invn(a+offset)&" "&left(inv(a+offset).desig,27);
                 endif
             next
             locate 25,79
@@ -2639,7 +2786,7 @@ sub displayship(show as byte=0)
         print "No Navcomp"
     endif
         
-    color 11,1
+    color 224,0
     locate 22,11
     print chr(195)
     for a=12 to 61
@@ -2928,7 +3075,7 @@ function dprint(t as string, delay as short=5, col as short=11) as short
     dim wtext as string
     dim offset as short
     dim tlen as short
-    dim addt(8) as string
+    dim addt(64) as string
     dim lastspace as short
     dim key as string
 
@@ -2972,19 +3119,19 @@ function dprint(t as string, delay as short=5, col as short=11) as short
             print displaytext(b);
         next
         if displaytext(25)<>"" then
-        for b=0 to 29
-           displaytext(b)=displaytext(b+1)
-           dtextcol(b)=dtextcol(b+1)
-        next
-        displaytext(30)=""
-        a=a+1
-        if a=3 then 
-            locate 25,55,0
-            color 15,0
-            print "[MORE]";
-            no_key=keyin
-            a=0
-        endif
+            for b=0 to 29
+               displaytext(b)=displaytext(b+1)
+               dtextcol(b)=dtextcol(b+1)
+            next
+            displaytext(30)=""
+            a=a+1
+            if a=3 and displaytext(26)<>"" then 
+                locate 25,57,0
+                color 15,0
+                print ">>";
+                no_key=keyin
+                a=0
+            endif
         endif
         
     loop until displaytext(25)=""
@@ -3238,10 +3385,10 @@ function getplanet(sys as short,forcebar as byte=0) as short
         else
             xo=map(sys).c.x-9-player.osx
             yo=map(sys).c.y+2-player.osy
-            if xo<4 then xo=4
+            if xo<=4 then xo=4
             if xo+18>58 then xo=42
         endif
-        dprint "Enter to select, arrows to move,ESC to quit"
+        dprint "Enter to select, arrows to move,ESC to quit"&map(sys).planets(p)
         do
             displaysystem(map(sys))        
             if keyplus(key) or a=6 then 
@@ -3310,13 +3457,15 @@ function isgasgiant(m as short) as short
     if m=specialplanet(23) then return 23
     if m=specialplanet(24) then return 24
     if m=specialplanet(25) then return 25
+    if m=specialplanet(43) then return 43
     return 0
 end function
 
 function isasteroidfield(m as short) as short
     if m=specialplanet(31) then return 1 
     if m=specialplanet(32) then return 1 
-    if m=specialplanet(33) then return 1 
+    if m=specialplanet(33) then return 1
+    if m=specialplanet(41) then return 1
     return 0
 end function
 

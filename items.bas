@@ -3,14 +3,14 @@ function rnd_item(t as short) as _items
     dim r as short
     if t=20 then 
         if rnd_range(1,100)<88 then
-            t=rnd_range(2,4) 'weapons and armor
+            t=rnd_range(1,4) 'weapons and armor
         else
             t=-1
-            i=makeitem(rnd_range(50,52))
+            i=makeitem(rnd_range(31,33))
         endif
     endif
     if t=21 then 
-        t=rnd_range(2,9)
+        t=rnd_range(1,9)
     endif
     
     
@@ -140,6 +140,14 @@ end function
 
 function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     dim i as _items
+    
+    if uid=4294967295 then 
+        dprint "Can't make any more items!"
+        return i
+    endif
+    
+    uid=uid+1
+    i.uid=uid
     
     if a=1 then
         i.id=1
@@ -315,6 +323,38 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=35
     endif
     
+    if a>=3 and a<=11 and rnd_range(1,100)<10 then
+        if rnd_range(1,100)<50 then
+            if rnd_range(1,100)<75 then
+                i.desig="balanced "&i.desig
+                i.desigp="balanced "&i.desigp
+                i.id=i.id+100
+                i.v3=i.v3+1
+                i.price=i.price*1.2
+            else
+                i.desig="well balanced "&i.desig
+                i.desigp="well balanced "&i.desigp
+                i.id=i.id+110
+                i.v3=i.v3+2
+                i.price=i.price*1.5
+            endif
+        else
+            if rnd_range(1,100)<75 then
+                i.desig="powerful "&i.desig
+                i.desigp="powerful "&i.desigp
+                i.id=i.id+120
+                i.v1=i.v1+.1
+                i.price=i.price*1.2
+            else
+                i.desig="very powerful "&i.desig
+                i.desigp="very powerful "&i.desigp
+                i.id=i.id+130
+                i.v1=i.v1+.2
+                i.price=i.price*1.5
+            endif
+        endif
+    endif
+    
     if a=12 then
         i.id=12
         i.ty=3
@@ -390,7 +430,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=3
         i.desig="combat armor"
         i.desigp="sets of combat armor"
-        i.ldesc="A spacesuit covered in ablative plates. Built in hydraulics increase the strength and speed of the wearer." 
+        i.ldesc="A spacesuit covered in ablative plates." 
         i.icon="&"
         i.col=6
         i.bgcol=0
@@ -412,6 +452,26 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.price=800
         i.res=45
     endif
+    
+    if a>=12 and a<=18 and rnd_range(1,100)<10 then
+        if rnd_range(1,100)<50 then
+            i.desig="thick "&i.desig
+            i.desigp="thick "&i.desigp
+            i.id=i.id+100
+            i.v1=i.v1+1
+            i.price=i.price*1.2
+        else
+            if i.v1>1 then
+                i.desig="old "&i.desig
+                i.desigp="old "&i.desigp
+                i.id=i.id+110
+                i.v1=i.v1-1
+                i.price=i.price*0.8
+            endif
+        endif
+    endif
+    
+            
     
     if a=19 then                 
         i.id=19
@@ -441,6 +501,22 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=45
     endif
     
+    if a>=12 and a<=20 and rnd_range(1,100)<10+a then
+        if rnd_range(1,100)<66 then
+            i.desig="camo "&i.desig
+            i.desigp="camo "&i.desigp
+            i.v2=1
+            i.id=i.id+110
+            i.price=i.price*1.1
+        else
+            i.desig="imp. camo "&i.desig
+            i.desigp="imp. camo "&i.desigp
+            i.id=i.id+120
+            i.v2=3
+            i.price=i.price*1.25
+        endif
+    endif
+    
     if a=21 then
         i.id=21
         i.ty=17
@@ -449,10 +525,25 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ldesc="Normal spacesuits have their own oxygen tank. Improved air filters attempt to supplement that with whatever is found in the surrounding atmosphere."
         i.icon="§"
         i.col=14
-        i.v1=1
+        i.v1=.3
         i.bgcol=0
-        i.price=600
+        i.price=20
         i.res=25
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="good "&i.desig
+                i.desigp="good "&i.desigp
+                i.v1=.4
+                i.price=30
+            else
+                i.id=i.id+110
+                i.desig="bad "&i.desig
+                i.desigp="bad "&i.desigp
+                i.v1=.2
+                i.price=15
+            endif
+        endif
     endif   
     
     if a=22 then
@@ -467,6 +558,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.bgcol=0
         i.price=1500
         i.res=35
+        if rnd_range(1,100)<20 then
+            if rnd_range(1,100)<50 then
+                i.id=122
+                i.desig="powerful "&i.desig
+                i.desigp="powerful "&i.desigp
+                i.v1=3
+                i.price=2000
+            else
+                i.id=124
+                i.desig="weak "&i.desig
+                i.desigp="weak "&i.desigp
+                i.v1=1
+                i.price=1000
+            endif
+        endif
     endif
     
     if a=23 then
@@ -481,6 +587,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.bgcol=0
         i.price=2500
         i.res=55
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.id=123
+                i.desig="powerful "&i.desig
+                i.desigp="powerful "&i.desigp
+                i.v1=6
+                i.price=3000
+            else
+                i.id=123
+                i.desig="weak "&i.desig
+                i.desigp="weak "&i.desigp
+                i.v1=4
+                i.price=2000
+            endif
+        endif
     endif
         
     if a=24 then
@@ -520,6 +641,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=2
         i.price=90
         i.res=15
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="good "&i.desig
+                i.desigp="good "&i.desigp
+                i.v1=3
+                i.price=100
+            else
+                i.id=i.id+110
+                i.desig="cheap "&i.desig
+                i.desigp="cheap "&i.desigp
+                i.v1=1
+                i.price=80
+            endif
+        endif
     endif
     
     if a=27 then
@@ -533,6 +669,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=4
         i.price=500
         i.res=25
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="good "&i.desig
+                i.desigp="good "&i.desigp
+                i.v1=5
+                i.price=600
+            else
+                i.id=i.id+110
+                i.desig="cheap "&i.desig
+                i.desigp="cheap "&i.desigp
+                i.v1=3
+                i.price=400
+            endif
+        endif
     endif
     
     if a=28 then
@@ -546,6 +697,22 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=3
         i.price=40
         i.res=35
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="strong "&i.desig
+                i.desigp="strong "&i.desigp
+                i.v1=4
+                i.price=50
+            else
+                i.id=i.id+110
+                i.desig="weak "&i.desig
+                i.desigp="weak "&i.desigp
+                i.v1=2
+                i.price=30
+            endif
+        endif
+            
     endif
     
     if a=29 then
@@ -559,6 +726,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=6
         i.price=90
         i.res=55
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="strong "&i.desig
+                i.desigp="strong "&i.desigp
+                i.v1=8
+                i.price=100
+            else
+                i.id=i.id+110
+                i.desig="weak "&i.desig
+                i.desigp="weak "&i.desigp
+                i.v1=5
+                i.price=80
+            endif
+        endif
     endif
     
     if a=30 then
@@ -680,8 +862,23 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ldesc="A small tank to increase the oxygen supply of spacesuits. Several users can connect to one tank."
         i.col=15
         i.v1=50
-        i.price=450
+        i.price=45
         i.res=65
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="big "&i.desig
+                i.desigp="big "&i.desigp
+                i.v1=75
+                i.price=50
+            else
+                i.id=i.id+110
+                i.desig="small "&i.desig
+                i.desigp="small "&i.desigp
+                i.v1=40
+                i.price=35
+            endif
+        endif
     endif
         
     if a=39 then
@@ -801,11 +998,43 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=65
     endif
     
+    if a>=40 and a<=47 and rnd_range(1,100)<10 then
+        if rnd_range(1,100)<50 then
+            if rnd_range(1,100)<75 then
+                i.desig="balanced "&i.desig
+                i.desigp="balanced "&i.desigp
+                i.id=i.id+100
+                i.v3=i.v3+1
+                i.price=i.price*1.2
+            else
+                i.desig="well balanced "&i.desig
+                i.desigp="well balanced "&i.desigp
+                i.id=i.id+110
+                i.v3=i.v3+2
+                i.price=i.price*1.5
+            endif
+        else
+            if rnd_range(1,100)<75 then
+                i.desig="sharp "&i.desig
+                i.desigp="sharp "&i.desigp
+                i.id=i.id+120
+                i.v1=i.v1+.1
+                i.price=i.price*1.2
+            else
+                i.desig="very sharp "&i.desig
+                i.desigp="very sharp "&i.desigp
+                i.id=i.id+130
+                i.v1=i.v1+.2
+                i.price=i.price*1.5
+            endif
+        endif
+    endif
+    
     if a=48 then
         i.id=48
         i.ty=17
-        i.desig="Grenade launcher"
-        i.desigp="Grenade launchers"
+        i.desig="genade launcher"
+        i.desigp="grenade launchers"
         i.icon="]"
         i.col=7
         i.price=500
@@ -821,9 +1050,24 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desigp="aux jetpack tanks"
         i.icon="!"
         i.col=14
-        i.price=100
+        i.price=10
         i.ldesc="Small portable tanks to store auxillary jetpack fuel."
         i.res=65
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="big "&i.desig
+                i.desigp="big "&i.desigp
+                i.v1=30
+                i.price=12
+            else
+                i.id=i.id+110
+                i.desig="small "&i.desig
+                i.desigp="small "&i.desigp
+                i.v1=20
+                i.price=8
+            endif
+        endif
     endif
     
     
@@ -938,8 +1182,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=56 then
         i.id=56
         i.ty=19
-        i.desig="Disease kit I"
-        i.desigp="Disease kits I"
+        i.desig="disease kit I"
+        i.desigp="disease kits I"
         i.ldesc="A basic supply for the treatment of diseases." 
         i.icon="+"
         i.col=1
@@ -952,8 +1196,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=57 then
         i.id=57
         i.ty=19
-        i.desig="Disease kit II"
-        i.desigp="Disease kits II"
+        i.desig="disease kit II"
+        i.desigp="disease kits II"
         i.ldesc="A supply of drugs and diagnostic tools for the treatment of diseases." 
         i.icon="+"
         i.col=1
@@ -965,8 +1209,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=58 then
         i.id=58
         i.ty=19
-        i.desig="Disease kit III"
-        i.desigp="Disease kits III"
+        i.desig="disease kit III"
+        i.desigp="disease kits III"
         i.ldesc="Advanced diagnostic tools and drugs for the treatment of diseases." 
         i.icon="+"
         i.col=1
@@ -1014,8 +1258,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=62 then
         i.id=62
         i.ty=26
-        i.desig="Cage"
-        i.desigp="Cages"
+        i.desig="cage"
+        i.desigp="cages"
         i.ldesc="A cage for transporting wild animals."
         i.icon=chr(220)
         i.col=7
@@ -1076,8 +1320,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=67 then
         i.id=67
         i.ty=21
-        i.desig="Basic Infirmary"
-        i.desigp="Basic Infirmary"
+        i.desig="basic Infirmary"
+        i.desigp="basic Infirmary"
         i.ldesc="The basic supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10
@@ -1091,8 +1335,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=68 then
         i.id=68
         i.ty=21
-        i.desig="Infirmary"
-        i.desigp="Infirmary"
+        i.desig="infirmary"
+        i.desigp="infirmary"
         i.ldesc="The supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10
@@ -1106,8 +1350,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=69 then
         i.id=69
         i.ty=21
-        i.desig="Advanced Infirmary"
-        i.desigp="Advanced Infirmary"
+        i.desig="advanced Infirmary"
+        i.desigp="advanced Infirmary"
         i.ldesc="State of the art supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10
@@ -1120,7 +1364,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=70 then
         i.id=70
         i.ty=36
-        i.desig="Emergency beacon"
+        i.desig="emergency beacon"
         i.desigp="emergency beacons"
         i.ldesc="An external transmitter with autonomous energy supply. It transmits a distress signal on a reserved frequency, increases your chances to find help in case of an emergency."
         i.icon="s"
@@ -1133,8 +1377,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=71 then
         i.id=71
         i.ty=36
-        i.desig="Imp. Emergency beacon"
-        i.desigp="Imp. emergency beacons"
+        i.desig="imp. Emergency beacon"
+        i.desigp="imp. emergency beacons"
         i.ldesc="An external transmitter with autonomous energy supply. It transmits a distress signal on a reserved frequency and performs a spiral search pattern, to increase your chances to find help in case of an emergency."
         i.icon="s"
         i.col=15
@@ -1148,6 +1392,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=40
         i.desig="anti-ship mine"
         i.desigp="anti-ship mines"
+        i.ldesc="a small device that explodes when in immediate vicinity of a ship"
         i.icon="ö"
         i.col=7
         i.v1=5
@@ -1162,6 +1407,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=40
         i.desig="anti-ship mine MKII"
         i.desigp="anti-ship mines MKII"
+        i.ldesc="a small device that explodes when in immediate vicinity of a ship"
         i.icon="ö"
         i.col=7
         i.v1=10
@@ -1176,6 +1422,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=40
         i.desig="improvised mine"
         i.desigp="improvised mines"
+        i.ldesc="a small device that explodes when in immediate vicinity of a ship"
         i.icon="ö"
         i.col=7
         i.v1=3
@@ -1184,6 +1431,18 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=100
         i.price=100
     endif
+    
+    if a=86 then
+        i.id=86
+        i.ty=86
+        i.v1=1
+        i.desig="burrowers eggsack"
+        i.desigp="burrowers eggsacks"
+        i.ldesc="a skinsack containing about 50 burrowers eggs, carried by the larger female of the species."
+        i.icon="o"
+        i.col=14
+    endif
+        
     
     if a=88 then
         i.id=94
@@ -1308,44 +1567,61 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=15
         
         i.desigp="resources"
-        i.v1=rnd_range(1,3)+mod1
-        i.v2=rnd_range(1,4)+mod2
+        i.v1=rnd_range(1,4)+mod1
+        i.v2=rnd_range(1,8)+mod2
         
-        if i.v2>4 then i.v1=i.v1-1
-        if i.v2>5 then i.v1=i.v1-1
-        if i.v2>6 then i.v1=i.v1-1
-        if i.v2>7 then i.v1=i.v1-1
+        if i.v2>9 then i.v1=i.v1-1
+        if i.v2>10 then i.v1=i.v1-1
+        if i.v2>11 then i.v1=i.v1-1
+        if i.v2>12 then i.v1=i.v1-1
+        if i.v2>13 then i.v1=i.v1-1
         if i.v1<1 then i.v1=1
         if i.v2<1 then i.v2=1
-        if i.v2>9 then i.v2=9
+        if i.v2>14 then i.v2=14
         
+        'used colors 2 3 5 7 10 11 13 14 15 
+        'unused 4 6 8 9 12
         if i.v2=1 then i.desig="iron"
-        if i.v2=1 then i.col=7
+        if i.v2=1 then i.col=4
         
         if i.v2=2 then i.desig="copper"
         if i.v2=2 then i.col=2
         
-        if i.v2=3 then i.desig="gold"
-        if i.v2=3 then i.col=14
+        if i.v2=3 then i.desig="sulfur"
+        if i.v2=3 then i.col=6
         
-        if i.v2=4 then i.desig="palladium"
-        if i.v2=4 then i.col=15
+        if i.v2=4 then i.desig="silver"
+        if i.v2=4 then i.col=7
         
+        if i.v2=5 then i.desig="gold"
+        if i.v2=5 then i.col=14
         
-        if i.v2=5 then i.desig="gems"
-        if i.v2=5 then i.col=5
+        if i.v2=6 then i.desig="osmodium"
+        if i.v2=6 then i.col=8
         
-        if i.v2=6 then i.desig="transuranic metals"
-        if i.v2=6 then i.col=11
+        if i.v2=7 then i.desig="palladium"
+        if i.v2=7 then i.col=15
         
-        if i.v2=7 then i.desig="monocrystals"
-        if i.v2=7 then i.col=10
+        if i.v2=8 then i.desig="gems"
+        if i.v2=8 then i.col=5
         
-        if i.v2=8 then i.desig="exotic gems"
-        if i.v2=8 then i.col=13
+        if i.v2=9 then i.desig="transuranic metals"
+        if i.v2=9 then i.col=11
         
-        if i.v2=9 then i.desig="lutetium"
-        if i.v2=9 then i.col=3
+        if i.v2=10 then i.desig="monocrystals"
+        if i.v2=10 then i.col=10
+        
+        if i.v2=11 then i.desig="exotic gems"
+        if i.v2=11 then i.col=13
+        
+        if i.v2=12 then i.desig="iridium"
+        if i.v2=12 then i.col=9
+        
+        if i.v2=13 then i.desig="lutetium"
+        if i.v2=13 then i.col=3
+        
+        if i.v2=14 then i.desig="rhodium"
+        if i.v2=14 then i.col=12
         
         i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(i.v2*rnd_range(1,10-player.science))
         i.price=i.v5/10   
@@ -1381,6 +1657,35 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v3=2
         i.res=120
         i.price=22000
+        if rnd_range(1,100)<50 then
+            if rnd_range(1,100)<50 then
+                i.desig="balanced "&i.desig
+                i.desigp="balanced "&i.desigp
+                i.id=i.id+100
+                i.v3=i.v3+1
+                i.price=i.price*1.2
+            else
+                i.desig="well balanced "&i.desig
+                i.desigp="well balanced "&i.desigp
+                i.id=i.id+101
+                i.v3=i.v3+2
+                i.price=i.price*1.5
+            endif
+        else
+            if rnd_range(1,100)<50 then
+                i.desig="powerfull "&i.desig
+                i.desigp="very powerfull "&i.desigp
+                i.id=i.id+102
+                i.v1=i.v1+.1
+                i.price=i.price*1.2
+            else
+                i.desig="powerfull "&i.desig
+                i.desigp="very powerfull "&i.desigp
+                i.id=i.id+103
+                i.v1=i.v1+.2
+                i.price=i.price*1.5
+            endif
+        endif
     endif
     
     if a=98 then                 
@@ -1395,6 +1700,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=10
         i.res=120
         i.price=19000
+        if rnd_range(1,100)<5 then
+            if rnd_range(1,100)<50 then
+                i.desig="thick "&i.desig
+                i.desigp="thick "&i.desigp
+                i.id=i.id+100
+                i.v1=i.v1+1
+                i.price=i.price*1.5
+            else
+                i.desig="tattered "&i.desig
+                i.desigp="tattered "&i.desigp
+                i.id=i.id+101
+                i.v3=i.v3-1
+                i.price=i.price*0.75
+            endif
+        endif
     endif  
     
     
@@ -1409,6 +1729,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=100
     endif
     
+    i.discovered=show_items
+    
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
     
     return i
@@ -1416,26 +1738,116 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
 end function
 
 function equipawayteam(player as _ship,awayteam as _monster, m as short) as short
-    dim as short a,b,wavg,aavg,tdev,jpacks,hovers,cmove
-    dim as single oxytanks
+    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
+    dim as single oxytanks,oxy
     cmove=awayteam.move
+    awayteam.jpfueluse=0
     awayteam.stuff(1)=0
     awayteam.stuff(2)=0
     awayteam.guns_to=0
     awayteam.blades_to=0
     awayteam.light=0
-    for a=0 to lastitem
+    awayteam.jpfueluse=0
+    awayteam.jpfuelmax=0
+    for a=1 to lastitem
         if item(a).w.s=-2 then item(a).w.s=-1
     next
+    for a=1 to lastitem
+        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
+        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
+    next
     for a=1 to 128
-        'find best ranged weapon
-        b=findbest(2,-1)
-        'give to redshirt
+        if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
+        crew(a).jp=1
+        awayteam.jpfueluse+=1
+        jpacks-=1
+        else
+        crew(a).jp=0
+        endif
+    next
+    hovers=0
+    jpacks=0
+    
+    for a=1 to lastitem
+        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
+        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
+    next
+    infra=2
+    awayteam.invis=6
+    awayteam.oxymax=0
+    awayteam.oxydep=0
+    for a=1 to 128
         crew(a).weap=0
         crew(a).armo=0
         crew(a).blad=0
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
-            if b>-1 then
+            if crew(a).pref_ccweap>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_ccweap then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secweapc(a)=item(c).v1
+                    awayteam.blades_to=awayteam.blades_to+item(c).v1
+                    crew(a).blad=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+            if crew(a).pref_lrweap>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_lrweap then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secweap(a)=item(c).v1
+                    awayteam.secweapran(a)=item(c).v2
+                    awayteam.secweapthi(a)=item(c).v3
+                    awayteam.guns_to=awayteam.guns_to+item(c).v1
+                    crew(a).weap=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+            if crew(a).pref_armor>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_armor then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secarmo(a)=item(c).v1
+                    if awayteam.invis>item(c).v2 then awayteam.invis=item(b).v2
+                    awayteam.stuff(2)=awayteam.stuff(2)+item(c).v1
+                    crew(a).armo=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+        endif
+    next
+    
+    
+    
+    for a=1 to 128
+        'find best ranged weapon
+        'give to redshirt
+
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
+            'if crew(a).augment(2)=0 then infra=0
+            b=findbest(2,-1)
+        
+            if b>-1 and crew(a).weap=0 then
                 'dprint "Equipping "&item(b).desig & b
                 awayteam.secweap(a)=item(b).v1
                 awayteam.secweapran(a)=item(b).v2
@@ -1447,19 +1859,49 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
             'find best armor        
             b=findbest(3,-1)
             'give to redshirt
-            if b>-1 then
+            if b>-1 and crew(a).armo=0 then
                 awayteam.secarmo(a)=item(b).v1
+                if awayteam.invis>item(b).v2 then awayteam.invis=item(b).v2
                 awayteam.stuff(2)=awayteam.stuff(2)+item(b).v1
                 crew(a).armo=b
                 item(b).w.s=-2
+            else
+                awayteam.invis=0
+            endif
+            oxy=1
+            b=findbest(17,-1)
+            if b>-1 then
+                item(b).w.s=-2
+                oxy=oxy-item(b).v1
+            endif
+            if crew(a).augment(3)>1 then oxy=oxy-.3
+            awayteam.oxydep=awayteam.oxydep+oxy
+            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
+                b=findbest(14,-1)
+                if b>-1 then 
+                    item(b).w.s=-2
+                    awayteam.oxymax=awayteam.oxymax+200+item(b).v1
+                else
+                    awayteam.oxymax=awayteam.oxymax+200
+                endif
+            endif
+            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 then
+                b=findbest(19,-1)
+                if b>-1 then 
+                    item(b).w.s=-2
+                    awayteam.jpfuelmax=awayteam.jpfuelmax+50+item(b).v1
+                else
+                    awayteam.jpfuelmax=awayteam.jpfuelmax+50
+                endif
             endif
         endif
+        
     next
     
     for a=128 to 1 step -1
         b=findbest(4,-1)
         'give to redshirt
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 and crew(a).blad=0 then
             if b>-1 then
                 'dprint "Equipping "&item(b).desig & b
                 awayteam.secweapc(a)=item(b).v1
@@ -1470,17 +1912,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         endif
     next
     'count teleportation devices
-    for a=1 to lastitem
-        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
-        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
-    next
-    for a=1 to jpacks
-        crew(a).jp=1
-    next
-    for a=jpacks+1 to 128
-        crew(a).jp=0
-    next
+    
     'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
     if awayteam.move<3 and awayteam.hp<=hovers*5 then awayteam.move=1
     if awayteam.move<3 and awayteam.hp<=jpacks then awayteam.move=2
@@ -1490,22 +1922,15 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
-    awayteam.sight=3
+    awayteam.sight=3+infra
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
-    if findbest(14,-1)>-1 then oxytanks=oxytanks+item(a).v1
-    
-    awayteam.oxymax=200+oxytanks
-    
-    if findbest(19,-1)>0 then 
-        awayteam.jpfuelmax=50
-    else
-        awayteam.jpfuelmax=25
-    endif
+    if awayteam.oxymax<200 then awayteam.oxymax=200
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     if artflag(9)=1 then awayteam.move=3
+    awayteam.oxydep=awayteam.oxydep*awayteam.helmet
     return 0
 end function
 
@@ -1557,7 +1982,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function getitem(fr as short=999) as short
+function getitem(fr as short=999,ty as short=999) as short
     dim as short i,offset,a,b,c,li,cu,set,k
     dim mls(127) as string
     dim mno(127) as short
@@ -1568,20 +1993,22 @@ function getitem(fr as short=999) as short
     screenshot(1)
     for a=0 to lastitem
         if (fr<>999 and item(a).w.s=fr) or (fr=999 and item(a).w.s<0) then
-            set=0
-            for c=0 to li
-                if item(a).desig=mls(c) then
-                    set=1
-                    mno(c)=mno(c)+1
+            if item(a).ty=ty or ty=999 then
+                set=0
+                for c=0 to li
+                    if item(a).desig=mls(c) then
+                        set=1
+                        mno(c)=mno(c)+1
+                    endif
+                next
+                if set=0 then
+                    b=b+1
+                    li=li+1
+                    mls(b)=item(a).desig
+                    mls(b)=mls(b)
+                    mit(b)=a
+                    mno(b)=mno(b)+1
                 endif
-            next
-            if set=0 then
-                b=b+1
-                li=li+1
-                mls(b)=item(a).desig
-                mls(b)=mls(b)
-                mit(b)=a
-                mno(b)=mno(b)+1
             endif
         endif
     next
@@ -2107,7 +2534,7 @@ function findartifact(awayteam as _monster) as short
                 dprint "He cant figure out what it is."
                 reward(4)=reward(4)+(rnd_range(1,3)+rnd_range(1,3))*1000
             endif
-            return (0)
+            return 0
 end function
 
 function artifact(c as short,awayteam as _monster) as short

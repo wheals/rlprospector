@@ -313,7 +313,7 @@ function configuration() as short
     res(2)="High"
     screenshot(1)
     do
-        text="Prospector 0.1.8 Configuration/ Autopickup :"& onoff(_autopickup)
+        text="Prospector "&__VERSION__ &" Configuration/ Autopickup :"& onoff(_autopickup)
         text=text &"/ Always chose best item :"& onoff(_chosebest)
         text=text &"/ Sound effects :"& warn(_sound)
         text=text &"/ Automatically chose diagonal:" & onoff(_diagonals)
@@ -590,6 +590,15 @@ function savegame() as short
         print ".";
     next
     
+    for a=1 to 4
+        put #f,,companystats(a)
+    next
+    
+    put #f,,lastshare
+    for a=0 to lastshare
+        put #f,,shares(a)
+    next
+    
     for a=0 to 20
         for b=0 to 20
             put #f,,shopitem(a,b)
@@ -638,6 +647,7 @@ function savegame() as short
     next
     print ".";
     
+    put #f,,uid
     put #f,,lastitem
     for a=0 to lastitem
         put #f,,item(a)
@@ -726,7 +736,17 @@ function loadgame(filename as string) as short
         for a=0 to 3
             get #f,,basis(a)
             print ".";
-        next    
+        next
+        
+        
+        for a=1 to 4
+            get #f,,companystats(a)
+        next
+        
+        get #f,,lastshare
+        for a=0 to lastshare
+            Get #f,,shares(a)
+        next
                     
         for a=0 to 20
             for b=0 to 20
@@ -774,6 +794,8 @@ function loadgame(filename as string) as short
             get #f,,specialflag(a)
             print ".";
         next
+        
+        get #f,,uid
         get #f,,lastitem
         for a=0 to lastitem
             get #f,,item(a)

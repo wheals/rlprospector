@@ -232,7 +232,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     if defender.c.x=0 or defender.c.y=0 or defender.c.x=60 or defender.c.y=20 then f=-1
     if f<>0 and defender.hull>0 then
         dprint key_fi &" to fire weapons, ESC to skip fire, "&key_dr &" to drop mines, "&key_ru & " to run and flee."
-        key=keyin(key_fi &key_sh &key_ru &key_dr)
+        do
+            key=keyin(key_fi &key_sh &key_ru &key_dr)
+        loop until key=key_fi or key=key_sh or key=key_ru or key=key_dr
         if key=key_dr then
             com_dropmine(defender,mines_p(),mines_v(),mines_last)
         endif
@@ -248,6 +250,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 dprint "Target destroyed",,10
                                 reward(3)=reward(3)+attacker(t).money
                                 defender.piratekills=defender.piratekills+attacker(t).money
+                                attacker(t)=unload_s(attacker(t),10)
                                 lastenemy=com_remove(attacker(),t,lastenemy)
                                 t=0
                                 no_key=keyin
@@ -521,7 +524,7 @@ end function
 function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
     
     dim targetno as short
-    dim as short a,d
+    dim as short a,d,ex
     dim as short senbat,senbat1,senbat2
     dim as string key,text,id
     dim list_c(128) as cords
@@ -574,13 +577,15 @@ function com_gettarget(defender as _ship, wn as short, attacker() as _ship,laste
             key=keyin("+-"&key_esc &key_enter,,1)
             if keyplus(key) then d=1
             if keyminus(key) then d=-1
+            ex=0
             do
                 marked=marked+d
                 if marked<1 then marked=last
                 if marked>last then marked=1
-            loop until list_e(marked)<>0 and distance(defender.c,list_c(marked))<senbat*senac
+                ex+=1
+            loop until (list_e(marked)<>0 and distance(defender.c,list_c(marked))<senbat*senac) or ex>last
             if key=key_enter then targetno=marked
-            if key=key_esc then targetno=-1
+            if key=key_esc or ex>last then targetno=-1
             
         endif
         
@@ -809,6 +814,7 @@ function com_detonatemine(d as short,mines_p() as cords, mines_v() as short, byr
             attacker(a)=com_damship(attacker(a),dam-2*distance(mines_p(d),attacker(a).c),10)
             if attacker(a).hull<=0 then
                 dprint attacker(a).desig &" destroyed",,10
+                attacker(a)=unload_s(attacker(a),10)
                 reward(3)=reward(3)+attacker(a).money
                 defender.piratekills=defender.piratekills+attacker(a).money
                 lastenemy=com_remove(attacker(),a,lastenemy)
@@ -944,7 +950,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
             endif
             dprint "Crew quaters hit! "& b &" casualties!",12,12
             removemember(b,0)
-            player.deadredshirts=player.deadredshirts+1
+            player.deadredshirts=player.deadredshirts+b
         endif 
 
         if a=8 then
@@ -953,18 +959,22 @@ function com_criticalhit(t as _ship, roll as short) as _ship
             if rnd_range(1,6)+rnd_range(1,6)>7 then
                 b=rnd_range(1,4)
                 if b=1 and t.pilot>0 then 
+                    crew(2).hp=0
                     t.pilot=captainskill
                     text="Pilot "
                 endif
-                if b=2 and t.gunner>0 then 
+                if b=2 and t.gunner>0 then
+                    crew(3).hp=0
                     t.gunner=captainskill
                     text="Gunner "
                 endif
-                if b=3 and t.science>0 then 
+                if b=3 and t.science>0 then
+                    crew(4).hp=0
                     t.science=captainskill
                     text="Science Officer "
                 endif
                 if b=4 and t.Doctor>0 then 
+                    crew(5).hp=0
                     t.doctor=captainskill
                     text="Doctor "
                 endif

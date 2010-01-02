@@ -86,6 +86,7 @@ sub postmortem
     descr(35)="A world of peaceful cephalopods"
     descr(36)="A tribe of small green men in trouble"
     descr(37)="An invisible labyrinth"
+    descr(39)="A very fertile world plagued by burrowing monsters"
     st=player.h_desig
     
     cls
@@ -176,17 +177,13 @@ sub postmortem
         if player.pirate_agr<=0 and player.merchant_agr>50 then print "Made a name as a bloodthirsty pirate"
     endif
     
-    for a=0 to 30
-        for b=1 to 9
-            if map(a).planets(b)>0 then tp=tp+1
-        next
-    next
     
     for a=0 to laststar
         if map(a).discovered>0 then
             exps=exps+1
             for b=1 to 9
                 if map(a).planets(b)>0 then
+                    tp+=1
                     if planetmap(0,0,map(a).planets(b))<>0 then expp=expp+1
                     for xx=0 to 60
                         for yy=0 to 20
@@ -199,7 +196,9 @@ sub postmortem
         endif
     next
     for c=0 to lastspecial
-        if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
+        if specialplanet(c)>0 then
+            if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
+        endif
     next
     locate 8,3
     print "Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (";

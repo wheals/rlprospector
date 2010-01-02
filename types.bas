@@ -2,11 +2,11 @@
 ' debugging flags 0=off 1 =on
 '
 Const Show_NPCs=0 'shows pirates and mercs
-Const Show_specials=0 'special planets already discovered
+Const Show_specials=41 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0 'outputs statistics to txt files
-Const show_all=0
+Const show_all=1
 const show_items=0 'shows entire maps
 const alien_scanner=0'player has alien scanner
 Const show_critters=0 
@@ -22,7 +22,7 @@ const show_eq=0 'Show earthquakes
 const lstcomit=56
 const lstcomty=20 'Last common item
 const laststar=90
-const lastspecial=38
+const lastspecial=43
 const _debug=0
 const xk=chr(255) 
 const key_up = xk + "H"
@@ -86,7 +86,7 @@ dim shared as string*1 key_save="s"
 dim shared as string*1 key_quit="q"
 dim shared as string*1 key_D="D"
 dim shared as string*1 key_G="G"
-dim shared as string*1 key_R="R"
+dim shared as string*1 key_report="R"
 dim shared as string*1 key_rename="r"
 dim shared as string*1 key_dock="d"
 dim shared as string*1 key_comment="c"
@@ -125,6 +125,7 @@ dim shared as string*1 key_portal="<"
 dim shared as string*1 key_logbook="L"
 dim shared as string*1 key_yes="y"
 dim shared as string*1 no_key
+dim shared uid as uinteger
 using FB
 randomize timer
 
@@ -139,6 +140,15 @@ type gamecords
     m as short
     x as short
     y as short
+end type
+
+type _driftingship
+    s as short '
+    p as short '
+    m as short
+    x as short
+    y as short
+    start as cords
 end type
 
 type _rect
@@ -170,6 +180,7 @@ end type
 
 type _items
     id as short 
+    uid as uinteger
     w as gamecords
     icon as string*1
     col as short
@@ -275,7 +286,8 @@ type _ship
 end type
 
 type _monster
-    made as short
+    made as ubyte
+    slot as byte
     hpmax as single
     hp as single
     hpreg as single
@@ -293,7 +305,6 @@ type _monster
     light as ubyte 'Lightsource
     dark as ubyte
     sight as single
-    sens as ubyte 'Portalble sensors
     biomod as single
     diet as byte
     intel as short
@@ -304,7 +315,7 @@ type _monster
     ldesc as string*512
     dhurt as string*16
     dkill as string*16
-    swhat as string*16
+    swhat as string*64
     scol as ubyte
     invis as byte
     aggr as byte
@@ -324,14 +335,19 @@ type _monster
     pumod as byte 'Pick up mod
     oxymax as single
     oxygen as single
+    oxydep as single
+    helmet as byte
     sleeping as single
-    jpfuel as byte
-    jpfuelmax as byte
+    jpfuel as single
+    jpfuelmax as single
+    jpfueluse as single
     c as cords
     target as cords
     hasoxy as byte
     atcost as single
     stuff(16) as single
+    items(8) as byte
+    itemch(8) as byte
 end type
 
 type _stars
@@ -340,6 +356,7 @@ type _stars
     discovered as byte
     planets(1 to 9) as short
     desig as string*12
+    comment as string*60
 end type
 
 type _planet
@@ -353,17 +370,22 @@ type _planet
     grav as single
     temp as single
     life as short
+    minerals as short
     weat as single
     depth as single
     death as short
     genozide as byte
     teleport as byte
-    mon as byte
-    mon2 as byte 'Powerfull critter
-    mon3 as byte 'always 1
-    noamin as byte
-    noamax as byte
     plantsfound as short
+    pla_template(16) as byte
+    mon_template(16) as _monster
+    mon_noamin(16) as byte
+    mon_noamax(16) as byte
+    mon_killed(16) as byte
+    mon_caught(16) as byte
+    mon_seen(16) as byte
+    colony as byte
+    colonystats(14) as byte
     vault as _rect
     discovered as short
     visited as integer
@@ -372,6 +394,7 @@ type _planet
     rot as single
     flags(32) as byte
     flavortext as string*512
+    comment as string*60
 end type
 
 type _ae
@@ -418,6 +441,7 @@ type _station
     inv(5) as _goods
     'different companys for each station
     repname as string*32
+    company as byte
     spy as byte
     mapmod as single
     biomod as single
@@ -519,10 +543,27 @@ type _crewmember
     blad as single
     tohi as single
     armo as single
+    pref_ccweap as uinteger
+    pref_lrweap as uinteger
+    pref_armor as uinteger
     talents(26) as byte
+    augment(9) as byte
     xp as short
     morale as short
 end type
+
+type _share
+    company as byte
+    bought as uinteger
+    lastpayed as uinteger
+end type
+
+type _company
+    profit as integer
+    capital as integer
+    rate as integer
+end type
+
 
 '
 '
@@ -536,6 +577,9 @@ end type
 '6 Pirate base
 '7 mapsincredits
 '8 Pirate outpost
+
+dim shared __VERSION__ as string
+__VERSION__="0.1.9"
 
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
@@ -561,6 +605,10 @@ dim shared stationroll as short
 dim shared player as _ship
 dim shared map(laststar+wormhole) as _stars
 dim shared basis(10) as _station
+dim shared companystats(4) as _company
+dim shared companyname(4) as string
+dim shared shares(2047) as _share
+dim shared lastshare as short
 dim shared spacemap(sm_x,sm_y) as short
 dim shared combatmap(60,20) as byte
 dim shared planetmap(60,20,2047) as short
@@ -572,7 +620,7 @@ dim shared item(25000) as _items
 dim shared shopitem(20,21) as _items
 dim shared lastitem as integer
 
-dim shared tiles(255) as _tile
+dim shared tiles(512) as _tile
 dim shared gtiles(512) as any ptr
 dim shared scr as any ptr
 
@@ -594,7 +642,7 @@ next
 dim shared patrolmod as short
 dim shared fleet(255) as _fleet
 dim shared targetlist(9) as cords
-dim shared drifting(128) as gamecords
+dim shared drifting(128) as _driftingship
 dim shared crew(128) as _crewmember
 dim shared shiptypes(19) as string
 dim shared disease(17) as _disease
@@ -658,7 +706,7 @@ declare function loadmap(m as short,slot as short) as short
 
 ' prosIO.bas
 declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
-declare function showteam(from as short) as short
+declare function showteam(from as short, r as short=0) as short
 declare function gainxp(slot as short) as short
 declare function gaintalent(slot as short) as string
 declare function addtalent(cr as short, ta as short, value as single) as single
@@ -741,6 +789,7 @@ declare function chr850(c as short) as string
 declare function keyin(allowed as string ="", byref walking as short=0,blocked as short=0)as string
 declare function screenshot(a as short) as short
 declare function logbook() as short
+declare function bioreport(slot as short) as short
 declare function messages() as short
 declare function storescreen(as short) as short
 declare function alienname(flag as short) as string
@@ -757,6 +806,9 @@ declare function earthquake(t as _tile,dam as short)as _tile
 declare sub makeclouds()
 declare sub makefinalmap(m as short)
 declare sub makecomplex(byref enter as gamecords, down as short)
+declare sub makecomplex2(slot as short,gc1 as gamecords, gc2 as gamecords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
+declare sub makecomplex3(slot as short,cn as short, rc as short,collums as short,t as short)
+declare sub makecomplex4(slot as short,rn as short,tileset as short)
 declare sub makeplatform(slot as short,platforms as short,rooms as short,translate as short, adddoors as short=0)
 declare sub makelabyrinth(slot as short)
 declare sub invisiblelabyrinth(tmap() as _tile,xoff as short ,yoff as short, _x as short=10, _y as short=10)
@@ -765,7 +817,7 @@ declare sub makeplanetmap(a as short,orbit as short, spect as short)
 declare sub makecavemap(enter as gamecords,tumod as short,dimod as short, spemap as short, froti as short)
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
 declare sub makespecialplanet(a as short)
-declare sub makedrifter(d as gamecords,bg as short=0)
+declare sub makedrifter(d as _driftingship,bg as short=0)
 declare sub makeice(a as short, o as short)
 declare sub makecanyons(a as short, o as short)
 declare sub makecraters(a as short, o as short)
@@ -784,12 +836,17 @@ declare function findsmartest(start as short, iq as short, enemy() as _monster, 
 declare function makeroad(byval s as cords,byval e as cords, a as short) as short
 declare function addportal(from as gamecords, dest as gamecords, twoway as short, tile as short,desig as string, col as short) as short
 declare function deleteportal(f as short=0, d as short=0) as short
+declare function checkvalid(x as short,y as short, map() as short) as short
+declare function floodfill3(x as short,y as short,map() as short) as short
+declare function checkdoor(x as short,y as short, map() as short) as short
+declare function checkbord(x as short,y as short, map() as short) as short
 
 
 'pirates
 declare function makeweapon(a as short) as _weap
 declare function makeship(a as short) as _ship
-declare function makemonster(a as short, awayteam as _monster, map as short, spawnmask() as cords,lsp as short,x as short=0,y as short=0, mslot as short=0) as _monster    
+declare function makemonster(a as short, map as short) as _monster
+'awayteam as _monster, map as short, spawnmask() as cords,lsp as short,x as short=0,y as short=0, mslot as short=0) as _monster    
 declare function makecorp(a as short) as _station
 
 'highscore
@@ -799,6 +856,17 @@ declare function score() as integer
 declare function getdeath() as string
 
 'cargotrade
+declare function pirateupgrade() as short
+declare function findcompany(c as short) as short
+declare function drawroulettetable() as short
+declare function towingmodules() as short
+declare function getshares(company as short) as short
+declare function sellshares(company as short,n as short) as short
+declare function buyshares(company as short,n as short) as short
+declare function cropstock() as short
+declare function portfolio(x as short,y as short) as short
+declare function dividend() as short
+declare function getsharetype() as short
 declare function rerollshops() as short
 declare function hiring(st as short, byref hiringpool as short, hp as short) as short
 declare function shipupgrades() as short
@@ -819,6 +887,7 @@ declare sub trading(st as short)
 declare sub buygoods(st as short)
 declare sub sellgoods(st as short)
 declare sub recalcshipsbays()
+declare function stockmarket(st as short) as short
 declare function displaywares(st as short) as short
 declare function changeprices(st as short,etime as short) as short
 declare function getfreecargo() as short
@@ -836,7 +905,7 @@ declare function removeequip() as short
 declare function findbest(t as short,p as short=0, m as short=0) as short
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
-declare function getitem(fr as short=-1) as short
+declare function getitem(fr as short=999,ty as short=999) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
 declare function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
 declare function changetile(x as short,y as short,m as short,t as short) as short
@@ -847,6 +916,7 @@ declare function rnd_item(t as short) as _items
 declare function getrnditem(fr as short,ty as short) as short
 
 'math
+declare function nearestbase(c as cords) as short
 declare function sub0(a as single,b as single) as single
 declare function disnbase(c as cords) as single
 declare function dispbase(c as cords) as single
@@ -878,4 +948,5 @@ declare function getunusedplanet() as short
 declare function dirdesc(start as cords,goal as cords) as string
 declare function rndsentence(aggr as short, intel as short) as string
 declare function showquests() as short
+declare function planetbounty() as short
 

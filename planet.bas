@@ -1,3 +1,13 @@
+function deletemonsters(a as short) as short
+    dim b as short
+    dim m as _monster
+    for b=0 to 16
+        planets(a).mon_template(b)=m
+        planets(a).mon_noamin(b)=0
+        planets(a).mon_noamax(b)=0
+    next
+    return 0
+end function
 
 
 
@@ -46,9 +56,20 @@ sub makeclouds()
                 if abs(spacemap(x,y))>2 then count+=1
             next
         next
-        attempt=attempt+.1
+        attempt=attempt+.01
+        if attempt>0.1 then attempt=0.1
         flood_fill(35,20,spacemap(),1)
-    loop until spacemap(10,30)=11 and spacemap(60,10)=11 and spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)=11
+    loop until spacemap(10,30)=11 and spacemap(60,10)=11 
+    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
+        p1=map(piratebase(0)).c
+        do
+            spacemap(p1.x,p1.y)=11
+            p1=movepoint(p1,5)
+            color 15,0
+            print ".";
+        loop until spacemap(p1.x,p1.y)=11
+        
+    endif
     
     for x=0 to sm_x
         for y=0 to sm_y
@@ -106,9 +127,9 @@ sub makefinalmap(m as short)
         next
     next
     
-     planets(m).mon=19
-     planets(m).noamax=28
-     planets(m).noamin=22
+     planets(m).mon_template(0)=makemonster(19,m)
+     planets(m).Mon_noamax(0)=28
+     planets(m).mon_noamin(0)=22
      planets(m).grav=0.5
      planets(m).atmos=3
 end sub
@@ -318,12 +339,21 @@ sub makeplatform(slot as short,platforms as short,rooms as short, translate as s
                 if map(x,y)=5 then planetmap(x,y,slot)=-156 
                             
             endif
+            
+            if translate=4 then
+                if map(x,y)=0 then planetmap(x,y,slot)=-rnd_range(175,177) 'gasclouds
+                if map(x,y)=1 then planetmap(x,y,slot)=-68 'platform
+                if map(x,y)=2 then planetmap(x,y,slot)=-80 'Corridor
+                if map(x,y)=3 then planetmap(x,y,slot)=-80 'internal of room
+                if map(x,y)=4 then planetmap(x,y,slot)=-52 'wall
+                if map(x,y)=5 then planetmap(x,y,slot)=-156 'door
+            endif
+            
         next
     next
 
 
 end sub
-
 
 sub makecomplex(byref enter as gamecords, down as short)
     
@@ -339,6 +369,7 @@ sub makecomplex(byref enter as gamecords, down as short)
     dim  as integer counter,bigc
     slot=enter.m
 
+    if show_all=1 then dprint "Made complex at "&slot
     if planets(slot).depth=0 then planets(slot).depth=1
     planets(slot).darkness=5
     planets(slot).vault=r(0)
@@ -347,9 +378,9 @@ sub makecomplex(byref enter as gamecords, down as short)
     planets(slot).temp=25
     planets(slot).atmos=3    
     planets(slot).grav=.8
-    planets(slot).mon=9
-    planets(slot).noamin=16
-    planets(slot).noamax=26+planets(slot).depth
+    planets(slot).mon_template(0)=makemonster(9,slot)
+    planets(slot).mon_noamin(0)=16
+    planets(slot).mon_noamax(0)=26+planets(slot).depth
 do   
     last=0
     for a=0 to 255
@@ -477,6 +508,7 @@ do
     loop until c=0
     for x=0 to 60
         for y=0 to 20
+            planetmap(x,y,slot)=-52
             if map2(x,y)=1 then planetmap(x,y,slot)=-52 'Wall
             if map2(x,y)=11 then planetmap(x,y,slot)=-80 'Floor
             if map2(x,y)=13 then planetmap(x,y,slot)=-80 'Wall
@@ -554,6 +586,855 @@ do
         planets(slot).vault.wd(5)=1
     endif
     planetmap(enter.x,enter.y,enter.m)=-80
+end sub
+
+sub makecomplex2(slot as short,gc1 as gamecords, gc2 as gamecords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
+
+dim as short map(60,20)
+dim as short map2(60,20)
+dim as short map3(60,20)
+dim as short x,y,c,a,ff,x1,y1,xx,yy,coll
+dim as short rw1,rh1 ,rn1 ,rmw1 ,rmh1 ,rw2 ,rh2,rn2 ,rmw2 ,rmh2 
+dim valid(1300) as cords
+dim lastvalid as short
+dim valneigh(4) as cords
+dim lastneig as short
+dim collision as short
+dim as short w,h
+
+rmw1=gc1.x
+rmh1=gc1.y
+rw1=gc1.p
+rh1=gc1.s
+rn1=gc1.m
+
+rmw2=gc2.x
+rmh2=gc2.y
+rw2=gc2.p
+rh2=gc2.s
+rn2=gc2.m
+
+for x=0 to 60
+    for y=0 to 20
+        map(x,y)=1
+    next
+next
+
+for x=1 to 59 step 2
+    for y=1 to 19 step 2
+        map(x,y)=0
+    next
+next
+
+if rn1>0 then
+    a=0
+    do
+        w=rnd_range(rmw1,rw1)
+        h=rnd_range(rmh1,rh1)
+        valid(c).x=rnd_range(1,59-w)
+        valid(c).y=rnd_range(1,19-h)
+        if nocol1=1 then
+            do
+                w=rnd_range(rmw1,rw1)
+                h=rnd_range(rmh1,rh1)
+                valid(c).x=rnd_range(1,59-w)
+                valid(c).y=rnd_range(1,19-h)
+                collision=0
+                for x=valid(c).x-1 to valid(c).x+w+1
+                    for y=valid(c).y-1 to valid(c).y+h+1
+                        if map2(x,y)=1 then 
+                            collision=1
+                        endif
+                    next
+                next
+                if collision=0 then
+                    for x=valid(c).x to valid(c).x+w
+                        for y=valid(c).y to valid(c).y+h
+                            map2(x,y)=1
+                        next
+                    next    
+                endif
+            loop until collision=0
+        else
+            collision=0
+        endif
+            
+        if collision=0 then
+            for x=valid(c).x to valid(c).x+w
+                for y=valid(c).y to valid(c).y+h
+                    if x=valid(c).x or y=valid(c).y or x=valid(c).x+w or y=valid(c).y+h then
+                        map(x,y)=1
+                    else
+                        if map(x,y)=1 then map(x,y)=0
+                    endif
+            
+
+                next
+            next    
+            
+            if rnd_range(1,100)<roundedcorners1  and h>4 and w>4 then
+                map(valid(c).x+1,valid(c).y+1)=1
+                map(valid(c).x+w-1,valid(c).y+1)=1
+                map(valid(c).x+w-1,valid(c).y+h-1)=1
+                map(valid(c).x+1,valid(c).y+h-1)=1
+            endif
+            a+=1
+        endif
+    loop until a>=rn1
+endif
+
+if rn2>0 then
+    a=0
+    do
+        w=rnd_range(rmw2,rw2)
+        h=rnd_range(rmh2,rh2)
+        valid(c).x=rnd_range(1,59-w)
+        valid(c).y=rnd_range(1,19-h)
+        if nocol2=1 then
+            collision=0
+            for x=valid(c).x-1 to valid(c).x+w+1
+                for y=valid(c).y-1 to valid(c).y+h+1
+                    if map2(x,y)=1 then 
+                        collision=1
+                    endif
+                next
+            next
+            if collision=0 then
+                for x=valid(c).x to valid(c).x+w
+                    for y=valid(c).y to valid(c).y+h
+                        map2(x,y)=1
+                    next
+                next    
+            endif
+        else
+            collision=0
+        endif
+            
+        if collision=0 then
+            for x=valid(c).x to valid(c).x+w
+                for y=valid(c).y to valid(c).y+h
+                    if x=valid(c).x or y=valid(c).y or x=valid(c).x+w or y=valid(c).y+h then
+                        map(x,y)=1
+                    else
+                        if map(x,y)=1 then map(x,y)=0
+                    endif
+            
+
+                next
+            next    
+            
+            if rnd_range(1,100)<roundedcorners2  and h>4 and w>4 then
+                map(valid(c).x+1,valid(c).y+1)=1
+                map(valid(c).x+w-1,valid(c).y+1)=1
+                map(valid(c).x+w-1,valid(c).y+h-1)=1
+                map(valid(c).x+1,valid(c).y+h-1)=1
+            endif
+            a+=1
+        endif
+    loop until a>=rn2
+endif
+
+do
+    lastvalid=0
+    for x=1 to 59
+        for y=1 to 19
+            if checkvalid(x,y,map()) then
+                lastvalid+=1
+                valid(lastvalid).x=x
+                valid(lastvalid).y=y
+            endif
+        next
+    next
+    if lastvalid>=1 then
+        c=rnd_range(1,lastvalid)
+        x=valid(c).x
+        y=valid(c).y
+        lastneig=0
+        if checkvalid(x-2,y,map()) then
+            lastneig+=1
+            valneigh(lastneig).x=x-2
+            valneigh(lastneig).y=y
+        endif
+        
+        if checkvalid(x+2,y,map()) then
+            lastneig+=1
+            valneigh(lastneig).x=x+2
+            valneigh(lastneig).y=y
+        endif
+        
+        if checkvalid(x,y+2,map()) then
+            lastneig+=1
+            valneigh(lastneig).x=x
+            valneigh(lastneig).y=y+2
+        endif
+        
+        if checkvalid(x,y-2,map()) then
+            lastneig+=1
+            valneigh(lastneig).x=x
+            valneigh(lastneig).y=y-2
+        endif
+        
+        if lastneig>0 then
+            c=rnd_range(1,lastneig)
+            if valneigh(c).x>x then map(x+1,y)=0
+            if valneigh(c).x<x then map(x-1,y)=0
+            if valneigh(c).y>y then map(x,y+1)=0
+            if valneigh(c).y<y then map(x,y-1)=0
+        else
+            'print "No valid neighbour"
+        endif
+
+    endif
+    
+loop until lastvalid=0 or lastneig=0
+    
+do
+    ff=1
+    
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=-1 then map(x,y)=0
+            'if map(x,y)=-2 then map(x,y)=2
+            
+        next
+    next
+
+    floodfill3(1,1,map())
+    
+    
+    
+    lastvalid=0
+    for x=1 to 59 
+        for y=1 to 19 
+            if checkdoor(x,y,map()) then
+                lastvalid+=1
+                valid(lastvalid).x=x
+                valid(lastvalid).y=y
+                
+            endif
+        next
+    next
+    
+
+    
+    
+    
+    if lastvalid>0 then
+        c=rnd_range(1,lastvalid)
+        if rnd_range(1,100)<doorchance then
+            map(valid(c).x,valid(c).y)=2
+        else
+            map(valid(c).x,valid(c).y)=0
+        endif
+    endif
+
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=0 then ff=0
+        next
+    next
+    
+loop until ff=1 or lastvalid=0
+
+for x=0 to 60
+    for y=0 to 20
+        if map(x,y)=-1 then map(x,y)=0
+        if map(x,y)=-2 then map(x,y)=2
+    next
+next
+
+if culdesacruns>0 then
+for a=0 to culdesacruns
+    for x=0 to 60
+        for y=0 to 20
+            map2(x,y)=map(x,y)
+        next
+    next
+    for x=1 to 59
+        for y=1 to 19
+            ff=0
+            for x1=x-1 to x+1
+                for y1=y-1 to y+1
+                    if map(x1,y1)=1 then ff=ff+1
+                next
+            next
+            if map(x,y)=1 or map(x,y)=0 then
+                if map(x-1,y)<>2 and map(x+1,y)<>2 and map(x,y-1)<>2 and map(x,y+1)<>2 then
+                    if ff<3 and map(x,y)=1 then 
+                        map2(x,y)=0
+                        map3(x,y)=1
+                    endif
+                    if ff>=7 and map(x,y)=0 then 
+                        map2(x,y)=1
+                        map3(x,y)=1
+                    endif
+                    if map(x,y)=0 then
+                        if map(x-1,y-1)=1 and map(x-1,y)=1 and map(x-1,y+1)=1 and map(x,y-1)=1 and map(x,y+1)=1 then
+                            map2(x,y)=1
+                            map3(x,y)=1
+                        endif
+                        if map(x+1,y-1)=1 and map(x+1,y)=1 and map(x+1,y+1)=1 and map(x,y-1)=1 and map(x,y+1)=1 then
+                            map2(x,y)=1
+                            map3(x,y)=2
+                        endif
+                        if map(x+1,y-1)=1 and map(x,y-1)=1 and map(x-1,y-1)=1 and map(x-1,y)=1 and map(x+1,y)=1 then
+                            map2(x,y)=1
+                            map3(x,y)=3
+                        endif
+                        if map(x+1,y+1)=1 and map(x,y+1)=1 and map(x-1,y+1)=1 and map(x-1,y)=1 and map(x+1,y)=1 then
+                            map2(x,y)=1
+                            map3(x,y)=4
+                        endif
+                    endif
+                endif
+            endif
+        next
+            
+    next
+
+    for x=0 to 60
+        for y=0 to 20
+            map(x,y)=map2(x,y)
+        next
+    next
+next
+endif
+
+if nosmallrooms>0 then
+for a=0 to nosmallrooms
+
+    for x=0 to 60
+        for y=0 to 20
+            map2(x,y)=map(x,y)
+        next
+    next
+    for x=1 to 59
+        for y=1 to 19
+            ff=0
+            for x1=x-1 to x+1
+                for y1=y-1 to y+1
+                    if map(x1,y1)=1 then ff=ff+1
+                next
+            next
+            if ff=7 and nosmallrooms=1 then
+                if map(x-1,y)=2 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=1 then
+                    map2(x-1,y)=1
+                    map3(x-1,y)=2
+                    map2(x,y)=1
+                    map3(x,y)=2
+                endif
+                if map(x-1,y)=1 and map(x+1,y)=2 and map(x,y-1)=1 and map(x,y+1)=1 then
+                    map2(x+1,y)=1
+                    map3(x+1,y)=3
+                    map2(x,y)=1
+                    map3(x,y)=3
+                endif
+                if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=2 and map(x,y+1)=1 then
+                    map2(x,y-1)=1
+                    map3(x,y-1)=4
+                    map2(x,y)=1
+                    map3(x,y)=4
+                endif
+                if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=2 then
+                    map2(x,y+1)=1
+                    map3(x,y+1)=5
+                    map2(x,y)=1
+                    map3(x,y)=5
+                endif
+            endif
+        next
+    next
+
+    for x=0 to 60
+        for y=0 to 20
+            map(x,y)=map2(x,y)
+        next
+    next
+
+next
+endif
+
+
+for x=0 to 58
+    for y=0 to 18
+        if map(x+1,y+1)=1 then
+        'if rnd_range(1,100)<loopchance and map(x,y)=1 and map(x+1,y)=0 and map(x+2,y)=1 and map(x,y+1)=1 and map(x+1,y+1)=1 and map(x+2,y+1)=1 and map(x+2,y)=1 and map(x+2,y+1)=0 and map(x+3,y+2)=1 then map2(x+1,y+1)=0
+        'if rnd_range(1,100)<loopchance and map(x,y)=1 and map(x,y+1)=0 and map(x,y+2)=1 and map(x+1,y)=1 and map(x+1,y+1)=1 and map(x+1,y+2)=1 and map(x+2,y)=1 and map(x+2,y+1)=0 and map(x+2,y+2)=1 then map2(x+1,y+1)=0
+            if map(x+1,y)=1 and map(x+1,y+2)=1 and map(x,y+1)=0 and map(x+2,y+1)=0 then
+                if rnd_range(1,100)<loopdoor and adddoor=1 then map(x+1,y+1)=2 
+                if rnd_range(1,100)<loopchance and addloop=1 then map(x+1,y+1)=0
+            endif
+                
+            if map(x,y+1)=1 and map(x+2,y+1)=1 and map(x+1,y)=0 and map(x+1,y+2)=0 then
+                if rnd_range(1,100)<loopdoor and adddoor=1 then map(x+1,y+1)=2 
+                if rnd_range(1,100)<loopchance and addloop=1 then map(x+1,y+1)=0
+            endif
+            
+        endif
+    next
+    
+next
+
+x1=0
+y1=0
+for x=0 to 30
+    for y=0 to 10
+        if map(x,y)=0 and x1=0 and y1=0 then
+            x1=x
+            y1=y
+        endif
+    next
+next    
+
+floodfill3(x1,y1,map())
+    
+for x=0 to 60
+    for y=0 to 20
+        if map(x,y)=-1 then map(x,y)=0
+        if map(x,y)=-2 then map(x,y)=2
+    next
+next
+
+if t=1 then
+    for xx=0 to 60
+        for yy=0 to 20
+            if map(xx,yy)=1 then planetmap(xx,yy,slot)=-50
+            if map(xx,yy)=0 then planetmap(xx,yy,slot)=-202
+            if xx>1 and yy>1 and xx<60 and yy<20 and map(xx,yy)=0 then
+                coll=0
+                for x=xx-1 to xx+1
+                    for y=yy-1 to yy+1
+                        if map(x,y)<>0 then coll+=1
+                    next
+                next
+                if coll=0 and rnd_range(1,100)<60 then planetmap(xx,yy,slot)=-223
+                if coll=7 and rnd_range(1,100)<60 then planetmap(xx,yy,slot)=-221
+                if coll=4 and rnd_range(1,100)<60 then planetmap(xx,yy,slot)=-248
+            endif
+            if map(xx,yy)=3 then planetmap(xx,yy,slot)=-47
+            if map(xx,yy)=4 then planetmap(xx,yy,slot)=-156
+        next
+    next
+endif
+    
+
+end sub
+
+sub makecomplex3(slot as short,cn as short, rc as short,columns as short,tileset as short)
+
+dim map(60,20) as short
+dim filled as short
+dim as short x,y,h,w,coll,xx,yy,dx,dy,a,x1,x2,y1,y2,made,t
+dim as integer giveup,giveup2
+dim as single d
+dim route(128) as cords
+dim lastr as short
+
+rc=0
+columns=0
+coll=0
+x=rnd_range(20,40)
+y=rnd_range(8,16)
+h=rnd_range(3,4)
+w=rnd_range(3,5)
+if x+w>59 then x=59-w
+if y+h>19 then y=19-h
+for xx=x to x+w
+    for yy=y to y+h
+        map(xx,yy)=1
+    next
+next
+do
+    giveup=0
+    do
+        coll=0
+        x=rnd_range(1,59)
+        y=rnd_range(1,19)
+        h=rnd_range(2,6)
+        w=rnd_range(3,9)
+        if x+w>59 then x=59-w
+        if y+h>19 then y=19-h
+        for xx=x-4 to x+w+4
+            for yy=y-3 to y+h+3
+                if xx>0 and yy>0 and xx<60 and yy<20 then
+                    if map(xx,yy)<>0 then coll=1
+                endif
+            next
+        next
+        
+        giveup+=1
+    loop until coll=0 or giveup>100
+    for xx=0 to 60
+        for yy=0 to 20
+            if xx>=x and xx<=x+w and yy>=y and yy<=y+h and giveup<=100 then map(xx,yy)=2
+        next
+    next
+    if rnd_range(1,100)<rc and giveup<=100 and h>=3 and w>3 then
+        map(x,y)=0
+        map(x+w,y)=0
+        map(x+w,y+h)=0
+        map(x,y+h)=0
+    endif
+    
+        
+    
+    route(0).x=x+rnd_range(1,w-1)
+    route(0).y=y+rnd_range(1,h-1)
+    d=999999
+    for xx=0 to 60
+        for yy=0 to 20
+            if map(xx,yy)=1 then
+                route(1).x=xx
+                route(1).y=yy
+                if distance(route(0),route(1))<d then
+                    d=distance(route(0),route(1))
+                    route(2)=route(1)
+                endif
+            endif
+        next
+    next
+    
+    
+    if giveup<=100 then
+    do
+        dx=route(0).x-route(2).x
+        dy=route(0).y-route(2).y
+        if abs(dx)>=abs(dy) then
+            do
+                dx=route(0).x-route(2).x
+                map(route(0).x,route(0).y)=2
+                if dx>0 then route(0).x=route(0).x-1
+                if dx<0 then route(0).x=route(0).x+1
+            loop until dx=0 or map(route(0).x,route(0).y)<>0 
+        endif
+        if abs(dx)<abs(dy) then
+            do 
+                dy=route(0).y-route(2).y
+                map(route(0).x,route(0).y)=2
+                if dy>0 then route(0).y=route(0).y-1
+                if dy<0 then route(0).y=route(0).y+1
+            loop until dy=0 or map(route(0).x,route(0).y)<>0
+        endif
+    
+    loop until dx=0 and dy=0
+    
+    if rnd_range(1,100)<columns then
+        if h>=5 and w>h and frac(w/2)=0 then
+            for xx=x+1 to x+w-1 step 2
+                map(xx,y+1)=3
+                map(xx,y+h-1)=3
+            next
+        endif
+        if w>=5 and h>w and frac(h/2)=0 then 
+            for yy=y+1 to y+h-1 step 2
+                map(x+1,yy)=3
+                map(x+w-1,yy)=3
+            next
+        endif
+    endif
+    endif
+    
+    filled=0
+    for xx=0 to 60
+        for yy=0 to 20
+            if map(xx,yy)=2 then map(xx,yy)=1
+            if map(xx,yy)=1 then filled=filled+1
+        next
+    next
+
+    giveup2+=1
+loop until filled>750 or giveup2>500
+
+
+made=0
+do
+    do
+        y=rnd_range(1,19)
+        x=rnd_range(1,59)
+        coll=0
+        for xx=x-1 to x+1
+            for yy=y-2 to y+2
+                if xx>=0 and yy>=0 and xx<=60 and yy<=20 then
+                if map(xx,yy)<>0 then coll=1
+                endif
+            next
+        next
+        
+    loop until coll=0
+    x1=0
+    x2=0
+    for xx=x to 59
+        if x1=0 and (map(xx,y)<>0 or map(xx,y+1)<>0 or map(xx,y-1)<>0) then x1=xx
+    next
+    for xx=x to 1 step -1
+        if x2=0 and (map(xx,y)<>0 or map(xx,y+1)<>0 or map(xx,y-1)<>0) then x2=xx
+    next
+    
+    if x1>x2 then swap x1,x2
+    if x1>1 and x2<59 then
+        map(x1,y)=1
+        map(x2,y)=1
+        for x=x1 to x2
+            if map(x,y)=0 and map(x,y-1)=0 and map(x,y+1)=0 then map(x,y)=2
+        next
+        made=made+1
+    endif
+
+    do
+        y=rnd_range(1,19)
+        x=rnd_range(1,59)
+        coll=0
+        for xx=x-2 to x+2
+            for yy=y-1 to y+1
+                if xx>=0 and yy>=0 and xx<=60 and yy<=20 then
+                if map(xx,yy)<>0 then coll=1
+                endif
+            next
+        next
+        
+    loop until coll=0
+    y1=0
+    y2=0
+    for yy=y to 19
+        if y1=0 and (map(x,yy)<>0 or map(x+1,yy)<>0 or map(x-1,yy)<>0) then y1=yy
+    next
+    for yy=y to 1 step -1
+        if y2=0 and (map(x,yy)<>0 or map(x-1,yy)<>0 or map(x+1,yy)<>0) then y2=yy
+    next
+    
+    if y1>y2 then swap y1,y2
+    if y1>1 and y2<19 then
+        map(x,y1)=1
+        map(x,y2)=1
+        for y=y1 to y2
+            if map(x,y)=0 and map(x-1,y)=0 and map(x+1,y)=0 then map(x,y)=2
+        next
+        made=made+1
+    endif
+loop until made>=cn
+
+
+
+for xx=1 to 59
+    for yy=1 to 19
+        if map(xx,yy)=1 or map(xx,yy)=2 then
+            if map(xx-1,yy)=0 and map(xx+1,yy)=0 then
+                if map(xx,yy+1)=1 and (map(xx-1,yy+1)=1 or map(xx+1,yy+1)=1) then map(xx,yy)=4
+                if map(xx,yy-1)=1 and (map(xx-1,yy-1)=1 or map(xx+1,yy-1)=1) then map(xx,yy)=4
+            endif
+            if map(xx,yy+1)=0 and map(xx,yy-1)=0 then
+                if map(xx-1,yy)=1 and (map(xx-1,yy+1)=1 or map(xx-1,yy-1)=1) then map(xx,yy)=4
+                if map(xx+1,yy)=1 and (map(xx+1,yy+1)=1 or map(xx+1,yy-1)=1) then map(xx,yy)=4
+            endif
+            if map(xx,yy)=4 and (map(xx-1,yy)=4 or map(xx+1,yy)=4 or map(xx,yy-1)=4 or map(xx,yy+1)=4) then map(xx,yy)=1 
+        endif
+    next
+next
+
+if tileset=1 then
+    
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=0 then planetmap(x,y,slot)=-50
+            if map(x,y)=1 then planetmap(x,y,slot)=-202
+            if map(x,y)=2 then planetmap(x,y,slot)=-202
+            if map(x,y)=1 and rnd_range(1,100)<5+planets(slot).depth then planetmap(x,y,slot)=-248
+            if map(x,y)=1 and rnd_range(1,100)<10 then 
+                if map(x-1,y)=0 or map(x+1,y)=0 or map(x,y+1)=0 or map(x,y-1)=0 then planetmap(x,y,slot)=-221
+            endif
+            if map(x,y)=1 and rnd_range(1,100)<10 then 
+                if map(x-1,y)=0 or map(x+1,y)=0 or map(x,y+1)=0 or map(x,y-1)=0 then planetmap(x,y,slot)=-223
+            endif
+            if map(x,y)=4 then planetmap(x,y,slot)=-156
+            
+        next
+    next
+endif
+
+if tileset=2 then
+    a=215
+    planets(slot).flags(10)=rnd_range(4,6)
+    planets(slot).flags(11)=rnd_range(4,6)
+    planets(slot).flags(12)=rnd_range(4,6)
+    planets(slot).flags(13)=rnd_range(4,6)
+    planets(slot).flags(14)=rnd_range(4,6)
+    planets(slot).flags(15)=rnd_range(4,6)
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=0 then planetmap(x,y,slot)=-50
+            if map(x,y)=1 then planetmap(x,y,slot)=-202
+            if map(x,y)=2 then planetmap(x,y,slot)=-202
+            if map(x,y)=1 and rnd_range(1,100)<5+planets(slot).depth then planetmap(x,y,slot)=-248
+            if map(x,y)=1 and rnd_range(1,100)<10 then 
+                if map(x-1,y)=0 or map(x+1,y)=0 or map(x,y+1)=0 or map(x,y-1)=0 then planetmap(x,y,slot)=-221
+            endif
+            if map(x,y)=4 then planetmap(x,y,slot)=-156
+            if map(x,y)=1 then
+                if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=1 and a<=219 then 
+                    planetmap(x,y,slot)=-a
+                    a+=1
+                endif
+            endif
+                    
+        next
+    next
+endif
+
+end sub
+
+sub makecomplex4(slot as short,rn as short,tileset as short)
+        
+    dim as short map(60,20)
+    dim as short map2(60,20)
+    dim valid(1300) as cords
+    dim as short x,y,lastvalid,c,d,cc,h,w,xx,yy,coll,filled
+    dim center(25) as cords
+    for x=0 to 60
+        for y=0 to 20
+            map(x,y)=1
+        next
+    next
+    
+    for x=1 to 59 step 2
+        for y=1 to 19 step 2
+            map(x,y)=0
+        next
+    next
+    
+    do
+        lastvalid=0
+        cc=0
+        for x=1 to 59 step 2
+            for y=1 to 19 step 2
+                if checkbord(x,y,map())>0 then
+                    lastvalid+=1
+                    valid(lastvalid).x=x
+                    valid(lastvalid).y=y
+                    if checkbord(x,y,map())=5 then cc+=1
+                
+                endif
+            next
+        next
+        if lastvalid>0 then
+            c=rnd_range(1,lastvalid)
+            if checkbord(valid(c).x,valid(c).y,map())=5 then
+                d=rnd_range(1,4)
+            else
+                d=checkbord(valid(c).x,valid(c).y,map())
+            endif
+            if d=1 and valid(c).x+1<60 then 
+                if checkbord(valid(c).x+2,valid(c).y,map())=5 then map(valid(c).x+1,valid(c).y)=0
+            endif
+            if d=2 and valid(c).x-1>0 then 
+                if checkbord(valid(c).x-2,valid(c).y,map())=5 then map(valid(c).x-1,valid(c).y)=0
+            endif
+            if d=3 and valid(c).y+1<20 then 
+                if checkbord(valid(c).x,valid(c).y+2,map())=5 then map(valid(c).x,valid(c).y+1)=0
+            endif
+            if d=4 and valid(c).y-1>0 then 
+                if checkbord(valid(c).x,valid(c).y-2,map())=5 then map(valid(c).x,valid(c).y-1)=0
+            endif
+        endif
+    loop until lastvalid<=200 or cc<=5
+    
+    for x=1 to 59 step 2
+        for y=1 to 19 step 2
+            if checkbord(x,y,map())=5 then map(x,y)=1
+        next
+    next
+    
+    if rn>0 then
+        for c=0 to rn
+            do
+                x=rnd_range(1,28)*2
+                y=rnd_range(1,8)*2
+                h=rnd_range(2,3)*2
+                w=rnd_range(1,4)*2
+                if x+w>60 then x=58-w
+                if y+h>20 then y=18-h
+                if x<0 then x=0
+                if y<0 then y=0
+                coll=0
+                for xx=x to x+w
+                    for yy=y to y+w
+                        if xx>=0 and yy>=0 and xx<=60 and yy<=20 then
+                            if map2(xx,yy)=1 then coll=1
+                        endif
+                    next
+                next
+            loop until coll=0
+            for xx=x to x+w
+                for yy=y to y+h
+                    if xx>=0 and yy>=0 and xx<=60 and yy<=20 then
+                    if xx=x or yy=y or xx=x+w or yy=y+h then 
+                        map(xx,yy)=1
+                    else
+                        map(xx,yy)=0
+                    endif
+                    map2(xx,yy)=1
+                    endif
+                next
+            next
+            center(c).x=x+w/2
+            center(c).y=y+w/2
+        next
+    endif
+    for x=1 to 59 step 2
+        for y=1 to 19 step 2
+            if checkbord(x,y,map())=5 then map(x,y)=1
+        next
+    next
+    
+    for c=0 to 5
+        do
+            x=rnd_range(1,59)
+            y=rnd_range(1,20)
+        loop until map(x,y)=0
+        center(c).x=x
+        center(c).y=y
+    next
+    c=0
+    do
+        filled=0
+        for x=0 to 60
+            for y=0 to 20
+                if map(x,y)=-2 then map(x,y)=2
+                if map(x,y)=-1 then filled+=1
+                if map(x,y)=-1 then map(x,y)=0
+            next
+        next
+        c+=1
+        if c>5 then c=0
+        floodfill3(center(c).x,center(c).y,map())
+        lastvalid=0
+        for x=1 to 59 
+            for y=1 to 19 
+                map2(x,y)=0
+                if checkdoor(x,y,map()) then
+                    lastvalid+=1
+                    valid(lastvalid).x=x
+                    valid(lastvalid).y=y
+                    map2(x,y)=1
+                endif
+            next
+        next
+        d=rnd_range(1,lastvalid)
+        map(valid(d).x,valid(d).y)=2
+        
+    loop until lastvalid=0 or filled>=1000
+    
+    if tileset=1 then
+        for x=0 to 60
+            for y=0 to 20
+                if map(x,y)=0 then planetmap(x,y,slot)=4
+                if map(x,y)=1 then planetmap(x,y,slot)=50
+                if map(x,y)=2 then planetmap(x,y,slot)=156
+                if map(x,y)=-2 then planetmap(x,y,slot)=156
+                if map(x,y)=-2 then planetmap(x,y,slot)=156
+            next
+        next
+        planetmap(0,0,slot)=50
+    endif
 end sub
 
 sub makelabyrinth(slot as short)
@@ -669,6 +1550,7 @@ end sub
 sub makeroots(slot as short)
     dim as cords p,p2
     dim as short a,b,c,x,y
+    if planets(slot).depth=0 then planets(slot).depth=1
     for x=0 to 60
         for y=0 to 20
             if x=0 or y=0 or x=60 or y=20 then
@@ -720,7 +1602,9 @@ sub makecavemap(enter as gamecords,tumod as short,dimod as short, spemap as shor
     dim gascloud as short
     gascloud=spacemap(player.c.x,player.c.y)
     slot=enter.m
-    
+    if show_all=1 then dprint "Made cave at "&slot
+        
+    if planets(slot).depth=0 then planets(slot).depth=1
     planets(slot).darkness=5
     planets(slot).vault=r
     
@@ -744,7 +1628,7 @@ sub makecavemap(enter as gamecords,tumod as short,dimod as short, spemap as shor
     next
     planetmap(enter.x,enter.y,slot)=0
     
-    if rnd_range(1,100)<45 and lastplanet<512 and spemap>0 then
+    if rnd_range(1,100)<45 or spemap>0 then
         lastportal=lastportal+1
         lastplanet=lastplanet+1
         a=lastportal
@@ -995,6 +1879,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
        dprint "ERROR: Attempting to make planet map at "&a,14,14
        return
     endif
+    
     planettype=rnd_range(1,100)
     o=orbit
     planets(a).orbit=o
@@ -1007,8 +1892,6 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if planets(a).atmos=1 then planets(a).atmos=2
     if planets(a).atmos>16 then planets(a).atmos=planets(a).atmos-9
     
-    planets(a).mon=1
-    planets(a).mon2=2
     if planets(a).atmos>16 then planets(a).atmos=16
     if planets(a).atmos<1 then planets(a).atmos=1
     planets(a).grav=(3+rnd_range(1,10)+rnd_range(1,8))/10
@@ -1025,7 +1908,8 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if spect<3 then gascloud=gascloud-1
     if spect>5 then gascloud=gascloud+1
     if spect>=7 then gascloud=gascloud+1
-    for b=0 to rnd_range(0,spect)+rnd_range(0,3)+gascloud+disnbase(player.c)\7
+    planets(a).minerals=rnd_range(0,spect)+rnd_range(0,3)+gascloud+disnbase(player.c)\7
+    for b=0 to planets(a).minerals
         if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\7+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),rnd_range(0,60),rnd_range(0,20),a)
     next b
     
@@ -1332,11 +2216,17 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         if rnd_range(1,100)<planets(a).grav then
             for b=1 to rnd_range(1,planets(a).grav*2)
                 p=rnd_point
-                planetmap(p1.x,p1.y,a)=-245
+                planetmap(p.x,p.y,a)=-245
             next
         endif
             
-        
+        if rnd_range(1,100)<3 then
+            p=rnd_point
+            do
+                planetmap(p.x,p.y,a)=-193
+                p=movepoint(p,5)
+            loop until rnd_range(1,100)<77
+        endif
         'radioactive crater   
         if rnd_range(1,200)<1+disnbase(player.c)/10 then
             p1=rnd_point
@@ -1427,6 +2317,21 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next
     endif
     
+    for b=0 to planets(a).life
+        if rnd_range(1,100)<(planets(a).life+1)*5 then 
+            planets(a).mon_template(b)=makemonster(1,a)
+            planets(a).mon_noamin(b)=rnd_range(1,planets(a).life)*planets(a).mon_template(b).diet
+            planets(a).mon_noamax(b)=rnd_range(1,planets(a).life)*2*planets(a).mon_template(b).diet
+            if planets(a).mon_noamin(b)>planets(a).mon_noamax(b) then swap planets(a).mon_noamin(b),planets(a).mon_noamax(b)
+        endif
+    next
+    
+    if rnd_range(1,100)<planets(a).life then
+        planets(a).mon_noamin(11)=1
+        planets(a).mon_noamax(11)=1
+        planets(a).mon_template(11)=makemonster(2,a)
+    endif
+    
     for b=1 to _NoPB
         if a=pirateplanet(b) then makeoutpost(a)
     next
@@ -1444,6 +2349,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         planets(a).darkness=5
         planets(a).orbit=9
         planets(a).temp=-270+rnd_range(1,10)/10
+        planets(a).rot=-1
     endif    
     if show_all=1 then
         for x=0 to 60
@@ -1656,8 +2562,8 @@ sub makeoceanworld(a as short,o as short)
             if planetmap(p1.x,p1.y+1,a)=-2 then planetmap(p1.x,p1.y+1,a)=-1
         endif    
     next
-    planets(a).mon=24
-    planets(a).mon2=10
+    planets(a).mon_template(0)=makemonster(24,a)
+    planets(a).mon_template(1)=makemonster(10,a)
     makeice(o,a)
 end sub
 
@@ -1822,7 +2728,7 @@ sub makecanyons(a as short, o as short)
 end sub
 
 sub makespecialplanet(a as short)
-    dim as short x,y,b,c,d,b1,b2,b3,cnt,wx,wy,ti
+    dim as short x,y,b,c,d,b1,b2,b3,cnt,wx,wy,ti,x1,y1
     dim as cords p,p1,p2,p3,p4,p5
     dim as cords pa(5)
     dim as _rect r
@@ -1840,6 +2746,7 @@ sub makespecialplanet(a as short)
     next
     
     if a=specialplanet(0) then 'Woodworld
+        deletemonsters(a)
         for x=0 to 60
             for y=0 to 20
                 if rnd_range(1,100)<77 then
@@ -1878,9 +2785,9 @@ sub makespecialplanet(a as short)
         portal(lastportal).discovered=show_portals
         
         makeroots(lastplanet)
-        planets(a).mon=4
-        planets(a).noamin=15
-        planets(a).noamax=25
+        planets(a).mon_template(0)=makemonster(4,a)
+        planets(a).mon_noamin(0)=15
+        planets(a).mon_noamax(0)=25
         planets(lastplanet)=planets(a)
         planets(lastplanet).depth=3
         planets(lastplanet).grav=0
@@ -1896,6 +2803,7 @@ sub makespecialplanet(a as short)
     endif
     
     if a=specialplanet(2) then 'Defense town
+        deletemonsters(a)
         for x=0 to 60
             for y=0 to 20
                 if rnd_range(1,100)<90 then
@@ -1952,9 +2860,6 @@ sub makespecialplanet(a as short)
             p1=rnd_point
             planetmap(p1.x,p1.y,a)=-127-rnd_range(1,10)
         next
-        planets(a).mon=0
-        planets(a).mon2=0
-        planets(a).life=0
         planets(a).atmos=6
         planets(lastplanet).atmos=6
         p1=rnd_point
@@ -1962,7 +2867,7 @@ sub makespecialplanet(a as short)
     endif
     
     if a=specialplanet(3) or a=specialplanet(4) then 'cityworld
-        
+        deletemonsters(a)
         planets(a).depth=5
         lastportal=lastportal+1
         portal(lastportal).desig="A building still in good condition. "
@@ -2062,13 +2967,23 @@ sub makespecialplanet(a as short)
             planetmap(rnd_range(0,60),rnd_range(0,20),a)=-17
         endif
         
-        planets(a).mon=8
-        planets(a).noamin=8
-        planets(a).noamax=15
+        planets(a).mon_template(0)=makemonster(8,a)
+        planets(a).mon_noamin(0)=4
+        planets(a).mon_noamax(0)=10
+        
+        
+        planets(a).mon_template(1)=makemonster(53,a)
+        planets(a).mon_noamin(1)=5
+        planets(a).mon_noamax(1)=10
+        
+        planets(a).mon_template(2)=makemonster(54,a)
+        planets(a).mon_noamin(2)=5
+        planets(a).mon_noamax(2)=10
     endif
     
     
-    if a=specialplanet(5) or a=specialplanet(12) then 'dune and sandworms
+    if a=specialplanet(5) or a=specialplanet(12) then 
+        deletemonsters(a)'dune and sandworms
         for x=0 to 60
             for y=0 to 20
                 if rnd_range(1,100)<66 then
@@ -2109,11 +3024,10 @@ sub makespecialplanet(a as short)
                 c=c+1
             loop until p1.x=0 or p1.y=0 or p1.x=60 or p1.y=60 or planetmap(p1.x,p1.y,a)=-8 or c>8
             planetmap(p2.x,p2.y,a)=-63
-        
-        
-            planets(a).mon=11
-            planets(a).noamax=15
-            planets(a).noamin=8
+    
+            planets(a).mon_template(0)=makemonster(11,a)
+            planets(a).mon_noamax(0)=15
+            planets(a).mon_noamin(0)=8
         endif
         if specialplanet(12)=a then 'dying world
             for b=0 to rnd_range(1,8)+rnd_range(1,5)+rnd_range(1,3)
@@ -2123,7 +3037,8 @@ sub makespecialplanet(a as short)
         endif
     endif
     
-    if specialplanet(6)=a then 'invisible critters +mine
+    if specialplanet(6)=a then'invisible critters +mine
+        deletemonsters(a)
         p1.x=rnd_range(0,50)
         p1.y=rnd_range(0,16)
         planetmap(p1.x,p1.y,a)=-76
@@ -2156,12 +3071,12 @@ sub makespecialplanet(a as short)
         portal(lastportal).dimod=-3
         lastplanet=lastplanet+1
         
-        planets(a).mon=13
-        planets(a).noamax=8
-        planets(a).noamin=15
-        planets(lastplanet).mon=13
-        planets(lastplanet).noamax=25
-        planets(lastplanet).noamin=10
+        planets(a).mon_template(0)=makemonster(13,a)
+        planets(a).mon_noamax(0)=8
+        planets(a).mon_noamin(0)=15
+        planets(lastplanet).mon_template(0)=makemonster(13,a)
+        planets(lastplanet).mon_noamax(0)=25
+        planets(lastplanet).mon_noamin(0)=10
         placeitem(makeitem(15),p1.x,p1.y+2,a,0,0)
         'placeitem(makeitem(97),rnd_range(0,60),rnd_range(0,20),lastplanet,0,0,0)
         placeitem(makeitem(98),rnd_range(0,60),rnd_range(0,20),lastplanet,0,0)
@@ -2174,12 +3089,12 @@ sub makespecialplanet(a as short)
     endif
     
     if specialplanet(8)=a then 'Pirate treasure on stormy world
-        planetmap(rnd_range(0,60),rnd_range(0,20),a)=-75
-        
+        planetmap(rnd_range(0,60),rnd_range(0,20),a)=-75        
     endif
     
     
     if a=specialplanet(9) then
+        deletemonsters(a)
         planets(a).water=25
         makeislands(a,3)
         planets(a).atmos=4
@@ -2221,6 +3136,7 @@ sub makespecialplanet(a as short)
     endif
     
     if specialplanet(10)=a or a=pirateplanet(0) then 'Settlement
+        deletemonsters(a)
         if a<>pirateplanet(0) then
             lastwaypoint=7
             targetlist(7)=map(sysfrommap(a)).c
@@ -2301,9 +3217,9 @@ sub makespecialplanet(a as short)
         else
             planetmap(x,y,a)=164
         endif
-        planets(a).mon=14
-        planets(a).noamin=8
-        planets(a).noamax=17
+        planets(a).mon_template(0)=makemonster(14,a)
+        planets(a).mon_noamin(0)=8
+        planets(a).mon_noamax(0)=17
             
         if a=pirateplanet(0) then 'add spaceport
             c=rnd_range(1,53)
@@ -2329,16 +3245,27 @@ sub makespecialplanet(a as short)
                     endif
                 next
             next
+            planetmap(p4.x,p4.y,a)=-259
             do
                 p=rnd_point(a,0)
             loop until tiles(abs(planetmap(p.x,p.y,a))).walktru>0 or abs(planetmap(p.x,p.y,a))<15
             planetmap(p.x,p.y,a)=-197
-            planets(a).mon=10
             planets(a).grav=.8+rnd_range(1,2)/2
             planets(a).atmos=5
             planets(a).temp=33+rnd_range(1,20)-10
-            planets(a).noamin=8
-            planets(a).noamax=15
+            
+            planets(a).mon_template(0)=makemonster(3,a)
+            planets(a).mon_noamin(0)=8
+            planets(a).mon_noamax(0)=15
+            
+            
+            planets(a).mon_template(1)=makemonster(49,a)
+            planets(a).mon_noamin(1)=6
+            planets(a).mon_noamax(1)=10
+            
+            planets(a).mon_template(2)=makemonster(50,a)
+            planets(a).mon_noamin(2)=3
+            planets(a).mon_noamax(2)=6
         endif
     
     
@@ -2413,6 +3340,7 @@ sub makespecialplanet(a as short)
     endif
     
     if specialplanet(14)=a then
+        deletemonsters(a)
         p2=rnd_point
         p3=rnd_point
         makeoutpost(a,p2.x,p2.y)
@@ -2435,13 +3363,13 @@ sub makespecialplanet(a as short)
         if p2.y<5 then p2.y=5
         makeroad(p1,p2,a)
         for x=p2.x to p2.x+3
-            for y=p2.y to p2.y+3
+            for y=p2.y to p2.y+4
                 planetmap(x,y,a)=-68
             next
         next
         planetmap(p2.x-1,p2.y,a)=-238
-        planetmap(p2.x-1,p2.y+3,a)=-237
-        
+        planetmap(p2.x-1,p2.y+2,a)=-237
+        planetmap(p2.x-1,p2.y+4,a)=-259
     endif
     
     if specialplanet(15)=a then
@@ -2466,9 +3394,14 @@ sub makespecialplanet(a as short)
         portal(lastportal).tumod=10
         portal(lastportal).dimod=-3
         lastplanet=lastplanet+1
-        planets(a).mon=20
-        planets(a).noamax=20
-        planets(a).noamin=18
+        planets(a).mon_template(0)=makemonster(20,a)
+        planets(a).mon_noamax(0)=24
+        planets(a).mon_noamin(0)=18
+        
+        planets(a).mon_template(1)=makemonster(58,a)
+        planets(a).mon_noamax(1)=24
+        planets(a).mon_noamin(1)=18
+        
         planets(lastplanet).depth=1
         gc.x=portal(lastportal).dest.x
         gc.y=portal(lastportal).dest.y
@@ -2504,9 +3437,9 @@ sub makespecialplanet(a as short)
         next
         planetmap(p2.x,p2.y,a)=-4
         planetmap(30,10,a)=-150
-        planets(a).noamin=15
-        planets(a).noamax=25
-        planets(a).mon=22
+        planets(a).mon_noamin(0)=15
+        planets(a).mon_noamax(0)=25
+        planets(a).mon_template(0)=makemonster(22,a)
         
         gc.x=rnd_range(1,60)
         gc.y=rnd_range(1,20)
@@ -2532,15 +3465,11 @@ sub makespecialplanet(a as short)
         portal(lastportal).dest.y=p.y
         portal(lastportal).discovered=show_specials
         
-        
         gc.x=rnd_range(1,60)
         gc.y=rnd_range(1,20)
         gc.m=c+2
         makecavemap(gc,4-rnd_range(1,8),2-rnd_range(1,4),-1,0)
         planets(gc.m).depth=2
-        
-        
-        
         lastportal=lastportal+1
         portal(lastportal).desig="Am ascending tunnel. "
         portal(lastportal).tile=asc("o")
@@ -2583,20 +3512,29 @@ sub makespecialplanet(a as short)
             p1=rnd_point(lastplanet+3,0)
             planetmap(p1.x,p1.y,lastplanet+3)=-161
         next
-        planets(lastplanet+1).mon=1
-        planets(lastplanet+1).mon2=9
-        planets(lastplanet+1).noamin=9
-        planets(lastplanet+1).noamax=18
+        planets(lastplanet+1).mon_template(0)=makemonster(1,lastplanet+1)
+        planets(lastplanet+1).mon_template(1)=makemonster(9,lastplanet+1)
+        planets(lastplanet+1).mon_noamin(0)=9
+        planets(lastplanet+1).mon_noamax(0)=18
+        planets(lastplanet+1).mon_noamax(1)=1
+        planets(lastplanet+1).mon_noamax(1)=2
         planets(lastplanet+1).atmos=6
-        planets(lastplanet+2).mon=1
-        planets(lastplanet+2).mon2=9
-        planets(lastplanet+2).noamin=9
-        planets(lastplanet+2).noamax=18
+        planets(lastplanet+2).mon_template(0)=makemonster(1,lastplanet+2)
+        planets(lastplanet+2).mon_template(1)=makemonster(9,lastplanet+2)
+        planets(lastplanet+2).mon_noamin(0)=9
+        planets(lastplanet+2).mon_noamax(0)=18
+        planets(lastplanet+2).mon_noamax(1)=1
+        planets(lastplanet+2).mon_noamax(1)=2
         planets(lastplanet+2).atmos=6
-        planets(lastplanet+3).mon=9
-        planets(lastplanet+3).noamin=9
-        planets(lastplanet+3).noamax=18
+        
+        planets(lastplanet+3).mon_template(0)=makemonster(1,lastplanet+3)
+        planets(lastplanet+3).mon_template(1)=makemonster(9,lastplanet+3)
+        planets(lastplanet+3).mon_noamin(0)=9
+        planets(lastplanet+3).mon_noamax(0)=18
+        planets(lastplanet+3).mon_noamax(1)=1
+        planets(lastplanet+3).mon_noamax(1)=2
         planets(lastplanet+3).atmos=6
+       
         p1=rnd_point(lastplanet+3,0)
         placeitem(makeitem(90),p1.x,p1.y,lastplanet+3,0,0) 
         planetmap(p1.x,p1.y,lastplanet+3)=-162
@@ -2643,9 +3581,9 @@ sub makespecialplanet(a as short)
         planetmap(p.x-1,p.y,a)=-108
         planetmap(p.x,p.y-1,a)=-108
         makeice(a,4)
-        planets(a).mon=30
-        planets(a).noamax=25
-        planets(a).noamin=18
+        planets(a).mon_template(0)=makemonster(30,a)
+        planets(a).mon_noamax(0)=25
+        planets(a).mon_noamin(0)=18
         planets(a).temp=49.7
         planets(a).rot=12.7
         planets(a).atmos=3
@@ -2688,15 +3626,20 @@ sub makespecialplanet(a as short)
         planetmap(3,3,a)=-173
         p=rnd_point
         planetmap(30,10,a)=-172
-        planets(a).mon=25
-        planets(a).noamax=20
-        planets(a).noamin=18
+        planets(a).mon_template(0)=makemonster(25,a)
+        planets(a).mon_noamax(0)=12
+        planets(a).mon_noamin(0)=8
+        
+        planets(a).mon_template(1)=makemonster(26,a)
+        planets(a).mon_noamax(1)=10
+        planets(a).mon_noamin(1)=8
+        
         planets(a).temp=19.7
         planets(a).grav=1.1
         planets(a).atmos=5
     endif
     if a=specialplanet(19) then
-    
+        deletemonsters(a)
         p.x=rnd_range(10,50)
         p.y=rnd_range(5,15)
         planetmap(p.x,p.y,a)=-171
@@ -2722,9 +3665,9 @@ sub makespecialplanet(a as short)
         planetmap(p.x-3,p.y,a)=-171
         planetmap(p.x,p.y+3,a)=-171
         planetmap(p.x,p.y-3,a)=-171
-        planets(a).mon=26
-        planets(a).noamax=12
-        planets(a).noamin=88
+        planets(a).mon_template(0)=makemonster(26,a)
+        planets(a).mon_noamax(0)=12
+        planets(a).mon_noamin(0)=8
         planets(a).temp=-219.7
         planets(a).grav=1.1
         planets(a).atmos=4
@@ -2754,9 +3697,9 @@ sub makespecialplanet(a as short)
         planetmap(p2.x+1,p2.y,a)=-182
         planetmap(p2.x,p2.y+1,a)=-182
         planetmap(p2.x+1,p2.y+1,a)=-182
-        planets(a).mon=28
-        planets(a).noamin=5
-        planets(a).noamax=15
+        planets(a).mon_template(0)=makemonster(28,a)
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=15
         planets(a).atmos=6
         planets(a).grav=1.1
         planets(a).temp=15.3
@@ -2782,11 +3725,15 @@ sub makespecialplanet(a as short)
         gc.y=portal(lastportal).dest.y
         gc.m=b
         makecavemap(gc,4-rnd_range(1,8),2-rnd_range(1,4),-1,0)
-        
-        planets(b).mon=29
         planets(b).depth=1
-        planets(b).noamin=5
-        planets(b).noamax=15
+        
+        planets(b).mon_template(0)=makemonster(29,a)
+        planets(b).mon_noamin(0)=3
+        planets(b).mon_noamax(0)=10
+        
+        planets(b).mon_template(1)=makemonster(65,a)
+        planets(b).mon_noamin(1)=1
+        planets(b).mon_noamax(1)=5
         
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
@@ -2812,11 +3759,17 @@ sub makespecialplanet(a as short)
         gc.y=portal(lastportal).dest.y
         gc.m=b
         makecavemap(gc,4-rnd_range(1,8),2-rnd_range(1,4),-1,0)
-        
-        planets(b).mon=29
         planets(b).depth=1
-        planets(b).noamin=5
-        planets(b).noamax=15
+        
+        
+        planets(b).mon_template(0)=makemonster(29,a)
+        planets(b).mon_noamin(0)=5
+        planets(b).mon_noamax(0)=15
+        
+        planets(b).mon_template(1)=makemonster(65,a)
+        planets(b).mon_noamin(1)=3
+        planets(b).mon_noamax(1)=8
+        
         
         p=rnd_point(b,0)
         planetmap(p.x,p.y,b)=-190
@@ -2826,7 +3779,7 @@ sub makespecialplanet(a as short)
         for c=0 to 5
             placeitem(makeitem(rnd_range(1,lstcomit)),p.x,p.y,b,0,0)
         next
-        placeitem(makeitem(89),p.x,p.y,a)
+        placeitem(makeitem(89),p.x,p.y,lastplanet)
     endif
     
     if a=specialplanet(26) then
@@ -2856,11 +3809,13 @@ sub makespecialplanet(a as short)
         p=rnd_point
         planetmap(p.x,p.y,a)=-132
         
-        planets(a).mon=31
-        planets(a).noamin=10
-        planets(a).noamax=15
+        planets(a).mon_template(0)=makemonster(31,a)
+        planets(a).mon_noamin(0)=10
+        planets(a).mon_noamax(0)=15
         
-        
+        planets(a).mon_template(1)=makemonster(65,a)
+        planets(a).mon_noamin(1)=1
+        planets(a).mon_noamax(1)=5
         
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
@@ -2896,9 +3851,14 @@ sub makespecialplanet(a as short)
         planetmap(p.x,p.y,b)=-191
         
         planets(b).depth=1
-        planets(b).mon=31
-        planets(b).noamin=5
-        planets(b).noamax=15
+        planets(b).mon_template(0)=makemonster(31,b)
+        planets(b).mon_noamin(0)=5
+        planets(b).mon_noamax(0)=15
+                
+        planets(b).mon_template(1)=makemonster(65,b)
+        planets(b).mon_noamin(1)=3
+        planets(b).mon_noamax(1)=10
+        
         planets(b).atmos=6
         
         lastportal=lastportal+1
@@ -2932,9 +3892,14 @@ sub makespecialplanet(a as short)
             next
         next
         planets(b).depth=2
-        planets(b).mon=31
-        planets(b).noamin=15
-        planets(b).noamax=25        
+        planets(b).mon_template(0)=makemonster(31,a)
+        planets(b).mon_noamin(0)=15
+        planets(b).mon_noamax(0)=20        
+        
+        planets(b).mon_template(1)=makemonster(65,b)
+        planets(b).mon_noamin(1)=10
+        planets(b).mon_noamax(1)=12
+        
         planets(b).atmos=6
         
         p=rnd_point(b,0)
@@ -2990,9 +3955,13 @@ sub makespecialplanet(a as short)
         planetmap(p.x,p.y,a)=-rnd_range(140,143)
         p=rnd_point()
         planetmap(p.x,p.y,a)=-rnd_range(140,143)
-        planets(a).mon=36
-        planets(a).noamin=5
-        planets(a).noamax=10
+        planets(a).mon_template(0)=makemonster(36,a)
+        planets(a).mon_noamin(0)=2
+        planets(a).mon_noamax(0)=5
+        planets(a).mon_template(1)=makemonster(70,a)
+        planets(a).mon_noamin(1)=2
+        planets(a).mon_noamax(1)=5
+        
         lastplanet=lastplanet+1
         gc1.m=lastplanet
         p2=rnd_point(lastplanet,0)
@@ -3013,9 +3982,15 @@ sub makespecialplanet(a as short)
         next
         
         
-        planets(lastplanet).mon=36
-        planets(lastplanet).noamin=10
-        planets(lastplanet).noamax=15
+        planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
+        planets(lastplanet).mon_noamin(0)=3
+        planets(lastplanet).mon_noamax(0)=7
+        
+        
+        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_noamin(1)=3
+        planets(lastplanet).mon_noamax(1)=7
+        
         planets(lastplanet).atmos=6
         planets(lastplanet).depth=1
         
@@ -3057,9 +4032,16 @@ sub makespecialplanet(a as short)
             next
         next
         
-        planets(lastplanet).mon=36
-        planets(lastplanet).noamin=15
-        planets(lastplanet).noamax=20
+        
+        planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
+        planets(lastplanet).mon_noamin(0)=6
+        planets(lastplanet).mon_noamax(0)=17
+        
+        
+        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_noamin(1)=6
+        planets(lastplanet).mon_noamax(1)=17
+        
         planets(lastplanet).atmos=6
         planets(lastplanet).depth=1
         
@@ -3087,9 +4069,15 @@ sub makespecialplanet(a as short)
         next
         planetmap(30,10,lastplanet)=-187
         
-        planets(lastplanet).mon=36
-        planets(lastplanet).noamin=25
-        planets(lastplanet).noamax=30
+        planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
+        planets(lastplanet).mon_noamin(0)=13
+        planets(lastplanet).mon_noamax(0)=27
+        
+        
+        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_noamin(1)=13
+        planets(lastplanet).mon_noamax(1)=27
+        
         planets(lastplanet).atmos=6
         planets(lastplanet).depth=1
         
@@ -3108,8 +4096,6 @@ sub makespecialplanet(a as short)
         next
         planets(a).flavortext="This is truly the most boring piece of rock you have ever laid eyes upon."
         planets(a).atmos=4
-        planets(a).noamin=0
-        planets(a).noamax=0
     endif
     
     if specialplanet(30)=a then 'Secret Base thingy
@@ -3187,10 +4173,20 @@ sub makespecialplanet(a as short)
         planets(a).atmos=1
         planets(a).grav=.5
         planets(a).rot=12
-        planets(a).mon=8
+        planets(a).mon_template(0)=makemonster(8,a)
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=15
+        
+        planets(a).mon_template(1)=makemonster(52,a)
+        planets(a).mon_noamin(1)=5
+        planets(a).mon_noamax(1)=15
+        
+        planets(a).mon_template(2)=makemonster(53,a)
+        planets(a).mon_noamin(2)=5
+        planets(a).mon_noamax(2)=15
+        
+        planets(a).atmos=6
         planets(a).temp=-241
-        planets(a).noamin=5
-        planets(a).noamax=10
         p.x=30
         p.y=10
         gc.x=pa(5).x
@@ -3214,12 +4210,14 @@ sub makespecialplanet(a as short)
             gc.x=p.x
             gc.y=p.y
             gc.m=lastplanet
+            planets(lastplanet)=planets(a)
             planets(lastplanet).atmos=1
             planets(lastplanet).grav=.5
             planets(lastplanet).depth+=1
-            planets(lastplanet).mon=8
-            planets(lastplanet).noamin=5
-            planets(lastplanet).noamax=10
+            planets(lastplanet).mon_template(0)=makemonster(8,lastplanet)
+            planets(lastplanet).mon_noamin(0)=10
+            planets(lastplanet).mon_noamax(0)=15
+        
         next
     endif
     
@@ -3296,11 +4294,12 @@ sub makespecialplanet(a as short)
             planets(lastplanet).depth+=1
             planets(lastplanet).atmos=1
             planets(lastplanet).temp=1
-            if d=1 then planets(lastplanet).mon=40
-            if d=2 then planets(lastplanet).mon=13
-            if d=3 then planets(lastplanet).mon=29
-            planets(lastplanet).noamin=5+b
-            planets(lastplanet).noamax=10+b
+            if d=1 then planets(lastplanet).mon_template(0)=makemonster(40,lastplanet)
+            if d=2 then planets(lastplanet).mon_template(0)=makemonster(13,lastplanet)
+            if d=3 then planets(lastplanet).mon_template(0)=makemonster(29,lastplanet)
+            planets(lastplanet).mon_noamin(0)=10
+            planets(lastplanet).mon_noamax(0)=15
+        
         next
     endif
         
@@ -3349,9 +4348,10 @@ sub makespecialplanet(a as short)
         planets(a).grav=.3
         planets(a).temp=-211
         planets(a).rot=.8
-        planets(lastplanet).mon=3
-        planets(lastplanet).noamin=8
-        planets(lastplanet).noamax=12
+       
+        planets(lastplanet).mon_template(0)=makemonster(3,a)
+        planets(lastplanet).mon_noamin(0)=8
+        planets(lastplanet).mon_noamax(0)=12
         for b=0 to 2
             lastplanet+=1
             makeplatform(lastplanet,rnd_range(2,5)+b+2,rnd_range(0,2)+b,3)
@@ -3394,9 +4394,9 @@ sub makespecialplanet(a as short)
             planets(lastplanet).depth+=1
             planets(lastplanet).atmos=6
             planets(lastplanet).temp=16
-            planets(lastplanet).mon=3
-            planets(lastplanet).noamin=8+b
-            planets(lastplanet).noamax=18+b
+            planets(lastplanet).mon_template(0)=makemonster(3,lastplanet)
+            planets(lastplanet).mon_noamin(0)=8+b
+            planets(lastplanet).mon_noamax(0)=18+b
         next
     endif
     
@@ -3425,9 +4425,9 @@ sub makespecialplanet(a as short)
         next
         p1=rnd_point
         planetmap(p1.x,p1.y,a)=-100 
-        planets(a).mon=42
-        planets(a).noamin=5
-        planets(a).noamax=7
+        planets(a).mon_template(0)=makemonster(2,a)
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=7
     endif
     
     if a=specialplanet(35) then
@@ -3436,18 +4436,19 @@ sub makespecialplanet(a as short)
             planetmap(rnd_range(0,60),rnd_range(4,16),a)=-239
         next
         planets(a).temp=12.3
-        planets(a).rot=12.3
-        planets(a).mon=42
-        planets(a).noamin=10
-        planets(a).noamin=25
+        planets(a).rot=12.3 
+        planets(a).mon_template(0)=makemonster(42,a)
+        planets(a).mon_noamin(0)=10
+        planets(a).mon_noamax(0)=25
     endif
     
     if a=specialplanet(36) then
         planets(a).water=77
         makeislands(a,3)
-        planets(a).mon=43
-        planets(a).noamin=10
-        planets(a).noamax=25
+        deletemonsters(a)
+        planets(a).mon_template(0)=makemonster(43,a)
+        planets(a).mon_noamin(0)=10
+        planets(a).mon_noamax(0)=25
         planets(a).temp=12.3
         planets(a).atmos=8
         planets(a).rot=12.3
@@ -3465,10 +4466,11 @@ sub makespecialplanet(a as short)
         makecavemap(gc1,2-rnd_range(1,4),4-rnd_range(1,8),0,0)
         for b=0 to 25
             planetmap(rnd_range(0,60),rnd_range(0,20),lastplanet)=-146
-        next
-        planets(lastplanet).mon=44
-        planets(lastplanet).noamin=1
-        planets(lastplanet).noamax=1
+        next 
+        deletemonsters(lastplanet)
+        planets(lastplanet).mon_template(0)=makemonster(44,a)
+        planets(lastplanet).mon_noamin(0)=1
+        planets(lastplanet).mon_noamax(0)=1
         planets(lastplanet).depth=1
         planets(lastplanet).temp=12.3
         planets(lastplanet).atmos=8
@@ -3476,9 +4478,6 @@ sub makespecialplanet(a as short)
     endif
     
     if a=specialplanet(37) then
-        planets(a).mon=-1
-        planets(a).noamin=0
-        planets(a).noamax=0
         planets(a).temp=12.3
         planets(a).atmos=8
         planets(a).rot=12.3
@@ -3495,9 +4494,10 @@ sub makespecialplanet(a as short)
         planets(a).water=57
         makeislands(a,3)
         planetmap(rnd_range(1,60),rnd_range(3,12),a)=-62
-        planets(a).mon=45
-        planets(a).noamin=35
-        planets(a).noamax=46
+         
+        planets(a).mon_template(0)=makemonster(45,a)
+        planets(a).mon_noamin(0)=45
+        planets(a).mon_noamax(0)=46
         planets(a).temp=12.3
         planets(a).atmos=8
         planets(a).rot=12.3
@@ -3509,16 +4509,35 @@ sub makespecialplanet(a as short)
         gc1.x=rnd_range(0,60)
         gc1.y=rnd_range(0,20)
         gc1.m=lastplanet
-        makecavemap(gc1,2-rnd_range(1,4),4-rnd_range(1,8),0,0)
+        planets(lastplanet)=planets(a)
+        planets(lastplanet).depth=1
+        planets(lastplanet).mon_template(0)=makemonster(8,lastplanet)
+        planets(lastplanet).mon_noamin(0)=5
+        planets(lastplanet).mon_noamax(0)=8
+        makecavemap(gc1,3-rnd_range(1,4),3-rnd_range(1,6),0,0)
         addportal(gc,gc1,0,asc("o"),"A natural tunnel",7)
-        
         gc.m=lastplanet   
         p1=rnd_point(lastplanet,0)
         gc.x=p1.x
         gc.y=p1.y
         lastplanet+=1
-        gc1.x=rnd_range(0,60)
-        gc1.y=rnd_range(0,20)
+        planets(lastplanet)=planets(a)
+        planets(lastplanet).depth=1
+                 
+        planets(lastplanet).mon_template(0)=makemonster(8,lastplanet)
+        planets(lastplanet).mon_noamin(0)=15
+        planets(lastplanet).mon_noamax(0)=25
+        
+        planets(lastplanet).mon_template(1)=makemonster(54,lastplanet)
+        planets(lastplanet).mon_noamin(1)=5
+        planets(lastplanet).mon_noamax(1)=8
+        
+        planets(lastplanet).mon_template(2)=makemonster(53,lastplanet)
+        planets(lastplanet).mon_noamin(2)=5
+        planets(lastplanet).mon_noamax(2)=10
+        
+        gc1.x=rnd_range(1,59)
+        gc1.y=rnd_range(1,19)
         gc1.m=lastplanet
         makecomplex(gc1,2)
         addportal(gc,gc1,0,asc("o"),"A shaft",14)
@@ -3526,8 +4545,449 @@ sub makespecialplanet(a as short)
         planetmap(p1.x,p1.y,lastplanet)=-240
     endif
     
+    if a=specialplanet(39) then
+        deletemonsters(a)
+        planets(a).grav=0.9
+        planets(a).atmos=5
+        planets(a).temp=15.3
+        planets(a).weat=0
+        makeislands(a,3)
+        for b=0 to 166
+            p1=rnd_point(a,0)
+            planetmap(p1.x,p1.y,a)=-96
+        next
+        p1.x=30
+        p1.y=10
+        pa(0).x=rnd_range(1,20)
+        pa(0).y=rnd_range(1,5)
+        pa(1).x=rnd_range(21,40)
+        pa(1).y=rnd_range(1,5)
+        pa(2).x=rnd_range(41,60)
+        pa(2).y=rnd_range(1,5)
+        
+        pa(3).x=rnd_range(1,20)
+        pa(3).y=rnd_range(15,20)
+        pa(4).x=rnd_range(21,40)
+        pa(4).y=rnd_range(15,20)
+        pa(5).x=rnd_range(41,60)
+        pa(5).y=rnd_range(15,20)
+        
+        for b=0 to 5
+            makeroad(pa(b),p1,a)
+        next
+        
+        for b=0 to 5
+            planetmap(pa(b).x,pa(b).y,a)=-16
+        next
+        planetmap(p1.x,p1.y,a)=-247
+        
+        planets(a).mon_template(0)=makemonster(66,a)
+        
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=8
+        
+        planets(a).mon_template(1)=makemonster(67,a)
+        planets(a).mon_noamin(1)=10
+        planets(a).mon_noamax(1)=15
+        
+        for b=0 to 2
+            lastplanet+=1
+            lastportal+=1
+            portal(lastportal).desig="A natural tunnel. "
+            portal(lastportal).tile=asc("o")
+            portal(lastportal).col=7
+            portal(lastportal).from.m=a
+            portal(lastportal).from.x=rnd_range(0,60)
+            portal(lastportal).from.y=rnd_range(0,20)
+            portal(lastportal).dest.m=lastplanet
+            portal(lastportal).dest.x=rnd_range(1,59)
+            portal(lastportal).dest.y=rnd_range(1,19)
+            portal(lastportal).discovered=show_all
+            portal(lastportal).tumod=10
+            portal(lastportal).dimod=-3
+            
+            gc.x=portal(lastportal).dest.x
+            gc.y=portal(lastportal).dest.y
+            gc.m=lastplanet
+            makecavemap(gc,6-rnd_range(2,8),2-rnd_range(1,6),0,0)
+            planets(lastplanet)=planets(a)
+            deletemonsters(lastplanet)
+            planets(lastplanet).mon_template(0)=makemonster(67,lastplanet)
+            planets(lastplanet).mon_noamin(0)=20
+            planets(lastplanet).mon_noamax(0)=25
+            planets(lastplanet).mon_template(1)=makemonster(68,lastplanet)
+            planets(lastplanet).mon_noamin(1)=2
+            planets(lastplanet).mon_noamax(1)=5
+        next
+    endif
+        
+    if a=specialplanet(40) then 'Eridianis Scandal
+        planets(a).water=57
+        planets(a).temp=33
+        planets(a).rot=33
+        planets(a).grav=0.9
+        planets(a).atmos=5
+        makeislands(a,3)
+        p.x=rnd_range(1,52)
+        p.y=rnd_range(1,12)
+        for x=p.x to p.x+7
+            for y=p.y to p.y+7
+                if x=p.x or x=p.x+1 or x=p.x+6 or x=p.x+7 or y=p.y or y=p.y+1 or y=p.y+6 or y=p.y+7 then 
+                    planetmap(x,y,a)=-16
+                else
+                    planetmap(x,y,a)=-68
+                endif
+            next
+        next
+        deletemonsters(a)
+        planets(a).mon_template(0)=makemonster(69,a)
+        planets(a).mon_noamin(0)=10
+        planets(a).mon_noamax(0)=15
+        planets(a).mon_template(1)=makemonster(1,a)
+        planets(a).mon_template(1).diet=2
+        planets(a).mon_template(1).disease=13
+        planets(a).mon_template(1).faction=1
+        planets(a).mon_noamin(1)=5
+        planets(a).mon_noamax(1)=10
+        lastplanet+=1
+        makecomplex3(lastplanet,10,0,0,1)
+        gc.x=p.x+4
+        gc.y=p.y+4
+        gc.m=a
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(69,a)
+        planets(lastplanet).mon_noamin(0)=15
+        planets(lastplanet).mon_noamax(0)=20
+        planets(lastplanet).mon_template(1)=makemonster(70,a)
+        planets(lastplanet).mon_noamin(1)=2
+        planets(lastplanet).mon_noamax(1)=3
+        planets(lastplanet).depth=3
+        lastplanet+=1
+        makecomplex3(lastplanet,10,0,0,1)
+        p=rnd_point(lastplanet-1,0)
+        gc.x=p.x
+        gc.y=p.y
+        gc.m=lastplanet-1
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(69,a)
+        planets(lastplanet).mon_noamin(0)=20
+        planets(lastplanet).mon_noamax(0)=25
+        planets(lastplanet).mon_template(1)=makemonster(70,a)
+        planets(lastplanet).mon_noamin(1)=5
+        planets(lastplanet).mon_noamax(1)=8
+        planets(lastplanet).depth=6
+        p1=rnd_point(lastplanet,0)
+        planetmap(p1.x,p1.y,lastplanet)=250
+    endif
     
-    if isgasgiant(a)>0 and a=specialplanet(isgasgiant(a)) then
+    if a=specialplanet(41) then 'Smith heavy industries Scandal
+        makecraters(a,3)
+        deletemonsters(a)
+        p1=rnd_point
+        p2=rnd_point
+        p3=rnd_point
+        p1.x=rnd_range(1,20)
+        p2.x=rnd_range(20,40)
+        p3.x=rnd_range(40,55)
+        makeroad(p1,p2,a)
+        makeroad(p1,p3,a)
+        
+        for x=p2.x to p2.x+5
+            for y=p2.y to p2.y+3
+                if x<=60 and y<=20 then planetmap(x,y,a)=-16
+            next
+        next
+        for x=p1.x to p1.x+3
+            for y=p2.y to p2.y+3
+                if x<=60 and y<=20 then planetmap(x,y,a)=-68
+            next
+        next
+        for x=p3.x to p3.x+3
+            for y=p3.y to p3.y+3
+                if x<=60 and y<=20 then planetmap(x,y,a)=-16
+            next
+        next
+        planets(a).atmos=1
+        planets(a).temp=-233
+        planets(a).grav=.3
+        planets(a).mon_template(0)=makemonster(70,a)
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=8
+        planets(a).mon_template(1)=makemonster(71,a)
+        planets(a).mon_noamin(1)=1
+        planets(a).mon_noamax(1)=5
+        lastplanet+=1
+        makecomplex3(lastplanet,10,0,0,1)
+        gc.x=p2.x+1
+        gc.y=p2.y+1
+        gc.m=a
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(71,lastplanet)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).depth=3
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        lastplanet+=1
+        makecomplex3(lastplanet,10,0,0,1)
+        p=rnd_point(lastplanet-1,0)
+        gc.x=p.x
+        gc.y=p.y
+        gc.m=lastplanet-1
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(71,lastplanet)
+        planets(lastplanet).mon_noamin(0)=15
+        planets(lastplanet).mon_noamax(0)=20
+        planets(lastplanet).mon_template(1)=makemonster(72,lastplanet)
+        planets(lastplanet).mon_noamin(1)=5
+        planets(lastplanet).mon_noamax(1)=6
+        planets(lastplanet).mon_template(2)=makemonster(73,lastplanet)
+        planets(lastplanet).mon_noamin(2)=10
+        planets(lastplanet).mon_noamax(2)=15
+        
+        
+        planets(lastplanet).depth=6
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        p1=rnd_point(lastplanet,0)
+        planetmap(p1.x,p1.y,lastplanet)=250
+        lastplanet+=1
+        makecomplex4(lastplanet,10,1)
+        p=rnd_point(lastplanet-1,0)
+        gc.x=p.x
+        gc.y=p.y
+        gc.m=lastplanet-1
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        p1=rnd_point(lastplanet,0)
+        planetmap(p1.x,p1.y,lastplanet)=-252
+        planets(lastplanet).mon_template(0)=makemonster(71,lastplanet)
+        planets(lastplanet).mon_noamin(0)=20
+        planets(lastplanet).mon_noamax(0)=25
+        planets(lastplanet).mon_template(1)=makemonster(72,lastplanet)
+        planets(lastplanet).mon_noamin(1)=8
+        planets(lastplanet).mon_noamax(1)=10
+        planets(lastplanet).mon_template(2)=makemonster(73,lastplanet)
+        planets(lastplanet).mon_noamin(2)=20
+        planets(lastplanet).mon_noamax(2)=25
+        planets(lastplanet).depth=6
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        
+    endif
+    
+    if a=specialplanet(42) then 'Triax Traders Scandal
+        p2=rnd_point
+        for x=p2.x to p2.x+5
+            for y=p2.y to p2.y+5
+                if x<60 and y<20 then 
+                    planetmap(x,y,a)=-68
+                    if rnd_range(1,100)<10 then planetmap(x,y,a)=67
+                endif
+            next
+        next
+        gc.x=p2.x
+        gc.y=p2.y
+        gc.m=a
+        lastplanet+=1
+        makecomplex3(lastplanet,6,60,60,2)
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(7,a)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).mon_template(1)=makemonster(50,a)
+        planets(lastplanet).mon_noamin(1)=10
+        planets(lastplanet).mon_noamax(1)=15
+        planets(lastplanet).depth=3
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        
+        makeoutpost(a)
+        planets(a).mon_template(0)=makemonster(7,a)
+        planets(a).mon_noamin(0)=10
+        planets(a).mon_noamin(0)=15
+        lastplanet+=1
+        makecomplex3(lastplanet,6,60,60,2)
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,a)=-16 or planetmap(x,y,a)=+16 then 
+                    p1.x=x
+                    p1.y=y
+                endif
+            next
+        next
+        makeroad(p1,p2,a)
+        gc.x=p1.x
+        gc.y=p1.y
+        gc.m=a
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(7,a)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).mon_template(1)=makemonster(50,a)
+        planets(lastplanet).mon_noamin(1)=10
+        planets(lastplanet).mon_noamax(1)=15
+        planets(lastplanet).depth=3
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        p2=rnd_point(lastplanet,0)
+        
+        gc.x=p2.x
+        gc.y=p2.y
+        gc.m=lastplanet
+        lastplanet+=1
+        makecomplex3(lastplanet,6,60,60,2)
+
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(7,a)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).mon_template(1)=makemonster(50,a)
+        planets(lastplanet).mon_noamin(1)=10
+        planets(lastplanet).mon_noamax(1)=15
+        planets(lastplanet).depth=3
+        planets(lastplanet).atmos=4
+        planets(lastplanet).darkness=1
+        planets(lastplanet).grav=.3
+        p2=rnd_point(lastplanet,0)
+        planetmap(p2.x,p2.y,lastplanet)=-255
+    endif
+    
+    if a=specialplanet(43) then 'Omega Bioengineering Scandal
+        makeplatform(a,rnd_range(4,8),rnd_range(1,3),4)
+        deletemonsters(a)
+        planets(a).temp=-160
+        planets(a).grav=.1
+        planets(a).atmos=9
+        planets(a).depth=1
+        planets(a).mon_template(0)=makemonster(76,a)
+        planets(a).mon_noamin(0)=5
+        planets(a).mon_noamax(0)=8
+        planets(a).mon_template(1)=makemonster(77,a)
+        planets(a).mon_noamin(1)=1
+        planets(a).mon_noamax(1)=5
+        
+        p1=rnd_point(a,,80)
+        gc.x=p1.x
+        gc.y=p1.y
+        gc.m=a
+        lastplanet+=1
+        makecomplex3(lastplanet,6,60,60,1)
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).mon_template(0)=makemonster(76,lastplanet)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).mon_template(1)=makemonster(77,lastplanet)
+        planets(lastplanet).mon_noamin(1)=4
+        planets(lastplanet).mon_noamax(1)=6
+        planets(lastplanet).mon_template(2)=makemonster(78,lastplanet)
+        planets(lastplanet).mon_noamin(2)=10
+        planets(lastplanet).mon_noamax(2)=15
+        planets(lastplanet).depth=1
+        p1=rnd_point(lastplanet,0)
+        gc.x=p1.x
+        gc.y=p1.y
+        gc.m=lastplanet
+        lastplanet+=1
+        makecomplex3(lastplanet,6,60,60,1)
+        p1=rnd_point(lastplanet,0)
+        gc1.x=p1.x
+        gc1.y=p1.y
+        gc1.m=lastplanet
+        addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        
+        planets(lastplanet).mon_template(0)=makemonster(76,lastplanet)
+        planets(lastplanet).mon_noamin(0)=10
+        planets(lastplanet).mon_noamax(0)=15
+        planets(lastplanet).mon_template(1)=makemonster(77,lastplanet)
+        planets(lastplanet).mon_noamin(1)=8
+        planets(lastplanet).mon_noamax(1)=10
+        planets(lastplanet).mon_template(2)=makemonster(78,lastplanet)
+        planets(lastplanet).mon_noamin(2)=10
+        planets(lastplanet).mon_noamax(2)=15
+        planets(lastplanet).depth=1
+        for b=0 to 1
+            p=rnd_point(lastplanet,0)
+            x1=rnd_range(6,8)
+            y1=rnd_range(4,6)
+            if p.x+x1>=59 then p.x=p.x-x1-1
+            if p.y+y1>=19 then p.y=p.y-y1-1
+            if p.x<0 then p.x=1
+            if p.y<0 then p.y=1
+            
+            for x=p.x to p.x+x1
+                for y=p.y to p.y+y1
+                    if x=p.x or y=p.y or x=p.x+x1 or y=p.y+y1 then
+                        planetmap(x,y,lastplanet)=-52
+                    else
+                        planetmap(x,y,lastplanet)=-202
+                    endif
+                next
+            next
+            if b=0 then    
+            planets(lastplanet).vault.x=p.x
+            planets(lastplanet).vault.y=p.y
+            planets(lastplanet).vault.w=x1
+            planets(lastplanet).vault.h=y1
+            planets(lastplanet).vault.wd(5)=3
+            endif
+        next
+        planetmap(p.x+x1/2,p.y+y1/2,lastplanet)=257
+        for x=1 to 59
+            for y=1 to 19
+                if abs(planetmap(x,y,lastplanet))=52 then
+                    if abs(planetmap(x-1,y,lastplanet))=202 and abs(planetmap(x+1,y,lastplanet))=202 then
+                        if abs(planetmap(x,y+1,lastplanet))=52 and abs(planetmap(x,y-1,lastplanet))=52 then planetmap(x,y,lastplanet)=-54
+                    endif
+                    if abs(planetmap(x,y-1,lastplanet))=202 and abs(planetmap(x,y+1,lastplanet))=202 then
+                        if abs(planetmap(x-1,y,lastplanet))=52 and abs(planetmap(x+1,y,lastplanet))=52 then planetmap(x,y,lastplanet)=-54
+                    endif
+                endif
+            next
+        next
+    endif
+    
+    if a=specialplanet(isgasgiant(a)) and isgasgiant(a)<40 then
         makeplatform(a,rnd_range(4,8),rnd_range(1,3),1)
         p=rnd_point(a,0)
         if rnd_range(1,100)<10 then placeitem(makeitem(99),p.x,p.y,a,0,0)
@@ -3539,40 +4999,48 @@ sub makespecialplanet(a as short)
         if rnd_range(1,100)<88 then planetmap(p.x,p.y,a)=-178
         p=rnd_point(a,0)
         if rnd_range(1,100)<18 then planetmap(p.x,p.y,a)=-178
-        planets(a).mon=0
-        planets(a).noamin=0
-        planets(a).noamax=0
-        planets(a).mon2=0
+
         planets(a).temp=-160
         planets(a).grav=1.1
         planets(a).atmos=9
-        if rnd_range(1,100)<35 then
-            planets(a).mon=8
-            planets(a).noamin=5
-            planets(a).noamax=15
+        if rnd_range(1,100)<35 then                 
+            planets(a).mon_template(0)=makemonster(8,a)
+            planets(a).mon_noamin(0)=5
+            planets(a).mon_noamax(0)=15
         endif
-        if rnd_range(1,100)<25 then
-            planets(a).mon=9
-            planets(a).noamin=5
-            planets(a).noamax=15
+        if rnd_range(1,100)<25 then             
+            planets(a).mon_template(0)=makemonster(9,a)
+            planets(a).mon_noamin(0)=5
+            planets(a).mon_noamax(0)=15
         endif
         if rnd_range(1,100)<15 then
-            planets(a).mon=27
-            planets(a).noamin=1
-            planets(a).noamax=5
+             
+            planets(a).mon_template(0)=makemonster(27,a)
+            planets(a).mon_noamin(0)=1
+            planets(a).mon_noamax(0)=5
         endif
         if rnd_range(1,100)<10 then
-            planets(a).mon=27
-            planets(a).noamin=1
-            planets(a).noamax=3
+            planets(a).mon_template(0)=makemonster(61,a)
+            planets(a).mon_noamin(0)=1
+            planets(a).mon_noamax(0)=3
+        endif
+        
+        if rnd_range(1,100)<10 then
+            planets(a).mon_template(0)=makemonster(62,a)
+            planets(a).mon_noamin(0)=1
+            planets(a).mon_noamax(0)=3
+        endif
+        
+        if rnd_range(1,100)<10 then
+            planets(a).mon_template(0)=makemonster(63,a)
+            planets(a).mon_noamin(0)=1
+            planets(a).mon_noamax(0)=3
         endif
     endif
         
-    
-    
 end sub
 
-sub makedrifter(d as gamecords, bg as short=0)
+sub makedrifter(d as _driftingship, bg as short=0)
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
     dim s as _ship
     dim pods(6,5,1) as short
@@ -3588,6 +5056,8 @@ sub makedrifter(d as gamecords, bg as short=0)
         m=lastplanet+1
         lastplanet+=1
     endif
+    d.start.x=d.x
+    d.start.y=d.y
     f=freefile
     open "data/pods.dat" for binary as #f
     for a=0 to 1
@@ -3679,49 +5149,48 @@ sub makedrifter(d as gamecords, bg as short=0)
     for x=1 to 59
         for y=1 to 19
             if abs(planetmap(x,y,m))=201 then 
-                if abs(planetmap(x-1,y,m))=200 or abs(planetmap(x+1,y,m))=200 or abs(planetmap(x,y+1,m))=200 or abs(planetmap(x,y-1,m))=200 then planetmap(x+1,y,m)=-243
-                if abs(planetmap(x-1,y-1,m))=200 or abs(planetmap(x+1,y+1,m))=200 or abs(planetmap(x-1,y+1,m))=200 or abs(planetmap(x+1,y-1,m))=200 then planetmap(x+1,y,m)=-243
+                if abs(planetmap(x-1,y,m))=200 or abs(planetmap(x+1,y,m))=200 or abs(planetmap(x,y+1,m))=200 or abs(planetmap(x,y-1,m))=200 then planetmap(x,y,m)=-243
+                if abs(planetmap(x-1,y-1,m))=200 or abs(planetmap(x+1,y+1,m))=200 or abs(planetmap(x-1,y+1,m))=200 or abs(planetmap(x+1,y-1,m))=200 then planetmap(x,y,m)=-243
             endif
         next
     next
     
-    if bg<>0 then
-        'add portals
-        from=d
-        for x=0 to 60
-            for y=0 to 20
-                if abs(planetmap(x,y,m))=203 then
-                    dest.x=x
-                    dest.y=y
-                    dest.m=m
-                    addportal(from,dest,0,asc("O"),"An airlock of the "&shiptypes(d.s),14)
-                    addportal(dest,from,0,asc("@"),"An stranded "&shiptypes(d.s),11)
-                endif
-            next
+    for x=0 to 60
+        for y=0 to 20
+            if (x=0 or y=0 or x=60 or y=20) and abs(planetmap(x,y,m))=201 then planetmap(x,y,m)=-243
         next
-        
-    endif
+    next
     
+        
+    planets(m).depth=1
     roll=rnd_range(1,100)
     if roll<40 then
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=32
-        planets(m).mon2=33
-        planets(m).noamin=d.s
-        planets(m).noamax=1+d.s
+        
+        planets(m).mon_template(0)=makemonster(32,m)
+        planets(m).mon_noamin(0)=s.h_maxcrew-1
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
     
-    if roll>40 and roll<50 then
+    if roll>39 and roll<50 then
         planets(m).darkness=5
         planets(m).depth=1
         planets(m).atmos=1
-        planets(m).mon=33
-        planets(m).mon2=33
-        planets(m).noamin=d.s
-        planets(m).noamax=1+d.s
+        planets(m).mon_template(0)=makemonster(33,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
         planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. You feel like defiling a grave."
     endif
     
@@ -3729,12 +5198,14 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=5
         planets(m).depth=1
         planets(m).atmos=1
-        planets(m).mon=31
-        planets(m).mon2=33
-        planets(m).noamin=d.s-5
-        planets(m).noamax=d.s-4
-        if planets(m).noamin<0 then planets(m).noamin=2 
-        if planets(m).noamax<0 then planets(m).noamax=8 
+        planets(m).mon_template(0)=makemonster(31,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
         planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. No sound reaches you through the vacuum but you see red alert lights still flashing."
     endif
     
@@ -3742,10 +5213,10 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=34
-        planets(m).mon2=34
-        planets(m).noamin=5+d.s
-        planets(m).noamax=15+d.s
+        planets(m).mon_template(0)=makemonster(34,m)
+        planets(m).mon_noamin(0)=d.s+10
+        planets(m).mon_noamax(0)=d.s+15
+        
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
     endif
     
@@ -3753,10 +5224,9 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=3
-        planets(m).mon2=3
-        planets(m).noamin=1
-        planets(m).noamax=1
+        planets(m).mon_template(0)=makemonster(3,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
     
@@ -3764,10 +5234,14 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=18
-        planets(m).mon2=18
-        planets(m).noamin=1
-        planets(m).noamax=1
+        planets(m).mon_template(0)=makemonster(18,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        
+        planets(m).mon_template(1)=makemonster(18,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
     
@@ -3775,10 +5249,10 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=19
-        planets(m).mon2=19
-        planets(m).noamin=1
-        planets(m).noamax=1
+        
+        planets(m).mon_template(0)=makemonster(19,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
     
@@ -3786,10 +5260,14 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=35
-        planets(m).mon2=35
-        planets(m).noamin=1
-        planets(m).noamax=1
+        planets(m).mon_template(0)=makemonster(35,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        
+        planets(m).mon_template(1)=makemonster(35,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
     
@@ -3798,11 +5276,14 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=0
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=29
-        planets(m).mon2=29
-        planets(m).noamin=d.s-5
-        if planets(m).noamin<0 then planets(m).noamin=0
-        planets(m).noamax=d.s
+        planets(m).mon_template(0)=makemonster(65,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(29,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
         planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
     endif
     
@@ -3810,12 +5291,18 @@ sub makedrifter(d as gamecords, bg as short=0)
         planets(m).darkness=5
         planets(m).depth=1
         planets(m).atmos=4
-        planets(m).mon=38
-        planets(m).mon2=33
-        planets(m).noamin=1
-        planets(m).noamax=2
+        
+        planets(m).mon_template(0)=makemonster(38,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=1
+        
+        planets(m).mon_template(1)=makemonster(47,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=1
+        
         planets(m).flavortext="As you enter this " &shiptypes(d.s)& " you hear a squeaking noise almost like a jiggle. You feel uneasy. Something is here, and it is not friendly." 
     endif
+    
     planets(m).flags(0)=0
     planets(m).flags(1)=d.s
     planets(m).flags(2)=rnd_range(1,s.h_maxhull)
@@ -3951,33 +5438,33 @@ function makeroad(byval s as cords,byval e as cords, a as short) as short
     for x=1 to 59
             for y=1 to 19
                 if planetmap(x,y,a)<-30 and planetmap(x,y,a)>-42 then
-                    if planetmap(x-1,y,a)<-30 or planetmap(x+1,y,a)<-30 then planetmap(x,y,a)=-32
-                    if planetmap(x,y-1,a)<-30 or planetmap(x,y+1,a)<-30 then planetmap(x,y,a)=-31
+                    if (planetmap(x-1,y,a)<-30 and planetmap(x-1,y,a)>-42) or (planetmap(x+1,y,a)<-30 and planetmap(x+1,y,a)>-42) then planetmap(x,y,a)=-32
+                    if (planetmap(x,y-1,a)<-30 and planetmap(x,y-1,a)>-42) or (planetmap(x,y+1,a)<-30 and planetmap(x,y+1,a)>-42) then planetmap(x,y,a)=-31
                     
-                    if planetmap(x-1,y,a)<-30 and planetmap(x,y+1,a)<-30 then 'bow down
+                    if planetmap(x-1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x-1,y,a)>-42 and planetmap(x,y+1,a)>-42 then 'bow down
                         planetmap(x,y,a)=-34
                     endif
-                    if planetmap(x-1,y,a)<-30 and planetmap(x,y-1,a)<-30 then 'bow up
+                    if planetmap(x-1,y,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x-1,y,a)>-42 and planetmap(x,y-1,a)>-42 then 'bow up
                         planetmap(x,y,a)=-35
                     endif
-                    if planetmap(x+1,y,a)<-30 and planetmap(x,y+1,a)<-30 then 'bow down
+                    if planetmap(x+1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x+1,y,a)>-42 and planetmap(x,y+1,a)>-42 then 'bow down
                         planetmap(x,y,a)=-36
                     endif
-                    if planetmap(x+1,y,a)<-30 and planetmap(x,y-1,a)<-30 then 'bow up
+                    if planetmap(x+1,y,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x+1,y,a)>-42 and planetmap(x,y-1,a)>-42 then 'bow up
                         planetmap(x,y,a)=-37
                     endif
                     
                     
-                    if planetmap(x-1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x,y-1,a)<-30 then 'bow down
+                    if planetmap(x-1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x,y+1,a)>-42 and planetmap(x,y-1,a)>-42 and planetmap(x-1,y,a)>-42 then 'bow down
                         planetmap(x,y,a)=-38
                     endif
-                    if planetmap(x,y+1,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x+1,y,a)<-30 then 'bow up
+                    if planetmap(x,y+1,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x+1,y,a)<-30 and planetmap(x,y+1,a)>-42 and planetmap(x,y-1,a)>-42 and planetmap(x+1,y,a)>-42  then 'bow up
                         planetmap(x,y,a)=-39
                     endif
-                    if planetmap(x+1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x-1,y,a)<-30 then 'bow down
+                    if planetmap(x+1,y,a)<-30 and planetmap(x,y+1,a)<-30 and planetmap(x-1,y,a)<-30 and planetmap(x+1,y,a)>-42 and planetmap(x,y+1,a)>-42 and planetmap(x-1,y,a)>-42 then 'bow down
                         planetmap(x,y,a)=-40
                     endif
-                    if planetmap(x+1,y,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x-1,y,a)<-30then 'bow up
+                    if planetmap(x+1,y,a)<-30 and planetmap(x,y-1,a)<-30 and planetmap(x-1,y,a)<-30 and planetmap(x+1,y,a)>-42 and planetmap(x,y-1,a)>-42 and planetmap(x-1,y,a)>-42 then 'bow up
                         planetmap(x,y,a)=-41
                     endif
                     
@@ -4260,14 +5747,15 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                        else
                             ti=93+in
                        endif
-                       planetmap(p.x,p.y,slot)=-ti
                        if rnd_range(1,100)<16+planets(slot).atmos then
-                            planetmap(p.x,p.y,slot)=-b
+                            planetmap(p.x,p.y,slot)=-ti
                             if show_all=1 then planetmap(p.x,p.y,slot)=-planetmap(p.x,p.y,slot)
-                            pyr=pyr+10+2*in                
-                            if rnd_range(1,100)<b-66 then 
-                                placeitem(makeitem(94),p.x,p.y,slot,0,0)
-                            endif
+                            pyr=pyr+10+2*(a+1)                
+                            if rnd_range(1,100)<ti-66 then placeitem(makeitem(94),p.x,p.y,slot,0,0)
+                            if rnd_range(1,100)<ti-66 then placeitem(makeitem(94),p.x,p.y,slot,0,0)
+                            if rnd_range(1,100)<ti-66 and ti>=93 then placeitem(makeitem(94),p.x,p.y,slot,0,0)
+                            if rnd_range(1,100)<ti-66 and ti>=93 then placeitem(makeitem(94),p.x,p.y,slot,0,0)
+                            if rnd_range(1,100)<ti-66 and ti>=93 then placeitem(makeitem(94),p.x,p.y,slot,0,0)
                        endif
                        c=rnd_range(1,8)
                        if c=5 then c=9
@@ -4292,9 +5780,10 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
             lastplanet=lastplanet+1
             makelabyrinth(lastplanet)
             planets(lastplanet).depth=1
-            planets(lastplanet).mon=21
-            planets(lastplanet).noamin=10
-            planets(lastplanet).noamax=20
+    
+            planets(lastplanet).mon_template(0)=makemonster(21,lastplanet)
+            planets(lastplanet).mon_noamin(0)=10
+            planets(lastplanet).mon_noamax(0)=20
             planets(lastplanet).atmos=planets(slot).atmos
             for i=0 to rnd_range(2,6)+rnd_range(1,6)+rnd_range(2,6)
                 p=rnd_point(lastplanet,0)
@@ -4305,6 +5794,13 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                 p=rnd_point(lastplanet,0)
                 placeitem(makeitem(96,-2,-3),p.x,p.y,lastplanet)
             next
+            
+            if rnd_range(1,100)<5 then
+                p=rnd_point(lastplanet,0)
+                planetmap(p.x,p.y,lastplanet)=225
+                placeitem(makeitem(97),p.x,p.y,lastplanet)
+                placeitem(makeitem(98),p.x,p.y,lastplanet)
+            endif
             
             from.x=p.x
             from.y=p.y
@@ -4415,6 +5911,60 @@ function flood_fill(x as short,y as short,map() as short, flag as short=0) as sh
   endif
 end function
 
+
+function floodfill3(x as short,y as short,map() as short) as short
+    if x>=0 and y>=0 and x<=60 and y<=20 then
+          if map(x,y)=0 or map(x,y)=2 or map(x,y)=-2 then
+              if map(x,y)=0 then map(x,y)=-1
+              if map(x,y)=2 then map(x,y)=-2
+          else
+              return 0
+          endif
+          FloodFill3(x+1,y,map())
+          FloodFill3(x-1,y,map())
+          FloodFill3(x,y+1,map())
+          FloodFill3(x,y-1,map())
+    endif
+    return 0
+end function
+
+function checkvalid(x as short,y as short, map() as short) as short
+    if x<=0 then return 0
+    if y<=0 then return 0
+    if x>=60 then return 0
+    if y>=20 then return 0
+    if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=1 then
+            return -1
+        endif
+        return 0
+end function
+
+function checkdoor(x as short,y as short, map() as short) as short
+    if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y)=1 then
+        if map(x,y+1)=-1 and map(x,y-1)=0 then return -1
+        if map(x,y-1)=-1 and map(x,y+1)=0 then return -1
+    endif
+    
+    if map(x,y-1)=1 and map(x,y+1)=1 and map(x,y)=1 then
+        if map(x+1,y)=-1 and map(x-1,y)=0 then return -1
+        if map(x-1,y)=-1 and map(x+1,y)=0 then return -1
+    endif
+    return 0
+end function
+
+function checkbord(x as short,y as short, map() as short) as short
+    if x<=0 then return 0
+    if y<=0 then return 0
+    if x>=60 then return 0
+    if y>=20 then return 0
+    dim r as short
+    if map(x-1,y)=0 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=1 then r=1
+    if map(x-1,y)=1 and map(x+1,y)=0 and map(x,y-1)=1 and map(x,y+1)=1 then r=2
+    if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=0 and map(x,y+1)=1 then r=3
+    if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=0 then r=4
+    if map(x-1,y)=1 and map(x+1,y)=1 and map(x,y-1)=1 and map(x,y+1)=1 then r=5
+    return r
+end function
 
 function rndwallpoint(r as _rect, w as byte) as cords
     dim p as cords
