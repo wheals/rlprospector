@@ -318,7 +318,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=1 then
             a=rnd_range(1,8)
             if a=1 then dprint "It says: 'Do you like our research station?'"
-            if a=2 then dprint "It says: 'We to pick up signals from 3 gigantic artificial structures in space. Are they yours?'"
+            if a=2 then dprint "It says: 'We do pick up signals from 3 gigantic artificial structures in space. Are they yours?'"
             if a=3 then dprint "It says: 'You should visit our main world. Its the third planet in this system.'"
             if a=4 then dprint "It says: 'FTL technology is still very new for our kind. We hope you come in peace and we can learn a lot from you'"
             if a=5 then dprint "It says: 'This is a research station. There are no warriors here."
@@ -425,8 +425,8 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=1 then
             a=rnd_range(1,6)
             if a=1 then dprint "It says: 'Is there a lot of water on your world?'"
-            if a=2 then dprint "The Citizen says: 'You have chosen the right time of the year to visit our colony!'"
-            if a=3 then dprint "The Citizen says: 'You are an offworlder, aren't you? You should visit Mr. Grey, he collects native art.'"
+            if a=2 then dprint "It says 'You have a very low number of arms, maybe we should lend you some'"
+            if a=3 then dprint "It says: 'Traveling among the stars, must be exciting!'"
             if a>3 then 
                 dprint "It says: 'I can help you! I would love to travel with you! May I?'"
                 if askyn("Do you want to let the cephalopod join your crew?(y/n)") then
@@ -468,7 +468,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     if e.lang=21 then
         if e.aggr=0 then dprint "It howls: 'We will defeat you!"
         if e.aggr=1 then
-            a=rnd_range(1,6)
+            a=rnd_range(1,8)
             if a=1 then dprint "It says: 'Interesting! Talking bipeds! They seem to rely on other producers much like the primitve life on our world does.'"
             if a=2 then dprint "It says: 'We had a discussion about experimenting with fire, but we deemed it too dangerous.'" 
             if a=3 then 
@@ -480,26 +480,19 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             endif
             if a=4 then dprint "It says: 'A lot of our knowledge was never tested. It's origins are lost in the mists of time.'"
             if a=5 then dprint "It says: 'There is a legend that our kind was artificially created as pets for a species that has dissapeared.'"
-            if a=6 then 
+            if a>=6 then 
                 if askyn("It says: 'I'd love to see other worlds! I would volunteer to serve as a science officer for you.' Do you accept(y/n)") then
                     if player.science>3 then
                         if askyn("Your science officer is better than the tree creature. Do you want to take it with you regardless? (y/n)") then
                             player.science=3
-                            crew(4).paymod=0
-                            crew(4).hp=3
-                            crew(4).hpmax=3
-                            crew(4).talents(24)=2
-                            crew(4).n=alienname(1)
+                            addmember(14)
                             e.hp=0
                             e.hpmax=0
                         endif
                     else
                         player.science=3
-                        crew(4).paymod=0
-                        crew(4).hp=3
-                        crew(4).hpmax=3
-                        crew(4).talents(24)=2
-                        crew(4).n=alienname(1)
+                        addmember(14)
+                        dprint ""&crew(4).disease
                         e.hp=0
                         e.hpmax=0
                     endif
@@ -532,6 +525,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                     crew(5).hpmax=6
                     crew(5).hp=6
                     crew(5).n="Ted Rofes"
+                    crew(4).xp=0
                     e.hp=0
                     e.hpmax=0
                 endif        
@@ -848,14 +842,14 @@ function plantname(ti as _tile) as string
 end function
 
 
-function randomcritterdescription(spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as string
+function randomcritterdescription(enemy as _monster, spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
 
 dim as string text
 dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(6),wings(4),horns(4),tails(5)
 dim as short a,w1,w2
 dim as string species(12)
 dim as short limbsbyspec(12),eyesbyspec(12)
-dim as short noeyes,nolimbs,add,nolegs,noarms
+dim as short noeyes,nolimbs,add,nolegs,noarms,armor,roll
 if water=1 then
     w1=4
     w2=1
@@ -978,6 +972,7 @@ if rnd_range(1,10)<7+w2 then
     text=text & " and a " &mouths(rnd_range(1,4))
 else
     text=text &", "&rnd_range(1,2)*2 &" "& horns(rnd_range(1,4)) & " and a " &mouths(rnd_range(1,4))
+    enemy.weapon=enemy.weapon+1
 endif
 text=text &". A "&necks(rnd_range(1,4)) &" neck leads to a " & bodys(rnd_range(1,4)) &" body, with " 
 nolegs=rnd_range(1,6)*2
@@ -1006,21 +1001,49 @@ else
     text=text & " and no legs"
 endif
 
-
-text=text &". Its whole body is covered in"&skin(rnd_range(1,5+w2))&"."
+armor=rnd_range(1,5)+w2
+text=text &". Its whole body is covered in"&skin(armor)&"."
+if armor=1 then enemy.col=rnd_range(204,209)
+if armor=2 then 
+    enemy.col=rnd_range(1,3)
+    if enemy.col=1 then enemy.col=78
+    if enemy.col=2 then enemy.col=114
+    if enemy.col=3 then enemy.col=120
+endif
+if armor=3 then enemy.col=rnd_range(90,94)
+if armor=4 then enemy.col=rnd_range(156,159)
+if armor=5 then 
+    enemy.col=rnd_range(215,217)
+    enemy.armor+=1
+endif
+if armor=6 then 
+    enemy.col=rnd_range(74,77)
+    enemy.armor+=2
+endif
+    
 if rnd_range(1,6)<3 then
     if rnd_range(1,6)<3 then
-        text=text &" It has " & rnd_range(1,3)&" "&tails(rnd_range(1,5))&"s."
+        roll=rnd_range(1,3)
+        text=text &" It has " & roll &" "&tails(rnd_range(1,5))&"s."
+        enemy.weapon=enemy.weapon+1
     else
-        text=text &" It has a "&tails(rnd_range(1,4))&"."
+        roll=rnd_range(1,5)
+        text=text &" It has a "&tails(roll)&"."
+        if roll=4 then enemy.weapon=enemy.weapon+1
+        if roll=5 then
+            enemy.weapon=enemy.weapon+1
+            enemy.atcost=enemy.atcost-0.2
+        endif
     endif    
 endif
+
 text=text &" It weighs appr. "&weight*rnd_range(1,8)*rnd_range(1,10) &" Kg."
 if flies=1 then text= text &" It flies using "&wings(rnd_range(1,3)) &"."
 if diet=1 then text=text &" It is a predator."
 if diet=2 then text=text &" It is a herbivour."
 if diet=3 then text=text &" It is a scavenger."
-return text
+enemy.ldesc=text
+return enemy
 end function
 
 
@@ -1066,7 +1089,7 @@ function givequest(st as short, byref questroll as short) as short
                 do
                     bay=getnextfreebay
                     if bay>0 then
-                        player.cargo(bay).x=8
+                        player.cargo(bay).x=11
                         player.cargo(bay).y=st2
                         car=car-1
                     endif
@@ -1110,7 +1133,7 @@ function givequest(st as short, byref questroll as short) as short
                         if askyn("Do you want to make room for the cargo (losing "& basis(st).inv(player.cargo(1).x-1).n &")?(y/n)") then bay=1
                     endif
                     if bay>0 then
-                        player.cargo(bay).x=7 'type=specialcargo
+                        player.cargo(bay).x=10 'type=specialcargo
                         player.cargo(bay).y=a 'Destination
                     endif
                 endif
@@ -1413,13 +1436,13 @@ end function
 function checkquestcargo(player as _ship, st as short) as _ship
     dim as short a,b
     for a=1 to 10
-        if player.cargo(a).x=7 and player.cargo(a).y=st then
+        if player.cargo(a).x=10 and player.cargo(a).y=st then
             player.cargo(a).x=1
             player.cargo(a).y=0
             player.money=player.money+500
             dprint "the local representative pays you for delivering the cargo",15,15
         endif
-        if player.cargo(a).x=8 and player.cargo(a).y=st then
+        if player.cargo(a).x=11 and player.cargo(a).y=st then
             player.cargo(a).x=1
             player.cargo(a).y=0
             player.money=player.money+200

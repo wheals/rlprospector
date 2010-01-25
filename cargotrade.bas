@@ -871,15 +871,19 @@ function refuel() as short
 end function
 
 function repairhull() as short
-    dim as short b,c,d
+    dim as short a,b,c,d,add
+    player.addhull=0
+    for a=1 to 5
+        if player.weapons(a).made=87 then player.addhull=player.addhull+5
+    next
     displayship
-    if player.hull<player.h_maxhull then
-        dprint "you can add up to " & player.h_maxhull-player.hull &" Hull points (100 Cr per point)"
-        b=getnumber(player.hull,player.h_maxhull,player.hull)
+    if player.hull<player.h_maxhull+player.addhull then
+        dprint "you can add up to " & player.h_maxhull+player.addhull-player.hull &" Hull points (100 Cr per point)"
+        b=getnumber(player.hull,player.h_maxhull+player.addhull,player.hull)
         if b>0 then
             b=b-player.hull
-            if b+player.hull>player.h_maxhull then b=player.h_maxhull-player.hull
-                if b*100>player.money then
+            if b+player.hull>player.h_maxhull+player.addhull then b=player.h_maxhull-player.hull
+            if b*100>player.money then
                 dprint "you dont have enough credits"
             else
                 player.money=player.money-b*100
@@ -889,10 +893,11 @@ function repairhull() as short
     else
         dprint "your ship is fully armored"
     endif
+
     return 0
 end function
 
-function sickbay() as short
+function sickbay(st as short=0) as short
     dim text as string
     dim augn(6) as string
     dim augp(6) as short
@@ -900,25 +905,25 @@ function sickbay() as short
     '"Augments/ Targeting - 100 Cr/ Muscle Enhancement - 100 Cr/ Infrared Vision - 100 Cr/ Speed Enhancement - 100 Cr/ Exosceleton - 100 Cr/ Damage resistance - 100Cr/Exit")
                 
     augn(1)="Targeting"
-    augp(1)=100
+    augp(1)=100-st*20
     augd(1)="A targeting computer linked directly to the brain"
     augn(2)="Muscle Enhancement"
-    augp(2)=100
+    augp(2)=100-st*20
     augd(2)="Artificial glands producing adrenalin on demand, increasing strength."
     augn(3)="Improved lungs"
-    augp(3)=80
+    augp(3)=80-st*20
     augd(3)="User has lower oxygen requirement." 
     augn(4)="Speed Enhancement"
-    augp(4)=150
+    augp(4)=150-st*20
     augd(4)="Artificial muscular tissue, increasing running speed"
     augn(5)="Exosceleton"
-    augp(5)=100
+    augp(5)=100-st*20
     augd(5)="An artificial exosceleton to prevent damage."
     augn(6)="Metabolism Enhancement"
-    augp(6)=150
+    augp(6)=150-st*20
     augd(6)="Increased pain threshholds and higher hormone output enable to withstand wounds longer."
     
-    dim as short a,b,c,price,cured
+    dim as short a,b,c,price,cured,c2
     for a=1 to 6
         augn(0)=augn(0)&augn(a)&" - "&augp(a)&"Cr. /"
         augd(0)=augd(0)&augd(a)&"/"
@@ -932,7 +937,7 @@ function sickbay() as short
             'if player.disease>0 then price=price+10*player.disease
             for b=1 to 128
                 if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
-                    price=price+10*crew(b).disease
+                    price=price+10*crew(b).disease-st*3
                 endif
             next
             if player.disease>0 then price=price+10*player.disease
@@ -962,34 +967,53 @@ function sickbay() as short
                 displayship()
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
                 if b>0 and b<7 then
-                    c=showteam(0,1)
-                    dprint b &":"&c
-                    if crew(c).typ<=9 and b>0 and c>0 then
-                        if crew(c).augment(b)=0 then
-                            if player.money>=augp(b) then
-                                if crew(c).augment(9)<=3 then
-                                    crew(c).augment(9)+=1
-                                    player.money=player.money-augp(b)
-                                    crew(c).augment(b)=1
-                                    if b=6 then 
-                                        crew(c).hp+=1
-                                        crew(c).hpmax+=1
+                    if askyn("Do you want to buy "&augn(b) &" for the whole crew?(y/n)") then
+                        c=1
+                        c2=0
+                    else
+                        c=showteam(0,1)
+                        c2=1
+                    endif
+                    do
+                        sleep 100
+                        if crew(c).typ<=9 and b>0 and c>0 then
+                            if crew(c).augment(b)=0 then
+                                if player.money>=augp(b) then
+                                    if crew(c).augment(9)<3 or st<>0 then
+                                        if st<>0 and crew(c).augment(9)>=3 then 
+                                            if not(askyn("Installing more than 3 augmentations can be dangerous, even kill the recipient. shall we proceed? (y/n)")) then c=-1
+                                        endif        
+                                            if c>0 then
+                                            crew(c).augment(9)+=1
+                                            player.money=player.money-augp(b)
+                                            crew(c).augment(b)=1
+                                            if b=6 then 
+                                                crew(c).hp+=1
+                                                crew(c).hpmax+=1
+                                            endif
+                                            dprint augn(b) & " installed in "&crew(c).n &"."
+                                            if crew(c).augment(9)>3 and rnd_range(1,6)+rnd_range(1,6)>11-crew(c).augment(9) then
+                                                dprint crew(c).n &" has died during the operation."
+                                                crew(c).hp=0
+                                                if c=1 then player.dead=28
+                                            endif
+                                        endif
+                                    else
+                                        dprint "We can't install more than 3 augmentations."
                                     endif
-                                    dprint augn(b) & " installed in "&crew(c).n &"."
                                 else
-                                    dprint "We can't install more than 3 augmentations."
+                                    dprint "You don't have enough money.",14,14
                                 endif
                             else
-                                dprint "You don't have enough money.",14,14
+                                dprint crew(c).n &" already has "&augn(b)&"."
                             endif
                         else
-                            dprint crew(c).n &" already has "&augn(b)&"."
+                            dprint "We can only install augments in humans."
                         endif
-                    else
-                        dprint "We can only install augments in humans."
-                    endif
+                        c+=1
+                    loop until crew(c).hpmax<=0 or c2>0 or player.money<augp(b)
                 endif
-            loop until b=7 or b=-1
+            loop until b=7 or b=-1 or player.dead<>0
         endif
         displayship
     loop until a=4
@@ -1070,7 +1094,7 @@ function shipyard(pir as short=1) as short
     return 0
 end function
 
-function shipupgrades() as short
+function shipupgrades(st as short) as short
     dim as short b,c,d,e
     shopitem(1,20).desig="sensors MK I"
     shopitem(1,20).price=200
@@ -1144,6 +1168,21 @@ function shipupgrades() as short
     shopitem(10,20).v1=2
     shopitem(10,20).ldesc="Designed to prevent sensor locks, and decrease sensor echo. especially effective against missiles"
     
+    shopitem(11,20).desig="Cargo bay shielding"
+    shopitem(11,20).price=500
+    shopitem(11,20).ty=54
+    shopitem(11,20).id=1006
+    shopitem(11,20).v1=30
+    shopitem(11,20).ldesc="Special shielding for cargo bays, making it harder to scan them."
+    
+    
+    shopitem(12,20).desig="Cargo bay shielding MKII"
+    shopitem(12,20).price=1500
+    shopitem(12,20).ty=54
+    shopitem(12,20).id=1007
+    shopitem(12,20).v1=45
+    shopitem(12,20).ldesc="Special shielding for cargo bays, making it harder to scan them."
+    
     do 
         displayship
         c=menu("Ship Upgrades:/Sensors/Shields/Engine/Weapons & Modules/Exit")
@@ -1152,11 +1191,11 @@ function shipupgrades() as short
             
             
             do
-            d=menu("Sensors:/ Sensors MKI - 200 Cr/ Sensors MKII - 800 Cr/ Sensors MKIII - 1600 Cr/ Sensors MK IV - 3200 Cr/ Sensors MK V - 6400 Cr/ Ship detection system - 1500 Cr / Imp. ship detection system - 3000 Cr/ Navigational computer - 350 Cr/ ECM System I - 3000 Cr/ ECM System II - 9000 Cr/Exit")
+            d=menu("Sensors:/ Sensors MKI - 200 Cr/ Sensors MKII - 800 Cr/ Sensors MKIII - 1600 Cr/ Sensors MK IV - 3200 Cr/ Sensors MK V - 6400 Cr/ Ship detection system - 1500 Cr / Imp. ship detection system - 3000 Cr/ Navigational computer - 350 Cr/ ECM System I - 3000 Cr/ ECM System II - 9000 Cr/ Cargo shielding I - 500 Cr/ Cargo shielding II - 1500 Cr/Exit")
                     
             displayship
             if d<>-1 then
-                if d>0 and d<11 then
+                if d>0 and d<13 then
                     if player.money>=shopitem(d,20).price then
                         if shopitem(d,20).ty=50 then
                             if shopitem(d,20).v1>player.h_maxsensors then dprint "Your ship is too small for those"
@@ -1196,13 +1235,28 @@ function shipupgrades() as short
                                 dprint "You buy "&shopitem(d,20).desig
                             endif
                         endif
+                        if shopitem(d,20).ty=54 then
+                            if shopitem(d,20).v1<player.shieldedcargo then
+                            dprint "you already have a better cargo shielding"
+                                player.money=player.money+shopitem(d,20).price
+                            endif
+                            if shopitem(d,20).v1=player.shieldedcargo then
+                                dprint "That is the same as your current cargo shielding"
+                                player.money=player.money+shopitem(d,20).price
+                            endif
+                            if shopitem(d,20).v1>player.shieldedcargo then 
+                                player.shieldedcargo=shopitem(d,20).v1
+                                player.money=player.money-shopitem(d,20).price
+                                dprint "You buy "&shopitem(d,20).desig
+                            endif
+                        endif
                     else
                         dprint "You don't have enough money."
                     endif
                 endif
             endif
             displayship()
-            loop until d=-1 or d=11
+            loop until d=-1 or d=13
             for b=1 to lastitem
                 if item(b).ty=50 then
                     item(b)=item(lastitem)
@@ -1262,7 +1316,7 @@ function shipupgrades() as short
             endif
                 
             if c=4 then 'weapons
-                player=buyweapon()
+                player=buyweapon(st)
                 
             endif
             displayship()
@@ -1274,13 +1328,16 @@ function pirateupgrade() as short
     dim a as short
     if player.h_maxcrew>=10 then
         player.h_maxcrew=player.h_maxcrew-5
+        player.h_maxcargo=player.h_maxcargo+1
         for a=1 to 9
             if player.cargo(a).x=0 then
                 player.cargo(a).x=1
+                recalcshipsbays()
                 return 0
             endif
         next
     endif
+    recalcshipsbays()
     return 0
 end function
 
@@ -1450,7 +1507,7 @@ end function
 
 function stockmarket(st as short) as short
     dim dis(4) as byte
-    dim as short a,b,c,d
+    dim as short a,b,c,d,amount
     dim cn(5) as short
     dim text as string
     
@@ -1486,13 +1543,15 @@ function stockmarket(st as short) as short
             b=menu(text &"/Exit",,2,2)
             if b>0 and b<4 then
                 if cn(b-1)>0 then
-                    if player.money>=companystats(cn(b-1)).rate then
-                        companystats(cn(b-1)).capital=companystats(cn(b-1)).capital+companystats(cn(b-1)).rate/10
-                        player.money=player.money-companystats(cn(b-1)).rate
-                        player.tradingmoney=player.tradingmoney-companystats(cn(b-1)).rate
-                        buyshares(cn(b-1),1)
+                    dprint "How many shares of "&companyname(cn(b-1))&"do you want to buy?"
+                    amount=getnumber(0,99,0)
+                    if player.money>=companystats(cn(b-1)).rate*amount and amount>0 then
+                        companystats(cn(b-1)).capital=companystats(cn(b-1)).capital+amount
+                        player.money=player.money-companystats(cn(b-1)).rate*amount
+                        player.tradingmoney=player.tradingmoney-companystats(cn(b-1)).rate*amount
+                        buyshares(cn(b-1),amount)
                     else
-                        dprint "You don't have enough Money"
+                        if amount>0 then dprint "You don't have enough Money"
                     endif
                 endif
             endif
@@ -1527,6 +1586,7 @@ function getsharetype() as short
             cn(b)=a
         endif
     next
+    b=b+1
     if text<>"" then
         text="company/"&text &"Exit"
         a=menu(text,"",2,2)
@@ -1552,29 +1612,13 @@ function portfolio(x as short,y as short) as short
     print "Portfolio:"
     color 11,0
     y+=1
-    if n(1)>0 then 
-        locate y,x
-        print "Eridiani Explorations:" & n(1)
-        y+=1
-    endif
-    
-    if n(2)>0 then 
-        locate y,x
-        print "Smith Heavy Industries:" & n(2)
-        y+=1
-    endif
-    
-    if n(3)>0 then 
-        locate y,x
-        print "Triax Traders:" & n(3)
-        y+=1
-    endif
-    
-    if n(4)>0 then 
-        locate y,x
-        print "Omega Bioengineering:" & n(4)
-        y+=1
-    endif
+    for a=1 to 4
+        if n(a)>0 then 
+            locate y,x
+            print companyname(a) &": "& n(a)
+            y+=1
+        endif
+    next
     
     return 0
 end function
@@ -1621,14 +1665,17 @@ function cropstock() as short
 end function
 
 function buyshares(comp as short,n as short) as short
-    lastshare=lastshare+1
-    if lastshare>2048 then 
-        lastshare=2048
-        return -1
-    endif
-    shares(lastshare).company=comp
-    shares(lastshare).bought=player.turn
-    shares(lastshare).lastpayed=player.turn
+    dim a as short
+    for a=1 to n
+        lastshare=lastshare+1
+        if lastshare>2048 then 
+            lastshare=2048
+            return -1
+        endif
+        shares(lastshare).company=comp
+        shares(lastshare).bought=player.turn
+        shares(lastshare).lastpayed=player.turn
+    next
     return 0
 end function
 
@@ -1636,6 +1683,7 @@ function sellshares(comp as short,n as short) as short
     dim as short a,b,c
     for a=0 to lastshare
         if shares(a).company=comp and n>0 then
+            companystats(shares(a).company).capital-=1
             player.money=player.money+companystats(shares(a).company).rate
             player.tradingmoney=player.tradingmoney+companystats(shares(a).company).rate
             shares(a).company=-1
@@ -1646,13 +1694,14 @@ function sellshares(comp as short,n as short) as short
     do
         b=0
         for a=0 to c
-            if shares(a).company=-1 then
+            if shares(a).company=-1 and lastshare>=0 then
                 shares(a)=shares(lastshare)
                 lastshare-=1
                 b=1
             endif
         next
-    loop until b=0
+    loop until b=0 or lastshare<=0
+    if lastshare<0 then lastshare=0
     
     return 0
 end function
@@ -1757,6 +1806,7 @@ function load_s(s as _ship, good as short, st as short) as short
     return result
 end function
 
+
 'function merctrade(basis as station, merc as pirates) as pirates
 '    dim a as short
 '    dim f as integer
@@ -1818,7 +1868,7 @@ sub trading(st as short)
             cls
             displayship()
             displaywares(st)
-            a=menu(" /Buy/Sell/Stock Market/Exit",,2,10)
+            a=menu(" /Buy/Sell/Stock Market/Exit",,2,14)
             if a=1 then buygoods(st)
             if a=2 then sellgoods(st)
             if a=3 then stockmarket(st)
@@ -1828,7 +1878,7 @@ sub trading(st as short)
             cls
             displayship()
             displaywares(st)
-            a=menu(" /Buy/Sell/Exit",,2,10)
+            a=menu(" /Buy/Sell/Exit",,2,14)
             if a=1 then buygoods(st)
             if a=2 then sellgoods(st)
             
@@ -1861,7 +1911,7 @@ sub buygoods(st as short)
         locate 3,28
         print "Sell"
         c=menu(text,"",2,3)
-        if c<6 then
+        if c<9 then
             
             m=basis(st).inv(c).v
             if basis(st).inv(c).v>0 then
@@ -1912,11 +1962,11 @@ sub sellgoods(st as short)
         displaywares(st)
         displayship
         if em>0 then
-            c=menu(text,,2,11)
+            c=menu(text,,2,14)
             if c>0 and c<=b then
-                if player.cargo(c).x>1 and player.cargo(c).x<7 then
+                if player.cargo(c).x>1 and player.cargo(c).x<10 then
                     m=getinvbytype(player.cargo(c).x-1) ' wie viele insgesamt
-                    if player.cargo(c).x<7 then
+                    if player.cargo(c).x<10 then
                         sold=getnumber(0,m,0)
                         if sold>0 then
                             player.money=player.money+sold*basis(st).inv(player.cargo(c).x-1).p*(0.8+addtalent(1,6,.01))
@@ -1952,7 +2002,7 @@ function displaywares(st as short) as short
     print "Buy"
     locate 3,28
     print "Sell"
-    for a=1 to 5
+    for a=1 to 8
         color 11,0
         locate 3+a,2
         print basis(st).inv(a).n
@@ -2004,12 +2054,29 @@ function changeprices(st as short,etime as short) as short
     dim c1 as single
     dim c2 as single
     dim c3 as single
-    for a=1 to 5
+    for a=1 to 8
         basis(st).inv(a).test2=basis(st).inv(a).p
         supply=0
         demand=0
+        if basis(st).company=3 then supply+=1
         for b=1 to etime
-            supply=supply+rnd_range(1,6)
+            if a<6 then
+                supply=supply+rnd_range(1,6)
+            else
+                if basis(st).company=1 and a=8 then 
+                    supply=supply+rnd_range(1,7)
+                    demand-=1
+                endif
+                if basis(st).company=2 and a=7 then 
+                    supply=supply+rnd_range(1,7)
+                    demand-=1
+                endif
+                if basis(st).company=4 and a=6 then 
+                    supply=supply+rnd_range(1,7)
+                    demand-=1
+                endif
+                if basis(st).company=3 then supply=supply+rnd_range(1,4)
+            endif
             demand=demand+rnd_range(1,6)
         next
         change=supply-demand
@@ -2037,7 +2104,7 @@ function changeprices(st as short,etime as short) as short
             basis(st).inv(a).p=baseprice(a)*3
         endif
     next
-    for b=1 to 5
+    for b=1 to 8
         avgprice(b)=0
         for a=0 to 4
             if a<>3 then
@@ -2054,7 +2121,7 @@ function stationgoods(st as short) as string
     dim a as short
     dim off as short
     text=space(18)&"Buy     Sell/"
-    for a=1 to 5
+    for a=1 to 8
         text=text & trim(basis(st).inv(a).n)&space(17-len(trim(basis(st).inv(a).n))) 
         pl=""& basis(st).inv(a).p
         text=text & space(5-len(pl))
@@ -2079,7 +2146,7 @@ function cargobay(st as short) as string
     text="Sell:/"
     for a=1 to 10        
         if player.cargo(a).x=1  then text=text &"Empty/"
-        if player.cargo(a).x>1 and player.cargo(a).x<7 then
+        if player.cargo(a).x>1 and player.cargo(a).x<=9 then
             text=text & basis(st).inv(player.cargo(a).x-1).n
             if player.cargo(a).y=0 then
                 text=text &" found/"
@@ -2087,8 +2154,8 @@ function cargobay(st as short) as string
                 text=text & " bought at " &player.cargo(a).y &"/"
             endif
         endif
-        if player.cargo(a).x=7 then text=text &"Sealed Box/"
-        if player.cargo(a).x=8 then text=text &"TriaxTraders Cargo/"
+        if player.cargo(a).x=10 then text=text &"Sealed Box/"
+        if player.cargo(a).x=11 then text=text &"TriaxTraders Cargo/"
     next
     text=text &"Exit"
     return text
@@ -2167,7 +2234,7 @@ sub recalcshipsbays()
             next
         next
     endif
-    for c=01 to 9
+    for c=1 to 9
         for b=1 to 9
           if player.cargo(b).x<player.cargo(b+1).x then swap player.cargo(b),player.cargo(b+1)
       next        
@@ -2179,6 +2246,11 @@ sub recalcshipsbays()
             crew(c).hp=0
         next    
     endif
+    player.addhull=0
+    for a=1 to 5
+        if player.weapons(a).made=87 then player.addhull=player.addhull+5
+    next
+    if player.hull>player.h_maxhull+player.addhull then player.hull=player.h_maxhull+player.addhull
 end sub
 
 function paystuff(price as integer) as integer
@@ -2254,7 +2326,7 @@ function shop(sh as short,pmod as short,t as string) as short
 end function
 
 function rerollshops() as short
-    dim as short a,b,i,flag,roll
+    dim as short a,b,i,c,sh,flag,roll
     dim it as _items 
     for a=0 to 20
         for b=0 to 21
@@ -2360,6 +2432,47 @@ function rerollshops() as short
         shopitem(a,21)=makeitem(69)
         a+=1
     endif
+    for b=0 to 5
+        i=0
+        c=0
+        if b=5 then sh=1
+        for a=1 to 4+sh
+            if rnd_range(1,100)<(130-(c*10)+(sh*20)) then
+                i=i+1
+                if i>20 then i=20
+                makew(i,b)=a
+            endif
+            c=c+1
+        next
+        c=0
+        for a=6 to 9+sh
+            if rnd_range(1,100)<(130-(c*10)+(sh*20)) then
+                i=i+1
+                if i>20 then i=20
+                makew(i,b)=a
+            endif
+            c=c+1
+        next
+        c=0
+        if sh>0 then
+            for a=11 to 14
+                if rnd_range(1,100)<(100-(c*10)+(sh*20)) then
+                    i=i+1
+                    if i>20 then i=20
+                    makew(i,b)=a
+                endif
+                c=c+1
+            next
+        endif
+        
+        for a=87 to 99
+            if rnd_range(1,100)<55 then
+                i+=1
+                if i>20 then i=20
+                makew(i,b)=a
+            endif
+        next
+    next
     
     return 0
 end function

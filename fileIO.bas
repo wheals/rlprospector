@@ -536,7 +536,39 @@ function getfilename() as string
     return filename    
 end function
 
+function savebones(t as short) as short
+    dim f as integer
+    dim as short x,y,a
+    f=freefile
+    open "bones/"&player.desig &".bon" for binary as #f
+    put #f,,t
+    put #f,,planets(lastplanet)
+    for x=0 to 60
+        for y=0 to 20
+            put #f,,planetmap(x,y,lastplanet)
+        next
+    next
+    for a=0 to lastitem
+        if item(a).w.s=-1 and rnd_range(1,100)<10 then
+            item(a).w.s=0
+            item(a).w.p=0
+            item(a).w.x=player.c.x
+            item(a).w.x=player.c.y
+        else
+            destroyitem(a)
+        endif
+    next
+    put #f,,lastitem
+    for a=0 to lastitem
+        put #f,,item(a)
+    next
+    close #f
+    return 0
+end function
 
+function loadbones() as short
+    return 0
+end function
 
 
 function savegame() as short
@@ -546,12 +578,13 @@ function savegame() as short
     dim c as short
     dim fname as string
     dim f as integer
-    dim dat as string*36
+    dim desig as string*36
     dim names as string*36
     dim cl as string
+    dim dat(13) as uinteger
     cl=player.h_sdesc
     names=player.desig
-    dat="("&cl &", "&player.money &"Cr T:" &player.turn &")"
+    desig="("&cl &", "&player.money &"Cr T:" &player.turn &")"
     
     cls
     back=99
@@ -563,7 +596,7 @@ function savegame() as short
     print ".";
     'save shortinfo
     put #f,,names
-    put #f,,dat
+    put #f,,desig
     
     'save player
     put #f,,player
@@ -571,17 +604,32 @@ function savegame() as short
     put #f,,_autoinspect
     for a=1 to 128
         put #f,,crew(a)
+    
+        dat(0)=dat(0)+sizeof(crew(a))
     next
+    
     put #f,,captainskill
     put #f,,wage
     
     print ".";
     for a=0 to 16
-        put #f,,savefrom(a)
+        
+        put #f,,savefrom(a).awayteam
+        put #f,,savefrom(a).lastlocalitem
+        put #f,,savefrom(a).lastenemy
+        if savefrom(a).lastenemy>0 then
+            for b=0 to savefrom(a).lastenemy
+                put #f,,savefrom(a).enemy(b)
+            next
+        endif
+        put #f,,savefrom(a).ship
+        put #f,,savefrom(a).map
         print ".";
+        'dat(1)=dat(1)+sizeof(savefrom(a))
     next
     'save maps
-    for a=0 to laststar
+    put #f,,wormhole
+    for a=0 to laststar+wormhole
         put #f,,map(a)
         print ".";
     next
@@ -605,7 +653,12 @@ function savegame() as short
         next
         print ".";
     next
-
+    for a=0 to 5
+        for b=0 to 20
+            get #f,,makew(b,a)
+        next
+    next
+    
     for x=0 to sm_x
         for y=0 to sm_y
             put #f,,spacemap(x,y)
@@ -631,15 +684,18 @@ function savegame() as short
     next
     
     put #f,,lastplanet
-    put #f,,wormhole
-    for a=0 to lastplanet+wormhole
-        put #f,,planets(a)
-        for b=0 to 60
-            for c=0 to 20
-                put #f,,planetmap(b,c,a)
+    for a=0 to lastplanet
+        put #f,,planetmap(0,0,a)
+        if planetmap(0,0,a)<>0 then
+            for b=0 to 60
+                for c=0 to 20
+                    put #f,,planetmap(b,c,a)
+                    dat(11)=dat(11)+sizeof(planetmap(b,c,a))
+                next
             next
-        next
-        print ".";
+            put #f,,planets(a)
+            print ".";
+        endif
     next
     for a=0 to lastspecial
         put #f,,specialplanet(a)
@@ -651,6 +707,7 @@ function savegame() as short
     put #f,,lastitem
     for a=0 to lastitem
         put #f,,item(a)
+        dat(12)=dat(12)+sizeof(item(a))
     next
     print ".";
     'save pirates
@@ -671,6 +728,7 @@ function savegame() as short
     put #f,,lastfleet
     for a=0 to lastfleet
         put #f,,fleet(a)
+        dat(13)=dat(13)+sizeof(fleet(a))
     next
     print ".";
     
@@ -682,6 +740,13 @@ function savegame() as short
     next
     close f
     
+    f=freefile
+    fname=player.desig &".log"
+    open fname for output as #f
+    for a=0 to 13
+        print #f,a &":" &dat(a)
+    next
+    close f
     color 14,0
     cls
     return back
@@ -700,6 +765,15 @@ function loadgame(filename as string) as short
     dim f as integer
     dim dat as string*36
     dim names as string*36
+    dim p as _planet
+    for a=0 to max_maps
+        for x=0 to 60
+            for y=0 to 20
+                planetmap(x,y,a)=0
+            next
+        next
+        planets(a)=p
+    next
     
     
     if filename<>"" then
@@ -724,11 +798,20 @@ function loadgame(filename as string) as short
         print ".";
         
         for a=0 to 16
-            get #f,,savefrom(a)
+            get #f,,savefrom(a).awayteam
+            get #f,,savefrom(a).lastlocalitem
+            get #f,,savefrom(a).lastenemy
+            if savefrom(a).lastenemy>0 then
+                for b=0 to savefrom(a).lastenemy
+                    get #f,,savefrom(a).enemy(b)
+                next
+            endif
+            get #f,,savefrom(a).ship
+            get #f,,savefrom(a).map
             print ".";
         next
-        
-        for a=0 to laststar
+        get #f,,wormhole
+        for a=0 to laststar+wormhole
             get #f,,map(a)
             print ".";
         next
@@ -754,6 +837,12 @@ function loadgame(filename as string) as short
             next
             print ".";
         next
+        for a=0 to 5
+            for b=0 to 20
+                get #f,,makew(b,a)
+            next
+        next
+        
                                         
         for x=0 to sm_x
             for y=0 to sm_y
@@ -778,17 +867,19 @@ function loadgame(filename as string) as short
         next
         
         get #f,,lastplanet
-        get #f,,wormhole
-        for a=0 to lastplanet+wormhole
-            get #f,,planets(a)
-            for b=0 to 60
-                for c=0 to 20
-                    get #f,,planetmap(b,c,a)
+        for a=0 to lastplanet
+            get #f,,planetmap(0,0,a)
+
+            if planetmap(0,0,a)<>0 then
+                for b=0 to 60
+                    for c=0 to 20
+                        get #f,,planetmap(b,c,a)
+                    next
                 next
-            next
-            print ".";
+                get #f,,planets(a)
+                print ".";
+            endif
         next
-        
         for a=0 to lastspecial
             get #f,,specialplanet(a)
             get #f,,specialflag(a)

@@ -1,22 +1,3 @@
-declare function collidefleets() as short
-declare function movefleets() as short
-declare function makefleet(f as _fleet) as _fleet
-declare function makepatrol() as _fleet
-declare function makemerchantfleet() as _fleet
-declare function makepiratefleet(modifier as short=0) as _fleet
-declare function updatetargetlist()as short
-declare function bestpilotinfleet(f as _fleet) as short
-declare function addfleets(target as _fleet, source as _fleet) as _fleet    
-declare function piratecrunch(f as _fleet) as _fleet
-declare function clearfleetlist() as short
-declare function countfleet(ty as short) as short
-declare function meetfleet(f as short, player as _ship)as _ship
-declare function debug_printfleet(f as _fleet) as string
-declare function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
-declare function scorefleet(byval f as _fleet) as integer
-declare function makequestfleet(a as short) as _fleet
-declare function makealienfleet() as _fleet
-
 
 function meetfleet(f as short, player as _ship)as _ship
     static lastturncalled as integer
@@ -79,6 +60,7 @@ function meetfleet(f as short, player as _ship)as _ship
                 basis(10).inv(a).p=0
             next
             player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
+            player.shield=player.shieldmax
             if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
             if player.dead>0 and fleet(f).ty=5 then player.dead=21
             for a=1 to 5
@@ -144,7 +126,7 @@ function scorefleet(byval f as _fleet) as integer
 end function
         
 function collidefleets() as short
-    dim as short a,b,c    
+    dim as short a,b,c,d    
     for a=1 to lastfleet
         for b=a to lastfleet
             if b<>a then
@@ -153,7 +135,13 @@ function collidefleets() as short
                     if show_npcs=1 then dprint a &" meets " & b
                     if show_npcs=1 then dprint (debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b)))
                     if fleet(a).ty<>fleet(b).ty then
-                        if fightmatrix(fleet(a).ty,fleet(b).ty)=1 then    '
+                        if fightmatrix(fleet(a).ty,fleet(b).ty)=1 then
+                            for d=1 to 5
+                                basis(10).inv(d).v=0
+                                basis(10).inv(d).p=0
+                            next
+                            fleet(a)=unload_f(fleet(a),10)'
+                            fleet(b)=unload_f(fleet(b),10)'
                             if fleet(a).ty=1 and fleet(b).ty=2 then 
                                 patrolmod=patrolmod+1
                                 if rnd_range(1,100)<10 and lastdrifting<128 then
@@ -191,6 +179,11 @@ function collidefleets() as short
                                 endif
                             endif
                             fleet(a)=fleetbattle(fleet(a),fleet(b))
+                            fleet(a)=load_f(fleet(a),10)
+                            for d=1 to 5
+                                basis(10).inv(d).v=0
+                                basis(10).inv(d).p=0
+                            next
                             fleet(b).ty=0
                         endif
                     else
@@ -205,10 +198,21 @@ function collidefleets() as short
 end function
 
 function movefleets() as short
-    dim as short a,roll,direction
+    dim as short a,b,c,roll,direction,freecargo
     a=0
     for a=1 to lastfleet
         updatetargetlist()
+        if fleet(a).ty=2 then
+            freecargo=0
+            for b=1 to 15
+                if fleet(a).mem(b).hull>0 then 
+                    for c=1 to 10
+                        if fleet(a).mem(b).cargo(c).x=1 then freecargo+=1
+                    next
+                endif
+            next
+            if freecargo=0 then fleet(a).t=10
+        endif
         roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
         if roll>7 then
             'move towards target
@@ -234,6 +238,10 @@ function movefleets() as short
             if fleet(a).ty=1 then fleet(a)=merctrade(fleet(a))
             fleet(a).t=fleet(a).t+1 'Pirates have targetnumbers 8 or 9, they will never see this
             if fleet(a).t>lastwaypoint then fleet(a).t=0
+        endif
+        if fleet(a).t=10 and fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
+            fleet(a)=unload_f(fleet(a),6)
+            fleet(a).t=9
         endif
     next
     return 0
@@ -357,14 +365,14 @@ function makepiratefleet(modifier as short=0) as _fleet
         b=rnd_range(0,_NoPB+1)
         if b>_NoPB then b=0
         c=c+1
-    loop until piratebase(b)>0 or c>500
-    if c>500 then return f
+    loop until piratebase(b)>0 or c>5
+    if c>5 then return f
     f.ty=2
     f.t=9 'All pirates start with target 9 (random point)
     f.c=map(piratebase(b)).c
-    maxroll=player.turn/120
+    maxroll=player.turn/150
     if maxroll>60 then maxroll=60
-    for a=1 to rnd_range(1,2)+maxroll/20    
+    for a=1 to rnd_range(0,1)+cint(maxroll/20)    
         r=rnd_range(1,maxroll)+modifier
         f.mem(a)=makeship(2)
         if r>15 then f.mem(a)=makeship(3)
@@ -507,13 +515,14 @@ function updatetargetlist()as short
     if frac(lastcalled/25)=0 then
     targetlist(9).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
     targetlist(9).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
+    targetlist(10)=map(piratebase(b)).c
     'targetlist(9)=fleet(rnd_range(1,lastfleet)).c
     endif
     lastcalled=lastcalled+1
     return 0
 end function
 
-function setmonster(enemy as _monster,map as short,spawnmask()as cords,lsp as short ,x as short=0,y as short=0,mslot as short=0) as _monster    
+function setmonster(enemy as _monster,map as short,spawnmask()as cords,lsp as short ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
     dim as short l
     l=rnd_range(0,lsp)
     if x=0 then x=spawnmask(l).x
@@ -527,15 +536,17 @@ function setmonster(enemy as _monster,map as short,spawnmask()as cords,lsp as sh
     endif
     if enemy.hpmax<0 then enemy.hpmax=1
     if enemy.hp>0 then enemy.hp=enemy.hpmax
-    for l=0 to 8
-        if rnd_range(1,100)<enemy.itemch(l) and enemy.items(l)<>0 then
-            if enemy.items(l)>0 then
-                placeitem(makeitem(enemy.items(l)),x,y,map,mslot,0)
-            else
-                placeitem(rnd_item(-enemy.items(l)),x,y,map,mslot,0)
+    if its>0 then
+        for l=0 to 8
+            if rnd_range(1,100)<enemy.itemch(l) and enemy.items(l)<>0 then
+                if enemy.items(l)>0 then
+                    placeitem(makeitem(enemy.items(l)),x,y,map,mslot,0)
+                else
+                    placeitem(rnd_item(-enemy.items(l)),x,y,map,mslot,0)
+                endif
             endif
-        endif
-    next
+        next
+    endif
     return enemy
 end function
 
@@ -555,7 +566,7 @@ function makemonster(a as short, map as short) as _monster
     enemy.made=a
     
     ti(0)="avian"
-    ti(1)="arachnide"
+    ti(1)="arachnid"
     ti(2)="insect"
     ti(3)="mammal"
     ti(4)="reptile"
@@ -582,7 +593,7 @@ function makemonster(a as short, map as short) as _monster
     ch(1)=65
     ch(2)=73
     ch(3)=77
-    ch(4)=82
+    ch(4)=asc("l")
     ch(5)=asc("s")
     ch(6)=asc("h")
     ch(7)=asc("q")
@@ -630,9 +641,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=rnd_range(0,2)
         enemy.respawns=1
         d=rnd_range(1,8) '1 predator, 2 herbivore, 3 scavenger
+      
         if d=8 then enemy.diet=3
-        if d<8 and d>=5 then enemy.diet=2
-        if d<5 then enemy.diet=1
+        if d<5 then enemy.diet=2
+        if d>=5 and d<8 then enemy.diet=1
         enemy.move=(rnd_range(0,5)+rnd_range(0,4)+rnd_range(0,enemy.weapon))/10
         if enemy.move<=0.7 then enemy.move=0.7
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then
@@ -647,7 +659,6 @@ function makemonster(a as short, map as short) as _monster
         enemy.dkill="dies"
         enemy.biomod=1
         enemy.lang=-1
-        enemy.diet=1
         enemy.atcost=rnd_range(7,10)/10
         enemy.intel=rnd_range(1,5)
         if a=1 then enemy.intel=enemy.intel+rnd_range(1,3)
@@ -688,28 +699,16 @@ function makemonster(a as short, map as short) as _monster
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
         if rnd_range(1,100)<25-enemy.intel then enemy.disease=rnd_range(1,15)
-        mapo=2*(c+ad(g))*b
+        mapo=0
         for l=1 to c+ad(g)
             enemy.hp=enemy.hp+rnd_range(1,b)
+            mapo=mapo+b-1
         next
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
-        'enemy.col=rnd_range(2,5)
-        enemy.col=rnd_range(90,122)
         enemy.sdesc=ti(g)
-        enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
-        if a=24 then enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,1,planets(map).depth)
-        if instr(enemy.ldesc,"horn")>0 then enemy.weapon=enemy.weapon+1
-        if instr(enemy.ldesc,"spiked")>0 then enemy.weapon=enemy.weapon+1
-        if instr(enemy.ldesc,"stinger")>0 then 
-            enemy.weapon=enemy.weapon+1
-            enemy.atcost=enemy.atcost-0.2
-        endif
-        if instr(enemy.ldesc,"exoskeleton")>0 then enemy.armor=1
-        if instr(enemy.ldesc,"chitin")>0 then enemy.armor=2
-        if enemy.hp>mapo*0.8 then enemy.col=10
-        if enemy.weapon>0 then enemy.col=12
-        if enemy.hp>mapo*0.8 and enemy.weapon>0 then enemy.col=13
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
+        if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,1,planets(map).depth)
         if rnd_range(1,15)<planets(map).depth then
             enemy.breedson=rnd_range(0,5+planets(map).depth)
         endif
@@ -723,11 +722,16 @@ function makemonster(a as short, map as short) as _monster
             enemy.atcost=enemy.atcost-0.2
             enemy.diet=1
         endif
-        if enemy.armor=0 then 
-            enemy.tile=asc(lcase(chr(enemy.tile)))
-        else
+        
+        if enemy.weapon>2 then enemy.col=12
+        if enemy.hp>mapo*0.7 then 
             enemy.tile=asc(ucase(chr(enemy.tile)))
+            enemy.hpmax=enemy.hpmax+rnd_range(1,6)
+            enemy.hp=enemy.hpmax
+        else
+            enemy.tile=asc(lcase(chr(enemy.tile)))
         endif
+        enemy.sdesc=enemy.sdesc
         'enemy.invis=2
     endif
     
@@ -757,7 +761,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.diet=1
         enemy.move=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))/10
         
-        enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.atcost=rnd_range(6,8)/10
         if enemy.move<=0.9 then enemy.move=0.9
@@ -765,7 +769,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.stuff(2)=1 'Vögel können fliegen
             enemy.stuff(1)=1
             g=1
-            enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         else
             if rnd_range(1,100)<33 then
             enemy.hasoxy=1
@@ -1182,12 +1186,19 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=9
         enemy.move=.6
         enemy.respawns=0
-        for l=0 to rnd_range(1,3)*2 step 2
-            enemy.items(l)=-21
-            enemy.itemch(l)=66
-            enemy.items(l+1)=96
-            enemy.itemch(l+1)=25
-        next
+        enemy.items(1)=-21
+        enemy.itemch(1)=99
+        enemy.items(2)=96
+        enemy.itemch(2)=25
+        enemy.items(3)=-21
+        enemy.itemch(3)=88
+        enemy.items(3)=96
+        enemy.itemch(3)=25
+        enemy.items(4)=-21
+        enemy.itemch(4)=77
+        enemy.items(5)=96
+        enemy.itemch(5)=66
+    
     endif
     
     if a=16 then 'Spitting Critter
@@ -1221,7 +1232,7 @@ function makemonster(a as short, map as short) as _monster
         if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
         enemy.col=6
         enemy.sdesc=ti(g)
-        enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
         enemy.sprite=270+g
         enemy.biomod=2.3
     endif
@@ -1346,7 +1357,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=enemy.hp
         enemy.move=0.8
         enemy.aggr=1
-        enemy.tile=Asc("R")
+        enemy.tile=Asc("L")
         enemy.col=47
         enemy.items(0)=7
         enemy.itemch(0)=66
@@ -1739,7 +1750,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.diet=1
         enemy.move=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))/10
         enemy.invis=2
-        enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         enemy.atcost=.5
         enemy.atcost=rnd_range(6,8)/10
         if enemy.move<=0.9 then enemy.move=0.9
@@ -1747,7 +1758,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.stuff(2)=1 'Vögel können fliegen
             enemy.stuff(1)=1
             g=1
-            enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         endif
         'Looks
         enemy.dhurt="hurt"
@@ -1757,39 +1768,21 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=6
     endif
     
-    if a=36 or a=70 then 'Immune system
-        if a=36 then
-            enemy.hp=1
-            enemy.hpmax=1
-            enemy.aggr=0
-            enemy.move=2.3
-            enemy.atcost=99
-            enemy.breedson=5
-            enemy.tile=asc("o")
-            enemy.col=39
-            enemy.biomod=1
-            enemy.sight=5
-            enemy.hasoxy=1
-            enemy.sdesc="batlike creature"
-            enemy.ldesc="a small creature with 3 eyes, no mouth or legs, using 2 skin wings to fly"
-        else
-            enemy.aggr=0
-            enemy.hp=20+rnd_range(1,b)*c
-            enemy.hpmax=enemy.hp
-            enemy.move=.5
-            enemy.atcost=.8
-            enemy.breedson=2
-            enemy.weapon=3
-            enemy.armor=3
-            enemy.sight=3
-            enemy.range=1.5
-            enemy.biomod=1
-            enemy.hasoxy=1
-            enemy.tile=asc("j")
-            enemy.col=208
-            enemy.sdesc="blob"
-            enemy.ldesc="A huge pale amorphous mass wobbles towards you trying to engulf you. It's skin is covered in a highly corrosive substance"
-        endif
+    if a=36 then
+        enemy.hp=1
+        enemy.hpmax=1
+        enemy.aggr=0
+        enemy.move=2.3
+        enemy.atcost=99
+        enemy.breedson=5
+        enemy.tile=asc("o")
+        enemy.col=39
+        enemy.biomod=1
+        enemy.sight=5
+        enemy.hasoxy=1
+        enemy.sdesc="batlike creature"
+        enemy.ldesc="a small creature with 3 eyes, no mouth or legs, using 2 skin wings to fly"
+        enemy.faction=1
     endif
     
     '37=aliens on generation ship
@@ -1900,7 +1893,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.diet=1
         enemy.move=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))/10
         
-        enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.atcost=rnd_range(6,8)/10
         if enemy.move<=0.9 then enemy.move=0.9
@@ -1908,7 +1901,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.stuff(2)=1 'Vögel können fliegen
             enemy.stuff(1)=1
             g=1
-            enemy.ldesc=randomcritterdescription(g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         else
             if rnd_range(1,100)<33 then
             select case planets(map).temp
@@ -2070,6 +2063,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.move=.1
         enemy.respawns=1
         enemy.biomod=4
+        enemy.faction=1
     endif
         
     if a=46 then 'Defense bots
@@ -2149,6 +2143,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.stuff(1)=0
         enemy.col=5
         enemy.aggr=1
+        enemy.faction=1
     endif
     
     if a=49 then 'Pirate Ship Crew
@@ -2923,7 +2918,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=33
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=3
+        enemy.cmmod=4
         enemy.lang=24
         enemy.aggr=1
         enemy.armor=1
@@ -2962,7 +2957,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=66
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=2
+        enemy.cmmod=3
         enemy.lang=24
         enemy.aggr=1
         enemy.armor=2
@@ -3003,7 +2998,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=33
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=3
+        enemy.cmmod=4
         enemy.lang=25
         enemy.aggr=1
         enemy.armor=1
@@ -3043,7 +3038,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=66
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=2
+        enemy.cmmod=3
         enemy.lang=24
         enemy.aggr=1
         enemy.armor=2
@@ -3109,7 +3104,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=33
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=3
+        enemy.cmmod=4
         enemy.lang=25
         enemy.aggr=1
         enemy.armor=1
@@ -3149,7 +3144,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=66
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=2
+        enemy.cmmod=3
         enemy.lang=24
         enemy.aggr=1
         enemy.armor=2
@@ -3191,7 +3186,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=33
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=3
+        enemy.cmmod=4
         enemy.lang=25
         enemy.aggr=1
         enemy.armor=1
@@ -3231,7 +3226,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.itemch(l)=66
         next
         enemy.hpmax=enemy.hp
-        enemy.cmmod=2
+        enemy.cmmod=3
         enemy.lang=24
         enemy.aggr=1
         enemy.armor=2
@@ -3261,6 +3256,27 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=39
         enemy.aggr=1
     endif
+    
+    if a=79 then
+        enemy.aggr=0
+        enemy.hp=20+rnd_range(1,b)*c
+        enemy.hpmax=enemy.hp
+        enemy.move=.5
+        enemy.atcost=.8
+        enemy.breedson=2
+        enemy.weapon=3
+        enemy.armor=3
+        enemy.sight=3
+        enemy.range=1.5
+        enemy.biomod=1
+        enemy.hasoxy=1
+        enemy.tile=asc("j")
+        enemy.col=208
+        enemy.faction=1
+        enemy.sdesc="blob"
+        enemy.ldesc="A huge pale amorphous mass wobbles towards you trying to engulf you. It's skin is covered in a highly corrosive substance"
+    endif
+
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     
@@ -3348,8 +3364,6 @@ dim as short c,b
         p.pirate_agr=100
         p.merchant_agr=0
         p.lastvisit.s=-1
-        p.turn=0
-        
     endif
     
     if a=2 then
@@ -3368,6 +3382,7 @@ dim as short c,b
         p.col=12
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
     endif
     if a=3 then
         'pirate Cruiser
@@ -3387,6 +3402,8 @@ dim as short c,b
         p.col=12
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
     endif
     
     if a=4 then
@@ -3412,6 +3429,9 @@ dim as short c,b
         p.col=12
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
+        p.cargo(3).x=1
     endif
     if a=5 then
         'pirate Battleship
@@ -3439,6 +3459,10 @@ dim as short c,b
         p.col=12
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
+        p.cargo(3).x=1
+        p.cargo(4).x=1
     endif
     if a=6 then
         c=rnd_range(1,10)
@@ -3572,6 +3596,12 @@ dim as short c,b
         p.col=8
         p.bcol=0
         p.mcol=10
+        p.cargo(1).x=1
+        p.cargo(2).x=1
+        p.cargo(3).x=1
+        p.cargo(4).x=1
+        p.cargo(5).x=1
+        p.cargo(6).x=1
     endif
     if a=9 then
         'company battleship
@@ -3622,6 +3652,11 @@ dim as short c,b
         p.col=4
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
+        p.cargo(3).x=1
+        p.cargo(4).x=1
+        p.cargo(5).x=1
     endif
     
     if a=11 then
@@ -3661,6 +3696,7 @@ dim as short c,b
         p.col=10
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
     endif
     
     if a=21 then
@@ -3840,6 +3876,9 @@ dim as short c,b
         p.col=4
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
+        p.cargo(3).x=1
     endif
     
     if a=31 then
@@ -3862,6 +3901,8 @@ dim as short c,b
         p.col=4
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
     endif
     
     if a=32 then
@@ -3884,6 +3925,8 @@ dim as short c,b
         p.col=4
         p.bcol=0
         p.mcol=14
+        p.cargo(1).x=1
+        p.cargo(2).x=1
     endif
     
     

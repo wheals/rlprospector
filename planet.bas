@@ -9,9 +9,376 @@ function deletemonsters(a as short) as short
     return 0
 end function
 
+function make_spacemap() as short
+    dim as short a,b,c,d,e,astcou,gascou
+    dim as cords p1,p2,p3
+    lastwaypoint=6
+    
+    targetlist(0)=basis(0).c
+    targetlist(1).x=rnd_range(0,30)
+    targetlist(1).y=rnd_range(15,20)
+    targetlist(2)=basis(1).c
+    
+    targetlist(3).x=rnd_range(0,60)
+    targetlist(3).y=rnd_range(1,20)
+    
+    targetlist(4).x=rnd_range(30,59)
+    targetlist(4).y=rnd_range(15,20)
+    targetlist(5)=basis(2).c
+    targetlist(6).x=rnd_range(0,60)
+    targetlist(6).y=rnd_range(0,20)
+    
+    rerollshops
+    'generate starmap
+    color 14,0
+    print
+    Print " generating "
+    color 7,0
+    c=0
+    for a=0 to laststar
+        print ".";
+            map(a).c.x=rnd_range(0,sm_x)
+            map(a).c.y=rnd_range(0,sm_y)
+            if rnd_range(1,100)<36 then
+                map(a).spec=rnd_range(2,4)
+            else
+                map(a).spec=rnd_range(1,7)
+            endif
+            if rnd_range(1,100)<91 then
+                for b=1 to 9
+                    map(a).planets(b)=rnd_range(1,24)-((map(a).spec-3)^2+rnd_range(1,12))
+                    if map(a).planets(b)>0 then                    
+                        if rnd_range(1,100)<77 then
+                            c=c+1
+                            map(a).planets(b)=c
+                        else
+                            if rnd_range(1,100)<64 then
+                                map(a).planets(b)=-rnd_range(1,6)
+                                astcou=astcou+1
+                            else
+                                if rnd_range(1,100)<45+b*5 then
+                                    if b<7 then
+                                        map(a).planets(b)=-20001
+                                    else
+                                        map(a).planets(b)=-20002
+                                    endif
+                                    if b=1 then map(a).planets(b)=-20003
+                                    gascou=gascou+1
+                                endif
+                            endif
+                        endif
+                    else
+                        map(a).planets(b)=0
+                    endif
+                next
+            else
+                c=c+1
+                map(a).spec=8
+                map(a).planets(1)=c
+            endif
+    next
+    for a=laststar+1 to laststar+wormhole-1 step 2
+        map(a).c.x=rnd_range(0,sm_x)
+        map(a).c.y=rnd_range(0,sm_y)
+        map(a).spec=9
+        map(a).planets(1)=a+1
+        map(a).discovered=show_all
+        map(a+1).planets(1)=a
+        map(a+1).c.x=rnd_range(0,sm_x)
+        map(a+1).c.y=rnd_range(0,sm_y)
+        map(a+1).spec=9
+        map(a+1).discovered=show_all
+        
+    next
+    lastplanet=c
+    lastportal=22
+    
+    for a=0 to lastspecial
+        do
+            b=getrandomsystem()
+            print ".";
+        loop until  map(b).spec<8 
+        c=getrandomplanet(b)
+        if c=-1 then 
+            c=rnd_range(1,9)
+            map(b).planets(c)=lastplanet+1
+            lastplanet=lastplanet+1
+            c=lastplanet
+        endif
+        map(b).discovered=2
+        if a=12 then
+            if map(b).planets(1)<=0 then 
+                map(b).planets(1)=lastplanet+1
+                lastplanet=lastplanet+1
+            endif
+            specialplanet(a)=map(b).planets(1)
+        else        
+            specialplanet(a)=c
+        endif
+        if a=18 then
+            map(b).planets(3)=lastplanet+1
+            specialplanet(18)=lastplanet+1
+            map(b).planets(9)=lastplanet+2
+            specialplanet(19)=lastplanet+2
+            lastplanet=lastplanet+2
+            a=19
+        endif
+            
+        print ".";
+        if specialplanet(a)<0 then
+            color 12,0
+            print a;" ";b;" ";c
+            print lastplanet
+            no_key=keyin
+            color 15,0
+        endif
+    next
+    
+    specialplanet(30)=lastplanet+1
+    lastplanet=lastplanet+1
+    
+    
+    for a=0 to lastportal
+         
+            portal(a).desig="A natural tunnel. "
+            portal(a).tile=111
+            portal(a).col=7
+            print ".";
+            portal(a).from.s=getrandomsystem
+            portal(a).from.m=getrandomplanet(portal(a).from.s)
+            
+            if portal(a).from.m<=0 then
+                b=rnd_range(1,9)
+                if portal(a).from.s=-1 then
+                    do
+                        portal(a).from.s=rnd_range(0,laststar)
+                    loop until map(portal(a).from.s).discovered<>2
+                endif
+                if map(portal(a).from.s).planets(b)<=0 then
+                    'makenewplanet
+                    lastplanet=lastplanet+1
+                    map(portal(a).from.s).planets(b)=lastplanet
+                    'print portal(a).from.s &":" & map(portal(a).from.s).planets(b)
+                else
+                    portal(a).from.m=map(portal(a).from.s).planets(b)
+                endif                
+            endif
+            'portal(a).from.m=map(portal(a).from.s).planets(portal(a).from.p)
+            portal(a).from.x=rnd_range(1,59)
+            portal(a).from.y=rnd_range(1,19)
+            portal(a).dest.m=lastplanet+1
+            portal(a).dest.s=portal(a).from.s
+            portal(a).dest.x=rnd_range(1,59)
+            portal(a).dest.y=rnd_range(1,19)
+            portal(a).discovered=show_portals
+            portal(a).dimod=2-rnd_range(1,4)
+            portal(a).tumod=4-rnd_range(1,8)
+            map(portal(a).from.s).discovered=-3
+            lastplanet=lastplanet+1
+            print ".";
+    next
+    
+    for a=0 to _NoPB
+        lastplanet=lastplanet+1
+        pirateplanet(a)=lastplanet
+        piratebase(a)=getrandomsystem
+        if piratebase(a)=-1 then piratebase(a)=rnd_range(0,laststar)
+        map(piratebase(a)).discovered=show_pirates
+        map(piratebase(a)).planets(rnd_range(1,9))=pirateplanet(a)
+        print ".";
+    next
+    
+    'print pirateplanet
+    'sleep
+    print
+    print "distributing ";
+    for a=0 to laststar+wormhole
+        map(a).discovered=show_all
+        pwa(a)=map(a).c
+        print ".";
+    next
+    a=distributepoints(pwa(),pwa(),laststar+wormhole)
+    for a=0 to laststar+wormhole
+        map(a).c=pwa(a)
+        print ".";
+    next
+    do
+        c=c+1
+        b=0
+        for a=0 to _nopb
+           if _minsafe=0 and disnbase(map(piratebase(a)).c)<4 then 
+               d=getrandomsystem(0)
+               swap map(piratebase(a)),map(d)
+               piratebase(a)=d
+           endif
+           if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
+               d=getrandomsystem(0)
+               swap map(piratebase(a)),map(d)
+               piratebase(a)=d
+           endif
+           b=b+disnbase(map(piratebase(a)).c)
+        next
+    loop until b>24 or c>255
+    
+    make_clouds()
+    
+    a=sysfrommap(specialplanet(20))
+    c=999
+    for b=0 to laststar
+        if b<>a then
+            if cint(distance(map(a).c,map(b).c))<c then
+                c=cint(distance(map(a).c,map(b).c))
+                d=b
+            endif
+        endif
+    next
+    
+    a=sysfrommap(specialplanet(26))
+    swap map(a).c,map(d).c
+    
+    for a=0 to laststar
+        if map(a).discovered=2 then map(a).discovered=1'map(a).discovered=show_specials
+        if map(a).discovered=-3 then map(a).discovered=show_portals
+        if abs(spacemap(map(a).c.x,map(a).c.y))>1 then
+            map(a).spec=map(a).spec+abs(spacemap(map(a).c.x,map(a).c.y))/2
+            if map(a).spec>7 then map(a).spec=7
+        endif
+        scount(map(a).spec)+=1
+        'map(a).discovered=1
+    next
+    
+    
+    print
+    for e=0 to 2
+    print "Moving Base ";e    
+    if abs(spacemap(basis(e).c.x,basis(e).c.y))<>1 then
+        p2.x=0
+        p2.y=0
+        p1.x=basis(e).c.x
+        p1.y=basis(e).c.y        
+        c=1000
+        for x=0 to sm_x
+            for y=0 to sm_y
+                if abs(spacemap(x,y))<2 then
+                    p2.x=x
+                    p2.y=y
+                    b=0
+                    for a=1 to 9
+                        if a<>5 then
+                            p3=movepoint(p2,a)
+                            if abs(spacemap(p3.x,p3.y))<2 then b=b+1
+                        endif
+                    next
+                    if b>3 and distance(p2,p1)<c then
+                        basis(e).c=p2
+                        c=distance(p2,p1)
+                    endif
+                endif
+            next
+        next
+        
+    endif
+    player.c=basis(e).c
+    next
+    
+    print "checking for starmap errors: ";
+    fixstarmap()
+    
+    if findcompany(1)=0 then specialplanet(40)=32767
+    if findcompany(2)=0 then specialplanet(41)=32767
+    if findcompany(3)=0 then specialplanet(42)=32767
+    if findcompany(4)=0 then specialplanet(43)=32767
+    
+    ' The probesp
+    
+    for a=1 to lastdrifting
+        lastplanet=lastplanet+1
+        drifting(a).x=rnd_range(0,sm_x)
+        drifting(a).y=rnd_range(0,sm_y)
+        drifting(a).s=rnd_range(1,16)
+        drifting(a).m=lastplanet
+        if a=1 then drifting(a).s=17
+        if a=2 then drifting(a).s=18 
+        if a=3 then drifting(a).s=19 
+        if drifting(a).s<=19 then makedrifter(drifting(a))
+        drifting(a).p=show_all
+    next
+    drifting(1).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
+    drifting(1).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
+    if drifting(1).x<0 then drifting(lastdrifting).x=0
+    if drifting(1).y<0 then drifting(lastdrifting).y=0
+    if drifting(1).x>sm_x then drifting(lastdrifting).x=sm_x
+    if drifting(1).y>sm_y then drifting(lastdrifting).y=sm_y
+    planets(drifting(1).m).flavortext="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
+    planets(drifting(1).m).atmos=4
+    planets(drifting(1).m).depth=1
+    deletemonsters(drifting(1).m)
+    planets(drifting(1).m).mon_template(0)=makemonster(37,drifting(1).m)
+    planets(drifting(1).m).mon_noamin(0)=16
+    planets(drifting(1).m).mon_noamax(0)=26
+    
+    planets(drifting(2).m).flavortext="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
+    planets(drifting(2).m).darkness=5
+    planets(drifting(2).m).atmos=1
+    planets(drifting(2).m).depth=1
+    deletemonsters(drifting(2).m)
+    planets(drifting(2).m).mon_template(0)=makemonster(9,drifting(1).m)
+    planets(drifting(2).m).mon_noamin(0)=16
+    planets(drifting(2).m).mon_noamax(0)=26
+    planets(drifting(2).m).flags(6)=66
+    planets(drifting(2).m).flags(7)=66
+    planets(drifting(2).m).flags(4)=6
+    
+    planets(drifting(3).m).flavortext="You dock at the ancient space probe."
+    planets(drifting(3).m).darkness=5
+    deletemonsters(drifting(3).m)
+    planets(drifting(3).m).atmos=1
+    planets(drifting(3).m).depth=1
+    
+    if map(sysfrommap(specialplanet(17))).c.x>=sm_x-4 then map(sysfrommap(specialplanet(17))).c.x-=4
+    if map(sysfrommap(specialplanet(17))).c.y>=sm_y-4 then map(sysfrommap(specialplanet(17))).c.y-=4
+    drifting(3).x=map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3)
+    drifting(3).y=map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3)
+    
+    
+    do
+        for c=0 to 2    
+            d=0
+            for a=0 to lastdrifting
+                for b=0 to 2
+                    if drifting(a).x=basis(b).c.x and drifting(a).y=basis(b).c.y then
+                        d=d+1
+                        drifting(a).x=rnd_range(0,sm_x)
+                        drifting(a).y=rnd_range(0,sm_y)
+                    endif
+                next
+            next
+        next
+    loop until d=0
+    
+    for a=0 to 15
+        p1=rnd_point(drifting(2).m,0)
+        planetmap(p1.x,p1.y,drifting(2).m)=-81
+    next
+    for a=0 to 15
+        p1=rnd_point(drifting(2).m,0)
+        planetmap(p1.x,p1.y,drifting(2).m)=-158
+    next
+    
+    color 14,0
+    print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
+    color 15,0
+    print "Star distribution:"
+    for a=1 to 8
+        print spectralname(a);":";scount(a)
+    next
+    print "Asteroid belts:";astcou
+    print "Gas giants:";gascou
+    sleep 1250
+    return 0
+end function
 
-
-sub makeclouds()
+sub make_clouds()
     dim wmap(sm_x,sm_y)as ubyte
     dim as short x,y,bx,by,highest,count,a,r
     dim as single attempt
@@ -435,11 +802,11 @@ do
             r(lno)=t
         endif
     loop until largb<wantsize 
-    for a=1 to last
+    for a=0 to last
         fill_rect(r(a),1,0,map2())
     next
     
-    for a=1 to last
+    for a=0 to last
         'make rects smaller
         fill_rect(r(a),1,1,map2())
         if r(a).h*r(a).w>roomsize then
@@ -476,7 +843,7 @@ do
         
     next
 
-    for a=1 to last
+    for a=0 to last
         if r(a).wd(5)=0 then
             c=0
             do
@@ -524,13 +891,13 @@ do
         next
     next
     do
-        a=rnd_range(1,last)
+        a=rnd_range(0,last)
     loop until r(a).wd(5)=0
     'Put portal in room a 
     enter.x=r(a).x+r(a).w/2
     enter.y=r(a).y+r(a).h/2
     b=a
-    for a=1 to rnd_range(1,planets(slot).depth+1)
+    for c=1 to rnd_range(1,planets(slot).depth+1)
         do
             a=rnd_range(0,last)
         loop until r(a).wd(5)=0 and a<>b
@@ -1898,19 +2265,18 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     planets(a).weat=0.5+(rnd_range(0,10)-5)/10
     if planets(a).weat<=0 then planets(a).weat=0.5
     if planets(a).weat>1 then planets(a).weat=0.9
-    gascloud=spacemap(player.c.x,player.c.y)
-    if gascloud=2 then
-        gascloud=1
-    else
-        gascloud=-1
-    endif
+    gascloud=abs(spacemap(player.c.x,player.c.y))
     if spect=1 then gascloud=gascloud-1
-    if spect<3 then gascloud=gascloud-1
-    if spect>5 then gascloud=gascloud+1
-    if spect>=7 then gascloud=gascloud+1
+    if spect=2 then gascloud=gascloud-1
+    if spect=3 then gascloud=gascloud-1
+    if spect=4 then gascloud=gascloud-1
+    if spect=5 then gascloud=gascloud+1
+    if spect=6 then gascloud=gascloud+1
+    if spect=7 then gascloud=gascloud+1
+    if spect=8 then gascloud=gascloud+1
     planets(a).minerals=rnd_range(0,spect)+rnd_range(0,3)+gascloud+disnbase(player.c)\7
     for b=0 to planets(a).minerals
-        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\7+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),rnd_range(0,60),rnd_range(0,20),a)
+        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\5+gascloud),rnd_range(0,60),rnd_range(0,20),a)
     next b
     
     roll=rnd_range(1,100)
@@ -2326,7 +2692,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         endif
     next
     
-    if rnd_range(1,100)<planets(a).life then
+    if rnd_range(1,100)<(planets(a).life+1)*5 then
         planets(a).mon_noamin(11)=1
         planets(a).mon_noamax(11)=1
         planets(a).mon_template(11)=makemonster(2,a)
@@ -2834,24 +3200,17 @@ sub makespecialplanet(a as short)
         p1=movepoint(p1,5)
         planetmap(p1.x,p1.y,a)=-4
         
-        lastportal=lastportal+1
         lastplanet=lastplanet+1
-        portal(lastportal).desig="A building still in good condition. "
-        portal(lastportal).tile=asc("#")
-        portal(lastportal).col=15
-        portal(lastportal).from.m=a
-        portal(lastportal).from.x=p1.x
-        portal(lastportal).from.y=p1.y
-        portal(lastportal).dest.m=lastplanet
-        portal(lastportal).dest.x=rnd_range(2,58)
-        portal(lastportal).dest.y=rnd_range(2,18)
-        portal(lastportal).discovered=show_portals
         
+        gc.x=p1.x
+        gc.y=p1.y
+        gc.m=a
+        gc1.x=rnd_range(2,58)
+        gc1.y=rnd_range(2,18)
+        gc1.m=lastplanet
+        makecomplex(gc1,0)
         
-        gc.x=portal(lastportal).dest.x
-        gc.y=portal(lastportal).dest.y
-        gc.m=portal(lastportal).dest.m
-        makecomplex(gc,0)
+        addportal(gc,gc1,0,asc("#"),"A building still in good condition",15)
         p1=rnd_point(lastplanet,0)
         planetmap(p1.x,p1.y,lastplanet)=-167
         p1=rnd_point
@@ -3290,7 +3649,7 @@ sub makespecialplanet(a as short)
         for b=0 to rnd_range(0,15)+15
             placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),a)
         next
-        
+        deletemonsters(a)
         planets(a).water=0
         planets(a).atmos=1
         planets(a).grav=3
@@ -3351,6 +3710,8 @@ sub makespecialplanet(a as short)
         if p1.x>50 then p1.x=50
         if p1.x<5 then p1.x=10
         if p1.y<5 then p1.y=5
+        if p1.y>19 then p1.y=19
+        if p1.x>58 then p1.x=58
         planetmap(p1.x,p1.y,a)=-68
         planetmap(p1.x+1,p1.y,a)=-68
         planetmap(p1.x,p1.y+1,a)=-68
@@ -3370,10 +3731,12 @@ sub makespecialplanet(a as short)
         planetmap(p2.x-1,p2.y,a)=-238
         planetmap(p2.x-1,p2.y+2,a)=-237
         planetmap(p2.x-1,p2.y+4,a)=-259
+        planetmap(p3.x,p3.y,a)=-261
     endif
     
     if specialplanet(15)=a then
         planets(a).water=66
+        deletemonsters(a)
         makeislands(a,3)
         for b=0 to rnd_range(15,25)
             planetmap(rnd_range(1,59),rnd_range(1,19),a)=-91
@@ -3419,7 +3782,7 @@ sub makespecialplanet(a as short)
     if specialplanet(16)=a then
         b=lastportal
         c=lastplanet
-        
+        deletemonsters(a)
         planets(a).temp=22.5
         planets(a).grav=0.9
         planets(a).atmos=6
@@ -3527,24 +3890,25 @@ sub makespecialplanet(a as short)
         planets(lastplanet+2).mon_noamax(1)=2
         planets(lastplanet+2).atmos=6
         
-        planets(lastplanet+3).mon_template(0)=makemonster(1,lastplanet+3)
+        planets(lastplanet+3).mon_template(0)=makemonster(8,lastplanet+3)
         planets(lastplanet+3).mon_template(1)=makemonster(9,lastplanet+3)
         planets(lastplanet+3).mon_noamin(0)=9
         planets(lastplanet+3).mon_noamax(0)=18
         planets(lastplanet+3).mon_noamax(1)=1
-        planets(lastplanet+3).mon_noamax(1)=2
+        planets(lastplanet+3).mon_noamax(1)=3
         planets(lastplanet+3).atmos=6
        
         p1=rnd_point(lastplanet+3,0)
         placeitem(makeitem(90),p1.x,p1.y,lastplanet+3,0,0) 
         planetmap(p1.x,p1.y,lastplanet+3)=-162
-        lastplanet=c+3
+        lastplanet=lastplanet+3
     endif
     
     if specialplanet(17)=a then
         planets(a).water=66
         makeislands(a,4)
         
+        deletemonsters(a)
         p1=rnd_point
         
         for x=0 to 60
@@ -3591,6 +3955,8 @@ sub makespecialplanet(a as short)
     
     if specialplanet(18)=a then
         makemossworld(a,6)
+        
+        deletemonsters(a)
         y=rnd_range(8,12)
         for b=5 to 55
             planetmap(b,y,a)=-32
@@ -3638,6 +4004,7 @@ sub makespecialplanet(a as short)
         planets(a).grav=1.1
         planets(a).atmos=5
     endif
+    
     if a=specialplanet(19) then
         deletemonsters(a)
         p.x=rnd_range(10,50)
@@ -3676,6 +4043,8 @@ sub makespecialplanet(a as short)
     if a=specialplanet(20) then
         planets(a).water=33
         makeislands(a,3)
+        
+        deletemonsters(a)
         p=rnd_point
         for b=0 to 6
             makeroad(p,rnd_point,a)
@@ -3784,6 +4153,8 @@ sub makespecialplanet(a as short)
     
     if a=specialplanet(26) then
         b=-13
+        
+        deletemonsters(a)
         for x=0 to 60
             for y=0 to 20
                 planetmap(x,y,a)=b
@@ -3912,6 +4283,8 @@ sub makespecialplanet(a as short)
         
     if a=specialplanet(27) then
         makecraters(a,3)
+        
+        deletemonsters(a)
         p.x=30
         p.y=10
         p2.x=8
@@ -3958,7 +4331,7 @@ sub makespecialplanet(a as short)
         planets(a).mon_template(0)=makemonster(36,a)
         planets(a).mon_noamin(0)=2
         planets(a).mon_noamax(0)=5
-        planets(a).mon_template(1)=makemonster(70,a)
+        planets(a).mon_template(1)=makemonster(79,a)
         planets(a).mon_noamin(1)=2
         planets(a).mon_noamax(1)=5
         
@@ -3987,7 +4360,7 @@ sub makespecialplanet(a as short)
         planets(lastplanet).mon_noamax(0)=7
         
         
-        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_template(1)=makemonster(79,lastplanet)
         planets(lastplanet).mon_noamin(1)=3
         planets(lastplanet).mon_noamax(1)=7
         
@@ -4038,7 +4411,7 @@ sub makespecialplanet(a as short)
         planets(lastplanet).mon_noamax(0)=17
         
         
-        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_template(1)=makemonster(79,lastplanet)
         planets(lastplanet).mon_noamin(1)=6
         planets(lastplanet).mon_noamax(1)=17
         
@@ -4074,7 +4447,7 @@ sub makespecialplanet(a as short)
         planets(lastplanet).mon_noamax(0)=27
         
         
-        planets(lastplanet).mon_template(1)=makemonster(70,lastplanet)
+        planets(lastplanet).mon_template(1)=makemonster(79,lastplanet)
         planets(lastplanet).mon_noamin(1)=13
         planets(lastplanet).mon_noamax(1)=27
         
@@ -4094,6 +4467,8 @@ sub makespecialplanet(a as short)
                 planetmap(x,y,a)=-4
             next
         next
+        
+        deletemonsters(a)
         planets(a).flavortext="This is truly the most boring piece of rock you have ever laid eyes upon."
         planets(a).atmos=4
     endif
@@ -4101,6 +4476,8 @@ sub makespecialplanet(a as short)
     if specialplanet(30)=a then 'Secret Base thingy
         wx=rnd_range(0,53)
         wy=rnd_range(0,13)
+        
+        deletemonsters(a)
         for x=wx to wx+7
             for y=wy to wy+7
                 planetmap(x,y,a)=-18
@@ -4177,11 +4554,11 @@ sub makespecialplanet(a as short)
         planets(a).mon_noamin(0)=5
         planets(a).mon_noamax(0)=15
         
-        planets(a).mon_template(1)=makemonster(52,a)
+        planets(a).mon_template(1)=makemonster(51,a)
         planets(a).mon_noamin(1)=5
         planets(a).mon_noamax(1)=15
         
-        planets(a).mon_template(2)=makemonster(53,a)
+        planets(a).mon_template(2)=makemonster(52,a)
         planets(a).mon_noamin(2)=5
         planets(a).mon_noamax(2)=15
         
@@ -4222,6 +4599,7 @@ sub makespecialplanet(a as short)
     endif
     
     if a=specialplanet(32) then
+        deletemonsters(a)
         pa(0).x=10
         pa(0).y=10
         pa(1).x=30
@@ -4310,6 +4688,8 @@ sub makespecialplanet(a as short)
         pa(1).y=16
         pa(2).x=30
         pa(2).y=10
+        
+        deletemonsters(a)
         for x=0 to 60
             for y=0 to 20
                 planetmap(x,y,a)=-8
@@ -4492,12 +4872,20 @@ sub makespecialplanet(a as short)
     
     if a=specialplanet(38) then
         planets(a).water=57
+        deletemonsters(a)
         makeislands(a,3)
         planetmap(rnd_range(1,60),rnd_range(3,12),a)=-62
          
         planets(a).mon_template(0)=makemonster(45,a)
         planets(a).mon_noamin(0)=45
         planets(a).mon_noamax(0)=46
+        planets(a).mon_template(1)=makemonster(48,a)
+        planets(a).mon_noamin(1)=1
+        planets(a).mon_noamax(1)=1
+        planets(a).mon_template(2)=makemonster(1,a)
+        planets(a).mon_noamin(2)=1
+        planets(a).mon_noamax(2)=5
+        
         planets(a).temp=12.3
         planets(a).atmos=8
         planets(a).rot=12.3
@@ -4510,7 +4898,8 @@ sub makespecialplanet(a as short)
         gc1.y=rnd_range(0,20)
         gc1.m=lastplanet
         planets(lastplanet)=planets(a)
-        planets(lastplanet).depth=1
+        planets(lastplanet).depth=2
+        deletemonsters(lastplanet)
         planets(lastplanet).mon_template(0)=makemonster(8,lastplanet)
         planets(lastplanet).mon_noamin(0)=5
         planets(lastplanet).mon_noamax(0)=8
@@ -4522,7 +4911,8 @@ sub makespecialplanet(a as short)
         gc.y=p1.y
         lastplanet+=1
         planets(lastplanet)=planets(a)
-        planets(lastplanet).depth=1
+        planets(lastplanet).depth=3
+        deletemonsters(lastplanet)
                  
         planets(lastplanet).mon_template(0)=makemonster(8,lastplanet)
         planets(lastplanet).mon_noamin(0)=15
@@ -4808,6 +5198,8 @@ sub makespecialplanet(a as short)
                 endif
             next
         next
+        
+        deletemonsters(a)
         gc.x=p2.x
         gc.y=p2.y
         gc.m=a
@@ -4987,7 +5379,95 @@ sub makespecialplanet(a as short)
         next
     endif
     
+    if a=specialplanet(44) then
+        makecraters(a,0)
+        deletemonsters(a)
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,a))=4 and rnd_range(1,100)<20 then planetmap(x,y,a)=-102 
+                if abs(planetmap(x,y,a))=4 and rnd_range(1,100)<10 then planetmap(x,y,a)=-146
+                if abs(planetmap(x,y,a))=7 and rnd_range(1,100)<10 then planetmap(x,y,a)=-244 
+                if abs(planetmap(x,y,a))=8 and rnd_range(1,100)<15 then planetmap(x,y,a)=-244 
+                if abs(planetmap(x,y,a))=8 and rnd_range(1,100)<15 then 
+                    p.x=x
+                    p.y=y
+                endif
+            next
+        next
+        if p.x=0 and p.y=0 then p=rnd_point
+        planetmap(p.x,p.y,a)=-244
+        
+        planets(a).mon_template(0)=makemonster(8,a)
+        planets(a).mon_noamin(0)=4
+        planets(a).mon_noamax(0)=10
+        
+        gc.x=p.x
+        gc.y=p.y
+        gc.m=a
+        p2=rnd_point
+        gc1.x=p2.x
+        gc1.y=p2.y
+        lastplanet+=1
+        gc1.m=lastplanet
+        addportal(gc,gc1,1,asc("^"),"This tunnel leads deeper underground.",14)
+        addportal(gc1,gc,1,asc("o"),"This tunnel leads back to the surface.",7)
+        makecavemap(gc1,5,-1,0,0)
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,lastplanet))=4 and rnd_range(1,100)<20 then planetmap(x,y,lastplanet)=-102 
+                if abs(planetmap(x,y,lastplanet))=4 and rnd_range(1,100)<12 then planetmap(x,y,lastplanet)=-146
+            next
+        next
+        p.y=rnd_range(1,13)
+        p.x=rnd_range(1,24)
+        p2.x=rnd_range(30,54)
+        p2.y=rnd_range(1,13)
+        for x=p.x to p.x+6
+            for y=p.y to p.y+6
+                'planetmap(x,y,lastplanet)=-4
+                if x=p.x or x=p.x+6 or y=p.y or y=p.y+6 then 
+                    planetmap(x,y,lastplanet)=-52
+                else
+                    planetmap(x,y,lastplanet)=-4
+                endif
+            next
+        next
+        for x=p2.x to p2.x+6
+            for y=p2.y to p2.y+6
+                'planetmap(x,y,lastplanet)=-4
+                if x=p2.x or x=p2.x+6 or y=p2.y or y=p2.y+6 then
+                    planetmap(x,y,lastplanet)=-52
+                else
+                    planetmap(x,y,lastplanet)=-4
+                endif
+            next
+        next
+        planetmap(p.x+3,p.y,lastplanet)=-54
+        planetmap(p.x+3,p.y+6,lastplanet)=-54
+        planetmap(p.x,p.y+3,lastplanet)=-54
+        planetmap(p.x+6,p.y+3,lastplanet)=-54
+        
+        planetmap(p2.x+3,p2.y,lastplanet)=-54
+        planetmap(p2.x+3,p2.y+6,lastplanet)=-54
+        planetmap(p2.x,p2.y+3,lastplanet)=-54
+        planetmap(p2.x+6,p2.y+3,lastplanet)=-54
+        
+        
+        planets(lastplanet).mon_template(0)=makemonster(8,a)
+        planets(lastplanet).mon_noamin(0)=14
+        planets(lastplanet).mon_noamax(0)=20
+        
+        planets(lastplanet).mon_template(1)=makemonster(56,a)
+        planets(lastplanet).mon_noamin(1)=1
+        planets(lastplanet).mon_noamax(1)=2
+        
+        for b=0 to 15
+            placeitem(makeitem(301),p.x+3,p.y+3,lastplanet,0,0)
+        next
+    endif
+    
     if a=specialplanet(isgasgiant(a)) and isgasgiant(a)<40 then
+        deletemonsters(a)
         makeplatform(a,rnd_range(4,8),rnd_range(1,3),1)
         p=rnd_point(a,0)
         if rnd_range(1,100)<10 then placeitem(makeitem(99),p.x,p.y,a,0,0)
@@ -5071,10 +5551,10 @@ sub makedrifter(d as _driftingship, bg as short=0)
     s=gethullspecs(d.s)
     addweap=s.h_maxweaponslot*10
     addcarg=s.h_maxcargo*10
-    for a=6 to s.h_maxweaponslot
+    for a=6 to 6+s.h_maxweaponslot
         if rnd_range(1,100)<66 then planets(m).flags(a)=rnd_range(1,6)
         if rnd_range(1,100)<16+addweap then planets(m).flags(a)=planets(m).flags(a)+rnd_range(0,4)
-        if rnd_range(1,100)<25 then planets(m).flags(a)=-rnd_range(1,3)
+        if rnd_range(1,100)<25 then planets(m).flags(a)=-rnd_range(1,2)
         if planets(m).flags(a)=-1 then addcarg=addcarg+10
         if planets(m).flags(a)=-2 then s.h_maxcrew=s.h_maxcrew+3
     next

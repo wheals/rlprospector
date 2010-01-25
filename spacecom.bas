@@ -83,6 +83,10 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     do
         nexsen=senac
         'movement
+        for a=1 to 5
+            if defender.weapons(a).made=88 then speed(0)=speed(0)+1
+            if defender.weapons(a).made=89 then speed(0)=speed(0)+2
+        next
         speed(0)=speed(0)+defender.engine+2-cint(defender.h_maxhull\15)
         if speed(0)<1 then speed(0)=1
         st=speed(0)
@@ -245,7 +249,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     t=com_gettarget(defender,a,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
                     if t>0 and t<100 then 
                         if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(a).col)=-1 then
-                            attacker(t)=com_fire(attacker(t),defender.weapons(a),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
+                            attacker(t)=com_fire(attacker(t),defender,defender.weapons(a),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
                             if attacker(t).hull<=0 then
                                 dprint "Target destroyed",,10
                                 reward(3)=reward(3)+attacker(t).money
@@ -281,8 +285,8 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             'in reichweite
                             if attacker(a).weapons(b).ammo>0 or attacker(a).weapons(b).ammomax=0 then
                                 'muni vorhanden
-                                if pathblock(defender.c,attacker(a).c,0,2,attacker(a).weapons(b).col)=-1 then
-                                    defender=com_fire(defender,attacker(a).weapons(b),attacker(a).gunner,distance(attacker(a).c,defender.c),senac)
+                                if pathblock(attacker(a).c,defender.c,0,2,attacker(a).weapons(b).col)=-1 then
+                                    defender=com_fire(defender,attacker(a),attacker(a).weapons(b),attacker(a).gunner,distance(attacker(a).c,defender.c),senac)
                                     player=defender
                                     displayship(0)
                                 endif
@@ -346,6 +350,10 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         
         if defender.shield<defender.shieldmax and shieldshut=0 then 
             defender.shield=defender.shield+1
+            for a=1 to 5
+                if defender.weapons(a).made=90 then defender.shield+=1
+            next
+            if defender.shield>defender.shieldmax then defender.shield=defender.shieldmax
             speed(0)=-2
         else
             speed(0)=0
@@ -354,6 +362,10 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         for a=1 to lastenemy
             if attacker(a).shield<attacker(a).shieldmax then 
                 attacker(a).shield=attacker(a).shield+1
+                for b=1 to 5
+                    if attacker(a).weapons(b).made=90 then attacker(a).shield+=1
+                next
+                if attacker(a).shield>attacker(a).shieldmax then attacker(a).shield=attacker(a).shieldmax            
                 speed(a)=-2
             else
                 speed(a)=0
@@ -600,22 +612,31 @@ function com_gettarget(defender as _ship, wn as short, attacker() as _ship,laste
     return targetno
 end function
 
-function com_fire(target as _ship, w as _weap, gunner as short, range as short,senac as short) as _ship
-    dim as short roll,ROF
+function com_fire(target as _ship, attacker as _ship, w as _weap, gunner as short, range as short,senac as short) as _ship
+    dim as short roll,a,ROF,dambonus,tohitbonus
     ROF=w.ROF
-
+    for a=1 to 25
+        if attacker.weapons(a).made=91 then dambonus+=1
+        if attacker.weapons(a).made=92 then dambonus+=2
+        if attacker.weapons(a).made=93 then tohitbonus+=1
+        if attacker.weapons(a).made=94 then tohitbonus+=2
+    next
     if w.ammomax>0 and w.ROF>0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser         
     if w.ammomax>0 and w.ROF=0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery          
     if w.ammomax=0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile                                           
     do
         if w.ammomax>0 then w.ammo=w.ammo-1 
         if w.ammo>0 or w.ammomax=0 then
-            roll=rnd_range(1,6)+rnd_range(1,6)+gunner+senac-(target.ecm*w.ecmmod)
+            roll=rnd_range(1,6)+rnd_range(1,6)+gunner+senac+tohitbonus-(target.ecm*w.ecmmod)
             'if range<=w.range*3 then roll=roll+1
             if range<=w.range*2 then roll=roll+1
             if range<=w.range then roll=roll+2
-            if roll>12 then 
-                target=com_hit(target,w,range, senac)
+            if roll>11 then
+                if w.ammomax=0 then
+                    target=com_hit(target,w,dambonus,range, senac)
+                else
+                    target=com_hit(target,w,0,range, senac)
+                endif
             else
                 if w.p>0 then
                     dprint w.desig &" fired, and misses!"
@@ -630,10 +651,9 @@ function com_fire(target as _ship, w as _weap, gunner as short, range as short,s
     return target
 end function
 
-function com_hit(target as _ship, w as _weap, range as short, senac as short) as _ship
+function com_hit(target as _ship, w as _weap,dambonus as short, range as short, senac as short) as _ship
     dim as string desig, text
     dim as short roll
-    
     if target.desig=player.desig then
         desig=player.desig
     else
@@ -645,7 +665,7 @@ function com_hit(target as _ship, w as _weap, range as short, senac as short) as
         gainxp(3)
     endif
     
-    target.shield=target.shield-w.dam
+    target.shield=target.shield-w.dam-dambonus
     if target.shield<0 then
         if target.shieldmax>0 then
             text=desig &" is hit, shields penetrated! " 

@@ -11,15 +11,15 @@ sub postmortem
     dim per(3) as double
     dim discovered(lastspecial) as short
     dim descr(lastspecial) as string
-    dim flagst(13) as string
+    dim flagst(14) as string
     dim xx as short
     dim yy as short
     dim old_g as short
     dim ext as integer
     dim total as integer
     dim lines(26) as string
-    dim inv(55) as _items
-    dim invn(55) as short
+    dim inv(255) as _items
+    dim invn(255) as short
     dim as short set,lastinv    
     kill("savegames\"&player.desig &".sav")
     flagst(1)="Fuel System"
@@ -35,6 +35,7 @@ sub postmortem
     flagst(11)=""
     flagst(12)="Cloaking device"
     flagst(13)="Wormhole shield"
+    flagst(14)="Wormhole navigation device"
     old_g=_tiles
     _tiles=1
     'count ioncanons
@@ -84,9 +85,14 @@ sub postmortem
     descr(33)="Another asteroid base"
     descr(34)="A world devastated by war"
     descr(35)="A world of peaceful cephalopods"
-    descr(36)="A tribe of small green men in trouble"
+    descr(36)="A tribe of small green people in trouble"
     descr(37)="An invisible labyrinth"
     descr(39)="A very fertile world plagued by burrowing monsters"
+    descr(40)="A world under controll of Eridiani Explorations"
+    descr(41)="A world under controll of Smith Heavy Industries"
+    descr(42)="A world under controll of Triax Traders"
+    descr(43)="A world under controll of Omega Bioengineering"
+    descr(44)="The ruins of an ancient war"
     st=player.h_desig
     
     cls
@@ -196,7 +202,7 @@ sub postmortem
         endif
     next
     for c=0 to lastspecial
-        if specialplanet(c)>0 then
+        if specialplanet(c)>=0 and specialplanet(c)<=lastspecial then
             if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
         endif
     next
@@ -602,6 +608,8 @@ function getdeath() as string
     'player dead 25 is taken
     if player.dead=26 then death="Lost a duel against the infamous Anne Bonny"
     if player.dead=27 then death="Attempted to land on a gas giant without his spaceship"
+    if player.dead=28 then death="Underestimated the risks of surgical body augmentation"
+    if player.dead=29 then death="Got caught in a huge explosion"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

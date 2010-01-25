@@ -140,7 +140,7 @@ end function
 
 function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     dim i as _items
-    
+    dim as short f,roll,target
     if uid=4294967295 then 
         dprint "Can't make any more items!"
         return i
@@ -1033,7 +1033,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     if a=48 then
         i.id=48
         i.ty=17
-        i.desig="genade launcher"
+        i.desig="grenade launcher"
         i.desigp="grenade launchers"
         i.icon="]"
         i.col=7
@@ -1467,7 +1467,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ldesc="A shard of an intelligent crystal being. It still emits an electrical field similiar to human brain waves."
         i.icon="*"
         i.col=144
-        i.res=100
+        i.res=120
     endif
         
     if a=90 then
@@ -1629,12 +1629,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         
         i.scanmod=rnd_range(0,i.v1)
         i.icon="*"
-        i.bgcol=0        
-        if rnd_range(1,100)+player.turn/100+mod1+mod2>125 and mod1>0 and mod2>0 then i=makeitem(99)
-        
+        i.bgcol=0  
+        roll=rnd_range(1,100)+player.turn/100+mod1+mod2
+        if roll>125 and mod1>0 and mod2>0 then i=makeitem(99)
+        if make_files=1 then
+            f=freefile
+            open "artrolls.txt" for append as #f
+            print #f,mod1;" ";mod2;" ";roll
+            close #f
+        endif
+            
     endif
     
     if a=87 then
+        i.res=120
         i.id=87
         i.ty=25
         i.desig="cloaking device"
@@ -1673,14 +1681,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
             endif
         else
             if rnd_range(1,100)<50 then
-                i.desig="powerfull "&i.desig
-                i.desigp="very powerfull "&i.desigp
+                i.desig="powerful "&i.desig
+                i.desigp="very powerful "&i.desigp
                 i.id=i.id+102
                 i.v1=i.v1+.1
                 i.price=i.price*1.2
             else
-                i.desig="powerfull "&i.desig
-                i.desigp="very powerfull "&i.desigp
+                i.desig="powerful "&i.desig
+                i.desigp="very powerful "&i.desigp
                 i.id=i.id+103
                 i.v1=i.v1+.2
                 i.price=i.price*1.5
@@ -1728,6 +1736,32 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         if rnd_range(1,100)<16 then i=makeitem(95)
         i.res=100
     endif
+    
+    if a=301 then
+        i.id=301
+        i.ty=45
+        i.icon="'"
+        i.col=191
+        i.desig="ancient alien bomb"
+        i.desigp="ancient alien bombs"
+        i.v1=rnd_range(0,3)+rnd_range(1,3)+rnd_range(1,3)
+        i.price=2000
+        i.res=120
+    endif
+    
+    if a=302 then
+        i.id=301
+        i.ty=46
+        i.icon="'"
+        i.col=11
+        i.desig="handheld cloaking device"
+        i.desigp="handheld cloaking device"
+        i.v1=7
+        i.res=120
+        i.price=2000
+    endif
+    
+    
     
     i.discovered=show_items
     
@@ -1912,7 +1946,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         endif
     next
     'count teleportation devices
-    
+    if artflag(9)>0 then awayteam.move=3
     'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
     if awayteam.move<3 and awayteam.hp<=hovers*5 then awayteam.move=1
     if awayteam.move<3 and awayteam.hp<=jpacks then awayteam.move=2
@@ -1922,6 +1956,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
+    if findbest(46,-1)>-1 then awayteam.invis=7
     awayteam.sight=3+infra
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
@@ -2120,76 +2155,60 @@ function findworst(t as short,p as short=0, m as short=0) as short
     return r
 end function
 
-function buyweapon(sh as short=0) as _ship
-    dim as short a,b,c,d,mod1,mod2,mod3,mod4
+function buyweapon(st as short) as _ship
+    dim as short a,b,c,d,i,mod1,mod2,mod3,mod4
     dim as short last
-    dim w as _weap
+    dim inv(20) as _weap
     dim weapons as string
     dim key as string
     dim wmenu as string
     dim help as string
-    weapons="Weapons:"
-    help="Nil"
-    if sh=0 then
-        last=15
-        mod1=11
-        mod2=12
-        mod3=13
-        mod4=14
-        for a=1 to 10
-            w=makeweapon(a)
-            weapons=weapons &"/ " &w.desig &" - "&w.p 
-            help=help &"/ "&w.desig &" | | "
-            if a=1 then help=help &"A simple gun firing metal shells propelled by an explosion. "
-            if a=2 then help=help &"Metal shells accelerated to high speeds using electric fields "
-            if a=3 then help=help &"Self propelled rockets with chemical explosives"
-            if a=4 then help=help &"Self propelled rockets with nuclear warheads"
-            if a=5 then help=help &"Self propelled rockets with nuclear warheads and increased range"
-            if a=6 then help=help &"Ionized hydrogen. Low impact damage, low penetration. A targetable ships drive basically"
-            if a=7 then help=help &"Lasers burn through the enemys ships armor"
-            if a=8 then help=help &"Higher energy per particle increases the damage of a Laser"
-            if a=9 then help=help &"Bremsstrahlung wreaks havocs inside the target even if the particles don't penetrate the hull."
-            if a=10 then help=help &"Heavy particles accelerated to near light speeds penetrate and rip apart the enemys armor."
-            help=help &" | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3 
-            if w.ammomax>0 then help=help &" | Ammuniton: "&w.ammomax 
-        next
-    endif
-    if sh=1 then
-        last=19
-        mod1=15
-        mod2=16
-        mod3=17
-        mod4=18
-        for a=1 to 14
-            w=makeweapon(a)
-            weapons=weapons &"/ " &w.desig &" - "&w.p 
-            help=help &"/ "&w.desig &" | | "
-            if a=1 then help=help &"A simple gun firing metal shells propelled by an explosion. "
-            if a=2 then help=help &"Metal shells accelerated to high speeds using electric fields "
-            if a=3 then help=help &"Self propelled rockets with chemical explosives"
-            if a=4 then help=help &"Self propelled rockets with nuclear warheads"
-            if a=5 then help=help &"Self propelled rockets with nuclear warheads and increased range"
-            if a=6 then help=help &"Ionized hydrogen. Low impact damage, low penetration. A targetable ships drive basically"
-            if a=7 then help=help &"Lasers burn through the enemys ships armor"
-            if a=8 then help=help &"Higher energy per particle increases the damage of a Laser"
-            if a=9 then help=help &"Bremsstrahlung wreaks havocs inside the target even if the particles don't penetrate the hull."
-            if a=10 then help=help &"Heavy particles accelerated to near light speeds penetrate and rip apart the enemys armor."
-            if a=11 then help=help &"Several light ship guns combined into a battery. "
-            if a=12 then help=help &"Several light rail guns combined into a battery "
-            if a=13 then help=help &"Several light rockets combined into a battery "
-            if a=14 then help=help &"Several rockets combined into a battery "
-            help=help &" | | Damage: "&w.dam &" | Rate of Fire: "&w.ROF &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3 
-            if w.ammomax>0 then help=help &" | Ammuniton: "&w.ammomax 
-        next
-    endif
+    for a=1 to 20
+        if makew(a,st)<>0 then 
+            i+=1
+            inv(i)=makeweapon(makew(a,st))
+        endif
+    next
     
-    'make helpmenu
-    weapons=weapons &"/ Cargo Bay - 500Cr/ Fuel Tank - 1000 Cr/ Crew Quarters - 1500 Cr/ Tractor Beam - 500 Cr /Exit"
-    help=help &"/Cargo Bay | |A weapons turret modified to hold an additional ton of cargo."
-    help=help &"/Fuel Tank | |Not the safest way to store fuel. It holds 50 tons"
-    help=help &"/Crew Quaters | |A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
-    help=help &"/Tractor beam | |A beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes."
-    'Make slotmenu
+    weapons="Weapons:"
+    for a=1 to i
+        weapons=weapons &"/ " &inv(a).desig &" - "&inv(a).p 
+        help=help &"/ "&inv(a).desig &" | | "    
+        if makew(a,st)=1 then help=help &"A simple gun firing metal shells propelled by an explosion. "
+        if makew(a,st)=2 then help=help &"Metal shells accelerated to high speeds using electric fields "
+        if makew(a,st)=3 then help=help &"Self propelled rockets with chemical explosives"
+        if makew(a,st)=4 then help=help &"Self propelled rockets with nuclear warheads"
+        if makew(a,st)=5 then help=help &"Self propelled rockets with nuclear warheads and increased range"
+        if makew(a,st)=6 then help=help &"Ionized hydrogen. Low impact damage, low penetration. A targetable ships drive basically"
+        if makew(a,st)=7 then help=help &"Lasers burn through the enemys ships armor"
+        if makew(a,st)=8 then help=help &"Higher energy per particle increases the damage of a Laser"
+        if makew(a,st)=9 then help=help &"Bremsstrahlung wreaks havocs inside the target even if the particles don't penetrate the hull."
+        if makew(a,st)=10 then help=help &"Heavy particles accelerated to near light speeds penetrate and rip apart the enemys armor."
+        if makew(a,st)=11 then help=help &"Several light ship guns combined into a battery. "
+        if makew(a,st)=12 then help=help &"Several light rail guns combined into a battery "
+        if makew(a,st)=13 then help=help &"Several light rockets combined into a battery "
+        if makew(a,st)=14 then help=help &"Several rockets combined into a battery "
+        if makew(a,st)=87 then help=help &"Sacrifices a weapon turret to install additional armor | | +5 to HP"
+        if makew(a,st)=88 then help=help &"Additional thrusters increasing maneuverability in space combat. | | +1 to MP"
+        if makew(a,st)=89 then help=help &"Additional thrusters and an auxillary power plant increasing maneuverability in space combat. | | +2 to MP"
+        if makew(a,st)=90 then help=help &"An auxillary powerplant dedicated to the shield generator, improving their recharging rate. | | Shields recharge at 2 pts per round"
+        if makew(a,st)=91 then help=help &"A small auxillary powerplant feeding energy weapons. | | +1 to energy weapons damage"
+        if makew(a,st)=92 then help=help &"A large auxillary powerplant feeding energy weapons. | | +2 to energy weapons damage."
+        if makew(a,st)=93 then help=help &"A second sensor array directly linked to weapons control | | +1 to hit in space combat"
+        if makew(a,st)=94 then help=help &"A powerfull additional sensor array directly linked to weapons control | | +2 to hit in space combat"
+        if makew(a,st)=95 then help=help &"A improved tractor beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes. It is more powerfull and sturdier than the normal Tractor beam."
+        if makew(a,st)=96 then help=help &"A beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes."
+        if makew(a,st)=97 then help=help &"A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
+        if makew(a,st)=98 then help=help &"Not the safest way to store fuel. It holds 50 tons"
+        if makew(a,st)=99 then help=help &"A weapons turret modified to hold an additional ton of cargo."
+        
+        if makew(a,st)<15 then help=help &" | | Damage: "&inv(a).dam &" | Range: "&inv(a).range &"\"&inv(a).range*2 &"\" &inv(a).range*3 
+        if inv(a).ammomax>0 then help=help &" | Ammuniton: "&inv(a).ammomax 
+       
+    next
+    weapons=weapons &"/Exit"
+    help=help &" /"
+    last=i+1
     do
         cls
         displayship()        
@@ -2209,23 +2228,14 @@ function buyweapon(sh as short=0) as _ship
             c=menu(wmenu)
             if c<b then
                 if player.weapons(c).desig<>"" and d<>5 then 
-                    if not(askyn("Do you want to replace that weapon?(y/n)")) then d=9
+                    if not(askyn("Do you want to replace the "&player.weapons(c).desig &"(y/n)")) then c=b
                 endif
-                if (sh=0 and d>0 and d<11) or (sh=1 and d>0 and d<15) then 
-                    w=makeweapon(d)
-                    if paystuff(w.p) then player.weapons(c)=w
-                endif
-                if d=mod1 then
-                    if paystuff(500) then player.weapons(c)=makeweapon(99)
-                endif
-                if d=mod2 then
-                    if paystuff(1000) then player.weapons(c)=makeweapon(98)    
-                endif
-                if d=mod3 then
-                    if paystuff(1500) then player.weapons(c)=makeweapon(97)
-                endif
-                if d=mod4 then
-                    if paystuff(500) then player.weapons(c)=makeweapon(96)
+                if c<b then
+                    if paystuff(inv(d).p) then
+                        player.weapons(c)=inv(d)
+                    else
+                        dprint "You don't have enough money"
+                    endif
                 endif
             endif
         endif
@@ -2429,12 +2439,95 @@ function makeweapon(a as short) as _weap
  '       w.desc="You are uncertain how this wapon works, but it seems to disrupt the bonds formed by strong interaction in subatomic particles. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
     endif
     
+    if a=87 then
+        w.desig="Armor Plates"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=100
+    endif
+    
+    if a=88 then
+        w.desig="Man-Jets I"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=500
+    endif
+    
+    if a=89 then
+        w.desig="Man-Jets II"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=1500
+    endif
+    
+    if a=90 then
+        w.desig="Aux.Shield Gen."
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=800
+    endif
+        
+    if a=91 then
+        w.desig="Aux. Power Gen."
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=1000
+    endif
+    
+    if a=92 then
+        w.desig="Aux.Pow.MKII"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=2500
+    endif
+    
+    if a=93 then
+        w.desig="Ded. Sensors"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=800
+    endif
+    
+    if a=94 then
+        w.desig="Ded. Sens MKII"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.p=2000
+    endif
+    
+    if a=95 then
+        w.desig="Imp Trac Beam"
+        w.dam=0
+        w.range=0
+        w.ammo=0
+        w.ammomax=0
+        w.ROF=-3
+        w.p=1500
+    endif
+    
     if a=96 then
         w.desig="Tractor Beam"
         w.dam=0
         w.range=0
         w.ammo=0
         w.ammomax=0
+        w.ROF=-1
         w.p=500
 '        w.desc="Crew Quaters | | A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
     endif
@@ -2519,7 +2612,7 @@ function findartifact(awayteam as _monster) as short
             loop until inkey<>""
             
             if all_resources_are=0 then
-                c=rnd_range(1,13)
+                c=rnd_range(1,16)
                 if c=2 or c=5 then
                     c=rnd_range(1,10)
                     if c=2 or c=5 then artflag(c)=1
@@ -2625,8 +2718,24 @@ function artifact(c as short,awayteam as _monster) as short
     
     if c=13 then
         dprint "It's a special shield to protect ships from wormholes!"
-        
     endif
+    
+    if c=14 then
+        dprint "It's a powerful ancient bomb!"
+        placeitem(makeitem(301),0,0,0,-1)
+        artflag(14)=0
+    endif
+    
+    if c=15 then
+        dprint "It's a portable cloaking device!"
+        placeitem(makeitem(302),0,0,0,-1)
+        artflag(15)=0
+    endif
+    
+    if c=16 then
+        dprint "It's a device that allows to navigate wormholes!"
+    endif
+    
     
     return 0
 end function

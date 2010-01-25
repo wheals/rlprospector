@@ -185,6 +185,39 @@ function getany(possible() as short) as short
     return r
 end function
 
+function countdeadofficers(max as short) as short
+    dim r as short
+    dim all as short
+    dim a as short
+    dim o as short
+    for a=1 to 6
+        if crew(a).hp<=0 and crew(1).onship=0 then o+=1
+    next
+    if max>=7 then
+        for a=7 to max
+            if crew(a).hp>0 and crew(1).onship=0 then r+=1
+        next
+    else
+        r=-1
+    endif
+    if o=0 then
+        return 0
+    endif
+
+    if r=-1 then 
+        return 0
+    else
+        if crew(1).hp<=0 then 
+            o=o+5
+        else
+            o-=1
+        endif
+        return r-o*10
+    endif
+        
+    return r
+end function
+
 function movepoint(byval c as cords, a as short, eo as short=0, border as short=0) as cords
     dim p as cords
     static statistics(9) as integer

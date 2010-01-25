@@ -1,20 +1,33 @@
 
 tiles(1).tile=247
-tiles(1).col=9
-tiles(1).bgcol=0
+tiles(1).col=17
 tiles(1).desc="shallow Water"
 tiles(1).walktru=0
 tiles(1).oxyuse=1
+tiles(1).shootable=1
+tiles(1).hp=50
+tiles(1).dr=-1
+tiles(1).succt="the liquid evaporates"
+tiles(1).turnsinto=12
 
 tiles(2).tile=247
 tiles(2).col=1
-tiles(2).bgcol=0
+tiles(2).bgcol=229
 tiles(2).desc="deep Water"
 tiles(2).walktru=1
+tiles(2).shootable=1
+tiles(2).hp=100
+tiles(2).dr=-1
+tiles(2).succt="the liquid evaporates"
+tiles(2).turnsinto=1
 
 tiles(3).tile=46
 tiles(3).col=6
 tiles(3).desc="Dirt"
+tiles(3).shootable=1
+tiles(3).dr=-1
+tiles(3).hp=5
+tiles(3).turnsinto=4
 
 tiles(4).tile=46
 tiles(4).col=7
@@ -27,7 +40,7 @@ tiles(5).seetru=1
 tiles(5).vege=1
 tiles(5).shootable=1
 tiles(5).dr=-1
-tiles(5).hp=2
+tiles(5).hp=3
 tiles(5).turnsinto=3
 
 tiles(6).tile=84
@@ -41,28 +54,28 @@ tiles(6).hp=2
 tiles(6).turnsinto=3
 
 tiles(7).tile=94
-tiles(7).col=15
-tiles(7).bgcol=0
+tiles(7).col=215
+tiles(7).bgcol=221
 tiles(7).desc="High Mountains"
 tiles(7).seetru=1
 tiles(7).walktru=2
 tiles(7).firetru=1
 tiles(7).shootable=1
 tiles(7).dr=100
-tiles(7).hp=55
+tiles(7).hp=100
 tiles(7).succt="You bore some tunnels."
 tiles(7).turnsinto=244
 
 tiles(8).tile=94
-tiles(8).col=7
-tiles(8).bgcol=0
+tiles(8).col=217
+tiles(8).bgcol=221
 tiles(8).desc="Mountains"
 tiles(8).seetru=1
 tiles(8).walktru=2
 tiles(8).firetru=1
 tiles(8).dr=100
 tiles(8).shootable=1
-tiles(8).hp=25
+tiles(8).hp=50
 tiles(8).succt="You bore some tunnels."
 tiles(8).turnsinto=244
 
@@ -79,11 +92,19 @@ tiles(10).col=10
 tiles(10).bgcol=0
 tiles(10).desc="Grass"
 tiles(10).vege=1
+tiles(10).shootable=1
+tiles(10).dr=-1
+tiles(10).hp=2
+tiles(10).turnsinto=3
 
 tiles(11).tile=46
 tiles(11).col=2
 tiles(11).desc="Grass"
 tiles(11).vege=1
+tiles(11).shootable=1
+tiles(11).dr=-1
+tiles(11).hp=1
+tiles(11).turnsinto=3
 
 tiles(12).tile=46
 tiles(12).col=14
@@ -115,7 +136,8 @@ tiles(16).tile=35
 tiles(16).col=7
 tiles(16).desc="a building"
 tiles(16).dr=4
-tiles(16).hp=60
+tiles(16).shootable=1
+tiles(16).hp=30
 tiles(16).turnsinto=47
 tiles(16).seetru=1
 tiles(16).firetru=1
@@ -139,26 +161,42 @@ tiles(18).hitt="You get zapped by a forcefield"
 
 tiles(20).tile=247
 tiles(20).desc="acid"
-tiles(20).col=66
+tiles(20).col=243
 tiles(20).oxyuse=1
 tiles(20).tohit=10
 tiles(20).dam=1
 tiles(20).range=0
 tiles(20).hitt="You get splashed with strong acids!"
+tiles(20).shootable=1
+tiles(20).hp=50
+tiles(20).dr=-1
+tiles(20).succt="the liquid evaporates"
+tiles(20).turnsinto=13
 
 tiles(21).tile=247
 tiles(21).desc="deep acid"
-tiles(21).col=48
+tiles(21).col=245
+tiles(21).bgcol=247
 tiles(21).tohit=18
 tiles(21).walktru=1
 tiles(21).dam=1
 tiles(21).range=0
 tiles(21).hitt="You get splashed with strong acids!"
+tiles(21).shootable=1
+tiles(21).hp=100
+tiles(21).dr=-1
+tiles(21).succt="the liquid evaporates"
+tiles(21).turnsinto=20
+
 
 tiles(22).tile=asc(".")
 tiles(22).desc="red grass"
 tiles(22).col=150
 tiles(22).vege=2
+tiles(22).shootable=1
+tiles(22).dr=-1
+tiles(22).hp=1
+tiles(22).turnsinto=3
 
 tiles(23).tile=asc("T")
 tiles(23).col=162
@@ -167,7 +205,7 @@ tiles(23).seetru=1
 tiles(23).vege=4
 tiles(23).shootable=1
 tiles(23).dr=-1
-tiles(23).hp=2
+tiles(23).hp=3
 tiles(23).turnsinto=3
 
 tiles(24).tile=asc("T")
@@ -199,6 +237,12 @@ tiles(26).dam=1
 tiles(26).range=0
 tiles(26).hitt="You get splashed with liquid ammonium!"
 
+tiles(26).shootable=1
+tiles(26).dr=-1
+tiles(26).hp=20
+tiles(26).succt="The ammonium evaporates"
+tiles(26).turnsinto=4
+
 
 tiles(27).tile=ASC("=")
 tiles(27).desc="frozen water"
@@ -207,7 +251,7 @@ tiles(27).shootable=1
 tiles(27).dr=-1
 tiles(27).succt="You blast holes into the thick ice"
 tiles(27).killt="You blast big holes into the thick ice"
-tiles(27).hp=5
+tiles(27).hp=10
 tiles(27).turnsinto=2
 
 'Geysers
@@ -334,7 +378,7 @@ tiles(48).walktru=5
 tiles(48).firetru=1
 tiles(48).shootable=1
 tiles(48).dr=1
-tiles(48).hp=6
+tiles(48).hp=7
 tiles(48).turnsinto=47
 tiles(48).succt="You tunnel through the wall"
 tiles(48).failt="The wall is too hard"
@@ -363,7 +407,7 @@ tiles(50).walktru=5
 tiles(50).firetru=1
 tiles(50).shootable=1
 tiles(50).dr=3
-tiles(50).hp=10
+tiles(50).hp=9
 tiles(50).turnsinto=49
 tiles(50).succt="You tunnel through the wall"
 tiles(50).failt="The wall is too hard"
@@ -377,7 +421,7 @@ tiles(51).walktru=5
 tiles(51).firetru=1
 tiles(51).shootable=1
 tiles(51).dr=4
-tiles(51).hp=12
+tiles(51).hp=10
 tiles(51).turnsinto=50
 tiles(51).succt="You tunnel through the wall"
 tiles(51).failt="The wall is too hard"
@@ -410,13 +454,29 @@ tiles(54).desc="Door"
 tiles(54).seetru=1
 tiles(54).firetru=1
 tiles(54).walktru=5
+tiles(54).dr=4
+tiles(54).shootable=1
+tiles(54).hp=10
+tiles(54).succt="Concentrating enough firepower you melt the door a little"
+tiles(54).failt="You dont have enough firepower to damage the door"
+tiles(54).killt="You blast the door open"
+tiles(54).turnsinto=84
 
 tiles(55).tile=asc("/") 'open door
 tiles(55).col=11
 tiles(55).desc="Door"
 tiles(55).seetru=0
 tiles(55).firetru=0
-tiles(55).onclose=54
+tiles(55).onclose=5
+tiles(55).walktru=5
+tiles(55).dr=4
+tiles(55).shootable=1
+tiles(55).hp=10
+tiles(55).succt="Concentrating enough firepower you melt the door a little"
+tiles(55).failt="You dont have enough firepower to damage the door"
+tiles(55).killt="You blast the door open"
+tiles(55).turnsinto=84
+
 
 tiles(56).tile=84 'Apollos temple
 tiles(56).col=14
@@ -487,7 +547,7 @@ tiles(60).firetru=1
 tiles(60).shootable=1
 tiles(60).turnsinto=3
 tiles(60).dr=2
-tiles(60).hp=225
+tiles(60).hp=25
 tiles(60).succt="It is slightly dented now"
 tiles(60).failt="Your weapons arent powerful enough to damage a spaceship"
 tiles(60).killt="That will teach those pirates a lesson!"
@@ -615,7 +675,12 @@ tiles(76).desc="abandoned mining building"
 tiles(76).seetru=1
 tiles(76).firetru=1
 tiles(76).hides=2
-
+tiles(76).dr=4
+tiles(76).shootable=1
+tiles(76).hp=30
+tiles(76).turnsinto=47
+tiles(76).seetru=1
+tiles(76).firetru=1
 
 tiles(78).tile=65
 tiles(78).col=14
@@ -691,7 +756,7 @@ tiles(86).spawnsmax=1
 tiles(86).spawnblock=1
 tiles(86).turnsinto=62
 tiles(86).dr=2
-tiles(86).hp=225
+tiles(86).hp=25
 tiles(86).succt="It is slightly dented now"
 tiles(86).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(86).killt="That will teach them a lesson!"
@@ -730,6 +795,11 @@ tiles(90).hp=10
 tiles(90).turnsinto=4
 tiles(90).seetru=1
 tiles(90).firetru=1
+tiles(90).shootable=1
+tiles(90).dr=-1
+tiles(90).hp=10
+tiles(90).turnsinto=3
+
 
 tiles(91).tile=asc("O")
 tiles(91).col=14
@@ -740,6 +810,10 @@ tiles(91).hp=15
 tiles(91).turnsinto=4
 tiles(91).seetru=1
 tiles(91).firetru=1
+tiles(91).shootable=1
+tiles(91).dr=0
+tiles(91).hp=20
+tiles(91).turnsinto=3
 
 tiles(92).tile=asc("O")
 tiles(92).col=7
@@ -750,6 +824,10 @@ tiles(92).hp=20
 tiles(92).turnsinto=4
 tiles(92).seetru=1
 tiles(92).firetru=1
+tiles(92).shootable=1
+tiles(92).dr=1
+tiles(92).hp=30
+tiles(92).turnsinto=3
 
 tiles(93).tile=asc("O")
 tiles(93).col=4
@@ -761,6 +839,10 @@ tiles(93).hp=10
 tiles(93).turnsinto=4
 tiles(93).seetru=1
 tiles(93).firetru=1
+tiles(93).shootable=1
+tiles(93).dr=-1
+tiles(93).hp=10
+tiles(93).turnsinto=3
 
 tiles(94).tile=asc("O")
 tiles(94).col=14
@@ -772,6 +854,10 @@ tiles(94).hp=15
 tiles(94).turnsinto=4
 tiles(94).seetru=1
 tiles(94).firetru=1
+tiles(94).shootable=1
+tiles(94).dr=0
+tiles(94).hp=20
+tiles(94).turnsinto=3
 
 tiles(95).tile=asc("O")
 tiles(95).col=7
@@ -779,15 +865,22 @@ tiles(95).desc="a well constructed stone house"
 tiles(95).locked=3
 tiles(95).hides=2
 tiles(95).dr=1
-tiles(95).hp=20
+tiles(95).hp=30
 tiles(95).turnsinto=4
 tiles(95).seetru=1
 tiles(95).firetru=1
+tiles(95).shootable=1
+tiles(95).dr=1
+tiles(95).hp=40
+tiles(95).turnsinto=3
 
 tiles(96).tile=186
 tiles(96).col=4
 tiles(96).desc="cultivated land"
-
+tiles(96).shootable=1
+tiles(96).dr=-1
+tiles(96).hp=20
+tiles(96).turnsinto=3
 
 
 tiles(97).tile=asc(".")
@@ -843,26 +936,47 @@ tiles(102).tile=asc(".")
 tiles(102).col=90
 tiles(102).desc="moss"
 tiles(102).vege=1
+tiles(102).shootable=1
+tiles(102).dr=-1
+tiles(102).hp=2
+tiles(102).turnsinto=3
 
 tiles(103).tile=asc(".")
 tiles(103).col=42
 tiles(103).desc="moss"
 tiles(103).vege=2
+tiles(103).shootable=1
+tiles(103).dr=-1
+tiles(103).hp=2
+tiles(103).turnsinto=3
+
 
 tiles(104).tile=asc(".")
 tiles(104).col=120
 tiles(104).desc="moss"
 tiles(104).vege=3
+tiles(104).shootable=1
+tiles(104).dr=-1
+tiles(104).hp=2
+tiles(104).turnsinto=3
 
 tiles(105).tile=asc(".")
 tiles(105).col=18
 tiles(105).desc="moss"
 tiles(105).vege=4
+tiles(105).shootable=1
+tiles(105).dr=-1
+tiles(105).hp=2
+tiles(105).turnsinto=3
 
 tiles(106).tile=34
 tiles(106).col=60
 tiles(106).desc="ferns"
 tiles(106).vege=5
+tiles(106).shootable=1
+tiles(106).dr=-1
+tiles(106).hp=2
+tiles(106).turnsinto=3
 
 tiles(107).tile=asc("#")
 tiles(107).col=218
@@ -877,6 +991,12 @@ tiles(108).desc="A big sleek steel and glass building, with slightly low ceiling
 tiles(108).gives=19
 tiles(108).turnsinto=108
 tiles(108).hides=2
+tiles(108).dr=4
+tiles(108).shootable=1
+tiles(108).hp=30
+tiles(108).turnsinto=47
+tiles(108).seetru=1
+tiles(108).firetru=1
 
 tiles(126).tile=64 
 tiles(126).col=7
@@ -1003,9 +1123,10 @@ tiles(146).col=-9
 tiles(146).bgcol=-14
 tiles(146).desc="iridescent flowers"
 tiles(146).vege=5
+tiles(146).shootable=1
 tiles(146).dr=-1
 tiles(146).hp=1
-tiles(145).turnsinto=14
+tiles(146).turnsinto=3
 
 tiles(148).tile=35
 tiles(148).col=7
@@ -1028,6 +1149,12 @@ tiles(150).bgcol=0
 tiles(150).col=14
 tiles(150).desc="a primitive stone pyramid"
 tiles(150).hides=2
+tiles(150).dr=2
+tiles(150).shootable=1
+tiles(150).hp=60
+tiles(150).turnsinto=47
+tiles(150).seetru=1
+tiles(150).firetru=1
 
 tiles(151).tile=178
 tiles(151).col=215
@@ -1120,6 +1247,11 @@ tiles(156).dr=-1
 tiles(156).hp=6
 tiles(156).turnsinto=4
 tiles(156).onopen=157
+tiles(156).shootable=1
+tiles(156).dr=-1
+tiles(156).hp=30
+tiles(156).turnsinto=4
+
 
 tiles(157).tile=asc("/") 'open door
 tiles(157).col=8
@@ -1127,6 +1259,10 @@ tiles(157).desc="Door"
 tiles(157).seetru=0
 tiles(157).firetru=0
 tiles(157).onclose=156
+tiles(157).shootable=1
+tiles(157).dr=-1
+tiles(157).hp=30
+tiles(157).turnsinto=4
 
 
 tiles(158).tile=176
@@ -1185,10 +1321,18 @@ tiles(165).col=121
 tiles(165).desc="seatang"
 tiles(165).vege=6
 tiles(165).turnsoninspect=166
+tiles(165).shootable=1
+tiles(165).dr=-1
+tiles(165).hp=1
+tiles(165).turnsinto=3
 
 tiles(166).tile=34
 tiles(166).col=121
 tiles(166).desc="seatang"
+tiles(166).shootable=1
+tiles(166).dr=-1
+tiles(166).hp=1
+tiles(166).turnsinto=3
 
 
 tiles(167).tile=asc("C")
@@ -1219,6 +1363,12 @@ tiles(171).col=77
 tiles(171).seetru=1
 tiles(171).firetru=1
 tiles(171).hides=2
+tiles(171).dr=4
+tiles(171).shootable=1
+tiles(171).hp=30
+tiles(171).turnsinto=47
+tiles(171).seetru=1
+tiles(171).firetru=1
 
 tiles(172).tile=asc("#")
 tiles(172).desc="Building"
@@ -1265,6 +1415,12 @@ tiles(181).seetru=1
 tiles(181).firetru=1
 tiles(181).locked=2
 tiles(181).hides=2
+tiles(181).dr=3
+tiles(181).shootable=1
+tiles(181).hp=20
+tiles(181).turnsinto=47
+tiles(181).seetru=1
+tiles(181).firetru=1
 
 tiles(182).tile=35
 tiles(182).col=14
@@ -1409,7 +1565,7 @@ tiles(201).walktru=5
 tiles(201).seetru=1
 tiles(201).firetru=1
 tiles(201).shootable=1
-tiles(201).dr=3
+tiles(201).dr=4
 tiles(201).hp=25
 tiles(201).succt="You damage the wall"
 tiles(201).failt="The walls are to strong for you to seriously damage"
@@ -1423,6 +1579,11 @@ tiles(202).desc="floor"
 tiles(203).tile=asc("O")
 tiles(203).col=14
 tiles(203).desc="airlock"
+tiles(203).shootable=1
+tiles(203).dr=3
+tiles(203).hp=20
+tiles(203).succt="You damage the door"
+tiles(203).failt="The doors are too strong for you to seriously damage"
 
 tiles(204).tile=asc("/")
 tiles(204).col=7
@@ -1440,7 +1601,7 @@ tiles(205).shootable=1
 tiles(205).dr=2
 tiles(205).hp=15
 tiles(205).succt="You damage the door"
-tiles(205).failt="The doors are to strong for you to seriously damage"
+tiles(205).failt="The doors are too strong for you to seriously damage"
 tiles(205).onopen=204
 
 tiles(206).tile=asc("E")
@@ -1656,8 +1817,8 @@ tiles(243).walktru=5
 tiles(243).seetru=1
 tiles(243).firetru=1
 tiles(243).shootable=1
-tiles(243).dr=2
-tiles(243).hp=15
+tiles(243).dr=5
+tiles(243).hp=45
 tiles(243).succt="You damage the wall"
 tiles(243).failt="The walls are to strong for you to seriously damage"
 tiles(243).desc="wall"
@@ -1671,6 +1832,11 @@ tiles(244).desc="Tunneled Mountains"
 tiles(244).seetru=1
 tiles(244).walktru=0
 tiles(244).firetru=1
+tiles(244).shootable=1
+tiles(244).dr=4
+tiles(244).hp=25
+tiles(244).turnsinto=47
+
 
 tiles(245).tile=147
 tiles(245).col=12
@@ -1788,6 +1954,23 @@ tiles(259).desc="Hullrefits"
 tiles(259).gives=42
 tiles(259).turnsinto=259
 
+
+tiles(260).tile=ASC("=")
+tiles(260).desc="frozen water"
+tiles(260).col=15
+tiles(260).shootable=1
+tiles(260).dr=-1
+tiles(260).succt="You blast holes into the thick ice"
+tiles(260).killt="You blast big holes into the thick ice"
+tiles(260).hp=5
+tiles(260).turnsinto=1
+
+tiles(261).tile=ASC("+")
+tiles(261).col=12
+tiles(261).bgcol=11
+tiles(261).desc="hospital"
+tiles(261).gives=43
+tiles(261).turnsinto=261
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

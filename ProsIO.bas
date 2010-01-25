@@ -146,7 +146,12 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 if p.x>=0 and p.x<=60 and p.y>=0 and p.y<=20 then                
                     if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
                         locate p.y+1,p.x+1
-                        color enemy(a).col,0
+                        if enemy(a).cmshow=1 then
+                            enemy(a).cmshow=0    
+                            color enemy(a).col,203
+                        else
+                            color enemy(a).col,0
+                        endif
                         if enemy(a).invis=0 then
                             if _tiles=0 then
                                 put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(enemy(a).sprite),trans
@@ -434,7 +439,11 @@ function showteam(from as short, r as short=0) as short
         next
         color 11,0
         locate 25,1
-        if r=0 then print key_rename &" rename a member, enter add/remove from awaytem, s set Item, c clear, esc exit";
+        if r=0 then 
+            print key_rename &" rename a member,";
+            if from=0 then print "enter add/remove from awaytem,";
+            print "s set Item, c clear, esc exit";
+        endif
         if r=1 then print "Enter to chose crewmember";
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
@@ -538,6 +547,7 @@ function addmember(a as short) as short
             crew(slot).typ=4
             crew(slot).paymod=player.science^2
         endif
+        
         if a=5 then 'doctor
             crew(slot).hpmax=player.doctor+1
             crew(slot).hp=crew(slot).hpmax
@@ -623,6 +633,17 @@ function addmember(a as short) as short
             crew(slot).xp=-1
             crew(slot).morale=25000
         endif
+        if a=14 then 'SO
+            crew(4).hpmax=player.science+1
+            crew(4).hp=crew(4).hpmax
+            crew(4).icon="T"
+            crew(4).typ=4
+            crew(4).paymod=0
+            crew(4).n=alienname(1)
+            crew(4).xp=0
+            crew(4).disease=0
+        endif
+        
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
     endif     
@@ -1442,12 +1463,14 @@ sub show_stars(bg as short=0)
     dim as single dx,dy,l,x1,y1,vis
     dim m as _monster
     dim vismask(sm_x,sm_y) as byte
-    player.osx=player.c.x-30
-    player.osy=player.c.y-10
-    if player.osx<=0 then player.osx=0
-    if player.osy<=0 then player.osy=0
-    if player.osx>=sm_x-60 then player.osx=sm_x-60
-    if player.osy>=sm_y-20 then player.osy=sm_y-20
+    if bg<2 then
+        player.osx=player.c.x-30
+        player.osy=player.c.y-10
+        if player.osx<=0 then player.osx=0
+        if player.osy<=0 then player.osy=0
+        if player.osx>=sm_x-60 then player.osx=sm_x-60
+        if player.osy>=sm_y-20 then player.osy=sm_y-20
+    endif
     m.sight=player.sensors+5.5
     m.c=player.c
     makevismask(vismask(),m,-1)
@@ -1458,7 +1481,7 @@ sub show_stars(bg as short=0)
         next
     next
     
-    if bg=1 then
+    if bg>0 then
         for x=0 to 60
             for y=0 to 20
                 locate y+1,x+1,0
@@ -1690,44 +1713,6 @@ function screenshot(a as short) as short
         endif
     endif
     color 11,0
-    return 0
-end function
-
-function awayteamsetup() as short
-    dim as short a
-    dim text as string
-    do
-        text="Awayteam Setup:/"
-        if crew(2).onship=0 then 
-            text=text &" * Pilot/"
-        else
-            text=text &"   Pilot/"
-        endif
-        if crew(3).onship=0 then
-            text=text &" * Gunner/"
-        else
-            text=text &"   Gunner/"
-        endif
-        if crew(4).onship=0 then
-            text=text &" * Science officer/"
-        else
-            text=text &"   Science officer/"
-        endif
-        if crew(5).onship=0 then
-            text=text &" * Ships doctor/"
-        else
-            text=text &"   Ships doctor/"
-        endif
-        text=text &"Exit"
-        a=menu(text)
-        if a<5 then
-            if crew(a+1).onship=1 then
-                crew(a+1).onship=0 
-            else
-                crew(a+1).onship=1
-            endif
-        endif        
-    loop until a=5
     return 0
 end function
 
@@ -2043,22 +2028,6 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
             if askyn("do you really want to quit? (y/n)") then player.dead=6
         endif
         
-        if key="P" and show_npcs then
-            dprint "Pirateagression:" &player.pirate_agr &" " &"Merchantagression:"&player.merchant_agr
-            input "pirateagr:";player.pirate_agr
-            key=""
-        endif
-        if just_run=1 then 
-            if key="S" then
-                cls 
-                for a=1 to lastfleet
-                    print debug_printfleet(fleet(a))
-                next
-                no_key=keyin
-            endif
-            key=""
-            player.c.x=1
-        endif
         if len(allowed)>0 and key<>key_esc and key<>key_enter and getdirection(key)=0 then
             if instr(allowed,key)=0 then key=""
         endif
@@ -2489,8 +2458,8 @@ sub shipstatus(heading as short=0)
     dim as string text,key
     dim inv(127) as _items
     dim invn(127) as short
-    dim cargo(8) as string
-    dim cc(8) as short
+    dim cargo(11) as string
+    dim cc(11) as short
     color 0,0
     cls
     if heading=0 then
@@ -2508,11 +2477,11 @@ sub shipstatus(heading as short=0)
     color 15,0
     print "Hullpoints(max";
     color 11,0
-    print player.h_maxhull;
+    print player.h_maxhull+player.addhull;
     color 15,0
     print "):";
     color 11,0
-    if player.hull<player.h_maxhull/2 then color 14,0
+    if player.hull<(player.h_maxhull+player.addhull)/2 then color 14,0
     if player.hull<2 then color 12,0
     print player.hull
     locate 4,3
@@ -2576,8 +2545,11 @@ sub shipstatus(heading as short=0)
     cargo(4)="Tech goods, bought at"
     cargo(5)="Luxury goods, bought at"
     cargo(6)="Weapons, bought at"
-    cargo(7)="Mysterious box"
-    cargo(8)="TT Contract Cargo"
+    cargo(7)="Narcotics, bought at"
+    cargo(8)="Hightech, bought at"
+    cargo(9)="Computers, bought at"
+    cargo(10)="Mysterious box"
+    cargo(11)="TT Contract Cargo"
     for c=1 to 10
         if player.cargo(c).x=1 then cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
         if player.cargo(c).x=7 then cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
@@ -2805,7 +2777,7 @@ sub displayship(show as byte=0)
     color 11,0
     locate 2,63
     print "HP:"&space(4) &" "&"SP:"&player.shield &" "
-    if player.hull<player.h_maxhull/2 then color 14,0
+    if player.hull<(player.h_maxhull+player.addhull)/2 then color 14,0
     if player.hull<2 then color 12,0
     locate 2,66
     print player.hull
@@ -2885,9 +2857,9 @@ sub displayship(show as byte=0)
             locate 8+b+1,63
             print "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 ;
             if player.weapons(a).ammomax>0 then print " A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ";
-            if player.weapons(a).desig="Tractor Beam" then 
+            if player.weapons(a).ROF<0 then 
                 player.tractor=1
-                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8 then
+                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
                     dprint "Your tractor beam breaks down",14,14
                     player.tractor=0
                     player.towed=0
@@ -2917,8 +2889,11 @@ sub displayship(show as byte=0)
         if player.cargo(a).x=4 then print "T"
         if player.cargo(a).x=5 then print "L"
         if player.cargo(a).x=6 then print "W"
-        if player.cargo(a).x=7 then print "?"
-        if player.cargo(a).x=8 then print "C"
+        if player.cargo(a).x=7 then print "N"
+        if player.cargo(a).x=8 then print "H"
+        if player.cargo(a).x=9 then print "C"
+        if player.cargo(a).x=10 then print "?"
+        if player.cargo(a).x=11 then print "t"
     next
     if show=1 then
         if _tiles=0 then
@@ -3248,7 +3223,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if key=key_enter then e=loca
         if key=key_awayteam then 
             screenshot(1)
-            showteam(1)
+            showteam(0)
             screenshot(2)
         endif
         for a=0 to c
@@ -3388,7 +3363,7 @@ function getplanet(sys as short,forcebar as byte=0) as short
             if xo<=4 then xo=4
             if xo+18>58 then xo=42
         endif
-        dprint "Enter to select, arrows to move,ESC to quit"&map(sys).planets(p)
+        dprint "Enter to select, arrows to move,ESC to quit"'&map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
         do
             displaysystem(map(sys))        
             if keyplus(key) or a=6 then 
@@ -3607,7 +3582,7 @@ end function
 
 function getshipweapon() as short
     dim as short a,b,c
-    dim p(5) as short
+    dim p(7) as short
     dim t as string
     t="Chose weapon/"
     for a=1 to 5
