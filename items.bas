@@ -184,7 +184,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="gun"
         i.desigp="guns"
-        i.ldesc="A small handheld weapon. An explosion propels a projectile. | | Damage: .1 | Range: 2 "
+        i.ldesc="A small handheld weapon. An explosion propels a projectile."
         i.icon="-"
         i.col=8
         i.bgcol=0
@@ -200,7 +200,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="rifle"
         i.desigp="rifles"
-        i.ldesc="a handheld weapon with a 60cm long barrel. An explosion propels a projectile. | | Damage: .2 | Range 2"
+        i.ldesc="a handheld weapon with a 60cm long barrel. An explosion propels a projectile."
         i.icon="/"
         i.col=8
         i.bgcol=0
@@ -216,7 +216,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="gyro jet gun"
         i.desigp="gyro jet guns"
-        i.ldesc="A small handheld weapon. Recoilless because the projectiles carry their own rocket | | Damage: .3 | Range: 3"
+        i.ldesc="A small handheld weapon. Recoilless because the projectiles carry their own rocket"
         i.icon="-"
         i.col=7
         i.bgcol=0
@@ -232,7 +232,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="gyro jet rifle"
         i.desigp="gyro jet rifles"
-        i.ldesc="A handheld weapon with several short barrels. Recoilless because the projectiles carry their own rocket. | | Damage: .4 | Range: 3"
+        i.ldesc="A handheld weapon with several short barrels. Recoilless because the projectiles carry their own rocket."
         i.icon="/"
         i.col=7
         i.bgcol=0
@@ -248,7 +248,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="gauss gun"
         i.desigp="gauss guns"
-        i.ldesc="A small handheld weapon. It fires needlelike projectiles using magnetic fields to accelerate them. It makes up for what it lacks in punch in  accuracy. | | Damage: .5 | Range: 4"
+        i.ldesc="A small handheld weapon. It fires needlelike projectiles using magnetic fields to accelerate them. It makes up for what it lacks in punch in  accuracy."
         i.icon="-"
         i.col=7
         i.bgcol=0
@@ -264,7 +264,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="gauss rifle"
         i.desigp="gauss rifles"
-        i.ldesc="A handheld weapon with several short barrels. It fires a volley of needlelike projectiles using magnetic fields to accelerate them. It makes up for what it lacks in punch in accuracy. | | Damage: .6 | Range: 4"
+        i.ldesc="A handheld weapon with several short barrels. It fires a volley of needlelike projectiles using magnetic fields to accelerate them. It makes up for what it lacks in punch in accuracy."
         i.icon="/"
         i.col=7
         i.bgcol=0
@@ -280,7 +280,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="laser gun"
         i.desigp="laser guns"
-        i.ldesc="A energy source that can be attached to a girdle is connected to a small pistolgrip. The laserbeam emmitted by it causes a lot of damage. | | Damage: .7 | Range: 5"
+        i.ldesc="A energy source that can be attached to a girdle is connected to a small pistolgrip. The laserbeam emmitted by it causes a lot of damage."
         i.icon="-"
         i.col=15
         i.bgcol=0
@@ -296,7 +296,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="laser rifle"
         i.desigp="laser rifles"
-        i.ldesc="A tornister houses the energy source, connected to a pistolgrip with 3 short barrels. The laserbeams cause a lot of damage. | | Damage: .8 | Range: 5"
+        i.ldesc="A tornister houses the energy source, connected to a pistolgrip with 3 short barrels. The laserbeams cause a lot of damage."
         i.icon="/"
         i.col=15
         i.bgcol=0
@@ -312,7 +312,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="plasma rifle"
         i.desigp="plasma rifles"
-        i.ldesc="A tornister houses the energy source, connected to a rifle. It emits a beam of superheated plasma. | | Damage: .9 | Range: 6"
+        i.ldesc="A tornister houses the energy source, connected to a rifle. It emits a beam of superheated plasma."
         i.icon="/"
         i.col=12
         i.bgcol=0
@@ -323,36 +323,39 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=35
     endif
     
-    if a>=3 and a<=11 and rnd_range(1,100)<10 then
-        if rnd_range(1,100)<50 then
-            if rnd_range(1,100)<75 then
-                i.desig="balanced "&i.desig
-                i.desigp="balanced "&i.desigp
-                i.id=i.id+100
-                i.v3=i.v3+1
-                i.price=i.price*1.2
+    if a>=3 and a<=11 then
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                if rnd_range(1,100)<75 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+110
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
             else
-                i.desig="well balanced "&i.desig
-                i.desigp="well balanced "&i.desigp
-                i.id=i.id+110
-                i.v3=i.v3+2
-                i.price=i.price*1.5
-            endif
-        else
-            if rnd_range(1,100)<75 then
-                i.desig="powerful "&i.desig
-                i.desigp="powerful "&i.desigp
-                i.id=i.id+120
-                i.v1=i.v1+.1
-                i.price=i.price*1.2
-            else
-                i.desig="very powerful "&i.desig
-                i.desigp="very powerful "&i.desigp
-                i.id=i.id+130
-                i.v1=i.v1+.2
-                i.price=i.price*1.5
+                if rnd_range(1,100)<75 then
+                    i.desig="powerful "&i.desig
+                    i.desigp="powerful "&i.desigp
+                    i.id=i.id+120
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="very powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+130
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
             endif
         endif
+        i.ldesc=i.ldesc &"  | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     endif
     
     if a=12 then
@@ -501,20 +504,23 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.res=45
     endif
     
-    if a>=12 and a<=20 and rnd_range(1,100)<10+a then
-        if rnd_range(1,100)<66 then
-            i.desig="camo "&i.desig
-            i.desigp="camo "&i.desigp
-            i.v2=1
-            i.id=i.id+110
-            i.price=i.price*1.1
-        else
-            i.desig="imp. camo "&i.desig
-            i.desigp="imp. camo "&i.desigp
-            i.id=i.id+120
-            i.v2=3
-            i.price=i.price*1.25
+    if a>=12 and a<=20 then
+        if rnd_range(1,100)<10+a then
+            if rnd_range(1,100)<66 then
+                i.desig="camo "&i.desig
+                i.desigp="camo "&i.desigp
+                i.v2=1
+                i.id=i.id+110
+                i.price=i.price*1.1
+            else
+                i.desig="imp. camo "&i.desig
+                i.desigp="imp. camo "&i.desigp
+                i.id=i.id+120
+                i.v2=3
+                i.price=i.price*1.25
+            endif
         endif
+        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
     
     if a=21 then
@@ -902,7 +908,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.2
         i.price=25
-        i.ldesc="A short blade to stick into enemies. | dam: .1"
+        i.ldesc="A short blade to stick into enemies."
         i.res=10
     endif
     
@@ -915,7 +921,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.3
         i.price=50
-        i.ldesc="A long blade for piercing and slashing. | dam: .2"
+        i.ldesc="A long blade for piercing and slashing."
         i.res=15
     endif
     
@@ -928,7 +934,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.4
         i.price=100
-        i.ldesc="A blade for slashing and piercing. Sawing motions increase damage. | dam: .4"
+        i.ldesc="A blade for slashing and piercing. Sawing motions increase damage."
         i.res=20
     endif
 
@@ -941,7 +947,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.5
         i.price=200
-        i.ldesc="A wide blade connected to a gauntlet. Sawing motions increase damage  | dam: .5"
+        i.ldesc="A wide blade connected to a gauntlet. Sawing motions increase damage."
         i.res=25
     endif
     
@@ -954,7 +960,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.6
         i.price=300
-        i.ldesc="A long blade connected to a gauntlet. Sawing motions increase damage  | dam: .6"
+        i.ldesc="A long blade connected to a gauntlet. Sawing motions increase damage."
         i.res=35
     endif
     
@@ -967,7 +973,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.7
         i.price=400
-        i.ldesc="A sturdy gauntlet ending in a blade a single molecule wide. | dam: .7"
+        i.ldesc="A sturdy gauntlet ending in a blade a single molecule wide."
         i.res=45
     endif
     
@@ -981,7 +987,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.8
         i.price=500
-        i.ldesc="A gauntlet with a long blade attached. It is a single molecule wide and heated to increase damage. | dam: .8"
+        i.ldesc="A gauntlet with a long blade attached. It is a single molecule wide and heated to increase damage."
         i.res=55
     endif
     
@@ -994,40 +1000,43 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.col=8
         i.v1=.9
         i.price=650
-        i.ldesc="A sturdy gauntlet, connected to plastic sleeves going up to the shoulders. Servos increase the wearers strength. mono blades connected to the fingers hurt opponents  | dam: .9"
+        i.ldesc="A sturdy gauntlet, connected to plastic sleeves going up to the shoulders. Servos increase the wearers strength. mono blades connected to the fingers hurt opponents."
         i.res=65
     endif
     
-    if a>=40 and a<=47 and rnd_range(1,100)<10 then
-        if rnd_range(1,100)<50 then
-            if rnd_range(1,100)<75 then
-                i.desig="balanced "&i.desig
-                i.desigp="balanced "&i.desigp
-                i.id=i.id+100
-                i.v3=i.v3+1
-                i.price=i.price*1.2
+    if a>=40 and a<=47 then
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                if rnd_range(1,100)<75 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+110
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
             else
-                i.desig="well balanced "&i.desig
-                i.desigp="well balanced "&i.desigp
-                i.id=i.id+110
-                i.v3=i.v3+2
-                i.price=i.price*1.5
-            endif
-        else
-            if rnd_range(1,100)<75 then
-                i.desig="sharp "&i.desig
-                i.desigp="sharp "&i.desigp
-                i.id=i.id+120
-                i.v1=i.v1+.1
-                i.price=i.price*1.2
-            else
-                i.desig="very sharp "&i.desig
-                i.desigp="very sharp "&i.desigp
-                i.id=i.id+130
-                i.v1=i.v1+.2
-                i.price=i.price*1.5
+                if rnd_range(1,100)<75 then
+                    i.desig="sharp "&i.desig
+                    i.desigp="sharp "&i.desigp
+                    i.id=i.id+120
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="very sharp "&i.desig
+                    i.desigp="very sharp "&i.desigp
+                    i.id=i.id+130
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
             endif
         endif
+        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1
     endif
     
     if a=48 then
@@ -1656,44 +1665,47 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=2
         i.desig="disintegrator"
         i.desigp="disintegrators"
-        i.ldesc="A tiny handgun, emitting a pale green ray, that turns everything it touches into thin air. || Damage: 1 | Range: 6"
+        i.ldesc="A tiny handgun, emitting a pale green ray, that turns everything it touches into thin air."
         i.icon="-"
         i.col=13
         i.bgcol=0
-        i.v1=1
+        i.v1=1.2
         i.v2=6
         i.v3=2
         i.res=120
         i.price=22000
-        if rnd_range(1,100)<50 then
+        if rnd_range(1,100)<33 then
             if rnd_range(1,100)<50 then
-                i.desig="balanced "&i.desig
-                i.desigp="balanced "&i.desigp
-                i.id=i.id+100
-                i.v3=i.v3+1
-                i.price=i.price*1.2
+                if rnd_range(1,100)<50 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+101
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
             else
-                i.desig="well balanced "&i.desig
-                i.desigp="well balanced "&i.desigp
-                i.id=i.id+101
-                i.v3=i.v3+2
-                i.price=i.price*1.5
-            endif
-        else
-            if rnd_range(1,100)<50 then
-                i.desig="powerful "&i.desig
-                i.desigp="very powerful "&i.desigp
-                i.id=i.id+102
-                i.v1=i.v1+.1
-                i.price=i.price*1.2
-            else
-                i.desig="powerful "&i.desig
-                i.desigp="very powerful "&i.desigp
-                i.id=i.id+103
-                i.v1=i.v1+.2
-                i.price=i.price*1.5
+                if rnd_range(1,100)<50 then
+                    i.desig="powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+102
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+103
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
             endif
         endif
+        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     endif
     
     if a=98 then                 
@@ -1708,21 +1720,25 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.v1=10
         i.res=120
         i.price=19000
-        if rnd_range(1,100)<5 then
-            if rnd_range(1,100)<50 then
-                i.desig="thick "&i.desig
-                i.desigp="thick "&i.desigp
-                i.id=i.id+100
-                i.v1=i.v1+1
-                i.price=i.price*1.5
-            else
-                i.desig="tattered "&i.desig
-                i.desigp="tattered "&i.desigp
-                i.id=i.id+101
-                i.v3=i.v3-1
-                i.price=i.price*0.75
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<5 then
+                if rnd_range(1,100)<50 then
+                    i.desig="thick "&i.desig
+                    i.desigp="thick "&i.desigp
+                    i.id=i.id+100
+                    i.v1=i.v1+1
+                    i.price=i.price*1.5
+                else
+                    i.desig="tattered "&i.desig
+                    i.desigp="tattered "&i.desigp
+                    i.id=i.id+101
+                    i.v3=i.v3-1
+                    i.price=i.price*0.75
+                endif
             endif
         endif
+        
+        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif  
     
     
@@ -1777,7 +1793,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     cmove=awayteam.move
     awayteam.jpfueluse=0
     awayteam.stuff(1)=0
-    awayteam.stuff(2)=0
+    awayteam.armor=0
     awayteam.guns_to=0
     awayteam.blades_to=0
     awayteam.light=0
@@ -1862,7 +1878,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
                 if c>0 then
                     awayteam.secarmo(a)=item(c).v1
                     if awayteam.invis>item(c).v2 then awayteam.invis=item(b).v2
-                    awayteam.stuff(2)=awayteam.stuff(2)+item(c).v1
+                    awayteam.armor=awayteam.armor+item(c).v1
                     crew(a).armo=c
                     item(c).w.s=-2
                     'dprint crew(a).n &" grabs his "&item(c).desig
@@ -1896,19 +1912,20 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
             if b>-1 and crew(a).armo=0 then
                 awayteam.secarmo(a)=item(b).v1
                 if awayteam.invis>item(b).v2 then awayteam.invis=item(b).v2
-                awayteam.stuff(2)=awayteam.stuff(2)+item(b).v1
+                awayteam.armor=awayteam.armor+item(b).v1
                 crew(a).armo=b
                 item(b).w.s=-2
             else
                 awayteam.invis=0
             endif
-            oxy=1
+            oxy=.75
             b=findbest(17,-1)
             if b>-1 then
                 item(b).w.s=-2
                 oxy=oxy-item(b).v1
             endif
             if crew(a).augment(3)>1 then oxy=oxy-.3
+            if oxy<0 then oxy=.1
             awayteam.oxydep=awayteam.oxydep+oxy
             if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
                 b=findbest(14,-1)
@@ -2017,7 +2034,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function getitem(fr as short=999,ty as short=999) as short
+function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     dim as short i,offset,a,b,c,li,cu,set,k
     dim mls(127) as string
     dim mno(127) as short
@@ -2027,45 +2044,58 @@ function getitem(fr as short=999,ty as short=999) as short
     dim as string key,mstr
     screenshot(1)
     for a=0 to lastitem
-        if (fr<>999 and item(a).w.s=fr) or (fr=999 and item(a).w.s<0) then
-            if item(a).ty=ty or ty=999 then
-                set=0
-                for c=0 to li
-                    if item(a).desig=mls(c) then
-                        set=1
-                        mno(c)=mno(c)+1
-                    endif
-                next
-                if set=0 then
-                    b=b+1
-                    li=li+1
-                    mls(b)=item(a).desig
-                    mls(b)=mls(b)
-                    mit(b)=a
-                    mno(b)=mno(b)+1
+        if ((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999) then 'fr=999 means 
+            set=0
+            for c=0 to li
+                if item(a).desig=mls(c) then
+                    set=1
+                    mno(c)=mno(c)+1
                 endif
+            next
+            if set=0 then
+                b=b+1
+                li=li+1
+                mls(b)=item(a).desig
+                mls(b)=mls(b)
+                mit(b)=a
+                mno(b)=mno(b)+1
             endif
         endif
     next
     if li=0 then return -1
-    if li=1 and fr<>999 then return mit(1)
+    if li=1 and (fr=999 or ty=999) and forceselect=0 then return mit(1)
     cu=1
     do
         if k=8 then cu=cu-1
         if k=2 then cu=cu+1
         if cu<1 then 
-            offset=offset-1
-            cu=1
+            if offset>0 then
+                offset=offset-1
+                cu=1
+            else 
+                cu=li
+            endif
         endif
         if cu>15 and li>15 then 
-            offset=offset+1
-            cu=15
+            if cu+offset>li then
+                cu=1
+                offset=0
+            else
+                offset=offset+1
+                cu=15
+            endif
         endif
         
         Color 15,0
         locate 3,3
         print "Select item:" 
         if offset<0 then offset=0
+        if li>15 and offset>li-cu then offset=li-cu
+        if cu>li then 
+            cu=1
+            offset=0
+        endif
+        if cu<0 then cu=0
         for a=1 to 15
             if mls(a+offset)<>"" then
                 locate a+3,6

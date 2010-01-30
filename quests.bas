@@ -50,11 +50,12 @@ function dodialog(no as short) as short
         dprint "SUBJUGATE OR BE DESTROYED."
         do
             text=ucase(gettext(pos,csrlin-1,46," "))
-            if instr(text,"WHO")>0 or instr(text,"YOU")>0 then dprint "WE ARE THE INTELLIGENCE INHABITING THIS WORLD" 
+            if instr(text,"HELLO")>0 or instr(text,"WHO")>0 or instr(text,"YOU")>0 then dprint "WE ARE THE INTELLIGENCE INHABITING THIS WORLD" 
             if instr(text,"PURPOSE")>0 or instr(text,"DOING")>0 then dprint "WE SEEK TO EXPAND OUR SPHERE OF INFLUENCE TO INCREASE OUR CHANCE OF SURVIVAL."
             if instr(text,"LEADER")>0 then dprint "WE ARE WHAT YOU WOULD CALL THE LEADER OF OUR SOCIETY"
             if instr(text,"HYBRID")>0 then dprint "YOUR PHYSICAL FORMS ARE WEAK BUT VERY ADAPTIVE. WE CAN COMBINE FORMING A STRONGER LIFEFORM WITH A HIGHER CHANCE OF SURVIVAL"
-            if instr(text,"ANCIENTS")>0 or instr(text,"RUINS") or instr(text,"ALIENS") then dprint "OUR ANCESTORS REPORTED CONTACT WITH ANOTHER CIVILIZATION BEFORE. BUT THEY DISSAPEARED."
+            if instr(text,"ANCIENTS")>0 or instr(text,"RUINS") or instr(text,"ALIENS") then dprint "OUR ANCESTORS REPORTED CONTACT WITH ANOTHER CIVILIZATION BEFORE. BUT THEY DISSAPEARED. THEY WERE WEAK"
+            if instr(text,"WEAK")>0 then dprint "WE HAVE NO WEAKNESS. JOIN TO SHARE OUR STRENGTH"
         loop until text="" or text="BYE"
 
     endif
@@ -157,10 +158,10 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                                 it=makeitem(94)
                                 placeitem(it,0,0,0,0,-1)
                                 dprint "It takes the "&item(b).desig &" and hands you "&it.desig &"."   
-                                e.cmmod=e.cmmod+1
+                                e.cmmod=e.cmmod+2
                             else
                                 dprint "It seems dissapointed."
-                                e.cmmod=e.cmmod-2
+                                e.cmmod=e.cmmod-1
                             endif
                         else
                             dprint("It seems dissapointed.")
@@ -214,7 +215,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=1 then dprint "The Citizen welcomes you to the colony"
             if a=2 then dprint "The Citizen says: 'You have chosen the right time of the year to visit our colony!'"
             if a=3 then dprint "The Citizen says: 'You are an offworlder, aren't you? You should visit Mr. Grey, he collects native art.'"
-            if a=4 then dprint "The Citizen says: 'We are indipendent and neutral. Has served us good in the past years.' "
+            if a=4 then dprint "The Citizen says: 'We are independent and neutral. Has served us good in the past years.' "
             if a=5 then dprint "The Citizen says: 'When we settled here we found alien ruins. In an underground vault was a cache with weapons and armor. we don't need it. We sell it.' "
             if a=6 then dprint "The Citizen says: 'I used to do spaceship security. But that's a really dangerous job! Life is a lot safer here.' "
         endif
@@ -520,12 +521,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=9 then dprint "Ted Rofes, the shipsdoctor says 'Staying here was interesting, but I would like to get back on a ship. I am a doctor, not a tourist.'"
             if a>9 then
                 if askyn("Ted Rofes asks if you would let him join your crew 'you seem more reasonable than my old captain' (y/n)") then
-                    player.doctor=6
-                    crew(5).paymod=1
-                    crew(5).hpmax=6
-                    crew(5).hp=6
-                    crew(5).n="Ted Rofes"
-                    crew(4).xp=0
+                    addmember(15)
                     e.hp=0
                     e.hpmax=0
                 endif        
@@ -552,62 +548,62 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     endif
     
     if e.lang=24 then
-        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=0 then dprint "They say 'ARRRRRRRGHHHHHHHH!'"
         if e.aggr=1 then
             a=rnd_range(1,6)
-            if a=1 then dprint "Can you show me some sort of ID?"
-            if a=2 then dprint "What are you doing here?"
-            if a=3 then dprint "I don't think you are supposed to be here."
-            if a=4 then dprint "This planet belongs to eridiani explorations."
-            if a=5 then dprint "This planet belongs to eridiani explorations."
-            if a=6 then dprint "They look at you suspicously"
+            if a=1 then dprint "They say 'Can you show me some sort of ID?'"
+            if a=2 then dprint "They say 'What are you doing here?'"
+            if a=3 then dprint "They say 'I don't think you are supposed to be here.'"
+            if a=4 then dprint "They say 'This planet belongs to eridiani explorations.'"
+            if a=5 then dprint "They say 'This planet belongs to eridiani explorations.'"
+            if a=6 then dprint "They say 'They look at you suspicously'"
         endif
-        if e.aggr=2 then dprint "I surrender!"
+        if e.aggr=2 then dprint "They say 'I surrender!'"
     endif
     
     
     if e.lang=25 then
-        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=0 then dprint "They say 'ARRRRRRRGHHHHHHHH!'"
         if e.aggr=1 then
             a=rnd_range(1,6)
-            if a=1 then dprint "Can you show me some sort of ID?"
-            if a=2 then dprint "What are you doing here?"
-            if a=3 then dprint "I don't think you are supposed to be here."
-            if a=4 then dprint "This is Smith Heavy Industries property."
-            if a=5 then dprint "This planet belongs to Smith Heavy Industries."
-            if a=6 then dprint "They look at you suspicously"
+            if a=1 then dprint "They say 'Can you show me some sort of ID?'"
+            if a=2 then dprint "They say 'What are you doing here?'"
+            if a=3 then dprint "They say 'I don't think you are supposed to be here.'"
+            if a=4 then dprint "They say 'This is Smith Heavy Industries property.'"
+            if a=5 then dprint "They say 'This planet belongs to Smith Heavy Industries.'"
+            if a=6 then dprint "They say 'They look at you suspicously'"
         endif
-        if e.aggr=2 then dprint "I surrender!"
+        if e.aggr=2 then dprint "They say 'I surrender!"
     endif
     
     
     if e.lang=26 then
-        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=0 then dprint "They say 'ARRRRRRRGHHHHHHHH!'"
         if e.aggr=1 then
             a=rnd_range(1,6)
-            if a=1 then dprint "Can you show me some sort of ID?"
-            if a=2 then dprint "What are you doing here?"
-            if a=3 then dprint "I don't think you are supposed to be here."
-            if a=4 then dprint "This Ship belongs to Triax Traders."
-            if a=5 then dprint "You need a Triax Traders authorization."
-            if a=6 then dprint "They look at you suspicously"
+            if a=1 then dprint "They say 'Can you show me some sort of ID?'"
+            if a=2 then dprint "They say 'What are you doing here?'"
+            if a=3 then dprint "They say 'I don't think you are supposed to be here.'"
+            if a=4 then dprint "They say 'This Ship belongs to Triax Traders.'"
+            if a=5 then dprint "They say 'You need a Triax Traders authorization.'"
+            if a=6 then dprint "They say 'They look at you suspicously"
         endif
-        if e.aggr=2 then dprint "I surrender!"
+        if e.aggr=2 then dprint "They say 'I surrender!'"
     endif
     
     
     if e.lang=27 then
-        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=0 then dprint "They say 'ARRRRRRRGHHHHHHHH!'"
         if e.aggr=1 then
             a=rnd_range(1,6)
-            if a=1 then dprint "Can you show me some sort of ID?"
-            if a=2 then dprint "What are you doing here?"
-            if a=3 then dprint "I don't think you are supposed to be here."
-            if a=4 then dprint "This planet belongs to Omega Bionegineering."
-            if a=5 then dprint "This planet belongs to Omega Bionegineering."
+            if a=1 then dprint "They say 'Can you show me some sort of ID?'"
+            if a=2 then dprint "They say 'What are you doing here?'"
+            if a=3 then dprint "They say 'I don't think you are supposed to be here.'"
+            if a=4 then dprint "They say 'This planet belongs to Omega Bionegineering.'"
+            if a=5 then dprint "They say 'This planet belongs to Omega Bionegineering.'"
             if a=6 then dprint "They look at you suspicously"
         endif
-        if e.aggr=2 then dprint "I surrender!"
+        if e.aggr=2 then dprint "They say 'I surrender!'"
     endif
     
     
@@ -1058,7 +1054,7 @@ function givequest(st as short, byref questroll as short) as short
     a=stqroll
     if questroll>8 then
         'standard quest by office
-        if basis(st).repname="Eridiani Explorations" then
+        if basis(st).company=1 then
             do
                 m=rnd_range(0,laststar)
                 o=rnd_range(1,9)
@@ -1082,7 +1078,18 @@ function givequest(st as short, byref questroll as short) as short
             endif
         endif
         
-        if basis(st).repname="Triax Traders Its." then
+        if basis(st).company=2 then
+            if player.questflag(9)=0 then
+                if askyn("The rep says:'We have learned that there are still working robot factories found on some planets on this sector. We would like to send a team of scientists to one of these. Would you be willing to find a suitable target for 5000 credits?('(y/n)") then 
+                    player.questflag(9)=1
+                    questroll=999
+                endif
+            else
+                dprint "The company rep reminds you that you have yet to locate a factory of the ancients"
+            endif    
+        endif
+        
+        if basis(st).company=3 then
             car=rnd_range(3,4)
             dprint "The company rep offers you a contract to deliver "&car &" tons of cargo to station " &st2+1 &"."
             if askyn(" They will pay 200 cr per ton. Do you accept?(y/n)") then
@@ -1099,18 +1106,7 @@ function givequest(st as short, byref questroll as short) as short
             endif
         endif
         
-        if basis(st).repname="Smith Heavy Industries" then
-            if player.questflag(9)=0 then
-                if askyn("The rep says:'We have learned that there are still working robot factories found on some planets on this sector. We would like to send a team of scientists to one of these. Would you be willing to find a suitable target for 5000 credits?('(y/n)") then 
-                    player.questflag(9)=1
-                    questroll=999
-                endif
-            else
-                dprint "The company rep reminds you that you have yet to locate a factory of the ancients"
-            endif    
-        endif
-        
-        if basis(st).repname="Omega Bioengineering" then
+        if basis(st).company=4 then
             if player.questflag(10)=0 then
                 m=rnd_range(2,16)
                 if askyn("Omega Bioengineering's scientists want to conduct an experiment. They need a planet with a "&atmdes(m) &" atmosphere, and without plant life for that. They are willing to pay 2500 credits for the position of a possible candidate. Do you want to help in the search (y/n)?") then 
@@ -1388,7 +1384,7 @@ function showquests() as short
     print
     color 11,0
     for a=1 to 10
-        if player.cargo(a).x=7 or player.cargo(a).x=8 then 
+        if player.cargo(a).x=10 or player.cargo(a).x=11 then 
             b+=1
             dest(b)=player.cargo(a).y+1
         endif

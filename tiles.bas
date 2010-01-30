@@ -1972,6 +1972,16 @@ tiles(261).desc="hospital"
 tiles(261).gives=43
 tiles(261).turnsinto=261
 
+
+tiles(262).tile=35
+tiles(262).col=15
+tiles(262).desc="Building"
+tiles(262).seetru=1
+tiles(262).firetru=1
+tiles(262).gives=66
+tiles(262).turnsinto=262
+tiles(262).hides=2
+
 tiles(401).tile=ASC("#")
 tiles(401).col=210
 tiles(401).bgcol=230

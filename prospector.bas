@@ -33,6 +33,7 @@ else
     if _resolution=2 then screenres 640,_lines*16,,GFX_WINDOWED
 endif
 width 80,_lines
+'dprint "now i need a really long run on sentence, and it also shouldnt repeat too soon, so i can tell where the problems, if any, start. Also I remember i already did this once, and maybe this time i should just comment it out. In case this makes it into the source code: this is to test the dprint command! Also hi there! Should be long enough now."
 
 for a=1 to 512
     tiles(a).no=a
@@ -879,7 +880,7 @@ end
 
 
 sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
-    dim as short l,m,a,b,c,dis,alive,dead,roll,target,xx,yy,slot,sys
+    dim as short l,m,a,b,c,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad
     dim light as single
     dim p as cords
     dim last as short
@@ -920,18 +921,23 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                 do
                     if lx=0 and ly=0 then p=rnd_point(mapslot,0)
                 loop until tiles(abs(planetmap(p.x,p.y,mapslot))).locked=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and abs(planetmap(p.x,p.y,mapslot))<>45 
-                if ((mapslot=pirateplanet(0) or mapslot=pirateplanet(1) or mapslot=pirateplanet(2)) and player.pirate_agr<=0) or isgasgiant(mapslot)<>0 then
+                'if ((mapslot=pirateplanet(0) or mapslot=pirateplanet(1) or mapslot=pirateplanet(2)) and player.pirate_agr<=0) or isgasgiant(mapslot)<>0 then
                     for x=0 to 60
                         for y=0 to 20
-                            if abs(planetmap(x,y,mapslot))=68 and last<128 then
+                            if planetmap(x,y,mapslot)=68 and last<128 then
                                 last+=1
                                 pwa(last).x=x
                                 pwa(last).y=y
                             endif
                         next
                     next
-                    p=pwa(rnd_range(1,last))
-                endif
+                    if last>0 then
+                        if askyn("shall we use the landingpad to land?(y/n)") then 
+                            p=pwa(rnd_range(1,last))
+                            landingpad=2
+                        endif
+                    endif
+                'endif
                 player.landed.x=p.x
                 player.landed.y=p.y
                 player.landed.m=mapslot
@@ -941,15 +947,23 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                 awayteam.jpfuel=awayteam.jpfuelmax
             endif
             if awayteam.stuff(8)=1 then dprint "You deploy your satellite"
-            roll=rnd_range(1,6)+rnd_range(1,6)+player.pilot+addtalent(2,8,1)
+            roll=rnd_range(1,6)+rnd_range(1,6)+landingpad+player.pilot+addtalent(2,8,1)
             target=planets(mapslot).dens+2*planets(mapslot).grav
             if mapslot<>specialplanet(2) and test=0 then
                 if roll>target then
-                    dprint ("Your pilot succesfully landed in the difficult terrain",,10) 
+                    if landingpad=0 then
+                        dprint ("Your pilot succesfully landed in the difficult terrain",,10) 
+                    else
+                        dprint ("You landed on the landinpad",,10)
+                    endif
                     player.fuel=player.fuel-1
                     gainxp(2)
                 else
-                    dprint ("your pilot damaged the ship trying to land in difficult terrain.",,12)
+                    if landingpad=0 then
+                        dprint ("your pilot damaged the ship trying to land in difficult terrain.",,12)
+                    else 
+                        dprint ("your pilot actually manged to damage the ship while landing on a landing pad!",,12)
+                    endif
                     player.hull=player.hull-1
                     player.fuel=player.fuel-2-int(planets(mapslot).grav)
                     if player.hull=0 then
@@ -977,13 +991,7 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                 nextmap=explore_planet(awayteam,nextmap,slot)
                 cls
                 removeequip
-                if crew(1).hp<=0 then 
-                    crew(1).hp=crew(1).hpmax
-                    b=rnd_range(1,3)
-                    if b=1 then dprint "Captain "&crew(1).n &" was just unconcious.",10
-                    if b=2 then dprint "Captain "&crew(1).n &" got better.",10
-                    if b=3 then dprint "Captain "&crew(1).n &" miracoulously recovered.",10
-                endif
+                
                 for b=6 to 128
                     if crew(b).hp<=0 then
                         crew(b)=crew(0)
@@ -1042,6 +1050,16 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
         endif
         c=6
         dis=0
+        if crew(1).hp<=0 then 
+            crew(1).hp=crew(1).hpmax
+            b=rnd_range(1,3)
+            if b=1 then dprint "Captain "&crew(1).n &" was just unconcious.",10
+            if b=2 then dprint "Captain "&crew(1).n &" got better.",10
+            if b=3 then dprint "Captain "&crew(1).n &" miracoulously recovered.",10
+        endif
+        for b=1 to 128
+            if crew(b).hp<crew(b).hpmax and crew(b).disease=0 then crew(b).hp=crew(b).hpmax
+        next
         for b=6 to 128
             if crew(b).hp<=0 then
                 crew(b)=crew(0)
@@ -1173,6 +1191,7 @@ function asteroidmining(slot as short) as short
     mon(4)="a giant wormlike creature. It's biochemistry is based on liquid hydrogen. The heat of our engines is attracting it."
     mon(5)="an enormous blob of living plasma!"
     mon(6)="a gigantic creature resembling a jellyfish!"
+    en.ty=2
     m=rnd_range(1,6)
     if show_all then dprint ""&slot
     roll=rnd_range(1,100)
@@ -1526,7 +1545,7 @@ function spacestation(st as short) as _ship
     cls
     displayship
     if player.turn>0 then
-        if rnd_range(1,100)<60+player.merchant_agr and basis(st).company<>3 then
+        if rnd_range(1,100)<660+player.merchant_agr and basis(st).company<>3 then
             dprint "The station commander decides to do a routine check on your cargo hold before allowing you to disembark.",14,14
             no_key=keyin
             d=0
@@ -1535,9 +1554,14 @@ function spacestation(st as short) as _ship
                 if player.cargo(b).x=9 and basis(st).company<>1 then c=1
                 if player.cargo(b).x=8 and basis(st).company<>2 then c=1
                 if player.cargo(b).x=7 and basis(st).company<>4 then c=1
+                if player.cargo(b).x>1 and player.cargo(b).y=0 then c=1
                 if c=1 and rnd_range(1,100)>30+player.shieldedcargo then
                     d=1
-                    dprint "You are informed that importing "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" is illegal and that the cargo will be confiscated",12,12
+                    if player.cargo(b).y>0 then
+                        dprint "You are informed that importing "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" is illegal and that the cargo will be confiscated",12,12
+                    else
+                        dprint basis(st).inv(player.cargo(b).x-1).n &" gets confiscated because it lacks proper documentation.",12,12
+                    endif
                     player.cargo(b).x=1
                     player.cargo(b).y=0
                     player.merchant_agr+=1
@@ -2143,7 +2167,7 @@ end function
 function explore_planet(awayteam as _monster, from as gamecords, orbit as short) as gamecords
     dim as single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
      
-    dim as short slot,r,walking,deadcounter,ship_landing
+    dim as short slot,r,walking,deadcounter,ship_landing,loadmonsters
     dim sf_what(16) as short
     dim sf_tile(16) as string*1
     dim sf_when(16) as short
@@ -2161,6 +2185,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
     dim mapmask(60,20) as byte
     dim vismask(60,20) as byte
     dim nightday(60,20) as byte
+    dim watermap(60,20) as byte
     dim localtemp(60,20) as single
     dim spawnmask(1281) as cords
     dim lsp as short
@@ -2192,6 +2217,8 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
     lsp=0    
     for x=0 to 60
         for y=0 to 20
+            if abs(planetmap(x,y,slot))=1 then watermap(x,y)=10
+            if abs(planetmap(x,y,slot))=2 then watermap(x,y)=50
             localtemp(x,y)=planets(slot).temp-abs(10-y)*5+10
             if show_all=1 and planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-planetmap(x,y,slot)
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
@@ -2231,11 +2258,12 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             for b=1 to lastenemy
                 enemy(b)=savefrom(a).enemy(b)
             next
-            b=1
+            loadmonsters=1
         endif
     next
     
     if planets(slot).atmos=0 then planets(slot).atmos=1
+    if planets(slot).grav=0 then planets(slot).grav=.5
     
     if planets(slot).atmos>1 and planets(slot).atmos<8 then 
         awayteam.helmet=0
@@ -2243,7 +2271,8 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
         awayteam.helmet=1
     endif
     
-    if b=0 then
+    
+    if loadmonsters=0 then
         c=0
         for a=0 to 16
         if planets(slot).mon_noamin(a)>0 and planets(slot).mon_noamax(a)>0 then
@@ -2313,55 +2342,55 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             tmap(p.x,p.y)=tiles(246)
         endif
         b=(planets(slot).vault.h-2)*((planets(slot).vault.w-2))
-    if b>4 then
-        if planets(slot).vault.wd(16)=99 then specialflag(15)=1
-        if planets(slot).vault.wd(5)=1 then
-            if b>9 then
-                lastenemy=lastenemy-rnd_range(1,6)
-                if lastenemy<1 then lastenemy=1
-                a=lastenemy+1
-                for x=planets(slot).vault.x+1 to planets(slot).vault.x+planets(slot).vault.w-1
-                    for y=planets(slot).vault.y+1 to planets(slot).vault.y+planets(slot).vault.h-1
-                        if a>255 then a=255
-                        enemy(a)=makemonster(9,slot)
-                        enemy(a)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,a,1)
-                        a=a+1
-                    next
-                next 
-                lastenemy=a
-                if lastenemy>255 then lastenemy=255
+        if b>4 then
+            if planets(slot).vault.wd(16)=99 then specialflag(15)=1
+            if planets(slot).vault.wd(5)=1 then
+                if b>9 then
+                    lastenemy=lastenemy-rnd_range(1,6)
+                    if lastenemy<1 then lastenemy=1
+                    a=lastenemy+1
+                    for x=planets(slot).vault.x+1 to planets(slot).vault.x+planets(slot).vault.w-1
+                        for y=planets(slot).vault.y+1 to planets(slot).vault.y+planets(slot).vault.h-1
+                            if a>255 then a=255
+                            enemy(a)=makemonster(9,slot)
+                            enemy(a)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,a,1)
+                            a=a+1
+                        next
+                    next 
+                    lastenemy=a
+                    if lastenemy>255 then lastenemy=255
+                endif
             endif
-        endif
-        if planets(slot).vault.wd(5)=2 and planets(slot).vault.wd(6)>0 then
-            b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
-            c=lastenemy
-            lastenemy=lastenemy+b
-            for d=c to lastenemy
-                do
-                    x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
-                    y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
-                loop until tmap(x,y).walktru=0
-                enemy(d)=makemonster(planets(slot).vault.wd(6),slot)
-                enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,d)
-            next
+            if planets(slot).vault.wd(5)=2 and planets(slot).vault.wd(6)>0 then
+                b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
+                c=lastenemy
+                lastenemy=lastenemy+b
+                for d=c to lastenemy
+                    do
+                        x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
+                        y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
+                    loop until tmap(x,y).walktru=0
+                    enemy(d)=makemonster(planets(slot).vault.wd(6),slot)
+                    enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,d)
+                next
+            endif
+            
+            if planets(slot).vault.wd(5)=3 then
+                b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
+                c=lastenemy
+                lastenemy=lastenemy+b
+                for d=c to lastenemy
+                    do
+                        x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
+                        y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
+                    loop until tmap(x,y).walktru=0
+                    enemy(d)=makemonster(59,slot)
+                    enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,d,1)
+                next
+            endif
+            planets(slot).vault=del_rec
         endif
         
-        if planets(slot).vault.wd(5)=3 then
-            b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
-            c=lastenemy
-            lastenemy=lastenemy+b
-            for d=c to lastenemy
-                do
-                    x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
-                    y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
-                loop until tmap(x,y).walktru=0
-                enemy(d)=makemonster(59,slot)
-                enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,d,1)
-            next
-        endif
-        planets(slot).vault=del_rec
-    endif
-    
         
     endif
     
@@ -2562,7 +2591,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
         if planets(slot).flags(a)<0 then planets(slot).flags(a)+=1 
     next
     
-    if rnd_range(1,100)<33 then flag(14)=rnd_range(7,20)
+    if rnd_range(1,100)<33 then flag(14)=rnd_range(8,20)
     if rnd_range(1,100)<33 then planets(slot).flags(15)=1
     if rnd_range(1,100)<33 then planets(slot).flags(16)=2 
     if rnd_range(1,100)<33 then planets(slot).flags(17)=3 
@@ -2624,6 +2653,13 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
         dprint planets(slot).flavortext
         no_key=keyin
     endif
+    
+    '***********************
+    '
+    'Planet Exploration Loop
+    '
+    '***********************
+    
     do
         if planets(slot).depth=0 and planets(slot).rot>0 then
             dawn=dawn+planets(slot).rot
@@ -2721,6 +2757,8 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             endif
         next
         
+        if planets(slot).atmos=1 or planets(slot).atmos>=8 then awayteam.helmet=1
+            
         if key=key_awayteam then
             screenshot(1)
             showteam(1)
@@ -2751,7 +2789,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             if _chosebest=0 then
                 c=findbest(7,-1)
             else
-                c=getitem
+                c=getitem(-1,7)
             endif
             if c>0 then
                 if item(c).ty=7 then
@@ -2897,7 +2935,6 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
         endif        
 
         
-        
         lsp=0
         for x=0 to 60
             for y=0 to 20
@@ -2907,7 +2944,15 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                     spawnmask(lsp).x=x
                     spawnmask(lsp).y=y
                 endif
-                
+                '
+                'CA Fluid dynamics
+                '
+                if x>0 and y>0 and x<60 and y<20 then
+                    if watermap(x,y)>0 and watermap(x,y)<10 then
+                        tmap(x,y)=tiles(1)
+                    endif
+                endif
+
                 if tmap(x,y).dam<>0 then
                     p2.x=x 
                     p2.y=y
@@ -2926,7 +2971,6 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                         endif
                     endif
                 endif
-                    
             next
         next
         mapmask(awayteam.c.x,awayteam.c.y)=-9
@@ -3180,9 +3224,13 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                 endif                
                 if rnd_range(1,100)<enemy(a).breedson and enemy(a).breedson>0 and lastenemy<128 then
                     lastenemy=lastenemy+1
-                    enemy(lastenemy)=makemonster(enemy(a).made,slot)
                     enemy(lastenemy).c=movepoint(enemy(a).c,5)
-                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "the "&enemy(a).sdesc &" multiplies!"
+                    if tmap(enemy(lastenemy).c.x,enemy(lastenemy).c.y).walktru=0 or enemy(a).stuff(tmap(enemy(lastenemy).c.x,enemy(lastenemy).c.y).walktru)>0 then
+                        enemy(lastenemy)=setmonster(planets(slot).mon_template(enemy(a).slot),slot,spawnmask(),lsp,enemy(lastenemy).c.x,enemy(lastenemy).c.y,c)
+                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 or vismask(enemy(lastenemy).c.x,enemy(lastenemy).c.y)>0 then dprint "the "&enemy(a).sdesc &" multiplies!"
+                    else
+                        lastenemy-=1
+                    endif
                 endif
                 if enemy(a).hp<enemy(a).hpmax then
                     enemy(a).hp=enemy(a).hp+enemy(a).hpreg
@@ -3323,7 +3371,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                     else
                         p1=enemy(a).target
                     endif
-                    enemy(a)=movemonster(enemy(a), p1, mapmask(),slot)
+                    enemy(a)=movemonster(enemy(a), p1, mapmask(),tmap())
                     mapmask(enemy(a).c.x,enemy(a).c.y)=3
                     m(a)=m(a)-1
                 wend
@@ -3888,20 +3936,24 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                 dprint "A Bar"
                 if slot<>pirateplanet(0) or player.pirate_agr<=0 then
                     if player.pilot*2>rnd_range(1,100) then
-                        player.pilot=-captainskill
+                        player.pilot=captainskill
                         dprint "Pilot "&crew(2).n &" doesnt want to come out again.",14,14
+                        crew(2)=crew(0)
                     endif
                     if player.gunner*2>rnd_range(1,100) then
-                        player.gunner=-captainskill
+                        player.gunner=captainskill
                         dprint "Gunner "&crew(3).n &" reckons he can make a fortune playing darts and decides to stay.",14,14
+                        crew(3)=crew(0)
                     endif
                     if player.science*2>rnd_range(1,100) then
-                        player.science=-captainskill
+                        player.science=captainskill
                         dprint "Science Officer "&crew(4).n &" has discovered an unknown drink. He decides to make a new carreer in barkeeping to study it.",14,14
+                        crew(4)=crew(0)
                     endif
                     if player.doctor*2>rnd_range(1,100) then
-                        player.doctor=-captainskill
+                        player.doctor=captainskill
                         dprint "Doctor "&crew(2).n &" comes to the conclusion that he is needed more here than on your ship." 
+                        crew(5)=crew(0)
                     endif
                     no_key=keyin
                     hiring(0,rnd_range(0,5),maximum(4,awayteam.hp))
@@ -3968,7 +4020,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                 endif
                 dprint "You sit down for some drinks and discuss your travels."
                 planetbounty()
-                if askyn("Do you want to challenge him to a duel?") then
+                if askyn("Do you want to challenge him to a duel?(y/n)") then
                     dprint "He accepts. The Anne Bonny starts and awaits you in orbit."
                     no_key=keyin
                     lastfleet=lastfleet+1
@@ -4055,7 +4107,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=42 then              
                 if slot<>pirateplanet(0) or player.pirate_agr<=0 then
-                    if askyn("This shop offers hullrefits, turning 5 crew bunks into an additional cargo hold for 1000 Cr. do you your ship modified?(y/n)") then
+                    if askyn("This shop offers hullrefits, turning 5 crew bunks into an additional cargo hold for 1000 Cr. Do you want your ship modified?(y/n)") then
                         if player.money>1000 then
                             pirateupgrade
                             player.money=player.money-1
@@ -4255,6 +4307,17 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                 dprint "Here are detailed experiments by Omega Bionegineering to breed crystal/human hybrids. They buy 'Volunteers' from a pirate captain. If this gets public it would break their neck."
             endif
             
+            if tmap(awayteam.c.x,awayteam.c.y).gives=66 then                
+                dprint "An overweight gentleman greets you 'Welcome to Mudds Incredible Bargains' Do you wish to buy or sell?(b/s)"
+                key=keyin("bs")
+                if key="s" then
+                    buysitems("","",999,.1)
+                endif
+                if key="b" then
+                    shop(7,1.5,"Mudds Incredible Bargains")
+                endif
+            endif
+            
             if tmap(awayteam.c.x,awayteam.c.y).gives=111 then
                 dprint "This is a data collection about all the 'enhanced pets' of the ancient aliens. They used the tree beings as scientific advisors, and made a silicium based lifeform they were somehow able to use as a powersource. It doesn't really go into detail about that. Also missing is any information on the aliens themselves."
                 player.questflag(1)=1
@@ -4326,6 +4389,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=210 then
                 c=tmap(awayteam.c.x,awayteam.c.y).turnsinto-203
+                dprint c & " " & planets(slot).flags(c)
                 if planets(slot).flags(c)=0 then
                     dprint "An empty weapons turret."
                 else
@@ -4687,9 +4751,11 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
             endif
             if b=0 and _autoinspect=1 then 
                 dprint "Nothing of interest here."
-            else
+            else                
+                displayplanetmap(slot)
                 ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,slot,walking)
                 displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+                dprint("")
             endif
         endif
         
@@ -5341,7 +5407,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
                 if _chosebest=0 then
                     c=findbest(11,-1)
                 else 
-                    c=getitem
+                    c=getitem(-1,11)
                 endif 
                 if c>0 then
                     if item(c).ty<>11 then
@@ -5758,6 +5824,7 @@ function explore_planet(awayteam as _monster, from as gamecords, orbit as short)
         b=15
     endif
     a=b
+    if lastenemy>129 then lastenemy=129
     savefrom(a).lastenemy=lastenemy
     savefrom(a).map=slot
     for b=1 to lastenemy
@@ -6040,7 +6107,7 @@ function poolandtransferweapons(m as short) as short
 end function
                         
 
-function movemonster(enemy as _monster, ac as cords, mapmask() as byte,map as short) as _monster
+function movemonster(enemy as _monster, ac as cords, mapmask() as byte,tmap() as _tile) as _monster
     dim direction as short
     dim dir2 as short
     dim p1 as cords
@@ -6107,7 +6174,7 @@ function movemonster(enemy as _monster, ac as cords, mapmask() as byte,map as sh
     p(4)=movepoint(p1,direction)
     
     for a=2 to 4
-        ti=abs(planetmap(p(a).x,p(a).y,map))
+        ti=tmap(p(a).x,p(a).y).walktru
         
         if mapmask(p(a).x,p(a).y)>0 then
             enemy.nearest=mapmask(p(a).x,p(a).y)
@@ -6115,7 +6182,7 @@ function movemonster(enemy as _monster, ac as cords, mapmask() as byte,map as sh
             p(a).y=-1
         endif
         
-        if (tiles(ti).walktru>0 and enemy.stuff(tiles(ti).walktru)=0) then
+        if (ti>0 and enemy.stuff(ti)=0) then
             p(a).x=-1
             p(a).y=-1
         endif
@@ -6158,16 +6225,17 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
     noa=attacker.hp\7
     if noa<1 then noa=1
     for a=1 to noa
-        if rnd_range(1,6)+rnd_range(1,6)-defender.armor+attacker.weapon>8 then b=1+1
+        if rnd_range(1,6)+rnd_range(1,6)-defender.armor\(6*(defender.hp+1))+attacker.weapon>6 then b=b+1+attacker.weapon
     next
-    if b>attacker.weapon+1 then b=attacker.weapon+1 'max damage    
+    if b>attacker.weapon+5 then b=attacker.weapon+5 'max damage    
     if defender.made=0 then 
         if b>0 then
             text=text & damawayteam(defender,b,,attacker.disease)
             col=12
         else
             text=text & " no casualties."
-            col=11
+            col=10
+            col=10
         endif
         if defender.hp<=0 then player.killedby=attacker.sdesc
         dprint text,,col 
@@ -6251,7 +6319,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
                 defender.aggr=2
                 defender.weapon=defender.weapon+1
                 text=text &"the " &mname &" is critically hurt and tries to FLEE. "            
-                defender=movemonster(defender, attacker.c, mapmask(),slot)   
+                defender=movemonster(defender, attacker.c, mapmask(),tmap())   
             endif
         else
             if defender.aggr>0 and defender.hp<defender.hpmax then

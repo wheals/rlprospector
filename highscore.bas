@@ -202,7 +202,7 @@ sub postmortem
         endif
     next
     for c=0 to lastspecial
-        if specialplanet(c)>=0 and specialplanet(c)<=lastspecial then
+        if specialplanet(c)>=0 and specialplanet(c)<=lastplanet then
             if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
         endif
     next

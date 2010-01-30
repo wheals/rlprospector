@@ -12,6 +12,10 @@ end function
 function make_spacemap() as short
     dim as short a,b,c,d,e,astcou,gascou
     dim as cords p1,p2,p3
+    color 14,0
+    print
+    Print " generating "
+    color 7,0
     lastwaypoint=6
     
     targetlist(0)=basis(0).c
@@ -30,10 +34,7 @@ function make_spacemap() as short
     
     rerollshops
     'generate starmap
-    color 14,0
-    print
-    Print " generating "
-    color 7,0
+    
     c=0
     for a=0 to laststar
         print ".";
@@ -2266,18 +2267,16 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if planets(a).weat<=0 then planets(a).weat=0.5
     if planets(a).weat>1 then planets(a).weat=0.9
     gascloud=abs(spacemap(player.c.x,player.c.y))
-    if spect=1 then gascloud=gascloud-1
-    if spect=2 then gascloud=gascloud-1
+    if spect=1 then gascloud=gascloud-2
+    if spect=2 then gascloud=gascloud-2
     if spect=3 then gascloud=gascloud-1
     if spect=4 then gascloud=gascloud-1
-    if spect=5 then gascloud=gascloud+1
-    if spect=6 then gascloud=gascloud+1
+    if spect=5 then gascloud=gascloud-1
+    if spect=6 then gascloud=gascloud
     if spect=7 then gascloud=gascloud+1
-    if spect=8 then gascloud=gascloud+1
-    planets(a).minerals=rnd_range(0,spect)+rnd_range(0,3)+gascloud+disnbase(player.c)\7
-    for b=0 to planets(a).minerals
-        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\5+gascloud),rnd_range(0,60),rnd_range(0,20),a)
-    next b
+    if spect=8 then gascloud=gascloud+2
+    planets(a).minerals=rnd_range(2,spect)+rnd_range(1,4)+gascloud+disnbase(player.c)\7
+    
     
     roll=rnd_range(1,100)
     b1=3
@@ -2464,6 +2463,12 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             planetmap(p1.x,p1.y,a)=-86 '2nd landingparty
         endif
         
+        if planets(a).depth=0 and rnd_range(1,150)<20-disnbase(player.c) then
+            p1=rnd_point
+            makemudsshop(a,p1.x,p1.y) 'Mud's Bazar
+        endif
+        
+        
         if rnd_range(1,200)<16 and planets(a).atmos>1 then
             if rnd_range(1,100)<66 then
                 p1=rnd_point
@@ -2618,19 +2623,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     endif
     
     planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
-    if planets(a).atmos>=7 then
-        for x=0 to 60
-            for y=0 to 20
-                if planetmap(x,y,a)=-1 then planetmap(x,y,a)=-20
-                if planetmap(x,y,a)=-2 then planetmap(x,y,a)=-21
-                if planetmap(x,y,a)=-10 then planetmap(x,y,a)=-22
-                if planetmap(x,y,a)=-11 then planetmap(x,y,a)=-25
-                if planetmap(x,y,a)=-5 then planetmap(x,y,a)=-23
-                if planetmap(x,y,a)=-6 then planetmap(x,y,a)=-24
-                if planetmap(x,y,a)=-12 and rnd_range(1,100)>33 then planetmap(x,y,a)=-13
-            next
-        next
-    endif
+    
     
     if o>6 and rnd_range(1,100)<35 then
         for x=0 to 60
@@ -2651,7 +2644,8 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if planets(a).temp<0 then
         for x=0 to 60
             for y=0 to 20
-                if planetmap(x,y,a)=-1 or planetmap(x,y,a)=-2 then planetmap(x,y,a)=-27 
+                if planetmap(x,y,a)=-1 then planetmap(x,y,a)=-260
+                if planetmap(x,y,a)=-2 then planetmap(x,y,a)=-27 
             next
         next
     endif
@@ -2725,6 +2719,25 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next
     endif
     makespecialplanet(a)
+    
+    if planets(a).atmos>=7 then
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,a)=-1 then planetmap(x,y,a)=-20
+                if planetmap(x,y,a)=-2 then planetmap(x,y,a)=-21
+                if planetmap(x,y,a)=-10 then planetmap(x,y,a)=-22
+                if planetmap(x,y,a)=-11 then planetmap(x,y,a)=-25
+                if planetmap(x,y,a)=-5 then planetmap(x,y,a)=-23
+                if planetmap(x,y,a)=-6 then planetmap(x,y,a)=-24
+                if planetmap(x,y,a)=-12 and rnd_range(1,100)>33 then planetmap(x,y,a)=-13
+            next
+        next
+    endif
+    
+    for b=0 to planets(a).minerals+planets(a).life
+        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
+    next b
+    
     if isgardenworld(a) then planets(a).flavortext="This place is lovely."
 end sub
 
@@ -3504,6 +3517,12 @@ sub makespecialplanet(a as short)
         planets(a).grav=0.8+rnd_range(1,3)/2
         planets(a).atmos=6
         planets(a).temp=9+rnd_range(1,200)/10
+        
+        if rnd_range(1,100)<35 then
+            p1=rnd_point
+            makemudsshop(a,p1.x,p1.y) 'Mud's Bazar
+        endif
+        
         wx=rnd_range(5,8)
         wy=wx
         p1.x=rnd_range(20,40)
@@ -3594,6 +3613,7 @@ sub makespecialplanet(a as short)
             d=0
             if p4.y-3<0 then p4.y=p4.y+3
             if p4.y+3>60 then p4.y=p4.y-3
+            
             for x=c to c+5
                 for y=p4.y-3 to p4.y+3
                     planetmap(x,y,a)=68
@@ -3604,7 +3624,8 @@ sub makespecialplanet(a as short)
                     endif
                 next
             next
-            planetmap(p4.x,p4.y,a)=-259
+            
+            planetmap(c,p4.y-3,a)=-259
             do
                 p=rnd_point(a,0)
             loop until tiles(abs(planetmap(p.x,p.y,a))).walktru>0 or abs(planetmap(p.x,p.y,a))<15
@@ -3700,6 +3721,11 @@ sub makespecialplanet(a as short)
     
     if specialplanet(14)=a then
         deletemonsters(a)
+        
+        if rnd_range(1,100)<25 then
+            p1=rnd_point
+            makemudsshop(a,p1.x,p1.y) 'Mud's Bazar
+        endif
         p2=rnd_point
         p3=rnd_point
         makeoutpost(a,p2.x,p2.y)
@@ -4458,7 +4484,7 @@ sub makespecialplanet(a as short)
     
     if a=specialplanet(28) then
         makemossworld(a,5)
-        planets(a).atmos=6
+        planets(a).atmos=4
     endif
     
     if a=specialplanet(29)then
@@ -4675,6 +4701,7 @@ sub makespecialplanet(a as short)
             if d=1 then planets(lastplanet).mon_template(0)=makemonster(40,lastplanet)
             if d=2 then planets(lastplanet).mon_template(0)=makemonster(13,lastplanet)
             if d=3 then planets(lastplanet).mon_template(0)=makemonster(29,lastplanet)
+            planets(lastplanet).mon_template(0).hasoxy=1
             planets(lastplanet).mon_noamin(0)=10
             planets(lastplanet).mon_noamax(0)=15
         
@@ -4775,6 +4802,7 @@ sub makespecialplanet(a as short)
             planets(lastplanet).atmos=6
             planets(lastplanet).temp=16
             planets(lastplanet).mon_template(0)=makemonster(3,lastplanet)
+            planets(lastplanet).mon_template(0).hasoxy=1
             planets(lastplanet).mon_noamin(0)=8+b
             planets(lastplanet).mon_noamax(0)=18+b
         next
@@ -4983,9 +5011,9 @@ sub makespecialplanet(a as short)
         for b=0 to 2
             lastplanet+=1
             lastportal+=1
-            portal(lastportal).desig="A natural tunnel. "
+            portal(lastportal).desig="A hole in the ground. "
             portal(lastportal).tile=asc("o")
-            portal(lastportal).col=7
+            portal(lastportal).col=4
             portal(lastportal).from.m=a
             portal(lastportal).from.x=rnd_range(0,60)
             portal(lastportal).from.y=rnd_range(0,20)
@@ -4999,15 +5027,21 @@ sub makespecialplanet(a as short)
             gc.x=portal(lastportal).dest.x
             gc.y=portal(lastportal).dest.y
             gc.m=lastplanet
-            makecavemap(gc,6-rnd_range(2,8),2-rnd_range(1,6),0,0)
-            planets(lastplanet)=planets(a)
-            deletemonsters(lastplanet)
+            
+            planets(lastplanet).grav=0.9
+            planets(lastplanet).atmos=5
+            planets(lastplanet).temp=15.3
+            planets(lastplanet).weat=0
+            planets(lastplanet).depth=1
             planets(lastplanet).mon_template(0)=makemonster(67,lastplanet)
+            planets(lastplanet).mon_template(0).invis=0
             planets(lastplanet).mon_noamin(0)=20
             planets(lastplanet).mon_noamax(0)=25
             planets(lastplanet).mon_template(1)=makemonster(68,lastplanet)
+            planets(lastplanet).mon_template(1).invis=0
             planets(lastplanet).mon_noamin(1)=2
             planets(lastplanet).mon_noamax(1)=5
+            makecavemap(gc,6-rnd_range(2,7),3-rnd_range(1,6),0,0)
         next
     endif
         
@@ -5464,9 +5498,10 @@ sub makespecialplanet(a as short)
         for b=0 to 15
             placeitem(makeitem(301),p.x+3,p.y+3,lastplanet,0,0)
         next
+        planetmap(p.x+3,p.y+3,lastplanet)=-4
     endif
     
-    if a=specialplanet(isgasgiant(a)) and isgasgiant(a)<40 then
+    if a=specialplanet(isgasgiant(a)) and isgasgiant(a)>1 and isgasgiant(a)<40 then
         deletemonsters(a)
         makeplatform(a,rnd_range(4,8),rnd_range(1,3),1)
         p=rnd_point(a,0)
@@ -6155,6 +6190,23 @@ sub invisiblelabyrinth(tmap() as _tile,xoff as short ,yoff as short, _x as short
     tmap(30,10).walktru=0
 end sub
 
+sub makemudsshop(slot as short, x1 as short, y1 as short) 
+    if x1<3 then x1=3
+    if x1>57 then x1=57
+    if y1<3 then y1=3
+    if y1>17 then y1=17
+    planetmap(x1,y1,slot)=-262
+    planetmap(x1-1,y1,slot)=-32
+    planetmap(x1+1,y1,slot)=-32
+    planetmap(x1,y1+1,slot)=-31
+    planetmap(x1,y1-1,slot)=-31
+    planetmap(x1-2,y1,slot)=-68
+    planetmap(x1+2,y1,slot)=-68
+    planetmap(x1,y1+2,slot)=-68
+    planetmap(x1,y1-2,slot)=-68
+end sub
+
+
 sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
     dim as short x,y,a,w,h
     if x1=0 then x1=rnd_range(1,59)
@@ -6210,6 +6262,7 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                 if enemy(a).intel=7 then in=1
                 if enemy(a).intel>7 then in=2
                 if rnd_range(1,100)<66 then houses(in)=houses(in)+1
+                if houses(in)>5 then houses(in)=5
             endif
         next
         for i=0 to 2

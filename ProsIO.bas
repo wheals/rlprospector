@@ -42,28 +42,27 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         
                                                 
         makevismask(vismask(),awayteam,slot)        
-        for x=awayteam.c.x-2-awayteam.sight to awayteam.c.x+2+awayteam.sight 
-            for y=awayteam.c.y-2-awayteam.sight to awayteam.c.y+2+awayteam.sight
-                if x>=0 and x<=60 and y>=0 and y<=20 then
-                    p.x=x
-                    p.y=y
-                    'if awayteam.sight>cint(distance(awayteam.c,p)) then
-                    if vismask(x,y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then 
-                        if planetmap(x,y,slot)<0 then 
-                            planetmap(x,y,slot)=planetmap(x,y,slot)*-1
-                            reward(0)=reward(0)+1
-                            reward(7)=reward(7)+planets(slot).mapmod
-                            if tiles(planetmap(x,y,slot)).stopwalking>0 then walking=0
-                            if player.questflag(9)=1 and planetmap(x,y,slot)=100 then player.questflag(9)=2
-                        endif
-                        if rnd_range(1,100)<disease(awayteam.disease).hal or (slot=specialplanet(28) and specialflag(28)=0) then
-                            dtile(x,y,tiles(rnd_range(1,255)))
-                            planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
-                        else
-                            dtile(x,y,tmap(x,y),vismask(x,y))
-                        endif
+        for x=0 to 60 
+            for y=0 to 20
+                p.x=x
+                p.y=y
+                'if awayteam.sight>cint(distance(awayteam.c,p)) then
+                if vismask(x,y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then 
+                    if planetmap(x,y,slot)<0 then 
+                        planetmap(x,y,slot)=planetmap(x,y,slot)*-1
+                        reward(0)=reward(0)+1
+                        reward(7)=reward(7)+planets(slot).mapmod
+                        if tiles(planetmap(x,y,slot)).stopwalking>0 then walking=0
+                        if player.questflag(9)=1 and planetmap(x,y,slot)=100 then player.questflag(9)=2
+                    endif
+                    if rnd_range(1,100)<disease(awayteam.disease).hal or (slot=specialplanet(28) and specialflag(28)=0) then
+                        dtile(x,y,tiles(rnd_range(1,255)))
+                        planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
+                    else
+                        dtile(x,y,tmap(x,y),vismask(x,y))
                     endif
                 endif
+            
             next
         next
         
@@ -227,7 +226,7 @@ end function
 
 
 function showteam(from as short, r as short=0) as short
-    dim as short b,bg,last,a,sit
+    dim as short b,bg,last,a,sit,cl
     dim dummy as _monster
     dim p as short
     dim offset as short
@@ -271,19 +270,21 @@ function showteam(from as short, r as short=0) as short
         endif
         
         if no_key="s" then
-            sit=getitem(999)
+            sit=getitem()
             if sit>0 then
+                for cl=1 to 128
+                    if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
+                    if crew(cl).pref_ccweap=item(sit).uid then crew(cl).pref_ccweap=0
+                    if crew(cl).pref_armor=item(sit).uid then crew(cl).pref_armor=0
+                next
                 if item(sit).ty=2 then 
                     crew(p).pref_lrweap=item(sit).uid
-                    crew(p).weap=sit
                 endif
                 if item(sit).ty=4 then 
                     crew(p).pref_ccweap=item(sit).uid
-                    crew(p).blad=sit
                 endif
                 if item(sit).ty=3 then 
                     crew(p).pref_armor=item(sit).uid
-                    crew(p).armo=sit
                 endif
                 equipawayteam(player,dummy,0)
             endif
@@ -634,6 +635,7 @@ function addmember(a as short) as short
             crew(slot).morale=25000
         endif
         if a=14 then 'SO
+            player.science=3
             crew(4).hpmax=player.science+1
             crew(4).hp=crew(4).hpmax
             crew(4).icon="T"
@@ -643,7 +645,14 @@ function addmember(a as short) as short
             crew(4).xp=0
             crew(4).disease=0
         endif
-        
+        if a=15 then
+            player.doctor=6
+            crew(5).paymod=1
+            crew(5).hpmax=7
+            crew(5).hp=7
+            crew(5).n="Ted Rofes"
+            crew(4).xp=0
+        endif
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
     endif     
@@ -852,7 +861,14 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             target(last)=b
             stored(last)=crew(b).hp
         endif
-    next    
+    next
+    if dam>a.armor/(2*last) then
+        dam=dam-a.armor/(2*last)
+        armeff=int(a.armor/(2*last))
+    else
+        armeff=dam-1
+        dam=1
+    endif
     if last>128 then last=128
     do
         t=rnd_range(1,last)
@@ -921,105 +937,6 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     return trim(text)
 end function
 
-
-''function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
-'    dim as short b,c,r1,lastunhit,hit,last,hurt,killed,hp,y,x
-'    dim unhit(128) as short
-'    dim atstore(128) as short
-'    dim text as string
-'    dim as short capfla,pilfla,gunfla,scifla,armeff
-'    
-'    
-'    for b=1 to 128
-'        if crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0 then
-'            last=+1
-'            atstore(last)=b
-'        endif
-'    next
-'    if abs(player.tactic)=2 and dam>2 then dam=dam-player.tactic
-'    do
-'        lastunhit=0
-'        for b=1 to last
-'            if crew(b).hp>0 then
-'                lastunhit=lastunhit+1
-'                unhit(lastunhit)=b
-'            endif
-'        next
-'        
-'        if lastunhit>0 then
-'            hit=rnd_range(1,last)
-'            
-'            r1=unhit(rnd_range(1,lastunhit))
-'            if ap=0 then dam=dam-1
-'            if ap=1 then dam=dam-1
-'            if ap=1 then crew(r1).hp-=1                
-'            if ap=2 then dam=dam-crew(r1).hp
-'            if ap=3 then dam=0
-'            if rnd_range(1,12)>2+a.secarmo(r1)+player.tactic then
-'                if ap=0 then crew(r1).hp-=1
-'                if ap=2 then crew(r1).hp=0
-'                if ap=3 then crew(r1).hp=0
-'                if dis>0 and rnd_range(1,100)<dis*2 then infect(r1,dis)
-'            else
-'                armeff=armeff+1
-'            endif
-'        endif
-'    loop until dam=0 or lastunhit=0
-'    if armeff>0 then text=text &"(" & armeff &" damage prevented by armor) "
-'    
-'    if atstore(1)>0 and crew(1).hp=0 then
-'        text=text &"The captain is down!"
-'        a.hp=a.hp-1
-'    endif
-'    if atstore(1)>crew(1).hp and crew(1).hp>0 then text=text &"Captain wounded! "
-'    if atstore(2)>0 and crew(2).hp=0 then 
-'        text=text &"Pilot killed! "
-'        player.pilot=-5
-'        a.hp=a.hp-1
-'        player.deadredshirts=player.deadredshirts+1
-'    endif
-'    if atstore(2)>crew(2).hp and crew(2).hp>0 then text=text &"Pilot wounded! "
-'    
-'    if atstore(3)>0 and crew(3).hp=0 then 
-'        text=text &"Gunner killed! "
-'        player.gunner=-5
-'        a.hp=a.hp-1
-'        player.deadredshirts=player.deadredshirts+1
-'    endif
-'    if atstore(3)>crew(3).hp and crew(3).hp>0 then text=text &"gunner wounded! "
-'    
-'    if atstore(4)>0 and crew(4).hp=0 then 
-'        text=text &"Science officer killed! "
-'        player.science=-5
-'        a.hp=a.hp-1
-'        player.deadredshirts=player.deadredshirts+1
-'    endif
-'    if atstore(4)>crew(4).hp and crew(4).hp>0 then text=text &"Science officer wounded! "
-'    if atstore(5)>0 and crew(5).hp=0 then 
-'        text=text &"Ship doctor killed! "
-'        player.doctor=-5
-'        a.hp=a.hp-1
-'        player.deadredshirts=player.deadredshirts+1
-'    endif
-'    if atstore(5)>crew(5).hp and crew(5).hp then text=text &"Ships doctor wounded! "
-'    
-'    for b=6 to a.hpmax
-'        if atstore(b)>0 and crew(b).hp=0 then killed=killed+1
-'        if atstore(b)>crew(b).hp and crew(b).hp>0 then hurt=hurt+1
-'    next
-'    player.deadredshirts=player.deadredshirts+killed
-'    if hurt>0 then  text=text & hurt &" wounded "
-'    if killed>0 then 
-'        text=text & killed &" killed "
-'        equipawayteam(player,a,-1)
-'    endif
-'    text=trim(text)
-'    text=text &"!"
-'    
-'    hpdisplay(a)
-'    return text
-'end function
-'
 function hpdisplay(a as _monster) as short
     dim as short hp,b,c,x,y
     hp=0
@@ -2320,7 +2237,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         
         locate 9,63
         print "Armor :";
-        print using "###";awayteam.stuff(2)
+        print using "###";awayteam.armor
         locate 10,63
         print "Firearms :";
         print using "###.#";awayteam.guns_to
@@ -2453,7 +2370,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
 end sub
 
 sub shipstatus(heading as short=0)
-    dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset
+    dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset,mjs
     dim as short a,b,c,lastinv,set,tlen
     dim as string text,key
     dim inv(127) as _items
@@ -2500,7 +2417,12 @@ sub shipstatus(heading as short=0)
     color 11,0
     print player.engine;
     color 15,0
-    print "("&player.engine+2-player.h_maxhull\15 &" MP) Sensors:";    
+    
+    for a=1 to 5
+        if player.weapons(a).made=88 then mjs+=1
+        if player.weapons(a).made=89 then mjs+=2
+    next
+    print "("&player.engine+2-player.h_maxhull\15+mjs &" MP) Sensors:";    
     color 11,0 
     print player.sensors
     'Weapons
@@ -2741,7 +2663,7 @@ sub shipstatus(heading as short=0)
 end sub
 
 sub displayship(show as byte=0)
-    dim  as short a,b
+    dim  as short a,b,mjs
     static wg as byte
     dim t as string
     dim as string p,g,s,d
@@ -2802,7 +2724,12 @@ sub displayship(show as byte=0)
     locate 5,63
     print "Sensors:"&player.sensors
     locate 6,63
-    print "Engine :"&player.engine &" ("&player.engine+2-player.h_maxhull\15 &" MP)"
+    
+    for a=1 to 5
+        if player.weapons(a).made=88 then mjs+=1
+        if player.weapons(a).made=89 then mjs+=2
+    next
+    print "Engine :"&player.engine &" ("&player.engine+2-player.h_maxhull\15+mjs &" MP)"
     locate 23,63
     print "Fuel(" &player.fuelmax+player.fuelpod &"):"
     color 11,0
@@ -3045,7 +2972,7 @@ end function
 
 function dprint(t as string, delay as short=5, col as short=11) as short
 
-    dim as short a,b
+    dim as short a,b,c
     dim text as string
     dim wtext as string
     dim offset as short
@@ -3053,7 +2980,14 @@ function dprint(t as string, delay as short=5, col as short=11) as short
     dim addt(64) as string
     dim lastspace as short
     dim key as string
-
+    static lastcalled as double
+    if lastcalled=0 then lastcalled=timer
+        
+    if t<>"" then
+        do
+        loop until timer>lastcalled+.15
+    endif
+    lastcalled=timer
     'find offset
     offset=23
     for a=23 to 26
@@ -3063,53 +2997,81 @@ function dprint(t as string, delay as short=5, col as short=11) as short
         if mid(t,a,1)<>"|" then text=text & mid(t,a,1)
     next
     if text<>"" then
-    while len(text)>60
-        lastspace=60
-        do 
-            lastspace=lastspace-1
-        loop until mid(text,lastspace,1)=" "        
-        if tlen>8 then tlen=8
-        addt(tlen)=left(text,lastspace)
-        text=mid(text,lastspace+1,(len(text)-lastspace+1))
-        tlen=tlen+1
-    wend
-    addt(tlen)=text
-    if offset+tlen>63 then offset=63-tlen
-        
-    for a=offset to offset+tlen
-        displaytext(a)=addt(a-offset)
-        dtextcol(a)=col
-    next
-    endif
-    
-    
-    a=0
-    do
-        for b=23 to 25
-            locate b,1,0
-            color 0,0
-            print space(60);
-            locate b,1,0
-            color dtextcol(b),0
-            print displaytext(b);
+        while len(text)>60
+            lastspace=60
+            do 
+                lastspace=lastspace-1
+            loop until mid(text,lastspace,1)=" "        
+            if tlen>8 then tlen=8
+            addt(tlen)=left(text,lastspace)
+            text=mid(text,lastspace+1,(len(text)-lastspace+1))
+            tlen=tlen+1
+        wend
+        addt(tlen)=text
+        if offset+tlen>63 then offset=63-tlen
+            
+        for a=offset to offset+tlen
+            displaytext(a)=addt(a-offset)
+            dtextcol(a)=col
         next
-        if displaytext(25)<>"" then
-            for b=0 to 29
-               displaytext(b)=displaytext(b+1)
-               dtextcol(b)=dtextcol(b+1)
-            next
-            displaytext(30)=""
-            a=a+1
-            if a=3 and displaytext(26)<>"" then 
-                locate 25,57,0
-                color 15,0
-                print ">>";
-                no_key=keyin
-                a=0
+        if tlen<=3 then
+            if offset+tlen>25 then
+                for c=0 to tlen
+                    for b=0 to 29
+                        displaytext(b)=displaytext(b+1)
+                        dtextcol(b)=dtextcol(b+1)
+                    next
+                    displaytext(30)=""
+                next
             endif
+        else
+            if offset>23 then
+                for c=0 to 1
+                    for b=0 to 29
+                        displaytext(b)=displaytext(b+1)
+                        dtextcol(b)=dtextcol(b+1)
+                    next
+                    displaytext(30)=""
+                next
+            endif
+            a=0
+            do
+                for b=23 to 25
+                    if displaytext(b)<>"" then a+=1
+                    locate b,1,0
+                    color 0,0
+                    print space(60);
+                    locate b,1,0
+                    color dtextcol(b),0
+                    print displaytext(b);
+                next
+                if displaytext(26)<>"" then
+                    if a=3 then
+                        locate 25,62,0
+                        color 14,0
+                        print chr(25);
+                        no_key=keyin
+                        a=0
+                    endif
+                    for c=0 to 1
+                        for b=0 to 29
+                            displaytext(b)=displaytext(b+1)
+                            dtextcol(b)=dtextcol(b+1)
+                        next
+                        displaytext(30)=""
+                    next
+                endif
+            loop until displaytext(26)=""
         endif
-        
-    loop until displaytext(25)=""
+    endif
+    for b=23 to 25
+        locate b,1,0
+        color 0,0
+        print space(60);
+        locate b,1,0
+        color dtextcol(b),0
+        print displaytext(b);
+    next
     color 11,0
     return 0
 end function    

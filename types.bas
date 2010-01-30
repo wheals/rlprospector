@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 Const Show_NPCs=0 'shows pirates and mercs
-Const Show_specials=0 'special planets already discovered
+Const Show_specials=10 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0 'outputs statistics to txt files
@@ -581,7 +581,7 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
-const __VERSION__="0.1.10"
+const __VERSION__="0.1.10a"
 
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
@@ -692,7 +692,7 @@ declare sub driftingship(a as short)
 declare sub moverover(pl as short)
 
 declare function teleport(awaytam as cords, map as short) as cords
-declare function movemonster(enemy as _monster, ac as cords, mapmask() as byte,map as short) as _monster
+declare function movemonster(enemy as _monster, ac as cords, mapmask() as byte,tmap() as _tile) as _monster
 declare function hitmonster(defender as _monster,attacker as _monster, mapmask() as byte,slot as short) as _monster
 declare function monsterhit(defender as _monster, attacker as _monster) as _monster
 declare function spacecombat(defender as _ship,atts as _fleet, ter as short) as _ship
@@ -836,6 +836,7 @@ declare sub makemossworld(a as short,o as short)
 declare sub makeislands(a as short, o as short)
 declare sub makeoceanworld(a as short,o as short)
 declare sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
+declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
 declare function makesettlement(p as cords,slot as short, typ as short) as short
 declare function makevault(r as _rect,slot as short,nsp as cords, typ as short) as short
@@ -938,7 +939,7 @@ declare function removeequip() as short
 declare function findbest(t as short,p as short=0, m as short=0) as short
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
-declare function getitem(fr as short=999,ty as short=999) as short
+declare function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
 declare function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
 declare function changetile(x as short,y as short,m as short,t as short) as short

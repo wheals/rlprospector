@@ -52,10 +52,12 @@ function meetfleet(f as short, player as _ship)as _ship
                 player.merchant_agr=player.merchant_agr-65/disnbase(player.c)
                 player.pirate_agr=player.pirate_agr+65/dispbase(player.c)
             else
-                player.merchant_agr=player.merchant_agr+65/disnbase(player.c)
-                player.pirate_agr=player.pirate_agr-65/dispbase(player.c)
+                if dialog<>4 then
+                    player.merchant_agr=player.merchant_agr+65/disnbase(player.c)
+                    player.pirate_agr=player.pirate_agr-65/dispbase(player.c)
+                endif
             endif
-            for a=1 to 5
+            for a=1 to 8
                 basis(10).inv(a).v=0
                 basis(10).inv(a).p=0
             next
@@ -63,7 +65,7 @@ function meetfleet(f as short, player as _ship)as _ship
             player.shield=player.shieldmax
             if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
             if player.dead>0 and fleet(f).ty=5 then player.dead=21
-            for a=1 to 5
+            for a=1 to 8
                 total=total+basis(10).inv(a).v
             next 
             'dprint ""&total
@@ -271,19 +273,27 @@ end function
 
 function makequestfleet(a as short) as _fleet
     dim f as _fleet
-    dim as short b
-    b=rnd_range(1,_NoPB)
+    dim as short b,c
+    dim as cords p1
+    do
+        b=rnd_range(1,_NoPB)
+        c+=1
+    loop until piratebase(b)>0 or c>50
+    if piratebase(b)<0 then
+        p1=rnd_point
+    else
+        p1=map(piratebase(b)).c
+    endif
+    f.c=p1
     if a=1 then
         f.ty=4
         f.t=8 'All pirates start with target 9 (random point)
-        f.c=map(piratebase(b)).c
         f.mem(1)=makeship(8)
         f.flag=15'the infamous anne bonny
     endif
     if a=2 then
         f.ty=4
         f.t=8 'All pirates start with target 9 (random point)
-        f.c=map(piratebase(b)).c
         f.mem(1)=makeship(10) 'the infamous black corsair
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -292,7 +302,6 @@ function makequestfleet(a as short) as _fleet
     if a=3 then
         f.ty=4
         f.t=8 'All pirates start with target 9 (random point)
-        f.c=map(piratebase(b)).c
         f.mem(1)=makeship(30) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -301,7 +310,6 @@ function makequestfleet(a as short) as _fleet
     if a=4 then
         f.ty=4
         f.t=8 'All pirates start with target 9 (random point)
-        f.c=map(piratebase(b)).c
         f.mem(1)=makeship(31) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -311,13 +319,11 @@ function makequestfleet(a as short) as _fleet
     if a=5 then
         f.ty=4
         f.t=8 'All pirates start with target 9 (random point)
-        f.c=map(piratebase(b)).c
         f.mem(1)=makeship(32) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
         f.flag=19
     endif
-    
     return f
 end function
 
@@ -1023,7 +1029,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=0
         enemy.move=0.7
         enemy.tile=ASC("R")
-        enemy.col=137
+        enemy.col=139
         enemy.sight=rnd_range(1,3)+rnd_range(1,3)-1
         enemy.sprite=278
         for l=0 to rnd_range(2,6)
@@ -1148,7 +1154,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.stuff(1)=0
-        enemy.col=32
+        enemy.col=23
         enemy.aggr=1
     endif
     
@@ -1469,7 +1475,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=rnd_range(1,3)
         enemy.tile=asc("@")
         enemy.sprite=277
-        enemy.col=75
+        enemy.col=18
         enemy.move=1
         enemy.respawns=0
         for l=0 to rnd_range(2,6)
@@ -1481,6 +1487,7 @@ function makemonster(a as short, map as short) as _monster
     'a=24 is taken for fish
     
     if a=25 or a=26 or a=37 then 'Intelligent Insectoids
+        enemy.faction=1
         enemy.sight=3
         enemy.sdesc="insectoid"
         enemy.ldesc="an insect with 6 legs, compound eyes and long feelers. They are between 1 and 3 m long and can stand on their hindlegs to use theif front legs for manipulation. Their colourfull carapace seems to signifiy some caste system."
@@ -1555,7 +1562,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hp=4
         enemy.atcost=1.2
         enemy.stuff(1)=0
-        enemy.col=32
+        enemy.col=23
         enemy.move=.8
         enemy.aggr=1
         enemy.hasoxy=1
@@ -1580,7 +1587,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.stuff(1)=0
-        enemy.col=rnd_range(101,113)
+        enemy.col=236
         enemy.aggr=0
         enemy.move=1.8
         enemy.hp=enemy.hpmax
@@ -1632,7 +1639,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.hp=enemy.hpmax
         enemy.stuff(1)=0
-        enemy.col=rnd_range(101,113)
+        enemy.col=236
         enemy.aggr=0
         enemy.move=1.8
         enemy.hp=enemy.hpmax
@@ -1825,7 +1832,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.stuff(1)=0
-        enemy.col=32
+        enemy.col=23
         enemy.aggr=1
     endif
         
@@ -1858,7 +1865,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=rnd_range(1,3)
         enemy.tile=64
         enemy.sprite=287
-        enemy.col=9
+        enemy.col=20
         enemy.move=2.6
         enemy.respawns=0
         for l=0 to rnd_range(2,6) step 2
@@ -2141,7 +2148,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.stuff(1)=0
-        enemy.col=5
+        enemy.col=9
         enemy.aggr=1
         enemy.faction=1
     endif
@@ -2578,7 +2585,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=rnd_range(1,3)
         enemy.tile=asc("@")
         enemy.sprite=287
-        enemy.col=24
+        enemy.col=20
         enemy.move=.6
         enemy.respawns=0
         
@@ -2635,13 +2642,12 @@ function makemonster(a as short, map as short) as _monster
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.stuff(1)=0
-        enemy.col=rnd_range(101,113)
+        enemy.col=239
         enemy.aggr=0
         enemy.move=1.8
         enemy.tile=asc("@")
         enemy.sdesc="crystal hybrid"
         enemy.ldesc="this once was a human being. It's arms, legs and head are encased in crystal tubes, fused to bare flesh. The torso is covered in the torn remains of a starship uniform. The half covered head looks like a grotesque helmet."
-        enemy.hpmax=rnd_range(2,5)+rnd_range(2,5)
         enemy.armor=3
         enemy.atcost=0.7
         enemy.move=0.9
@@ -2650,7 +2656,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.scol=11
             enemy.swhat="shoots gauss guns"
             enemy.items(0)=7
-            enemy.itemch(0)=33
+            enemy.itemch(0)=66
         else
             enemy.scol=12
             enemy.swhat="shoots lasers"
@@ -2789,9 +2795,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
-        enemy.hp=enemy.hpmax
         enemy.stuff(1)=0
-        enemy.col=rnd_range(101,113)
+        enemy.col=240
         enemy.aggr=0
         enemy.move=1.8
         enemy.tile=asc("@")
@@ -2835,7 +2840,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.stuff(1)=0
-        enemy.col=32
+        enemy.col=23
         enemy.aggr=1
     endif
     
@@ -3268,7 +3273,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.armor=3
         enemy.sight=3
         enemy.range=1.5
-        enemy.biomod=1
+        enemy.biomod=5
         enemy.hasoxy=1
         enemy.tile=asc("j")
         enemy.col=208

@@ -912,16 +912,16 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         if a=3 then 
             if t.shieldmax>0 then
                 dprint "Shield generator damaged!",12,12
-                t.shieldmax=t.shieldmax+1
+                t.shieldmax=t.shieldmax-1
             else
                 a=rnd_range(3,l)
             endif
         endif
         
         if a=4 then
-            t.hulltype=t.hulltype-1
+            t.h_maxhull-=1
+            if t.hull>t.h_maxhull then t.hull=t.h_maxhull
             dprint "critical damage to ship structure!",12,12
-            recalcshipsbays
         endif
         
         if a=5 then
@@ -938,39 +938,46 @@ function com_criticalhit(t as _ship, roll as short) as _ship
             b=rnd_range(1,5)
             if t.weapons(b).desig<>"" then
                 dprint t.weapons(b).desig &"hit and destroyed!",12,12
-                if t.weapons(b).desig="Fuel tank" then
-                    b=rnd_range(1,6)
-                    dprint "it explodes! "& b &" points of damage!"
-                    player.hull=player.hull-b
-                endif
-                
-                if t.weapons(b).desig="Crew Quarters" then
-                    b=rnd_range(1,6)
-                    t.security=t.security-b
-                    if t.security<0 then
-                        b=b+t.security
-                        t.security=0
+                if t.desig=player.desig then 
+
+                    if t.weapons(b).desig="Fuel tank" then
+                        b=rnd_range(1,6)
+                        dprint "it explodes! "& b &" points of damage!"
+                        player.hull=player.hull-b
                     endif
-                    dprint  b &" casualties!",12,12
+                    
+                    if t.weapons(b).desig="Crew Quarters" then
+                        b=rnd_range(1,6)
+                        t.security=t.security-b
+                        if t.security<0 then
+                            b=b+t.security
+                            t.security=0
+                        endif
+                        dprint  b &" casualties!",12,12
+                    endif
+                    
                 endif
-                
                 t.weapons(b)=makeweapon(-1)
-                recalcshipsbays
+                if t.desig=player.desig then recalcshipsbays
             else
                 dprint "weapons turret hit but undamaged!",10,10
             endif
         endif
         
         if a=7 then
-            b=rnd_range(1,6)
-            t.security=t.security-b
-            if t.security<0 then
-                b=b+t.security
-                t.security=0
+            if t.desig=player.desig then 
+                b=rnd_range(1,6)
+                t.security=t.security-b
+                if t.security<0 then
+                    b=b+t.security
+                    t.security=0
+                endif
+                dprint "Crew quaters hit! "& b &" casualties!",12,12
+                removemember(b,0)
+                player.deadredshirts=player.deadredshirts+b
+            else
+                dprint "Crew quaters hit!"
             endif
-            dprint "Crew quaters hit! "& b &" casualties!",12,12
-            removemember(b,0)
-            player.deadredshirts=player.deadredshirts+b
         endif 
 
         if a=8 then

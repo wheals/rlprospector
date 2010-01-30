@@ -273,19 +273,19 @@ function company(st as short,byref questroll as short) as short
         player.questflag(6)=3
         no_key=keyin
     endif
-    if player.questflag(7)>0 and basis(st).repname="Eridiani Explorations" and planets(player.questflag(7)).mapped>=1200 then
+    if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).mapped>=1200 then
         player.money=player.money+1000
         player.merchant_agr=player.merchant_agr-5
         dprint "The company rep pays your contract for mapping the planet"
         player.questflag(7)=0
     endif
-    if player.questflag(9)=2 and basis(st).repname="Smith Heavy Industries" then 
+    if player.questflag(9)=2 and basis(st).company=2 then 
         player.money=player.money+5000
         player.merchant_agr=player.merchant_agr-5
         dprint "The company rep pays your contract for finding a robot factory."
         player.questflag(9)=3
     endif
-    if player.questflag(10)<0 and basis(st).repname="Omega Bioengineering" then
+    if player.questflag(10)<0 and basis(st).company=4 then
         player.money=player.money+2500
         player.merchant_agr=player.merchant_agr-5
         dprint "The company rep pays you for finding a planet to conduct their experiment on."
@@ -583,7 +583,9 @@ function company(st as short,byref questroll as short) as short
 end function
 
 function casino(staked as short=0, st as short=-1) as short
-    dim as short a,b,c,d,bet,num,fi,col,times,mbet,mwon,mlos,gpld,asst,x,y,z
+    dim as short a,b,c,d,bet,num,fi,col,times,mbet,gpld,asst,x,y,z
+    dim as uinteger mwon,mlos
+    dim as integer result
     dim p as cords
     dim coltable(36) as short
     coltable(0)=10
@@ -838,6 +840,8 @@ function casino(staked as short=0, st as short=-1) as short
         drawroulettetable()
     loop until a=3
     cls
+    result =mwon-mlos
+    if result>30000 then result=30000
     return mwon-mlos
 end function
 
@@ -929,6 +933,8 @@ function sickbay(st as short=0) as short
         augd(0)=augd(0)&augd(a)&"/"
     next
     do
+        cls
+        displayship()
         a=menu("Sick bay/ Buy supplies / Treat crewmembers/ Buy crew augments/Exit")
         if a=1 then
             shop(21,1,"Medical Supplies")
@@ -947,8 +953,8 @@ function sickbay(st as short=0) as short
                         player.money=player.money-price
                         for b=1 to 128
                             if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
-                                price=price+10*crew(b).disease
                                 cured+=1
+                                crew(b).disease=0
                             endif
                         next
                         dprint cured &" crewmembers were cured."
@@ -964,18 +970,22 @@ function sickbay(st as short=0) as short
         endif
         if a=3 then
             do
+                cls
                 displayship()
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
                 if b>0 and b<7 then
                     if askyn("Do you want to buy "&augn(b) &" for the whole crew?(y/n)") then
-                        c=1
+                        if crew(6).hpmax>0 then
+                            c=6
+                        else
+                            c=1
+                        endif
                         c2=0
                     else
                         c=showteam(0,1)
                         c2=1
                     endif
                     do
-                        sleep 100
                         if crew(c).typ<=9 and b>0 and c>0 then
                             if crew(c).augment(b)=0 then
                                 if player.money>=augp(b) then
@@ -1015,7 +1025,6 @@ function sickbay(st as short=0) as short
                 endif
             loop until b=7 or b=-1 or player.dead<>0
         endif
-        displayship
     loop until a=4
     return player.disease
 end function
@@ -1546,10 +1555,11 @@ function stockmarket(st as short) as short
                     dprint "How many shares of "&companyname(cn(b-1))&"do you want to buy?"
                     amount=getnumber(0,99,0)
                     if player.money>=companystats(cn(b-1)).rate*amount and amount>0 then
+                        amount=buyshares(cn(b-1),amount)
                         companystats(cn(b-1)).capital=companystats(cn(b-1)).capital+amount
                         player.money=player.money-companystats(cn(b-1)).rate*amount
                         player.tradingmoney=player.tradingmoney-companystats(cn(b-1)).rate*amount
-                        buyshares(cn(b-1),amount)
+                        
                     else
                         if amount>0 then dprint "You don't have enough Money"
                     endif
@@ -1557,6 +1567,8 @@ function stockmarket(st as short) as short
             endif
         endif
         if a=2 then
+            cls
+            displayship
             b=getsharetype
             if b>0 then
                 c=getshares(b)
@@ -1581,7 +1593,7 @@ function getsharetype() as short
     next
     for a=1 to 4
         if n(a)>0 then
-            text=text &companyname(a) &" - "&n(a) &"/"
+            text=text &companyname(a) &" ("&n(a) &") - "&companystats(a).rate &"/"
             b+=1
             cn(b)=a
         endif
@@ -1666,17 +1678,18 @@ end function
 
 function buyshares(comp as short,n as short) as short
     dim a as short
-    for a=1 to n
-        lastshare=lastshare+1
-        if lastshare>2048 then 
-            lastshare=2048
-            return -1
-        endif
-        shares(lastshare).company=comp
-        shares(lastshare).bought=player.turn
-        shares(lastshare).lastpayed=player.turn
-    next
-    return 0
+    if lastshare+n>2048 then n=2048-lastshare
+    if n>0 then
+        for a=1 to n
+            lastshare=lastshare+1
+            shares(lastshare).company=comp
+            shares(lastshare).bought=player.turn
+            shares(lastshare).lastpayed=player.turn
+        next
+    else
+        n=0
+    endif
+    return n
 end function
 
 function sellshares(comp as short,n as short) as short
@@ -2063,19 +2076,24 @@ function changeprices(st as short,etime as short) as short
             if a<6 then
                 supply=supply+rnd_range(1,6)
             else
-                if basis(st).company=1 and a=8 then 
-                    supply=supply+rnd_range(1,7)
-                    demand-=1
+                if st<=5 then
+                    if basis(st).company=1 and a=8 then 
+                        supply=supply+rnd_range(1,7)
+                        demand-=1
+                    endif
+                    if basis(st).company=2 and a=7 then 
+                        supply=supply+rnd_range(1,7)
+                        demand-=1
+                    endif
+                    if basis(st).company=4 and a=6 then 
+                        supply=supply+rnd_range(1,7)
+                        demand-=1
+                    endif
+                    if basis(st).company=3 then supply=supply+rnd_range(1,4)
+                else
+                    demand=-4
+                    supply=0
                 endif
-                if basis(st).company=2 and a=7 then 
-                    supply=supply+rnd_range(1,7)
-                    demand-=1
-                endif
-                if basis(st).company=4 and a=6 then 
-                    supply=supply+rnd_range(1,7)
-                    demand-=1
-                endif
-                if basis(st).company=3 then supply=supply+rnd_range(1,4)
             endif
             demand=demand+rnd_range(1,6)
         next
@@ -2347,9 +2365,9 @@ function rerollshops() as short
                 endif
             endif
             if i=4 then 'Colony I
-                if a=20 then it=makeitem(97)
-                if a=19 then it=makeitem(98)
-                if a<19 then
+                if a=19 then it=makeitem(97)
+                if a=18 then it=makeitem(98)
+                if a<17 then
                     it=makeitem(rnd_range(1,lstcomit))
                 endif
             endif
@@ -2359,7 +2377,10 @@ function rerollshops() as short
             if i=6 then 'Black market
                 it=rnd_item(12)
             endif
-            if i>6 then
+            if i=7 then
+                it=makeitem(rnd_range(1,73))
+            endif
+            if i>7 then
                 it=rnd_item(rnd_range(1,11))
             endif
             a=1
@@ -2478,28 +2499,56 @@ function rerollshops() as short
 end function
 
 function buysitems(desc as string,ques as string, ty as short, per as single=1,aggrmod as short=0) as short
-    dim as short a,b
+    dim as short a,b,answer
+    dim text as string
     if _autosell=0 then 
         dprint desc & " (autoselling on)"
     else
         dprint desc & " (autoselling off)"
     endif
-    if askyn(ques) then
-        a=getitem(,ty)
-        if a>0 then 
-            if item(a).ty=ty and item(a).w.s=-1  then
-                if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "&cint(item(a).price*per) &" Cr.?(y/n)")             
-                if b=-1 then    
-                    dprint "you sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr."
+    if ques<>"" then
+        answer=askyn(ques)
+    else
+        answer=-1
+    endif
+        
+    if  answer=-1 then
+        if _autosell=1 or ty=999 then
+            do
+                a=getitem(-1,ty,1)
+                if a>0 then 
+                    if (item(a).ty=ty or ty=999) and item(a).w.s=-1  then
+                        if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "&cint(item(a).price*per) &" Cr.?(y/n)")             
+                        if b=-1 then    
+                            dprint "you sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr."
+                            player.money=player.money+cint(item(a).price*per)
+                            reward(2)=reward(2)-item(a).v5                        
+                            player.tradingmoney=player.tradingmoney+cint(item(a).price*per)
+                            player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
+                            player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
+                            destroyitem(a)                
+                        endif
+                    endif
+                endif
+            loop until a<0
+        else            
+            for a=0 to lastitem
+                if item(a).ty=ty and item(a).w.s=-1 then
+                    text=text &"You sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr. "
                     player.money=player.money+cint(item(a).price*per)
                     reward(2)=reward(2)-item(a).v5                        
                     player.tradingmoney=player.tradingmoney+cint(item(a).price*per)
                     player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
                     player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
-                    item(a)=item(lastitem)
-                    lastitem=lastitem-1                
+                    destroyitem(a)
                 endif
+            next
+            if text<>"" then
+                dprint text
+            else
+                dprint "You couldn't sell anything."
             endif
+            
         endif
     endif
     return 0

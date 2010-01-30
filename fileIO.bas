@@ -655,7 +655,7 @@ function savegame() as short
     next
     for a=0 to 5
         for b=0 to 20
-            get #f,,makew(b,a)
+            put #f,,makew(b,a)
         next
     next
     
