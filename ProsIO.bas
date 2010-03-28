@@ -15,159 +15,6 @@ function earthquake(t as _tile,dam as short)as _tile
     return t
 end function
 
-
-function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short,byref slot as short, byref walking as short) as short
-    dim as short a,b,x,y
-    dim as cords p
-    if disease(awayteam.disease).bli>0 then 
-        x=awayteam.c.x
-        y=awayteam.c.y
-        vismask(x,y)=1
-        dtile(x,y,tmap(x,y),vismask(x,y))
-        return 0
-    endif
-    ' Stuff on ground    
-    
-        makevismask(vismask(),awayteam,slot)        
-        for x=awayteam.c.x-2-awayteam.sight to awayteam.c.x+2+awayteam.sight 
-            for y=awayteam.c.y-2-awayteam.sight to awayteam.c.y+2+awayteam.sight
-                if x>=0 and x<=60 and y>=0 and y<=20 then
-                    p.x=x
-                    p.y=y
-                    'if awayteam.sight>cint(distance(awayteam.c,p)) then
-                    if planetmap(x,y,slot)>0 then dtile(x,y,tmap(x,y))
-                endif
-            next
-        next
-        
-                                                
-        makevismask(vismask(),awayteam,slot)        
-        for x=0 to 60 
-            for y=0 to 20
-                p.x=x
-                p.y=y
-                'if awayteam.sight>cint(distance(awayteam.c,p)) then
-                if vismask(x,y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then 
-                    if planetmap(x,y,slot)<0 then 
-                        planetmap(x,y,slot)=planetmap(x,y,slot)*-1
-                        reward(0)=reward(0)+1
-                        reward(7)=reward(7)+planets(slot).mapmod
-                        if tiles(planetmap(x,y,slot)).stopwalking>0 then walking=0
-                        if player.questflag(9)=1 and planetmap(x,y,slot)=100 then player.questflag(9)=2
-                    endif
-                    if rnd_range(1,100)<disease(awayteam.disease).hal or (slot=specialplanet(28) and specialflag(28)=0) then
-                        dtile(x,y,tiles(rnd_range(1,255)))
-                        planetmap(x,y,slot)=planetmap(x,y,slot)*-1 
-                    else
-                        dtile(x,y,tmap(x,y),vismask(x,y))
-                    endif
-                endif
-            
-            next
-        next
-        
-        for a=0 to lastportal
-            if portal(a).from.m=slot then
-                p.x=portal(a).from.x
-                p.y=portal(a).from.y
-                if (vismask(portal(a).from.x,portal(a).from.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
-                    if portal(a).discovered=0 then walking=0
-                    portal(a).discovered=1
-                    locate portal(a).from.y+1,portal(a).from.x+1,0
-                    color portal(a).col,0
-                    print chr(portal(a).tile)
-                        
-                endif
-            endif
-            if portal(a).oneway=0 then
-                if portal(a).dest.m=slot then
-                    p.x=portal(a).dest.x
-                    p.y=portal(a).dest.y
-                    if (vismask(portal(a).dest.x,portal(a).dest.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
-                        locate portal(a).dest.y+1,portal(a).dest.x+1,0
-                        color portal(a).col,0
-                        print chr(portal(a).tile)
-                        if portal(a).discovered=0 then walking=0
-                        portal(a).discovered=1                        
-                    endif    
-                endif
-            endif
-        next
-        
-        for a=1 to lastlocalitem
-            if item(li(a)).w.m=slot and item(li(a)).w.s=0 and item(li(a)).w.p=0 then
-                p.x=item(li(a)).w.x
-                p.y=item(li(a)).w.y
-                if (vismask(item(li(a)).w.x,item(li(a)).w.y)>0 and tiles(abs(planetmap(p.x,p.y,slot))).hides=0 and awayteam.sight>cint(distance(awayteam.c,p))) or item(li(a)).discovered=1 then
-                    if item(li(a)).discovered=0 then walking=0
-                    item(li(a)).discovered=1
-                    if tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).walktru>0 and item(li(a)).bgcol=0 then
-                        color item(li(a)).col,tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
-                    else
-                        color item(li(a)).col,item(li(a)).bgcol
-                    
-                    endif
-                        
-                    locate item(li(a)).w.y+1,item(li(a)).w.x+1
-                    if _tiles=0 then
-                        if item(li(a)).ty<>15 then
-                            put (item(li(a)).w.x*8,item(li(a)).w.y*16),gtiles(item(li(a)).ty+200),trans
-                        else                                
-                            put (item(li(a)).w.x*8,item(li(a)).w.y*16),gtiles(item(li(a)).v2+250),trans
-                        endif
-                    else
-                        print item(li(a)).icon
-                    endif
-                 endif
-            endif
-        next
-        
-        for a=1 to lastenemy
-            if enemy(a).hp<=0 then
-                p=enemy(a).c
-                if p.x>=0 and p.x<=60 and p.y>=0 and p.y<=20 then
-                    if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
-                        locate p.y+1,p.x+1
-                        color 12,0
-                        if _tiles=0 then
-                            if enemy(a).hpmax>0 then put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(270),trans
-                        else
-                            if enemy(a).hpmax>0 then print "%"
-                        endif
-                    endif
-                endif
-            endif
-        next
-        
-        for a=1 to lastenemy
-            if enemy(a).hp>0 then
-                p=enemy(a).c
-                if p.x>=0 and p.x<=60 and p.y>=0 and p.y<=20 then                
-                    if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
-                        locate p.y+1,p.x+1
-                        if enemy(a).cmshow=1 then
-                            enemy(a).cmshow=0    
-                            color enemy(a).col,203
-                        else
-                            color enemy(a).col,0
-                        endif
-                        if enemy(a).invis=0 then
-                            if _tiles=0 then
-                                put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(enemy(a).sprite),trans
-                            else
-                                print chr(enemy(a).tile)
-                            endif
-                            walking=0
-                            
-                        endif
-                    endif
-                endif
-            endif                    
-        next
-        
-    return 0
-end function
-
 function maxsecurity() as short
     dim as short b,total
     total=player.h_maxcrew+player.crewpod+player.cryo-5
@@ -238,7 +85,7 @@ function showteam(from as short, r as short=0) as short
     next
     p=1
     no_key=""
-    equipawayteam(player,dummy,0)
+    equip_awayteam(player,dummy,0)
         
     do
         cls
@@ -286,7 +133,7 @@ function showteam(from as short, r as short=0) as short
                 if item(sit).ty=3 then 
                     crew(p).pref_armor=item(sit).uid
                 endif
-                equipawayteam(player,dummy,0)
+                equip_awayteam(player,dummy,0)
             endif
         endif
         
@@ -294,7 +141,7 @@ function showteam(from as short, r as short=0) as short
             crew(p).pref_lrweap=0
             crew(p).pref_ccweap=0
             crew(p).pref_armor=0
-            equipawayteam(player,dummy,0)
+            equip_awayteam(player,dummy,0)
         
         endif
         
@@ -647,11 +494,13 @@ function addmember(a as short) as short
         endif
         if a=15 then
             player.doctor=6
+            crew(5).typ=5
+            crew(5).icon="D"
             crew(5).paymod=1
             crew(5).hpmax=7
             crew(5).hp=7
             crew(5).n="Ted Rofes"
-            crew(4).xp=0
+            crew(5).xp=0
         endif
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
@@ -668,12 +517,12 @@ function cureawayteam(where as short) as short
         else
             pack=getitem()
             if item(pack).ty<>19 then
-                dprint "You can't use that",14,14
+                dprint "You can't use that",14
                 pack=-1
             endif
         endif
         if pack>0 then
-            dprint "Using "&item(pack).desig &".",10,10
+            dprint "Using "&item(pack).desig &".",10
             bonus=item(pack).v1
             destroyitem(pack)
         else
@@ -693,10 +542,10 @@ function cureawayteam(where as short) as short
             if crew(a).disease>0 then sick+=1
         endif
     next
-    if cured>1 then dprint cured &" members of your crew where cured.",10,10
-    if cured=1 then dprint cured &" member of your crew was cured.",10,10
-    if cured=0 and sick>0 then dprint "No members of your crew where cured.",14,14
-    if sick>0 then dprint sick &" are still sick.",14,14
+    if cured>1 then dprint cured &" members of your crew where cured.",10
+    if cured=1 then dprint cured &" member of your crew was cured.",10
+    if cured=0 and sick>0 then dprint "No members of your crew where cured.",14
+    if sick>0 then dprint sick &" are still sick.",14
     if cured>0 then gainxp(5)
     return 0
 end function
@@ -761,7 +610,7 @@ function infect(a as short,dis as short) as short
         crew(a).disease=dis
         crew(a).duration=disease(dis).duration
         if dis>player.disease then player.disease=dis
-        dprint "A crew member was infected with "&disease(dis).desig &"!",12,12
+        dprint "A crew member was infected with "&disease(dis).desig &"!",12
     endif
     return 0
 end function
@@ -772,7 +621,7 @@ function diseaserun(onship as short) as short
     for a=2 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and crew(a).disease>0 then
             if crew(a).duration>0 then 
-                if crew(a).duration=disease(crew(a).disease).duration then dprint "A crewmember gets sick.",14,14
+                if crew(a).duration=disease(crew(a).disease).duration then dprint "A crewmember gets sick.",14
                 crew(a).duration-=1
                 if crew(a).duration=0 then crew(a).disease=0
                 if crew(a).duration>0 then
@@ -790,11 +639,11 @@ function diseaserun(onship as short) as short
                 endif
                 if crew(a).duration=0 then
                     if rnd_range(1,100)<disease(crew(a).disease).fatality then
-                        if crew(a).onship=onship then dprint "A crewmember dies of disease.",12,12
+                        if crew(a).onship=onship then dprint "A crewmember dies of disease.",12
                         crew(a)=crew(0)
                         crew(a).disease=0
                     else
-                        if crew(a).onship=onship then dprint " A crewmember recovers.",10,10
+                        if crew(a).onship=onship then dprint " A crewmember recovers.",10
                         crew(a).disease=0
                     endif
                 endif
@@ -803,29 +652,29 @@ function diseaserun(onship as short) as short
         if a=2 and crew(a).hp<=0 and player.pilot>0 then 
             player.pilot=captainskill
             dead-=1
-            dprint " Your pilot dies of disease!",12,12
+            dprint " Your pilot dies of disease!",12
         endif
         if a=3 and crew(a).hp<=0 and player.gunner>0 then 
             player.gunner=captainskill
             dead-=1
-            dprint " Your gunner dies of disease!",12,12
+            dprint " Your gunner dies of disease!",12
         endif
         if a=4 and crew(a).hp<=0 and player.science>0 then 
             player.science=captainskill
             dead-=1
-            dprint " Your science officer dies of disease!",12,12
+            dprint " Your science officer dies of disease!",12
         endif
         if a=5 and crew(a).hp<=0 and player.doctor>0 then 
             player.doctor=captainskill
-            dprint " Your doctor dies of disease!",12,12
+            dprint " Your doctor dies of disease!",12
         endif
         if crew(a).disease>dis then dis=crew(a).disease
     next
     player.disease=dis
-    if total=1 then dprint " A crewmember suffer "& total &" damage from disease.",14,14
-    if total>1 then dprint affected &" crewmembers suffer "& total &" damage from disease.",14,14
-    if dead=1 then dprint " A crewmember dies from disease.",12,12
-    if dead>1 then dprint dead &" crewmembers die from disease.",12,12
+    if total=1 then dprint " A crewmember suffer "& total &" damage from disease.",14
+    if total>1 then dprint affected &" crewmembers suffer "& total &" damage from disease.",14
+    if dead=1 then dprint " A crewmember dies from disease.",12
+    if dead>1 then dprint dead &" crewmembers die from disease.",12
     return 0
 end function
 
@@ -853,6 +702,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     'ap=1 Ignores Armor
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
+    'ap=4 Ignores Armor, Robots immune
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     for b=1 to 128
@@ -881,10 +731,10 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 crew(target(t)).hp=crew(target(t)).hp-dam
                 dam=0
             endif
-            if ap=0 or ap=1 then
+            if ap=0 or ap=1 or ap=4 then
                 roll=rnd_range(1,20)
-                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=1 then
-                    crew(target(t)).hp=crew(target(t)).hp-1
+                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=4 or ap=1 then
+                    if not(crew(target(t)).typ=13 and ap=4) then crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
                 else
                     armeff+=1
@@ -933,7 +783,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     if killed(3)>0 then player.gunner=captainskill
     if killed(4)>0 then player.science=captainskill
     if killed(5)>0 then player.doctor=captainskill
-    if reequip=1 then equipawayteam(player,a,-1)
+    if reequip=1 then equip_awayteam(player,a,player.map)
     return trim(text)
 end function
 
@@ -1080,7 +930,7 @@ function levelup(p as _ship) as _ship
         endif
     next
     if secret>1 then text=text &" " & secret &" of your security personal retired."
-    if text<>"" then dprint text,10,10
+    if text<>"" then dprint text,10
     text=""
     if lev(1)=1 then
         if rnd_range(1,100)<crew(1).xp*4 then
@@ -1143,113 +993,8 @@ function levelup(p as _ship) as _ship
     endif
     if vet>1 then text=text &" "&vet &" of your security are now veterans."
     if elite>1 then text=text &" "&elite &" of your security are now veterans."
-    if text<>"" then dprint text,10,10
+    if text<>"" then dprint text,10
     displayship()
-    '    'dprint "P:"&p.skillmarks(1) &" G:" &p.skillmarks(2) & " S:"&p.skillmarks(3)
-'    if p.pilot>0 then
-'        roll=rnd_range(1,100)\(p.pilot+1)
-'        target=33
-'        if p.pilot<6 and p.skillmarks(1)>0 then
-'            if roll<p.pilot then
-'                dprint "your pilot retired",14,14
-'                p.pilot=-5
-'                roll=0
-'                crew(2).hpmax=0
-'                crew(2).hp=0
-'            endif
-'            if roll+p.skillmarks(1)>target and roll>1 then
-'                p.pilot=p.pilot+1
-'                dprint "your pilot is now skill level "&p.pilot,10,10 
-'                addmember(2)
-'            endif
-'        endif
-'    endif
-'    
-'    if p.gunner>0 then
-'        roll=rnd_range(1,100)\(p.gunner+1)
-'        target=33
-'        if p.gunner<6 and p.skillmarks(2)>0 then
-'            if roll<p.gunner then
-'                dprint "your gunner retired",14,14
-'                p.gunner=-5
-'                crew(3).hpmax=0
-'                crew(3).hp=0
-'                roll=0
-'            endif
-'            if roll+p.skillmarks(2)>target and roll>1 then
-'                p.gunner=p.gunner+1
-'                dprint "your gunner is now skill level "&p.gunner,10,10 
-'                addmember(3)
-'            endif
-'        endif
-'    endif
-'    
-'    if p.science>0 then
-'        roll=rnd_range(1,100)\(p.science+1)
-'        target=33
-'        if p.science<6 and p.skillmarks(3)>0 then
-'            if roll<p.science then
-'                dprint "your science officer retired",14,14
-'                p.science=-5
-'                crew(4).hpmax=0
-'                crew(4).hp=0
-'                roll=0
-'            endif
-'            if roll+p.skillmarks(3)>target and roll>1 then
-'                p.science=p.science+1
-'                dprint "your science officer is now skill level "&p.science,10,10 
-'                addmember(4)
-'            endif
-'        endif
-'    endif
-'    if p.doctor>0 then
-'        roll=rnd_range(1,100)\(p.doctor+1)
-'        target=33
-'        if p.doctor<6 and p.skillmarks(4)>0 then
-'            if roll<p.doctor then
-'                dprint "your ships doctor retired",14,14
-'                p.doctor=-5
-'                crew(5).hpmax=0
-'                crew(5).hp=0
-'                roll=0
-'            endif
-'            if roll+p.skillmarks(4)>target and roll>1 then
-'                p.doctor+=1
-'                dprint "your ships doctor is now skill level "&p.doctor,10,10 
-'                addmember(5)
-'            endif
-'        endif
-'    endif
-'    if p.security>0 then
-'        for a=6 to 6+p.security
-'            roll=rnd_range(1,100)+p.skillmarks(5)
-'            if roll>25*crew(a).hpmax then
-'                if crew(a).hpmax<5 and p.skillmarks(5)>0 then
-'                    crew(a).hpmax+=1
-'                    crew(a).hp=crew(a).hpmax
-'                    if crew(a).hp=4 then 
-'                        elite=elite+1
-'                        p.skillmarks(5)=p.skillmarks(5)-20
-'                    endif
-'                    if crew(a).hp=3 then 
-'                        vet=vet+1
-'                        p.skillmarks(5)=p.skillmarks(5)-10
-'                    endif
-'                endif
-'            endif
-'        next
-'      
-'        if elite=1 then text= "one of your security force is now elite "
-'        if vet=1 then text=text & " one of your security force is now a veteran " 
-'        if elite>1 then text=elite &" of your security force are now elite "
-'        if vet>1 then text=text &vet &" of your security force are now veterans " 
-'        if text<>"" then dprint text,10,10
-'    endif
-'    for a=1 to 5
-'        p.skillmarks(a)=0
-'    next
-    
-    
     return p
 end function
 
@@ -1309,7 +1054,7 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     return 0
 end function
 
-function blink(byval p as cords) as short
+function blink(byval p as _cords) as short
     locate p.y+1,p.x+1
     
     if timer>zeit then
@@ -1323,7 +1068,7 @@ function blink(byval p as cords) as short
     return 0
 end function
 
-function cursor(target as cords,map as short) as string
+function cursor(target as _cords,map as short) as string
     dim key as string 
     blink(target)    
     key=keyin
@@ -1373,9 +1118,9 @@ function mondis(enemy as _monster) as string
     return text
 end function
 
-sub show_stars(bg as short=0)
+sub show_stars(bg as short=0,byref walking as short)
     dim as short a,b,x,y,navcom,mask
-    dim as cords p,p1,p2
+    dim as _cords p,p1,p2
     dim range as integer
     dim as single dx,dy,l,x1,y1,vis
     dim m as _monster
@@ -1422,6 +1167,14 @@ sub show_stars(bg as short=0)
                         print chr(176); 
                     endif
                 endif
+                if abs(spacemap(x+player.osx,y+player.osy))=6 then
+                    color 9,0
+                    if spacemap(x+player.osx,y+player.osy)=6 then 
+                        print ":";
+                    else
+                        if navcom>0 then print "."
+                    endif
+                endif
             next
         next
     endif
@@ -1461,6 +1214,15 @@ sub show_stars(bg as short=0)
                         print chr(176); 
                     else                        
                         put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(9),pset
+                    endif
+                endif
+                if abs(spacemap(x,y))=6 and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
+                    color 9,0
+                    if spacemap(x,y)=6 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then 
+                        print ":";
+                        spacemap(x,y)=6
+                    else
+                        if navcom>0 then print "."
                     endif
                 endif
             endif
@@ -1517,6 +1279,7 @@ sub show_stars(bg as short=0)
                 if p.x+1-player.osx>0 and p.x+1-player.osx<61 and p.y+1-player.osy>0 and p.y+1-player.osy<21 then 
                     locate p.y+1-player.osy,p.x+1-player.osx
                     print "s"
+                    if drifting(x).p=0 then walking=0
                     drifting(x).p=1
                 endif
             endif
@@ -1539,14 +1302,14 @@ sub show_stars(bg as short=0)
         endif
             
         if (vismask(map(a).c.x,map(a).c.y)=1 and distance(map(a).c,player.c)<=vis) or map(a).discovered>0 then 
-             displaystar(a)
+            if map(a).discovered=0 then walking=0
+            displaystar(a)
         endif
     next
     
     for a=0 to 2
         if basis(a).discovered>0 then displaystation(a)
     next
-    
 end sub
 
 function settactics() as short
@@ -1636,6 +1399,7 @@ end function
 function bioreport(slot as short) as short
     dim a as short
     dim as string t,h
+    screenshot(1)
     t="Bio Report for /"
     h="/"
     for a=0 to 16
@@ -1647,13 +1411,15 @@ function bioreport(slot as short) as short
             else
                 h=h &" No"
             endif
-            h=h & " | Disected: "&planets(slot).mon_killed(a)
+            h=h & " | Killed  : "&planets(slot).mon_killed(a)
+            h=h & " | Disected: "&planets(slot).mon_disected(a)
             h=h & " | Caught  : "&planets(slot).mon_caught(a) &" | /"
         endif
     next
     t=t &"Exit"
     do
     loop until menu(t,h)
+    screenshot(2)
     return 0
 end function
 
@@ -1662,7 +1428,7 @@ function logbook() as short
     cls
     dim lobk(5,20) as string
     dim lobn(5,20) as short
-    static as cords curs,curs2
+    static as _cords curs,curs2
     dim as short x,y,a,p,m,lx
     dim key as string
     do
@@ -1837,6 +1603,9 @@ end function
 
 function keyin(byref allowed as string="" , byref walking as short=0,blocked as short=0)as string
     dim key as string
+    static as byte recording
+    static as byte seq
+    static as string*3 comseq
     dim as short a,b,i,tog1,tog2,tog3,tog4,ctr,f,it
     if walking<>0 then sleep 50
     flip
@@ -1948,10 +1717,10 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
         if len(allowed)>0 and key<>key_esc and key<>key_enter and getdirection(key)=0 then
             if instr(allowed,key)=0 then key=""
         endif
+        if recording=2 then walking=-1
     loop until key<>"" or walking <>0 or just_run=1
     while inkey<>""
     wend
-    screenset 0,1
     return key
 end function
 
@@ -1977,6 +1746,7 @@ sub displaystar(a as short)
     if x<0 or y<0 or x>60 or y>20 then return
     bg=0
     if spacemap(map(a).c.x,map(a).c.y)>=2 then bg=5
+    if spacemap(map(a).c.x,map(a).c.y)=6 then bg=1
     for p=1 to 9
         if map(a).planets(p)>0 then
             for n=0 to lastspecial
@@ -2093,21 +1863,22 @@ sub displaysystem(sys as _stars,forcebar as byte=0)
                 if sys.planets(b)=specialplanet(a) and planetmap(0,0,sys.planets(b))<>0 then bg=233
             endif
         next
-        if sys.planets(b)>0 and isgasgiant(sys.planets(b))=0 and isasteroidfield(sys.planets(b))=0 then
-            
+        if sys.planets(b)>0 and isgasgiant(sys.planets(b))=0 and isasteroidfield(sys.planets(b))=0 then            
             if planets(sys.planets(b)).colony>0 then bg=246
-            if planets(sys.planets(b)).visited>0 then  
+            if planets(sys.planets(b)).mapstat=1 then  
                 if planets(sys.planets(b)).atmos=1 then color 15,bg      
                 if planets(sys.planets(b)).atmos>1 and planets(sys.planets(b)).atmos<7 then color 101,bg
                 if planets(sys.planets(b)).atmos>6 and planets(sys.planets(b)).atmos<12 then color 210,bg
                 if planets(sys.planets(b)).atmos>11 then color 10,bg
-            else
+            endif
+            if planets(sys.planets(b)).mapstat=2 then  
+            
                 if planets(sys.planets(b)).atmos=1 then color 8,bg      
                 if planets(sys.planets(b)).atmos>1 and planets(sys.planets(b)).atmos<7 then color 9,bg
                 if planets(sys.planets(b)).atmos>6 and planets(sys.planets(b)).atmos<12 then color 198,bg
                 if planets(sys.planets(b)).atmos>11 then color 54,bg
             endif
-            if planetmap(0,0,sys.planets(b))=0 then color 7,bg
+            if planets(sys.planets(b)).mapstat=0 then color 7,bg
             print "o";
          endif
          
@@ -2126,7 +1897,7 @@ sub displaysystem(sys as _stars,forcebar as byte=0)
             endif
         endif
         
-        if (isgasgiant(sys.planets(b))=0 and sys.planets(b)<0) or isasteroidfield(sys.planets(b))=1 then
+        if (isgasgiant(sys.planets(b))=0 and sys.planets(b)<0) or isasteroidfield(sys.planets(b))<>0 then
             color 7,bg
             print chr(176);
         endif
@@ -2142,7 +1913,7 @@ sub displaysystem(sys as _stars,forcebar as byte=0)
     color 11,0
 end sub
 
-sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as gamecords, loctime as short)
+sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short)
         dim a as short
         dim c as short
         dim x as short
@@ -2159,6 +1930,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         locate 22,1
         color 15,0
         print space(32)
+        locate 22,1
+        print awayteam.lastaction
         if awayteam.stuff(8)=1 and player.landed.m=map and planets(map).depth=0 then
             color 15,0
             locate 22,3
@@ -2167,7 +1940,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         else
             locate 22,1
             color 14,0
-            print "no satellite"
+            'print "no satellite"
         endif
         locate 22,15
         color 15,0
@@ -2206,15 +1979,9 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                 if _tiles=0 then
                     put (ship.x*8,ship.y*16),gtiles(12),trans
                 else
-                    if map=specialplanet(28) and specialflag(28)=0 then
-                        color 14,0
-                        locate rnd_range(1,21), rnd_range(1,61)
-                        print "@"
-                    else
-                        color 14,0
-                        locate ship.y+1, ship.x+1
-                        print "@"
-                    endif
+                    color _shipcolor,0
+                    locate ship.y+1, ship.x+1
+                    print "@"                
                 endif
             endif
         endif        
@@ -2222,7 +1989,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             put (awayteam.c.x*8,awayteam.c.y*16),gtiles(13),trans
         else
             locate awayteam.c.y+1,awayteam.c.x+1
-            color 15,0
+            color _teamcolor,0
             print "@" 
         endif    
         hpdisplay(awayteam)
@@ -2259,10 +2026,10 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         locate 19,63
         print space(17);
         locate 19,63
-        if len(tiles(abs(planetmap(awayteam.c.x,awayteam.c.y,map))).desc)<18 then
-            print tiles(abs(planetmap(awayteam.c.x,awayteam.c.y,map))).desc ';planetmap(awayteam.c.x,awayteam.c.y,map) 
+        if len(tmap(awayteam.c.x,awayteam.c.y).desc)<18 then
+            print tmap(awayteam.c.x,awayteam.c.y).desc ';planetmap(awayteam.c.x,awayteam.c.y,map) 
         else 
-            dprint tiles(abs(planetmap(awayteam.c.x,awayteam.c.y,map))).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
+            dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         
         if awayteam.move=2 then
@@ -2296,7 +2063,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
                     next    
-                    dprint ("Jetpack fuel low",14,14)
+                    dprint ("Jetpack fuel low",14)
                 endif
                 if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
                     wj=2
@@ -2307,7 +2074,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
                     next    
-                    dprint ("Jetpack fuel very low",14,14)
+                    dprint ("Jetpack fuel very low",14)
                 endif
                 
                 if awayteam.jpfuel<5 and wj=2 then 
@@ -2319,7 +2086,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
                     next    
-                    dprint ("Switching to jetpack fuel reserve",12,12)
+                    dprint ("Switching to jetpack fuel reserve",12)
                 endif
             else
                 wj=0
@@ -2333,7 +2100,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         if awayteam.oxygen<25 then color 12,0
         print using "####";awayteam.oxygen/awayteam.hp
         if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
-            dprint ("Reporting oxygen tanks half empty",14,14)
+            dprint ("Reporting oxygen tanks half empty",14)
             wg=1
             for a=1 to wg
                 if _sound=0 or _sound=2 then    
@@ -2343,7 +2110,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
         endif
         if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
-            dprint ("Oxygen low.",14,14)
+            dprint ("Oxygen low.",14)
             wg=2
             for a=1 to wg
                 if _sound=0 or _sound=2 then
@@ -2354,7 +2121,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
         endif
         if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
-            dprint ("Switching to oxygen reserve!",12,12)
+            dprint ("Switching to oxygen reserve!",12)
             wg=3
             for a=1 to wg
                 if _sound=0 or _sound=2 then 
@@ -2377,6 +2144,22 @@ sub shipstatus(heading as short=0)
     dim invn(127) as short
     dim cargo(11) as string
     dim cc(11) as short
+    dim flagst(16) as string
+    flagst(1)="Fuel System"
+    flagst(2)="Disintegrator"
+    flagst(3)="Scanner"
+    flagst(4)=" Ion canon"
+    flagst(5)="Bodyarmor"
+    flagst(6)="Engine"
+    flagst(7)="Sensors"
+    flagst(8)=" Cryochamber"
+    flagst(9)="Teleportation device"
+    flagst(10)=""
+    flagst(11)=""
+    flagst(12)="Cloaking device"
+    flagst(13)="Wormhole shield"
+    flagst(16)="Wormhole navigation device"
+    
     color 0,0
     cls
     if heading=0 then
@@ -2474,14 +2257,14 @@ sub shipstatus(heading as short=0)
     cargo(11)="TT Contract Cargo"
     for c=1 to 10
         if player.cargo(c).x=1 then cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
-        if player.cargo(c).x=7 then cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
+        if player.cargo(c).x>9 then cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
             
-        if player.cargo(c).x>1 and player.cargo(c).x<7 then 
+        if player.cargo(c).x>1 and player.cargo(c).x<=9 then 
             cc(player.cargo(c).x)=cc(player.cargo(c).x)+1  
             cargo(player.cargo(c).x)=cargo(player.cargo(c).x)&" "&player.cargo(c).y &", " 
         endif
     next
-    for c=1 to 7
+    for c=1 to 11
         if cc(c)>0 then 
             if c>1 and c<7 then
                 cargo(c)=left(cargo(c),len(cargo(c))-2)&"."
@@ -2609,13 +2392,28 @@ sub shipstatus(heading as short=0)
         color 11,0
         print c8
     endif
-    
+    c=0
     if sick>0 then
         locate csrlin+2,33
         color 14,0
         print "Sick :"&sick
     endif
+    color 15,0
     locate 1,55
+    print "Alien Artifacts"
+    for a=1 to 16
+        if artflag(a)>0 then
+            c=c+1
+            locate 11+c,58
+            print flagst(a)
+        endif
+    next
+    if c=0 then
+        locate 2,60
+        print "none"
+    endif
+    c+=1
+    locate 2+c,55
     color 15,0    
     if heading=0 then
     lastinv=getitemlist(inv(),invn())     
@@ -2623,12 +2421,12 @@ sub shipstatus(heading as short=0)
     color 11,0
     if heading=0 then  
         do
-            for a=0 to 22                
-                locate 2+a,50
+            for a=0 to 22-c                
+                locate 3+c+a,50
                 color 0,0
                 print space(30);
                 color 11,0
-                locate 2+a,50
+                locate 3+c+a,50
                 
                 if invn(a+offset)>1 then
                     print invn(a+offset)&" "&left(inv(a+offset).desigp,27);
@@ -2639,22 +2437,22 @@ sub shipstatus(heading as short=0)
             locate 25,79
             color 0,0
             print " ";
-            if lastinv>22 and offset<lastinv then                    
+            if lastinv>22-c and offset<lastinv then                    
                 locate 25,79
                 color 14,0
                 print chr(25);
             endif
-            locate 1,79
+            locate 12,79
             color 0,0
             print " ";
             if offset>0 then    
-                locate 1,79
+                locate 1+c,79
                 color 14,0
                 print chr(24);
             endif
             key=keyin(,,1)
-            if keyminus(key) or key="8" then offset=offset-1
-            if keyplus(key) or key="2" then offset=offset+1
+            if keyminus(key) or key=key_north then offset=offset-1
+            if keyplus(key) or key=key_south then offset=offset+1
             if offset<0 then offset=0
             if offset>33 then offset=33
             loop until key=key_esc or key=" "
@@ -2736,7 +2534,7 @@ sub displayship(show as byte=0)
     if player.fuel<player.fuelmax*0.5 then 
         if wg=0 then
             wg=1 
-            dprint "Fuel low",0,14
+            dprint "Fuel low",14
             if _sound=0 or _sound=2 then 
                  FSOUND_PlaySound(FSOUND_FREE, sound(2))                                       
             endif    
@@ -2749,7 +2547,7 @@ sub displayship(show as byte=0)
     if player.fuel<player.fuelmax*0.2 then
         if wg=1 then
             wg=2
-            dprint "Fuel very low",0,12
+            dprint "Fuel very low",12
             if _sound=0 or _sound=2 then 
                  FSOUND_PlaySound(FSOUND_FREE, sound(2))
             endif
@@ -2787,7 +2585,7 @@ sub displayship(show as byte=0)
             if player.weapons(a).ROF<0 then 
                 player.tractor=1
                 if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
-                    dprint "Your tractor beam breaks down",14,14
+                    dprint "Your tractor beam breaks down",14
                     player.tractor=0
                     player.towed=0
                     player.weapons(a)=makeweapon(0)
@@ -2826,7 +2624,7 @@ sub displayship(show as byte=0)
         if _tiles=0 then
             put ((player.c.x-player.osx)*8,(player.c.y-player.osy)*16),gtiles(12),trans
         else
-            color 15,0
+            color _shipcolor,0
             locate player.c.y+1-player.osy,player.c.x+1-player.osx
             print "@"
         endif
@@ -2878,7 +2676,7 @@ end sub
 function gettext(x as short, y as short, ml as short, text as string) as string
     dim l as short
     dim key as string
-    dim p as cords
+    dim p as _cords
     l=len(text)
     flip
     screenset 0,0
@@ -2970,7 +2768,7 @@ function textbox(text as string,x as short,y as short,w as short, fg as short=11
     return lcount
 end function
 
-function dprint(t as string, delay as short=5, col as short=11) as short
+function dprint(t as string, col as short=11,delay as byte=1) as short
 
     dim as short a,b,c
     dim text as string
@@ -2981,11 +2779,27 @@ function dprint(t as string, delay as short=5, col as short=11) as short
     dim lastspace as short
     dim key as string
     static lastcalled as double
-    if lastcalled=0 then lastcalled=timer
-        
+    static lastmessage as string
+    static lastmessagecount as short
     if t<>"" then
+        if lastmessage=t then
+            a=23
+            do 
+                a+=1
+            loop until displaytext(a)="" or a=26
+            a=a-1
+            lastmessagecount+=1
+            displaytext(a)=t &"(x"&lastmessagecount &")"
+            t=""
+        else
+            lastmessage=t
+            lastmessagecount=1
+        endif
+    endif
+    if lastcalled=0 then lastcalled=timer
+    if delay=1 and t<>"" then
         do
-        loop until timer>lastcalled+.15
+        loop until timer>lastcalled+.05
     endif
     lastcalled=timer
     'find offset
@@ -3204,7 +3018,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     return e
 end function
 
-function getrandomsystem(unique as short=1) as short
+function getrandomsystem(unique as short=1) as short 'Returns a random system. If unique=1 then specialplanets are possible
     dim as short a,b,c,p,u,add
     dim pot(laststar) as short
     for a=0 to laststar
@@ -3293,7 +3107,7 @@ function getplanet(sys as short,forcebar as byte=0) as short
     dim firstplanet as short
     dim lastplanet as short
     if sys<0 or sys>laststar then
-        dprint ("ERROR:System#:"&sys,14,14)
+        dprint ("ERROR:System#:"&sys,14)
         return -1
     endif
     for a=1 to 9
@@ -3325,7 +3139,8 @@ function getplanet(sys as short,forcebar as byte=0) as short
             if xo<=4 then xo=4
             if xo+18>58 then xo=42
         endif
-        dprint "Enter to select, arrows to move,ESC to quit"'&map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
+        dprint "Enter to select, arrows to move,ESC to quit"
+        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
         do
             displaysystem(map(sys))        
             if keyplus(key) or a=6 then 

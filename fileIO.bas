@@ -14,8 +14,6 @@ function loadmap(m as short,slot as short)as short
     return 0
 end function
 
-
-
 function randomname() as string
     dim f as integer
     dim d as integer
@@ -167,6 +165,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_offer")>0 then key_of=right(text,1)
                 if instr(lctext,"key_grenade")>0 then key_gr=right(text,1)
                 if instr(lctext,"key_fire")>0 then key_fi=right(text,1)
+                if instr(lctext,"key_autofire")>0 then key_autofire=right(text,1)
                 if instr(lctext,"key_walk")>0 then key_walk=right(text,1)
                 if instr(lctext,"key_heal")>0 then key_he=right(text,1)
                 if instr(lctext,"key_oxygen")>0 then key_oxy=right(text,1)
@@ -191,6 +190,16 @@ function loadkeyset() as short
     return 0
 end function
 
+function numfromstr(t as string) as short
+    dim as short a
+    dim as string t2
+    for a=1 to len(t)
+        if val(mid(t,a,1))<>0 or (mid(t,a,1))="0" then t2=t2 &mid(t,a,1)
+    next
+    return val(t2)
+end function
+
+
 function loadconfig() as short
     dim f as short
     dim text as string
@@ -204,6 +213,9 @@ function loadconfig() as short
             line input #f,text
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
+                if instr(text,"shipcolor")>0 then _shipcolor=numfromstr(text)
+                if instr(text,"teamcolor")>0 then _teamcolor=numfromstr(text)
+                
                 if instr(text,"autosale")>0 then
                     if instr(text,"0")>0 or instr(text,"on")>0 then _autosell=0
                     if instr(text,"1")>0 or instr(text,"of") then _autosell=1
@@ -755,7 +767,7 @@ end function
 
 function loadgame(filename as string) as short
     dim from as short
-    dim ship as cords
+    dim ship as _cords
     dim awayteam as _monster
     dim back as short
     dim a as short
