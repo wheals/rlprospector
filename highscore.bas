@@ -11,7 +11,7 @@ sub postmortem
     dim per(3) as double
     dim discovered(lastspecial) as short
     dim descr(lastspecial) as string
-    dim flagst(14) as string
+    dim flagst(16) as string
     dim xx as short
     dim yy as short
     dim old_g as short
@@ -35,7 +35,7 @@ sub postmortem
     flagst(11)=""
     flagst(12)="Cloaking device"
     flagst(13)="Wormhole shield"
-    flagst(14)="Wormhole navigation device"
+    flagst(16)="Wormhole navigation device"
     old_g=_tiles
     _tiles=1
     'count ioncanons
@@ -54,7 +54,7 @@ sub postmortem
     endif
     'count cryochambers
     
-    descr(0)="A world covered in jungle"
+    descr(0)="The destination of a generation ship"
     descr(1)="The home of an alien claiming to be a god"
     descr(2)="An alien city with working defense systems"
     descr(3)="An ancient city"
@@ -67,7 +67,7 @@ sub postmortem
     descr(10)="An independent colony"
     descr(11)="A casino trying to cheat"
     descr(12)="A dying world"
-    descr(13)="A mining station in distress"
+    descr(13)="Murchesons Ditch"
     descr(14)="The blackmarket"
     descr(15)="A pirate gunrunner operation" 
     descr(16)="A planet with immortal beings" 
@@ -77,7 +77,7 @@ sub postmortem
     descr(20)="A creepy colony"
     descr(26)="A crystal planet"
     descr(27)="A living planet"
-    descr(28)="A planet with highly hallucinogenic plant life"
+    descr(28)="An ancient city with an intact spaceport"
     descr(29)="A very boring planet"
     descr(30)="The last outpost of an ancient race"
     descr(31)="An asteroid base of an ancient race"
@@ -88,10 +88,10 @@ sub postmortem
     descr(36)="A tribe of small green people in trouble"
     descr(37)="An invisible labyrinth"
     descr(39)="A very fertile world plagued by burrowing monsters"
-    descr(40)="A world under controll of Eridiani Explorations"
-    descr(41)="A world under controll of Smith Heavy Industries"
-    descr(42)="A world under controll of Triax Traders"
-    descr(43)="A world under controll of Omega Bioengineering"
+    descr(40)="A world under control of Eridiani Explorations"
+    descr(41)="A world under control of Smith Heavy Industries"
+    descr(42)="A world under control of Triax Traders"
+    descr(43)="A world under control of Omega Bioengineering"
     descr(44)="The ruins of an ancient war"
     st=player.h_desig
     
@@ -246,7 +246,7 @@ sub postmortem
     locate 11,58
     print "Alien Artifacts:"
     color 14,0
-    for a=1 to 9
+    for a=1 to 16
         if artflag(a)>0 then
             c=c+1
             locate 11+c,58
@@ -610,6 +610,7 @@ function getdeath() as string
     if player.dead=27 then death="Attempted to land on a gas giant without his spaceship"
     if player.dead=28 then death="Underestimated the risks of surgical body augmentation"
     if player.dead=29 then death="Got caught in a huge explosion"
+    if player.dead=29 then death="Lost while exploring an anomaly"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

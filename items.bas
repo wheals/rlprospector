@@ -109,7 +109,7 @@ function destroyitem(b as short) as short
             item(b)=item(lastitem)
             lastitem=lastitem-1
         endif
-        dprint "ERROR: attempted to destroy nonexistent item "& b,14,14
+        dprint "ERROR: attempted to destroy nonexistent item "& b,14
         return -1
     endif
 end function
@@ -135,7 +135,7 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
             endif
         next
     endif
-    dprint "ITEM PLACEMENT ERROR!(lastitem="&lastitem &")",14,14
+    dprint "ITEM PLACEMENT ERROR!(lastitem="&lastitem &")",14
 end function
 
 function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
@@ -154,14 +154,29 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=1
         i.desig="hover platform"
         i.desigp="hover platforms"
-        i.ldesc="A platform held aloft by aircushions. It can transport up to 5 persons and cross water. Going up mountains is impossible though"
         i.icon="_"
         i.col=11
         i.bgcol=0
         i.v1=1
         i.v2=5
-        i.price=500
+        i.price=i.v2*100
         i.res=60
+        if rnd_range(1,100)<20 then
+            if rnd_range(1,100)<50 then
+                i.desig="small "&i.desig
+                i.desigp="small "&i.desigp
+                i.v2=4
+                i.price=i.v2*115
+                i.id=101
+            else
+                i.desig="large "&i.desig
+                i.desigp="large "&i.desigp
+                i.v2=6
+                i.price=i.v2*85
+                i.id=102
+            endif
+        endif
+        i.ldesc="A platform held aloft by aircushions. It can transport up to "&i.v2 &" persons and cross water. Going up mountains is impossible though"
     endif
     
     if a=2 then
@@ -1270,7 +1285,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desig="cage"
         i.desigp="cages"
         i.ldesc="A cage for transporting wild animals."
-        i.icon=chr(220)
+        i.icon=chr(128)
         i.col=7
         i.v1=0
         i.v2=1
@@ -1283,7 +1298,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desig="stasis field"
         i.desigp="stasis fields"
         i.ldesc="A portable device for storing wild animals. It can hold up to 5 creatures in a compressed form, no matter what size."
-        i.icon=chr(220)
+        i.icon=chr(128)
         i.col=11
         i.v1=0
         i.v2=5
@@ -1297,7 +1312,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.desig="improved stasis field"
         i.desigp="improved stasis fields"
         i.ldesc="A portable device for storing wild animals. It can hold up to 10 creatures in a compressed form, no matter what size."
-        i.icon=chr(220)
+        i.icon=chr(128)
         i.col=11
         i.v1=0
         i.v2=10
@@ -1787,9 +1802,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     
 end function
 
-function equipawayteam(player as _ship,awayteam as _monster, m as short) as short
+function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
     dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
     dim as single oxytanks,oxy
+    dim as short cantswim,cantfly
     cmove=awayteam.move
     awayteam.jpfueluse=0
     awayteam.stuff(1)=0
@@ -1820,7 +1836,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     jpacks=0
     
     for a=1 to lastitem
-        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
+        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
         if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
     next
@@ -1887,36 +1903,36 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
         endif
     next
     
-    
-    
     for a=1 to 128
         'find best ranged weapon
         'give to redshirt
 
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
-            'if crew(a).augment(2)=0 then infra=0
-            b=findbest(2,-1)
-        
-            if b>-1 and crew(a).weap=0 then
-                'dprint "Equipping "&item(b).desig & b
-                awayteam.secweap(a)=item(b).v1
-                awayteam.secweapran(a)=item(b).v2
-                awayteam.secweapthi(a)=item(b).v3
-                awayteam.guns_to=awayteam.guns_to+item(b).v1
-                crew(a).weap=b
-                item(b).w.s=-2
-            endif
-            'find best armor        
-            b=findbest(3,-1)
-            'give to redshirt
-            if b>-1 and crew(a).armo=0 then
-                awayteam.secarmo(a)=item(b).v1
-                if awayteam.invis>item(b).v2 then awayteam.invis=item(b).v2
-                awayteam.armor=awayteam.armor+item(b).v1
-                crew(a).armo=b
-                item(b).w.s=-2
-            else
-                awayteam.invis=0
+        if crew(a).hp>0 and crew(a).onship=0 then 
+            if crew(a).typ<>10 and crew(a).typ<>13 then cantswim+=1
+            if crew(a).typ<>13 then cantfly+=1
+            if crew(a).equips=0 then
+                b=findbest(2,-1)        
+                if b>-1 and crew(a).weap=0 then
+                    'dprint "Equipping "&item(b).desig & b
+                    awayteam.secweap(a)=item(b).v1
+                    awayteam.secweapran(a)=item(b).v2
+                    awayteam.secweapthi(a)=item(b).v3
+                    awayteam.guns_to=awayteam.guns_to+item(b).v1
+                    crew(a).weap=b
+                    item(b).w.s=-2
+                endif
+                'find best armor        
+                b=findbest(3,-1)
+                'give to redshirt
+                if b>-1 and crew(a).armo=0 then
+                    awayteam.secarmo(a)=item(b).v1
+                    if awayteam.invis>item(b).v2 then awayteam.invis=item(b).v2
+                    awayteam.armor=awayteam.armor+item(b).v1
+                    crew(a).armo=b
+                    item(b).w.s=-2
+                else
+                    awayteam.invis=0
+                endif
             endif
             oxy=.75
             b=findbest(17,-1)
@@ -1926,6 +1942,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
             endif
             if crew(a).augment(3)>1 then oxy=oxy-.3
             if oxy<0 then oxy=.1
+            if crew(a).typ=13 then oxy=0
             awayteam.oxydep=awayteam.oxydep+oxy
             if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
                 b=findbest(14,-1)
@@ -1965,8 +1982,8 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     'count teleportation devices
     if artflag(9)>0 then awayteam.move=3
     'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
-    if awayteam.move<3 and awayteam.hp<=hovers*5 then awayteam.move=1
-    if awayteam.move<3 and awayteam.hp<=jpacks then awayteam.move=2
+    if awayteam.move<3 and cantswim<=hovers then awayteam.move=1
+    if awayteam.move<3 and cantfly<=jpacks then awayteam.move=2
         
     awayteam.nohp=hovers
     awayteam.nojp=jpacks
@@ -1982,6 +1999,7 @@ function equipawayteam(player as _ship,awayteam as _monster, m as short) as shor
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     if artflag(9)=1 then awayteam.move=3
+    awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
     return 0
 end function
@@ -2011,7 +2029,15 @@ function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
                 lastinv=lastinv+1                
             endif
         endif
-    next 
+    next
+    for a=0 to lastinv
+        for b=0 to lastinv-2 
+            if inv(b).ty>inv(b+1).ty or (inv(b).ty=inv(b+1).ty and better_item(inv(b),inv(b+1))=1) then 
+                swap inv(b),inv(b+1)
+                swap invn(b),invn(b+1)
+            endif
+        next
+    next
     return lastinv
 end function
 
@@ -2062,10 +2088,23 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
             endif
         endif
     next
+    
+    
+    
     if li=0 then return -1
     if li=1 and (fr=999 or ty=999) and forceselect=0 then return mit(1)
     cu=1
     do
+        for a=1 to li
+            for b=1 to li-1
+                if item(mit(b)).ty>item(mit(b+1)).ty or (item(mit(b)).ty=item(mit(b+1)).ty and better_item(item(mit(b)),item(mit(b+1)))=1) then
+                    swap mno(b),mno(b+1)
+                    swap mls(b),mls(b+1)
+                    swap mit(b),mit(b+1)
+                endif
+            next
+        next
+        
         if k=8 then cu=cu-1
         if k=2 then cu=cu+1
         if cu<1 then 
@@ -2184,6 +2223,12 @@ function findworst(t as short,p as short=0, m as short=0) as short
     next
     return r
 end function
+
+function better_item(i1 as _items,i2 as _items) as short
+    if i1.v1+i1.v2+i1.v3+i1.v4+i1.v5>i2.v1+i2.v2+i2.v3+i2.v4+i2.v5 then return 1
+    return 0
+end function
+
 
 function buyweapon(st as short) as _ship
     dim as short a,b,c,d,i,mod1,mod2,mod3,mod4

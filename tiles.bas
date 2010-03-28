@@ -126,12 +126,6 @@ tiles(14).dr=-1
 tiles(14).hp=4
 tiles(14).turnsinto=4
 
-tiles(15).tile=42
-tiles(15).col=15
-tiles(15).desc="Resources"
-tiles(15).gives=99
-tiles(15).turnsinto=4
-
 tiles(16).tile=35
 tiles(16).col=7
 tiles(16).desc="a building"
@@ -467,8 +461,8 @@ tiles(55).col=11
 tiles(55).desc="Door"
 tiles(55).seetru=0
 tiles(55).firetru=0
-tiles(55).onclose=5
-tiles(55).walktru=5
+tiles(55).onclose=263
+tiles(55).walktru=0
 tiles(55).dr=4
 tiles(55).shootable=1
 tiles(55).hp=10
@@ -621,7 +615,7 @@ tiles(68).col=8
 tiles(68).bgcol=7
 tiles(68).desc="landing pad"
 
-tiles(69).tile=35
+tiles(69).tile=35 'bar
 tiles(69).desc="Building"
 tiles(69).col=15
 tiles(69).seetru=1
@@ -1973,7 +1967,7 @@ tiles(261).gives=43
 tiles(261).turnsinto=261
 
 
-tiles(262).tile=35
+tiles(262).tile=35 'Mudds
 tiles(262).col=15
 tiles(262).desc="Building"
 tiles(262).seetru=1
@@ -1981,6 +1975,65 @@ tiles(262).firetru=1
 tiles(262).gives=66
 tiles(262).turnsinto=262
 tiles(262).hides=2
+
+
+tiles(263).tile=asc("+") 'open door
+tiles(263).col=11
+tiles(263).desc="Door"
+tiles(263).seetru=0
+tiles(263).firetru=0
+tiles(263).onopen=55
+tiles(263).walktru=5
+tiles(263).dr=4
+tiles(263).shootable=1
+tiles(263).hp=10
+tiles(263).succt="Concentrating enough firepower you melt the door a little"
+tiles(263).failt="You dont have enough firepower to damage the door"
+tiles(263).killt="You blast the door open"
+tiles(263).turnsinto=84
+
+tiles(264).tile=asc("@")
+tiles(264).col=10
+tiles(264).desc="company cruiser"
+tiles(264).seetru=1
+tiles(264).walktru=5
+tiles(264).firetru=1
+tiles(264).shootable=1
+tiles(264).turnsinto=3
+tiles(264).dr=2
+tiles(264).hp=225
+tiles(264).succt="It is slightly dented now"
+tiles(264).failt="Your handwapons arent powerful enough to damage a spaceship"
+tiles(264).killt="That will teach those pirates a lesson!"
+tiles(264).hides=2
+
+tiles(265).tile=asc("#") 'Arena
+tiles(265).gives=44
+tiles(265).col=14
+tiles(265).hides=2
+tiles(265).turnsinto=265
+
+tiles(266).tile=asc("#") 'Casino
+tiles(266).gives=45
+tiles(266).col=54
+tiles(266).turnsinto=266
+
+tiles(267).tile=128
+tiles(267).col=9
+
+tiles(268).tile=asc("#") 'Casino
+tiles(268).gives=46
+tiles(268).col=14
+tiles(268).turnsinto=268
+
+tiles(269).tile=asc("@") 'Generation Ship landed
+tiles(269).col=56
+tiles(269).seetru=1
+tiles(269).firetru=1
+tiles(269).gives=8
+tiles(269).turnsinto=269
+tiles(269).hides=2
+
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

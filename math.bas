@@ -48,7 +48,7 @@ function fixstarmap() as short
     return 0
 end function
 
-function nearestbase(c as cords) as short
+function nearestbase(c as _cords) as short
     dim r as single
     dim a as short
     dim b as short
@@ -62,7 +62,7 @@ function nearestbase(c as cords) as short
     return b
 end function
 
-function disnbase(c as cords) as single
+function disnbase(c as _cords) as single
     dim r as single
     dim a as short
     r=65
@@ -72,7 +72,7 @@ function disnbase(c as cords) as single
     return r
 end function
 
-function dispbase(c as cords) as single
+function dispbase(c as _cords) as single
     dim as single r,r2
     dim a as short
     r=65
@@ -139,8 +139,8 @@ function minimum(a as double,b as double) as double
 end function
 
 
-function distance(first as cords, last as cords) as single
-    dim dis as double
+function distance(first as _cords, last as _cords) as single
+    dim dis as single
     dis=(first.x-last.x)*(first.x-last.x)
     dis=dis+(first.y-last.y)*(first.y-last.y)
     dis=sqr(dis)
@@ -218,9 +218,8 @@ function countdeadofficers(max as short) as short
     return r
 end function
 
-function movepoint(byval c as cords, a as short, eo as short=0, border as short=0) as cords
-    dim p as cords
-    static statistics(9) as integer
+function movepoint(byval c as _cords, a as short, eo as short=0, border as short=0) as _cords
+    dim p as _cords
     dim as short x,y
     dim f as integer
     if border=0 then
@@ -235,7 +234,6 @@ function movepoint(byval c as cords, a as short, eo as short=0, border as short=
         a=rnd_range(1,8)
         if a=5 then a=9
     endif
-    statistics(a)=statistics(a)+1
     p=c
     if a=1 then
         c.x=c.x-1
@@ -296,7 +294,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     Dim As Integer x, xinc1, xinc2
     Dim As Integer y, yinc1, yinc2
     dim as byte mask
-    dim as cords p
+    dim as _cords p
     x1=a.c.x
     y1=a.c.y
     if m>0 then
@@ -311,85 +309,53 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         my=sm_y
     endif
     
-    for x2=x1-12 to x1+12
-        for y2=y1-12 to y1+12
-            mask=1
-            deltax = Abs(x2 - x1)
-            deltay = Abs(y2 - y1)
-        
-            If deltax >= deltay Then
-                numtiles = deltax + 1
-                d = (2 * deltay) - deltax
-                dinc1 = deltay Shl 1
-                dinc2 = (deltay - deltax) Shl 1
-                xinc1 = 1
-                xinc2 = 1
-                yinc1 = 0
-                yinc2 = 1
-            Else
-                numtiles = deltay + 1
-                d = (2 * deltax) - deltay
-                dinc1 = deltax Shl 1
-                dinc2 = (deltax - deltay) Shl 1
-                xinc1 = 0
-                xinc2 = 1
-                yinc1 = 1
-                yinc2 = 1
-            End If
-        
-            If x1 > x2 Then
-                xinc1 = - xinc1
-                xinc2 = - xinc2
-            End If
-           
-            If y1 > y2 Then
-                yinc1 = - yinc1
-                yinc2 = - yinc2
-            End If
-        
-            x = x1
-            y = y1
-           
-            For i = 2 To numtiles
-                If d < 0 Then
-                  d = d + dinc1
-                  x = x + xinc1
-                  y = y + yinc1
-                Else
-                  d = d + dinc2
-                  x = x + xinc2
-                  y = y + yinc2
-                End If
-                if x>=0 and y>=0 and x<=mx and y<=my then
-                    p.x=x
-                    p.y=y
-                    vismask(x,y)=mask
-                    if m>0 then
-                        If tiles(abs(planetmap(x,y,m))).seetru=1 or distance(a.c,p)>a.sight Then
-                            mask=0
+    for x=a.c.x-12 to a.c.x+12 step 2
+        for y=a.c.y-12 to a.c.y+12 step 2
+            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or x=0 or y=my or x=mx or x=0 then    
+                'if x>=0 and x<=79 and y>=0 and y<=25 then level(l).vis(x,y)=1
+                
+                mask=1
+                x2=x
+                y2=y
+                x1=a.c.x
+                y1=a.c.y
+                d=abs(x1-x2)
+                if abs(y1-y2)>d then d=abs(y1-y2)
+                for i=0 to d*2
+                    x1=x1+(x2-x1)*i/(d*2)
+                    y1=y1+(y2-y1)*i/(d*2)
+                    p.x=x1
+                    p.y=y1
+                    if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
+                        if m>0 then
+                            vismask(x1,y1)=mask
+                            if tmap(x1,y1).seetru=1 or distance(a.c,p)>a.sight then 
+                                mask=0
+                            else
+                                if x1<mx then vismask(x1+1,y1)=mask
+                                if x1>0 then vismask(x1-1,y1)=mask
+                                if y1<my then vismask(x1,y1+1)=mask
+                                if y1>0 then vismask(x1,y1-1)=mask
+                            endif
                         else
-                            if x<mx then vismask(x+1,y)=mask
-                            if x>0 then vismask(x-1,y)=mask
-                            if y<my then vismask(x,y+1)=mask
-                            if y>0 then vismask(x,y-1)=mask
-                        endif
-                    else
-                        If spacemap(x,y)>1 or distance(a.c,p)>a.sight Then
-                            mask=0
-                        else
-                            if x<mx then vismask(x+1,y)=mask
-                            if x>0 then vismask(x-1,y)=mask
-                            if y<my then vismask(x,y+1)=mask
-                            if y>0 then vismask(x,y-1)=mask
+                            vismask(x1,y1)=mask
+                            If spacemap(x1,y1)>1 or distance(a.c,p)>a.sight Then
+                                mask=0
+                            else
+                                if x1<mx then vismask(x1+1,y1)=mask
+                                if x1>0 then vismask(x1-1,y1)=mask
+                                if y1<my then vismask(x1,y1+1)=mask
+                                if y1>0 then vismask(x1,y1-1)=mask
+                            endif
                         endif
                     endif
-                endif
-            Next
+                next
+            endif
         next
     next
     
-    for x2=x1-1 to x1+1
-        for y2=y1-1 to y1+1
+    for x2=a.c.x-1 to a.c.x+1
+        for y2=a.c.y-1 to a.c.y+1
             if x2>=0 and y2>=0 and x2<=mx and y2<=my then vismask(x2,y2)=1
         next
     next
@@ -408,7 +374,7 @@ end function
 '    dim dis as single 
 '    dim as short yt,yb,xr,xl 'Y top, Y bottom, Xright, Xleft
 '    dim as single x,y 'point we are looking at
-'    dim as cords p
+'    dim as _cordsp
 '    dim as short tile
 '    dim as short mask
 '    cx=a.c.x
@@ -498,7 +464,7 @@ end function
 '    return 0
 'end function
 
-function nextpoint(byval start as cords, byval target as cords) as cords
+function nextpoint(byval start as _cords, byval target as _cords) as _cords
     dim as short dx,dy,d,x1,x2,y1,y2 
     x1=start.x
     y1=start.y
@@ -510,7 +476,7 @@ function nextpoint(byval start as cords, byval target as cords) as cords
 end function
 
 
-function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype as short=1,col as short=0) as short
+function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0) as short
     dim as single px,py
     dim deltax as single
     dim deltay as single
@@ -525,7 +491,7 @@ function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype 
     
     deltax = Abs(c.x - b.x)
     deltay = Abs(c.y - b.y)
-
+    if col>0 then screenset 1,1
     If deltax >= deltay Then
         numtiles = deltax + 1
         d = (2 * deltay) - deltax
@@ -559,7 +525,7 @@ function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype 
     x = c.x
     y = c.y
     result=-1
-    For i = 2 To numtiles
+    For i = 1 To numtiles
         
         If d < 0 Then
           d = d + dinc1
@@ -576,7 +542,7 @@ function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype 
                if x>60 then x=60
                if y<0 then y=0
                if y>20 then y=20
-               if tiles(abs(planetmap(x,y,mapslot))).firetru=1  then 
+               if tmap(x,y).firetru=1  then 
                     if not (x=b.x and y=b.y) then
                         result=0
                         if blocktype=3 then
@@ -615,7 +581,7 @@ function pathblock(byval c as cords,byval b as cords,mapslot as short,blocktype 
 end function
 
 
-function nearest(c as cords, b as cords) as single
+function nearest(c as _cords, b as _cords) as single
     ' Moves B towards C, or C away from B
     dim direction as short
     if c.x>b.x and c.y>b.y then direction=3
@@ -632,7 +598,7 @@ function nearest(c as cords, b as cords) as single
 end function
 
 
-function farthest(c as cords, b as cords) as single
+function farthest(c as _cords, b as _cords) as single
     dim direction as short
     if c.x>b.x and c.y>b.y then direction=3
     if c.x>b.x and c.y=b.y then direction=6
@@ -663,8 +629,8 @@ function fill_rect(r as _rect,wall as short, floor as short,map() as short) as s
     return 0
 end function
 
-function rnd_point(m as short=-1,w as short=-1,t as short=0)as cords
-    dim p(1281) as cords
+function rnd_point(m as short=-1,w as short=-1,t as short=0)as _cords
+    dim p(1281) as _cords
     dim as short last,x,y,a
     if m>-1 and w>-1 then
         for x=0 to 60
@@ -694,12 +660,10 @@ function rnd_point(m as short=-1,w as short=-1,t as short=0)as cords
     p(0).x=rnd_range(0,60)
     p(0).y=rnd_range(0,20)
     return p(0)
-    
-    dprint "ERROR: looking for point",14,14
 end function
 
-function rndrectwall(r as _rect,d as short=5) as cords
-    dim p as cords
+function rndrectwall(r as _rect,d as short=5) as _cords
+    dim p as _cords
     if d=5 then 
         do
             d=rnd_range(1,8)
@@ -741,7 +705,7 @@ function rndrectwall(r as _rect,d as short=5) as cords
     return p
 end function
 
-function chksrd(p as cords, slot as short) as short'Returns the sum of tile values around a point, -1 if at a border
+function chksrd(p as _cords, slot as short) as short'Returns the sum of tile values around a point, -1 if at a border
     dim r as short
     dim as short x,y
     for x=p.x-1 to p.x+1
@@ -756,7 +720,7 @@ function chksrd(p as cords, slot as short) as short'Returns the sum of tile valu
     return r
 end function
 
-function distributepoints(result() as cords, ps() as cords, last as short) as single
+function distributepoints(result() as _cords, ps() as _cords, last as short) as single
     dim re as single
     dim a as short
     dim b as short

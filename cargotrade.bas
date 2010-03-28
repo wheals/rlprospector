@@ -138,7 +138,7 @@ function upgradehull(t as short,byref s as _ship) as short
     if s.h_maxfuel>n.h_maxfuel then ques=ques &"The new ship will have a lower fuel capacity than your current one."
     
     if ques<>"" then
-        dprint ques,14,14 
+        dprint ques,14 
         if askyn("Do you really want to transfer to the new hull?") then 
             flg=-1
         else
@@ -221,7 +221,7 @@ function company(st as short,byref questroll as short) as short
     dim as single a
     dim as string s,k
     dim towed as _ship
-    dim p as cords
+    dim p as _cords
     m=player.money
     if _autosell=0 then q=-1
     dprint "you enter the administrator's office"                    
@@ -239,35 +239,35 @@ function company(st as short,byref questroll as short) as short
         a=0
     endif
     if player.questflag(2)=2 then
-        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",15,15
+        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+15000
         player.questflag(2)=4
         no_key=keyin
     endif
     if player.questflag(2)=3 then
-        dprint "The Company Rep congratulates you on a job well done and pays you 10.000 Cr.",15,15
+        dprint "The Company Rep congratulates you on a job well done and pays you 10.000 Cr.",10
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+10000
         player.questflag(2)=4
         no_key=keyin
     endif
     if player.questflag(3)=1 then
-        dprint "After some negotiations you convince the company rep to buy the secret of controling the alien ships for ... 1.000.000 CR!"
+        dprint "After some negotiations you convince the company rep to buy the secret of controling the alien ships for ... 1.000.000 CR!",10
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+1000000
         player.questflag(3)=2
         no_key=keyin
     endif
     if player.questflag(5)=2 then
-        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",15,15
+        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+15000
         player.questflag(5)=3
         no_key=keyin
     endif 
     if player.questflag(6)=2 then
-        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",15,15
+        dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+15000
         player.questflag(6)=3
@@ -276,68 +276,68 @@ function company(st as short,byref questroll as short) as short
     if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).mapped>=1200 then
         player.money=player.money+1000
         player.merchant_agr=player.merchant_agr-5
-        dprint "The company rep pays your contract for mapping the planet"
+        dprint "The company rep pays your contract for mapping the planet",10
         player.questflag(7)=0
     endif
     if player.questflag(9)=2 and basis(st).company=2 then 
         player.money=player.money+5000
         player.merchant_agr=player.merchant_agr-5
-        dprint "The company rep pays your contract for finding a robot factory."
+        dprint "The company rep pays your contract for finding a robot factory.",10
         player.questflag(9)=3
     endif
     if player.questflag(10)<0 and basis(st).company=4 then
         player.money=player.money+2500
         player.merchant_agr=player.merchant_agr-5
-        dprint "The company rep pays you for finding a planet to conduct their experiment on."
+        dprint "The company rep pays you for finding a planet to conduct their experiment on.",10
         planetmap(rnd_range(0,60),rnd_range(0,20),abs(player.questflag(10)))=16
         player.questflag(10)=0
     endif
     if player.questflag(11)=2 then 
         player.money=player.money+5000
         player.merchant_agr=player.merchant_agr-15
-        dprint "The company rep remarks that these crystal creatures could be a threat to colonizing this sector and pays you your reard."
+        dprint "The company rep remarks that these crystal creatures could be a threat to colonizing this sector and pays you your reard.",10
         player.questflag(11)=3
     endif
     if player.questflag(12)=0 and checkcomplex(specialplanet(33),1)=4 then 
         player.questflag(12)=1
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+10000
-        dprint "The company rep pays you 10.000 Cr. for destroying the pirates asteroid hideout."
+        dprint "The company rep pays you 10.000 Cr. for destroying the pirates asteroid hideout.",10
     endif
     
     if player.questflag(15)=2 then 
         player.questflag(15)=3
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+10000
-        dprint "The company rep pays you 10.000 Cr. for destroying the pirate Battleship 'Anne Bonny'."
+        dprint "The company rep pays you 10.000 Cr. for destroying the pirate Battleship 'Anne Bonny'.",10
     endif
     
     if player.questflag(16)=2 then 
         player.questflag(16)=3
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+8000
-        dprint "The company rep pays you 8.000 Cr. for destroying the pirate Destroyer 'Black corsair'."
+        dprint "The company rep pays you 8.000 Cr. for destroying the pirate Destroyer 'Black corsair'.",10
     endif
     
     if player.questflag(17)=2 then 
         player.questflag(17)=3
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+5000
-        dprint "The company rep pays you 5.000 Cr. for destroying the pirate Cruiser 'Hussar'."
+        dprint "The company rep pays you 5.000 Cr. for destroying the pirate Cruiser 'Hussar'.",10
     endif
     
     if player.questflag(18)=2 then 
         player.questflag(18)=3
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+2500
-        dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Adder'."
+        dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Adder'.",10
     endif
     
     if player.questflag(19)=2 then 
         player.questflag(19)=3
         player.merchant_agr=player.merchant_agr-15
         player.money=player.money+2500
-        dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Widow'."
+        dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Widow'.",10
     endif
     
     if player.questflag(21)=1 then
@@ -447,6 +447,18 @@ function company(st as short,byref questroll as short) as short
                     player.money=player.money+100
                 endif
             next
+        endif
+    endif
+    
+    if basis(st).company=2 then
+        c=0
+        for a=1 to lastplanet
+            if planets(a).flags(23)=2 then c=a
+        next
+        if c>0 then
+            dprint "Thanks for helping wiping out those pirates!"
+            planets(c).flags(23)=3
+            player.money=player.money+2500
         endif
     endif
     
@@ -586,7 +598,7 @@ function casino(staked as short=0, st as short=-1) as short
     dim as short a,b,c,d,bet,num,fi,col,times,mbet,gpld,asst,x,y,z
     dim as uinteger mwon,mlos
     dim as integer result
-    dim p as cords
+    dim p as _cords
     dim coltable(36) as short
     coltable(0)=10
     coltable(1)=12
@@ -625,7 +637,7 @@ function casino(staked as short=0, st as short=-1) as short
     coltable(34)=12
     coltable(35)=15
     coltable(36)=12
-
+    screenset 1,1
     do
         drawroulettetable()
         a=menu("Casino:/Play Roulette/Have a drink/Leave")
@@ -972,6 +984,7 @@ function sickbay(st as short=0) as short
             do
                 cls
                 displayship()
+                dprint ""
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
                 if b>0 and b<7 then
                     if askyn("Do you want to buy "&augn(b) &" for the whole crew?(y/n)") then
@@ -988,7 +1001,7 @@ function sickbay(st as short=0) as short
                     do
                         if crew(c).typ<=9 and b>0 and c>0 then
                             if crew(c).augment(b)=0 then
-                                if player.money>=augp(b) then
+                                if player.money>=augp(b) and crew(c).hp>0 then
                                     if crew(c).augment(9)<3 or st<>0 then
                                         if st<>0 and crew(c).augment(9)>=3 then 
                                             if not(askyn("Installing more than 3 augmentations can be dangerous, even kill the recipient. shall we proceed? (y/n)")) then c=-1
@@ -1012,7 +1025,11 @@ function sickbay(st as short=0) as short
                                         dprint "We can't install more than 3 augmentations."
                                     endif
                                 else
-                                    dprint "You don't have enough money.",14,14
+                                    if crew(c).hp>0 then 
+                                        dprint "You don't have enough money.",14
+                                    else 
+                                        dprint crew(c).n &" is dead."
+                                    endif
                                 endif
                             else
                                 dprint crew(c).n &" already has "&augn(b)&"."
@@ -1516,7 +1533,7 @@ end function
 
 function stockmarket(st as short) as short
     dim dis(4) as byte
-    dim as short a,b,c,d,amount
+    dim as short a,b,c,d,amount,last
     dim cn(5) as short
     dim text as string
     
@@ -1532,17 +1549,19 @@ function stockmarket(st as short) as short
         locate 2,30
         print "Price"
         color 11,0
-        text="Company" &space(16) &"Price"
+        text="Company" &space(18) &"Price"
+        last=0
         for a=0 to 2
             color 11,0
-            locate 3+a,2
             if dis(basis(a).company)=0 then
-                cn(a)=basis(a).company
+                last+=1
+                locate 2+last,2
+                cn(last)=basis(a).company
                 print companyname(basis(a).company)
                 text=text &"/"& companyname(basis(a).company)
-                locate 3+a,30
+                locate 2+last,30
                 print companystats(basis(a).company).rate
-                text=text &space(30-len(companyname(basis(a).company)))&companystats(basis(a).company).rate 
+                text=text &space(32-len(companyname(basis(a).company)))&companystats(basis(a).company).rate 
             endif
             dis(basis(a).company)=1
         next
@@ -1550,18 +1569,17 @@ function stockmarket(st as short) as short
         a=menu("/Buy/Sell/Exit","",2,12)
         if a=1 then
             b=menu(text &"/Exit",,2,2)
-            if b>0 and b<4 then
-                if cn(b-1)>0 then
-                    dprint "How many shares of "&companyname(cn(b-1))&"do you want to buy?"
+            if b>0 and b<last+1 then
+                if cn(b)>0 then
+                    dprint "How many shares of "&companyname(cn(b))&" do you want to buy?"
                     amount=getnumber(0,99,0)
-                    if player.money>=companystats(cn(b-1)).rate*amount and amount>0 then
-                        amount=buyshares(cn(b-1),amount)
-                        companystats(cn(b-1)).capital=companystats(cn(b-1)).capital+amount
-                        player.money=player.money-companystats(cn(b-1)).rate*amount
-                        player.tradingmoney=player.tradingmoney-companystats(cn(b-1)).rate*amount
-                        
+                    if player.money>=companystats(cn(b)).rate*amount and amount>0 then
+                        amount=buyshares(cn(b),amount)
+                        companystats(cn(b)).capital=companystats(cn(b)).capital+amount
+                        player.money=player.money-companystats(cn(b)).rate*amount
+                        player.tradingmoney=player.tradingmoney-companystats(cn(b)).rate*amount
                     else
-                        if amount>0 then dprint "You don't have enough Money"
+                        if amount>0 then dprint "You don't have enough money",14
                     endif
                 endif
             endif
@@ -1600,7 +1618,7 @@ function getsharetype() as short
     next
     b=b+1
     if text<>"" then
-        text="company/"&text &"Exit"
+        text="Company/"&text &"Exit"
         a=menu(text,"",2,2)
         if a<b then 
             return cn(a)
@@ -1775,7 +1793,7 @@ function load_f(f as _fleet, st as short) as _fleet
             if loaded(a)>0 and loaded(a+1)>0 then text=text &", "
         next
         if loaded(5)>0 then text=text & loaded(a) &" tons of "& basis(st).inv(a).n &"."
-        if player.landed.m=0 then dprint "We have a transmission from station "&st+1 &". A trader just left with "&text &".",15,15    
+        if player.landed.m=0 then dprint "We have a transmission from station "&st+1 &". A trader just left with "&text &".",15    
     endif
     
     return f
@@ -1946,7 +1964,7 @@ sub buygoods(st as short)
                     endif
                 endif
             else
-                dprint "No room for additional cargo.",14,14
+                dprint "No room for additional cargo.",14
                 no_key=keyin
             endif
         endif
@@ -2499,7 +2517,7 @@ function rerollshops() as short
 end function
 
 function buysitems(desc as string,ques as string, ty as short, per as single=1,aggrmod as short=0) as short
-    dim as short a,b,answer
+    dim as short a,b,answer,price
     dim text as string
     if _autosell=0 then 
         dprint desc & " (autoselling on)"
@@ -2518,12 +2536,17 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
                 a=getitem(-1,ty,1)
                 if a>0 then 
                     if (item(a).ty=ty or ty=999) and item(a).w.s=-1  then
-                        if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "&cint(item(a).price*per) &" Cr.?(y/n)")             
+                        if item(a).ty<>26 then
+                            price=cint(item(a).price*per)
+                        else
+                            price=cint(item(a).v1*50*per)
+                        endif
+                        if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "& price &" Cr.?(y/n)")             
                         if b=-1 then    
-                            dprint "you sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr."
-                            player.money=player.money+cint(item(a).price*per)
+                            dprint "you sell the "&item(a).desig &" for " &price & " Cr."
+                            player.money=player.money+price
                             reward(2)=reward(2)-item(a).v5                        
-                            player.tradingmoney=player.tradingmoney+cint(item(a).price*per)
+                            player.tradingmoney=player.tradingmoney+price
                             player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
                             player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
                             destroyitem(a)                
@@ -2533,11 +2556,16 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
             loop until a<0
         else            
             for a=0 to lastitem
+                if item(a).ty<>26 then
+                    price=cint(item(a).price*per)
+                else
+                    price=cint(item(a).v1*50*per)
+                endif
                 if item(a).ty=ty and item(a).w.s=-1 then
-                    text=text &"You sell the "&item(a).desig &" for " &cint(item(a).price*per) & " Cr. "
-                    player.money=player.money+cint(item(a).price*per)
+                    text=text &"You sell the "&item(a).desig &" for "& price & " Cr. "
+                    player.money=player.money+price
                     reward(2)=reward(2)-item(a).v5                        
-                    player.tradingmoney=player.tradingmoney+cint(item(a).price*per)
+                    player.tradingmoney=player.tradingmoney+price
                     player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
                     player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
                     destroyitem(a)

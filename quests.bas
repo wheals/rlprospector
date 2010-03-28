@@ -63,7 +63,7 @@ function dodialog(no as short) as short
     return 0
 end function
 
-function dirdesc(f as cords,t as cords) as string
+function dirdesc(f as _cords,t as _cords) as string
     dim d as string
     dim as single dx,dy
     dx=(f.x-t.x)
@@ -83,7 +83,7 @@ end function
 function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as short,lastlocalitem as short,monslot as short) as short
     dim as short roll,a,b
     dim it as _items
-    dim p as cords
+    dim p as _cords
     roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,14,2)
     if e.lang<0 then
         if roll>9 then
@@ -404,6 +404,8 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=3 then dprint "It says: 'We hope conditions for a colony are favourable at our destination.'"
             if a=4 then dprint "It says: '12 breeders have died since we left home.'"
             if a=5 then dprint "It says: 'I am proud to be one of the few of our species to go on this great adventure! though i will not see the end of it.'"
+            if a=6 then dprint "It says: 'I am proud to be one of the few of our species to go on this great adventure! though i will not see the end of it.'"
+            if a=7 then dprint "It says: 'The system we want to colonize is at "&map(sysfrommap(specialplanet(0))).c.x &":"&map(sysfrommap(specialplanet(0))).c.x &"'"
         endif
     endif    
     
@@ -613,6 +615,20 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             a=rnd_range(1,6)
             if a=1 then dprint "He says in a sarcastic tone 'You sure you want to talk to a hardened criminal like me?'"
             if a=2 then dprint "He says 'We are being held here against our will'"
+            if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
+            if a=4 then dprint "He says 'This can't be legal! Forcing us to live like this!'"
+            if a=5 then dprint "He says 'I know, i made a mistake, but I don't think they can treat us like this!'."
+            if a=6 then dprint "He says 'Don't owe SHI money, or you'll end up here too!'"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    if e.lang=29 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,1)
+            if a=1 then dprint "He says 'We are fighting pirates over the control of some ancient ruins. Do you want to help'"
+            if a=2 then dprint "He says ''"
             if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
             if a=4 then dprint "He says 'This can't be legal! Forcing us to live like this!'"
             if a=5 then dprint "He says 'I know, i made a mistake, but I don't think they can treat us like this!'."
@@ -1045,7 +1061,7 @@ end function
 
 function givequest(st as short, byref questroll as short) as short
     dim as short a,b,bay, s,pl,car,st2,m,o,m2,o2,x,y
-    dim as cords p
+    dim as _cords p
     static stqroll as short
     if st<>player.lastvisit.s then stqroll=rnd_range(0,2)
     do
@@ -1137,7 +1153,7 @@ function givequest(st as short, byref questroll as short) as short
                 b=rnd_range(1,16)
                 if askyn("The company rep needs a "&shiptypes(b) &" hull towed to station "&a+1 &" for refits. He is willing to pay "& b*50 &" Cr. Do you accept(y/n)?") then
                     if player.tractor=0 then
-                        dprint "You need a tractor beam for this job.",14,14
+                        dprint "You need a tractor beam for this job.",14
                     else
                         player.towed=-b
                         player.questflag(8)=a
@@ -1150,7 +1166,7 @@ function givequest(st as short, byref questroll as short) as short
             a=stqroll
             
             if a=1 and player.questflag(2)=0 then
-                dprint "The company rep informs you that one of the local executives has been abducted by pirates. They demand ransom, but it is company policy to not give in to such demands. There is a bounty of 10.000 CR on the pirates, and a bonus of 5000 CR to bring back the exec alive.",15,15
+                dprint "The company rep informs you that one of the local executives has been abducted by pirates. They demand ransom, but it is company policy to not give in to such demands. There is a bounty of 10.000 CR on the pirates, and a bonus of 5000 CR to bring back the exec alive.",15
                 no_key=keyin
                 player.questflag(2)=1
                 s=getrandomsystem
@@ -1165,7 +1181,7 @@ function givequest(st as short, byref questroll as short) as short
             endif
             
             if a=2 and player.questflag(5)=0 then
-                dprint "The company rep warns you about a ship that has reportedly been preying on pirates and merchants alike. 'It's fast, it's dangerous, and a confirmed kill is worth 15.000 credits to my company."
+                dprint "The company rep warns you about a ship that has reportedly been preying on pirates and merchants alike. 'It's fast, it's dangerous, and a confirmed kill is worth 15.000 credits to my company.",15
                 player.questflag(5)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet).ty=5
@@ -1175,7 +1191,7 @@ function givequest(st as short, byref questroll as short) as short
             endif
             
             if a=3 and player.questflag(5)=2 then
-                dprint "The company rep warns you that there are reports about another ship prowling space of the type you destroyed before. The company again pays 15.000 Credits if you bring it down"
+                dprint "The company rep warns you that there are reports about another ship prowling space of the type you destroyed before. The company again pays 15.000 Credits if you bring it down",15
                 player.questflag(6)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet).ty=5
@@ -1194,7 +1210,7 @@ function givequest(st as short, byref questroll as short) as short
                 if y<0 then y=0
                 if x>sm_x then x=sm_x
                 if y>sm_y then y=sm_y
-                dprint "The company rep tells you about a battleship that has gone missing. It's last known position was " & x &":" &y & ". There is a 5000 Credit reward for finding out what happened to it."
+                dprint "The company rep tells you about a battleship that has gone missing. It's last known position was " & x &":" &y & ". There is a 5000 Credit reward for finding out what happened to it.",15
                 lastdrifting=lastdrifting+1
                 m=lastdrifting
                 drifting(m).s=14
@@ -1219,35 +1235,35 @@ function givequest(st as short, byref questroll as short) as short
             endif
             
             if a=5 and player.questflag(16)>0 and player.questflag(15)=0 then'other quests
-                dprint "The company rep informs you that there is a special 10000 Cr bounty for bringing down the infamous 'Anne Bonny', a pirate battleship.",15,15
+                dprint "The company rep informs you that there is a special 10000 Cr bounty for bringing down the infamous 'Anne Bonny', a pirate battleship.",15
                 player.questflag(15)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(1)
             endif
             
             if a=6 and player.questflag(17)>0 and player.questflag(16)=0 then'other quests
-                dprint "The company rep informs you that there is a special 8000 Cr bounty for bringing down a pirate destroyer, called 'The Black Corsair'.",15,15
+                dprint "The company rep informs you that there is a special 8000 Cr bounty for bringing down a pirate destroyer, called 'The Black Corsair'.",15
                 player.questflag(16)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(2)
             endif
             
             if a=7 and (player.questflag(18)>0 or player.questflag(19)>0) and player.questflag(17)=0 then'other quests
-                dprint "The company rep informs you that there is a special 5000 Cr bounty for bringing down a pirate cruiser, called 'Hussar'.",15,15
+                dprint "The company rep informs you that there is a special 5000 Cr bounty for bringing down a pirate cruiser, called 'Hussar'.",15
                 player.questflag(17)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(3)
             endif
             
             if a=8 and player.questflag(18)=0 then'other quests
-                dprint "The company rep informs you that there is a special 2500 Cr bounty for bringing down a pirate fighter, called 'Adder'.",15,15
+                dprint "The company rep informs you that there is a special 2500 Cr bounty for bringing down a pirate fighter, called 'Adder'.",15
                 player.questflag(18)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(4)
             endif
             
             if a=9 and player.questflag(19)=0 then'other quests
-                dprint "The company rep informs you that there is a special 2500 Cr bounty for bringing down a pirate fighter, called 'Widow'.",15,15
+                dprint "The company rep informs you that there is a special 2500 Cr bounty for bringing down a pirate fighter, called 'Widow'.",15
                 player.questflag(19)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet)=makequestfleet(5)
@@ -1260,7 +1276,7 @@ return questroll
 end function
 
 function planetbounty() as short
-    dim p as cords
+    dim p as _cords
     
     if planets(specialplanet(2)).visited>0 and planets(specialplanet(2)).flags(21)=0 then
         if askyn("He's interested in the position of the ancient city you found. Do you want to sell the coordinates for 2500 Cr?(y/n)") then
@@ -1436,7 +1452,7 @@ function checkquestcargo(player as _ship, st as short) as _ship
             player.cargo(a).x=1
             player.cargo(a).y=0
             player.money=player.money+500
-            dprint "the local representative pays you for delivering the cargo",15,15
+            dprint "the local representative pays you for delivering the cargo",10
         endif
         if player.cargo(a).x=11 and player.cargo(a).y=st then
             player.cargo(a).x=1
@@ -1447,13 +1463,13 @@ function checkquestcargo(player as _ship, st as short) as _ship
     next
     if player.questflag(8)=st then
         if player.towed<0 then
-            dprint "you deliver the " &shiptypes(-player.towed) &" hull and get payed "&abs(player.towed)*50 &" Cr."
+            dprint "you deliver the " &shiptypes(-player.towed) &" hull and get payed "&abs(player.towed)*50 &" Cr.",10
             player.money=player.money+abs(player.towed)*50
         endif
         player.towed=0
         player.questflag(8)=0
     endif
     
-    if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders and get payed "& b*200 &" credits."
+    if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders and get payed "& b*200 &" credits.",10
     return player
 end function

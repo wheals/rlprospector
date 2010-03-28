@@ -26,28 +26,28 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     dim key as string
     dim rangestr as string
     dim range as short
-    dim p as cords
-    dim p1 as cords
+    dim p as _cords
+    dim p1 as _cords
     dim roll as short
     dim victory as short
     dim astring as string
     dim shieldshut as short
     dim text as string
-    dim e_track_p(128) as cords
+    dim e_track_p(128) as _cords
     dim e_track_v(128) as short
     dim e_last as short
     
-    dim mines_p(128) as cords
+    dim mines_p(128) as _cords
     dim mines_v(128) as short
     dim mines_last as short
     
-    dim old as cords
+    dim old as _cords
     for x=0 to 60
         for y=0 to 20
             combatmap(x,y)=0
             if rnd_range(1,100)<ter then 
                 combatmap(x,y)=rnd_range(1,5)
-                if ter=6 then combatmap(x,y)=6 'Asteroid field 
+                if ter=8 then combatmap(x,y)=6 'Asteroid field 
                 if ter=7 then combatmap(x,y)=7 'Gas giant
             endif
             if rnd_range(1,100)<3 and rnd_range(1,100)<3 then
@@ -154,9 +154,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             defender.hull=defender.hull+defender.shield
                             defender.shield=0                        
                             if combatmap(defender.c.x,defender.c.y)=1 or combatmap(defender.c.x,defender.c.y)=6 then 
-                                dprint "You damage your ship hitting an asteroid!",14,14
+                                dprint "You damage your ship hitting an asteroid!",14
                             else
-                                dprint "You damage your ship hitting a glas cloud!",14,14
+                                dprint "You damage your ship hitting a glas cloud!",14
                             endif
                         endif
                     endif
@@ -251,7 +251,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(a).col)=-1 then
                             attacker(t)=com_fire(attacker(t),defender,defender.weapons(a),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
                             if attacker(t).hull<=0 then
-                                dprint "Target destroyed",,10
+                                dprint "Target destroyed",10
                                 reward(3)=reward(3)+attacker(t).money
                                 defender.piratekills=defender.piratekills+attacker(t).money
                                 attacker(t)=unload_s(attacker(t),10)
@@ -319,7 +319,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             lastenemy=lastenemy-1
                         endif
                         if distance(attacker(b).c,defender.c)<=senbat*senac then 
-                            dprint text,10,10
+                            dprint text,10
                             no_key=keyin
                         endif
                     endif
@@ -333,7 +333,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         defender.shield=0
                     endif
                     if defender.hull<=0 then text=text &defender.desig &" destroyed!"                        
-                    dprint text,12,12
+                    dprint text,12
                     no_key=keyin
                 endif
                 
@@ -386,14 +386,14 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             if attacker(a).shiptype=1 then
                 if attacker(a).c.x=attacker(a).target.x and attacker(a).c.y=attacker(a).target.y then
                     if rnd_range(1,6)+rnd_range(1,6)+attacker(a).pilot>6+defender.pilot then
-                        dprint "The Merchant got away!",,10
+                        dprint "The Merchant got away!",10
                         fleet(255).mem(a)=attacker(a)
                         for b=a to lastenemy
                             attacker(b)=attacker(b+1)
                         next
                         lastenemy=lastenemy-1
                     else
-                        dprint "The Merchant didn't get away",,12
+                        dprint "The Merchant didn't get away",12
                         attacker(a).c.x=60
                         attacker(a).target.x=0
                         attacker(a).c.y=rnd_range(1,20)
@@ -411,7 +411,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     if victory=3 then defender.dead=13
     if victory=2 then defender.dead=0
     if victory=1 and player.towed<>0 then
-        dprint "You leave behind the ship you had in tow.",14,14
+        dprint "You leave behind the ship you had in tow.",14
         player.towed=0
     endif
     for a=1 to 15
@@ -420,28 +420,24 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     return defender
 end function
 
-function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
+function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
     dim as short x,y,a,b,c
-    dim p1 as cords
+    dim p1 as _cords
     dim as short senbat,senbat1,senbat2,denemy
-    dim list_c(128) as cords
+    dim list_c(128) as _cords
     dim list_e(128) as short
     dim last as short
     
     for a=1 to lastenemy
-        'if distance(attacker(a).c,defender.c)<senbat*senac then
             last+=1
             list_c(last)=attacker(a).c
             list_e(last)=a
-        'endif
     next
     if mines_last>0 then
         for a=1 to mines_last
-            'if distance(mines_p(a),defender.c)<senbat*senac then
-                last+=1
-                list_c(last)=mines_p(a)
-                list_e(last)=a
-            'endif
+            last+=1
+            list_c(last)=mines_p(a)
+            list_e(last)=a        
         next
     endif
 
@@ -527,19 +523,19 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
             endif
         endif
     next 
-    color 15,0
+    color _shipcolor,0
     locate defender.c.y+1,defender.c.x+1
     print "@"
     return denemy
 end function
 
-function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as cords,e_track_v() as short,e_last as short,mines_p() as cords,mines_v() as short,mines_last as short) as short
+function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
     
     dim targetno as short
     dim as short a,d,ex
     dim as short senbat,senbat1,senbat2
     dim as string key,text,id
-    dim list_c(128) as cords
+    dim list_c(128) as _cords
     dim list_e(128) as short
     dim last as short
     
@@ -701,8 +697,8 @@ function com_hit(target as _ship, w as _weap,dambonus as short, range as short, 
     return target
 end function
 
-function com_dropmine(defender as _ship,mines_p() as cords,mines_v() as short,byref mines_last as short) as short
-    dim p as cords
+function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as short,byref mines_last as short) as short
+    dim p as _cords
     dim as short a,b,c,mine,mtype(15),no(15),mwhere(15),storedead,dam
     dim mdesig(15) as _items
     dim as string text,key
@@ -762,9 +758,9 @@ function com_dropmine(defender as _ship,mines_p() as cords,mines_v() as short,by
     return 0
 end function
 
-function com_detonatemine(d as short,mines_p() as cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
+function com_detonatemine(d as short,mines_p() as _cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
     dim as short x,y,t,r,dis,a,dam
-    dim as cords p
+    dim as _cords p
     if mines_last<=0 then
         mines_last=0
         return 0
@@ -833,7 +829,7 @@ function com_detonatemine(d as short,mines_p() as cords, mines_v() as short, byr
         if distance(mines_p(d),attacker(a).c)<r then 
             attacker(a)=com_damship(attacker(a),dam-2*distance(mines_p(d),attacker(a).c),10)
             if attacker(a).hull<=0 then
-                dprint attacker(a).desig &" destroyed",,10
+                dprint attacker(a).desig &" destroyed",10
                 attacker(a)=unload_s(attacker(a),10)
                 reward(3)=reward(3)+attacker(a).money
                 defender.piratekills=defender.piratekills+attacker(a).money
@@ -877,7 +873,7 @@ function com_damship(byref t as _ship, dam as short, col as short) as _ship
         text="shields hold!"
     endif
     if t.shield<0 then t.shield=0
-    dprint text,,col
+    dprint text,col
     return t
 end function
 
@@ -893,7 +889,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                 t.engine=1
                 a=rnd_range(2,l)
             else
-                dprint "engine hit!",12,12
+                dprint "engine hit!",12
                 t.engine=t.engine-1
             
             endif
@@ -904,14 +900,14 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                 t.sensors=1
                 a=rnd_range(3,l)
             else
-                dprint "Sensors damaged!",12,12
+                dprint "Sensors damaged!",12
                 t.sensors=t.sensors-1
             endif
         endif
         
         if a=3 then 
             if t.shieldmax>0 then
-                dprint "Shield generator damaged!",12,12
+                dprint "Shield generator damaged!",12
                 t.shieldmax=t.shieldmax-1
             else
                 a=rnd_range(3,l)
@@ -921,11 +917,11 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         if a=4 then
             t.h_maxhull-=1
             if t.hull>t.h_maxhull then t.hull=t.h_maxhull
-            dprint "critical damage to ship structure!",12,12
+            dprint "critical damage to ship structure!",12
         endif
         
         if a=5 then
-            dprint "Cargo bay hit",12,12
+            dprint "Cargo bay hit",12
             for b=0 to 10
                 if t.cargo(b).x>1 then
                     t.cargo(b).x=1
@@ -937,12 +933,12 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         if a=6 then 
             b=rnd_range(1,5)
             if t.weapons(b).desig<>"" then
-                dprint t.weapons(b).desig &"hit and destroyed!",12,12
+                dprint t.weapons(b).desig &"hit and destroyed!",12
                 if t.desig=player.desig then 
 
                     if t.weapons(b).desig="Fuel tank" then
                         b=rnd_range(1,6)
-                        dprint "it explodes! "& b &" points of damage!"
+                        dprint "it explodes! "& b &" points of damage!",12
                         player.hull=player.hull-b
                     endif
                     
@@ -953,14 +949,14 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                             b=b+t.security
                             t.security=0
                         endif
-                        dprint  b &" casualties!",12,12
+                        dprint  b &" casualties!",12
                     endif
                     
                 endif
                 t.weapons(b)=makeweapon(-1)
                 if t.desig=player.desig then recalcshipsbays
             else
-                dprint "weapons turret hit but undamaged!",10,10
+                dprint "weapons turret hit but undamaged!",10
             endif
         endif
         
@@ -972,7 +968,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                     b=b+t.security
                     t.security=0
                 endif
-                dprint "Crew quaters hit! "& b &" casualties!",12,12
+                dprint "Crew quaters hit! "& b &" casualties!",12
                 removemember(b,0)
                 player.deadredshirts=player.deadredshirts+b
             else
@@ -981,33 +977,36 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         endif 
 
         if a=8 then
-            dprint "A direct hit on the bridge!"
+            dprint "A direct hit on the bridge!",12
             
-            if rnd_range(1,6)+rnd_range(1,6)>7 then
-                b=rnd_range(1,4)
-                if b=1 and t.pilot>0 then 
-                    crew(2).hp=0
-                    t.pilot=captainskill
-                    text="Pilot "
-                endif
-                if b=2 and t.gunner>0 then
-                    crew(3).hp=0
-                    t.gunner=captainskill
-                    text="Gunner "
-                endif
-                if b=3 and t.science>0 then
-                    crew(4).hp=0
-                    t.science=captainskill
-                    text="Science Officer "
-                endif
-                if b=4 and t.Doctor>0 then 
-                    crew(5).hp=0
-                    t.doctor=captainskill
-                    text="Doctor "
-                endif
-                if t.desig=player.desig then 
-                    dprint "An Explosion! Our "&text &"was killed!"
-                    player.deadredshirts=player.deadredshirts+1
+            if t.desig=player.desig then 
+                
+                if rnd_range(1,6)+rnd_range(1,6)>7 then
+                    b=rnd_range(1,4)
+                    if b=1 and t.pilot>0 then 
+                        crew(2).hp=0
+                        t.pilot=captainskill
+                        text="Pilot "
+                    endif
+                    if b=2 and t.gunner>0 then
+                        crew(3).hp=0
+                        t.gunner=captainskill
+                        text="Gunner "
+                    endif
+                    if b=3 and t.science>0 then
+                        crew(4).hp=0
+                        t.science=captainskill
+                        text="Science Officer "
+                    endif
+                    if b=4 and t.Doctor>0 then 
+                        crew(5).hp=0
+                        t.doctor=captainskill
+                        text="Doctor "
+                    endif
+                    if t.desig=player.desig then 
+                        dprint "An Explosion! Our "&text &"was killed!",12
+                        player.deadredshirts=player.deadredshirts+1
+                    endif
                 endif
             endif
         endif
@@ -1020,18 +1019,18 @@ function com_flee(defender as _ship,lastenemy as short) as short
         roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot+addtalent(2,7,1)
         if findbest(25,-1)>0 then roll=roll+5
         if roll>6+lastenemy then
-                dprint "you manage to get away",,10
+                dprint "you manage to get away",10
                 victory=1            
             else
                 cls
                 displayship(0)
-                dprint "you dont get away",,12
+                dprint "you dont get away",12
                 defender.c.x=30
                 defender.c.y=10
             endif
        
     else
-        dprint "you need to be at a map border"
+        dprint "you need to be at a map border",14
     endif
     return victory
 end function
@@ -1044,7 +1043,7 @@ function com_wstring(w as _weap, range as short) as string
     return text
 end function
 
-function com_testweap(w as _weap, p1 as cords,attacker() as _ship,lastenemy as short,mines_p() as cords ,mines_last as short) as short
+function com_testweap(w as _weap, p1 as _cords,attacker() as _ship,lastenemy as short,mines_p() as _cords,mines_last as short) as short
     dim r as short
     dim a as short
     dim b as short
