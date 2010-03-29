@@ -190,7 +190,7 @@ sub postmortem
             for b=1 to 9
                 if map(a).planets(b)>0 then
                     tp+=1
-                    if planetmap(0,0,map(a).planets(b))<>0 then expp=expp+1
+                    if planets(map(a).planets(b)).mapstat<>0 then expp=expp+1
                     for xx=0 to 60
                         for yy=0 to 20
                             if planetmap(xx,yy,map(a).planets(b))>0 then ext=ext+1

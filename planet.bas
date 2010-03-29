@@ -413,7 +413,7 @@ end function
 
 sub make_clouds()
     dim wmap(sm_x,sm_y)as ubyte
-    dim as short x,y,bx,by,highest,count,a,b,r
+    dim as short x,y,bx,by,highest,count,a,b,c,r
     dim as single attempt
     dim as _cords p1,p2,p3,p4
     print
@@ -485,19 +485,23 @@ sub make_clouds()
     
     
     for a=0 to 25 'Space - Time Anomalies
-        if rnd_range(1,100)<33 then
+        do
             if rnd_range(1,100)<33 then
+                if rnd_range(1,100)<33 then
+                    p1.x=rnd_range(1,sm_x)
+                    p1.y=rnd_range(1,sm_y)
+                else
+                    p1=map(rnd_range(laststar+1,laststar+wormhole)).c
+                endif
+            endif
+            if spacemap(p1.x,p1.y)=-6 or spacemap(p1.x,p1.y)=-7 or spacemap(p1.x,p1.y)=-8 then
                 p1.x=rnd_range(1,sm_x)
                 p1.y=rnd_range(1,sm_y)
-            else
-                p1=map(rnd_range(laststar+1,laststar+wormhole)).c
             endif
-        endif
-        if spacemap(p1.x,p1.y)=-6 then
-            p1.x=rnd_range(1,sm_x)
-            p1.y=rnd_range(1,sm_y)
-        endif
-            
+        loop until not((p1.x=10 and p1.y=30) or (p1.x=60 and p1.y=10) or (p1.x=35 and p1.y=20))
+        c=-6
+        if rnd_range(1,100)<33 then c=-7
+        if rnd_range(1,100)<33 then c=-8
         for b=1 to 9
             if rnd_range(1,100)>66 then
                 p2=p1
@@ -507,8 +511,7 @@ sub make_clouds()
                     else
                         p2=movepoint(p2,5,,1)
                     endif
-                    spacemap(p2.x,p2.y)=-6
-                    
+                    spacemap(p2.x,p2.y)=c                    
                 loop until rnd_range(1,100)>66 or (p2.x=10 and p2.y=30) or (p2.x=60 and p2.y=10) or (p2.x=35 and p2.y=20)
             endif
         next
@@ -523,6 +526,8 @@ sub make_clouds()
                 if spacemap(x,y)=-4  then spacemap(x,y)=4                    
                 if spacemap(x,y)=-5  then spacemap(x,y)=5 
                 if spacemap(x,y)=-6  then spacemap(x,y)=6 
+                if spacemap(x,y)=-7  then spacemap(x,y)=7 
+                if spacemap(x,y)=-8  then spacemap(x,y)=8 
             next
         next    
     endif

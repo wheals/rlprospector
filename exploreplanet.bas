@@ -7,7 +7,8 @@ function ep_redraw(awayteam as _monster,ship as _cords, vismask()as byte,ndval a
     dprint("")
     return 0
 end function
-function ep_launch(awayteam as _monster, ship as _cords,nextmap as _cords) as short
+
+function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _cords) as short
     dim slot as short
     slot=player.map
     if awayteam.c.y=ship.y and awayteam.c.x=ship.x and slot=player.landed.m then 
@@ -39,7 +40,6 @@ function ep_launch(awayteam as _monster, ship as _cords,nextmap as _cords) as sh
 end function
 
 function ep_dropitem(awayteam as _monster, li() as short,lastlocalitem as short) as short
-    
     dim as short c,d,slot
     dim as string text
     slot=player.map
@@ -1817,20 +1817,18 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
     return 0
 end function
 
-function ep_radio(awayteam as _monster, ship as _cords,nextlanding as _cords, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single) as short
+function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single) as short
     dim as _cords p,p1,p2
     dim as string text
     dim as short a,b,slot
-    dim ship_landing as single
     slot=player.map
     p2.x=ship.x
     p2.y=ship.y
     dprint "Calling ship."
     if (pathblock(awayteam.c,p2,slot,1)=-1 or awayteam.stuff(8)=1) and ship.m=slot then
-        
         dprint "Your command?"
-    
         text=" "
+        locEOL
         text=ucase(gettext(pos,csrlin-1,46,text))
         if instr(text,"ROVER")>0 then
             b=0
@@ -2054,14 +2052,14 @@ end function
 function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
     dim as short a,b,slot
     slot=player.map
-    locate awayteam.c.y+1,awayteam.c.x+1
-    color _teamcolor,0
-    print "@";
     for a=1 to lastenemy
         if vismask(enemy(a).c.x,enemy(a).c.y)>0 and enemy(a).slot>=0 then planets(slot).mon_seen(enemy(a).slot)=1
         if enemy(a).hp>0 then
             if awayteam.c.x=enemy(a).c.x and awayteam.c.y=enemy(a).c.y then
                 awayteam.c=old
+                locate awayteam.c.y+1,awayteam.c.x+1
+                color _teamcolor,0
+                print "@";
                 if enemy(a).sleeping>0 then
                     if askyn("The "&enemy(a).sdesc &" is unconcious. Do you want to capture it alive?(y/n)") then
                         b=findworst(26,-1)
@@ -2112,6 +2110,9 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     dim as _cords p,p1,p2
     slot=player.map
     awayteam.lastaction+=1
+    locate awayteam.c.y+1,awayteam.c.x+1
+    color _teamcolor,0
+    print "@";
     if walking=0 then
         if key=key_fi then dprint "Fire direction (5 to chose target)?"
         if key=key_autofire then dprint "Fire direction?"

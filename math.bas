@@ -491,7 +491,6 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     
     deltax = Abs(c.x - b.x)
     deltay = Abs(c.y - b.y)
-    if col>0 then screenset 1,1
     If deltax >= deltay Then
         numtiles = deltax + 1
         d = (2 * deltay) - deltax
@@ -551,7 +550,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                            return 0
                         endif
                     endif
-               endif
+                endif
                 if col>0 then 
                     locate y+1,x+1
                     color col,0

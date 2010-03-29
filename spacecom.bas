@@ -47,8 +47,8 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             combatmap(x,y)=0
             if rnd_range(1,100)<ter then 
                 combatmap(x,y)=rnd_range(1,5)
-                if ter=8 then combatmap(x,y)=6 'Asteroid field 
-                if ter=7 then combatmap(x,y)=7 'Gas giant
+                if ter=10 then combatmap(x,y)=6 'Asteroid field 
+                if ter=11 then combatmap(x,y)=7 'Gas giant
             endif
             if rnd_range(1,100)<3 and rnd_range(1,100)<3 then
                 combatmap(x,y)=rnd_range(1,7)

@@ -87,12 +87,16 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,14,2)
     if e.lang<0 then
         if roll>9 then
-            dprint "Your Science Officer established communication with the " & e.sdesc &"."
+            dprint "Your established communication with the " & e.sdesc &"."
             e.lang=-e.lang
             e.cmmod=e.cmmod+1
         else
-            dprint "Your Science Officer cant make any sense out of the " &e.sdesc &"s sounds and actions."
-            e.cmmod=e.cmmod-1
+            if player.science<>captainskill or crew(4).onship=0 then
+                dprint "Your science officer cant make any sense out of the " &e.sdesc &"s sounds and actions."
+                e.cmmod=e.cmmod-1
+            else
+                dprint "No science officer in the team."
+            endif
         endif
     endif
     if e.lang=1 then
@@ -398,14 +402,13 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=0 then dprint "It says: 'We may not be warriors but we do know how to defend ourselfs!'"
         if e.aggr=2 then dprint "It says: 'We are no warriors! Cease hostilities!'"
         if e.aggr=1 then
-            a=rnd_range(1,5)
+            a=rnd_range(1,7)
             if a=1 then dprint "It says: 'Warriors fight, breeders breed, sientists research.'"
             if a=2 then dprint "It says: 'We left our home 500 timeunits ago. It will take us 800 more timeunits to reach our goal.'"
             if a=3 then dprint "It says: 'We hope conditions for a colony are favourable at our destination.'"
             if a=4 then dprint "It says: '12 breeders have died since we left home.'"
             if a=5 then dprint "It says: 'I am proud to be one of the few of our species to go on this great adventure! though i will not see the end of it.'"
-            if a=6 then dprint "It says: 'I am proud to be one of the few of our species to go on this great adventure! though i will not see the end of it.'"
-            if a=7 then dprint "It says: 'The system we want to colonize is at "&map(sysfrommap(specialplanet(0))).c.x &":"&map(sysfrommap(specialplanet(0))).c.x &"'"
+            if a=6 or a=7 then dprint "It says: 'The system we want to colonize is at "&map(sysfrommap(specialplanet(0))).c.x &":"&map(sysfrommap(specialplanet(0))).c.x &"'"
         endif
     endif    
     

@@ -589,7 +589,7 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
-const __VERSION__="0.1.10a"
+const __VERSION__="0.1.11a"
 
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
@@ -706,7 +706,7 @@ declare function ep_checkmove(byref awayteam as _monster,byref old as _cords,key
 declare function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() as short,enemy() as _monster,lastenemy as short,lastlocalitem as short, byref walking as short) as short
 declare function ep_helmet(awayteam as _monster) as short
 declare function ep_closedoor(awateam as _monster) as short
-declare function ep_radio(awayteam as _monster, ship as _cords,nextlanding as _cords, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single) as short
+declare function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single) as short
 declare function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as single) as short
 declare function ep_fire(awayteam as _monster, enemy() as _monster,lastenemy as short,vismask() as byte,mapmask() as byte,byref walking as short,key as string,byref autofire_target as _cords) as short
 declare function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
@@ -720,7 +720,7 @@ declare function ep_atship(awayteam as _monster,ship as _cords,walking as short)
 declare function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monster, lastenemy as short,li() as short, lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,vismask() as byte,localturn as short) as short
 declare function ep_jumppackjump(awayteam as _monster) as short
 declare function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short, lastlocalitem as short,byref localturn as short,byref walking as short) as short
-declare function ep_launch(awayteam as _monster, ship as _cords,nextmap as _cords) as short
+declare function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _cords) as short
 declare function ep_lava(awayteam as _monster,lavapoint() as _cords,ship as _cords, vismask() as byte, byref walking as short) as short
 declare function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, lastlocalitem as short) as short
 declare function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,vismask() as byte) as short
@@ -768,6 +768,7 @@ declare sub displayship(show as byte=0)
 declare sub displaysystem(sys as _stars,forcebar as byte=0)
 declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short)
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
+declare function locEOL() as short
 
 declare function hpdisplay(a as _monster) as short
 declare function infect(a as short, dis as short) as short

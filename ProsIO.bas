@@ -1167,9 +1167,11 @@ sub show_stars(bg as short=0,byref walking as short)
                         print chr(176); 
                     endif
                 endif
-                if abs(spacemap(x+player.osx,y+player.osy))=6 then
-                    color 9,0
-                    if spacemap(x+player.osx,y+player.osy)=6 then 
+                if abs(spacemap(x+player.osx,y+player.osy))=6 or abs(spacemap(x+player.osx,y+player.osy))=7 or abs(spacemap(x+player.osx,y+player.osy))=8 then
+                    if abs(spacemap(x+player.osx,y+player.osy))=6 then color 9,0
+                    if abs(spacemap(x+player.osx,y+player.osy))=7 then color 113,0
+                    if abs(spacemap(x+player.osx,y+player.osy))=8 then color 53,0
+                    if spacemap(x+player.osx,y+player.osy)=6 or spacemap(x+player.osx,y+player.osy)=7 or spacemap(x+player.osx,y+player.osy)=8  then 
                         print ":";
                     else
                         if navcom>0 then print "."
@@ -1191,10 +1193,6 @@ sub show_stars(bg as short=0,byref walking as short)
                     if spacemap(x,y)=-4 then spacemap(x,y)=4
                     if spacemap(x,y)=-5 then spacemap(x,y)=5
                 endif
-                    
-                'locate y+1-player.osy,x+1-player.osx,0
-                'if vismask(x,y)>0 then print "1";
-                
                 locate y+1-player.osy,x+1-player.osx,0
                 color 1,0
                 if abs(spacemap(x,y))=1 and navcom>0 and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5  then
@@ -1204,7 +1202,7 @@ sub show_stars(bg as short=0,byref walking as short)
                         put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(11),pset
                     endif
                 endif
-                if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5  and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then 
+                if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then 
                     if _tiles=1 then
                         color rnd_range(48,59),1
                         if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
@@ -1216,11 +1214,15 @@ sub show_stars(bg as short=0,byref walking as short)
                         put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(9),pset
                     endif
                 endif
-                if abs(spacemap(x,y))=6 and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
-                    color 9,0
-                    if spacemap(x,y)=6 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then 
+                if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=8) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
+                    if spacemap(x,y)=6 or spacemap(x,y)=7 or spacemap(x,y)=8 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then 
+                        if abs(spacemap(x,y))=6 then color 9,0
+                        if abs(spacemap(x,y))=7 then color 113,0
+                        if abs(spacemap(x,y))=8 then color 53,0
                         print ":";
-                        spacemap(x,y)=6
+                        if abs(spacemap(x,y))=6 then spacemap(x,y)=6
+                        if abs(spacemap(x,y))=7 then spacemap(x,y)=7
+                        if abs(spacemap(x,y))=8 then spacemap(x,y)=8
                     else
                         if navcom>0 then print "."
                     endif
@@ -2678,8 +2680,6 @@ function gettext(x as short, y as short, ml as short, text as string) as string
     dim key as string
     dim p as _cords
     l=len(text)
-    flip
-    screenset 0,0
     sleep 150
     if l>ml and text<>"" then
         text=left(text,ml-1)
@@ -2766,6 +2766,18 @@ function textbox(text as string,x as short,y as short,w as short, fg as short=11
     next
     text=addt(24)
     return lcount
+end function
+
+function locEOL() as short
+    'puts cursor at end of last displayline
+    dim as short y,x,a
+    y=25
+    for a=25 to 23 step -1
+        if displaytext(a+1)="" then y=a
+    next
+    x=len(displaytext(y))
+    locate y,x,0
+    return 0
 end function
 
 function dprint(t as string, col as short=11,delay as byte=1) as short
@@ -2886,6 +2898,7 @@ function dprint(t as string, col as short=11,delay as byte=1) as short
         color dtextcol(b),0
         print displaytext(b);
     next
+    locate 24,1
     color 11,0
     return 0
 end function    

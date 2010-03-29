@@ -1168,7 +1168,7 @@ sub scanning()
             endif
         next
         if planets(mapslot).flags(22)=1 then dprint "A mining station on this planet sends a distress signal. They need medical help."
-        if planets(mapslot).flags(22)=2 then dprint "The mining station signals that they don't require help anymore."
+        if planets(mapslot).flags(22)=2 then dprint "There is a mining station on this planet. They send greetings."
         if planets(mapslot).flags(23)>0 then dprint "Science Officer: 'I can detect several ships on this planet."
         if planets(mapslot).flags(24)>0 then dprint "Science Officer: 'This planet is completely covered in rain forest. What on first glance appears to be its surface is actually the top layer of a root system."
         if planets(mapslot).flags(25)>0 then dprint "Science Officer: 'The biosphere readings for this planet are off the charts. We sure will find some interesting plants here!"
@@ -1276,7 +1276,7 @@ function asteroidmining(slot as short) as short
                     en.mem(1)=makeship(4)
                 endif
                 no_key=keyin
-                player=spacecombat(player,en,8)
+                player=spacecombat(player,en,10)
                 if player.dead<0 then player.dead=0
             endif
         else
@@ -1285,7 +1285,7 @@ function asteroidmining(slot as short) as short
             dprint "Wait. that is no ship. It is  "&mon(m) &"!",14
             no_key=keyin
             en.mem(1)=makeship(20+m)
-            player=spacecombat(player,en,8)
+            player=spacecombat(player,en,10)
             
             if player.dead>0 then 
                 player.dead=20
@@ -1363,7 +1363,7 @@ sub gasgiantfueling(p as short, orbit as short, sys as short)
                 for a=1 to noa
                     en.mem(a)=makeship(23+roll)
                 next
-                player=spacecombat(player,en,7)
+                player=spacecombat(player,en,11)
             
                 if player.dead>0 then 
                     player.dead=23
@@ -1760,6 +1760,8 @@ function move_ship(key as string,byref walking as short) as _ship
         if spacemap(player.c.x,player.c.y)=-4 then spacemap(player.c.x,player.c.y)=4
         if spacemap(player.c.x,player.c.y)=-5 then spacemap(player.c.x,player.c.y)=5
         if spacemap(player.c.x,player.c.y)=-6 then spacemap(player.c.x,player.c.y)=6
+        if spacemap(player.c.x,player.c.y)=-7 then spacemap(player.c.x,player.c.y)=7
+        if spacemap(player.c.x,player.c.y)=-8 then spacemap(player.c.x,player.c.y)=8
         if spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 and _warnings=0 then        
             if not(askyn("Do you really want to enter the gascloud?(y/n)")) then player.c=old
         endif
@@ -1778,12 +1780,14 @@ function move_ship(key as string,byref walking as short) as _ship
                 endif
             endif
         endif
-        if spacemap(player.c.x,player.c.y)=6 then 
+        if spacemap(player.c.x,player.c.y)=6 or spacemap(player.c.x,player.c.y)=7  or spacemap(player.c.x,player.c.y)=8 then 
             player.turn=player.turn-rnd_range(1,6)+rnd_range(1,6)
-            player.fuel=player.fuel-1
             if rnd_range(1,6)+rnd_range(1,6)+player.pilot>spacemap(player.c.x,player.c.y) then
+                if spacemap(player.c.x,player.c.y)=6 then player.fuel=player.fuel-1
+                if spacemap(player.c.x,player.c.y)=7 then player.fuel=player.fuel-1.5
+                if spacemap(player.c.x,player.c.y)=8 then player.fuel=player.fuel-.3
+                old=player.c
                 dprint "You succesfully navigate the anomaly",10
-                player.fuel=player.fuel-rnd_range(1,3)
             else
                 dam=rnd_range(1,3)
                 if dam>player.shield then
@@ -1794,9 +1798,9 @@ function move_ship(key as string,byref walking as short) as _ship
                     if player.hull<=0 then player.dead=30
                 endif
             endif
-            if rnd_range(1,100)+player.pilot<10 then 
+            if rnd_range(1,100)+player.pilot<10+spacemap(player.c.x,player.c.y) then 
                 player.c=movepoint(player.c,5,,1)
-                if rnd_range(1,100)+player.pilot<10 then 
+                if rnd_range(1,100)+player.pilot<10+spacemap(player.c.x,player.c.y) then 
                     player.c=map(rnd_range(laststar+1,laststar+wormhole)).c
                     dam=rnd_range(1,6)
                     if dam>player.shield then
@@ -1815,7 +1819,7 @@ function move_ship(key as string,byref walking as short) as _ship
         endif
     endif
     if (player.c.x<>old.x or player.c.y<>old.y) and (player.c.x+player.osx<>30 or player.c.y+player.osy<>10) then 
-        player.fuel=player.fuel-player.fueluse
+        if spacemap(player.c.x,player.c.y)<=5 then player.fuel=player.fuel-player.fueluse
         locate old.y+1,old.x+1
         print " "
     else
@@ -2857,7 +2861,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         endif
         
         if awayteam.lastaction<=0 then
-            if key=key_ra then ep_radio(awayteam,ship,nextlanding,li(),lastlocalitem,shipfire(),lavapoint(),sf)
+            if key=key_ra then ep_radio(awayteam,ship,nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf)
             if key=key_oxy then ep_helmet(awayteam)
             if key=key_ju and awayteam.move>=2 then ep_jumppackjump(awayteam)
             if key=key_la then ep_launch(awayteam,ship,nextmap)
