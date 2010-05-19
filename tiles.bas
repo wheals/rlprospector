@@ -361,7 +361,7 @@ tiles(47).dr=-1
 tiles(47).hp=6
 tiles(47).turnsinto=4
 tiles(47).succt="You tunnel through the rubble"
-tiles(47).failt="You attempt to losen the ground fails"
+tiles(47).failt="Your attempt to losen the ground fails"
 
 tiles(48).tile=178
 tiles(48).bgcol=219
@@ -1271,7 +1271,7 @@ tiles(158).dr=1
 tiles(158).hp=9
 tiles(158).turnsinto=4
 tiles(158).succt="You tunnel through the ice"
-tiles(158).failt="You attempt to losen the ice fails"
+tiles(158).failt="Your attempt to losen the ice fails"
 
 tiles(159).tile=asc(".")
 tiles(159).col=14    
@@ -1859,7 +1859,7 @@ tiles(246).succt="It is slightly dented now"
 tiles(246).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(246).killt="That will teach them a lesson!"
 tiles(246).hides=2
-tiles(246).gives=36
+tiles(246).gives=246
 
 tiles(247).tile=asc("#")
 tiles(247).desc="Town hall"
@@ -2034,6 +2034,15 @@ tiles(269).gives=8
 tiles(269).turnsinto=269
 tiles(269).hides=2
 
+tiles(270)=tiles(69)
+tiles(270).gives=47
+tiles(270).turnsinto=270
+tiles(270).hides=2
+
+tiles(271)=tiles(69)
+tiles(271).gives=48
+tiles(271).turnsinto=271
+tiles(271).hides=2
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

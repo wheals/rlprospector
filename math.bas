@@ -190,7 +190,8 @@ function countdeadofficers(max as short) as short
     dim all as short
     dim a as short
     dim o as short
-    for a=1 to 6
+    if crew(1).hp>0 then return 0
+    for a=2 to 6
         if crew(a).hp<=0 and crew(1).onship=0 then o+=1
     next
     if max>=7 then
@@ -476,7 +477,7 @@ function nextpoint(byval start as _cords, byval target as _cords) as _cords
 end function
 
 
-function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0) as short
+function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=100) as short
     dim as single px,py
     dim deltax as single
     dim deltay as single
@@ -552,10 +553,9 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                     endif
                 endif
                 if col>0 then 
-                    locate y+1,x+1
                     color col,0
-                    print "*"
-                    sleep 100
+                    draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
+                    sleep delay
                 endif
             endif
             if blocktype=2 then
@@ -568,14 +568,12 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                     return 0
                 endif
                 if col>0 and co<l then 
-                    locate y+1,x+1
-                    color col,0
-                    print "*"
+                    draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                 endif
             endif
         next
 
-    if blocktype=2 then sleep 150
+    if blocktype=2 then sleep delay
     return result
 end function
 

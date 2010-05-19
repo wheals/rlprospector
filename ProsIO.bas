@@ -73,7 +73,7 @@ end function
 
 
 function showteam(from as short, r as short=0) as short
-    dim as short b,bg,last,a,sit,cl
+    dim as short b,bg,last,a,sit,cl,y,lines,xw
     dim dummy as _monster
     dim p as short
     dim offset as short
@@ -86,7 +86,7 @@ function showteam(from as short, r as short=0) as short
     p=1
     no_key=""
     equip_awayteam(player,dummy,0)
-        
+    lines=fix((_screeny-_fh2)/(_fh2*3))
     do
         cls
         color 11,0
@@ -102,14 +102,12 @@ function showteam(from as short, r as short=0) as short
                     else
                         locate 22,1
                         color 14,0
-                        print "The captain must stay in the awayteam."
-                        locate 1,1
+                        draw string (10,_screeny-_fh2), "The captain must stay in the awayteam.",,font2,custom,@_col
                     endif
                 else
                     locate 22,1
                     color 14,0
-                    print "You need to be at the ship to reassign."
-                    locate 1,1
+                    draw string (10,_screeny-_fh2), "You need to be at the ship to reassign.",,font2,custom,@_col
                 endif
             endif
             if r=1 then return p
@@ -145,9 +143,10 @@ function showteam(from as short, r as short=0) as short
         
         endif
         
+        screenset 0,1
         cls
-        
-        for b=1 to 8
+        y=0
+        for b=1 to lines
             if b=p+offset then
                 bg=5
             else
@@ -157,6 +156,10 @@ function showteam(from as short, r as short=0) as short
                 if crew(b-offset).hpmax>0 then
                     skills=""
                     augments=""
+                    color 0,bg
+                    draw string (0,y*_fh2), space(80),,font2,custom,@_col
+                    draw string (0,(y+1)*_fh2), space(80),,font2,custom,@_col
+                    draw string (0,(y+2)*_fh2), space(80),,font2,custom,@_col
                     for a=1 to 25
                         if crew(b-offset).talents(a)>0 then 
                             if skills<>"" then 
@@ -177,109 +180,125 @@ function showteam(from as short, r as short=0) as short
                     if skills<>"" then skills=skills &" "
                     color 15,bg
                     if b-offset>9 then
-                        print b-offset;" ";
+                        draw string (0,y*_fh2), b-offset & " ",,font2,custom,@_col
                     else
-                        print " ";b-offset;" ";
+                        draw string (0,y*_fh2), " " & b-offset & " ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp>0 then
                         if b-offset>5 then
                             color 10,bg
-                            print crew(b-offset).icon;
+                            draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
                         else
-                            if b-offset=1 then print "Captain";
-                            if b-offset=2 then print "Pilot  ";
-                            if b-offset=3 then print "Gunner ";
-                            if b-offset=4 then print "Science";
-                            if b-offset=5 then print "Doctor ";
+                            if b-offset=1 then draw string (3*_fw2,y*_fh2), "Captain",,font2,custom,@_col
+                            if b-offset=2 then draw string (3*_fw2,y*_fh2), "Pilot  ",,font2,custom,@_col
+                            if b-offset=3 then draw string (3*_fw2,y*_fh2), "Gunner ",,font2,custom,@_col
+                            if b-offset=4 then draw string (3*_fw2,y*_fh2), "Science",,font2,custom,@_col
+                            if b-offset=5 then draw string (3*_fw2,y*_fh2), "Doctor ",,font2,custom,@_col
                         endif
                     else
                         color 12,0
-                        print "X";
+                        draw string (3*_fw2,y*_fh2), "X",,font2,custom,@_col
                     endif
                     
                     color 15,bg
                     if crew(b-offset).hp=0 then color 12,bg
                     if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
                     if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
-                    print " ";crew(b-offset).hpmax;
+                    draw string (10*_fw2,y*_fh2), " "&crew(b-offset).hpmax,,font2,custom,@_col
                     color 15,bg
-                    print "/";
+                    draw string (12*_fw2,y*_fh2), "/",,font2,custom,@_col
                     if crew(b-offset).hp=0 then color 12,bg
                     if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
                     if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
-                    print crew(b-offset).hp;
+                    draw string (13*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
                     color 15,bg
-                    print " ";crew(b-offset).n;
+                    draw string (15*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
                     if crew(b-offset).onship=1 and crew(b-offset).hp>0 then
                         color 14,bg
-                        print "  On ship ";
+                        draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
                     if crew(b-offset).onship=0 and crew(b-offset).hp>0 then
                         color 10,bg
-                        print " Awayteam ";
+                        draw string (34*_fw2,y*_fh2) ," Awayteam ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp<=0 then
                         color 12,bg
-                        print " Dead ";
+                        draw string (34*_fw2,y*_fh2) ," Dead ",,font2,custom,@_col
                     endif
                     color 15,bg
                     if crew(b-offset).xp>=0 then 
-                        print " XP:" &crew(b-offset).xp;
+                        draw string (55*_fw2,y*_fh2)," XP:" &crew(b-offset).xp,,font2,custom,@_col
                     else
-                        print " XP: -";
+                        draw string (55*_fw2,y*_fh2), " XP: -",,font2,custom,@_col
                     endif
-                    print space(70-pos)
+                    'print space(70-pos)
                     color 15,bg
-                    print "   ";
+                    
+                    y+=1
+                    xw=4
                     if crew(b-offset).armo>0 then 
                         color 15,bg
                         if crew(b-offset).pref_armor>0 then
-                            print "*";
+                            draw string (xw*_fw2,y*_fh2) ,"*",,font2,custom,@_col
                         else
-                            print " ";
+                            draw string (xw*_fw2,y*_fh2), " ",,font2,custom,@_col
                         endif
-                        print trim(item(crew(b-offset).armo).desig);", ";
+                        xw+=1
+                        draw string (xw*_fw2,y*_fh2),trim(item(crew(b-offset).armo).desig)&", ",,font2,custom,@_col
+                        xw=xw+len(trim(item(crew(b-offset).armo).desig))+3
                     else
                         color 14,bg
-                        print " None,";
+                        draw string (xw*_fw2,y*_fh2), " None,",,font2,custom,@_col
+                        xw=xw+7
                     endif
                     if crew(b-offset).weap>0 then 
                         color 15,bg
                         if crew(b-offset).pref_lrweap>0 then
-                            print "*";
+                            draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
-                            print " ";
+                            draw string (xw*_fw2,y*_fh2) ," ",,font2,custom,@_col
                         endif
-                        print trim(item(crew(b-offset).weap).desig);", ";
+                        xw+=1
+                        draw string (xw*_fw2,y*_fh2) , trim(item(crew(b-offset).weap).desig)&", ",,font2,custom,@_col
+                        xw=xw+len(trim(item(crew(b-offset).weap).desig))+3
                     else
                         color 14,bg
-                        print " None,";
+                        draw string (xw*_fw2,y*_fh2) ," None,",,font2,custom,@_col
+                        xw=xw+7
                     endif
                     if crew(b-offset).blad>0 then 
                         color 15,bg
                         if crew(b-offset).pref_ccweap>0 then
-                            print "*";
+                            draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
-                            print " ";
+                            draw string (xw*_fw2,y*_fh2), " ",,font2,custom,@_col
                         endif
-                        print trim(item(crew(b-offset).blad).desig);" ";
+                        xw+=1
+                        draw string (xw*_fw2,y*_fh2), trim(item(crew(b-offset).blad).desig)&" ",,font2,custom,@_col
+                        xw=xw+len(trim(item(crew(b-offset).blad).desig))+3
                     else
                         color 14,bg
-                        print " None";
+                        draw string (xw*_fw2,y*_fh2) ," None",,font2,custom,@_col
+                        xw=xw+7
                     endif
                     color 11,bg
-                    if crew(b-offset).jp>0 then print " Jetpack";
-                    print space(70-pos)
+                    if crew(b-offset).jp>0 then draw string (xw*_fw2,y*_fh2) ," Jetpack",,font2,custom,@_col
+                    'print space(70-pos)
+                    
+                    y+=1
                     
                     color 15,bg
-                    print "   ";
-                    print skills;
-                    print augments;
+                    draw string (4*_fw2,y*_fh2), "   ",,font2,custom,@_col
+                    draw string (24*_fw2,y*_fh2), skills,,font2,custom,@_col
+                    draw string (44*_fw2,y*_fh2), augments,,font2,custom,@_col
                     if crew(b-offset).disease>0 then
                         color 14,bg
-                        print "Suffers from "&trim(disease(crew(b-offset).disease).desig);
+                        y+=1
+                        draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).desig),,font2,custom,@_col
                     endif
-                    print space(70-pos)
+                    'print space(70-pos)
+                    
+                    y+=1
                     
                     color 11,bg
                 endif
@@ -288,11 +307,11 @@ function showteam(from as short, r as short=0) as short
         color 11,0
         locate 25,1
         if r=0 then 
-            print key_rename &" rename a member,";
-            if from=0 then print "enter add/remove from awaytem,";
-            print "s set Item, c clear, esc exit";
+            if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
+            if from <>0 then draw string (10,_screeny-_fh2), key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
         endif
         if r=1 then print "Enter to chose crewmember";
+        flip
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
@@ -307,7 +326,7 @@ function showteam(from as short, r as short=0) as short
         endif
         if p<1 then p=1
         if p>last then p=last
-        if p+offset>8 then offset=8-p
+        if p+offset>lines then offset=lines-p
         if p+offset<1 then offset=1-p
         
         
@@ -332,6 +351,17 @@ function removemember(n as short, f as short) as short
     return 0
 end function
 
+function rnd_crewmember(onship as short=0) as short
+    dim pot(128) as short
+    dim as short p,a
+    for a=0 to 128
+        if crew(a).hp>0 and crew(a).onship=onship then 
+            p+=1
+            pot(p)=a
+        endif
+    next
+    return pot(rnd_range(1,p))
+end function
 
 function addmember(a as short) as short
     dim as short slot,b,f,c,cc
@@ -799,29 +829,27 @@ function hpdisplay(a as _monster) as short
     next
     
     color 15,0
-    locate 1,63
-    print "Status ";
+    draw string(62*_fw1,0*_fh1),"Status ",,font2,custom,@_col
     color 11,0
-    print "(";
-    print using "##:";a.hpmax;
+    draw string(62*_fw1+7*_fw2,0*_fh2),"(",,font2,custom,@_col
+    draw string(62*_fw1+10*_fw2,0*_fh2),""&a.hpmax &"/",,font2,custom,@_col 
     if a.hp/a.hpmax<.7 then color 14,0
     if a.hp/a.hpmax<.4 then color 12,0
-    print using "##";a.hp;
+    draw string(62*_fw1+13*_fw2,0*_fh2) ,""&a.hp,,font2,custom,@_col
     color 11,0
-    print ")"
+    draw string(62*_fw1+16*_fw2,0*_fh2), ")",,font2,custom,@_col
    
     for y=2 to 6
-        locate y,63
         for x=1 to 15
             c=c+1
             if crew(c).hpmax>0 and crew(c).onship=0 then
                 if crew(c).hp>0  then
                     color 14,0
                     if crew(c).hp=crew(c).hpmax then color 10,0
-                    print crew(c).icon;       
+                    draw string(62*_fw1+x*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col       
                 else
                     color 12,0
-                    print "X";
+                    draw string(62*_fw1+x*_fw2,(y-1)*_fh2), "X",,font2,custom,@_col
                 endif
             endif
         next
@@ -1001,69 +1029,54 @@ end function
 function dplanet(p as _planet,orbit as short,scanned as short) as short
     dim a as short
     dim text as string
-    locate 22,1,0
-    color 11,1
-    for a=1 to 61
-        locate 22,a,0
-        print CHR(196)
+    
+    color 224,0
+    for a=0 to 61
+        draw string (a*_fw1,21*_fh1),chr(196),,Font1,custom,@_col
     next
-    for a=1 to 25
-        locate a,62,0,0
-        print CHR(179);
+    for a=0 to _lines
+        draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
     next
-    locate 22,62,0
-    print chr(180)    
+    draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
     color 15,0
-    locate 1,63
-    print "Scanning Results:"
+      
+    color 15,0
+    draw string(62*_fw1,1*_fh2), "Scanning Results:",,font2,custom,@_col
     color 11,0
-    locate 2,63 
-    print "Planet in orbit " & orbit
-    locate 3,63
-    print scanned &" km2 scanned"
-    locate 5,63 
-    print p.water &"% Liq. Surface"
+    draw string(62*_fw1,2*_fh2), "Planet in orbit " & orbit,,font2,custom,@_col
+    draw string(62*_fw1,3*_fh2), scanned &" km2 scanned",,font2,custom,@_col
+    draw string(62*_fw1,5*_fh2), p.water &"% Liq. Surface",,font2,custom,@_col
     text=atmdes(p.atmos) &" atmosphere"
-    locate 7,63
     if len(text)<17 then 
-        print text
+        draw string(62*_fw1,7*_fh2), text,,font2,custom,@_col
     else
         textbox(text,63,7,16,11,0)    
     endif
-    locate 12,63
-    print "Gravity:";
-    print using "####.#";p.grav;
-    print " g"
-    locate 14,63
-    print "Avg. Temperature"
-    locate 16,63
-    print using "####.#";p.temp;
-    print " "&chr(248)&"c"
-    locate 18,63
-    print "Rot.:";
+    draw string(62*_fw1,12*_fh2), "Gravity:"&p.grav &"g",,font2,custom,@_col
+    draw string(62*_fw1,13*_fh2), "Avg. Temperature",,font2,custom,@_col
+    draw string(62*_fw1,15*_fh2), p.temp &" "&chr(248)&"c",,font2,custom,@_col
     if p.rot>0 then
-        print using "####.#";p.rot*24;
-        print " h"
+        draw string(62*_fw1,16*_fh2),"Rot.:"&p.rot*24 &" h",,font2,custom,@_col
     else
-        print " Nil"
+        draw string(62*_fw1,16*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
-    locate 20,63
-    print "Lifeforms:"
-    locate 21,64
-    print p.life*10 &" % probability"
+    draw string(62*_fw1,18*_fh2),"Lifeforms:",,font2,custom,@_col
+    draw string(62*_fw1,19*_fh2),p.life*10 &" % probability",,font2,custom,@_col
     return 0
 end function
 
 function blink(byval p as _cords) as short
+    static c as short
+    c+=1
     locate p.y+1,p.x+1
     
-    if timer>zeit then
-        zeit=timer+0.5
+    if c>=1000 then
+        c=0
         color 11,11
-        print " ";
+        draw string (p.x*_fw1,p.y*_fh1)," ",,font1,custom,@_col
     else
         color 11,11
-        print " ";
+        draw string (p.x*_fw1,p.y*_fh1)," ",,font1,custom,@_col
     endif
     return 0
 end function
@@ -1077,13 +1090,13 @@ function cursor(target as _cords,map as short) as string
     if map>0 then
         if planetmap(target.x,target.y,map)<0 then
             color 0,0
-            print " "
+            draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
         else
             if target.x>=0 and target.y>=0 and target.x<=60 and target.y<=20 then dtile(target.x,target.y,tiles(planetmap(target.x,target.y,map)))
         endif
     else
         color 0,0
-        print " "
+        draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
     endif
     target=movepoint(target,getdirection(key))
     return key
@@ -1152,7 +1165,7 @@ sub show_stars(bg as short=0,byref walking as short)
                     if _tiles=0 then
                         put (x*8+1,y*16+1),gtiles(11),pset
                     else
-                        print ".";
+                        draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                     endif
                 endif
                 if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then 
@@ -1164,17 +1177,19 @@ sub show_stars(bg as short=0,byref walking as short)
                         if spacemap(x+player.osx,y+player.osy)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
                         if spacemap(x+player.osx,y+player.osy)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
                         if spacemap(x+player.osx,y+player.osy)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
-                        print chr(176); 
+                        draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif
-                if abs(spacemap(x+player.osx,y+player.osy))=6 or abs(spacemap(x+player.osx,y+player.osy))=7 or abs(spacemap(x+player.osx,y+player.osy))=8 then
+                if abs(spacemap(x+player.osx,y+player.osy))>=6 and abs(spacemap(x+player.osx,y+player.osy))<=17 then
                     if abs(spacemap(x+player.osx,y+player.osy))=6 then color 9,0
                     if abs(spacemap(x+player.osx,y+player.osy))=7 then color 113,0
                     if abs(spacemap(x+player.osx,y+player.osy))=8 then color 53,0
-                    if spacemap(x+player.osx,y+player.osy)=6 or spacemap(x+player.osx,y+player.osy)=7 or spacemap(x+player.osx,y+player.osy)=8  then 
-                        print ":";
+                    if abs(spacemap(x+player.osx,y+player.osy))>8 then color 3,0
+                    if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
+                        draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
                     else
-                        if navcom>0 then print "."
+                        color 1,0
+                        if navcom>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
                     endif
                 endif
             next
@@ -1197,7 +1212,7 @@ sub show_stars(bg as short=0,byref walking as short)
                 color 1,0
                 if abs(spacemap(x,y))=1 and navcom>0 and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5  then
                     if _tiles=1 then
-                        print ".";
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
                     else
                         put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(11),pset
                     endif
@@ -1209,22 +1224,22 @@ sub show_stars(bg as short=0,byref walking as short)
                         if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
                         if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
                         if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
-                        print chr(176); 
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(177),,Font1,custom,@_col 
                     else                        
                         put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(9),pset
                     endif
                 endif
-                if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=8) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
-                    if spacemap(x,y)=6 or spacemap(x,y)=7 or spacemap(x,y)=8 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then 
+                if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=17) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
+                    if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8  then 
+                        if abs(spacemap(x,y))>8 then color 3,0
                         if abs(spacemap(x,y))=6 then color 9,0
                         if abs(spacemap(x,y))=7 then color 113,0
                         if abs(spacemap(x,y))=8 then color 53,0
-                        print ":";
-                        if abs(spacemap(x,y))=6 then spacemap(x,y)=6
-                        if abs(spacemap(x,y))=7 then spacemap(x,y)=7
-                        if abs(spacemap(x,y))=8 then spacemap(x,y)=8
+                        draw string (x*_fw1-player.osx*_fw1,y*_fh1-player.osy*_fh1),":",,Font1,custom,@_col
+                        spacemap(x,y)=abs(spacemap(x,y))
                     else
-                        if navcom>0 then print "."
+                        color 1,0
+                        if navcom>0 then draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
                     endif
                 endif
             endif
@@ -1242,16 +1257,16 @@ sub show_stars(bg as short=0,byref walking as short)
                 color 11,0 
                 if item(a).v1=1 then
                     color 11,0 
-                    print "s"
+                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                 else
                     if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
                     if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
-                    print "s"
+                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                 endif
             else
                 color 1,0
                 if navcom>0 then 
-                   if spacemap(x,y)=1 then print ".";
+                   if spacemap(x,y)=1 then draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
                 else
                    if spacemap(x,y)>=2 and spacemap(x,y)<=5 then
                         color rnd_range(9,14),1
@@ -1259,9 +1274,9 @@ sub show_stars(bg as short=0,byref walking as short)
                         if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
                         if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
                         if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
-                        print chr(176); 
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(175),,Font1,custom,@_col
                    else
-                        print " ";
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1)," ",,Font1,custom,@_col
                    endif
                 endif
             endif
@@ -1280,7 +1295,7 @@ sub show_stars(bg as short=0,byref walking as short)
             if (a>0 and vismask(p.x,p.y)=1 and distance(player.c,p)<player.sensors) or drifting(x).p>0 then
                 if p.x+1-player.osx>0 and p.x+1-player.osx<61 and p.y+1-player.osy>0 and p.y+1-player.osy<21 then 
                     locate p.y+1-player.osy,p.x+1-player.osx
-                    print "s"
+                    draw string ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),"s",,Font1,custom,@_col
                     if drifting(x).p=0 then walking=0
                     drifting(x).p=1
                 endif
@@ -1291,13 +1306,12 @@ sub show_stars(bg as short=0,byref walking as short)
     color 11,0
     for a=1 to lastcom
         if coms(a).c.x>player.osx and coms(a).c.x<player.osx+60 and coms(a).c.y>player.osy and coms(a).c.y<player.osy+20 then
-            locate coms(a).c.y+1-player.osy,coms(a).c.x+1-player.osx
-            print coms(a).t 
+            draw string ((coms(a).c.x-player.osx)*_fw1,(coms(a).c.y-player.osy)*_fh1),trim(coms(a).t),,Font2,custom,@_col
         endif
     next
     
     for a=0 to laststar+wormhole
-        if map(a).spec<>8 then
+        if map(a).spec<8 then
             vis=maximum(player.sensors+.5,(map(a).spec)-2)
         else
             vis=0
@@ -1425,101 +1439,370 @@ function bioreport(slot as short) as short
     return 0
 end function
 
-
 function logbook() as short
     cls
-    dim lobk(5,20) as string
-    dim lobn(5,20) as short
+    dim lobk(30,20) as string 'lobk is description
+    dim lobn(30,20) as short 'lobn is n to get map(n)
+    dim lobc(30,20) as short 'lobc is bg color
     static as _cords curs,curs2
-    dim as short x,y,a,p,m,lx
-    dim key as string
-    do
-        x=0
-        y=0
-        for a=0 to laststar
-            if map(a).desig<>"" then
-                if map(a).spec<8 or map(a).discovered>1 then
-                    lobk(x,y)=trim(map(a).desig)
-                    if map(a).comment<>"" then lobk(x,y)=lobk(x,y) &" (c)"
-                    lobn(x,y)=a
-                    y=y+1
-                    if y>20 then
-                        y=0
-                        x=x+1
-                    endif
+    dim as short x,y,a,b,p,m,lx,ly,dlx
+    dim as string key,lobk1,lobk2
+
+    x=0
+    y=0
+    for a=0 to laststar
+        if map(a).desig<>"" then
+            if map(a).spec<8 or map(a).discovered>1 then
+                lobk(x,y)=trim(map(a).desig)
+                if map(a).comment<>"" then lobk(x,y)=lobk(x,y) &" (c)"
+                lobn(x,y)=a
+                y=y+1
+                if y>20 then
+                    y=0
+                    x=x+1
+                endif
+            endif
+        endif
+    next
+    lx=x
+    b=0
+    if y<>0 then ly=y+(lx*21) else ly=(lx*21)-1
+    if y=0 and lx>1 then lx-=1
+    for a=0 to ly       'tests all lobk() and order them by coordenates
+        for b=0 to (ly-1)   'ly is not coord, it is counter for planet check
+            'print "testing x and y of system: " &lobk(int(b/21), (b mod 21)) &" b=" &(b mod 21)
+            lobk1=mid(lobk(int(b/21), (b mod 21)), 4)
+            'this is first lobk(x,y)==> val(mid(lobk(int(y/20)+1,(y mod 20) + 1),4))
+            do
+                lobk1 = mid(lobk1, 2)
+            loop until left(lobk1,1) = "(" or left(lobk1,1) =""
+            lobk1 = mid(lobk1, 2)
+           
+            lobk2 = mid(lobk(int((b+1)/21),((b+1) mod 21)),4)
+            do
+                lobk2 = mid(lobk2, 2)
+            loop until left(lobk2,1) = "(" or left(lobk2,1) =""
+            lobk2 = mid(lobk2, 2)
+           
+            if val(lobk1) > val(lobk2) or ltrim(lobk1)="" then
+                swap lobk(int(b/21), (b mod 21)), lobk(int((b+1)/21),((b+1) mod 21))
+                swap lobn(int(b/21), (b mod 21)), lobn(int((b+1)/21),((b+1) mod 21))
+            endif
+            'if first x cord in string lobk is bigger then swap with next item of list
+            if val(lobk1) = val(lobk2) then
+                'if x cords are equal, test y cords
+                do
+                    lobk1 = mid(lobk1, 2)
+                loop until left(lobk1,1) = ":" or left(lobk1,1) =""
+                lobk1 = mid(lobk1, 2)
+                'check for y cords in lobk1/2 strings
+               
+                do
+                    lobk2 = mid(lobk2, 2)
+                loop until left(lobk2,1) = ":" or left(lobk2,1) =""
+                lobk2 = mid(lobk2,2)
+                'check for y cords in lobk1/2 strings
+               
+                if val(lobk1) > val(lobk2) then 'swap to next if x of lobk2 is bigger
+                    swap lobk(int(b/21), (b mod 21)), lobk(int((b+1)/21),((b+1) mod 21))
+                    swap lobn(int(b/21), (b mod 21)), lobn(int((b+1)/21),((b+1) mod 21))
                 endif
             endif
         next
-        lx=x
-        cls
-        displayship(1)
-        for x=0 to 5
-            for y=0 to 20
-                locate y+1,(x*12)+1
-                if x=curs.x and y=curs.y then
-                    color 15,3
-                else
-                    color 11,0
-                endif
-                if lobk(x,y)<>"" then
-                    print lobk(x,y)
-                else
-                    print "  "
+    next
+    for a=0 to ly       'tests all lobn for special planets, system comments and planets comments for coloring bg
+        'print "test for special planets and change lobc (bg color): system " &map(lobn(int(a/21), (a mod 21))).desig 'debug
+        b=0
+        if map(lobn(int(a/21), (a mod 21))).comment<>"" then lobc(int(a/21), (a mod 21))=228
+        for p=1 to 9 'find number of planet in system's orbits
+            m=map(lobn(int(a/21), (a mod 21))).planets(p)
+            if m>0 then
+                if planets(m).comment<>"" then lobc(int(a/21), (a mod 21))=241
+                b+=1
+            endif
+        next
+        'print b 'debug msg
+        for p=1 to b
+            for b=0 to lastspecial
+                'print "test for special planets and change lobc (bg color): system " &map(lobn(int(a/21), (a mod 21))).desig &" system orbit " &p 'debug
+                if map(lobn(int(a/21), (a mod 21))).planets(p)>0 then
+                    if planetmap(0,0,map(lobn(int(a/21), (a mod 21))).planets(p))<>0 and map(lobn(int(a/21), (a mod 21))).planets(p)=specialplanet(b) then lobc(int(a/21), (a mod 21))=233
                 endif
             next
         next
-        if map(lobn(curs.x,curs.y)).discovered>1 then 
-            displaysystem(map(lobn(curs.x,curs.y)),1) 
+    next
+    dlx=0
+    dprint "Press " &key_sc &" or enter to choose system. ESC to exit."
+   
+    do
+        cls
+        displayship(1)
+       
+        if curs.x<dlx then dlx-=1 'when curs.x is lower then first display column (dlx) then lower display column
+        if curs.x>(dlx+4) then dlx+=1 'increase first display column
+        if curs.x=0 then dlx=0
+        if curs.x=lx and lx>4 then dlx=lx-4
+        if lobk(curs.x+1,curs.y)="" and curs.x>dlx+4 then dlx=lx-4 'when go back from first to last column and the element does not contain text it goes to the column before that, this correct the screen
+        if curs.x<dlx or curs.x>(dlx+4) then dlx=curs.x-2 'when lost make display column curs.x center
+       
+        for x=dlx to (dlx+4)
+            for y=0 to 20
+                locate y+1,((x-dlx)*12)+1
+                if x=curs.x and y=curs.y then
+                    color 15,3
+                else
+                    color 11, 0
+                    if lobc(x,y)<>0 then color 11, lobc(x,y)
+                endif
+                if lobk(x,y)<>"" then
+                    draw string (x*12*_fw2,y*_fh2),lobk(x,y),,Font2,custom,@_col
+                else
+                    draw string (x*12*_fw2,y*_fh2),"       ",,Font2,custom,@_col
+                endif
+            next
+        next
+       
+        if map(lobn(curs.x,curs.y)).discovered>1 then
+            displaysystem(lobn(curs.x,curs.y),1)
         else
-            dprint "Only long range data"
+            dprint trim(map(lobn(curs.x,curs.y)).desig)&": only long range data."
         endif
         if map(lobn(curs.x,curs.y)).comment<>"" then dprint map(lobn(curs.x,curs.y)).comment
-        key=keyin
-        curs2=movepoint(curs,getdirection(key))
-        if lobn(curs2.x,curs2.y)<>0 then curs=curs2
+       
+        'fill msg area with planets comments, if there are more then shown, then msg there are more.
+        p=0
+        b=0
+        lobk1=""
+        if map(lobn(curs.x,curs.y)).comment<>"" then b=1
+        do 'print max of 2 planets comments
+            p+=1
+            m=map(lobn(curs.x,curs.y)).planets(p)
+            if m>0 then
+                if planets(m).comment<>"" then
+                    if b<2 then dprint "Orbit " &p &":" &planets(m).comment &"." 'print when b=0 or b=1
+                    if b=2 then lobk1=str(p) &":" &planets(m).comment &"." 'store third planet comments
+                    b+=1
+                endif
+            endif
+        loop until p=9 or b=3 'test for 4 planets with comments
+        if b>1 and lobk1<>"" then
+            if b=2 then dprint "Orbit " &lobk1 endif
+            if b=3 then dprint "Orbit " &lobk1 &" .Enter to see more comments."
+        elseif b>1 then
+            if b=2 then dprint "Orbit " &p endif
+            if b=3 then dprint "Orbit " &p &" .Enter to see more comments."
+        endif
+       
+        key=keyin("123456789 " &key_sc &key_esc &key_enter &key_comment)
+        'make curs goes arround edges
+        a=getdirection(key)
+        if a=5 then key=key_enter endif
+        if a=1 then
+            curs.x=curs.x-1
+            curs.y=curs.y+1
+            'if diagonal don't wrap on up and down edges
+            if curs.y=21 then curs.y=20 endif
+        endif
+        if a=2 then
+            curs.x=curs.x
+            curs.y=curs.y+1
+        endif
+        if a=3 then
+            curs.x=curs.x+1
+            curs.y=curs.y+1
+            'if diagonal don't wrap on up and down edges
+            if curs.y=21 then curs.y=20 endif
+        endif
+        if a=4 then
+            curs.x=curs.x-1
+            curs.y=curs.y
+        endif
+        if a=6 then
+            curs.x=curs.x+1
+            curs.y=curs.y
+        endif
+        if a=7 then
+            curs.x=curs.x-1
+            curs.y=curs.y-1
+            'if diagonal don't wrap on up and down edges
+            if curs.y=-1 then curs.y=0 endif
+        endif
+        if a=8 then
+            curs.x=curs.x
+            curs.y=curs.y-1
+        endif
+        if a=9 then
+            curs.x=curs.x+1
+            curs.y=curs.y-1
+            'if diagonal don't wrap on up and down edges
+            if curs.y=-1 then curs.y=0 endif
+        endif
+        if curs.x<0 or curs.x>lx or curs.y<0 or curs.y>20 then
+            if curs.y<0 then
+                curs.y=20
+                curs.x-=1
+            endif
+            if curs.y>20 then
+                curs.y=0
+                curs.x+=1
+            endif
+        endif
+        if curs.x<0 then curs.x=lx endif
+        if curs.x>lx then curs.x=0 endif
+
+        if lobk(curs.x,curs.y)=""  and curs.y>0 then
+            if a=4 or a=1 or a=7 then curs.x-=1 endif
+            if a=6 or a=9 or a=3 or a=8 then 'returning from curs=(0,0) then search for valid system
+                'going to last column , same row not valid then go last valid row
+                do
+                    curs.y-=1
+                loop until lobk(curs.x,curs.y)<>"" or curs.y=0
+            endif
+            if a=2 then curs.x=0: curs.y=0 endif
+        endif
+       
         if key=key_comment and lobn(curs.x,curs.y)<>0 then
             dprint "Enter comment on system"
             map(lobn(curs.x,curs.y)).comment=gettext(pos,csrlin-1,60,map(lobn(curs.x,curs.y)).comment)
+            if map(lobn(curs.x,curs.y)).comment<>"" then lobc(curs.x,curs.y)=228
         endif
-        
+       
         if key=key_enter and map(lobn(curs.x,curs.y)).discovered>1 then
-            p=getplanet(lobn(curs.x,curs.y),1)
-            if p>0 then
-                m=map(lobn(curs.x,curs.y)).planets(p)
-                if m>0 then
-                    if planets(m).comment<>"" then dprint planets(m).comment
-                    if planetmap(0,0,m)=0 then
-                        cls
-                        displayship(1)
-                        locate 10,15
-                        color 15,0
-                        print"No map data for this planet"
-                        no_key=keyin
-                    else
-                        cls
-                        do
-                            dplanet(planets(m),p,planets(m).mapped)
-                            displayplanetmap(m)
-                            no_key=keyin(key_comment &key_report &key_esc)
-                            if no_key=key_comment then
-                                dprint "Enter comment on planet"
-                                planets(m).comment=gettext(pos,csrlin-1,60,planets(m).comment)
-                            endif
-                            if no_key=key_report then
-                                bioreport(m)
-                            endif    
-                        loop until no_key<>key_comment or no_key<>key_report
+            for p=1 to 9
+                if map(lobn(curs.x, curs.y)).planets(p)>0 then
+                    if planets(map(lobn(curs.x,curs.y)).planets(p)).comment<>"" then dprint "Orbit " &p &":" &planets(map(lobn(curs.x,curs.y)).planets(p)).comment
+                endif
+            next
+            do
+                p=getplanet(lobn(curs.x,curs.y),1)
+                if p>0 then
+                    m=map(lobn(curs.x,curs.y)).planets(p)
+                    if m>0 then
+                        if planets(m).comment<>"" then dprint planets(m).comment
+                        if planetmap(0,0,m)=0 then
+                            cls
+                            displayship(1)
+                            color 15,0
+                            draw string (15*_fw1,10*_fh1),"No map data for this planet.",,Font2,custom,@_col
+                            no_key=keyin
+                        else
+                            cls
+                            do
+                                dplanet(planets(m),p,planets(m).mapped)
+                                displayplanetmap(m)
+                                no_key=keyin(key_comment &key_report &key_esc)
+                                if no_key=key_comment then
+                                    dprint "Enter comment on planet"
+                                    planets(m).comment=gettext(pos,csrlin-1,60,planets(m).comment)
+                                    if planets(m).comment<>"" and map(lobn(curs.x,curs.y)).comment="" then lobc(curs.x,curs.y)=241
+                                endif
+                                if no_key=key_report then
+                                    bioreport(m)
+                                endif   
+                            loop until no_key<>key_comment or no_key<>key_report
+                        endif
                     endif
                 endif
-            endif
+            loop until no_key=key_esc or p=-1
             key=""
         endif
-        if curs.x>lx then curs.x=lx
-        if curs.y>20 then curs.y=20
     loop until key=key_esc or player.dead<>0
     return 0
 end function
-
+'
+'function logbook() as short
+'    cls
+'    dim lobk(5,20) as string
+'    dim lobn(5,20) as short
+'    static as _cords curs,curs2
+'    dim as short x,y,a,p,m,lx
+'    dim key as string
+'    do
+'        x=0
+'        y=0
+'        for a=0 to laststar
+'            if map(a).desig<>"" then
+'                if map(a).spec<8 or map(a).discovered>1 then
+'                    lobk(x,y)=trim(map(a).desig)
+'                    if map(a).comment<>"" then lobk(x,y)=lobk(x,y) &" (c)"
+'                    lobn(x,y)=a
+'                    y=y+1
+'                    if y>20 then
+'                        y=0
+'                        x=x+1
+'                    endif
+'                endif
+'            endif
+'        next
+'        lx=x
+'        cls
+'        displayship(1)
+'        for x=0 to 5
+'            for y=0 to 20
+'                locate y+1,(x*12)+1
+'                if x=curs.x and y=curs.y then
+'                    color 15,3
+'                else
+'                    color 11,0
+'                endif
+'                if lobk(x,y)<>"" then
+'                    draw string (x*12*_fw2,y*_fh2),lobk(x,y),,Font2,custom,@_col
+'                    else
+'                    draw string (x*12*_fw2,y*_fh2),"       ",,Font2,custom,@_col
+'                endif
+'            next
+'        next
+'        if map(lobn(curs.x,curs.y)).discovered>1 then 
+'            displaysystem(lobn(curs.x,curs.y),1) 
+'        else
+'            dprint "Only long range data"
+'        endif
+'        if map(lobn(curs.x,curs.y)).comment<>"" then dprint map(lobn(curs.x,curs.y)).comment
+'        key=keyin
+'        curs2=movepoint(curs,getdirection(key))
+'        if lobn(curs2.x,curs2.y)<>0 then curs=curs2
+'        if key=key_comment and lobn(curs.x,curs.y)<>0 then
+'            dprint "Enter comment on system"
+'            map(lobn(curs.x,curs.y)).comment=gettext(pos,csrlin-1,60,map(lobn(curs.x,curs.y)).comment)
+'        endif
+'        
+'        if key=key_enter and map(lobn(curs.x,curs.y)).discovered>1 then
+'            p=getplanet(lobn(curs.x,curs.y),1)
+'            if p>0 then
+'                m=map(lobn(curs.x,curs.y)).planets(p)
+'                if m>0 then
+'                    if planets(m).comment<>"" then dprint planets(m).comment
+'                    if planetmap(0,0,m)=0 then
+'                        cls
+'                        displayship(1)
+'                        color 15,0
+'                        draw string (15*_fw1,10*_fh1),"No map data for this planet.",,Font2,custom,@_col
+'                        no_key=keyin
+'                    else
+'                        cls
+'                        do
+'                            dplanet(planets(m),p,planets(m).mapped)
+'                            displayplanetmap(m)
+'                            no_key=keyin(key_comment &key_report &key_esc)
+'                            if no_key=key_comment then
+'                                dprint "Enter comment on planet"
+'                                planets(m).comment=gettext(pos,csrlin-1,60,planets(m).comment)
+'                            endif
+'                            if no_key=key_report then
+'                                bioreport(m)
+'                            endif    
+'                        loop until no_key<>key_comment or no_key<>key_report
+'                    endif
+'                endif
+'            endif
+'            key=""
+'        endif
+'        if curs.x>lx then curs.x=lx
+'        if curs.y>20 then curs.y=20
+'    loop until key=key_esc or player.dead<>0
+'    return 0
+'end function
+'
 
 function manual() as short
     dim as integer f,offset,c,a,lastspace
@@ -1568,8 +1851,8 @@ function manual() as short
             color 14,0
             print "Arrow down and up to browse, esc to exit";
             key=keyin("12346789 ",,1)
-            if keyplus(key) or key="8" then offset=offset-22
-            if keyminus(key) or key="2" then offset=offset+22
+            if keyplus(key) or key=key_north then offset=offset-22
+            if keyminus(key) or key=key_south then offset=offset+22
             if offset<0 then offset=0
             if offset>488 then offset=488
         loop until key=key_esc or key=" "
@@ -1585,13 +1868,14 @@ function manual() as short
 end function
 
 function messages() as short
-    dim a as short
+    dim as short a,ll
     screenshot(1)
+    ll=_lines*_fh1/_fh2
     cls
-    for a=1 to 25
+    for a=1 to ll
         locate a,1 
         color dtextcol(a),0
-        print displaytext(a);
+        draw string (0,a*_fh2), displaytext(a),,font2,custom,@_col
     next
     do
         screenevent(@evkey)
@@ -1652,42 +1936,43 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
         if blocked=0 then
             if key=key_manual then 
                 manual
+                return ""
             endif
             if key=key_screenshot then 
                 screenshot(0)
+                return ""
             endif
             if key=key_messages then 
                 messages
+                return ""
             endif
             if key=key_configuration then
                 configuration
+                return ""
             endif
             if key=key_tactics then
                 settactics
+                return ""
             endif
             if key=key_shipstatus then         
-                screenshot(1)
                 shipstatus()
-                screenshot(2)
+                return ""
             endif
             if key=key_logbook then
-                screenshot(1)
                 logbook
-                screenshot(2)
+                return ""
             endif
 
             if key=key_equipment then
-                screenshot(1)
                 a=getitem(999)
                 if a>0 then dprint item(a).ldesc
                 key=keyin()
-                screenshot(2)
+                return ""
             endif
 
             if key=key_quests then
-                screenshot(1)
                 showquests
-                screenshot(2)
+                return ""
             endif
         endif
         if key=key_autoinspect then
@@ -1760,7 +2045,8 @@ sub displaystar(a as short)
                 if show_specials<>0 and map(a).planets(p)=specialplanet(show_specials) then
                     locate map(a).c.y-player.osy+2,map(a).c.x-player.osx+2,0
                     color 11
-                    print ""&n
+                    
+                    draw string((map(a).c.x-player.osx+1)*_fw1,(map(a).c.y-player.osy+1)*_fh1) ,""&n
                 endif
             next
             if planets(map(a).planets(p)).colony<>0 then bg=246
@@ -1776,10 +2062,10 @@ sub displaystar(a as short)
     else        
         color spectraltype(map(a).spec),bg
         locate map(a).c.y+1-player.osy,map(a).c.x+1-player.osx,0
-        if map(a).spec<8 then print "*"
-        if map(a).spec=8 and map(a).discovered=2 then     
+        if map(a).spec<8 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"*",,Font1,custom,@_col
+        if map(a).spec=8 then     
             color 7,bg
-            print "o"
+            draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"o",,Font1,custom,@_col
         endif
             
         if map(a).spec=9 then 
@@ -1787,7 +2073,7 @@ sub displaystar(a as short)
             if n<1 then n=1
             if n>6 then n=6
             color 179+n,bg
-            print "o"
+            draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"o",,Font1,custom,@_col
         endif
     endif
 end sub
@@ -1800,8 +2086,7 @@ sub displaystation(a as short)
     if x<0 or y<0 or x>60 or y>20 then return
     color 15,0
     if _tiles=1 then
-        locate basis(a).c.y+1-player.osy,basis(a).c.x+1-player.osx,0
-        print "S"
+        draw string (x*_fw1,y*_fh1),"S",,Font1,custom,@_col
     else
         put ((basis(a).c.x-player.osx)*8+1,(basis(a).c.y-player.osy)*16+1),gtiles(10),pset
     endif
@@ -1826,95 +2111,274 @@ sub dtile(x as short,y as short, tiles as _tile,bg as short=0)
             bgcol=234
         endif
         color col,bgcol
-        print chr(tiles.tile)
+        
+        draw string (x*_fw1,y*_fh1),chr(tiles.tile),,Font1,custom,@_col
     endif
     color 11,0    
 end sub
 
-sub displaysystem(sys as _stars,forcebar as byte=0)
+sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
     dim as short a,b,bg,x,y
+    dim as string bl,br
     if _onbar=0 or forcebar=1 then
-        locate 22,28
-        color 11,1
-        print chr(180)
-        locate 22,29
+        y=21
+        x=28
+        bl=chr(180)
+        br=chr(195)
     else
-        x=sys.c.x-12-player.osx
-        y=sys.c.y+2-player.osy
-        if x<1 then x=1
-        if x+21>59 then x=39
-        locate y,x
-        color 11,1
-        print "[";
+        x=map(in).c.x-12-player.osx
+        y=map(in).c.y+1-player.osy
+        if x<0 then x=0
+        if x*_fw1+21*_fw2>60*_fw1 then x=60*_fw1-21*_fw2
+        bl="["
+        br="]"
     endif
-    color spectraltype(sys.spec),0
-    print "*"&space(2);
-    sys.discovered=2 
-                
-    for b=1 to 9
-        
-        'print isgasgiant(sys.planets(b))&sys.planets(b);
-        color 0,0
-        print " ";
-        if sys.planets(b)=0 then
-            print " ";
-        endif
-        bg=0
-        for a=0 to lastspecial
-            if sys.planets(b)>0 then
-                if sys.planets(b)=specialplanet(a) and planetmap(0,0,sys.planets(b))<>0 then bg=233
-            endif
-        next
-        if sys.planets(b)>0 and isgasgiant(sys.planets(b))=0 and isasteroidfield(sys.planets(b))=0 then            
-            if planets(sys.planets(b)).colony>0 then bg=246
-            if planets(sys.planets(b)).mapstat=1 then  
-                if planets(sys.planets(b)).atmos=1 then color 15,bg      
-                if planets(sys.planets(b)).atmos>1 and planets(sys.planets(b)).atmos<7 then color 101,bg
-                if planets(sys.planets(b)).atmos>6 and planets(sys.planets(b)).atmos<12 then color 210,bg
-                if planets(sys.planets(b)).atmos>11 then color 10,bg
-            endif
-            if planets(sys.planets(b)).mapstat=2 then  
-            
-                if planets(sys.planets(b)).atmos=1 then color 8,bg      
-                if planets(sys.planets(b)).atmos>1 and planets(sys.planets(b)).atmos<7 then color 9,bg
-                if planets(sys.planets(b)).atmos>6 and planets(sys.planets(b)).atmos<12 then color 198,bg
-                if planets(sys.planets(b)).atmos>11 then color 54,bg
-            endif
-            if planets(sys.planets(b)).mapstat=0 then color 7,bg
-            print "o";
-         endif
-         
-         if isgasgiant(sys.planets(b))<>0 then
-            if b>5 then
-                color 63,bg
-                print "O";
-            endif
-            if b>1 and b<6 then
-                color 162,bg
-                print "O";
-            endif
-            if b=1 then
-                color 144,bg
-                print "O";
-            endif
-        endif
-        
-        if (isgasgiant(sys.planets(b))=0 and sys.planets(b)<0) or isasteroidfield(sys.planets(b))<>0 then
-            color 7,bg
-            print chr(176);
-        endif
-    next
-        
-    if _onbar=0 or forcebar=1 then
-        color 11,1
-        print chr(195)
-    else
-        color 11,1
-        print "]"
-    endif
+    drawsysmap(x*_fw1,y*_fh1,in,hi,bl,br)
     color 11,0
 end sub
 
+function drawsysmap(x as short, y as short, in as short, hi as short=0,bl as string,br as string) as short
+    dim as short a,b,bg,yof
+    dim t as string
+    color 224,0
+    yof=(_fh1-_fh2)/2
+    draw string(x,y),bl ,,font1,custom,@_col
+    draw string (x+_fw2,y+yof), space(25),,font2,custom,@_col
+    draw string(x+25*_fw2,y),br ,,font1,custom,@_col
+    color spectraltype(map(in).spec),0
+    draw string(x+_fw1,y), "*"&space(2),,font1,custom,@_col
+    for a=1 to 9
+        bg=0
+        for b=0 to lastspecial
+            if map(in).planets(a)>0 then
+                if map(in).planets(a)=specialplanet(b) and planets(map(in).planets(a)).mapstat<>0 then bg=233
+            endif
+        next
+        if hi=a then bg=11
+        t=""
+        if map(in).planets(a)<>0 then
+            if isgasgiant(map(in).planets(a))<>0 then 
+                t="O"
+                if a>5 then color 63,bg
+                if a<6 then color 162,bg
+                if a=1 then color 164,bg
+            endif
+            if isasteroidfield(map(in).planets(a))<>0 then 
+                t=chr(176)
+                color 7,bg
+            endif
+            if isasteroidfield(map(in).planets(a))=0 and isgasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then 
+                t="o"
+                if planets(map(in).planets(a)).mapstat=0 then color 7,bg  
+                if planets(map(in).planets(a)).mapstat=1 then  
+                    if planets(map(in).planets(a)).atmos=1 then color 15,bg      
+                    if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then color 101,bg
+                    if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then color 210,bg
+                    if planets(map(in).planets(a)).atmos>11 then color 10,bg
+                endif
+                if planets(map(in).planets(a)).mapstat=2 then  
+                    if planets(map(in).planets(a)).atmos=1 then color 8,bg      
+                    if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then color 9,bg
+                    if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then color 198,bg
+                    if planets(map(in).planets(a)).atmos>11 then color 54,bg
+                endif
+            endif
+            draw string(x+_fw2*(a*2+4),y+yof),t,,font2,custom,@_col
+        endif
+    next
+    return 0
+end function
+
+function nextplan(p as short,in as short) as short
+    dim as short oldp
+    oldp=p
+    do
+        p=p+1
+        if p>9 then p=1
+    loop until map(in).planets(p)<>0 or p=oldp
+    return p
+end function
+
+function prevplan(p as short,in as short) as short
+    dim as short oldp
+    oldp=p
+    do
+        p=p-1
+        if p<1 then p=9
+    loop until map(in).planets(p)<>0 or p=oldp
+    return p
+end function
+'
+function getplanet(sys as short,forcebar as byte=0) as short
+    dim as short r,p
+    dim as string text,key
+    dim as _cords p1
+    if sys<0 or sys>laststar then
+        dprint ("ERROR:System#:"&sys,14)
+        return -1
+    endif
+    map(sys).discovered=2
+    p=liplanet
+    if p<1 then p=1
+    if p>9 then p=9
+    if map(sys).planets(p)=0 then p=nextplan(p,sys)
+    if lastplanet>0 then
+        dprint "Enter to select, arrows to move,ESC to quit"
+        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
+        do
+            displaysystem(sys,,p)        
+            key=""
+            key=keyin
+            if keyplus(key) or key=key_east or key=key_north then p=nextplan(p,sys)
+            if keyminus(key) or key=key_west or key=key_south then p=prevplan(p,sys)
+            if key=key_comment then
+                dprint "Enter comment on planet: "
+                p1=locEOL
+                planets(map(sys).planets(p)).comment=gettext(p1.x,p1.y,60,planets(map(sys).planets(p)).comment)
+            endif
+            if key="q" or key="Q" or key=key_esc then r=-1
+            if (key=key_enter or key=key_sc or key=key_la) and map(sys).planets(p)<>0 then r=p
+        loop until r<>0
+        liplanet=r
+    else
+        r=-1
+    endif
+    return r
+end function
+
+'function getplanet(sys as short,forcebar as byte=0) as short
+'    dim as short a,r,p,x,xo,yo
+'    dim text as string
+'    dim key as string
+'    dim firstplanet as short
+'    dim lastplanet as short
+'    dim p1 as _cords
+'    if sys<0 or sys>laststar then
+'        dprint ("ERROR:System#:"&sys,14)
+'        return -1
+'    endif
+'    for a=1 to 9
+'        if map(sys).planets(a)<>0 then
+'            lastplanet=a
+'            x=x+1
+'        endif
+'    next
+'    for a=9 to 1 step-1
+'        if map(sys).planets(a)<>0 then firstplanet=a
+'    next
+'    p=liplanet
+'    if p<1 then p=1
+'    if p>9 then p=9
+'    if map(sys).planets(p)=0 then
+'        do
+'            p=p+1
+'            if p>9 then p=1
+'        loop until map(sys).planets(p)<>0 or lastplanet=0
+'    endif
+'    if p>9 then p=firstplanet
+'    if lastplanet>0 then
+'        if _onbar=0 or forcebar=1 then
+'            xo=31
+'            yo=22
+'        else
+'            xo=map(sys).c.x-9-player.osx
+'            yo=map(sys).c.y+2-player.osy
+'            if xo<=4 then xo=4
+'            if xo+18>58 then xo=42
+'        endif
+'        dprint "Enter to select, arrows to move,ESC to quit"
+'        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
+'        do
+'            displaysystem(sys)       
+'            if keyplus(key) or a=6 then
+'                do
+'                    p=p+1
+'                    if p>9 then p=1
+'                loop until map(sys).planets(p)<>0
+'            endif
+'            if keyminus(key) or a=4 then
+'                do
+'                    p=p-1
+'                    if p<1 then p=9
+'                loop until map(sys).planets(p)<>0
+'            endif
+'            if p<1 then p=lastplanet
+'            if p>9 then p=firstplanet
+'            x=xo+(p*2)
+'            if left(displaytext(25),14)<>"Asteroid field" or left(displaytext(25),15)<>"Planet at orbit" then dprint "System " &map(sys).desig &"."
+'            if map(sys).planets(p)>0 then
+'                if planets(map(sys).planets(p)).comment="" then
+'                    if isasteroidfield(map(sys).planets(p))=1 then
+'                        displaytext(25)= "Asteroid field at orbit " &p &"."
+'                    else
+'                        if planets(map(sys).planets(p)).mapstat<>0 then
+'                            if isgasgiant(map(sys).planets(p))<>0 then
+'                                if p>1 and p<7 then displaytext(25)= "Planet at orbit " &p &". A helium-hydrogen gas giant."
+'                                if p>6 then displaytext(25)= "Planet at orbit " &p &". A methane-ammonia gas giant."
+'                                if p=1 then displaytext(25)= "Planet at orbit " &p &". A hot jupiter."
+'                            else
+'                                if isgasgiant(map(sys).planets(p))=0 and isasteroidfield(map(sys).planets(p))=0 then displaytext(25)="Planet at orbit " &p &". " &atmdes(planets(map(sys).planets(p)).atmos) &" atm., " &planets(map(sys).planets(p)).grav &"g grav."
+'                            endif
+'                        else
+'                            displaytext(25)= "Planet at orbit " &p &"."
+'                        endif
+'                    endif
+'                endif
+'                if planets(map(sys).planets(p)).comment<>"" then
+'                    if isasteroidfield(map(sys).planets(p))=1 then
+'                        displaytext(25)= "Asteroid field at orbit " &p &": " &planets(map(sys).planets(p)).comment &"."
+'                    else
+'                        displaytext(25)= "Planet at orbit " &p &": " &planets(map(sys).planets(p)).comment &"."
+'                    endif
+'                endif
+'                dprint ""
+'                locate yo,x
+'                color 15,3
+'                if isgasgiant(map(sys).planets(p))=0 and isasteroidfield(map(sys).planets(p))=0 then print "o"
+'                if isgasgiant(map(sys).planets(p))>0 then print "O"
+'                if isasteroidfield(map(sys).planets(p))=1 then print chr(176)
+'                color 11,0
+'            endif
+'           
+'            if map(sys).planets(p)<0 then
+'                if map(sys).planets(p)<0 then
+'                    if isgasgiant(map(sys).planets(p))=0 then
+'                        displaytext(25)= "Asteroid field at orbit " &p &"."
+'                    else
+'                        if map(sys).planets(p)=-20001 then displaytext(25)= "Planet at orbit " &p &". A helium-hydrogen gas giant."
+'                        if map(sys).planets(p)=-20002 then displaytext(25)= "Planet at orbit " &p &". A methane-ammonia gas giant."
+'                        if map(sys).planets(p)=-20003 then displaytext(25)= "Planet at orbit " &p &". A hot jupiter."
+'                    endif
+'                    dprint ""
+'                endif
+'                locate yo,x
+'                color 15,3
+'                if isgasgiant(map(sys).planets(p))=0 then
+'                    print chr(176)
+'                else
+'                    print "O"
+'                endif
+'                color 11,0
+'            endif
+'            key=keyin
+'            if key=key_comment then
+'                dprint "Enter comment on planet: "
+'                p1=locEOL
+'                planets(map(sys).planets(p)).comment=gettext(p1.x,p1.y,60,planets(map(sys).planets(p)).comment)
+'            endif
+'            a=Getdirection(key)
+'           
+'           
+'            if key="q" or key="Q" or key=key_esc then r=-1
+'            if (key=key_enter or key=key_sc or key=key_la) and map(sys).planets(p)<>0 then r=p
+'        loop until r<>0
+'        liplanet=r
+'    else
+'        r=-1
+'    endif
+'    return r
+'end function
+'
 sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short)
         dim a as short
         dim c as short
@@ -1931,50 +2395,42 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.move=2 then wj=0
         locate 22,1
         color 15,0
-        print space(32)
-        locate 22,1
-        print awayteam.lastaction
         if awayteam.stuff(8)=1 and player.landed.m=map and planets(map).depth=0 then
             color 15,0
             locate 22,3
-            print "Pos:";
-            print using "##:##";awayteam.c.x,awayteam.c.y
+            draw string(0*_fw1,21*_fh1+(_fh1-_fh2)/2), "Pos:"&awayteam.c.x &":"&awayteam.c.y,,Font2,Custom,@_col
         else
             locate 22,1
             color 14,0
-            'print "no satellite"
+            draw string(0*_fw1,21*_fh1+(_fh1-_fh2)/2), "no satellite",,Font2,Custom,@_col
         endif
         locate 22,15
         color 15,0
-        if loctime=3 then print "Night"
-        if loctime=0 then print " Day "
-        if loctime=1 then print "Dawn "
-        if loctime=2 then print "Dusk "
+        if loctime=3 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),"Night",,Font2,Custom,@_col
+        if loctime=0 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2)," Day ",,Font2,Custom,@_col
+        if loctime=1 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),"Dawn ",,Font2,Custom,@_col
+        if loctime=2 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),"Dusk ",,Font2,Custom,@_col
         color 10,0
         locate 22,xoffset
         if awayteam.invis>0 then
-            print "Camo"
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"Camo",,Font2,Custom,@_col
             xoffset=xoffset+5
         endif
         locate 22,xoffset
         if addtalent(-1,24,0)>0 then 
-            print "Fast"
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"Fast",,Font2,Custom,@_col
             xoffset=xoffset+5
         endif
-        color 11,1
-        locate 22,xoffset
-        print chr(195)
         
-        for a=xoffset+1 to 61
-            locate 22,a,0
-            print CHR(196)
+        color 11,1
+        draw string(xoffset*_fw2,21*_fh1),chr(195),,Font1,Custom,@_col
+        for a=(xoffset+1)*_fw2 to 61*_fw1 step _fw1
+            draw string (a,21*_fh1),chr(196),,Font1,custom,@_col
         next
-        for a=1 to 25
-            locate a,62,0,0
-            print CHR(179);
+        for a=0 to _lines
+            draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
         next
-        locate 22,62,0
-        print chr(180)
+        draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
         color 15,0
         if player.landed.m=map then
             if planetmap(ship.x,ship.y,map)>0 or player.stuff(3)=2 then    
@@ -1982,80 +2438,114 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                     put (ship.x*8,ship.y*16),gtiles(12),trans
                 else
                     color _shipcolor,0
-                    locate ship.y+1, ship.x+1
-                    print "@"                
+                    draw string(ship.x*_fw1,ship.y*_fh1),"@",,Font1,custom,@_col
                 endif
             endif
         endif        
         if _tiles=0 then
             put (awayteam.c.x*8,awayteam.c.y*16),gtiles(13),trans
         else
-            locate awayteam.c.y+1,awayteam.c.x+1
             color _teamcolor,0
-            print "@" 
+            draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
         endif    
         hpdisplay(awayteam)
         color 11,0
-        locate 7,63
-        print "Visibility:" &awayteam.sight
-        locate 8,63
-        if awayteam.move=0 then print "Trp.: None"
-        if awayteam.move=1 then print "Trp.: Hoverplt."
-        if awayteam.move=2 then print "Trp.: Jetpacks"
-        if awayteam.move=3 then print "Trp.: Teleport(T)"
+        draw string(63*_fw1,6*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
+        if awayteam.move=0 then draw string(62*_fw1,7*_fh2), "Trp.: None",,Font2,custom,@_col
+        if awayteam.move=1 then draw string(62*_fw1,7*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
+        if awayteam.move=2 then draw string(62*_fw1,7*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
+        if awayteam.move=3 then draw string(62*_fw1,7*_fh2), "Trp.: Teleport(T)",,Font2,custom,@_col
         
-        locate 9,63
-        print "Armor :";
-        print using "###";awayteam.armor
-        locate 10,63
-        print "Firearms :";
-        print using "###.#";awayteam.guns_to
-        locate 11,63
-        print "Melee :";
-        print using "###.#";awayteam.blades_to
+        draw string(62*_fw1,8*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
+        draw string(62*_fw1,9*_fh2),"Firearms :"&awayteam.guns_to,,Font2,custom,@_col
+        draw string(62*_fw1,10*_fh2), "Melee :"&awayteam.blades_to,,Font2,custom,@_col
         if player.stuff(3)=2 then
             locate 12,63
-            print "Alien Scanner"
+            draw string(62*_fw1,11*_fh2),"Alien Scanner",,font2,custom,@_col
             locate 13,63
-            print lastenemy-deadcounter &" Lifeforms "
+            draw string(62*_fw1,12*_fh2),lastenemy-deadcounter &" Lifeforms ",,Font2,custom,@_col
         endif
-        locate 15,63
-        print "Mapped    :"& cint(reward(0))
-        locate 16,63
-        print "Bio Data  :"& cint(reward(1))
-        locate 17,63
-        print "Resources :"& cint(reward(2))
-        locate 19,63
-        print space(17);
-        locate 19,63
+        draw string(62*_fw1,14*_fh2),"Mapped    :"& cint(reward(0)),,Font2,custom,@_col
+        draw string(62*_fw1,15*_fh2), "Bio Data  :"& cint(reward(1)),,Font2,custom,@_col
+        draw string(62*_fw1,16*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
         if len(tmap(awayteam.c.x,awayteam.c.y).desc)<18 then
-            print tmap(awayteam.c.x,awayteam.c.y).desc ';planetmap(awayteam.c.x,awayteam.c.y,map) 
+            draw string(62*_fw1,18*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map) 
         else 
             dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         
         if awayteam.move=2 then
-            locate 21,63
-            print key_ju &" for emerg."
-            locate 22,63
-            print "Jetpackjump"
+            draw string(62*_fw1,20*_fh2), key_ju &" for emerg.",,Font2,custom,@_col
+            draw string(62*_fw1,21*_fh2), "Jetpackjump",,Font2,custom,@_col
         endif
         if awayteam.move=3 then
-            locate 21,63
-            print key_te &" activates"
-            locate 22,63
-            print "Transporter"
+            draw string(62*_fw1,20*_fh2), key_te &" activates",,Font2,custom,@_col
+            draw string(62*_fw1,21*_fh2),"Transporter",,Font2,custom,@_col
         endif
         if awayteam.move=2 and awayteam.hp>0 then
             color 11,0
             locate 23,63
-            print "Jetpackfuel:";
+            draw string(62*_fw1,22*_fh2), "Jetpackfuel:",,Font2,custom,@_col
             color 10,0
             if awayteam.jpfuel<awayteam.jpfuelmax*.5 then color 14,0
             if awayteam.jpfuel<awayteam.jpfuelmax*.3 then color 12,0
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
-            print using "###";awayteam.jpfuel/awayteam.hp
-            if awayteam.jpfuel<awayteam.jpfuelmax then
+            draw string(62*_fw1+12*_fw2,22*_fh2), ""&int(awayteam.jpfuel/awayteam.hp),,Font2,custom,@_col
+            
+        endif
+        
+        color 11,0
+        locate 24,63
+        draw string(62*_fw1,23*_fh2),"Oxygen:",,Font2,custom,@_col
+        color 10,0
+        if awayteam.oxygen<50 then color 14,0
+        if awayteam.oxygen<25 then color 12,0
+        draw string(62*_fw1+7*_fw2,23*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
+        
+        color 11,0
+        draw string(62*_fw1,24*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
+end sub
+
+function alerts(awayteam as _monster,walking as short) as short
+    dim a as short
+    static wg as short
+    static wj as short
+    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
+            dprint ("Reporting oxygen tanks half empty",14)
+            wg=1
+            for a=1 to wg
+                if _sound=0 or _sound=2 then    
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                
+                endif
+            next
+            walking=0
+            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+        endif
+        if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
+            dprint ("Oxygen low.",14)
+            wg=2
+            for a=1 to wg
+                if _sound=0 or _sound=2 then
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))   
+                    sleep 350
+                endif
+            next
+            walking=0
+            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
+        endif
+        if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
+            dprint ("Switching to oxygen reserve!",12)
+            wg=3
+            for a=1 to wg
+                if _sound=0 or _sound=2 then 
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
+                    sleep 350
+                endif
+            next
+            walking=0
+            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
+        endif
+        if awayteam.jpfuel<awayteam.jpfuelmax then
                 if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
                     wj=1
                     for a=1 to wj
@@ -2064,7 +2554,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                             FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
-                    next    
+                    next  
+            walking=0  
                     dprint ("Jetpack fuel low",14)
                 endif
                 if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
@@ -2075,7 +2566,8 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                             FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                         endif
-                    next    
+                    next   
+            walking=0 
                     dprint ("Jetpack fuel very low",14)
                 endif
                 
@@ -2090,149 +2582,47 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
                     next    
                     dprint ("Switching to jetpack fuel reserve",12)
                 endif
+            walking=0
             else
                 wj=0
             endif
-        endif
-        color 11,0
-        locate 24,63
-        print "Oxygen:";
-        color 10,0
-        if awayteam.oxygen<50 then color 14,0
-        if awayteam.oxygen<25 then color 12,0
-        print using "####";awayteam.oxygen/awayteam.hp
-        if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
-            dprint ("Reporting oxygen tanks half empty",14)
-            wg=1
-            for a=1 to wg
-                if _sound=0 or _sound=2 then    
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                
-                endif
-            next
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-        endif
-        if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
-            dprint ("Oxygen low.",14)
-            wg=2
-            for a=1 to wg
-                if _sound=0 or _sound=2 then
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))   
-                    sleep 350
-                endif
-            next
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
-        endif
-        if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
-            dprint ("Switching to oxygen reserve!",12)
-            wg=3
-            for a=1 to wg
-                if _sound=0 or _sound=2 then 
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
-                    sleep 350
-                endif
-            next
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
-        endif
-        color 11,0
-        locate 25,63
-        print "Turn:" &player.turn;
-end sub
+    return walking
+end function
 
 sub shipstatus(heading as short=0)
     dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset,mjs
-    dim as short a,b,c,lastinv,set,tlen
+    dim as short a,b,c,lastinv,set,tlen,cx,cy
     dim as string text,key
     dim inv(127) as _items
     dim invn(127) as short
     dim cargo(11) as string
     dim cc(11) as short
-    dim flagst(16) as string
-    flagst(1)="Fuel System"
-    flagst(2)="Disintegrator"
-    flagst(3)="Scanner"
-    flagst(4)=" Ion canon"
-    flagst(5)="Bodyarmor"
-    flagst(6)="Engine"
-    flagst(7)="Sensors"
-    flagst(8)=" Cryochamber"
-    flagst(9)="Teleportation device"
-    flagst(10)=""
-    flagst(11)=""
-    flagst(12)="Cloaking device"
-    flagst(13)="Wormhole shield"
-    flagst(16)="Wormhole navigation device"
     
     color 0,0
     cls
-    if heading=0 then
-        color 15,0
-        locate 1,2
-        print "Name: ";
-        color 11,0
-        print player.desig &"   ";
-        color 15,0
-        print "Type: ";
-        color 11,0
-        print player.h_desig
-    endif
-    locate 3,3
-    color 15,0
-    print "Hullpoints(max";
-    color 11,0
-    print player.h_maxhull+player.addhull;
-    color 15,0
-    print "):";
-    color 11,0
-    if player.hull<(player.h_maxhull+player.addhull)/2 then color 14,0
-    if player.hull<2 then color 12,0
-    print player.hull
-    locate 4,3
-    color 15,0
-    print "Shieldgenerator(max";
-    color 11,0
-    print player.shieldmax;
-    color 15,0
-    print "):";
-    color 11,0
-    if player.shield<player.shieldmax/2 then color 14,0
-    print player.shield
-    locate 5,3
-    color 15,0
-    print "Engine:";
-    color 11,0
-    print player.engine;
-    color 15,0
-    
-    for a=1 to 5
-        if player.weapons(a).made=88 then mjs+=1
-        if player.weapons(a).made=89 then mjs+=2
-    next
-    print "("&player.engine+2-player.h_maxhull\15+mjs &" MP) Sensors:";    
-    color 11,0 
-    print player.sensors
+    if heading=0 then textbox("{15}Name: {11}"&player.desig &"{15} Type:{11}" &player.h_desig,1,0,40)
+    textbox(shipstatsblock,1,2,40)
     'Weapons
     c=player.h_maxweaponslot
     locate 7,3
     color 15,0
-    print "Weapons:"
+    draw string (3*_fw2,7*_fh2), "Weapons:",,font2,custom,@_col
     color 11,0
     for a=1 to c
         if player.weapons(a).dam>0 then
-            locate 8+b,3
             color 15,0
-            print player.weapons(a).desig 
+            draw string (3*_fw2,(8+b)*_fh2), player.weapons(a).desig ,,font2,custom,@_col
             color 11,0
-            locate 8+b+1,3
-            print " R:"& player.weapons(a).range &"/" & player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" D:"&player.weapons(a).dam ;
-            if player.weapons(a).ammomax>0 then print " A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &"  "
+            if player.weapons(a).ammomax<=0 then draw string (3*_fw2,(8+b+1)*_fh2) ," R:"& player.weapons(a).range &"/" & player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" D:"&player.weapons(a).dam ,,font2,custom,@_col
+            if player.weapons(a).ammomax>0 then draw string (3*_fw2,(8+b+1)*_fh2) ," R:"& player.weapons(a).range &"/" & player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" D:"&player.weapons(a).dam &" A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &"  ",,font2,custom,@_col
             b=b+2
         else
             locate 8+b,4
             color 15,0
             if player.weapons(a).desig="" then
-            print "-Empty-"
+            draw string (3*_fw2,(8+b+1)*_fh2), "-Empty-",,font2,custom,@_col
         else
-            print player.weapons(a).desig
+            draw string (3*_fw2,(8+b+1)*_fh2), player.weapons(a).desig,,font2,custom,@_col
             endif
             b=b+1
         endif
@@ -2244,7 +2634,7 @@ sub shipstatus(heading as short=0)
     a=0
     locate 17,3
     color 15,0
-    print "Cargo:"
+    draw string (3*_fw2,16*_fh2), "Cargo:",,font2,custom,@_col
     color 11,0
     cargo(1)="Empty"
     cargo(2)="Food, bought at"
@@ -2271,186 +2661,41 @@ sub shipstatus(heading as short=0)
             if c>1 and c<7 then
                 cargo(c)=left(cargo(c),len(cargo(c))-2)&"."
             endif    
-            print cc(c)&" x "&cargo(c)
+            draw string (0,(16+c)*_fh2), cc(c)&" x "&cargo(c),,font2,custom,@_col
         endif
     next
-    locate 3,31
-    color 15,0 
-    print "Crew Summary"
-    locate 5,31
-    print "Pilot          :";
-    if player.pilot >0 then
-        color 11,0
-        print player.pilot
-    else 
-        color 12,0
-        print " - "
-    endif
-    locate 6,31
-    color 15,0
-    print "Gunner         :";
-    if player.gunner>0 then
-        color 11,0
-        print player.gunner
-    else 
-        color 12,0
-        print " - "
-    endif
-    locate 7,31
-    color 15,0
-    print "Science officer:";
-    if player.science>0 then
-        color 11,0
-        print player.science
-    else 
-        color 12,0
-        print " - "
-    endif
-    locate 8,31
-    color 15,0
-    print "Ship doctor    :";
-    if player.doctor>0 then
-        color 11,0
-        print player.doctor
-    else 
-        color 12,0
-        print " - "
-    endif
-    locate 10,31
-    color 15,0
-    print "Total bunks  :";
-    color 11,0
-    print player.h_maxcrew+player.crewpod
-    locate 11,31
-    color 15,0
-    print "Cryo chambers:";
-    color 11,0
-    print player.cryo
-    
-    for a=6 to 128
-       if crew(a).typ=6 then c1=c1+1
-       if crew(a).typ=7 then c2=c2+1
-       if crew(a).typ=8 then c3=c3+1
-       if crew(a).typ=9 then c4=c4+1
-       if crew(a).typ=10 then c5=c5+1
-       if crew(a).typ=11 then c6=c6+1
-       if crew(a).typ=12 then c7=c7+1
-       if crew(a).typ=13 then c8=c8+1
-       if crew(a).disease>0 then sick+=1
-    next
-    locate 12,31
-    color 15,0
-    print "Security:";
-    color 11,0
-    player.security=c1+c2+c3+c4+c5
-    print c1+c2+c3+c4+c5
-    color 15,0
-    locate 14,33
-    print "Elite    :";
-    color 11,0
-    print c3
-    color 15,0
-    locate 15,33
-    print "Veterans :";
-    color 11,0
-    print c2
-    locate 16,33
-    color 15,0
-    print "Green    :";
-    color 11,0
-    print c1
-    if c4>0 then
-        locate csrlin,33
-        color 15,0
-        print "Insectw. :";
-        color 11,0
-        print c4
-    endif
-    if c5>0 then
-        locate csrlin,33
-        color 15,0
-        print "Cephalop.:";
-        color 11,0
-        print c5
-    endif
-    if c6>0 then
-        locate Csrlin,33
-        color 15,0
-        print "Neodogs  :";
-        color 11,0
-        print c6
-    endif
-    if c7>0 then
-        locate csrlin,33
-        color 15,0
-        print "Neoapes  :";
-        color 11,0
-        print c7
-    endif
-    if c8>0 then
-        locate csrlin,33
-        color 15,0
-        print "Robots   :";
-        color 11,0
-        print c8
-    endif
-    c=0
-    if sick>0 then
-        locate csrlin+2,33
-        color 14,0
-        print "Sick :"&sick
-    endif
-    color 15,0
-    locate 1,55
-    print "Alien Artifacts"
-    for a=1 to 16
-        if artflag(a)>0 then
-            c=c+1
-            locate 11+c,58
-            print flagst(a)
-        endif
-    next
-    if c=0 then
-        locate 2,60
-        print "none"
-    endif
-    c+=1
-    locate 2+c,55
-    color 15,0    
+    c=textbox(crewblock,25,2,22)
+    c=textbox(listartifacts,55,2,22)
+    c=c+5
     if heading=0 then
-    lastinv=getitemlist(inv(),invn())     
-    print "Equipment(";lastinv;"):"
+    lastinv=getitemlist(inv(),invn()) 
+    color 15,0
+    draw string (55*_fw1,(2+c+a)*_fh2) ,"Equipment("&lastinv & "):",,font2,custom,@_col
     color 11,0
     if heading=0 then  
         do
-            for a=0 to 22-c                
-                locate 3+c+a,50
+            for a=0 to _lines-c                
                 color 0,0
-                print space(30);
+                draw string (50*_fw1,(3+c+a)*_fh2) ,space(30),,font2,custom,@_col
                 color 11,0
-                locate 3+c+a,50
                 
                 if invn(a+offset)>1 then
-                    print invn(a+offset)&" "&left(inv(a+offset).desigp,27);
+                    draw string (50*_fw1,(3+c+a)*_fh2) , invn(a+offset)&" "&left(inv(a+offset).desigp,27),,font2,custom,@_col
                 else
-                    if invn(a+offset)=1 then print invn(a+offset)&" "&left(inv(a+offset).desig,27);
+                    if invn(a+offset)=1 then draw string (50*_fw1,(3+c+a)*_fh2) , invn(a+offset)&" "&left(inv(a+offset).desig,27),,font2,custom,@_col
                 endif
             next
-            locate 25,79
-            color 0,0
-            print " ";
+            draw string (79*_fw1,_lines*_fh2) , " ",,font2,custom,@_col
             if lastinv>22-c and offset<lastinv then                    
                 locate 25,79
                 color 14,0
-                print chr(25);
+                draw string (79*_fw2,_lines*_fh2) , chr(25),,font2,custom,@_col
             endif
-            locate 12,79
-            color 0,0
-            print " ";
+            draw string (79*_fw1,(2+c)*_fh2), " ",,font2,custom,@_col
             if offset>0 then    
                 locate 1+c,79
                 color 14,0
-                print chr(24);
+                draw string (79*_fw1,(2+c)*_fh2), chr(24),,font2,custom,@_col
             endif
             key=keyin(,,1)
             if keyminus(key) or key=key_north then offset=offset-1
@@ -2460,49 +2705,41 @@ sub shipstatus(heading as short=0)
             loop until key=key_esc or key=" "
         endif
     endif
+    cls
 end sub
 
 sub displayship(show as byte=0)
     dim  as short a,b,mjs
     static wg as byte
     dim t as string
-    dim as string p,g,s,d
+    dim as string p,g,s,d,carg
     if player.fuel=player.fuelmax then wg=0
     locate 22,1
     color 15,0
     if findbest(52,-1)>0 then
-        print "Pos:";
-        locate 22,5
-        print using "##:##";player.c.x,player.c.y    
+        draw string (0,21*_fh1), "Pos:"&player.c.x &":"&player.c.y,, font2,custom,@_col
+            
     else
-        locate 22,1
         color 14,0
-        print "No Navcomp"
+        draw string (0,21*_fh1), "No navcomp",, font2,custom,@_col
     endif
         
     color 224,0
-    locate 22,11
-    print chr(195)
+    draw string (11*_fw1,21*_fh1), chr(195),,font1,custom,@_col
     for a=12 to 61
-        locate 22,a,0
-        print CHR(196)
+        draw string (a*_fw1,21*_fh1),chr(196),,Font1,custom,@_col
     next
-    for a=1 to 25
-        locate a,62,0,0
-        print CHR(179);
+    for a=0 to _lines
+        draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
     next
-    locate 22,62,0
-    print chr(180)
+    draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
     color 15,0
-    locate 1,63
-    print player.h_sdesc &" "& player.desig 
+    draw string(62*_fw1,0*_fh1),(player.h_sdesc &" "& player.desig),,Font2,custom,@_col 
     color 11,0
-    locate 2,63
-    print "HP:"&space(4) &" "&"SP:"&player.shield &" "
+    draw string(62*_fw1,1*_fh2),"HP:"&space(4) &" "&"SP:"&player.shield &" ",,Font2,custom,@_col
     if player.hull<(player.h_maxhull+player.addhull)/2 then color 14,0
     if player.hull<2 then color 12,0
-    locate 2,66
-    print player.hull
+    draw string(62*_fw1+3*_fw2,1*_fh2),""&player.hull,,Font2,custom,@_col
     color 11,0
     p=""&player.pilot
     g=""&player.gunner
@@ -2517,21 +2754,16 @@ sub displayship(show as byte=0)
        if crew(a).hpmax>=1 then player.security+=1
     next
     
-    locate 3,63
-    print "Pi:" & p & "  Gu:" &g &"  Sc:" &s
-    locate 4,63
-    print "Dr:"&d &"  Security:"&player.security
-    locate 5,63
-    print "Sensors:"&player.sensors
-    locate 6,63
+    draw string(62*_fw1,2*_fh2), "Pi:" & p & "  Gu:" &g &"  Sc:" &s,,Font2,custom,@_col
+    draw string(62*_fw1,3*_fh2), "Dr:"&d &"  Security:"&player.security ,,Font2,custom,@_col
+    draw string(62*_fw1,4*_fh2), "Sensors:"&player.sensors,,Font2,custom,@_col
     
     for a=1 to 5
         if player.weapons(a).made=88 then mjs+=1
         if player.weapons(a).made=89 then mjs+=2
     next
-    print "Engine :"&player.engine &" ("&player.engine+2-player.h_maxhull\15+mjs &" MP)"
-    locate 23,63
-    print "Fuel(" &player.fuelmax+player.fuelpod &"):"
+    draw string(62*_fw1,5*_fh2), "Engine :"&player.engine &" ("&player.engine+2-player.h_maxhull\15+mjs &" MP)",,Font2,custom,@_col
+    draw string(62*_fw1,22*_fh2), "Fuel(" &player.fuelmax+player.fuelpod &"):",,Font2,custom,@_col
     color 11,0
     if player.fuel<player.fuelmax*0.5 then 
         if wg=0 then
@@ -2558,32 +2790,25 @@ sub displayship(show as byte=0)
         endif
         color 12,0
     endif
-    locate 23,74
-    print using "###";player.fuel
+    draw string(62*_fw1+11*_fw2,22*_fh2) ,""&fix(player.fuel),,Font2,custom,@_col
     color 11,0
-    locate 24,63
-    if player.money<1000000 then
-        print using "Credits:######";player.money
-    else
-        print "Credits:";player.money
-    endif
-    locate 25,63
-    print using "Turns:######";player.turn; 
+    draw string(62*_fw1,23*_fh2),"Credits:"&player.money &"    ",,Font2,custom,@_col
+    draw string(62*_fw1,24*_fh2),"Turns:"&player.turn,,Font2,custom,@_col
     color 15,0
-    locate 7,63
-    print "Weapons:"
+    draw string (62*_fw1,7*_fh2), "Weapons:",,font2,custom,@_col
     color 11,0
     player.tractor=0
     for a=1 to 5
         if player.weapons(a).desig<>"" then
-            locate 8+b,63
             color 15,0
-            print trim(player.weapons(a).desig);
+            draw string(63*_fw1,(8+b)*_fh2),trim(player.weapons(a).desig),,font2,custom,@_col
             color 11,0
-            print " D:"&player.weapons(a).dam
-            locate 8+b+1,63
-            print "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 ;
-            if player.weapons(a).ammomax>0 then print " A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ";
+            draw string(64*_fw1+len(trim(player.weapons(a).desig))*_fw2,(8+b)*_fh2),"D:"&player.weapons(a).dam,,Font2,custom,@_col
+            if player.weapons(a).ammomax>0 then 
+                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ",,Font2,custom,@_col
+            else
+                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" ",,Font2,custom,@_col
+            endif
             if player.weapons(a).ROF<0 then 
                 player.tractor=1
                 if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
@@ -2593,42 +2818,37 @@ sub displayship(show as byte=0)
                     player.weapons(a)=makeweapon(0)
                 endif
             endif
-        else
-            locate 8+b,63
-            print spc(15)
-            locate 8+b+1,63
-            print spc(15)
         endif
         b=b+2
     next
     locate 21,63
-    print "Cargo"
+    draw string(62*_fw1,20*_fh2), "Cargo",,font2,custom,@_col
     for a=1 to 10
-        locate 22,62+a
+        carg=""
         if player.cargo(a).x=1 then 
             color 8,1
-            print "E"
         else
             color 10,8
         endif
-        if player.cargo(a).x=2 then print "F"
-        if player.cargo(a).x=3 then print "B"
-        if player.cargo(a).x=4 then print "T"
-        if player.cargo(a).x=5 then print "L"
-        if player.cargo(a).x=6 then print "W"
-        if player.cargo(a).x=7 then print "N"
-        if player.cargo(a).x=8 then print "H"
-        if player.cargo(a).x=9 then print "C"
-        if player.cargo(a).x=10 then print "?"
-        if player.cargo(a).x=11 then print "t"
+        if player.cargo(a).x=1 then carg= "E"
+        if player.cargo(a).x=2 then carg= "F"
+        if player.cargo(a).x=3 then carg= "B"
+        if player.cargo(a).x=4 then carg= "T"
+        if player.cargo(a).x=5 then carg= "L"
+        if player.cargo(a).x=6 then carg= "W"
+        if player.cargo(a).x=7 then carg= "N"
+        if player.cargo(a).x=8 then carg= "H"
+        if player.cargo(a).x=9 then carg= "C"
+        if player.cargo(a).x=10 then carg= "?"
+        if player.cargo(a).x=11 then carg= "t"
+        draw string(62*_fw1+a*_fw2,21*_fh2),carg,,font2,custom,@_col
     next
     if show=1 then
         if _tiles=0 then
             put ((player.c.x-player.osx)*8,(player.c.y-player.osy)*16),gtiles(12),trans
         else
             color _shipcolor,0
-            locate player.c.y+1-player.osy,player.c.x+1-player.osx
-            print "@"
+            draw string ((player.c.x-player.osx)*_fw1,(player.c.y-player.osy)*_fh1),"@",,Font1,custom,@_col
         endif
     endif
     color 11,0
@@ -2648,14 +2868,12 @@ sub displayplanetmap(a as short)
     next
     for b=0 to lastportal
         if portal(b).from.m=a and portal(b).discovered=1 then
-            locate portal(b).from.y+1,portal(b).from.x+1,0
             color portal(b).col,0
-            print chr(portal(b).tile)            
+            draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
         endif
         if portal(b).oneway=0 and portal(b).dest.m=a and portal(b).discovered=1 then
-            locate portal(b).dest.y+1,portal(b).dest.x+1,0
             color portal(b).col,0
-            print chr(portal(b).tile)
+            draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
         endif
     next
     for b=1 to lastitem
@@ -2667,16 +2885,15 @@ sub displayplanetmap(a as short)
                     put (item(a).w.x*8,item(a).w.y*16),gtiles(item(a).v2+250),trans
                 endif
             else            
-                locate item(b).w.y+1,item(b).w.x+1
                 color item(b).col,item(b).bgcol
-                print item(b).icon
+                draw string(item(b).w.x*_fw1,item(b).w.y*_fh1),item(b).icon,,Font1,custom,@_col
             endif
         endif
     next
 end sub
 
 function gettext(x as short, y as short, ml as short, text as string) as string
-    dim l as short
+    dim as short l,lasttimer
     dim key as string
     dim p as _cords
     l=len(text)
@@ -2686,32 +2903,31 @@ function gettext(x as short, y as short, ml as short, text as string) as string
         l=ml-1
     endif
     do 
+            
         key=""
         color 11,0
-        locate y+1,x+1
-        print text;
-        color 11,11
-        print " ";
-        color 11,0      
+        draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
         do
-            sleep 50
             do
                 sleep 1
+                lasttimer+=1
+                if lasttimer>100 then
+                    draw string (x*_fw2,y*_fh2), text &"  ",,font2,custom,@_col
+                else
+                    draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
+                endif
+                if lasttimer>200 then lasttimer=0
             loop until screenevent(@evkey)
+            
             if evkey.type=EVENT_KEY_press then
                 if evkey.ascii=asc(key_esc) then key=key_esc
                 if evkey.ascii=8 then key=chr(8)
                 if evkey.ascii=32 then key=chr(32)
                 if evkey.ascii=asc(key_enter) then key=key_enter
-                if evkey.ascii>64 and evkey.ascii<123 then key=chr(evkey.ascii)
+                if evkey.ascii>32 and evkey.ascii<123 then key=chr(evkey.ascii)
             endif
         loop until key<>""  
-        color 11,0
-        locate y+1,x+1
-        print text;
-        color 0,0
-        print " ";
-        color 11,0
+        
         if key=chr(8) and l>=1 then
            l=l-1
            text=left(text,len(text)-1)
@@ -2741,68 +2957,128 @@ function gettext(x as short, y as short, ml as short, text as string) as string
 end function
 
 function textbox(text as string,x as short,y as short,w as short, fg as short=11, bg as short=0) as short
-    dim as short lastspace,tlen,a,p,wcount,lcount
+    dim as short lastspace,tlen,p,wcount,lcount,xw,a
     dim words(1023) as string
-    dim addt(24) as string
-    addt(24)=text
+    dim addt as string
+    addt=text
     'if len(text)<=w then addt(0)=text
     for p=0 to len(text)
+        if mid(text,p,1)="{" or mid(text,p,1)="|" then wcount+=1
         words(wcount)=words(wcount)&mid(text,p,1)
-        if mid(text,p,1)=" " or mid(text,p,1)="|" then wcount=wcount+1
+        if mid(text,p,1)=" " or mid(text,p,1)="|" or  mid(text,p,1)="}" then wcount+=1
     next
+    if words(wcount)<>"|" then 
+        wcount+=1
+        words(wcount)="|"
+    endif
+    color fg,bg
     for p=0 to wcount
         if words(p)="|" then 
+            draw string((x)*_fw1+xw*_fw2,y*_fh1+lcount*_fh2),space(w-xw),,font2,custom,@_col
             lcount=lcount+1
-            p=p+1
+            xw=0
         endif
-        if len(addt(lcount)&words(p))>w then lcount=lcount+1
-        addt(lcount)=addt(lcount)&words(p)
+        if Left(trim(words(p)),1)="{" and Right(trim(words(p)),1)="}" then
+            color numfromstr(words(p)),bg
+        endif
+        if words(p)<>"|" and not(Left(trim(words(p)),1)="{" and Right(trim(words(p)),1)="}") then
+            if xw+len(words(p))>w then 
+                draw string((x)*_fw1+xw*_fw2,y*_fh1+lcount*_fh2),space(w-xw),,font2,custom,@_col
+                lcount=lcount+1
+                xw=0
+            endif
+            draw string((x)*_fw1+xw*_fw2,y*_fh1+lcount*_fh2),words(p),,font2,custom,@_col
+            xw=xw+len(words(p))
+            
+        endif
+        if lcount*_fh2+y*_fh1>_screeny-_fh1 then
+            color 14,0
+            draw string(x*_fw1+w*_fw2-_fw2,_screeny-_fh2),chr(25),,font2,custom,@_col
+            no_key=keyin
+            for a=0 to lcount
+                draw string((x)*_fw1,y*_fh1+a*_fh2),space(w),,font2,custom,@_col
+            next    
+            lcount=0
+        endif
     next
-    for a=0 to lcount
-        addt(a)=addt(a)&space(w-len(addt(a)))
-        locate y+1+a,x
-        color fg,bg
-        print addt(a)
-    next
-    text=addt(24)
+    text=addt
     return lcount
 end function
 
-function locEOL() as short
+function locEOL() as _cords
     'puts cursor at end of last displayline
-    dim as short y,x,a
-    y=25
-    for a=25 to 23 step -1
+    dim as short y,x,a,winh,firstline
+    dim as _cords p
+    winh=fix((_screeny-_fh1*22)/_fh2)-1
+    if _fh1=_fh2 then
+        firstline=22
+        winh=_lines-22
+    else
+        firstline=fix((22*_fh1)/_fh2)+1
+    endif
+    y=firstline+winh
+    for a=firstline+winh to firstline step -1
         if displaytext(a+1)="" then y=a
     next
-    x=len(displaytext(y))
-    locate y,x,0
+    x=len(displaytext(y))+1
+    p.x=x
+    p.y=y
+    return p
+end function
+
+function scrollup(b as short) as short
+    dim as short a,c
+    for c=0 to b
+        for a=0 to 254
+            displaytext(a)=displaytext(a+1)
+            dtextcol(a)=dtextcol(a+1)
+        next
+        displaytext(255)=""
+        dtextcol(255)=11
+    next
     return 0
 end function
 
-function dprint(t as string, col as short=11,delay as byte=1) as short
-
-    dim as short a,b,c
+function dprint(t as string, col as short=11) as short
+    dim as short a,b,c,delay
     dim text as string
     dim wtext as string
-    dim offset as short
+    'static offset as short
     dim tlen as short
-    dim addt(64) as string
+    'dim addt(64) as string
     dim lastspace as short
     dim key as string
+    dim as short winw,winh
+    dim firstline as byte
+    dim words(4064) as string
+    static curline as single
     static lastcalled as double
     static lastmessage as string
     static lastmessagecount as short
+    firstline=fix((22*_fh1)/_fh2)
+    winw=fix((_fw1*61)/_fw2)
+    winh=fix((_screeny-_fh1*22)/_fh2)
+    
+    if firstline*_fh2+winh*_fh2>_screeny-_fh2 then winh-=1
+    if firstline*_fh2+winh*_fh2>_screeny-_fh2 then winh-=1
+    if _fh1=_fh2 then
+        firstline=22
+        winh=_lines-22
+    endif
+    curline=locEOL.y+1
+    
     if t<>"" then
         if lastmessage=t then
-            a=23
-            do 
-                a+=1
-            loop until displaytext(a)="" or a=26
-            a=a-1
+            a=curline-1
             lastmessagecount+=1
-            displaytext(a)=t &"(x"&lastmessagecount &")"
-            t=""
+            if len(displaytext(a))<winw-4 then
+                displaytext(a)=t &"(x"&lastmessagecount &")"
+                t=""
+            else
+                displaytext(a)=t
+                displaytext(a+1)="(x"&lastmessagecount &")"
+                t=""
+            endif
         else
             lastmessage=t
             lastmessagecount=1
@@ -2814,89 +3090,62 @@ function dprint(t as string, col as short=11,delay as byte=1) as short
         loop until timer>lastcalled+.05
     endif
     lastcalled=timer
+    
+    'draw string (61*_fw1,firstline*_fh2),"*",,font1,custom,@_col
+    'draw string (61*_fw1,(firstline+winh)*_fh2),"*",,font1,custom,@_col
     'find offset
-    offset=23
-    for a=23 to 26
-        if displaytext(a)<>"" then offset=offset+1
-    next
+    'if offset=0 then offset=firstline
     for a=0 to len(t)
         if mid(t,a,1)<>"|" then text=text & mid(t,a,1)
     next
     if text<>"" then
-        while len(text)>60
-            lastspace=60
-            do 
-                lastspace=lastspace-1
-            loop until mid(text,lastspace,1)=" "        
-            if tlen>8 then tlen=8
-            addt(tlen)=left(text,lastspace)
-            text=mid(text,lastspace+1,(len(text)-lastspace+1))
-            tlen=tlen+1
+        while displaytext(curline)<>"" 
+            curline+=1
         wend
-        addt(tlen)=text
-        if offset+tlen>63 then offset=63-tlen
-            
-        for a=offset to offset+tlen
-            displaytext(a)=addt(a-offset)
-            dtextcol(a)=col
+        for a=0 to len(text)
+            words(b)=words(b)&mid(text,a,1)
+            if mid(text,a,1)=" " then b+=1
         next
-        if tlen<=3 then
-            if offset+tlen>25 then
-                for c=0 to tlen
-                    for b=0 to 29
-                        displaytext(b)=displaytext(b+1)
-                        dtextcol(b)=dtextcol(b+1)
+        for a=0 to b
+            if len(displaytext(curline+tlen)&words(a))>winw then
+                displaytext(curline+tlen)=trim(displaytext(curline+tlen))                
+                tlen+=1
+            endif
+            displaytext(curline+tlen)=displaytext(curline+tlen)&words(a)
+            dtextcol(curline+tlen)=col
+        next
+        
+        if curline+tlen>firstline+winh then            
+            if tlen<winh then
+                scrollup(tlen-1)
+            else
+                do
+                    scrollup(winh-2)
+                    for b=firstline to firstline+winh
+                        color 0,0
+                        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
+                        color dtextcol(b),1
+                        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
                     next
-                    displaytext(30)=""
-                next
+                    color 14,1
+                    if displaytext(firstline+winh+1)<>"" then
+                        draw string((winw+1)*_fw2,_screeny-_fh2), chr(25),,font2,custom,@_col
+                        no_key=keyin
+                    endif
+                loop until displaytext(_textlines+1)=""
             endif
         else
-            if offset>23 then
-                for c=0 to 1
-                    for b=0 to 29
-                        displaytext(b)=displaytext(b+1)
-                        dtextcol(b)=dtextcol(b+1)
-                    next
-                    displaytext(30)=""
-                next
-            endif
-            a=0
-            do
-                for b=23 to 25
-                    if displaytext(b)<>"" then a+=1
-                    locate b,1,0
-                    color 0,0
-                    print space(60);
-                    locate b,1,0
-                    color dtextcol(b),0
-                    print displaytext(b);
-                next
-                if displaytext(26)<>"" then
-                    if a=3 then
-                        locate 25,62,0
-                        color 14,0
-                        print chr(25);
-                        no_key=keyin
-                        a=0
-                    endif
-                    for c=0 to 1
-                        for b=0 to 29
-                            displaytext(b)=displaytext(b+1)
-                            dtextcol(b)=dtextcol(b+1)
-                        next
-                        displaytext(30)=""
-                    next
-                endif
-            loop until displaytext(26)=""
+            if curline=firstline+winh then scrollup(0)
         endif
+        while displaytext(_textlines+1)<>""
+            scrollup(0)
+            wend
     endif
-    for b=23 to 25
-        locate b,1,0
+    for b=firstline to firstline+winh
         color 0,0
-        print space(60);
-        locate b,1,0
+        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
         color dtextcol(b),0
-        print displaytext(b);
+        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
     next
     locate 24,1
     color 11,0
@@ -2912,7 +3161,7 @@ function askyn(q as string,col as short=11) as short
     wend
     do
         key=keyin
-        displaytext(24)=displaytext(24)&key
+        displaytext(_lines-1)=displaytext(_lines-1)&key
         if key <>"" then 
             dprint ""
             if _anykeyno=0 and key<>key_yes then key="N"
@@ -2922,7 +3171,7 @@ function askyn(q as string,col as short=11) as short
     return a
 end function
 
-function menu(te as string, he as string="", x as short=2, y as short=2, blocked as short=0) as short
+function menu(te as string, he as string="", x as short=2, y as short=2, blocked as short=0, markesc as short=0) as short
     ' 0= headline 1=first entry
     dim as short blen
     dim as string text,help
@@ -2984,7 +3233,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     do        
         locate y,x
         color 15,0
-        print lines(0)
+        draw string(x*_fw1,y*_fh1), lines(0),,font2,custom,@_col
         
         for a=1 to c
             if loca=a then 
@@ -2994,15 +3243,14 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
                 color 11,0
             endif
             locate y+a,x
-            print lines(a)
+            draw string(x*_fw1,y*_fh1+a*_fh2), lines(a),,font2,custom,@_col
         next
-        key=keyin(,,blocked)
+        if player.dead=0 then key=keyin(,,blocked)
         
         if hfl=1 then 
-            for a=2 to 2+blen
-                locate 1+a,longest+x+2
+            for a=1 to blen
                 color 0,0
-                print space(hw)
+                draw string((longest+x+2)*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
             next
         endif
         if getdirection(key)=8 then loca=loca-1
@@ -3020,10 +3268,11 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         next
         if key=key_esc or player.dead<>0 then e=c
     loop until e>0 
+    if key=key_esc and markesc=1 then e=-1
     color 0,0        
     for a=0 to c
         locate y+a,x
-        print space(59)
+        draw string(x*_fw1,y*_fh1+a*_fh2), space(59),,font2,custom,@_col
     next
     color 11,0
     while inkey<>""
@@ -3031,15 +3280,15 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     return e
 end function
 
-function getrandomsystem(unique as short=1) as short 'Returns a random system. If unique=1 then specialplanets are possible
+function getrandomsystem(unique as short=0) as short 'Returns a random system. If unique=1 then specialplanets are possible
     dim as short a,b,c,p,u,add
     dim pot(laststar) as short
     for a=0 to laststar
         if map(a).discovered=0 and map(a).spec<8 then
             if unique=0 then
                 add=0
-                for u=0 to lastspecial
-                    for p=1 to 9
+                for p=1 to 9
+                    for u=0 to lastspecial
                         if map(a).planets(p)=specialplanet(u) then add=1
                     next
                 next
@@ -3109,101 +3358,6 @@ function getsystem(player as _ship) as short
     return b
 end function
 
-function getplanet(sys as short,forcebar as byte=0) as short
-    dim a as short
-    dim text as string
-    dim key as string
-    dim r as short 
-    dim p as short
-    dim x as short
-    dim as short xo,yo
-    dim firstplanet as short
-    dim lastplanet as short
-    if sys<0 or sys>laststar then
-        dprint ("ERROR:System#:"&sys,14)
-        return -1
-    endif
-    for a=1 to 9
-        if map(sys).planets(a)<>0 then 
-            lastplanet=a
-            x=x+1
-        endif
-    next
-    for a=9 to 1 step-1
-        if map(sys).planets(a)<>0 then firstplanet=a
-    next
-    p=liplanet
-    if p<1 then p=1
-    if p>9 then p=9
-    if map(sys).planets(p)=0 then 
-        do
-            p=p+1
-            if p>9 then p=1
-        loop until map(sys).planets(p)<>0 or lastplanet=0
-    endif
-    if p>9 then p=firstplanet
-    if lastplanet>0 then
-        if _onbar=0 or forcebar=1 then
-            xo=31
-            yo=22
-        else
-            xo=map(sys).c.x-9-player.osx
-            yo=map(sys).c.y+2-player.osy
-            if xo<=4 then xo=4
-            if xo+18>58 then xo=42
-        endif
-        dprint "Enter to select, arrows to move,ESC to quit"
-        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
-        do
-            displaysystem(map(sys))        
-            if keyplus(key) or a=6 then 
-                do
-                    p=p+1
-                    if p>9 then p=1
-                loop until map(sys).planets(p)<>0
-            endif
-            if keyminus(key) or a=4 then 
-                do
-                    p=p-1
-                    if p<1 then p=9
-                loop until map(sys).planets(p)<>0
-            endif
-            if p<1 then p=lastplanet
-            if p>9 then p=firstplanet
-            x=xo+(p*2)
-            if map(sys).planets(p)>0 then
-                locate yo,x
-                color 15,3
-                if isgasgiant(map(sys).planets(p))=0 and isasteroidfield(map(sys).planets(p))=0 then print "o"
-                if isgasgiant(map(sys).planets(p))>0 then print "O"
-                if isasteroidfield(map(sys).planets(p))=1 then print chr(176)
-                color 11,0
-            endif
-            
-            if map(sys).planets(p)<0 then
-                locate yo,x
-                color 15,3
-                if isgasgiant(map(sys).planets(p))=0 then
-                    print chr(176)
-                else
-                    print "O"
-                endif
-                color 11,0
-            endif
-            key=keyin
-            a=Getdirection(key)
-            
-            
-            if key="q" or key="Q" or key=key_esc then r=-1
-            if (key=key_enter or key=key_sc or key=key_la) and map(sys).planets(p)<>0 then r=p
-        loop until r<>0
-        liplanet=r
-    else
-        r=-1
-    endif
-    return r
-end function
-
 function isgardenworld(m as short) as short
     if planets(m).grav>1.1 then return 0
     if planets(m).atmos<3 or planets(m).atmos>5 then return 0
@@ -3227,6 +3381,7 @@ function isgasgiant(m as short) as short
 end function
 
 function isasteroidfield(m as short) as short
+    if m>=-20000 and m<0 then return 1
     if m=specialplanet(31) then return 1 
     if m=specialplanet(32) then return 1 
     if m=specialplanet(33) then return 1
@@ -3278,56 +3433,63 @@ function getnumber(a as short,b as short, e as short) as short
     dim c as short
     dim d as short
     dim i as short
-    color 11,1
-    for i=1 to 61
-        locate 22,i
-        print CHR(196)
-    next
-    color 11,11
-    locate 22,28
-    print space(5)
-    c=a
-    if e>0 then c=e
-    do 
-        locate 22,27
-        color 11,1
-        print chr(180)
-        locate 22,28
-        color 5,11
-        print "-"
-
-        if c<10 then 
-            locate 22,30
-            color 1,11
-            print "0" &c
-        else
-            locate 22,29
-            color 1,11
-            print c
-        endif
-        
-        locate 22,32
-        color 5,11
-        print "+"
-        
-        locate 22,33
-        color 11,1
-        print chr(195)
-        key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
-        if keyplus(key) then c=c+1
-        if keyminus(key) then c=c-1
-        if key=key_enter then d=1
-        if key=key_esc then d=2
-        buffer=buffer+key
-        if len(buffer)>2 then buffer=""
-        if val(buffer)<>0 then c=val(buffer)
-        
+    dim p as _cords
+    if _altnumber=0 then
+        p=locEOL
+        c=numfromstr((gettext(p.x,p.y,46,"")))
         if c>b then c=b
-        if c<a then c=a
+        if c<a then c=e
+        return c
+    else
         
-    loop until d=1 or d=2
-    if d=2 then c=-1
-    color 11,0
+        color 11,1
+        for i=1 to 61
+            draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
+        next
+        color 11,11
+        draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
+        c=a
+        if e>0 then c=e
+        do 
+            color 11,1
+            
+            draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
+            color 5,11
+            
+            draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
+            print "-"
+    
+            if c<10 then 
+                color 1,11
+                print "0" &c
+                draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
+            else
+                color 1,11
+                draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
+            endif
+            
+            locate 22,32
+            color 5,11        
+            draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
+            
+            color 11,1
+            draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
+            key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
+            if keyplus(key) then c=c+1
+            if keyminus(key) then c=c-1
+            if key=key_enter then d=1
+            if key=key_esc then d=2
+            buffer=buffer+key
+            if len(buffer)>2 then buffer=""
+            if val(buffer)<>0 or buffer="0" then c=val(buffer)
+            
+            if c>b then c=b
+            if c<a then c=a
+            
+        loop until d=1 or d=2
+        if d=2 then c=-1
+        color 11,0
+    endif
     return c
 end function    
 

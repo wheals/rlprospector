@@ -1,3 +1,150 @@
+function buytitle() as short
+    dim a as short
+    dim as integer price
+    dim as string title
+    a=menu("Buy title /Lord - 1000 Cr./Baron - 5000 Cr./Viscount - 10.000 Cr./Count 25.000 Cr./Marquees - 50.000 Cr./Duke - 100.000 Cr./Exit")
+    if a>0 and a<7 then
+        if a=1 then
+            title="Lord"
+            price=1000
+        endif
+        if a=2 then
+            title="Baron"
+            price=5000
+        endif
+        if a=3 then
+            title="Viscount"
+            price=10000
+        endif    
+        if a=4 then
+            title="Count"
+            price=25000
+        endif
+        if a=5 then
+            title="Marquese"
+            price=50000
+        endif
+        if a=6 then
+            title="Duke"
+            price=100000
+        endif
+        if retirementassets(a+8)=0 then
+            if paystuff(price) then
+                retirementassets(a+8)=1
+            endif
+        else
+            dprint "You already have the title of "&title &"."
+        endif
+    endif
+    
+    return 0
+end function
+
+
+
+function retirement() as short
+    dim as short a,b
+    dim price(9) as integer
+    dim asset(9) as string
+    dim desc(9) as string
+    dim as string mtext,htext
+    asset(1)="Muds store franchise"
+    desc(1)="A permit to operate a store under the well known 'Mud's' brand name. The opportunity to make a living by buying at insanely low prices, at negligable risk!"
+    price(1)=500
+    asset(2)="life insurance"
+    desc(2)="A small rent to be paid until your death, from your 60th birthday onwards."
+    price(2)=1000
+    asset(3)="country manor"
+    desc(3)="A nice estate in the country on a civilized World. Perfect to spend the autumn years of life."
+    price(3)= 2500
+    asset(4)="small asteroid"
+    desc(4)="A small asteroid in a colonized star system. Several rooms with lifesupport already carved out."
+    price(4)=5000
+    asset(5)="hollowed asteroid base"
+    desc(5)="A small asteroid, hollowed out, with a small self sufficient ecosystem. Enough room in the shell to house a small towns population."
+    price(5)=50000
+    asset(6)="big terraformed asteroid"
+    desc(6)="A large asteroid, big enough to hold a thin atmosphere, terraformed, self sufficient, and yet uninhabited."
+    price(6)=100000
+    asset(7)="small planet"
+    desc(7)="A small, arid planet. Thin oxygen atmosphere. Further terraforming possible"
+    price(7)= 250000
+    asset(8)="planet"
+    desc(8)="A medium sized planet with an oxygen atmosphere. It's habitable, if further terraforming would be a good investment"
+    price(8)=500000
+    asset(9)="Earthlike planet"
+    desc(9)="A planet with an oxygen atmosphere, oceans and continents. Lifeforms are present, but nothing dangerous."
+    price(9)=1000000
+    mtext="Assets/"
+    for a=1 to 9
+        mtext=mtext &asset(a) &space(26-len(asset(a)))&price(a)& "Cr./"
+        htext=htext &desc(a) &"/"
+    next
+    mtext=mtext &"back"
+    htext=htext &"/"
+    do
+        a=menu("Retirement/ retire now/ buy assets/back")
+        if a=1 then
+            if askyn("Do you really want to retire now? (y/n)") then
+                if askyn("Are you sure? (y/n)") then 
+                    player.dead=98
+                endif
+            endif
+        endif
+        if a=2 then
+            do
+                b=menu(mtext,htext)
+                
+                if b>0 and b<10 then
+                    if retirementassets(b-1)=0 or b=2 then
+                        if paystuff(price(b-1)) then
+                            dprint "You buy a "&asset(b-1)
+                            if retirementassets(b-1)<255 then retirementassets(b-1)+=1
+                        endif
+                    else
+                        dprint "You already have that"
+                    endif
+                endif
+            loop until b=-1 or b=10
+        endif
+    loop until player.dead<>0 or a=3
+    return 0
+end function
+
+function mercper() as short
+    dim as single per
+    if player.tradingmoney>0 and player.money>0 then per=100*(player.tradingmoney/player.money)
+    if per>100 then per=100        
+    return int( per)
+end function
+
+function explper() as short
+    dim as single per
+    dim as short a,b,tp,xx,yy,expl, exps,expp,total
+    for a=0 to laststar
+        if map(a).discovered>0 then
+            exps=exps+1
+            for b=1 to 9
+                if map(a).planets(b)>0 then
+                    tp+=1
+                    if planets(map(a).planets(b)).mapstat<>0 then expp=expp+1
+                    for xx=0 to 60
+                        for yy=0 to 20
+                            if planetmap(xx,yy,map(a).planets(b))>0 then expl=expl+1
+                            total=total+1
+                        next
+                    next
+                endif
+            next
+        endif
+    next
+    if expl>0 and total>0 then
+        per=((expl/total)*100)
+        if per>100 then per=100
+    endif
+    return int(per)
+end function
+
 
 sub postmortem
     dim a as short
@@ -15,27 +162,14 @@ sub postmortem
     dim xx as short
     dim yy as short
     dim old_g as short
-    dim ext as integer
+    dim expl as integer
     dim total as integer
     dim lines(26) as string
     dim inv(255) as _items
     dim invn(255) as short
+    dim text as string
     dim as short set,lastinv    
     kill("savegames\"&player.desig &".sav")
-    flagst(1)="Fuel System"
-    flagst(2)="Disintegrator"
-    flagst(3)="Scanner"
-    flagst(4)=" Ion canon"
-    flagst(5)="Bodyarmor"
-    flagst(6)="Engine"
-    flagst(7)="Sensors"
-    flagst(8)=" Cryochamber"
-    flagst(9)="Teleportation device"
-    flagst(10)=""
-    flagst(11)=""
-    flagst(12)="Cloaking device"
-    flagst(13)="Wormhole shield"
-    flagst(16)="Wormhole navigation device"
     old_g=_tiles
     _tiles=1
     'count ioncanons
@@ -53,281 +187,27 @@ sub postmortem
         if player.cryo>1 then flagst(8)=flagst(8)+"s"
     endif
     'count cryochambers
-    
-    descr(0)="The destination of a generation ship"
-    descr(1)="The home of an alien claiming to be a god"
-    descr(2)="An alien city with working defense systems"
-    descr(3)="An ancient city"
-    descr(4)="Another ancient city"
-    descr(5)="A world without water and huge sandworms"
-    descr(6)="A world with invisible beasts"
-    descr(7)="A lost scoutship"
-    descr(8)="A world with very violent weather"
-    descr(9)="An alien base still in good condition"
-    descr(10)="An independent colony"
-    descr(11)="A casino trying to cheat"
-    descr(12)="A dying world"
-    descr(13)="Murchesons Ditch"
-    descr(14)="The blackmarket"
-    descr(15)="A pirate gunrunner operation" 
-    descr(16)="A planet with immortal beings" 
-    descr(17)="A civilisation upon entering the space age"
-    descr(18)="The home planet of a civilization about to explore the stars"
-    descr(19)="The outpost of an advanced civilication"
-    descr(20)="A creepy colony"
-    descr(26)="A crystal planet"
-    descr(27)="A living planet"
-    descr(28)="An ancient city with an intact spaceport"
-    descr(29)="A very boring planet"
-    descr(30)="The last outpost of an ancient race"
-    descr(31)="An asteroid base of an ancient race"
-    descr(32)="An asteroid base"
-    descr(33)="Another asteroid base"
-    descr(34)="A world devastated by war"
-    descr(35)="A world of peaceful cephalopods"
-    descr(36)="A tribe of small green people in trouble"
-    descr(37)="An invisible labyrinth"
-    descr(39)="A very fertile world plagued by burrowing monsters"
-    descr(40)="A world under control of Eridiani Explorations"
-    descr(41)="A world under control of Smith Heavy Industries"
-    descr(42)="A world under control of Triax Traders"
-    descr(43)="A world under control of Omega Bioengineering"
-    descr(44)="The ruins of an ancient war"
     st=player.h_desig
     
     cls
     locate 1,20 
     color 15,0 
-    print st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts"
-    locate 3,3
+    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
+    draw string (10,10), st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",,titlefont,custom,@_col
     color 11,0
-    if player.money-500>0 then
-        print "Made a profit of ";
-        color 10,0
-        print player.money-500 ;
-        color 11,0
-        print " credits in " &player.turn & " turns."
-    endif
-    if player.money-500=0 then
-        print "Didnt earn any money in " &player.turn & " Turns"
-    endif
-    if player.money-500<0 then
-        print "Made a loss of ";
-        color 12,0
-        print abs(player.money-500);
-        color 11,0
-        print " credits in " &player.turn & " turns."
-    endif 
-    locate 4,3
-    
-    if player.tradingmoney<0 then
-        print "Made a loss of ";
-        color 12,0
-        print abs(player.tradingmoney);
-        color 11,0
-        print " Credits while attempting to be a merchant"
-    endif
-    if player.tradingmoney=0 then
-        print "Didnt try to be a merchant"
-    endif
-    if player.tradingmoney>0 then
-        print "Earned ";
-        color 10,0
-        print  player.tradingmoney;
-        color 11,0
-        print " Credits in trading goods. (";
-        color 14,0
-        if player.tradingmoney>0 and player.money>0 then per(1)=100*(player.tradingmoney/player.money)
-        if per(1)>100 then per(1)=100        
-        print int(per(1));
-        color 11,0
-        print "%)"
-    endif
-    locate 5,3
-    
-    if player.piratekills>0 then
-        color 10,0
-        print player.piratekills;
-        color 11,0
-        print " Credits were from bountys for destroyed pirate ships (";
-        color 14,0
-        if player.piratekills>0 and player.money>0 then per(2)=100*(player.piratekills/player.money)
-        if per(2)>100 then per(2)=100
-        print int(per(2));
-        color 11,0
-        print "%)"
-    else
-        print "No Pirates were destroyed"
-    endif
-    
-    locate 6,3        
-    if pirateplanet(0)=-1 then
-        print "Destroyed the Pirates base of operation! ";
-    endif
-    b=0
-    for a=1 to _NoPB
-        if pirateplanet(a)=-1 then b=b+1
-    next
-    if b=0 then print
-    if b=1 then 
-        print "Destroyed a pirate outpost."
-    endif
-    if b>1 then 
-        print "Destroyed " & b &" pirate outposts."
-    endif
-        
-    if player.money-500>0 then
-        locate 7,3
-        if player.merchant_agr<=0 then print "Made all money with honest hard work"
-        if player.merchant_agr>0 and player.pirate_agr<50 then print "Found piracy not to be worth the hassle"
-        if player.pirate_agr<=0 and player.merchant_agr>50 then print "Made a name as a bloodthirsty pirate"
-    endif
-    
-    
-    for a=0 to laststar
-        if map(a).discovered>0 then
-            exps=exps+1
-            for b=1 to 9
-                if map(a).planets(b)>0 then
-                    tp+=1
-                    if planets(map(a).planets(b)).mapstat<>0 then expp=expp+1
-                    for xx=0 to 60
-                        for yy=0 to 20
-                            if planetmap(xx,yy,map(a).planets(b))>0 then ext=ext+1
-                            total=total+1
-                        next
-                    next
-                endif
-            next
-        endif
-    next
-    for c=0 to lastspecial
-        if specialplanet(c)>=0 and specialplanet(c)<=lastplanet then
-            if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
-        endif
-    next
-    locate 8,3
-    print "Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (";
-    color 14,0
-    if ext>0 and total>0 then
-        per(3)=((ext/total)*100)
-        if per(3)>100 then per(3)=100
-        print int(per(3)) &"%";
-    endif
-    color 11,0
-    print ") ";
-    print "Defeated ";
-    if player.alienkills=0 then print "no Aliens"
-    if player.alienkills=1 then print player.alienkills &" Alien."
-    if player.alienkills>1 then print player.alienkills &" Aliens."
-    locate 9,3
-    if player.deadredshirts=0 then 
-        print "No casualties among the crew."
-    else
-        print player.deadredshirts &" casualties among the crew."
-    endif
-    locate 11,3
-    print "Discovered";
-    b=0
-    for a=0 to 25
-        if discovered(a)=1 then b=b+1
-    next
-    color 11,0
-    if b=0 then 
-        locate 12,15
-        print " no remarkable planets."
-    endif
-    if b>0 then
-        locate 12,15
-        print b &" remarkable planets."
-    endif
-    c=0
-    color 11,0
-    locate 11,58
-    print "Alien Artifacts:"
-    color 14,0
-    for a=1 to 16
-        if artflag(a)>0 then
-            c=c+1
-            locate 11+c,58
-            print flagst(a)
-        endif
-    next
-    if c=0 then
-        locate 13,59
-        print "None"
-    endif
+    a=textbox(moneytext,10,2,_screenx/_fw2-20,11)
+    b=textbox(explorationtext,1,3+a,38,11)+a
+    c=textbox(listartifacts,41,3+a,38,11)+a
     if c>b then
-        locate c+15,0
+        textbox(missiontype,20,10+c,40)
     else
-        locate b+15,0
-    endif
-    per(0)=100-per(1)-per(2)
-    print
-    color 11,0
-    print "Mission type: ";
-    color 14,0
-    if player.pirate_agr<=0 and player.merchant_agr>50 then 
-        print "Bloodthristy pirate scum!"
-    else
-        if per(0)>per(1) and per(0)>per(2) then print "Explorer"
-        if per(1)>per(2) and per(1)>per(0) then print "Merchant"
-        if per(2)>per(0) and per(2)>per(1) then print "Pirate Killer"
+        textbox(missiontype,20,10+b,40)
     endif
     'sleep 800,1
-    for a=1 to 25
-        for b=1 to 80
-            lines(a)=lines(a) &chr(screen(a,b))
-        next
-    next
-    if askyn("Do you want to see a list of unique planets you discovered?(y/n)") then
+    if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then
         cls
-        b=0
-        c=0
-        x=1
-        y=2
-        color 15,0
-        print "Remarkable Planets:"
-        print ""
-        for a=0 to lastspecial
-            if discovered(a)=1 then
-               locate y,x
-               if isgasgiant(specialplanet(a))=0 then
-                    color 14,0
-                    b=b+1    
-                    if a<>20 then
-                        print #f,descr(a)
-                    else
-                        if specialflag(a)=1 then 
-                            print "A colony under the control of an alien lifeform"
-                        else
-                            print descr(20)
-                        endif
-                    endif
-               else
-                    c=c+1
-               endif
-               y=y+1
-               if y>lastspecial/2 then
-                   y=2
-                   x=40
-                endif
-            endif
-        next
-        if c>0 then
-            y=y+1
-            if y>lastspecial/2 then
-                   y=2
-                   x=40
-            endif
-            locate y,x
-            if c=1 then
-                print "A refuel platform of an ancient civilication"
-            else
-                print c &" refuel platforms of an ancient civilication"
-            endif
-            b=b+1
-        endif
+        textbox(uniques,1,2,_screeny/_fw2-2)
+        
     endif
         
     if askyn("Save mission summary to file?(y/n)") then
@@ -335,60 +215,14 @@ sub postmortem
         f=freefile
         open player.desig &".txt" for output as f
         dprint "saving to "&player.desig &".txt"
-        for b=1 to 25
-            lines(b)=rtrim(lines(b))
-            lines(b+1)=rtrim(lines(b+1))
-            if lines(b)<>"" then print #f,lines(b)
-            if lines(b)="" and lines(b+1)<>"" then print #f,lines(b)
-        next
-        cls
-        shipstatus(1)
-        for a=1 to 25
-            lines(a)=""
-            for b=1 to 80
-                lines(a)=lines(a) &chr(screen(a,b))
-            next
-        next
-        for b=1 to 25
-            lines(b)=rtrim(lines(b))
-            lines(b+1)=rtrim(lines(b+1))
-            if lines(b)<>"" then print #f,lines(b)
-            if lines(b)="" and lines(b+1)<>"" then print #f,lines(b)
-        next
-    b=0
-    c=0
-    print #f,""
-    print #f,"Remarkable Planets:"
-    print #f,""
-    for a=0 to lastspecial
-        if discovered(a)=1 then
-            if isgasgiant(specialplanet(a))=0 then
-                color 14,0
-                b=b+1    
-                locate 12+b,5
-                if a<>20 then
-                    print #f,descr(a)
-                else
-                    if specialflag(a)=1 then 
-                    print #f,"A planet under the control of an alien lifeform"
-                    else
-                        print #f,descr(20)
-                    endif
-                endif
-            else
-                c=c+1
-            endif            
-        endif
-    next
-    if c>0 then
-        b=b+1
-        locate 14+b,5
-        if c=1 then 
-            print #f,"A refuel platform of an ancient civilication"
-        else
-             print #f,c &" refuel platforms of an ancient civilication"
-        endif
-    endif
+        Print UCASE(st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts")
+        print #f,getdeath
+        print #f,""
+        print #f,texttofile(endstory)
+        print #f,texttofile(missiontype)
+        print #f,texttofile(moneytext)
+        print #f,texttofile(explorationtext)
+        print #f,texttofile(uniques)
         print #f,""
         if player.science=6 then print #f,"Found and recruited the best science officer in the sector"    
         if player.gunner=6 then print #f,"Found and recruited the best gunner in the sector"
@@ -401,7 +235,8 @@ sub postmortem
         if specialflag(20)=1 then print #f,,"Managed to free a colony of an opressive crystal intelligence."
         if player.questflag(3)=2 then print #f,"Secured the use of alien robot ships."
         print #f,""
-        print #f,getdeath
+        
+        print #f,texttofile(listartifacts)
         print #f,""
         print #f,"Equipment:"
         
@@ -416,7 +251,7 @@ sub postmortem
             endif
         next
         print #f,""
-        print #f,"End mission summary"
+        print #f,"END OF MISSION SUMMARY"
         dprint "saved"
         close f
     endif
@@ -435,7 +270,7 @@ sub highsc()
     dim f as integer
     dim a as integer
     dim s as integer
-    
+    dim as short xo,yo
     'open highscore table
     f=freefile
     open "highscore" for binary as f
@@ -476,31 +311,38 @@ sub highsc()
     color 11,0
 
     cls
+    
+    background(rnd_range(1,_last_title_pic)&".bmp")
+    yo=(_screeny-22*_fh2)/2
+    xo=(_screenx-80*_fw2)/2
+    color 0,0
+    for a=yo/2-_fh2 to _screeny-yo/2+_fh2 step _fh2-1
+        draw string (xo,a),space(80),,font2,custom,@_col
+    next
     color 15,0
-    locate 1,20 
-    print "MOST SUCCESSFUL MISSIONS"
+    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
+    draw string (2*_fw2+xo,yo/2),"10 MOST SUCCESSFUL MISSIONS",,Titlefont,custom,@_col
     
     for a=1 to 10
-        locate (a*2)+1,5
         if a=rank then 
             color 15,0
         else
             color 11,0
         endif
-        print a & ".) " & highscore(a+off2).desig & ", "& highscore(a+off2).points &" pts.:"
+        draw string (5*_fw2+xo,yo+(a*2)*_fh2), a & ".) " & trim(highscore(a+off2).desig) & ", "& highscore(a+off2).points &" pts.:",,font2,custom,@_col
         locate (a*2)+2,2 
         if a=rank then
             color 14,0
         else
             color 7,0
         endif
-        print highscore(a+off2).death
+        draw string (2*_fw2+xo,yo+(a*2+1)*_fh2), trim(highscore(a+off2).death),,font2,custom,@_col
     next
     color 11,0
     locate 24,5,0
-    if rank>10 then print highscore(10).points &" Points required to enter highscore. you scored "&s &" Points"
+    if rank>10 then draw string (2*_fw2+xo,_screeny-yo), highscore(10).points &" Points required to enter highscore. you scored "&s &" Points",,font2,custom,@_col
     locate 25,20,0 
-    print "Esc to continue";
+    draw string (2*_fw2+xo,_screeny-yo/2), "Esc to continue",,font2,custom,@_col
     no_key=keyin(key_esc)
     'save highscore table
     f=freefile
@@ -610,7 +452,7 @@ function getdeath() as string
     if player.dead=27 then death="Attempted to land on a gas giant without his spaceship"
     if player.dead=28 then death="Underestimated the risks of surgical body augmentation"
     if player.dead=29 then death="Got caught in a huge explosion"
-    if player.dead=29 then death="Lost while exploring an anomaly"
+    if player.dead=30 then death="Lost while exploring an anomaly"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

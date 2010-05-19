@@ -1,6 +1,9 @@
 '
 ' debugging flags 0=off 1 =on
 '
+
+const __VERSION__="0.1.12"
+
 Const Show_NPCs=0 'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
@@ -16,6 +19,7 @@ const show_allitems=0
 const easy_fights=0
 const show_eventp=0
 const show_mapnr=0
+const show_enemyships=0
 
 const toggling_filter=0
 const fuel_usage=0 
@@ -44,6 +48,8 @@ dim shared as byte _NoPB=2
 dim shared as byte wormhole=8
 dim shared as short countpatrol,makepat
 
+dim shared as ushort _screenx=800
+dim shared as ushort _screeny=0
 dim shared as byte _teamcolor=15
 dim shared as byte _shipcolor=14
 dim shared as byte _chosebest=1
@@ -66,7 +72,11 @@ dim shared as byte _easy=0
 dim shared as byte _resolution=2
 dim shared as byte _showvis=0
 dim shared as byte _lines=25
+dim shared as byte _textlines
 dim shared as byte _onbar=1
+dim shared as byte _altnumber=1
+dim shared as byte _customfonts=1 
+dim shared as byte _transitems=0
 
 dim shared as byte captainskill=-5
 dim shared as byte wage=10
@@ -127,11 +137,14 @@ dim shared as string*1 key_sw="1"
 dim shared as string*1 key_south="2"
 dim shared as string*1 key_se="3"
 dim shared as string*1 key_wait="5"
+dim shared as string*1 key_layfire="0"
 dim shared as string*1 key_portal="<"
 dim shared as string*1 key_logbook="L"
 dim shared as string*1 key_yes="y"
 dim shared as string*1 no_key
 dim shared uid as uinteger
+
+
 using FB
 randomize timer
 
@@ -452,6 +465,10 @@ type _station
     biomod as single
     resmod as single
     pirmod as single
+    lastsighting as short
+    lastsightingdis as short
+    lastsightingturn as short
+                
 end type
 
 type _comment
@@ -576,6 +593,59 @@ type _shipfire
     tile as string*1
 end type
 
+Type FONTTYPE
+  As Integer w
+  As Any Ptr dataptr
+End Type
+
+
+type MODE
+  As Integer mode_num      '/* Current mode number */
+  As Byte Ptr ptr page      '/* Pages memory */
+  As Integer num_pages      '/* Number of requested pages */
+  As Integer work_page      '/* Current work page number */
+  As Byte Ptr framebuffer   '/* Our current visible framebuffer */
+  As Byte Ptr ptr Line      '/* Line pointers into current active framebuffer */
+  As Integer pitch      '/* Width of a framebuffer line in bytes */
+  As Integer target_pitch   '/* Width of current target buffer line in bytes */
+  As Any Ptr last_target   '/* Last target buffer set */
+  As Integer max_h      '/* Max registered height of target buffer */
+  As Integer bpp      '/* Bytes per pixel */
+  As Uinteger Ptr Palette   '/* Current RGB color values for each palette index */
+  As Uinteger Ptr device_palette   '/* Current RGB color values of visible device palette */
+  As Byte Ptr color_association   '/* Palette color index associations for CGA/EGA emulation */
+  As Byte Ptr dirty               '/* Dirty lines buffer */
+  As Any Ptr driver      '/* Gfx driver in use */
+  As Integer w
+  As Integer h         '/* Current mode width and height */
+  As Integer depth      '/* Current mode depth */
+  As Integer color_mask      '/* Color bit mask for colordepth emulation */
+  As Any Ptr default_palette   '/* Default palette for current mode */
+  As Integer scanline_size   '/* Vertical size of a single scanline in pixels */
+  As Uinteger fg_color
+  As Uinteger bg_color      '/* Current foreground and background colors */
+  As Single last_x
+  As Single last_y      '/* Last pen position */
+  As Integer cursor_x
+  As Integer cursor_y      '/* Current graphical text cursor position (in chars, 0 based) */
+  As fonttype Ptr font      '/* Current font */
+  As Integer view_x
+  As Integer view_y
+  As Integer view_w
+  As Integer view_h      '/* VIEW coordinates */
+  As Single win_x
+  As Single win_y
+  As Single win_w
+  As Single win_h      '/* WINDOW coordinates */
+  As Integer text_w
+  As Integer text_h      '/* Graphical text console size in characters */
+  As Byte Ptr Key      '/* Keyboard states */
+  As Integer refresh_rate   '/* Driver refresh rate */
+  As Integer flags      '/* Status flags */
+End Type
+
+Extern fb_mode As MODE Ptr
+
 '
 '
 'reward slots
@@ -589,7 +659,6 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
-const __VERSION__="0.1.11a"
 
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
@@ -623,12 +692,13 @@ dim shared spacemap(sm_x,sm_y) as short
 dim shared combatmap(60,20) as byte
 dim shared planetmap(60,20,max_maps) as short
 dim shared planets(max_maps) as _planet
+dim shared retirementassets(16) as ubyte
 for a=0 to max_maps
     planets(a).darkness=5
 next
 dim shared item(25000) as _items
 dim shared lastitem as integer
-
+dim shared _last_title_pic as byte=9
 dim shared shopitem(20,21) as _items
 dim shared makew(20,5) as byte
 
@@ -645,11 +715,9 @@ dim shared specialplanettext(lastspecial,1) as string
 dim shared specialflag(lastspecial) as byte
 dim shared atmdes(16) as string
 dim shared sound(11) as integer ptr
-dim shared displaytext(64) as string
-dim shared dtextcol(64) as short
-for a=0 to 30
-    dtextcol(a)=11
-next
+
+dim shared displaytext(255) as string
+dim shared dtextcol(255) as short
 
 dim shared patrolmod as short
 dim shared fleet(255) as _fleet
@@ -687,6 +755,12 @@ dim shared spectralshrt(9) as string
 dim shared tacdes(5) as string
 
 
+dim shared as FB.IMAGE ptr TITLEFONT
+dim shared as any ptr FONT1,FONT2
+dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
+
+dim shared endstory as string
+
 ' SUB DECLARATION
 
 ' prospector .bas
@@ -698,6 +772,10 @@ declare function asteroidmining(slot as short) as short
 declare sub gasgiantfueling(t as short,orbit as short,sys as short)
 declare sub driftingship(a as short)
 declare sub moverover(pl as short)
+declare function rnd_crewmember(onship as short=0) as short
+declare function alerts(awayteam as _monster,walking as short) as short
+
+declare function retirement() as short
 
 declare function ep_portal(awayteam as _monster,byref walking as short) as _cords
 declare function ep_pickupitem(key as string, awayteam as _monster,byref lastlocalitem as short,li() as short) as short
@@ -710,24 +788,25 @@ declare function ep_radio(awayteam as _monster,byref ship as _cords, byref nextl
 declare function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as single) as short
 declare function ep_fire(awayteam as _monster, enemy() as _monster,lastenemy as short,vismask() as byte,mapmask() as byte,byref walking as short,key as string,byref autofire_target as _cords) as short
 declare function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
-declare function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, lastenemy as short, li() as short, lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte, byref walking as short) as short
-declare function ep_items(awayteam as _monster, li() as short, lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short) as short
+declare function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte, byref walking as short) as short
+declare function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short) as short
 declare function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as byte, byref dawn as single, byref dawn2 as single) as short
 declare function ep_tileeffects(awayteam as _monster,areaeffect() as _ae, byref last_ae as short,lavapoint() as _cords, nightday() as byte, localtemp() as single,vismask() as byte) as short
 declare function ep_landship(byref ship_landing as short,nextlanding as _cords,ship as _cords,nextmap as _cords,vismask() as byte,enemy() as _monster,lastenemy as short) as short
-declare function ep_areaeffects(awayteam as _monster,areaeffect() as _ae,byref last_ae as short,lavapoint() as _cords,enemy() as _monster, lastenemy as short, li() as short, lastlocalitem as short) as short
+declare function ep_areaeffects(awayteam as _monster,areaeffect() as _ae,byref last_ae as short,lavapoint() as _cords,enemy() as _monster, lastenemy as short, li() as short,byref lastlocalitem as short) as short
 declare function ep_atship(awayteam as _monster,ship as _cords,walking as short) as short
-declare function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monster, lastenemy as short,li() as short, lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,vismask() as byte,localturn as short) as short
+declare function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monster, lastenemy as short,li() as short,byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,vismask() as byte,localturn as short) as short
 declare function ep_jumppackjump(awayteam as _monster) as short
-declare function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short, lastlocalitem as short,byref localturn as short,byref walking as short) as short
+declare function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short,byref  lastlocalitem as short,byref localturn as short,byref walking as short) as short
 declare function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _cords) as short
 declare function ep_lava(awayteam as _monster,lavapoint() as _cords,ship as _cords, vismask() as byte, byref walking as short) as short
-declare function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, lastlocalitem as short) as short
+declare function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
 declare function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,vismask() as byte) as short
+declare function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as short) as short
 
 declare function teleport(awaytam as _cords, map as short) as _cords
 declare function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() as _tile) as _monster
-declare function hitmonster(defender as _monster,attacker as _monster, mapmask() as byte) as _monster
+declare function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte, first as short=-1, last as short=-1) as _monster
 declare function monsterhit(defender as _monster, attacker as _monster) as _monster
 declare function spacecombat(defender as _ship,atts as _fleet, ter as short) as _ship
 declare function spacestation(st as short) as _ship
@@ -747,6 +826,7 @@ declare function savebones(t as short) as short
 declare function loadbones() as short
 declare function configuration() as short
 declare function loadmap(m as short,slot as short) as short
+declare function texttofile(text as string) as string
 
 ' prosIO.bas
 declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
@@ -765,10 +845,13 @@ declare sub displaystar(a as short)
 declare sub displayplanetmap(a as short)
 declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
-declare sub displaysystem(sys as _stars,forcebar as byte=0)
+declare sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
 declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short)
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
-declare function locEOL() as short
+declare function locEOL() as _cords
+declare function drawsysmap(x as short, y as short, in as short, hi as short=0,bl as string,br as string) as short
+declare function nextplan(p as short,in as short) as short
+declare function prevplan(p as short,in as short) as short
 
 declare function hpdisplay(a as _monster) as short
 declare function infect(a as short, dis as short) as short
@@ -783,10 +866,11 @@ declare function cureawayteam(where as short) as short
 declare function healawayteam(byref a as _monster,heal as short) as short
 declare function damawayteam(byref a as _monster,dam as short,ap as short=0,dis as short=0) as string
 declare function dplanet(p as _planet,orbit as short, scanned as short) as short
-declare function dprint(text as string, col as short=11,delay as byte=1) as short
+declare function dprint(text as string, col as short=11) as short
+declare function scrollup(b as short) as short
 declare function blink(byval p as _cords) as short
 declare function cursor(target as _cords,map as short) as string
-declare function menu(text as string,help as string="", x as short=2, y as short=2,blocked as short=0) as short
+declare function menu(text as string,help as string="", x as short=2, y as short=2,blocked as short=0,markesc as short=0) as short
 declare function move_ship(key as string,byref walking as short) as _ship
 
 declare function getplanet(sys as short, forcebar as byte=0) as short
@@ -815,7 +899,7 @@ declare function getfilename() as string
 declare function savegame()as short
 declare function loadgame(filename as string) as short
 declare function copytile (byval a as short) as _tile
-
+declare function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr     
 
 declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as _cords,e_track_v()as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
@@ -891,8 +975,9 @@ declare function floodfill3(x as short,y as short,map() as short) as short
 declare function checkdoor(x as short,y as short, map() as short) as short
 declare function checkbord(x as short,y as short, map() as short) as short
 
-
 'pirates
+
+declare function ss_sighting(i as short) as short
 declare function makeweapon(a as short) as _weap
 declare function makeship(a as short) as _ship
 declare function makemonster(a as short, map as short) as _monster
@@ -921,6 +1006,11 @@ declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,
 
 
 'highscore
+declare function mercper() as short
+declare function explper() as short
+declare function moneytext() as string
+declare function explorationtext() as string
+declare function missiontype() as string
 declare sub highsc()
 declare sub postmortem
 declare function score() as integer
@@ -975,7 +1065,7 @@ declare function sickbay(st as short=0) as short
 declare function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
 declare function removeequip() as short
 declare function findbest(t as short,p as short=0, m as short=0) as short
-declare function makeitem(a as short,mod1 as short=0,mod2 as short=0) as _items
+declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
 declare function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
@@ -987,6 +1077,8 @@ declare function findworst(t as short,p as short=0, m as short=0) as short
 declare function rnd_item(t as short) as _items
 declare function getrnditem(fr as short,ty as short) as short
 declare function better_item(i1 as _items,i2 as _items) as short
+declare function listartifacts() as string
+
 'math
 declare function countdeadofficers(max as short) as short
 declare function nearestbase(c as _cords) as short
@@ -1003,7 +1095,7 @@ declare function content(r as _rect,tile as short,map()as short) as integer
 declare function distance(first as _cords, last as _cords) as single
 declare Function rnd_range (first As short, last As short) As short
 declare function movepoint(byval c as _cords, a as short, eo as short=0,showstats as short=0) as _cords
-declare function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0) as short
+declare function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=0) as short
 declare function nearest(c as _cords,b as _cords) as single
 declare function farthest(c as _cords,b as _cords) as single
 declare function distributepoints(result() as _cords, ps() as _cords, last as short) as single
@@ -1022,4 +1114,49 @@ declare function dirdesc(start as _cords,goal as _cords) as string
 declare function rndsentence(aggr as short, intel as short) as string
 declare function showquests() as short
 declare function planetbounty() as short
+
+declare function es_part1() as string
+declare function Crewblock() as string
+declare function shipstatsblock() as string
+declare function uniques() as string
+
+declare function hasassets() as short
+declare function sellassetts () as string
+declare function es_title(byref pmoney as single) as string
+declare function es_living(byref pmoney as single) as string
+
+using ext
+
+declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+
+Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+    dim c as uinteger
+    c=color
+    if src=0 then 
+        return dest
+    else 
+        return loword(c)
+    endif
+end function
+
+declare Function _col( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+
+Function _col( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+    if src=0 then 
+        return hiword(color)
+    else 
+        return loword(color)
+    endif
+end function
+
+declare Function _icol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+
+Function _icol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
+    'Itemcolor
+    if src=0 then 
+        return hiword(color)
+    else 
+        return loword(color)
+    endif
+end function
 

@@ -129,6 +129,7 @@ end function
         
 function collidefleets() as short
     dim as short a,b,c,d    
+    if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         for b=a to lastfleet
             if b<>a then
@@ -199,9 +200,46 @@ function collidefleets() as short
     return 0
 end function
 
+function ss_sighting(i as short) as short
+    dim text as string
+    dim fn as short
+    if basis(i).lastsighting=0 then return 0
+    if basis(i).lastsightingturn-player.turn<25 then
+        text ="There are some rumors about"
+        if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
+        if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with"
+    else
+        return 0
+    endif
+    if basis(i).lastsightingdis>5 then
+        text=text & " a long distance unidentified sensor contact, "& basis(i).lastsightingdis &" parsecs out."
+    else
+        fn=basis(i).lastsighting
+        if basis(i).lastsightingdis>2 and basis(i).lastsightingdis<=5  then
+            text = text &" mid range sensor contact with"
+        endif
+        if basis(i).lastsightingdis<=2  then
+            text = text &" short range sensor contact with"
+        endif
+        if fleet(fn).ty=2 then text=text &" a pirate fleet."
+        if fleet(fn).ty=4 then 
+            if basis(i).lastsightingdis<=3  then
+                text=text &" the pirate ship "& fleet(fn).mem(1).desig &"!"
+            else
+                text=text &" a pirate fleet."
+            endif
+        endif
+        if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
+    endif
+    text=text & fn &"typ:"&fleet(fn).ty
+    if text<>"" then dprint text
+    return 0
+end function
+    
 function movefleets() as short
-    dim as short a,b,c,roll,direction,freecargo
+    dim as short a,b,c,roll,direction,freecargo,s
     a=0
+    if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         updatetargetlist()
         if fleet(a).ty=2 then
@@ -245,6 +283,15 @@ function movefleets() as short
             fleet(a)=unload_f(fleet(a),6)
             fleet(a).t=9
         endif
+        for s=0 to 2
+            if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
+                if distance(fleet(a).c,basis(s).c)<12 then
+                    basis(s).lastsighting=a
+                    basis(s).lastsightingdis=fix(distance(fleet(a).c,basis(s).c))
+                    basis(s).lastsightingturn=player.turn
+                endif
+            endif
+        next
     next
     return 0
 end function
@@ -611,27 +658,17 @@ function makemonster(a as short, map as short) as _monster
         if crew(g).hp>0 then ahp=ahp+1
     next
     
-    b=(ahp\8)+1 'HD size
+    b=(ahp\12)+1 'HD size
     b=b+planets(map).depth
-    if b<3 then b=3
-    if b>12 then b=12
+    if b<2 then b=2
+    if b>8 then b=8
     
-    c=(ahp\12)+1 'Times rolled
+    c=(ahp\15)+1 'Times rolled
     if c<1 then c=1
-    if c>13 then c=13
+    if c>10 then c=10
      'maxpossible
 '        
     enemy.made=a 'saves how the critter was made for respawning
-    'a=1 Standard critter
-    'a=2 Powerful standard critter
-    'a=3 Pirate band
-    'a=4 Plantmonster
-    'a=5 Fighting leaf
-    'a=6 Merry pirate band
-    'a=7 Defense bots
-    'a=8 Vault defense bots
-    'a=10 Seewead breeder
-    'a=15 Awayteam
     
     if a=1 or a=24 then 'standard critter
         'Postion
@@ -705,11 +742,9 @@ function makemonster(a as short, map as short) as _monster
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
         if rnd_range(1,100)<25-enemy.intel then enemy.disease=rnd_range(1,15)
-        mapo=0
-        for l=1 to c+ad(g)
-            enemy.hp=enemy.hp+rnd_range(1,b)
-            mapo=mapo+b-1
-        next
+        
+        enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
+            
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
         enemy.sdesc=ti(g)
@@ -730,9 +765,9 @@ function makemonster(a as short, map as short) as _monster
         endif
         
         if enemy.weapon>2 then enemy.col=12
-        if enemy.hp>mapo*0.7 then 
+        if enemy.hp>5 then 
             enemy.tile=asc(ucase(chr(enemy.tile)))
-            enemy.hpmax=enemy.hpmax+rnd_range(1,6)
+            enemy.hpmax=enemy.hpmax+rnd_range(1,2)
             enemy.hp=enemy.hpmax
         else
             enemy.tile=asc(lcase(chr(enemy.tile)))
@@ -753,9 +788,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,4)-2
         if enemy.weapon<0 then enemy.weapon=0
-        for l=1 to c+1+ad(g)
-            enemy.hp=enemy.hp+rnd_range(3,b)
-        next
+        enemy.hp=10+rnd_range(5,15)+rnd_range(5,ad(g))*5+rnd_range(1,1+planets(map).depth)
         enemy.hp=enemy.hp+rnd_range(1,2)+enemy.weapon
         enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)+2
@@ -1428,7 +1461,7 @@ function makemonster(a as short, map as short) as _monster
     
     if a=22 then 'Intelligent Centipede
         enemy.sdesc="centipede"
-        enemy.ldesc="a 3m long centipede. It only uses its lower 12 legs for movement. It's upper body is erect and its 12 arms end in slender 3 fingered hands. It has a single huge compound eye at the top of its head. It has 2 mouths, one for eating and one for breathing and talking. It is a herbivour." 
+        enemy.ldesc="a 3m long centipede. It only uses its lower 12 legs for movement. It's upper body is erect and its 12 arms end in slender 3 fingered hands. It has a single huge compound eye at the top of its head. It has 2 mouths, one for eating and one for breathing and talking. It is a herbivore." 
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.sight=3
@@ -2842,7 +2875,6 @@ function makemonster(a as short, map as short) as _monster
         endif
         enemy.hp=enemy.hpmax
     endif
-    
         
     if a=66 then 'Citizen
         enemy.sdesc="citizen"
@@ -2866,8 +2898,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=1
     endif
     
-    
-    if a=67 then  'Hunting Spider
+    if a=67 then  'Burrower
         enemy.sdesc="Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -2876,19 +2907,20 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=1
         enemy.armor=1
-        enemy.hp=rnd_range(1,5)+5
+        enemy.hp=rnd_range(1,5)+3
         enemy.atcost=rnd_range(6,8)/10
         enemy.hpmax=enemy.hp
         enemy.biomod=1
         enemy.move=0.7
         enemy.aggr=0
+        enemy.lang=-30
         enemy.tile=Asc("I")
         enemy.sprite=285
         enemy.col=162
         enemy.invis=2
     endif
     
-    if a=68 then  'Hunting Spider
+    if a=68 then  'Burrower Mom
         enemy.sdesc="Huge Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -2911,6 +2943,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.itemch(1)=110
         enemy.col=204
         enemy.invis=2
+        enemy.lang=-31
     endif
     
     if a=69 then
@@ -3031,7 +3064,6 @@ function makemonster(a as short, map as short) as _monster
         enemy.armor=1
         enemy.move=.8
     endif
-    
     
     if a=72 then
         enemy.faction=1
@@ -3374,6 +3406,12 @@ dim as short c,b
 
     if a=1 then
         'players ship    
+        'retirementassets(9)=1
+        'retirementassets(6)=1
+        'retirementassets(11)=1
+        'p.questflag(3)=1
+        'artflag(5)=1
+        'artflag(7)=1
         p.c=basis(0).c
         p.sensors=1
         p.hull=5

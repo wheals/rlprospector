@@ -138,7 +138,7 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     dprint "ITEM PLACEMENT ERROR!(lastitem="&lastitem &")",14
 end function
 
-function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
+function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
     dim i as _items
     dim as short f,roll,target
     if uid=4294967295 then 
@@ -1591,9 +1591,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         i.ty=15
         
         i.desigp="resources"
-        i.v1=rnd_range(1,4)+mod1
-        i.v2=rnd_range(1,8)+mod2
-        
+        i.v1=rnd_range(1,4+mod1)
+        if rnd_range(1,100)<15 then
+            i.v2=rnd_range(1,8+mod2)
+        else
+            i.v2=prefmin
+        endif
         if i.v2>9 then i.v1=i.v1-1
         if i.v2>10 then i.v1=i.v1-1
         if i.v2>11 then i.v1=i.v1-1
@@ -1647,14 +1650,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
         if i.v2=14 then i.desig="rhodium"
         if i.v2=14 then i.col=12
         
-        i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(i.v2*rnd_range(1,10-player.science))
+        i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(rnd_range(1,5+player.science))
         i.price=i.v5/10   
         i.res=i.v5*10         
         
         i.scanmod=rnd_range(0,i.v1)
         i.icon="*"
         i.bgcol=0  
-        roll=rnd_range(1,100)+player.turn/100+mod1+mod2
+        roll=rnd_range(1,100+player.turn/100+mod1+mod2)
         if roll>125 and mod1>0 and mod2>0 then i=makeitem(99)
         if make_files=1 then
             f=freefile
@@ -2012,6 +2015,37 @@ function removeequip() as short
     return 0
 end function
 
+function listartifacts() as string
+    dim as short a,c
+    dim flagst(16) as string
+    flagst(1)="Fuel System"
+    flagst(2)="Disintegrator"
+    flagst(3)="Scanner"
+    flagst(4)=" Ion canon"
+    flagst(5)="Bodyarmor"
+    flagst(6)="Engine"
+    flagst(7)="Sensors"
+    flagst(8)=" Cryochamber"
+    flagst(9)="Teleportation device"
+    flagst(10)=""
+    flagst(11)=""
+    flagst(12)="Cloaking device"
+    flagst(13)="Wormhole shield"
+    flagst(16)="Wormhole navigation device"
+    color 15,0
+    flagst(0)=" {15} Alien Artifacts {11}|"
+    for a=1 to 16
+        if artflag(a)>0 then
+            c=c+1
+            flagst(0)=flagst(0) &flagst(a) &"|"
+        endif
+    next
+    if c=0 then
+        flagst(0)=flagst(0) &"      {14} None |"
+    endif
+    return flagst(0)    
+end function
+
 function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
     dim as short b,a,set,lastinv
     for a=0 to lastitem
@@ -2094,17 +2128,16 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     if li=0 then return -1
     if li=1 and (fr=999 or ty=999) and forceselect=0 then return mit(1)
     cu=1
-    do
-        for a=1 to li
-            for b=1 to li-1
-                if item(mit(b)).ty>item(mit(b+1)).ty or (item(mit(b)).ty=item(mit(b+1)).ty and better_item(item(mit(b)),item(mit(b+1)))=1) then
-                    swap mno(b),mno(b+1)
-                    swap mls(b),mls(b+1)
-                    swap mit(b),mit(b+1)
-                endif
-            next
+    for a=1 to li
+        for b=1 to li-1
+            if item(mit(b)).ty>item(mit(b+1)).ty or (item(mit(b)).ty=item(mit(b+1)).ty and better_item(item(mit(b)),item(mit(b+1)))=1) then
+                swap mno(b),mno(b+1)
+                swap mls(b),mls(b+1)
+                swap mit(b),mit(b+1)
+            endif
         next
-        
+    next
+    do
         if k=8 then cu=cu-1
         if k=2 then cu=cu+1
         if cu<1 then 
@@ -2127,7 +2160,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
         
         Color 15,0
         locate 3,3
-        print "Select item:" 
+        draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
         if offset<0 then offset=0
         if li>15 and offset>li-cu then offset=li-cu
         if cu>li then 
@@ -2137,27 +2170,22 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
         if cu<0 then cu=0
         for a=1 to 15
             if mls(a+offset)<>"" then
-                locate a+3,6
                 color 0,0
-                print space(35)
+                draw string (3*_fw1,3*_fh1+a*_fh2),space(35),,font2,custom,@_col
                 if cu=a then
                     color 15,5
                 else
                     color 11,0
                 endif
-                locate a+3,6
-                print mls(a+offset);
-                if mno(a+offset)>1 then print "("&mno(a+offset) &")"
+                draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset),,font2,custom,@_col
+                if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
             endif
         next
-        locate 19,6
         color 15,0
         if li>15 then 
-            print "[More]"
-            locate 20,3
+            draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif
-        locate 21,6
-        print "Return to select item, esc to quit"
+        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit",,font2,custom,@_col
         key=keyin
         k=getdirection(key)
         
@@ -2225,6 +2253,15 @@ function findworst(t as short,p as short=0, m as short=0) as short
 end function
 
 function better_item(i1 as _items,i2 as _items) as short
+    dim as short i,l
+    if len(i1.desig)>len(i2.Desig) then 
+        l=len(i1.desig)
+    else
+        l=len(i2.desig)
+    endif
+    for i=1 to l-1
+        if asc(mid(i1.desig,i,1))>asc(mid(i2.desig,i,1)) then return 1
+    next
     if i1.v1+i1.v2+i1.v3+i1.v4+i1.v5>i2.v1+i2.v2+i2.v3+i2.v4+i2.v5 then return 1
     return 0
 end function
