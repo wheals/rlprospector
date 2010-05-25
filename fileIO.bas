@@ -148,12 +148,39 @@ function background(fn as string) as short
 end function
 
 function loadkeyset() as short
-    dim f as short
+    dim as short f,a,c,i,j
     dim as string text,lctext
+    dim keys(256) as string
     f=freefile
     if fileexists("keybindings.txt") then
+        
         open "keybindings.txt" for input as #f
         print "loading keyset";
+        do 
+            line input #f,text
+            if instr(text,"#")=0 and len(text)>0 then                            
+                a+=1
+                keys(a)=right(text,1)
+            endif
+        loop until eof(f)
+        for i=1 to a
+            for j=1 to a
+                if i<>j then
+                    if keys(i)=keys(j) then
+                        print "Two commands bound to "&keys(j) &"in line "&i &" and "&j
+                        print "using default keys"
+                        sleep 250
+                        close f
+                        return 0
+                    endif
+                endif
+            next
+        next
+        
+        close f
+        f=freefile
+        open "keybindings.txt" for input as #f
+            
         do
             print ".";
             line input #f,text
