@@ -988,7 +988,7 @@ tiles(108).hides=2
 tiles(108).dr=4
 tiles(108).shootable=1
 tiles(108).hp=30
-tiles(108).turnsinto=47
+tiles(108).turnsinto=108
 tiles(108).seetru=1
 tiles(108).firetru=1
 

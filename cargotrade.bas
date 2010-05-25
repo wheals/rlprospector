@@ -115,7 +115,7 @@ function gethullspecs(t as short) as _ship
 end function
 
 function upgradehull(t as short,byref s as _ship) as short
-    dim as short f,flg,a,b,cargobays,weapons,tfrom,tto
+    dim as short f,flg,a,b,cargobays,weapons,tfrom,tto,m
     dim n as _ship
     dim d as _crewmember
     dim as string ques
@@ -167,32 +167,32 @@ function upgradehull(t as short,byref s as _ship) as short
         if s.hull>s.h_maxhull then s.hull=s.h_maxhull
         if s.fuel=0 or s.fuel>s.h_maxfuel then s.fuel=s.h_maxfuel
         if s.h_maxweaponslot<weapons then
-            'Transfer weapons
-            do
-                tfrom=(s.h_maxweaponslot -tto)
-                text="Chose weapons to transfer ("&tfrom &"):"
-                b=1
-                for a=1 to 10
-                    if s.weapons(a).desig<>"" then 
-                        text=text &"/"&s.weapons(a).desig
-                        b=b+1
-                    endif
-                next
-                text=text &"/Exit"
-                a=menu(text)
-                if a<b then
-                    tto=tto+1
-                    n.weapons(tto)=s.weapons(a)
-                    dprint "Transfering "&s.weapons(a).desig &" to slot "&tto
-                    weapons=weapons-1
-                endif
-                if a=b then
-                    if not(askyn("Do you really want to lose your remaining weapons(y/n)?")) then a=0
-                endif
-            loop until a=b or tto=s.h_maxweaponslot
-            for a=0 to 10
-                s.weapons(a)=n.weapons(a)
-            next
+            poolandtransferweapons(n,s)
+'            do
+'                tfrom=(s.h_maxweaponslot -tto)
+'                text="Chose weapons to transfer ("&tfrom &"):"
+'                b=1
+'                for a=1 to 10
+'                    if s.weapons(a).desig<>"" then 
+'                        text=text &"/"&s.weapons(a).desig
+'                        b=b+1
+'                    endif
+'                next
+'                text=text &"/Exit"
+'                a=menu(text)
+'                if a<b then
+'                    tto=tto+1
+'                    n.weapons(tto)=s.weapons(a)
+'                    dprint "Transfering "&s.weapons(a).desig &" to slot "&tto
+'                    weapons=weapons-1
+'                endif
+'                if a=b then
+'                    if not(askyn("Do you really want to lose your remaining weapons(y/n)?")) then a=0
+'                endif
+'            loop until a=b or tto=s.h_maxweaponslot
+'            for a=0 to 10
+'                s.weapons(a)=n.weapons(a)
+'            next
         endif
         
         recalcshipsbays
@@ -273,7 +273,7 @@ function company(st as short,byref questroll as short) as short
         player.questflag(6)=3
         no_key=keyin
     endif
-    if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).mapped>=1200 then
+    if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).flags(21)=1 then
         player.money=player.money+1000
         player.merchant_agr=player.merchant_agr-5
         dprint "The company rep pays your contract for mapping the planet",10
@@ -987,58 +987,73 @@ function sickbay(st as short=0) as short
                 dprint ""
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
                 if b>0 and b<7 then
-                    if askyn("Do you want to buy "&augn(b) &" for the whole crew?(y/n)") then
-                        if crew(6).hpmax>0 then
-                            c=6
-                        else
-                            c=1
-                        endif
-                        c2=0
-                    else
-                        c=showteam(0,1)
-                        c2=1
-                    endif
                     do
-                        if crew(c).typ<=9 and b>0 and c>0 then
-                            if crew(c).augment(b)=0 then
-                                if player.money>=augp(b) and crew(c).hp>0 then
-                                    if crew(c).augment(9)<3 or st<>0 then
-                                        if st<>0 and crew(c).augment(9)>=3 then 
-                                            if not(askyn("Installing more than 3 augmentations can be dangerous, even kill the recipient. shall we proceed? (y/n)")) then c=-1
-                                        endif        
-                                            if c>0 then
-                                            crew(c).augment(9)+=1
-                                            player.money=player.money-augp(b)
-                                            crew(c).augment(b)=1
-                                            if b=6 then 
-                                                crew(c).hp+=1
-                                                crew(c).hpmax+=1
+                        c=showteam(0,1,augn(b)&c)
+                        if c>0 then c2=1
+                        if c=-1 then
+                            if crew(6).hpmax>0 then
+                                c=6
+                            else
+                                c=1
+                            endif
+                            c2=0
+                        endif
+                        screenset 0,1
+                        cls
+                        displayship()
+                        flip
+                        screenset 1,1
+                        if c<>0 then
+                            do
+
+                                if crew(c).typ<=9 and b>0 and c>0 then
+                                    if crew(c).augment(b)=0 then
+                                        if player.money>=augp(b) and crew(c).hp>0 then
+                                            if crew(c).augment(9)<3 or st<>0 then
+                                                if st<>0 and crew(c).augment(9)>=3 then 
+                                                    if not(askyn("Installing more than 3 augmentations can be dangerous, even kill the recipient. shall we proceed? (y/n)")) then c=-1
+                                                endif        
+                                                    if c>0 then
+                                                    crew(c).augment(9)+=1
+                                                    player.money=player.money-augp(b)
+                                                    crew(c).augment(b)=1
+                                                    if b=6 then 
+                                                        crew(c).hp+=1
+                                                        crew(c).hpmax+=1
+                                                    endif
+                                                    dprint augn(b) & " installed in "&crew(c).n &"."
+                                                    if crew(c).augment(9)>3 and rnd_range(1,6)+rnd_range(1,6)>11-crew(c).augment(9) then
+                                                        dprint crew(c).n &" has died during the operation."
+                                                        crew(c).hp=0
+                                                        no_key=keyin
+                                                        if c=1 then player.dead=28
+                                                    endif
+                                                endif
+                                            else
+                                                dprint "We can't install more than 3 augmentations."
+                                                no_key=keyin
                                             endif
-                                            dprint augn(b) & " installed in "&crew(c).n &"."
-                                            if crew(c).augment(9)>3 and rnd_range(1,6)+rnd_range(1,6)>11-crew(c).augment(9) then
-                                                dprint crew(c).n &" has died during the operation."
-                                                crew(c).hp=0
-                                                if c=1 then player.dead=28
+                                        else
+                                            if crew(c).hp>0 then 
+                                                dprint "You don't have enough money.",14
+                                                no_key=keyin
+                                            else 
+                                                dprint crew(c).n &" is dead."
+                                                no_key=keyin
                                             endif
                                         endif
                                     else
-                                        dprint "We can't install more than 3 augmentations."
+                                        dprint crew(c).n &" already has "&augn(b)&"."
+                                        no_key=keyin
                                     endif
                                 else
-                                    if crew(c).hp>0 then 
-                                        dprint "You don't have enough money.",14
-                                    else 
-                                        dprint crew(c).n &" is dead."
-                                    endif
+                                    dprint "We can only install augments in humans."
+                                    no_key=keyin
                                 endif
-                            else
-                                dprint crew(c).n &" already has "&augn(b)&"."
-                            endif
-                        else
-                            dprint "We can only install augments in humans."
+                                c+=1
+                            loop until crew(c).hpmax<=0 or c2>0 or player.money<augp(b)
                         endif
-                        c+=1
-                    loop until crew(c).hpmax<=0 or c2>0 or player.money<augp(b)
+                    loop until c=0
                 endif
             loop until b=7 or b=-1 or player.dead<>0
         endif
@@ -1217,7 +1232,7 @@ function shipupgrades(st as short) as short
             
             
             do
-            d=menu("Sensors:/ Sensors MKI - 200 Cr/ Sensors MKII - 800 Cr/ Sensors MKIII - 1600 Cr/ Sensors MK IV - 3200 Cr/ Sensors MK V - 6400 Cr/ Ship detection system - 1500 Cr / Imp. ship detection system - 3000 Cr/ Navigational computer - 350 Cr/ ECM System I - 3000 Cr/ ECM System II - 9000 Cr/ Cargo shielding I - 500 Cr/ Cargo shielding II - 1500 Cr/Exit")
+            d=menu("Sensors:/ Sensors MKI   -  200 Cr/ Sensors MKII  -  800 Cr/ Sensors MKIII - 1600 Cr/ Sensors MKIV  - 3200 Cr/ Sensors MKV   - 6400 Cr/ Ship detection system - 1500 Cr / Imp. ship detection system - 3000 Cr/ Navigational computer - 350 Cr/ ECM System I - 3000 Cr/ ECM System II - 9000 Cr/ Cargo shielding I - 500 Cr/ Cargo shielding II - 1500 Cr/Exit")
                     
             displayship
             if d<>-1 then
@@ -1294,7 +1309,7 @@ function shipupgrades(st as short) as short
             
             if c=2 then 'Shields
                 do
-                    d=menu("Shields:/ Shields MKI - 300 Cr/ Shields MKII 1200 Cr/ Shields MKIII 2700 Cr/ Shields MK IV 4800 Cr/ Shields MK V 7500 Cr/ Exit")
+                    d=menu("Shields:/ Shields MKI   -  300 Cr/ Shields MKII  - 1200 Cr/ Shields MKIII - 2700 Cr/ Shields MKIV  - 4800 Cr/ Shields MKV   - 7500 Cr/ Exit")
                     if d<6 and d<=player.h_maxshield then
                         if d<player.shieldmax then dprint "you already have better shields"
                         if d=player.shieldmax then dprint "You already have this shieldgenerator"
@@ -1319,9 +1334,8 @@ function shipupgrades(st as short) as short
             
             if c=3 then 'engine
                 do
-                    d=menu("Engine:/ Engine MKI - 300 Cr/ Engine MKII - 1200 Cr/ Engine MKIII - 2700 Cr/ Engine MK IV - 4800 Cr/ Engine MK V - 7500 Cr/ Exit")
+                    d=menu("Engine:/ Engine MKI    -  300 Cr/ Engine MKII   - 1200 Cr/ Engine MKIII  - 2700 Cr/ Engine MKIV   - 4800 Cr/ Engine MKV    - 7500 Cr/ AT Landing Gear - 500Cr/ Imp. AT Landing Gear - 500Cr/ Exit")
                     if d<6 and d<=player.h_maxengine then
-                        
                         if d<player.engine then dprint "You already have a better engine"
                         if d=player.engine then dprint "You already have this engine"
                         if d>player.engine and d<6 then
@@ -1337,8 +1351,20 @@ function shipupgrades(st as short) as short
                         endif
                     else
                         if d<6 then dprint "That engine doesnt fit in your hull"
+                        if d=6 then 
+                            if paystuff(250) then
+                            dprint "You buy all terrain landing gear"
+                            placeitem(makeitem(75),,,,,-1)
+                            endif
+                        endif
+                        if d=7 then 
+                            if paystuff(500) then
+                            dprint "You buy an improved all terrain landing gear"
+                            placeitem(makeitem(76),,,,,-1)
+                            endif
+                        endif
                     endif
-                loop until d=6
+                loop until d=8
             endif
                 
             if c=4 then 'weapons
@@ -1591,6 +1617,8 @@ function stockmarket(st as short) as short
             if b>0 then
                 c=getshares(b)
                 if c>99 then c=99
+                dprint "How many shares of "&companyname(cn(b))&" do you want to sell?"
+                    
                 d=getnumber(0,c,0)
                 if d>0 then
                     sellshares(b,d)
@@ -1939,6 +1967,7 @@ sub buygoods(st as short)
             if m>0 then
                 displayship
                 displaywares(st)
+                dprint "how many tons of "& basis(st).inv(c).n &" do you want to buy?"
                 d=getnumber(0,m,0)
                 p=basis(st).inv(c).p
                 if d>0 and d<=m then 
@@ -1987,6 +2016,7 @@ sub sellgoods(st as short)
                 if player.cargo(c).x>1 and player.cargo(c).x<10 then
                     m=getinvbytype(player.cargo(c).x-1) ' wie viele insgesamt
                     if player.cargo(c).x<10 then
+                        dprint "how many tons of "& basis(st).inv(c).n &" do you want to sell?"
                         sold=getnumber(0,m,0)
                         if sold>0 then
                             player.money=player.money+sold*basis(st).inv(player.cargo(c).x-1).p*(0.8+addtalent(1,6,.01))

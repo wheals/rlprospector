@@ -608,6 +608,7 @@ disease(17).duration=15
 disease(17).fatality=85
 
 do
+    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
     background(rnd_range(1,_last_title_pic)&".bmp")
     color 11,0
     draw string(_screenx/30,_screeny/8),"PROSPECTOR",,TITLEFONT,custom,@_tcol
@@ -853,7 +854,7 @@ end
 
 
 sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
-    dim as short l,m,a,b,c,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad
+    dim as short l,m,a,b,c,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad,landinggear
     dim light as single
     dim p as _cords
     dim last as short
@@ -893,7 +894,7 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
             if player.dead=0 then
                 do
                     if lx=0 and ly=0 then p=rnd_point(mapslot,0)
-                loop until tiles(abs(planetmap(p.x,p.y,mapslot))).locked=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and abs(planetmap(p.x,p.y,mapslot))<>45 
+                loop until tiles(abs(planetmap(p.x,p.y,mapslot))).locked=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and abs(planetmap(p.x,p.y,mapslot))<>45 and abs(planetmap(p.x,p.y,mapslot))<>80 
                 'if ((mapslot=pirateplanet(0) or mapslot=pirateplanet(1) or mapslot=pirateplanet(2)) and player.pirate_agr<=0) or isgasgiant(mapslot)<>0 then
                     for x=0 to 60
                         for y=0 to 20
@@ -907,7 +908,7 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                     if last>0 then
                         if askyn("shall we use the landingpad to land?(y/n)") then 
                             p=pwa(rnd_range(1,last))
-                            landingpad=2
+                            landingpad=5
                         endif
                     endif
                 'endif
@@ -917,10 +918,14 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                 nextmap=player.landed
                 equip_awayteam(player,awayteam,mapslot)
             endif
+            
             if awayteam.stuff(8)=1 then dprint "You deploy your satellite"
             roll=rnd_range(1,6)+rnd_range(1,6)+landingpad+player.pilot+addtalent(2,8,1)
-            target=planets(mapslot).dens+2*planets(mapslot).grav
+            landinggear=findbest(41,-1)
+            if landinggear>0 and landingpad=0 then roll=roll+item(landinggear).v1
+            target=2*planets(mapslot).dens+2*planets(mapslot).grav^2
             if mapslot<>specialplanet(2) and test=0 then
+                dprint "("&roll &":"&target &")"
                 if roll>target then
                     if landingpad=0 then
                         dprint ("Your pilot succesfully landed in the difficult terrain",10) 
@@ -937,7 +942,7 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
                     endif
                     player.hull=player.hull-1
                     player.fuel=player.fuel-2-int(planets(mapslot).grav)
-                    if player.hull=0 then
+                    if player.hull<=0 then
                         dprint ("A Crash landing. you will never be able to start with that thing again",12)
                         if rnd_range(1,6)+rnd_range(1,6)+player.pilot>10 then
                             dprint ("but your pilot wants to try anyway and succeeds!",12)
@@ -1151,12 +1156,13 @@ sub scanning()
             x=rnd_range(1,4)-player.pilot
             if x<1 then x=1
             player.fuel=player.fuel-x
-            displayship
+            
         endif
         endif
         if key=key_la then landing(map(sys).planets(slot))
     endif
-    show_stars(1,0)
+    'show_stars(1,0)
+    'displayship
 end sub
 
 function asteroidmining(slot as short) as short
@@ -1820,8 +1826,8 @@ function move_ship(key as string,byref walking as short) as _ship
 end function
 
 function explore_space() as short
-    dim as short a,b,d,c,f,pl,x1,y1,x2,y2,walking
-    dim as string key,text
+    dim as short a,b,d,c,f,fl,pl,x1,y1,x2,y2,walking
+    dim as string key,text,allowed
     dim as _cords p1,p2
     do
     for a=0 to 2
@@ -1852,9 +1858,19 @@ function explore_space() as short
             walking=0
         endif
     next
-    
-    key=keyin(key_awayteam &key_la &key_do &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk,walking)
+    allowed=key_awayteam &key_la &key_do &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
+    if fl>0 then
+        if fleet(fl).ty=1 then dprint "there is a merchant convoy in sensor range, hailing us. press "&key_fi &" to attack."
+        if fleet(fl).ty=2 then dprint "there is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack."
+        if fleet(fl).ty=3 then dprint "there is a company anti pirate patrol in sensor range, hailing us. press "&key_fi &" to attack."
+        if fleet(fl).ty=4 then dprint "there is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack."
+        allowed=allowed+key_fi
+    endif
+    key=keyin(allowed,walking)
     player=move_ship(key,walking)
+    
+    if key=key_fi and fl>0 then playerfightfleet(fl)
+        
     
     if key=key_walk then
         key=keyin
@@ -2101,11 +2117,18 @@ function explore_space() as short
         if lastfleet>255 then lastfleet=1
         fleet(lastfleet)=makefleet(fleet(lastfleet))
     endif
+    if frac(player.turn/50)=0 and player.turn>750 and player.questflag(3)=0 then 
+        lastfleet=lastfleet+1
+        if lastfleet>255 then lastfleet=1
+        fleet(lastfleet)=makealienfleet
+    endif
+    
+    fl=0
     movefleets()
     collidefleets()
     for a=1 to lastfleet
         if distance(player.c,fleet(a).c)<1.5 then 
-            player=meetfleet(a,player)
+            fl=meetfleet(a)
             exit for
         endif
     next    
@@ -2375,7 +2398,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,lastenemy,1)
                 enemy(lastenemy).slot=16
             endif        
-            if rnd_range(1,100)<266-disnbase(player.c) then 'deadawayteam 
+            if rnd_range(1,100)<26-disnbase(player.c) then 'deadawayteam 
                 lastenemy=lastenemy+1
                 enemy(lastenemy)=makemonster(15,slot)
                 enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,lastenemy,1)
@@ -2739,6 +2762,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if walking<>0 then
             if walking<0 then
                 tmap(awayteam.c.x,awayteam.c.y).hp-=1
+                awayteam.lastaction+=1
+                displaytext(loceol.y)=displaytext(loceol.y-1) &"."
                 if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                     walking=0
                     dprint "complete."
@@ -2793,7 +2818,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if ship_landing>0 then ep_landship(ship_landing, nextlanding, ship, nextmap, vismask(), enemy(),lastenemy)
         
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
-            ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,spawnmask(),lsp,key,walking)
+            ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,spawnmask(),lsp,key,walking,ship)
             equip_awayteam(player,awayteam,slot)
             cls
             if awayteam.move=2 then allowed=allowed &key_ju
@@ -2829,14 +2854,14 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
                 awayteam.lastaction+=2
             endif            
-            screenset 1,0
-            cls
-            displayplanetmap(slot)
-            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
-            dprint ""
-            flip
-            screenset 1,1
+'            screenset 1,0
+'            cls
+'            displayplanetmap(slot)
+'            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
+'            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+'            dprint ""
+'            flip
+'            screenset 1,1
         else
             if player.dead<>0 then allowed=""
         endif
@@ -3281,68 +3306,146 @@ function teleport(from as _cords,map as short) as _cords
     return from
 end function
 
-function poolandtransferweapons(m as short) as short
-    dim as short e,f,c,g,d
-    dim as string text,help,desc
-    dim weapons(10) as _weap
+function planetflags_toship(m as short) as _ship
+    dim s as _ship
+    dim as short f,e
     e=0
-    ' old weapons
-    for f=1 to 5
-        if player.weapons(f).desig<>"" then
-            e=e+1
-            weapons(e)=player.weapons(f)
-            player.weapons(f)=makeweapon(0)
-        endif
-    next
-    'new weapons
     for f=6 to 10 
         if planets(m).flags(f)>0 then
             e=e+1
-            weapons(e)=makeweapon(planets(m).flags(f))
+            s.weapons(1)=makeweapon(planets(m).flags(f))
         endif
         if planets(m).flags(f)=-1 then
             e=e+1
-            weapons(e)=makeweapon(99)
+            s.weapons(1)=makeweapon(99)
         endif
         if planets(m).flags(f)=-2 then
             e=e+1
-            weapons(e)=makeweapon(98)
+            s.weapons(1)=makeweapon(98)
         endif
         if planets(m).flags(f)=-3 then
             e=e+1
-            weapons(e)=makeweapon(97)
+            s.weapons(1)=makeweapon(97)
         endif
     next
-    for f=1 to player.h_maxweaponslot
-        text="Transfer weapons to slot "&f &":/"
-        help="/"
-        d=0
-        for c=1 to e
-            if weapons(c).desig<>"" then
-                d=d+1
-                text=text &weapons(c).desig &"/"
-                help=help &weapons(c).desig & " | | Damage: "&weapons(c).dam &" | Range: "&weapons(c).range &"\"&weapons(c).range*2 &"\" &weapons(c).range*3 &"/"
-            endif
-        next
-        text=text &"Exit"
-        help=help &"/"
-        if d>1 then 
-            g=menu(text,help)
+    return s
+end function
+
+
+function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
+    dim as short e,f,c,g,d,x,y,bg
+    dim as string text,help,desc,key
+    dim as _cords crs,h1,h2
+    dim weapons(1,10) as _weap
+    e=0
+    ' old weapons
+    for f=1 to 5
+        if s1.weapons(f).desig<>"" then
+            e=e+1
+            weapons(0,e)=s1.weapons(f)
+            s1.weapons(f)=makeweapon(0)
         else
-            if d=1 then
-                player.weapons(f)=weapons(d)
-                weapons(d)=makeweapon(-1)
-            endif
-        endif    
-        if g>0 and g<d then 
-            player.weapons(f)=weapons(g)
-            weapons(g)=makeweapon(-1)
+            if f<=s1.h_maxweaponslot then weapons(0,f).desig="-empty-"
         endif
     next
-    
-    if planets(m).flags(3)>player.engine then player.engine=planets(m).flags(3) 
-    if planets(m).flags(4)>player.sensors then player.sensors=planets(m).flags(4) 
-    if planets(m).flags(5)>player.shield then player.shield=planets(m).flags(5) 
+    'new weapons
+    e=0
+    for f=1 to 5
+        if s2.weapons(f).desig<>"" then
+            e=e+1
+            weapons(1,e)=s2.weapons(f)
+            s2.weapons(f)=makeweapon(0)
+        else
+            if f<=s2.h_maxweaponslot then weapons(1,f).desig="-empty-"
+        endif
+    next
+    do
+    cls
+        color 15,0
+        draw string(0,0),"your ship",,font2,custom,@_col
+        draw string(35*_fw2,0),"other ship",,font2,custom,@_col
+        for x=0 to 1
+            for y=1 to 5
+                bg=0
+                if h1.x=x and h1.y=y then bg=5
+                if h2.x=x and h2.y=y then bg=5
+                if crs.x=x and crs.y=y then bg=11
+                color 15,bg
+                draw string(x*35*_fw2,y*_fh2),trim(weapons(x,y).desig)&" ",,font2,custom,@_col
+            next
+        next
+        color 15,0
+        draw string(5*_fw2,6*_fh2),"x to swap, esc to exit",,font2,custom,@_col
+        if weapons(crs.x,crs.y).desig<>"-empty-" then
+            help =weapons(crs.x,crs.y).desig & " | | Damage: "&weapons(crs.x,crs.y).dam &" | Range: "&weapons(crs.x,crs.y).range &"\"&weapons(crs.x,crs.y).range*2 &"\" &weapons(crs.x,crs.y).range*3 
+        else
+            help = "Empty slot"
+        endif
+        textbox(help,2,8,25,11,1)
+        color 15,0
+        key=keyin()
+        crs=movepoint(crs,getdirection(key))
+        if crs.x<0 then crs.x=1
+        if crs.x>1 then crs.x=0
+        if crs.y<1 then crs.y=5
+        if crs.y>5 then crs.y=1
+        if crs.x=0 and crs.y>player.h_maxweaponslot then
+            if getdirection(key)=2 then 
+                crs.y=1
+            else
+                crs.y=player.h_maxweaponslot
+            endif
+        endif
+        if key=key_enter then
+            if crs.x=0 then 
+                h1=crs
+                crs.x=1
+                if crs.y<1 then crs.y=5
+                if crs.y>5 then crs.y=1
+                if crs.y>s1.h_maxweaponslot then crs.y=s1.h_maxweaponslot
+            endif
+            if crs.x=1 then 
+                h2=crs
+                crs.y=0
+                if crs.y<1 then crs.y=5
+                if crs.y>5 then crs.y=1
+                if crs.y>s2.h_maxweaponslot then crs.y=s2.h_maxweaponslot
+            endif
+        endif
+        if key="x" then 
+            swap weapons(h1.x,h1.y),weapons(h2.x,h2.y)
+        endif
+    loop until key=key_esc
+    for f=1 to player.h_maxweaponslot
+        if weapons(0,f).desig<>"-empty-" then player.weapons(f)=weapons(0,f)
+    next
+'    for f=1 to player.h_maxweaponslot
+'        text="Transfer weapons to slot "&f &":/"
+'        help="/"
+'        d=0
+'        for c=1 to e
+'            if weapons(c).desig<>"" then
+'                d=d+1
+'                text=text &weapons(c).desig &"/"
+'                help=help &weapons(c).desig & " | | Damage: "&weapons(c).dam &" | Range: "&weapons(c).range &"\"&weapons(c).range*2 &"\" &weapons(c).range*3 &"/"
+'            endif
+'        next
+'        text=text &"Exit"
+'        help=help &"/"
+'        if d>1 then 
+'            g=menu(text,help)
+'        else
+'            if d=1 then
+'                player.weapons(f)=weapons(d)
+'                weapons(d)=makeweapon(-1)
+'            endif
+'        endif    
+'        if g>0 and g<d then 
+'            player.weapons(f)=weapons(g)
+'            weapons(g)=makeweapon(-1)
+'        endif
+'    next
+'    
     return 0
 end function
                         

@@ -196,16 +196,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     endif
                     speed(b)=speed(b)-1
                     tick(b)=tick(b)+tickr(b)
-                    if attacker(b).c.x=defender.c.x and attacker(b).c.y=defender.c.y then
-                        'position to board
-                        if attacker(b).security<=0 then
-                            'unable to board,move away
-                            attacker(b).c=old
-                            
-                        else
-                            'boarding attempt
-                        endif
-                    endif
+                    if attacker(b).c.x=defender.c.x and attacker(b).c.y=defender.c.y then attacker(b).c=old
                     if mines_last>0 then
                         for c=1 to mines_last
                             if attacker(b).c.x=mines_p(c).x and attacker(b).c.y=mines_p(c).y then 
@@ -216,11 +207,6 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
                 endif
             next b
-            
-            
-            
-                
-            
         next a
         
     '
@@ -245,6 +231,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
 
         if key=key_fi then
             for a=1 to player.h_maxweaponslot
+                if defender.weapons(a).ammomax>0 and defender.weapons(a).ammo<=0 then dprint defender.weapons(a).desig &" is out of ammunition.",14
                 if com_testweap(defender.weapons(a),defender.c,attacker(),lastenemy,mines_p(),mines_last) then
                     t=com_gettarget(defender,a,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
                     if t>0 and t<100 then 

@@ -72,23 +72,23 @@ function changemoral(value as short, where as short) as short
 end function
 
 
-function showteam(from as short, r as short=0) as short
+function showteam(from as short, r as short=0,text as string="") as short
     dim as short b,bg,last,a,sit,cl,y,lines,xw
     dim dummy as _monster
-    dim p as short
-    dim offset as short
+    static p as short
+    static offset as short
     dim n as string
     dim skills as string
     dim augments as string
     for b=1 to 128
         if crew(b).hpmax>0 then last+=1
     next
-    p=1
+    if p=0 then p=1
     no_key=""
     equip_awayteam(player,dummy,0)
-    lines=fix((_screeny-_fh2)/(_fh2*3))
+    lines=fix((_screeny-_fh2)/(_fh2*4))
+    cls
     do
-        cls
         color 11,0
         if no_key=key_enter then
             if r=0 then
@@ -113,6 +113,9 @@ function showteam(from as short, r as short=0) as short
             if r=1 then return p
                 
         endif
+        
+        if no_key="a" and r=1 then return -1'Install augment in all
+        
         
         if no_key="s" then
             sit=getitem()
@@ -288,9 +291,8 @@ function showteam(from as short, r as short=0) as short
                     y+=1
                     
                     color 15,bg
-                    draw string (4*_fw2,y*_fh2), "   ",,font2,custom,@_col
-                    draw string (24*_fw2,y*_fh2), skills,,font2,custom,@_col
-                    draw string (44*_fw2,y*_fh2), augments,,font2,custom,@_col
+                    draw string (1*_fw2,y*_fh2), skills,,font2,custom,@_col
+                    draw string ((4+len(skills))*_fw2,y*_fh2), augments,,font2,custom,@_col
                     if crew(b-offset).disease>0 then
                         color 14,bg
                         y+=1
@@ -310,16 +312,17 @@ function showteam(from as short, r as short=0) as short
             if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
             if from <>0 then draw string (10,_screeny-_fh2), key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
         endif
-        if r=1 then print "Enter to chose crewmember";
+        if r=1 then draw string (10,_screeny-_fh2), "installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         flip
+        screenset 1,1
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
         if no_key=key_rename then
             if p<6 then
-                n=gettext(18,(p-1+offset)*3,16,n)
+                n=gettext(16,(p-1+offset)*3,16,n)
             else
-                n=gettext(12,(p-1+offset)*3,16,n)
+                n=gettext(10,(p-1+offset)*3,16,n)
             endif
             if n<>"" then crew(p).n=n
             n=""
@@ -846,10 +849,10 @@ function hpdisplay(a as _monster) as short
                 if crew(c).hp>0  then
                     color 14,0
                     if crew(c).hp=crew(c).hpmax then color 10,0
-                    draw string(62*_fw1+x*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col       
+                    draw string(62*_fw1+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col       
                 else
                     color 12,0
-                    draw string(62*_fw1+x*_fw2,(y-1)*_fh2), "X",,font2,custom,@_col
+                    draw string(62*_fw1+(x-1)*_fw2,(y-1)*_fh2), "X",,font2,custom,@_col
                 endif
             endif
         next
@@ -1047,11 +1050,7 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     draw string(62*_fw1,3*_fh2), scanned &" km2 scanned",,font2,custom,@_col
     draw string(62*_fw1,5*_fh2), p.water &"% Liq. Surface",,font2,custom,@_col
     text=atmdes(p.atmos) &" atmosphere"
-    if len(text)<17 then 
-        draw string(62*_fw1,7*_fh2), text,,font2,custom,@_col
-    else
-        textbox(text,63,7,16,11,0)    
-    endif
+    textbox(text,63,(7*_fh2)/_fh1,16,11,0)    
     draw string(62*_fw1,12*_fh2), "Gravity:"&p.grav &"g",,font2,custom,@_col
     draw string(62*_fw1,13*_fh2), "Avg. Temperature",,font2,custom,@_col
     draw string(62*_fw1,15*_fh2), p.temp &" "&chr(248)&"c",,font2,custom,@_col
@@ -1261,6 +1260,7 @@ sub show_stars(bg as short=0,byref walking as short)
                 else
                     if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
                     if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
+                    if fleet(b).ty=5 then color 5,0
                     draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                 endif
             else
@@ -1302,7 +1302,19 @@ sub show_stars(bg as short=0,byref walking as short)
             endif
         endif
     next
-    
+    if show_NPCs=1 then
+        for a=1 to lastfleet
+            x=fleet(a).c.x-player.osx
+            y=fleet(a).c.y-player.osy
+            if x>=0 and x<=60 and y>=0 and y<=20 then
+                if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
+                if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
+                if fleet(b).ty=5 then color 5,0
+                draw string ((x)*_fw1,(y)*_fh1),"s",,Font1,custom,@_col
+            endif
+        next
+        
+    endif
     color 11,0
     for a=1 to lastcom
         if coms(a).c.x>player.osx and coms(a).c.x<player.osx+60 and coms(a).c.y>player.osy and coms(a).c.y<player.osy+20 then
@@ -2421,7 +2433,22 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"Fast",,Font2,Custom,@_col
             xoffset=xoffset+5
         endif
-        
+        if _autopickup=0 then
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"P",,Font2,Custom,@_col
+            xoffset+=1    
+        endif
+        if _autoinspect=0 then
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"I",,Font2,Custom,@_col
+            xoffset+=1    
+        endif
+        if awayteam.helmet=0 then
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"O",,Font2,Custom,@_col
+        else
+            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"C",,Font2,Custom,@_col
+        endif
+        xoffset+=2
+        draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),tacdes(player.tactic+3),,Font2,Custom,@_col
+        xoffset=xoffset+len(tacdes(player.tactic+3))
         color 11,1
         draw string(xoffset*_fw2,21*_fh1),chr(195),,Font1,Custom,@_col
         for a=(xoffset+1)*_fw2 to 61*_fw1 step _fw1
@@ -2450,7 +2477,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         endif    
         hpdisplay(awayteam)
         color 11,0
-        draw string(63*_fw1,6*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
+        draw string(62*_fw1,6*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
         if awayteam.move=0 then draw string(62*_fw1,7*_fh2), "Trp.: None",,Font2,custom,@_col
         if awayteam.move=1 then draw string(62*_fw1,7*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
         if awayteam.move=2 then draw string(62*_fw1,7*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
@@ -2841,7 +2868,7 @@ sub displayship(show as byte=0)
         if player.cargo(a).x=9 then carg= "C"
         if player.cargo(a).x=10 then carg= "?"
         if player.cargo(a).x=11 then carg= "t"
-        draw string(62*_fw1+a*_fw2,21*_fh2),carg,,font2,custom,@_col
+        draw string(62*_fw1+(a-1)*_fw2,21*_fh2),carg,,font2,custom,@_col
     next
     if show=1 then
         if _tiles=0 then
@@ -3123,9 +3150,9 @@ function dprint(t as string, col as short=11) as short
                     scrollup(winh-2)
                     for b=firstline to firstline+winh
                         color 0,0
-                        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
+                        draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
                         color dtextcol(b),1
-                        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
+                        draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
                     next
                     color 14,1
                     if displaytext(firstline+winh+1)<>"" then
@@ -3143,9 +3170,9 @@ function dprint(t as string, col as short=11) as short
     endif
     for b=firstline to firstline+winh
         color 0,0
-        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
+        draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
         color dtextcol(b),0
-        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
+        draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
     next
     locate 24,1
     color 11,0

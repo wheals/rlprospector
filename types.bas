@@ -740,6 +740,7 @@ dim shared lastplanet as short
 dim shared lastcom as short
 dim shared lastwaypoint as short
 dim shared lastfleet as short
+dim shared alienattacks as integer
 dim shared lastdrifting as short=16
 dim shared liplanet as short 'last input planet
 
@@ -816,8 +817,9 @@ declare function explore_planet(awayteam as _monster, from as _cords, orbit as s
 declare function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
 
 declare function grenade(from as _cords,map as short) as _cords
-declare function poolandtransferweapons(map as short) as short
+declare function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
 declare function clear_gamestate() as short
+declare function planetflags_toship(m as short) as _ship
 
 ' fileIO.bas
 declare function loadconfig() as short
@@ -830,7 +832,7 @@ declare function texttofile(text as string) as string
 
 ' prosIO.bas
 declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
-declare function showteam(from as short, r as short=0) as short
+declare function showteam(from as short, r as short=0,text as string="") as short
 declare function gainxp(slot as short) as short
 declare function gaintalent(slot as short) as string
 declare function addtalent(cr as short, ta as short, value as single) as single
@@ -930,7 +932,7 @@ declare function findartifact(awayteam as _monster) as short
     
 declare function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
 declare function earthquake(t as _tile,dam as short)as _tile
-declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short) as short
+declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
 declare function numfromstr(t as string) as short
 
 'planets
@@ -949,7 +951,7 @@ declare sub makeplanetmap(a as short,orbit as short, spect as short)
 declare sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, froti as short,blocked as short=1)
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
 declare sub makespecialplanet(a as short)
-declare sub makedrifter(d as _driftingship,bg as short=0)
+declare sub makedrifter(d as _driftingship,bg as short=0,broken as short=0)
 declare sub makeice(a as short, o as short)
 declare sub makecanyons(a as short, o as short)
 declare sub makecraters(a as short, o as short)
@@ -958,7 +960,7 @@ declare sub makeislands(a as short, o as short)
 declare sub makeoceanworld(a as short,o as short)
 declare sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
-declare sub planet_event(t as short,slot as short)
+declare sub planet_event(slot as short)
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
 declare function makesettlement(p as _cords,slot as short, typ as short) as short
 declare function makevault(r as _rect,slot as short,nsp as _cords, typ as short) as short
@@ -974,6 +976,8 @@ declare function checkvalid(x as short,y as short, map() as short) as short
 declare function floodfill3(x as short,y as short,map() as short) as short
 declare function checkdoor(x as short,y as short, map() as short) as short
 declare function checkbord(x as short,y as short, map() as short) as short
+declare function playerfightfleet(f as short) as short
+declare function is_special(m as short) as short
 
 'pirates
 
@@ -995,7 +999,7 @@ declare function addfleets(target as _fleet, source as _fleet) as _fleet
 declare function piratecrunch(f as _fleet) as _fleet
 declare function clearfleetlist() as short
 declare function countfleet(ty as short) as short
-declare function meetfleet(f as short, player as _ship)as _ship
+declare function meetfleet(f as short)as short
 declare function debug_printfleet(f as _fleet) as string
 declare function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
 declare function scorefleet(byval f as _fleet) as integer
@@ -1102,6 +1106,8 @@ declare function distributepoints(result() as _cords, ps() as _cords, last as sh
 declare function getany(possible() as short)as short
 declare function maximum(a as double,b as double) as double
 declare function minimum(a as double,b as double) as double
+declare function dominant_terrain(x as short,y as short,m as short) as short
+
 
 'quest
 declare function dodialog(no as short) as short

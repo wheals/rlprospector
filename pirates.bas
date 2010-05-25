@@ -1,5 +1,5 @@
 
-function meetfleet(f as short, player as _ship)as _ship
+function meetfleet(f as short)as short
     static lastturncalled as integer
     dim as short aggr,roll,frd,des,dialog,a,total,cloak,x,y
     dim question(2,4) as string
@@ -32,7 +32,7 @@ function meetfleet(f as short, player as _ship)as _ship
         if roll>100 then 
             frd=2 'tries to attack
         else
-            frd=1 'tries to talk
+            return f 'tries to talk
         endif
         des=askyn(question(frd,dialog))
         if des=0 then
@@ -57,31 +57,9 @@ function meetfleet(f as short, player as _ship)as _ship
                     player.pirate_agr=player.pirate_agr-65/dispbase(player.c)
                 endif
             endif
-            for a=1 to 8
-                basis(10).inv(a).v=0
-                basis(10).inv(a).p=0
-            next
-            player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
-            player.shield=player.shieldmax
-            if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
-            if player.dead>0 and fleet(f).ty=5 then player.dead=21
-            for a=1 to 8
-                total=total+basis(10).inv(a).v
-            next 
-            'dprint ""&total
-            if total>0 and player.dead=0 then trading(10)
-            if player.dead=-1 then player.dead=0
-            if player.dead>0 then
-                for a=1 to 128
-                    if crew(a).hpmax>0 then player.deadredshirts+=1
-                next
-                if fleet(f).ty=2 then
-                    player.dead=5
-                else 
-                    player.dead=13
-                endif
-            endif
-            fleet(f).ty=0
+            
+            playerfightfleet(f)
+            
             cls
         endif
         lastturncalled=player.turn
@@ -89,9 +67,40 @@ function meetfleet(f as short, player as _ship)as _ship
     endif
     show_stars(1,0)
     displayship
-    return player
+    return 0
 end function
 
+function playerfightfleet(f as short) as short
+    dim as short a,total
+    for a=1 to 8
+        basis(10).inv(a).v=0
+        basis(10).inv(a).p=0
+    next
+    
+    player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
+    player.shield=player.shieldmax
+    if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
+    if player.dead>0 and fleet(f).ty=5 then player.dead=21
+    for a=1 to 8
+        total=total+basis(10).inv(a).v
+    next 
+    'dprint ""&total
+    if total>0 and player.dead=0 then trading(10)
+    if player.dead=-1 then player.dead=0
+    if player.dead>0 then
+        for a=1 to 128
+            if crew(a).hpmax>0 then player.deadredshirts+=1
+        next
+        if fleet(f).ty=2 then
+            player.dead=5
+        else 
+            player.dead=13
+        endif
+    endif
+    fleet(f).ty=0
+    return 0
+end function
+        
 
 function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
     dim as integer rscore,bscore
@@ -181,6 +190,7 @@ function collidefleets() as short
                                     planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
                                 endif
                             endif
+                            if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
                             fleet(a)=fleetbattle(fleet(a),fleet(b))
                             fleet(a)=load_f(fleet(a),10)
                             for d=1 to 5
@@ -201,38 +211,58 @@ function collidefleets() as short
 end function
 
 function ss_sighting(i as short) as short
-    dim text as string
-    dim fn as short
+    dim as string text,text2
+    dim as short fn,a 
+    dim as _cords p
     if basis(i).lastsighting=0 then return 0
-    if basis(i).lastsightingturn-player.turn<25 then
-        text ="There are some rumors about"
-        if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
-        if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with"
-    else
-        return 0
-    endif
-    if basis(i).lastsightingdis>5 then
-        text=text & " a long distance unidentified sensor contact, "& basis(i).lastsightingdis &" parsecs out."
-    else
-        fn=basis(i).lastsighting
-        if basis(i).lastsightingdis>2 and basis(i).lastsightingdis<=5  then
-            text = text &" mid range sensor contact with"
+    fn=basis(i).lastsighting
+    if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
+        if basis(i).lastsightingturn-player.turn<25 then
+            text ="There are some rumors about"
+            if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
+            if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with talk about a"
+        else
+            return 0
         endif
-        if basis(i).lastsightingdis<=2  then
-            text = text &" short range sensor contact with"
-        endif
-        if fleet(fn).ty=2 then text=text &" a pirate fleet."
-        if fleet(fn).ty=4 then 
-            if basis(i).lastsightingdis<=3  then
-                text=text &" the pirate ship "& fleet(fn).mem(1).desig &"!"
-            else
-                text=text &" a pirate fleet."
+        if basis(i).lastsightingdis>5 then
+            text=text & " a long distance unidentified sensor contact, "& basis(i).lastsightingdis &" parsecs out."
+        else
+            if basis(i).lastsightingdis>2 and basis(i).lastsightingdis<=5  then
+                text = text &" mid range sensor contact with"
             endif
+            if basis(i).lastsightingdis<=2  then
+                text = text &" short range sensor contact with"
+            endif
+            if fleet(fn).ty=2 then text=text &" a pirate fleet."
+            if fleet(fn).ty=4 then 
+                if basis(i).lastsightingdis<=3  then
+                    text=text &" the pirate ship "& fleet(fn).mem(1).desig &"!"
+                else
+                    text=text &" a pirate fleet."
+                endif
+            endif
+            if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
         endif
-        if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
+    endif
+    if rnd_range(1,100)>alienattacks and player.questflag(3)=0 then
+        if alienattacks>5 then text2=" You hear a rumor about disappearing scout ships." 
+        if alienattacks>10 then text2=" You hear a rumor about disappearing merchant convoys." 
+        if alienattacks>25 then text2=" You hear a rumor about disappearing patrol ships." 
+        if alienattacks>50 then text2=" Every conversation you overhear seems to be about disappearing ships and fleets." 
+        if alienattacks>75 then
+            if sysfrommap(specialplanet(29))>0 then
+                p=map(sysfrommap(specialplanet(29))).c
+            else
+                p=map(sysfrommap(specialplanet(30))).c
+            endif
+            for a=0 to rnd_range(1,6)
+                p=movepoint(p,5)
+            next
+            text2=" The station is abuzz with talk about ships disappearing around coordinates "&p.x &":"&p.y &"." 
+        endif
     endif
     text=text & fn &"typ:"&fleet(fn).ty
-    if text<>"" then dprint text
+    if text<>"" or text2<>"" then dprint trim(text &text2)
     return 0
 end function
     
@@ -267,11 +297,6 @@ function movefleets() as short
             print "   "
         endif
         fleet(a).c=movepoint(fleet(a).c,direction,,1)
-        if show_npcs=1 then
-            color fleet(a).ty+10,0
-            locate fleet(a).c.y+1,fleet(a).c.x+1
-            print "F"&a 
-        endif
         
         'Check if reached target (for targetnumbers 1-7)
         if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<7 then
@@ -439,7 +464,11 @@ function makealienfleet() as _fleet
     dim f as _fleet
     f.ty=5
     f.mem(0)=makeship(11)
-    f.c=map(sysfrommap(specialplanet(9))).c
+    if sysfrommap(specialplanet(29))>0 then
+        f.c=map(sysfrommap(specialplanet(29))).c
+    else
+        f.c=map(sysfrommap(specialplanet(30))).c
+    endif
     return f
 end function
 

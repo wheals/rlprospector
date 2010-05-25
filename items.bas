@@ -1456,6 +1456,33 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=100
     endif
     
+    if a=75 then
+        i.id=75
+        i.ty=41
+        i.desig="AT landing gear"
+        i.desigp="AT Landing gears"
+        i.ldesc="special landing struts designed to make landing in all kinds of terrain easier"
+        i.v1=2
+        i.icon=chr(208)
+        i.col=8
+        i.res=100
+        i.price=250
+    endif
+        
+    
+    if a=76 then
+        i.id=76
+        i.ty=41
+        i.desig="Imp. AT landing gear"
+        i.desigp="Imp. AT Landing gears"
+        i.ldesc="special landing struts designed to make landing in all kinds of terrain easier"
+        i.v1=5
+        i.icon=chr(208)
+        i.col=14
+        i.res=100
+        i.price=500
+    endif
+    
     if a=86 then
         i.id=86
         i.ty=86
@@ -1592,7 +1619,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
         i.desigp="resources"
         i.v1=rnd_range(1,4+mod1)
-        if rnd_range(1,100)<15 then
+        if rnd_range(1,100)>15 then
             i.v2=rnd_range(1,8+mod2)
         else
             i.v2=prefmin

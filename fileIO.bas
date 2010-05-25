@@ -532,14 +532,17 @@ function configuration() as short
         if c=16 then
             d=menu("Resolution/Tiles/Text/Lines/Classic look "& onoff(_customfonts)&"(overrides if on)/Exit")
             if d=1 then 
+                dprint "Set graphic font height:(8-28)"
                 _fohi1=Getnumber(8,28,_fohi1)
                 _customfonts=0
             endif
             if d=2 then 
+                dprint "Set text font height:(8-28)"
                 _fohi2=Getnumber(8,28,_fohi2)
                 _customfonts=0
             endif
             if d=3 then 
+                dprint "Number of display lines:"
                 _lines=Getnumber(22,33,_lines)
             endif
             if d=4 then
@@ -767,6 +770,8 @@ function savegame() as short
         put #f,,companystats(a)
     next
     
+    put #f,,alienattacks
+    
     put #f,,lastshare
     for a=0 to lastshare
         put #f,,shares(a)
@@ -954,6 +959,8 @@ function loadgame(filename as string) as short
         for a=1 to 4
             get #f,,companystats(a)
         next
+        
+        get #f,,alienattacks
         
         get #f,,lastshare
         for a=0 to lastshare
