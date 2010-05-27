@@ -14,41 +14,6 @@ function loadmap(m as short,slot as short)as short
     return 0
 end function
 
-function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr      
-    Dim as ubyte ptr img
-    dim font as ubyte ptr
-    Dim As Integer imgwidth,imgheight,i,ff
-    ff=FreeFile
-    Open "graphics/font"&fontdir &".bmp" For Binary As ff
-    Get #ff, 19, imgwidth
-    Get #ff, 23, imgheight
-    Close ff
-    fh=imgheight
-    img=ImageCreate(imgwidth,imgheight) 'Zwischenpuffer für bmp
-    If img Then
-      BLoad ("graphics/font"&fontdir &".bmp",img)
-      font=ImageCreate(imgwidth,imgheight+1) 'eigentlicher Font
-      If font Then
-        ff=FreeFile
-        Open "graphics/"&fontdir &"header" For Binary As ff  'Buchstabenbreite dazuladen
-        i=0
-        Do Until EOF(ff)
-          Get #ff,, font[SizeOf(FB.Image)+i]
-          i=i+1
-        Loop
-        Close ff
-        Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet	'Twischenpuffer in Font kopieren
-      End If
-      ImageDestroy (img)	'Zwischenpuffer löschen
-    else
-        color 14,0
-        print "Loading font graphics/"&fontdir &"font.bmp failed."
-        sleep 600
-    endif
-    return font
-end function
-
-
 function randomname() as string
     dim f as integer
     dim d as integer
@@ -117,70 +82,41 @@ function randomname() as string
 end function
 
 function background(fn as string) as short
-    cls
-    Dim As Integer filenum, bmpwidth, bmpheight,x,y
-    Dim As Any Ptr img
-    dim as any ptr dst
-    fn="graphics/"&fn
-    '' open BMP file
-    filenum = FreeFile()
-    If Open( fn For Binary Access Read As #filenum ) <> 0 Then Return NULL
-
-        '' retrieve BMP dimensions
-        Get #filenum, 19, bmpwidth
-        Get #filenum, 23, bmpheight
-
-    Close #filenum
-    '' create image with BMP dimensions
-    img = ImageCreate( bmpwidth, Abs(bmpheight) )
-
-    If img = NULL Then Return NULL
-    'dst=imagecreate(_screenx,_screeny)
-    '' load BMP file into image buffer
-    BLoad( fn, img )
-    x=(_screenx-bmpwidth)/2    
-    y=(_screeny-bmpheight)/2
-    put (x,y),img
-    imagedestroy( img )
-    
-    Return 0
-    
+    dim as short f,x,y,c
+    dim scr(81,25) as short
+    dim pal(32) as integer
+    f=freefile
+    open "data/"&fn for binary as #f
+    for x=0 to 80
+        for y=0 to 25
+            get #f,,c
+            scr(x,y)=c
+        next
+    next
+    for x=0 to 32
+        get #f,,pal(x)
+    next
+    close #f
+    for x=0 to 32
+        palette 32+x,pal(x)
+    next
+    for x=0 to 80
+        for y=0 to 25
+            locate y+1,x+1
+            color 32+scr(x+1,y),32+scr(x,y)
+            print chr(178);
+        next
+    next
+    return 0
 end function
 
 function loadkeyset() as short
-    dim as short f,a,c,i,j
+    dim f as short
     dim as string text,lctext
-    dim keys(256) as string
     f=freefile
     if fileexists("keybindings.txt") then
-        
         open "keybindings.txt" for input as #f
         print "loading keyset";
-        do 
-            line input #f,text
-            if instr(text,"#")=0 and len(text)>0 then                            
-                a+=1
-                keys(a)=right(text,1)
-            endif
-        loop until eof(f)
-        for i=1 to a
-            for j=1 to a
-                if i<>j then
-                    if keys(i)=keys(j) then
-                        print "Two commands bound to "&keys(j) &"in line "&i &" and "&j
-                        print "using default keys"
-                        sleep 250
-                        close f
-                        return 0
-                    endif
-                endif
-            next
-        next
-        
-        close f
-        f=freefile
-        open "keybindings.txt" for input as #f
-            
         do
             print ".";
             line input #f,text
@@ -248,7 +184,7 @@ function loadkeyset() as short
         color 14,0
         print "File keybindings.txt not found. Using default keys"
         color 15,0
-        Sleep 1500
+        Sleep 3000
         return 1
     endif
     return 0
@@ -277,9 +213,6 @@ function loadconfig() as short
             line input #f,text
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
-                if instr(text,"tilefont")>0 then _FoHi1=numfromstr(text)
-                if instr(text,"textfont")>0 then _FoHi2=numfromstr(text)
-                if instr(text,"lines")>0 then _lines=numfromstr(text)
                 if instr(text,"shipcolor")>0 then _shipcolor=numfromstr(text)
                 if instr(text,"teamcolor")>0 then _teamcolor=numfromstr(text)
                 
@@ -348,9 +281,10 @@ function loadconfig() as short
                     if instr(text,"3")>0 then _volume=3
                     if instr(text,"4")>0 then _volume=4
                 endif
-                if instr(text,"altnum")>0 then
-                    if instr(text,"0")>0 then _altnumber=0
-                    if instr(text,"1")>0 then _altnumber=1
+                if instr(text,"resolut")>0 then
+                    if instr(text,"0")>0 then _resolution=0
+                    if instr(text,"1")>0 then _resolution=1
+                    if instr(text,"2")>0 then _resolution=2
                 endif
                 if instr(text,"showvis")>0 then
                     if instr(text,"0")>0 or instr(text,"on") then _showvis=0
@@ -362,16 +296,9 @@ function loadconfig() as short
                     if instr(text,"1")>0 or instr(text,"of") then _onbar=1
                 endif
                 
-                if instr(text,"classic")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _customfonts=0
-                    if instr(text,"1")>0 or instr(text,"of") then _customfonts=1
+                if instr(text,"lines")>0 then
+                    _lines=val(right(text,2))
                 endif
-                
-                if instr(text,"transitem")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _transitems=0
-                    if instr(text,"1")>0 or instr(text,"of") then _transitems=1
-                endif
-                
             endif                
         loop until eof(f)
         close #f
@@ -381,39 +308,23 @@ function loadconfig() as short
     endif
 end function
 
-function texttofile(text as string) as string
-    dim a as short
-    dim outtext as string
-    for a=0 to len(text)
-        if mid(text,a,1)="|" or mid(text,a,1)="{" then
-            if mid(text,a,1)="|" then outtext=outtext &chr(13)& chr(10)
-            if mid(text,a,1)="{" then a=a+3
-        else
-            outtext=outtext &mid(text,a,1)
-        endif
-    next
-    return outtext
-end function            
-
 function configuration() as short
     dim text as string
     dim onoff(1) as string
     dim warn(2) as string
-    dim res as string
-    dim as short c,d,f
-
+    dim res(2) as string
+    dim c as short
+    dim f as integer
     onoff(0)=" On "
     onoff(1)=" Off"
     warn(0)="On  "
     warn(1)="Off "
     warn(2)="High"
+    res(0)="Low"
+    res(1)="Med"
+    res(2)="High"
     screenshot(1)
     do
-        if _customfonts=0 then
-            res="tiles:"&_fohi1 &" text:"& _fohi2 &" lines:"&_lines
-        else
-            res="classic"
-        endif
         text="Prospector "&__VERSION__ &" Configuration/ Autopickup :"& onoff(_autopickup)
         text=text &"/ Always chose best item :"& onoff(_chosebest)
         text=text &"/ Sound effects :"& warn(_sound)
@@ -428,12 +339,10 @@ function configuration() as short
         text=text &"/ Navigational Warnings(Gasclouds & 1HP landings):" & onoff(_warnings)
         text=text &"/ Graphic tiles:" & onoff(_tiles)
         text=text &"/ Easy start:" & onoff(_easy)
-        text=text &"/ Volume (0-4):" & _volume
-        text=text &"/ Resolution: "&res
+        text=text &"/ Volume (0-5):" & _volume
+        text=text &"/ Resolution: "&res(_resolution)
         text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
         text=text &"/ Starmap on bar: "& onoff(_onbar)
-        text=text &"/ Alternative Numberinput: "& onoff(_altnumber)
-        text=text &"/ Transparent Items: "& onoff(_transitems)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -530,13 +439,12 @@ function configuration() as short
             end select
         endif
         if c=13 then
-            dprint "Tiles are planned, but not working yet."
-'            select case _tiles
-'            case is=1
-'                _tiles=0
-'            case is=0
-'                _tiles=1
-           ' end select
+            select case _tiles
+            case is=1
+                _tiles=0
+            case is=0
+                _tiles=1
+            end select
         endif
         if c=14 then
             select case _easy
@@ -547,7 +455,6 @@ function configuration() as short
             end select
         endif
         if c=15 then
-            dprint "Select volume (0-4)"
             _volume=getnumber(0,4,_volume)                        
             IF _volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
             IF _volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
@@ -556,31 +463,10 @@ function configuration() as short
             IF _volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
         endif
         
+        
         if c=16 then
-            d=menu("Resolution/Tiles/Text/Lines/Classic look "& onoff(_customfonts)&"(overrides if on)/Exit")
-            if d=1 then 
-                dprint "Set graphic font height:(8-28)"
-                _fohi1=Getnumber(8,28,_fohi1)
-                _customfonts=0
-            endif
-            if d=2 then 
-                dprint "Set text font height:(8-28)"
-                _fohi2=Getnumber(8,28,_fohi2)
-                _customfonts=0
-            endif
-            if d=3 then 
-                dprint "Number of display lines:"
-                _lines=Getnumber(22,33,_lines)
-            endif
-            if d=4 then
-                select case _customfonts
-                case is=1
-                    _customfonts=0
-                case is=0
-                    _customfonts=1
-                end select
-            endif
-            if _fohi2>_fohi1 then _fohi2=_fohi1
+            _resolution+=1
+            if _resolution>2 then _resolution=0
             dprint "Resolution will be changed next time you start prospector."
         endif
         
@@ -601,35 +487,12 @@ function configuration() as short
                 _onbar=1
             end select
         endif
-        
-        if c=19 then 
-            
-            select case _altnumber
-            case is=1
-                _altnumber=0
-            case is=0
-                _altnumber=1
-            end select
-        endif
-        
-        if c=20 then 
-            
-            select case _transitems
-            case is=1
-                _transitems=0
-            case is=0
-                _transitems=1
-            end select
-        endif
-    loop until c=21
+    loop until c=19
     screenshot(2)
     f=freefile
     open "config.txt" for output as #f
     print #f,"# 0 is on, 1 is off"
     print #f,""
-    print #f,"tilefont:"&_FoHi1
-    print #f,"textfont:"&_FoHi2
-    print #f,"lines:"&_lines
     print #f,"autopickup:"&_autopickup
     print #f,"chosebest:"&_chosebest
     print #f,"sound:"&_sound
@@ -645,11 +508,9 @@ function configuration() as short
     print #f,"tiles:"&_tiles
     print #f,"easy:"&_easy
     print #f,"volume:"&_volume
-    print #f,"altnum:"&_altnumber
+    print #f,"resolution:"&_resolution
     print #f,"showvis:"&_showvis
     print #f,"onbar:"&_onbar
-    print #f,"classic:"&_customfonts
-    print #f,"transitem:"&_transitems
     close #f
     return 0
 end function
@@ -762,10 +623,6 @@ function savegame() as short
     put #f,,captainskill
     put #f,,wage
     
-    for a=0 to 16
-        put #f,,retirementassets(a)
-    next
-    
     print ".";
     for a=0 to 16
         
@@ -796,8 +653,6 @@ function savegame() as short
     for a=1 to 4
         put #f,,companystats(a)
     next
-    
-    put #f,,alienattacks
     
     put #f,,lastshare
     for a=0 to lastshare
@@ -950,13 +805,9 @@ function loadgame(filename as string) as short
         next
         get #f,,captainskill
         get #f,,wage
-        for a=0 to 16
-            get #f,,retirementassets(a)
-        next
+        
         
         print ".";
-        
-        
         
         for a=0 to 16
             get #f,,savefrom(a).awayteam
@@ -986,8 +837,6 @@ function loadgame(filename as string) as short
         for a=1 to 4
             get #f,,companystats(a)
         next
-        
-        get #f,,alienattacks
         
         get #f,,lastshare
         for a=0 to lastshare
