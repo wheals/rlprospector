@@ -987,16 +987,22 @@ function sickbay(st as short=0) as short
                 dprint ""
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
                 if b>0 and b<7 then
-                    if askyn("Do you want to buy "&augn(b) &" for the whole crew?(y/n)") then
-                        if crew(6).hpmax>0 then
-                            c=6
-                        else
-                            c=1
-                        endif
-                        c2=0
+                    if askyn("Do you want to buy "&augn(b) &" for the whole crew (including officers)?(y/n)") then
+                        if crew(1).hpmax>0 then c=1
+                            c2=0
                     else
-                        c=showteam(0,1)
-                        c2=1
+                        if askyn("Do you want to buy "&augn(b) &" for the whole crew but the officers?(y/n)") then
+                            if crew(6).hpmax>0 then
+                                c=6
+                                c2=0
+                            else
+                                c=1
+                                c2=0
+                            endif
+                        else
+                            c=showteam(0,1)
+                            c2=1
+                        endif
                     endif
                     do
                         if crew(c).typ<=9 and b>0 and c>0 then

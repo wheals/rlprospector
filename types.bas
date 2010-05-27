@@ -11,7 +11,7 @@ const show_items=0 'shows entire maps
 const alien_scanner=0'player has alien scanner
 Const show_critters=0 
 Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
-Const all_resources_are=0 
+Const all_resources_are=0
 const show_allitems=0 
 const easy_fights=0
 const show_eventp=0
@@ -54,6 +54,7 @@ dim shared as byte _savescreenshots=1
 dim shared as byte _startrandom=0
 dim shared as byte _autosave=1
 dim shared as byte _autopickup=1
+dim shared as byte _showcomments=0
 dim shared as byte _autosell=0
 dim shared as byte _minsafe=1
 dim shared as byte _anykeyno=1
@@ -95,6 +96,7 @@ dim shared as string*1 key_report="R"
 dim shared as string*1 key_rename="r"
 dim shared as string*1 key_dock="d"
 dim shared as string*1 key_comment="c"
+dim shared as string*1 key_showcoms="O"
 
 dim shared as string*1 key_i="i"
 dim shared as string*1 key_ex="x"
@@ -480,7 +482,7 @@ type _tile
     firetru as short
     shootable as short 'shooting at it will damage it
     dr as short 'damage reduction
-    hp as short 
+    hp as short
     dam as short
     range as short
     tohit as short
@@ -589,7 +591,7 @@ end type
 '7 mapsincredits
 '8 Pirate outpost
 
-const __VERSION__="0.1.11a"
+const __VERSION__="0.1.11a-d12fix4-grottenscharf"
 
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
@@ -766,7 +768,7 @@ declare sub displayplanetmap(a as short)
 declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
 declare sub displaysystem(sys as _stars,forcebar as byte=0)
-declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short)
+declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short,walking as short)
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
 declare function locEOL() as short
 
@@ -785,7 +787,7 @@ declare function damawayteam(byref a as _monster,dam as short,ap as short=0,dis 
 declare function dplanet(p as _planet,orbit as short, scanned as short) as short
 declare function dprint(text as string, col as short=11,delay as byte=1) as short
 declare function blink(byval p as _cords) as short
-declare function cursor(target as _cords,map as short) as string
+declare function cursor(target as _cords,map as short,curs as short=0) as string
 declare function menu(text as string,help as string="", x as short=2, y as short=2,blocked as short=0) as short
 declare function move_ship(key as string,byref walking as short) as _ship
 

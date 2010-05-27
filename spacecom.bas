@@ -102,30 +102,44 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             tick(a)=0
         next
         player=defender
+        cls
         displayship(0)
         com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
-   '
+        dprint "Movement phase. Press appropriate keys to move, activate sensors or deactivate shields."
+        
+        
         for a=1 to 10
     
             if a>=tick(0) and speed(0)>0 and defender.hull>0 then 'playermovement
-                    
                 color 11,0
                 locate 6,63
                 print "Engine :"&player.engine &" ("&speed(0)&" MP)"
                 if defender.c.x=0 or defender.c.y=0 or defender.c.x=60 or defender.c.y=20 then dprint "Press "&key_ru &" to run and flee."
-                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc &key_dr)
+                do
+                    key=keyin
+                    if getdirection(key)=0 and not instr("12346789"&key_ac &key_sh &key_ru &key_esc &key_dr &key_wait,key)>0 then key=""
+                
+                    
+                    if key=key_esc then
+                        if askyn("Do you really want to end movement phase? (y/n)") then
+                            speed(0)=0
+                        else
+                            key=""
+                        endif
+                    endif
+                    if key=key_sh and defender.shieldmax>0 then
+                        if askyn ("Do you really want to shut down your shields? (y/n)") then
+                            defender.shield=0
+                            shieldshut=1
+                        else
+                            key=""
+                        endif
+                    endif
+                loop until key<>""
+                
                 if key=key_ac then
                     if senac=2 then nexsen=1
                     if senac=1 then nexsen=2
-                endif
-                if key=key_esc then
-                    if askyn("Do you really want to end movement phase? (y/n)") then speed(0)=0
-                endif
-                if key=key_sh and defender.shieldmax>0 then 
-                    if askyn ("Do you really want to shut down your shields? (y/n)") then
-                        defender.shield=0
-                        shieldshut=1
-                    endif
                 endif
                 
                 if key=key_ru then 
@@ -142,6 +156,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 
                 old=defender.c
                 defender.c=movepoint(defender.c,getdirection(key))
+                if key=key_wait then defender.c=old
                 
                 if old.x<>defender.c.x or old.y<>defender.c.y then
                     e_last=e_last+1
@@ -168,10 +183,11 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         next
                     endif
                 endif      
-                
-                tick(0)=tick(0)+tickr(0)
-                speed(0)=speed(0)-1
-                com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
+
+            tick(0)=tick(0)+tickr(0)
+            speed(0)=speed(0)-1
+            com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
+            
             endif
             for b=1 to lastenemy 'enemymovement
                 if a>=tick(b)and speed(b)>0 then
@@ -257,9 +273,10 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 attacker(t)=unload_s(attacker(t),10)
                                 lastenemy=com_remove(attacker(),t,lastenemy)
                                 t=0
-                                no_key=keyin
+                                locEOL
+                                locate csrlin,pos+1
+                                no_key=cursor(defender.c,0,1)
                             endif
-                            no_key=keyin()
                         endif
                     endif
                     if t>100 then com_detonatemine(t-100,mines_p(), mines_v() ,mines_last, defender , attacker() ,lastenemy)
@@ -320,7 +337,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         endif
                         if distance(attacker(b).c,defender.c)<=senbat*senac then 
                             dprint text,10
-                            no_key=keyin
+                            locEOL
+                            locate csrlin,pos+1
+                            no_key=cursor(defender.c,0,1)
                         endif
                     endif
                 next
@@ -334,7 +353,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     endif
                     if defender.hull<=0 then text=text &defender.desig &" destroyed!"                        
                     dprint text,12
-                    no_key=keyin
+                    locEOL
+                    locate csrlin,pos+1
+                    no_key=cursor(defender.c,0,1)
                 endif
                 
                 if mines_last>0 then
@@ -399,6 +420,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         attacker(a).c.y=rnd_range(1,20)
                         attacker(a).target.y=rnd_range(1,20)
                     endif
+                    locEOL
+                    locate csrlin,pos+1
+                    no_key=cursor(defender.c,0,1)
                 endif
             endif
         next
@@ -639,7 +663,9 @@ function com_fire(target as _ship, attacker as _ship, w as _weap, gunner as shor
                 else
                     dprint "It missed."
                 endif
-                no_key=keyin
+                locEOL
+                locate csrlin,pos+1
+                no_key=cursor(target.c,0,1)
             endif
         endif
         ROF-=1
@@ -684,15 +710,15 @@ function com_hit(target as _ship, w as _weap,dambonus as short, range as short, 
                 dprint w.desig &", " & text
             endif
         endif
-        text=""
-        no_key=keyin
     endif
     if target.shield=0 and w.p>0 then text=w.desig &" fired, "&desig &" is hit, shields are down!"
     if target.shield=0 and w.p<0 then text=w.desig &" "&desig &" is hit, shields are down!"
     if target.shield>0 and w.p>0 then text=w.desig &" fired, "&desig &" is hit, but shields hold!"
     if target.shield>0 and w.p<0 then text=w.desig &" "&desig &" is hit, but shields hold!"
     dprint text
-    if text<>"" then no_key=keyin
+    locEOL
+    locate csrlin,pos+1
+    no_key=cursor(target.c,0,1)
     if target.shield<0 then target.shield=0
     return target
 end function
@@ -835,7 +861,9 @@ function com_detonatemine(d as short,mines_p() as _cords, mines_v() as short, by
                 defender.piratekills=defender.piratekills+attacker(a).money
                 lastenemy=com_remove(attacker(),a,lastenemy)
                 t=0
-                no_key=keyin
+                locEOL
+                locate csrlin,pos+1
+                no_key=cursor(defender.c,0,1)
             endif
         endif
     next

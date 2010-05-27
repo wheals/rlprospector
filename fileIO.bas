@@ -144,6 +144,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_quit")>0 then key_quit=right(text,1)
                 if instr(lctext,"key_tactics")>0 then key_tactics=right(text,1)
                 if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
+                if instr(lctext,"key_showcoms")>0 then key_showcoms=right(text,1)
                 if instr(lctext,"key_logbook")>0 then key_comment=right(text,1)
                 if instr(lctext,"key_equipment")>0 then key_equipment=right(text,1)
                 if instr(lctext,"key_quest")>0 then key_quests=right(text,1)
@@ -295,7 +296,10 @@ function loadconfig() as short
                     if instr(text,"0")>0 or instr(text,"on") then _onbar=0
                     if instr(text,"1")>0 or instr(text,"of") then _onbar=1
                 endif
-                
+                if instr(text,"showcoms")>0 then
+                    if instr(text,"0")>0 or instr(text,"on")>0 then _showcomments=0
+                    if instr(text,"1")>0 or instr(text,"of") then _showcomments=1
+                endif
                 if instr(text,"lines")>0 then
                     _lines=val(right(text,2))
                 endif
@@ -343,6 +347,7 @@ function configuration() as short
         text=text &"/ Resolution: "&res(_resolution)
         text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
         text=text &"/ Starmap on bar: "& onoff(_onbar)
+        text=text &"/ Starmap comments: "& onoff(_showcomments)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -487,7 +492,16 @@ function configuration() as short
                 _onbar=1
             end select
         endif
-    loop until c=19
+        if c=19 then
+            
+            select case _showcomments
+            case is=1
+                _showcomments=0
+            case is=0
+                _showcomments=1
+            end select
+        endif
+    loop until c=20
     screenshot(2)
     f=freefile
     open "config.txt" for output as #f
@@ -511,6 +525,7 @@ function configuration() as short
     print #f,"resolution:"&_resolution
     print #f,"showvis:"&_showvis
     print #f,"onbar:"&_onbar
+    print #f,"showcoms:"&_showcomments
     close #f
     return 0
 end function

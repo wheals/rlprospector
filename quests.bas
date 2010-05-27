@@ -1,4 +1,3 @@
-
 function alienname(flag as short) as string
     dim as string n,vokal,cons
     dim as short a,b
@@ -92,10 +91,11 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             e.cmmod=e.cmmod+1
         else
             if player.science<>captainskill or crew(4).onship=0 then
-                dprint "Your science officer cant make any sense out of the " &e.sdesc &"s sounds and actions."
+                dprint "Your science officer can't make any sense out of the " &e.sdesc &"'s sounds and actions."
                 e.cmmod=e.cmmod-1
             else
                 dprint "No science officer in the team."
+                return -1
             endif
         endif
     endif
@@ -106,7 +106,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if e.aggr=1 then
                 if findbest(23,1)<>-1 and rnd_range(1,6)+rnd_range(1,6)<2*e.intel then
                     if item(findbest(23,-1)).v1=3 then 
-                        dprint "It says 'That doesnt belong to you, give it back!'"
+                        dprint "It says 'That doesn't belong to you, give it back!'"
                         e.cmmod=e.cmmod-rnd_range(1,4)
                     else
                         dprint "It says 'You have pretty things!'"
@@ -156,6 +156,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                             if b>0 then
                                 item(b).w.s=0
                                 item(b).w.p=monslot
+                                'reward(2)=rnd_range(1,reward(2)-item(b).v5)
                                 reward(2)=reward(2)-item(b).v5
                                 lastlocalitem=lastlocalitem+1
                                 li(lastlocalitem)=b
@@ -648,6 +649,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
     dim it as _items
     dprint "What do you want to offer the "&e.sdesc &"."
     a=getitem()
+    if a<=0 then return -1
     if a>0 then
      if (e.lang=6 or e.lang=7) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
          item(a).w.p=nr
@@ -689,7 +691,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                     placeitem(it,0,0,0,0,-1)
                 endif
             else
-               dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+               dprint "The "&e.sdesc &" doesn't want the "& item(a).desig
             endif
         case else
             if item(a).ty=13 and rnd_range(1,6)+rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
@@ -699,7 +701,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                 item(a)=item(lastitem)
                 lastitem=lastitem-1
             else
-                dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+                dprint "The "&e.sdesc &" doesn't want the "& item(a).desig
             endif
         end select
     endif

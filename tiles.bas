@@ -1,29 +1,29 @@
 
 tiles(1).tile=247
 tiles(1).col=17
-tiles(1).desc="shallow Water"
+tiles(1).desc="shallow water"
 tiles(1).walktru=0
 tiles(1).oxyuse=1
 tiles(1).shootable=1
 tiles(1).hp=50
 tiles(1).dr=-1
-tiles(1).succt="the liquid evaporates"
+tiles(1).succt="The liquid evaporates"
 tiles(1).turnsinto=12
 
 tiles(2).tile=247
 tiles(2).col=1
 tiles(2).bgcol=229
-tiles(2).desc="deep Water"
+tiles(2).desc="deep water"
 tiles(2).walktru=1
 tiles(2).shootable=1
 tiles(2).hp=100
 tiles(2).dr=-1
-tiles(2).succt="the liquid evaporates"
+tiles(2).succt="The liquid evaporates"
 tiles(2).turnsinto=1
 
 tiles(3).tile=46
 tiles(3).col=6
-tiles(3).desc="Dirt"
+tiles(3).desc="dirt"
 tiles(3).shootable=1
 tiles(3).dr=-1
 tiles(3).hp=5
@@ -31,11 +31,11 @@ tiles(3).turnsinto=4
 
 tiles(4).tile=46
 tiles(4).col=7
-tiles(4).desc="Rock"
+tiles(4).desc="rock"
 
 tiles(5).tile=84
 tiles(5).col=2
-tiles(5).desc="Woods"
+tiles(5).desc="woods"
 tiles(5).seetru=1
 tiles(5).vege=1
 tiles(5).shootable=1
@@ -46,7 +46,7 @@ tiles(5).turnsinto=3
 tiles(6).tile=84
 tiles(6).col=10
 tiles(6).bgcol=0
-tiles(6).desc="Shrubs"
+tiles(6).desc="shrubs"
 tiles(6).vege=1
 tiles(6).shootable=1
 tiles(6).dr=-1
@@ -56,7 +56,7 @@ tiles(6).turnsinto=3
 tiles(7).tile=94
 tiles(7).col=215
 tiles(7).bgcol=221
-tiles(7).desc="High Mountains"
+tiles(7).desc="high mountains"
 tiles(7).seetru=1
 tiles(7).walktru=2
 tiles(7).firetru=1
@@ -69,7 +69,7 @@ tiles(7).turnsinto=244
 tiles(8).tile=94
 tiles(8).col=217
 tiles(8).bgcol=221
-tiles(8).desc="Mountains"
+tiles(8).desc="mountains"
 tiles(8).seetru=1
 tiles(8).walktru=2
 tiles(8).firetru=1
@@ -90,7 +90,7 @@ tiles(9).hides=2
 tiles(10).tile=46
 tiles(10).col=10
 tiles(10).bgcol=0
-tiles(10).desc="Grass"
+tiles(10).desc="grass"
 tiles(10).vege=1
 tiles(10).shootable=1
 tiles(10).dr=-1
@@ -99,7 +99,7 @@ tiles(10).turnsinto=3
 
 tiles(11).tile=46
 tiles(11).col=2
-tiles(11).desc="Grass"
+tiles(11).desc="grass"
 tiles(11).vege=1
 tiles(11).shootable=1
 tiles(11).dr=-1
@@ -108,7 +108,7 @@ tiles(11).turnsinto=3
 
 tiles(12).tile=46
 tiles(12).col=14
-tiles(12).desc="Sand"
+tiles(12).desc="sand"
 
 
 tiles(13).tile=46
@@ -120,7 +120,7 @@ tiles(13).hides=2
 tiles(14).tile=46
 tiles(14).col=15
 tiles(14).bgcol=0
-tiles(14).desc="Ice"
+tiles(14).desc="ice"
 tiles(14).shootable=1
 tiles(14).dr=-1
 tiles(14).hp=4
@@ -164,7 +164,7 @@ tiles(20).hitt="You get splashed with strong acids!"
 tiles(20).shootable=1
 tiles(20).hp=50
 tiles(20).dr=-1
-tiles(20).succt="the liquid evaporates"
+tiles(20).succt="The liquid evaporates"
 tiles(20).turnsinto=13
 
 tiles(21).tile=247
@@ -179,7 +179,7 @@ tiles(21).hitt="You get splashed with strong acids!"
 tiles(21).shootable=1
 tiles(21).hp=100
 tiles(21).dr=-1
-tiles(21).succt="the liquid evaporates"
+tiles(21).succt="The liquid evaporates"
 tiles(21).turnsinto=20
 
 
@@ -194,7 +194,7 @@ tiles(22).turnsinto=3
 
 tiles(23).tile=asc("T")
 tiles(23).col=162
-tiles(23).desc="exotic tree"
+tiles(23).desc="exotic trees"
 tiles(23).seetru=1
 tiles(23).vege=4
 tiles(23).shootable=1
@@ -204,7 +204,7 @@ tiles(23).turnsinto=3
 
 tiles(24).tile=asc("T")
 tiles(24).col=156
-tiles(24).desc="exotic bush"
+tiles(24).desc="exotic bushes"
 tiles(24).vege=3
 tiles(24).shootable=1
 tiles(24).dr=-1
@@ -251,7 +251,7 @@ tiles(27).turnsinto=2
 'Geysers
 tiles(28).tile=147
 tiles(28).col=137
-tiles(28).desc="geyser"
+tiles(28).desc="Geyser"
 tiles(28).tohit=30
 tiles(28).dam=1
 tiles(28).hitt="You get sprayed with boiling water!"
@@ -277,11 +277,11 @@ tiles(30).causeaeon=12
 tiles(30).aetype=5
 
 tiles(31).tile=186 '|
-tiles(31).desc="Street"
+tiles(31).desc="street"
 tiles(31).col=15
 
 tiles(32).tile=205 '-
-tiles(32).desc="Street"
+tiles(32).desc="street"
 tiles(32).col=15
 
 tiles(33).tile=206 '+
@@ -322,7 +322,7 @@ tiles(41).col=15
 
 tiles(42).tile=35
 tiles(42).col=15
-tiles(42).desc="Building"
+tiles(42).desc="A building"
 tiles(42).seetru=1
 tiles(42).firetru=1
 tiles(42).gives=4
@@ -330,7 +330,7 @@ tiles(42).turnsinto=42
 tiles(42).hides=2
 
 tiles(43).tile=35
-tiles(43).desc="Building"
+tiles(43).desc="A building"
 tiles(43).col=15
 tiles(43).seetru=1
 tiles(43).firetru=1
@@ -352,7 +352,7 @@ tiles(46).desc="Cave"
 tiles(47).tile=176
 tiles(47).bgcol=0
 tiles(47).col=219
-tiles(47).desc="rubble"
+tiles(47).desc="Rubble"
 tiles(47).seetru=0
 tiles(47).walktru=5
 tiles(47).firetru=1
@@ -366,7 +366,7 @@ tiles(47).failt="You attempt to losen the ground fails"
 tiles(48).tile=178
 tiles(48).bgcol=219
 tiles(48).col=218
-tiles(48).desc="soft rock"
+tiles(48).desc="Soft rock"
 tiles(48).seetru=1
 tiles(48).walktru=5
 tiles(48).firetru=1
@@ -395,7 +395,7 @@ tiles(49).failt="The wall is too hard"
 tiles(50).tile=178
 tiles(50).bgcol=217
 tiles(50).col=216
-tiles(50).desc="hard rock"
+tiles(50).desc="Hard rock"
 tiles(50).seetru=1
 tiles(50).walktru=5
 tiles(50).firetru=1
@@ -409,7 +409,7 @@ tiles(50).failt="The wall is too hard"
 tiles(51).tile=178
 tiles(51).bgcol=216
 tiles(51).col=215
-tiles(51).desc="hard rock"
+tiles(51).desc="Hard rock"
 tiles(51).seetru=1
 tiles(51).walktru=5
 tiles(51).firetru=1
@@ -423,14 +423,14 @@ tiles(51).failt="The wall is too hard"
 tiles(52).tile=176
 tiles(52).col=137
 tiles(52).bgcol=137
-tiles(52).desc="steel wall"
+tiles(52).desc="Steel wall"
 tiles(52).seetru=1
 tiles(52).walktru=5
 tiles(52).firetru=1
 
 tiles(53).tile=asc("+") 'broken door
 tiles(53).col=137
-tiles(53).desc="door"
+tiles(53).desc="Door"
 tiles(53).seetru=1
 tiles(53).walktru=5
 tiles(53).firetru=1
@@ -484,8 +484,8 @@ tiles(56).turnsinto=57
 tiles(56).dr=2
 tiles(56).hp=100
 tiles(56).succt="You damage the structure"
-tiles(56).failt="The Temple withstands your fire"
-tiles(56).killt="You destroy the temple. There is some very advanced machinery in the rubble."
+tiles(56).failt="The temple withstands your fire"
+tiles(56).killt="You destroy the temple. There are very advanced machinery in the rubble."
 tiles(56).spawnson=25
 tiles(56).spawnswhat=5
 tiles(56).spawnsmax=1
@@ -495,7 +495,7 @@ tiles(56).hides=2
 tiles(57).tile=46
 tiles(57).col=15
 tiles(57).bgcol=6
-tiles(57).desc="ruins of a temple."
+tiles(57).desc="Ruins of a temple."
 tiles(57).gives=1
 tiles(57).turnsinto=58
 tiles(57).hides=2
@@ -504,7 +504,7 @@ tiles(57).hides=2
 tiles(58).tile=46
 tiles(58).col=15
 tiles(58).bgcol=6
-tiles(58).desc="temple ruin"
+tiles(58).desc="Temple ruins"
 tiles(58).gives=0
 tiles(58).turnsinto=0
 tiles(58).hides=2
@@ -522,7 +522,7 @@ tiles(59).turnsinto=4
 tiles(59).dr=-1
 tiles(59).hp=8
 tiles(59).succt="You slice through the wood like butter"
-tiles(59).failt="You dont damage the tree"
+tiles(59).failt="You don't damage the tree"
 tiles(59).killt="You destroy the tree"
 tiles(59).spawnson=66
 tiles(59).spawnswhat=6
@@ -542,8 +542,8 @@ tiles(60).shootable=1
 tiles(60).turnsinto=3
 tiles(60).dr=2
 tiles(60).hp=25
-tiles(60).succt="It is slightly dented now"
-tiles(60).failt="Your weapons arent powerful enough to damage a spaceship"
+tiles(60).succt="The spaceship is slightly dented now"
+tiles(60).failt="Your weapons are not powerful enough to damage a spaceship"
 tiles(60).killt="That will teach those pirates a lesson!"
 tiles(60).spawnson=33
 tiles(60).spawnswhat=7
@@ -554,7 +554,7 @@ tiles(60).hides=2
 
 tiles(61).tile=64
 tiles(61).col=11
-tiles(61).desc="a stranded ship"
+tiles(61).desc="A stranded ship"
 tiles(61).survivors=33
 tiles(61).resources=66
 tiles(61).turnsinto=62
@@ -563,7 +563,7 @@ tiles(61).hides=2
 
 tiles(62).tile=64
 tiles(62).col=11
-tiles(62).desc="a stranded ship, beyond repair"
+tiles(62).desc="A stranded ship, beyond repair"
 tiles(62).hides=2
 
 tiles(63).tile=asc("#")
@@ -605,7 +605,7 @@ tiles(67).shootable=1
 tiles(67).turnsinto=3
 tiles(67).dr=2
 tiles(67).hp=225
-tiles(67).succt="It is slightly dented now"
+tiles(67).succt="The spaceship is slightly dented now"
 tiles(67).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(67).killt="That will teach those pirates a lesson!"
 tiles(67).hides=2
@@ -613,10 +613,10 @@ tiles(67).hides=2
 tiles(68).tile=219
 tiles(68).col=8
 tiles(68).bgcol=7
-tiles(68).desc="landing pad"
+tiles(68).desc="A landing pad"
 
 tiles(69).tile=35 'bar
-tiles(69).desc="Building"
+tiles(69).desc="A building"
 tiles(69).col=15
 tiles(69).seetru=1
 tiles(69).firetru=1
@@ -665,7 +665,7 @@ tiles(75).hides=2
 
 tiles(76).tile=35
 tiles(76).col=7
-tiles(76).desc="abandoned mining building"
+tiles(76).desc="An abandoned mining building"
 tiles(76).seetru=1
 tiles(76).firetru=1
 tiles(76).hides=2
@@ -711,7 +711,7 @@ tiles(81).turntext="You discover sensors for a laser trap"
 
 tiles(82).tile=asc("C")
 tiles(82).col=11
-tiles(82).desc="a computer"
+tiles(82).desc="A computer"
 tiles(82).shootable=1
 tiles(82).dr=2
 tiles(82).hp=15
@@ -724,14 +724,14 @@ tiles(82).stopwalking=1
 
 tiles(83).tile=asc(";")
 tiles(83).col=4
-tiles(83).desc="a heap of some metal. Examining closely you find"
+tiles(83).desc="A heap of some kind of metal. Examining closely you find"
 tiles(83).gives=1
 tiles(83).turnsinto=84
 tiles(83).hides=2
 
 tiles(84).tile=asc(";")
 tiles(84).col=4
-tiles(84).desc="heap of some metal"
+tiles(84).desc="A heap of some uncommon metal"
 tiles(84).turnsinto=84
 tiles(84).hides=2
 
@@ -751,25 +751,25 @@ tiles(86).spawnblock=1
 tiles(86).turnsinto=62
 tiles(86).dr=2
 tiles(86).hp=25
-tiles(86).succt="It is slightly dented now"
+tiles(86).succt="The scoutship is slightly dented now"
 tiles(86).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(86).killt="That will teach them a lesson!"
 tiles(86).hides=2
 
 tiles(87).tile=asc(".")
 tiles(87).col=8
-tiles(87).desc="toxic gas"
+tiles(87).desc="thick fog of toxic gas"
 tiles(87).oxyuse=2
 
 
 tiles(88).tile=126
 tiles(88).col=10
-tiles(88).desc="toxic gas"
+tiles(88).desc="Toxic gas fog"
 tiles(88).oxyuse=2
 tiles(88).seetru=1
 
 tiles(89).tile=35
-tiles(89).desc="Building"
+tiles(89).desc="A building"
 tiles(89).col=15
 tiles(89).seetru=1
 tiles(89).firetru=1
@@ -782,7 +782,7 @@ tiles(89).hides=2
 
 tiles(90).tile=asc("O")
 tiles(90).col=4
-tiles(90).desc="a dirt hut"
+tiles(90).desc="A dirt hut"
 tiles(90).hides=2
 tiles(90).dr=-1
 tiles(90).hp=10
@@ -797,7 +797,7 @@ tiles(90).turnsinto=3
 
 tiles(91).tile=asc("O")
 tiles(91).col=14
-tiles(91).desc="a house made of clay bricks"
+tiles(91).desc="A house made of clay bricks"
 tiles(91).hides=2
 tiles(91).dr=0
 tiles(91).hp=15
@@ -811,7 +811,7 @@ tiles(91).turnsinto=3
 
 tiles(92).tile=asc("O")
 tiles(92).col=7
-tiles(92).desc="a well constructed stone house"
+tiles(92).desc="A well constructed stone house"
 tiles(92).hides=2
 tiles(92).dr=1
 tiles(92).hp=20
@@ -825,7 +825,7 @@ tiles(92).turnsinto=3
 
 tiles(93).tile=asc("O")
 tiles(93).col=4
-tiles(93).desc="a dirt hut"
+tiles(93).desc="A dirt hut"
 tiles(93).locked=1
 tiles(93).hides=2
 tiles(93).dr=-1
@@ -840,7 +840,7 @@ tiles(93).turnsinto=3
 
 tiles(94).tile=asc("O")
 tiles(94).col=14
-tiles(94).desc="a house made of clay bricks"
+tiles(94).desc="A house made of clay bricks"
 tiles(94).locked=2
 tiles(94).hides=2
 tiles(94).dr=0
@@ -855,7 +855,7 @@ tiles(94).turnsinto=3
 
 tiles(95).tile=asc("O")
 tiles(95).col=7
-tiles(95).desc="a well constructed stone house"
+tiles(95).desc="A well constructed stone house"
 tiles(95).locked=3
 tiles(95).hides=2
 tiles(95).dr=1
@@ -870,7 +870,7 @@ tiles(95).turnsinto=3
 
 tiles(96).tile=186
 tiles(96).col=4
-tiles(96).desc="cultivated land"
+tiles(96).desc="Cultivated land"
 tiles(96).shootable=1
 tiles(96).dr=-1
 tiles(96).hp=20
@@ -879,12 +879,12 @@ tiles(96).turnsinto=3
 
 tiles(97).tile=asc(".")
 tiles(97).col=15
-tiles(97).desc="oxygen rich gas bubble"
+tiles(97).desc="Oxygen rich gas pocket"
 tiles(97).oxyuse=-2
 
 
 tiles(98).tile=35
-tiles(98).desc="Building"
+tiles(98).desc="A building"
 tiles(98).col=8
 tiles(98).seetru=1
 tiles(98).firetru=1
@@ -893,7 +893,7 @@ tiles(98).turnsinto=98
 tiles(98).hides=2
 
 tiles(99).tile=35
-tiles(99).desc="Building"
+tiles(99).desc="A building"
 tiles(99).col=8
 tiles(99).seetru=1
 tiles(99).firetru=1
@@ -904,7 +904,7 @@ tiles(99).hides=2
 tiles(100).tile=asc("#") 'Apollos temple
 tiles(100).col=14
 tiles(100).bgcol=0
-tiles(100).desc="Factory"
+tiles(100).desc="A factory"
 tiles(100).seetru=1
 tiles(100).firetru=1
 tiles(100).shootable=1
@@ -923,12 +923,12 @@ tiles(100).hides=2
 tiles(101).tile=asc("#") 'Apollos temple
 tiles(101).col=14
 tiles(101).bgcol=0
-tiles(101).desc="destroyed factory"
+tiles(101).desc="Ruins of a factory"
 tiles(101).hides=2
 
 tiles(102).tile=asc(".")
 tiles(102).col=90
-tiles(102).desc="moss"
+tiles(102).desc="Moss covered ground"
 tiles(102).vege=1
 tiles(102).shootable=1
 tiles(102).dr=-1
@@ -937,7 +937,7 @@ tiles(102).turnsinto=3
 
 tiles(103).tile=asc(".")
 tiles(103).col=42
-tiles(103).desc="moss"
+tiles(103).desc="Moss"
 tiles(103).vege=2
 tiles(103).shootable=1
 tiles(103).dr=-1
@@ -947,7 +947,7 @@ tiles(103).turnsinto=3
 
 tiles(104).tile=asc(".")
 tiles(104).col=120
-tiles(104).desc="moss"
+tiles(104).desc="Moss"
 tiles(104).vege=3
 tiles(104).shootable=1
 tiles(104).dr=-1
@@ -956,7 +956,7 @@ tiles(104).turnsinto=3
 
 tiles(105).tile=asc(".")
 tiles(105).col=18
-tiles(105).desc="moss"
+tiles(105).desc="Moss covered ground"
 tiles(105).vege=4
 tiles(105).shootable=1
 tiles(105).dr=-1
@@ -965,7 +965,7 @@ tiles(105).turnsinto=3
 
 tiles(106).tile=34
 tiles(106).col=60
-tiles(106).desc="ferns"
+tiles(106).desc="Ferns"
 tiles(106).vege=5
 tiles(106).shootable=1
 tiles(106).dr=-1
@@ -974,7 +974,7 @@ tiles(106).turnsinto=3
 
 tiles(107).tile=asc("#")
 tiles(107).col=218
-tiles(107).desc="primitive factory"
+tiles(107).desc="A primitive factory"
 tiles(107).causeaeon=22
 tiles(107).aetype=5
 tiles(107).hides=2
@@ -1094,7 +1094,7 @@ tiles(143).hides=2
 
 tiles(144).tile=35
 tiles(144).col=7
-tiles(144).desc="a building"
+tiles(144).desc="A building"
 tiles(144).dr=2
 tiles(144).hp=60
 tiles(144).shootable=1
@@ -1105,7 +1105,7 @@ tiles(144).hides=2
 
 tiles(145).tile=34
 tiles(145).col=15
-tiles(145).desc="snow"
+tiles(145).desc="Snow"
 tiles(145).shootable=1
 tiles(145).dr=-1
 tiles(145).hp=2
@@ -1115,7 +1115,7 @@ tiles(145).hides=2
 tiles(146).tile=34
 tiles(146).col=-9
 tiles(146).bgcol=-14
-tiles(146).desc="iridescent flowers"
+tiles(146).desc="Iridescent flowers fields"
 tiles(146).vege=5
 tiles(146).shootable=1
 tiles(146).dr=-1
@@ -1124,7 +1124,7 @@ tiles(146).turnsinto=3
 
 tiles(148).tile=35
 tiles(148).col=7
-tiles(148).desc="an ancient ruined alien settlement"
+tiles(148).desc="An ancient ruined alien settlement"
 tiles(148).dr=2
 tiles(148).hp=60
 tiles(148).turnsinto=47
@@ -1135,13 +1135,13 @@ tiles(148).hides=2
 
 tiles(149).tile=asc("@")
 tiles(149).col=7
-tiles(149).desc="the ancient wreck of an alien spaceship"
+tiles(149).desc="The ancient wreckages of an alien spaceship"
 tiles(149).hides=2
 
 tiles(150).tile=asc("^")
 tiles(150).bgcol=0
 tiles(150).col=14
-tiles(150).desc="a primitive stone pyramid"
+tiles(150).desc="A primitive stone pyramid"
 tiles(150).hides=2
 tiles(150).dr=2
 tiles(150).shootable=1
@@ -1153,7 +1153,7 @@ tiles(150).firetru=1
 tiles(151).tile=178
 tiles(151).col=215
 tiles(151).bgcol=216
-tiles(151).desc="hard rock"
+tiles(151).desc="Hard rock"
 tiles(151).seetru=1
 tiles(151).walktru=5
 tiles(151).firetru=1
@@ -1170,7 +1170,7 @@ tiles(151).turnsoninspect=4
 tiles(152).tile=176
 tiles(152).col=0
 tiles(152).bgcol=4
-tiles(152).desc="dense wall of roots"
+tiles(152).desc="A dense wall of roots"
 tiles(152).seetru=0
 tiles(152).walktru=5
 tiles(152).firetru=1
@@ -1179,7 +1179,7 @@ tiles(152).dr=-1
 tiles(152).hp=2
 tiles(152).turnsinto=4
 tiles(152).succt="You shoot an opening into the roots"
-tiles(152).failt="the roots are too thick"
+tiles(152).failt="The roots are too thick to damage"
 
 
 tiles(153).tile=46
@@ -1201,7 +1201,7 @@ tiles(153).killt="You destroy the sensors for the trap"
 tiles(154).tile=46
 tiles(154).col=7
 tiles(154).bgcol=0
-tiles(154).desc="rock"
+tiles(154).desc="Rock"
 tiles(154).turnsinto=4
 tiles(154).dam=-3
 tiles(154).range=0
@@ -1211,14 +1211,14 @@ tiles(154).deadt="trap"
 tiles(154).shootable=1
 tiles(154).dr=-1
 tiles(154).hp=1
-tiles(154).killt="You destroy the tripwire"
+tiles(154).killt="You destroyed the tripwire"
 tiles(154).turnsoninspect=155
-tiles(154).turntext="You find a tripwire for a trap"
+tiles(154).turntext="You find a traps tripwire"
 
 tiles(155).tile=asc("_")
 tiles(155).col=7
 tiles(155).bgcol=0
-tiles(155).desc="tripwire"
+tiles(155).desc="Tripwire"
 tiles(155).turnsinto=4
 tiles(155).dam=-3
 tiles(155).range=0
@@ -1262,7 +1262,7 @@ tiles(157).turnsinto=4
 tiles(158).tile=176
 tiles(158).col=1    
 tiles(158).bgcol=11
-tiles(158).desc="huge block of ice"
+tiles(158).desc="A huge block of ice"
 tiles(158).seetru=0
 tiles(158).walktru=5
 tiles(158).firetru=1
@@ -1302,7 +1302,7 @@ tiles(163).desc="Several pipes come up from the ground"
 
 
 tiles(164).tile=35
-tiles(164).desc="Building"
+tiles(164).desc="A building"
 tiles(164).col=15
 tiles(164).seetru=1
 tiles(164).firetru=1
@@ -1312,7 +1312,7 @@ tiles(164).hides=2
 
 tiles(165).tile=34
 tiles(165).col=121
-tiles(165).desc="seatang"
+tiles(165).desc="Seatang"
 tiles(165).vege=6
 tiles(165).turnsoninspect=166
 tiles(165).shootable=1
@@ -1322,7 +1322,7 @@ tiles(165).turnsinto=3
 
 tiles(166).tile=34
 tiles(166).col=121
-tiles(166).desc="seatang"
+tiles(166).desc="Seatang"
 tiles(166).shootable=1
 tiles(166).dr=-1
 tiles(166).hp=1
@@ -1339,7 +1339,7 @@ tiles(168).tile=157
 tiles(168).col=13
 tiles(168).bgcol=6
 tiles(168).walktru=5
-tiles(168).desc="A domeshaped forcefield covers a turret with a disintegrator cannon"
+tiles(168).desc="A dome-shaped forcefield covers a turret with a disintegrator cannon"
 
 tiles(169).tile=157
 tiles(169).col=7
@@ -1352,7 +1352,7 @@ tiles(170).col=7
 tiles(170).desc="A turret"
 
 tiles(171).tile=35
-tiles(171).desc="Building"
+tiles(171).desc="A building"
 tiles(171).col=77
 tiles(171).seetru=1
 tiles(171).firetru=1
@@ -1365,7 +1365,7 @@ tiles(171).seetru=1
 tiles(171).firetru=1
 
 tiles(172).tile=asc("#")
-tiles(172).desc="Building"
+tiles(172).desc="A building"
 tiles(172).col=75
 tiles(172).seetru=1
 tiles(172).firetru=1
@@ -1375,33 +1375,33 @@ tiles(172).hides=2
 
 tiles(173).tile=asc("@")
 tiles(173).col=56
-tiles(173).desc="A space ship under construction"
+tiles(173).desc="A spaceship under construction"
 
 tiles(175).tile=176
 tiles(175).walktru=4
 tiles(175).col=186
-tiles(175).desc="clouds"
+tiles(175).desc="Clouds"
 
 tiles(176).tile=176
 tiles(176).walktru=4
-tiles(176).desc="clouds"
+tiles(176).desc="Clouds"
 tiles(176).col=198
 
 tiles(177).tile=176
 tiles(177).walktru=4
 tiles(177).col=210
-tiles(177).desc="clouds"
+tiles(177).desc="Clouds"
 
 tiles(178).tile=ASC("O")
 tiles(178).col=8
-tiles(178).desc="fuel tank"
+tiles(178).desc="A fuel tank"
 tiles(178).gives=55
 tiles(178).turnsinto=178
 
 
 tiles(181).tile=35
 tiles(181).col=8
-tiles(181).desc="a run down building"
+tiles(181).desc="A run down building"
 tiles(181).dr=1
 tiles(181).hp=30
 tiles(181).turnsinto=47
@@ -1418,7 +1418,7 @@ tiles(181).firetru=1
 
 tiles(182).tile=35
 tiles(182).col=14
-tiles(182).desc="a not working powerplant"
+tiles(182).desc="An idle power plant"
 tiles(182).turntext="Nothing seriously wrong, just a software glitch. You restart the system and wonder why the colonists didn't do it themselfes." 
 tiles(182).dr=1
 tiles(182).hp=30
@@ -1430,7 +1430,7 @@ tiles(182).hides=2
 
 tiles(183).tile=35
 tiles(183).col=15
-tiles(183).desc="a run down building"
+tiles(183).desc="A run down building"
 tiles(183).dr=1
 tiles(183).turnsinto=183
 tiles(183).gives=7
@@ -1438,7 +1438,7 @@ tiles(183).hides=2
 
 tiles(184).tile=35
 tiles(184).col=14
-tiles(184).desc="a working powerplant"
+tiles(184).desc="A working powerplant"
 tiles(184).dr=1
 tiles(184).hp=30
 tiles(184).seetru=1
@@ -1448,16 +1448,16 @@ tiles(184).hides=2
 
 tiles(185).tile=asc(".")
 tiles(185).col=1
-tiles(185).desc="a dark spongy surface, consisting of long chains of silicone oxygen molecules."
+tiles(185).desc="A dark spongy surface, consisting of long chains of silicone oxygen molecules."
 
 tiles(186).tile=asc(".")
 tiles(186).col=218
-tiles(186).desc="smooth rock"
+tiles(186).desc="Smooth rock"
 
 tiles(187).tile=asc("^")
 tiles(187).col=-36
 tiles(187).bgcol=-53
-tiles(187).desc="a giant mound of smooth rock, with veins of silicone oxide running through it."
+tiles(187).desc="A giant mound of smooth rock, with veins of silicone oxide running through it."
 tiles(187).spawnson=5
 tiles(187).spawnswhat=36
 tiles(187).shootable=1
@@ -1468,13 +1468,13 @@ tiles(187).turnsinto=188
 
 tiles(188).tile=asc("^")
 tiles(188).col=36
-tiles(188).desc="the remains of a giant mound of rock. It's structure resembles a brain."
+tiles(188).desc="The remains of a giant mound of rock. It's structure resembles a brain."
 tiles(188).gives=33
 tiles(188).turnsinto=189
 
 tiles(189).tile=asc("^")
 tiles(189).col=36
-tiles(189).desc="the remains of a giant mound of rock. It's structure resembles a brain."
+tiles(189).desc="The remains of a giant mound of rock. It's structure resembles a brain."
 
 tiles(190).tile=asc("*")
 tiles(190).col=-180
@@ -1498,7 +1498,7 @@ tiles(191).turnsinto=196
 tiles(192).tile=asc("*")
 tiles(192).col=180
 tiles(192).bgcol=0
-tiles(192).desc="crystal shards"
+tiles(192).desc="Some crystal shards"
 tiles(192).gives=40
 tiles(192).turnsinto=4
 tiles(192).hides=2
@@ -1509,7 +1509,7 @@ tiles(193).bgcol=-77
 tiles(193).seetru=1
 tiles(193).walktru=2
 tiles(193).firetru=1
-tiles(193).desc="crystal mountains"
+tiles(193).desc="A crystal mountains"
 
 tiles(194).tile=176
 tiles(194).col=-1
@@ -1517,7 +1517,7 @@ tiles(194).bgcol=-77
 tiles(194).seetru=1
 tiles(194).walktru=5
 tiles(194).firetru=1
-tiles(194).desc="crystal wall"
+tiles(194).desc="A crystal wall"
 
 tiles(195)=tiles(151)
 tiles(195).col=-1
@@ -1525,17 +1525,17 @@ tiles(195).bgcol=-77
 tiles(195).seetru=1
 tiles(195).walktru=2
 tiles(195).firetru=1
-tiles(195).desc="crystal wall"
+tiles(195).desc="A crystal wall"
 
 tiles(196).tile=asc("*")
 tiles(196).col=180
 tiles(196).bgcol=0
-tiles(196).desc="crystal shards"
+tiles(196).desc="Some crystal shards"
 tiles(196).turnsinto=4
 
 tiles(197).tile=asc("#")
 tiles(197).col=2
-tiles(197).desc="The villa of the pirate commander."
+tiles(197).desc="The pirate commanders villa."
 tiles(197).gives=32
 tiles(197).turnsinto=197
 
@@ -1549,7 +1549,7 @@ tiles(200).tile=176
 tiles(200).col=1
 tiles(200).bgcol=0
 tiles(200).walktru=2
-tiles(200).desc="space"
+tiles(200).desc="Space"
 tiles(200).oxyuse=1
 
 tiles(201).tile=176
@@ -1563,7 +1563,7 @@ tiles(201).dr=4
 tiles(201).hp=25
 tiles(201).succt="You damage the wall"
 tiles(201).failt="The walls are to strong for you to seriously damage"
-tiles(201).desc="wall"
+tiles(201).desc="Ship's inner wall"
 tiles(201).turnsinto=202
 
 tiles(202).tile=asc(".")
@@ -1572,7 +1572,7 @@ tiles(202).desc="floor"
 
 tiles(203).tile=asc("O")
 tiles(203).col=14
-tiles(203).desc="airlock"
+tiles(203).desc="This is an airlock"
 tiles(203).shootable=1
 tiles(203).dr=3
 tiles(203).hp=20
@@ -1581,12 +1581,12 @@ tiles(203).failt="The doors are too strong for you to seriously damage"
 
 tiles(204).tile=asc("/")
 tiles(204).col=7
-tiles(204).desc="door"
+tiles(204).desc="An open door"
 tiles(204).onclose=205
 
 tiles(205).tile=asc("+")
 tiles(205).col=7
-tiles(205).desc="door"
+tiles(205).desc="A closed door"
 tiles(205).locked=2
 tiles(205).walktru=5
 tiles(205).seetru=1
@@ -1600,26 +1600,26 @@ tiles(205).onopen=204
 
 tiles(206).tile=asc("E")
 tiles(206).col=7
-tiles(206).desc="engine"
+tiles(206).desc="The ship's engine"
 tiles(206).gives=206
 tiles(206).turnsinto=206
 
 tiles(207).tile=asc("S")
 tiles(207).col=24
-tiles(207).desc="sensors"
+tiles(207).desc="The ship's sensors"
 tiles(207).gives=207
 tiles(207).turnsinto=207
 
 tiles(208).tile=asc("S")
 tiles(208).col=150
-tiles(208).desc="shields"
+tiles(208).desc="Ship's shields"
 tiles(208).gives=208
 tiles(208).turnsinto=208
 
 for b=209 to 214
     tiles(b).tile=asc("W")
     tiles(b).col=14
-    tiles(b).desc="weapons turret"
+    tiles(b).desc="A weapon turret"
     tiles(b).gives=210
     tiles(b).turnsinto=b
 next
@@ -1628,14 +1628,14 @@ for b=215 to 219
     tiles(b).tile=asc("C")
     tiles(b).col=114
     tiles(b).bgcol=15
-    tiles(b).desc="cargo crate"
+    tiles(b).desc="A cargo crate"
     tiles(b).gives=211
     tiles(b).turnsinto=b
 next
 
 tiles(220).tile=asc("B")
 tiles(220).col=102
-tiles(220).desc="Bridge"
+tiles(220).desc="Command bridge"
 tiles(220).gives=220
 tiles(220).turnsinto=220
 
@@ -1643,7 +1643,7 @@ tiles(221).tile=179
 tiles(221).col=0
 tiles(221).bgcol=15
 tiles(221).hides=2
-tiles(221).desc="locker"
+tiles(221).desc="A equipment locker"
 tiles(221).locked=3
 tiles(221).shootable=1
 tiles(221).dr=-1
@@ -1654,7 +1654,7 @@ tiles(222).tile=179
 tiles(222).col=0
 tiles(222).bgcol=15
 tiles(222).hides=2
-tiles(222).desc="locker"
+tiles(222).desc="A equipment locker"
 tiles(222).shootable=1
 tiles(222).dr=-1
 tiles(222).hp=2
@@ -1663,16 +1663,16 @@ tiles(222).turnsinto=202
 tiles(223).tile=asc("C")
 tiles(233).col=114
 tiles(223).bgcol=15
-tiles(223).desc="cargo crate"
+tiles(223).desc="A cargo crate"
 
 tiles(224).tile=asc("0")
 tiles(224).col=7
-tiles(224).desc="empty fuel tank"
+tiles(224).desc="A empty fuel tank"
 
 tiles(225).tile=asc("Ö")
 tiles(225).col=11
 tiles(255).bgcol=1
-tiles(225).desc="cryogenic chamber"
+tiles(225).desc="A cryogenic chamber"
 tiles(225).gives=886
 tiles(255).turnsinto=202
 tiles(255).hides=2
@@ -1694,14 +1694,14 @@ tiles(226).hides=2
 tiles(227).tile=asc("*")
 tiles(227).col=180
 tiles(227).bgcol=0
-tiles(227).desc="crystal shards"
+tiles(227).desc="Some crystal shards"
 tiles(227).gives=41
 tiles(227).turnsinto=4
 tiles(227).hides=2
 
 tiles(228).tile=asc("#")
 tiles(228).col=219
-tiles(228).desc="simple building"
+tiles(228).desc="A simple building"
 tiles(228).dr=2
 tiles(228).hp=30
 tiles(228).turnsinto=47
@@ -1715,7 +1715,7 @@ tiles(228).spawnblock=1
 
 tiles(229).tile=asc("#")
 tiles(229).col=14
-tiles(229).desc="town hall"
+tiles(229).desc="The town hall"
 tiles(229).dr=2
 tiles(229).hp=30
 tiles(229).turnsinto=229
@@ -1726,7 +1726,7 @@ tiles(229).gives=60
 
 tiles(230).tile=asc(".")
 tiles(230).col=7
-tiles(230).desc="metal floor"
+tiles(230).desc="Metal floor"
 tiles(230).turnsinto=230
 
 tiles(231).tile=238
@@ -1739,7 +1739,7 @@ tiles(231).turnsinto=231
 tiles(232).tile=238
 tiles(232).col=10
 tiles(232).col=7
-tiles(232).desc="An environmental control console. All systems working within perimeters"
+tiles(232).desc="An environmental control console. All systems working within paremeters"
 
 tiles(233).tile=238
 tiles(233).col=10
@@ -1756,16 +1756,16 @@ tiles(234).turnsinto=234
 tiles(235).tile=238
 tiles(235).col=12
 tiles(235).col=8
-tiles(235).desc="A reactor control console. All systems green"
+tiles(235).desc="A reactor control console. All systems green."
 
 tiles(236).tile=238
 tiles(236).col=12
 tiles(236).col=8
-tiles(236).desc="A reactor control console. It is broken beyond repair"
+tiles(236).desc="A reactor control console. It is broken beyond repair."
 
 
 tiles(237).tile=35 'Weapons shop
-tiles(237).desc="Building"
+tiles(237).desc="A building"
 tiles(237).col=15
 tiles(237).seetru=1
 tiles(237).firetru=1
@@ -1775,7 +1775,7 @@ tiles(237).hides=2
 
 
 tiles(238).tile=35 'Shipyard
-tiles(238).desc="Building"
+tiles(238).desc="A building"
 tiles(238).col=15
 tiles(238).seetru=1
 tiles(238).firetru=1
@@ -1815,14 +1815,14 @@ tiles(243).dr=5
 tiles(243).hp=45
 tiles(243).succt="You damage the wall"
 tiles(243).failt="The walls are to strong for you to seriously damage"
-tiles(243).desc="wall"
+tiles(243).desc="Wall"
 tiles(243).turnsinto=202
 
 
 tiles(244).tile=94
 tiles(244).col=11
 tiles(244).bgcol=0
-tiles(244).desc="Tunneled Mountains"
+tiles(244).desc="Tunneled mountains"
 tiles(244).seetru=1
 tiles(244).walktru=0
 tiles(244).firetru=1
@@ -1855,7 +1855,7 @@ tiles(246).locked=0
 tiles(246).turnsinto=62
 tiles(246).dr=2
 tiles(246).hp=225
-tiles(246).succt="It is slightly dented now"
+tiles(246).succt="The scoutship is slightly dented now"
 tiles(246).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(246).killt="That will teach them a lesson!"
 tiles(246).hides=2
@@ -1870,9 +1870,9 @@ tiles(247).turnsinto=247
 tiles(248).tile=46
 tiles(248).col=7
 tiles(248).bgcol=0
-tiles(248).desc="rock"
+tiles(248).desc="A rock"
 tiles(248).turnsinto=4
-tiles(248).hitt="You trigger am alarm!"
+tiles(248).hitt="You trigger an alarm!"
 tiles(248).shootable=1
 tiles(248).dr=-1
 tiles(248).hp=1
@@ -1884,7 +1884,7 @@ tiles(248).turntext="sensors for an alarm"
 tiles(249).tile=asc("_")
 tiles(249).col=7
 tiles(249).bgcol=0
-tiles(249).desc="tripwire"
+tiles(249).desc="A tripwire"
 tiles(249).turnsinto=4
 tiles(249).hitt="You trigger an alarm!"
 tiles(249).shootable=1
@@ -1895,7 +1895,7 @@ tiles(249).killt="You destroy the tripwire"
 
 tiles(250).tile=asc("C")
 tiles(250).col=11
-tiles(250).desc="Computer"
+tiles(250).desc="A computer"
 tiles(250).gives=61
 tiles(250).turnsinto=251
 
@@ -1950,7 +1950,7 @@ tiles(259).turnsinto=259
 
 
 tiles(260).tile=ASC("=")
-tiles(260).desc="frozen water"
+tiles(260).desc="Frozen water"
 tiles(260).col=15
 tiles(260).shootable=1
 tiles(260).dr=-1
@@ -1962,14 +1962,14 @@ tiles(260).turnsinto=1
 tiles(261).tile=ASC("+")
 tiles(261).col=12
 tiles(261).bgcol=11
-tiles(261).desc="hospital"
+tiles(261).desc="A hospital"
 tiles(261).gives=43
 tiles(261).turnsinto=261
 
 
 tiles(262).tile=35 'Mudds
 tiles(262).col=15
-tiles(262).desc="Building"
+tiles(262).desc="A building with a sign writen: Mudds, we do business."
 tiles(262).seetru=1
 tiles(262).firetru=1
 tiles(262).gives=66
@@ -1977,9 +1977,9 @@ tiles(262).turnsinto=262
 tiles(262).hides=2
 
 
-tiles(263).tile=asc("+") 'open door
+tiles(263).tile=asc("+") 'closed door
 tiles(263).col=11
-tiles(263).desc="Door"
+tiles(263).desc="A door"
 tiles(263).seetru=0
 tiles(263).firetru=0
 tiles(263).onopen=55
@@ -1988,13 +1988,13 @@ tiles(263).dr=4
 tiles(263).shootable=1
 tiles(263).hp=10
 tiles(263).succt="Concentrating enough firepower you melt the door a little"
-tiles(263).failt="You dont have enough firepower to damage the door"
+tiles(263).failt="You don't have enough firepower to damage the door"
 tiles(263).killt="You blast the door open"
 tiles(263).turnsinto=84
 
 tiles(264).tile=asc("@")
 tiles(264).col=10
-tiles(264).desc="company cruiser"
+tiles(264).desc="A company cruiser"
 tiles(264).seetru=1
 tiles(264).walktru=5
 tiles(264).firetru=1
@@ -2002,8 +2002,8 @@ tiles(264).shootable=1
 tiles(264).turnsinto=3
 tiles(264).dr=2
 tiles(264).hp=225
-tiles(264).succt="It is slightly dented now"
-tiles(264).failt="Your handwapons arent powerful enough to damage a spaceship"
+tiles(264).succt="The company cruiser is slightly dented now"
+tiles(264).failt="Your handwapons aren't powerful enough to damage a spaceship"
 tiles(264).killt="That will teach those pirates a lesson!"
 tiles(264).hides=2
 
@@ -2038,68 +2038,68 @@ tiles(269).hides=2
 tiles(401).tile=ASC("#")
 tiles(401).col=210
 tiles(401).bgcol=230
-tiles(401).desc="colony"
+tiles(401).desc="A colony"
 tiles(401).gives=401
 tiles(401).turnsinto=401
 
 tiles(402).tile=ASC("0")
 tiles(402).col=8
-tiles(402).desc="mining base"
+tiles(402).desc="A mining base"
 tiles(402).gives=402
 tiles(402).turnsinto=402
 
 tiles(403).tile=157
 tiles(403).col=15
-tiles(403).desc="defense tower"
+tiles(403).desc="A defense tower"
 tiles(403).gives=403
 tiles(403).turnsinto=403
 
 tiles(404).tile=ASC("0")
 tiles(404).col=189
-tiles(404).desc="raffinery"
+tiles(404).desc="A refinery"
 tiles(404).gives=404
 tiles(404).turnsinto=404
 
 tiles(405).tile=ASC("0")
 tiles(405).col=14
-tiles(405).desc="factory"
+tiles(405).desc="A factory"
 tiles(405).gives=405
 tiles(405).turnsinto=405
 
 tiles(406).tile=ASC("#")
 tiles(406).col=14
 tiles(406).bgcol=3
-tiles(406).desc="power plant"
+tiles(406).desc="A power plant"
 tiles(406).gives=406
 tiles(406).turnsinto=406
 
 tiles(407).tile=238
 tiles(407).col=10
-tiles(407).desc="life support"
+tiles(407).desc="Life support systems"
 tiles(407).gives=407
 tiles(407).turnsinto=407
 
 tiles(408).tile=ASC("#")
 tiles(408).col=15
-tiles(408).desc="storage facility"
+tiles(408).desc="A storage facility"
 tiles(408).gives=408
 tiles(408).turnsinto=408
 
 tiles(409).tile=ASC("0")
 tiles(409).col=245
-tiles(409).desc="hydroponic garden"
+tiles(409).desc="A hydroponic garden"
 tiles(409).gives=409
 tiles(409).turnsinto=409
 
 tiles(410).tile=ASC("#")
 tiles(410).col=11
 tiles(410).bgcol=1
-tiles(410).desc="office building"
+tiles(410).desc="A office building"
 tiles(410).gives=410
 tiles(410).turnsinto=410
 
 tiles(411).tile=ASC("#")
 tiles(411).col=7
-tiles(411).desc="habitat"
+tiles(411).desc="A habitat"
 tiles(411).gives=411
 tiles(411).turnsinto=411

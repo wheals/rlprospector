@@ -311,7 +311,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     
     for x=a.c.x-12 to a.c.x+12 step 2
         for y=a.c.y-12 to a.c.y+12 step 2
-            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or x=0 or y=my or x=mx or x=0 then    
+            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or y=0 or y=my or x=mx or x=0 then    
                 'if x>=0 and x<=79 and y>=0 and y<=25 then level(l).vis(x,y)=1
                 
                 mask=1
@@ -329,7 +329,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
                     if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
                         if m>0 then
                             vismask(x1,y1)=mask
-                            if tmap(x1,y1).seetru=1 or distance(a.c,p)>a.sight then 
+                            if tmap(x1,y1).seetru=1 or distance(a.c,p)>a.sight then
                                 mask=0
                             else
                                 if x1<mx then vismask(x1+1,y1)=mask
@@ -558,6 +558,18 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                     sleep 100
                 endif
             endif
+'            if blocktype=4 then 'check for seethru
+'               if x<0 then x=0
+'               if x>60 then x=60
+'               if y<0 then y=0
+'               if y>20 then y=20
+'               if tmap(x,y).seetru=1  then 
+'                    if not (x=b.x and y=b.y) then
+'                        result=21*x+y
+'                        endif
+'                    endif
+'                endif
+'            endif
             if blocktype=2 then
                 if x<0 then x=0
                 if x>60 then x=60

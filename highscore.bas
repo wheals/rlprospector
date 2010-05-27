@@ -498,7 +498,7 @@ sub highsc()
     next
     color 11,0
     locate 24,5,0
-    if rank>10 then print highscore(10).points &" Points required to enter highscore. you scored "&s &" Points"
+    if rank>10 then print highscore(10).points &" points required to enter highscore. You scored "&s &" points"
     locate 25,20,0 
     print "Esc to continue";
     no_key=keyin(key_esc)
@@ -561,7 +561,7 @@ function getdeath() as string
     dim as short a,st
     if player.dead=1 then death="Captain forgot to refuel his spaceship"    
     if player.dead=2 then death="Captain became a cook after running out of money"
-    if player.dead=3 or player.dead=25 then 
+    if player.dead=3 or player.dead=25 or player.dead=31 then 
         key=left(player.killedby,1)
         if instr("AEIOU",ucase(key)) then
             player.killedby=lcase("n "&player.killedby)
@@ -612,6 +612,6 @@ function getdeath() as string
     if player.dead=29 then death="Got caught in a huge explosion"
     if player.dead=29 then death="Lost while exploring an anomaly"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
-    death=death &" after "&player.turn &" Turns"
+    death=death &" after "&player.turn &" Turns."
     return death
 end function

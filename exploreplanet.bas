@@ -3,7 +3,7 @@ function ep_redraw(awayteam as _monster,ship as _cords, vismask()as byte,ndval a
     slot=player.map
     displayplanetmap(slot)
     ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,ndval)
+    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,ndval,walking)
     dprint("")
     return 0
 end function
@@ -11,6 +11,7 @@ end function
 function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _cords) as short
     dim slot as short
     slot=player.map
+    awayteam.lastaction+=1
     if awayteam.c.y=ship.y and awayteam.c.x=ship.x and slot=player.landed.m then 
         if slot=specialplanet(2) or slot=specialplanet(27)  then
             if slot=specialplanet(27) then
@@ -24,9 +25,9 @@ function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _
             endif
             if slot=specialplanet(2) then
                 if specialflag(2)<>2 then 
-                    dprint "As soon as you attempt to start the planetary defense system fires. You won't be able to start until you disable it."
+                    dprint "As soon as you attempt to start launching sequence, the planetary defense system fires towards your general direction. You won't be able to launch until you disable it."
                 else
-                    dprint "You start without incident"
+                    dprint "You launch without any incidents"
                     nextmap.m=-1
                     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
                 endif                    
@@ -39,22 +40,23 @@ function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _
     return 0
 end function
 
-function ep_dropitem(awayteam as _monster, li() as short,lastlocalitem as short) as short
-    dim as short c,d,slot
+function ep_dropitem(byref awayteam as _monster, li() as short, byref lastlocalitem as short) as short
+    dim as short c,d,slot,e
     dim as string text
     slot=player.map
-    d=1
+    d=1        
+
     if player.towed<-100 then
         text="Do you want to build the "
         if player.towed=-101 then text=text & "base module here?(y/n)"
         if player.towed=-102 then text=text & "mining station here?(y/n)"
         if player.towed=-103 then text=text & "defense tower here?(y/n)"
-        if player.towed=-104 then text=text & "raffinery here?(y/n)"
+        if player.towed=-104 then text=text & "refinery here?(y/n)"
         if player.towed=-105 then text=text & "factory here?(y/n)"
         if player.towed=-106 then text=text & "power plant here?(y/n)"
         if player.towed=-107 then text=text & "life support here?(y/n)"
         if player.towed=-108 then text=text & "storage facilities here?(y/n)"
-        if player.towed=-109 then text=text & "hydroponic garden?(y/n)"
+        if player.towed=-109 then text=text & "hydroponic garden here?(y/n)"
         if player.towed=-110 then text=text & "office building here?(y/n)"
         if askyn(text) then
             planetmap(awayteam.c.x,awayteam.c.y,slot)=-300+player.towed
@@ -72,6 +74,7 @@ function ep_dropitem(awayteam as _monster, li() as short,lastlocalitem as short)
             if player.towed=-110 then planets(slot).colonystats(9)+=1
             player.towed=0
             d=0
+            awayteam.lastaction+=1
         else
             if askyn("Do you want to drop an item?(y/n)") then 
                 d=1
@@ -80,109 +83,168 @@ function ep_dropitem(awayteam as _monster, li() as short,lastlocalitem as short)
             endif
         endif
     endif
+    e=0
     if d=1 then
         screenshot(1)
-        c=getitem()
-        if c>0 then
-            if item(c).ty=45 then
-                if askyn("Do you really want to drop the alien bomb?(y/n)") then
+        do
+            c=getitem()
+        
+            if c>0 then
+                if item(c).ty=45 then
+                    if askyn("Do you really want to drop the alien bomb?(y/n)") then
+                        item(c).w.x=awayteam.c.x
+                        item(c).w.y=awayteam.c.y
+                        item(c).w.m=slot
+                        item(c).w.s=0
+                        item(c).w.p=0
+                        lastlocalitem+=1
+                        li(lastlocalitem)=c
+                        item(c).v2=1
+                        dprint "What time do you want to set it to"
+                        item(c).v3=getnumber(1,99,1)
+                        e=10
+                    endif
+                else
+                    dprint "Dropping " &item(c).desig &"."
+                    'dropped state is item(c).w.s=0
+                    e+=1
                     item(c).w.x=awayteam.c.x
                     item(c).w.y=awayteam.c.y
                     item(c).w.m=slot
-                    item(c).w.s=0
+                    item(c).w.s=0 'dropped state is item(c).w.s=0
                     item(c).w.p=0
+                    if item(c).ty=24 and tmap(item(c).w.x,item(c).w.y).no=162 then
+                        dprint("You reconnect the machine to the pipes. You notice a humming sound starting.")
+                        no_key=keyin
+                        item(c).v1=100
+                        awayteam.lastaction+=1
+                        e=-1
+                    endif
+                    reward(2)=reward(2)-item(c).v5
                     lastlocalitem+=1
-                    li(lastlocalitem)=c
-                    item(c).v2=1
-                    dprint "What time do you want to set it to"
-                    item(c).v3=getnumber(1,99,1)
+                    li(lastlocalitem)=c 'li(n) is local item item(n), there are lastlocalitem many items in map, they are item(li(1)) until item(li(lastlocalitem))
                 endif
-            else
-            dprint "dropping " &item(c).desig 
-            item(c).w.x=awayteam.c.x
-            item(c).w.y=awayteam.c.y
-            item(c).w.m=slot
-            item(c).w.s=0
-            item(c).w.p=0
-            if item(c).ty=24 and tmap(item(c).w.x,item(c).w.y).no=162 then
-                dprint("you reconnect the machine to the pipes. you notice the humming sound.")
-                no_key=keyin
-                item(c).v1=100
+                equip_awayteam(player,awayteam,slot)
             endif
-            reward(2)=reward(2)-item(c).v5
-            lastlocalitem=lastlocalitem+1
-            li(lastlocalitem)=c
-            endif
-            equip_awayteam(player,awayteam,slot)
-        endif
-        screenshot(2)
+            screenshot(2)
+        loop until c<0 or e>=10
     endif
+    if e>=10 then awayteam.lastaction+=1
     return 0
 end function
 
 
-function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short, lastlocalitem as short,byref localturn as short,byref walking as short) as short
+function ep_inspect(byref awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short, lastlocalitem as short,byref localturn as short,byref walking as short) as short
     dim as short a,b,c,slot,skill
     dim as _cords p
     slot=player.map
-    localturn=localturn+1
-    awayteam.oxygen=awayteam.oxygen-awayteam.oxydep
+    'localturn=localturn+1
+    'awayteam.oxygen=awayteam.oxygen-awayteam.oxydep
     'for a=1 to lastenemy
     '    m(a)=m(a)+enemy(a).move
     'next
+    'dprint "debug: inspect"
     b=0
-    if _autoinspect=1 then dprint "You search the area: "&tmap(awayteam.c.x,awayteam.c.y).desc
+    if _autoinspect=1 then
+        dprint "You search the area: "&tmap(awayteam.c.x,awayteam.c.y).desc
+    endif
     
     if (tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143) or tmap(awayteam.c.x,awayteam.c.y).no=241 then 
-        'Jump ship
-        awayteam.lastaction+=2
-        if tmap(awayteam.c.x,awayteam.c.y).hp>1 then
-            If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then 
-                walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
-                dprint "Starting repair"
-            endif
-        endif
-        
+        'ship is beyond repair
         if tmap(awayteam.c.x,awayteam.c.y).hp=0 then
             tmap(awayteam.c.x,awayteam.c.y).hp=15+rnd_range(1,6)+rnd_range(0,tmap(awayteam.c.x,awayteam.c.y).no-128)
             if rnd_range(1,6)+rnd_range(1,6)+maximum(player.pilot-1,player.science)<9 then
-                dprint "This ship is beyond repair"
+                dprint "This ship is beyond repair."
                 changetile(awayteam.c.x,awayteam.c.y,slot,62)
                 tmap(awayteam.c.x,awayteam.c.y)=tiles(62)
+                tmap(awayteam.c.x,awayteam.c.y).desc=tiles(62).desc
+            endif
+        endif
+        
+        'when autoinspect is off and ship is fixed decide if change ship
+        if tmap(awayteam.c.x,awayteam.c.y).hp<0 then
+            if tmap(awayteam.c.x,awayteam.c.y).hp=-2 then
+                tmap(awayteam.c.x,awayteam.c.y).hp=-1
+            elseif _autoinspect=0 and tmap(awayteam.c.x,awayteam.c.y).hp=-1 then
+                'when autoinspect is on...
+                'toggles hp -1 or -2 so it is obligatory to confirm when autoinspect is on
+                dprint "Press " &key_i &" to inspect this ship."
+                tmap(awayteam.c.x,awayteam.c.y).hp=-2
+            endif
+            walking=0
+        endif
+        
+        'decide if repair is succesful
+        if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
+            if rnd_range(1,6)+rnd_range(1,6)+maximum(player.pilot-1,player.science)>8 then
+                dprint "The repair was succesful! Press " &key_i &" to inspect this ship."
+                tmap(awayteam.c.x,awayteam.c.y).hp=-2
+                walking=0
+                awayteam.lastaction+=1
             else
-                If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then 
-                    walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
-                    dprint "Starting repair"
+                dprint "You couldn't repair the ship. Your pilot and your science officer concur it is beyond their reach to fix it."
+                walking=0
+                awayteam.lastaction+=1
+                tmap(awayteam.c.x,awayteam.c.y).hp=0
+                changetile(awayteam.c.x,awayteam.c.y,slot,62)  'is this somewhat bugged?
+                tmap(awayteam.c.x,awayteam.c.y)=tiles(62)
+                tmap(awayteam.c.x,awayteam.c.y).desc=tiles(62).desc 'is this somewhat bugged?
+            endif
+        endif
+        
+        if tmap(awayteam.c.x,awayteam.c.y).hp=-1 then
+            tmap(awayteam.c.x,awayteam.c.y).hp=-1
+            walking=0
+            a=player.h_no 'Old hullnumber
+            locate 3,awayteam.c.x+1
+            color 15,0
+            b=tmap(awayteam.c.x,awayteam.c.y).no-127
+            if tmap(awayteam.c.x,awayteam.c.y).no=241 then b=18
+            print shiptypes(b)
+            textbox(makehullbox(b),awayteam.c.x+1,5,78-awayteam.c.x)
+            if askyn("Do you want to abandon your ship and use this one? (y/n)") then
+                if upgradehull(b,player) then
+                    awayteam.lastaction+=1
+                    player.hull=int(player.hull*0.8)
+                    tmap(ship.x,ship.y)=tiles(127+a)
+                    changetile(ship.x,ship.y,slot,127+a)
+                    ship.x=awayteam.c.x
+                    ship.y=awayteam.c.y
+                    ship.m=slot
+                    tmap(ship.x,ship.y)=tiles(4)
+                    planetmap(ship.x,ship.y,slot)=4
+                    if player.hull<1 then player.hull=1
                 endif
             endif
         endif
-        if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
-            if rnd_range(1,6)+rnd_range(1,6)+maximum(player.pilot-1,player.science)>8 then
-                dprint "The repair was succesfull!"
-                a=player.h_no 'Old hullnumber 
-                locate 3,awayteam.c.x+1
-                color 15,0
-                b=tmap(awayteam.c.x,awayteam.c.y).no-127
-                if tmap(awayteam.c.x,awayteam.c.y).no=241 then b=18
-                print shiptypes(b)
-                textbox(makehullbox(b),awayteam.c.x+1,5,78-awayteam.c.x)
-                if askyn("Do you want to abandon your ship and use this one?") then                            
-                    if upgradehull(b,player) then
-                        player.hull=int(player.hull*0.8)
-                        tmap(ship.x,ship.y)=tiles(127+a)
-                        changetile(ship.x,ship.y,slot,127+a)
-                        ship.x=awayteam.c.x
-                        ship.y=awayteam.c.y
-                        ship.m=slot
-                        tmap(ship.x,ship.y)=tiles(4)
-                        planetmap(ship.x,ship.y,slot)=4
-                        if player.hull<1 then player.hull=1
+        
+        'begin repair ship
+        if tmap(awayteam.c.x,awayteam.c.y).hp>1 and walking>=0 then
+            If askyn("It will take " &(tmap(awayteam.c.x,awayteam.c.y).hp) & " hours to repair this ship. Do you want to start now? (y/n)") then 
+                walking=-2 'activate repair
+                dprint "Starting repair work."
+            endif
+        endif
+        'ask to stop repair if autoinspect is off
+        If walking=-2 and _autoinspect=1 then 'check if continue repair
+            if not askyn(str(tmap(awayteam.c.x,awayteam.c.y).hp) & " more hours to repair this ship. Do you want to continue? (y/n)") then walking=0
+        endif
+        if walking=-2 then 'continue repair ship
+            'search for repair text and make it the current one
+            if instr(displaytext(25),"Starting repair")=0 then
+                for a=15 to 24
+                    if instr(displaytext(a),"Starting repair")>0 then
+                        swap displaytext(a),displaytext(a+1)
                     endif
-                endif                    
-            else
-                dprint "You couldn't repair the ship."
-                changetile(awayteam.c.x,awayteam.c.y,slot,62)
-                tmap(awayteam.c.x,awayteam.c.y)=tiles(62)
+                next
+            endif
+            displaytext(25)=displaytext(25)&"."
+            dprint ""
+            sleep 50
+            tmap(awayteam.c.x,awayteam.c.y).hp=tmap(awayteam.c.x,awayteam.c.y).hp-1
+            if tmap(awayteam.c.x,awayteam.c.y).hp=tmap(awayteam.c.x,awayteam.c.y).hp=1 then
+                displaytext(25)=displaytext(25)&"complete."
+                dprint ""
             endif
         endif
     endif
@@ -201,13 +263,14 @@ function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, la
                 if (player.science>0 and crew(4).onship=0) or (player.doctor>0 and crew(5).onship=0) then
                     dprint "Recording biodata: "&enemy(a).ldesc 
                     if enemy(a).slot>=0 then planets(slot).mon_disected(enemy(a).slot)+=1
-                    if enemy(a).lang=8 then dprint "While this beings biochemistry is no doubt remarkable it does not explain it's extraordinarily long lifespan"
+                    if enemy(a).lang=8 then dprint "While this beings biochemistry is no doubt remarkable it does not explain it's extraordinarily long lifespan."
                     if enemy(a).hpmax<0 then enemy(a).hpmax=0
                     if enemy(a).slot>=0 then reward(1)=reward(1)+(10+skill+addtalent(4,14,1)+enemy(a).biomod*enemy(a).hpmax)/planets(slot).mon_disected(enemy(a).slot)
                     enemy(a).hpmax=0
                     b=1                    
                 else
                     dprint "No science officer or doctor in the team."
+                    awayteam.lastaction-=2
                 endif
             else
                 if (player.science>0 and crew(4).onship=0) or (player.doctor>0 and crew(5).onship=0) then
@@ -218,35 +281,31 @@ function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, la
                     dprint "No science officer or doctor in the team."
                 endif
             endif
-            localturn=localturn+1
-            awayteam.oxygen=awayteam.oxygen-awayteam.oxydep
         endif
     next            
     if b=0 and tmap(awayteam.c.x,awayteam.c.y).vege>0 and planets(slot).flags(32)<=planets(slot).life+1+addtalent(4,15,3) then
         if (player.science>0 and crew(4).onship=0) or (player.doctor>0 and crew(5).onship=0) then
             skill=maximum(player.science,player.doctor/2)                        
             if rnd_range(1,6)+rnd_range(1,6)+maximum(player.science,player.doctor/2)+tmap(awayteam.c.x,awayteam.c.y).vege+addtalent(4,15,1)>9+planets(a).plantsfound then
-                awayteam.lastaction+=2
                 planets(slot).flags(32)=planets(slot).flags(32)+1
                 b=1
-                dprint "you have found "&plantname(tmap(awayteam.c.x,awayteam.c.y))
+                dprint "You have found "&plantname(tmap(awayteam.c.x,awayteam.c.y)) &"."
                 reward(1)=reward(1)+(10+skill+addtalent(4,14,1)+tmap(awayteam.c.x,awayteam.c.y).vege)/planets(slot).flags(32)
+                awayteam.lastaction+=2
                 if rnd_range(1,80)-player.science-addtalent(4,14,1)<tmap(awayteam.c.x,awayteam.c.y).vege then
                     dprint "The plants in this area have developed a biochemistry you have never seen before. Scientists everywhere will find this very interesting."
                     reward(1)=reward(1)+(10+skill+addtalent(4,14,1)+tmap(awayteam.c.x,awayteam.c.y).vege)/planets(slot).flags(32)
                 endif
                 if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then
                     if rnd_range(1,6)+rnd_range(1,6)+maximum(player.science/2,player.doctor)<9 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
-                    dprint "This area is contaminated with "&disease(tmap(awayteam.c.x,awayteam.c.y).disease).ldesc
+                    dprint "This area is contaminated with "&disease(tmap(awayteam.c.x,awayteam.c.y).disease).ldesc &"."
                 endif
                 if tmap(awayteam.c.x,awayteam.c.y).disease>0 and rnd_range(1,6)+rnd_range(1,6)+maximum(player.doctor,player.science/2)>tmap(awayteam.c.x,awayteam.c.y).disease/2+7 then dprint "The plants here seem to be a host to dangerous "&disease(tmap(awayteam.c.x,awayteam.c.y).disease).cause &"."
-                localturn=localturn+1
-                awayteam.oxygen=awayteam.oxygen-awayteam.oxydep
                 planets(slot).plantsfound=planets(slot).plantsfound+1
             endif
             tmap(awayteam.c.x,awayteam.c.y).vege=0
         else
-            dprint "Your science officer is dead."
+            dprint "Your awayteam lacks a doctor or science officer."
         endif
     endif
     if b=0 then
@@ -271,19 +330,21 @@ function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, la
     return 0
 end function
     
-function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, lastlocalitem as short) as short
+function ep_communicateoffer(key as string, byref awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, lastlocalitem as short) as short
     dim as short a,b,slot
     dim as _cords p2
     dim as string dkey
     slot=player.map
     b=0
-    dprint "direction?"
+    
+    dprint "Direction of being to interact?"
     do
         dkey=keyin
     loop until getdirection(dkey)>0 or dkey=key_esc
     p2=movepoint(awayteam.c,getdirection(dkey))
     locate p2.y+1,p2.x+1
-    if key=key_co and planetmap(p2.x,p2.y,slot)=190 then 
+    if key=key_co and planetmap(p2.x,p2.y,slot)=190 then
+        awayteam.lastaction+=1
         dprint "You hear a voice in your head: 'Subjugate or be annihilated'"
         b=-1
     endif
@@ -291,28 +352,35 @@ function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _mon
     for a=1 to lastenemy
         if p2.x=enemy(a).c.x and p2.y=enemy(a).c.y and enemy(a).hp>0 then b=a
     next
+    
     if b=0 then
         if key=key_co then dprint "Nobody there to communicate"
         if key=key_of then dprint "Nobody there to give something to"
     endif
-    if b>0 and key=key_co then communicate(awayteam,enemy(b),slot,li(),lastlocalitem,b)
-    if b>0 and key=key_of then giveitem(enemy(b),b,li(),lastlocalitem)
+    if b>0 then awayteam.lastaction+=1
+    if b>0 and key=key_co then
+        if communicate(awayteam,enemy(b),slot,li(),lastlocalitem,b)=-1 then awayteam.lastaction-=1
+        'dprint "Debug: (comoffer fn) lastaction "&awayteam.lastaction
+    endif
+    if b>0 and key=key_of then
+        if giveitem(enemy(b),b,li(),lastlocalitem)=-1 then awayteam.lastaction-=1
+    endif
     return 0
 end function
 
 function ep_atship(awayteam as _monster,ship as _cords,walking as short) as short
     dim as short slot
     slot=player.map
-    if awayteam.c.y=ship.y and awayteam.c.x=ship.x and slot=player.landed.m then 
+    if awayteam.c.y=ship.y and awayteam.c.x=ship.x and slot=player.landed.m then
         dprint "You are at the ship. Press "&key_la &" to launch."
         if awayteam.oxygen<awayteam.oxymax then dprint "Refilling oxygen.",10,10
         awayteam.oxygen=awayteam.oxymax
-        if awayteam.move=2 and awayteam.jpfuel<awayteam.jpfuelmax then 
+        if awayteam.move=2 and awayteam.jpfuel<awayteam.jpfuelmax then
             dprint "Refilling Jetpacks",10,10
             awayteam.jpfuel=awayteam.jpfuelmax
         endif
         return 0
-    else 
+    else
         return walking
     endif
 end function
@@ -536,9 +604,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
             endif
         next
     next
-    
-                                            
-    makevismask(vismask(),awayteam,slot)        
+        
     for x=0 to 60 
         for y=0 to 20
             p.x=x
@@ -602,7 +668,6 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                     color item(li(a)).col,tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
                 else
                     color item(li(a)).col,item(li(a)).bgcol
-                
                 endif
                     
                 locate item(li(a)).w.y+1,item(li(a)).w.x+1
@@ -615,7 +680,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 else
                     print item(li(a)).icon
                 endif
-             endif
+            endif
         endif
     next
     
@@ -673,8 +738,8 @@ function ep_portal(awayteam as _monster, byref walking as short) as _cords
     for a=0 to lastportal
         if portal(a).from.m=slot then
             if awayteam.c.x=portal(a).from.x and awayteam.c.y=portal(a).from.y then
-                if askyn(portal(a).desig &" Enter?(y/n)") then
-                    dprint "going through."
+                if askyn(portal(a).desig &". Enter?(y/n)") then
+                    dprint "Going through."
                     walking=-1
                     if planetmap(0,0,portal(a).dest.m)=0 then
                         'dprint "Making new map at "&portal(a).dest.m &"("&lastplanet &")"
@@ -712,8 +777,8 @@ function ep_portal(awayteam as _monster, byref walking as short) as _cords
         endif
         if portal(a).oneway=0 and portal(a).dest.m=slot then
             if awayteam.c.x=portal(a).dest.x and awayteam.c.y=portal(a).dest.y then
-                if askyn(portal(a).desig &" Enter?(y/n)") then
-                    dprint "going through."
+                if askyn(portal(a).desig &". Enter?(y/n)") then
+                    dprint "Going through."
                     walking=-1
                     if planetmap(0,0,portal(a).from.m)=0 then
                         'dprint "Making new map at "&portal(a).dest.m &"("&lastplanet &")"
@@ -752,17 +817,19 @@ function ep_portal(awayteam as _monster, byref walking as short) as _cords
 end function
         
 function ep_pickupitem(key as string,awayteam as _monster, byref lastlocalitem as short, li() as short) as short
-    dim a as short
+    dim as short a,b
     dim text as string
     text=""
+    b=0
     for a=1 to lastlocalitem
         if item(li(a)).w.p=0 and item(li(a)).w.s=0 and item(li(a)).w.x=awayteam.c.x and item(li(a)).w.y=awayteam.c.y and item(li(a)).w.m=awayteam.c.m then 
             if item(li(a)).ty<>99 then 
+                b+=1
                 if _autopickup=1 then text=text &item(li(a)).desig &". " 
                 if _autopickup=0 or key="," then
                     text=text &" You pick up the "&item(li(a)).desig &". " 
                     reward(2)=reward(2)+item(li(a)).v5
-                    item(li(a)).w.s=-1
+                    item(li(a)).w.s=-1 'picked up state is item(c).w.s=-1
                 endif
                 if item(li(a)).ty=18 then 
                     text=text &" You transfer the map data from the rover robot. "
@@ -779,6 +846,7 @@ function ep_pickupitem(key as string,awayteam as _monster, byref lastlocalitem a
                 
             else
                 dprint "An alien artifact!"
+                b+=1
                 if _autopickup=0 or key="," then
                     findartifact(awayteam)
                     item(li(a)).w.p=9999
@@ -789,7 +857,7 @@ function ep_pickupitem(key as string,awayteam as _monster, byref lastlocalitem a
         endif
     next
     if text<>"" then dprint text
-        
+    if b>=10 then awayteam.lastaction+=1
     return 0
 end function
 
@@ -801,7 +869,10 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
     slot=player.map
     if planetmap(awayteam.c.x,awayteam.c.y,slot)=18 then
         dprint "you get zapped by a forcefield:"&damawayteam(awayteam,rnd_range(1,6)),,12
-        if awayteam.armor<3 then awayteam.c=old
+        if awayteam.armor<3 then
+            awayteam.c=old
+            awayteam.lastaction+=1
+        endif
         walking=0
     endif
     b=findbest(12,-1) 'Find best key
@@ -824,6 +895,7 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
         dprint "Your science officer can't bypass the doorlocks"
         awayteam.c=old
         walking=0
+        awayteam.lastaction+=1
     else
         tmap(awayteam.c.x,awayteam.c.y).locked=0
         if tmap(awayteam.c.x,awayteam.c.y).onopen>0 then tmap(awayteam.c.x,awayteam.c.y)=tiles(tmap(awayteam.c.x,awayteam.c.y).onopen)
@@ -839,25 +911,28 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
             lastitem=lastitem-1
         endif
         a=rnd_range(1,6)+rnd_range(1,6)+player.science+c
-        if a>=7 and a<12 then
-            dprint "Your science officer cant open the door"
+        if a>=7 and a<=12 then
+            dprint "Your science officer can't open the door"
             if rnd_range(1,6)+rnd_range(1,6)>6 then
                 dprint "But he sets off an ancient defense mechanism! "&damawayteam(awayteam,rnd_range(1,6))
                 player.killedby="trapped door"
             endif
             walking=0
             awayteam.c=old
+            awayteam.lastaction+=1
         endif
         if a>12 then
             dprint "You managed to open the door"
             planetmap(awayteam.c.x,awayteam.c.y,slot)=55
             tmap(awayteam.c.x,awayteam.c.y)=tiles(55)
+            awayteam.lastaction+=1
         endif
         if a<7 then 
             dprint "Your fiddling with the ancient lock destroys it. You will never be able to open that door."
             planetmap(awayteam.c.x,awayteam.c.y,slot)=53
             walking=0
             awayteam.c=old
+            awayteam.lastaction+=1
         endif
     endif
     
@@ -865,9 +940,12 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
     if awayteam.move<tmap(awayteam.c.x,awayteam.c.y).walktru and _diagonals=0 then 
         awayteam.c=movepoint(old,bestaltdir(getdirection(key),0))
         if awayteam.move<tmap(awayteam.c.x,awayteam.c.y).walktru then awayteam.c=movepoint(old,bestaltdir(getdirection(key),1))
+
     endif
-    select case tmap(awayteam.c.x,awayteam.c.y).walktru
+    if not (old.x=awayteam.c.x and old.y=awayteam.c.y) then
+        select case tmap(awayteam.c.x,awayteam.c.y).walktru
         case is=0
+        
         case is=1
             if awayteam.hp>awayteam.nohp*5 and awayteam.move<3 then
                 if awayteam.hp<=awayteam.nojp then
@@ -875,11 +953,10 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
                         awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
                     else
                         dprint "Jetpacks empty",14,14
-                        awayteam.oxygen=awayteam.oxygen+awayteam.oxydep
                         awayteam.c=old
                     endif
                 else
-                    awayteam.oxygen=awayteam.oxygen+awayteam.oxydep
+                    awayteam.oxygen=awayteam.oxygen
                     awayteam.c=old
                     dprint "blocked"
                 endif
@@ -890,20 +967,19 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
                     if awayteam.jpfuel>awayteam.jpfueluse then
                         awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
                     else
-                        dprint "Jetpacks empty",14,14
-                        awayteam.oxygen=awayteam.oxygen+awayteam.oxydep
+                        dprint "Jetpacks empty.",14,14
                         awayteam.c=old
                     endif
                 else
-                    awayteam.oxygen=awayteam.oxygen+awayteam.oxydep
+                    awayteam.oxygen=awayteam.oxygen
                     awayteam.c=old
                     dprint "blocked"
                 endif
             endif
         case else
-            awayteam.oxygen=awayteam.oxygen+awayteam.oxydep
             awayteam.c=old
-    end select
+        end select
+    endif
     if old.x=awayteam.c.x and old.y=awayteam.c.y then
         if walking>0 and walking<10 then walking=0
     else
@@ -915,7 +991,7 @@ end function
 function ep_landship(byref ship_landing as short,nextlanding as _cords,ship as _cords,nextmap as _cords,vismask() as byte,enemy() as _monster,lastenemy as short) as short
     dim as short r,slot,a,d
     slot=player.map
-    ship_landing=ship_landing-1
+    ship_landing-=1
     if ship_landing<=0 then
         r=rnd_range(player.pilot,6)+rnd_range(1,6)+player.pilot-(planets(slot).dens+planets(slot).grav*2)
         if vismask(nextlanding.x,nextlanding.y)>0 and nextmap.m=0 then dprint "She is coming in"
@@ -930,9 +1006,10 @@ function ep_landship(byref ship_landing as short,nextlanding as _cords,ship as _
                 nextlanding=movepoint(nextlanding,d)
             next
             if player.hull=0 then
-                dprint ("A Crash landing. you will never be able to start with that thing again",,12)
+                dprint ("A Crash landing. You will never be able to start with that thing again.",,12)
                 if rnd_range(1,6)+rnd_range(1,6)+player.pilot>10 then
-                    dprint ("but your pilot wants to try anyway and succeeds!",,12)
+                    sleep 1000
+                    dprint ("...but your pilot wants to try anyway and succeeds!",,12)
                     player.hull=1
                     gainxp(2)
                 else
@@ -1358,9 +1435,9 @@ function ep_items(awayteam as _monster, li() as short, lastlocalitem as short,en
                     endif
                 endif
             endif
-        next
-        return 0
-    end function
+    next
+    return 0
+end function
     
 
 function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, lastenemy as short, li() as short, lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte, byref walking as short) as short
@@ -1464,7 +1541,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                     if item(li(b)).w.x=enemy(a).c.x and item(li(b)).w.y=enemy(a).c.y then 
                         item(li(b)).w.p=a
                         item(li(b)).discovered=0
-                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The Awayteam picks up the "&item(li(b)).desig
+                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The other ship's awayteam picks up the "&item(li(b)).desig
                     endif
                     if item(li(b)).ty=15 and item(li(b)).w.s=0 and item(li(b)).w.p=0 then c=b
                 next
@@ -1557,8 +1634,11 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
             wend
             
             if enemy(a).hasoxy=0 and planets(slot).atmos=1 then
-                enemy(a).hp=enemy(a).hp-1
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc &" is struggling for air!"
+                if tmap(enemy(a).c.x,enemy(a).c.y).no=243 then
+                    enemy(a).hp=enemy(a).hp-1
+                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc &" is struggling for air!"
+                    'dprint "debug:The "&enemy(a).sdesc &" is struggling for air!"
+                endif
             endif
             if vismask(enemy(a).c.x,enemy(a).c.y)>0 or player.stuff(3)=2 then
                 locate enemy(a).c.y+1,enemy(a).c.x+1
@@ -1643,7 +1723,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                         if vismask(enemy(a).c.x,enemy(a).c.y)>0 then
                             dprint "The other scoutship launches."
                         else
-                            dprint "You see a scoutship starting in the distance."                                                        
+                            dprint "You see a scoutship taking off in the distance."                                                        
                             companystats(basis(nearestbase(player.c)).company).profit+=1
                         endif
                         enemy(a)=enemy(lastenemy)
@@ -1910,7 +1990,7 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
         endif
         if instr(text,"GET")>0 or instr(text,"COME")>0 or instr(text,"LAND")>0 or instr(text,"RESCUE")>0 then
             if (slot=specialplanet(2) and specialflag(2)<2) or (slot=specialplanet(27) and specialflag(27)=0) or planets(slot).depth>0 then
-                if slot=specialplanet(2) then dprint "We can't start untill we disabled the automatic defense system."
+                if slot=specialplanet(2) then dprint "We can't start until we disabled the automatic defense system."
                 if slot=specialplanet(27) then dprint "Can't get her up from this surface. She is stuck."
                 if planets(slot).depth>0 then dprint "I think you are slightly overestimating the size of the airlock, captain!"
             else                        
@@ -1953,12 +2033,19 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
         if instr(text,"FIR")>0 or instr(text,"NUKE")>0 or instr(text,"SHOOT")>0 then
             sf=sf+1
             if sf>15 then sf=0
-            dprint "Roger. Designate target."
-            shipfire(sf).where=awayteam.c
-            do
-                'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
-                text=cursor(shipfire(sf).where,slot)
-            loop until text=key_enter or text=key_esc
+            if planets(slot).depth>0 then
+                dprint "If we fire it might destroy the whole ship with you inside!"
+                text=key_esc
+            else
+                dprint "Roger. Designate target."
+                shipfire(sf).where=awayteam.c
+                do
+                    'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+                    text=cursor(shipfire(sf).where,slot)
+                loop until text=key_enter or text=key_esc
+            endif
+
+            
             if text=key_enter then
                 if pathblock(p2,shipfire(sf).where,slot,1)=0 then
                     dprint "No line of sight to that target."
@@ -1998,12 +2085,14 @@ function ep_helmet(awayteam as _monster) as short
             if awayteam.helmet=0 then
                 dprint "Switching to suit oxygen supply."
                 awayteam.helmet=1
+                awayteam.lastaction+=1
                 'oxydep
             else                
                 'Opening Helmets
                 if planets(slot).atmos>1 and planets(slot).atmos<8 then
                     awayteam.helmet=0
                     dprint "Opening helmets"
+                    awayteam.lastaction+=1
                 else
                     dprint "We can't open our helmets here"
                 endif
@@ -2012,7 +2101,7 @@ function ep_helmet(awayteam as _monster) as short
     return 0
 end function
 
-function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as single) as short
+function ep_grenade(byref awayteam as _monster, shipfire() as _shipfire, byref sf as single) as short
     dim as short c,slot
     slot=player.map
     dim as _cords p
@@ -2037,6 +2126,7 @@ function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as s
                 player.weapons(shipfire(sf).what).ammomax=1 'Sets color to redish
                 item(c)=item(lastitem)
                 lastitem=lastitem-1
+                awayteam.lastaction+=1
             else
                 dprint "canceled"
             endif
@@ -2044,12 +2134,12 @@ function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as s
             dprint "That's not a grenade."
         endif
     else
-        dprint"You dont have any grenades"
+        dprint"You don't have any grenades"
     endif
     return 0
 end function
 
-function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
+function ep_playerhitmonster(byref awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
     dim as short a,b,slot
     slot=player.map
     for a=1 to lastenemy
@@ -2072,7 +2162,7 @@ function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _mon
                                 if enemy(a).slot>=0 then planets(slot).mon_caught(enemy(a).slot)+=1
                                 awayteam.lastaction+=2
                             else
-                                dprint "You don't have any free cages left."
+                                dprint "You don't have any free space for live specimens left."
                             endif
                         else
                             dprint "You don't have any cages for the "&enemy(a).sdesc
@@ -2082,6 +2172,7 @@ function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _mon
                     if enemy(a).aggr=1 then 
                         if (askyn("Do you really want to attack the "&enemy(a).sdesc &"?(y/n)")) then
                             enemy(a)=hitmonster(enemy(a),awayteam,mapmask())
+                            awayteam.lastaction+=1
                             if rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then enemy(a).aggr=0
                             for b=1 to lastenemy
                                 if a<>b then
@@ -2109,7 +2200,6 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     dim as short a,b,c,d,e,f,slot
     dim as _cords p,p1,p2
     slot=player.map
-    awayteam.lastaction+=1
     locate awayteam.c.y+1,awayteam.c.x+1
     color _teamcolor,0
     print "@";
@@ -2132,7 +2222,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
         e=0
         p2.x=awayteam.c.x
         p2.y=awayteam.c.y
-        awayteam.oxygen=awayteam.oxygen-awayteam.oxydep
+        awayteam.lastaction+=1
         do
             locate awayteam.c.y+1,awayteam.c.x+1
             color _teamcolor,0
@@ -2190,7 +2280,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
         p2.y=awayteam.c.y
         if key=key_autofire then walking=10
     endif
-    if no_key="5" then
+    if no_key=key_wait then
             dprint "Choose target"
             p=awayteam.c
             a=0
@@ -2211,7 +2301,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
             autofire_target=p1
         
         if a>0 then
-            awayteam.oxygen=awayteam.oxygen-awayteam.oxydep                
+            awayteam.lastaction+=1                
             c=7
             if b>=3 then c=11
             if b>=4 then c=12
@@ -2318,16 +2408,16 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
     return 0
 end function
 
-function ep_jumppackjump(awayteam as _monster) as short
+function ep_jumppackjump(byref awayteam as _monster) as short
     dim as short a,b,d,slot
     slot=player.map
-    awayteam.lastaction+=1
     if awayteam.jpfuel>2 then
-        awayteam.jpfuel=awayteam.jpfuel-3
         if planets(slot).depth=0 or slot=specialplanet(9) or slot=specialplanet(4) or slot=specialplanet(3) then
+            dprint "Direction? Esc to exit"                
+            d=getdirection(keyin("12346789"))
+        endif
+        if d<>0 and (planets(slot).depth=0 or slot=specialplanet(9) or slot=specialplanet(4) or slot=specialplanet(3)) then
             b=rnd_range(1,4)+rnd_range(1,4)-planets(slot).grav
-            dprint "Direction?"                
-            d=val(keyin("12346789"))
             if d=4 then d=d+1
             if b<2 then b=2
             for a=1 to b 
@@ -2340,18 +2430,21 @@ function ep_jumppackjump(awayteam as _monster) as short
                 print "@"
                 sleep 50
             next
-            awayteam.oxygen=awayteam.oxygen-5
+            awayteam.lastaction+=1
+            awayteam.jpfuel=awayteam.jpfuel-3
             if rnd_range(1,6)+rnd_range(1,6)+planets(slot).grav>7 then
                 dprint "Crash Landing! " &damawayteam(awayteam,rnd_range(1,1+planets(slot).grav))
             else
-                dprint "You land savely"
+                dprint "You land safely."
             endif
-        else
-            dprint "you hit the ceiling pretty fast! "&damawayteam(awayteam,rnd_range(1,1+planets(slot).grav))
+        elseif d<>0 then
+            dprint "You hit the ceiling pretty fast! "&damawayteam(awayteam,rnd_range(1,1+planets(slot).grav))
+            awayteam.lastaction+=1
         endif
     else
-        dprint "Not enough jetpack fuel"
+        dprint "Not enough jetpack fuel."
     endif
+    
     return 0
 end function
 
@@ -2370,10 +2463,15 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     if tmap(awayteam.c.x,awayteam.c.y).gives=2 then 
         dprint "'Ah great. Imagining people again are we?' the occupant of this bunker looks like he had a pretty bad time. 'No wait. You are real? I am not imagining you?' He explains to you that he managed to survive for months, alone, after the sandworms had demolished his ship, and eaten his crewmates." 
         if askyn("He is quite a good gunner and wants to join your crew. do you let him? (y/n)") then 
-            player.gunner=6
-            crew(3).hp=7
-            crew(3).hpmax=7
-            crew(3).paymod=0
+            if player.gunner<>6 then
+                player.gunner=6
+                crew(3).hp=7
+                crew(3).hpmax=7
+                crew(3).paymod=0
+                for a=1 to 128
+                    if crew(a).hpmax<4 and crew(a).hpmax<crew(b).hpmax then b=a
+                next
+            endif
         endif
     endif
     
@@ -2413,7 +2511,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             trading(tmap(awayteam.c.x,awayteam.c.y).gives+1)
             player.lastvisit.s=tmap(awayteam.c.x,awayteam.c.y).gives+1
         else
-            dprint "they dont want to trade with you"
+            dprint "They don't want to trade with you."
         endif
     endif
     
@@ -2499,7 +2597,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 endif
             loop until c=-1
         else
-            dprint "they dont want to trade with you"
+            dprint "they don't want to trade with you"
         endif
     endif
     
@@ -2508,7 +2606,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
         if slot<>pirateplanet(0) or player.pirate_agr<=0 then
             if player.pilot*2>rnd_range(1,100) then
                 player.pilot=captainskill
-                dprint "Pilot "&crew(2).n &" doesnt want to come out again.",14,14
+                dprint "Pilot "&crew(2).n &" doesn't want to come out again.",14,14
                 crew(2)=crew(0)
             endif
             if player.gunner*2>rnd_range(1,100) then
@@ -2529,7 +2627,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             no_key=keyin
             hiring(0,rnd_range(0,5),maximum(4,awayteam.hp))
         else
-            dprint "they dont want to serve you"
+            dprint "they don't want to serve you"
         endif
     endif
     
@@ -2548,7 +2646,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
         if slot<>pirateplanet(0) or player.pirate_agr<=0 then
             repairhull()
         else
-            dprint "they dont want to repair a ship they shot up themselves"
+            dprint "they don't want to repair a ship they shot up themselves"
         endif
     endif
     
@@ -2562,7 +2660,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 shipupgrades(5)
             endif
         else
-            dprint "they dont want to upgrade a ship they are going to shoot up themselves"
+            dprint "they don't want to upgrade a ship they are going to shoot up themselves"
         endif
     endif
     if tmap(awayteam.c.x,awayteam.c.y).gives=31 then              
@@ -2572,7 +2670,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             no_key=keyin
             shipyard(2)
         else
-            dprint "they dont want to upgrade a ship they are going to shoot up themselves"
+            dprint "they don't want to upgrade a ship they are going to shoot up themselves"
         endif
     endif
     
@@ -2683,11 +2781,11 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                     pirateupgrade
                     player.money=player.money-1
                 else
-                    dprint "You dont have enough money."
+                    dprint "You don't have enough money."
                 endif
             endif
         else
-            dprint "they dont want to repair a ship they are going to shoot up themselves"
+            dprint "they don't want to repair a ship they are going to shoot up themselves"
         endif
     endif
     
