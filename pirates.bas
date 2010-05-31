@@ -1,5 +1,5 @@
 
-function meetfleet(f as short)as short
+function meetfleet(f as short, player as _ship)as _ship
     static lastturncalled as integer
     dim as short aggr,roll,frd,des,dialog,a,total,cloak,x,y
     dim question(2,4) as string
@@ -32,7 +32,7 @@ function meetfleet(f as short)as short
         if roll>100 then 
             frd=2 'tries to attack
         else
-            return f 'tries to talk
+            frd=1 'tries to talk
         endif
         des=askyn(question(frd,dialog))
         if des=0 then
@@ -57,9 +57,31 @@ function meetfleet(f as short)as short
                     player.pirate_agr=player.pirate_agr-65/dispbase(player.c)
                 endif
             endif
-            
-            playerfightfleet(f)
-            
+            for a=1 to 8
+                basis(10).inv(a).v=0
+                basis(10).inv(a).p=0
+            next
+            player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
+            player.shield=player.shieldmax
+            if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
+            if player.dead>0 and fleet(f).ty=5 then player.dead=21
+            for a=1 to 8
+                total=total+basis(10).inv(a).v
+            next 
+            'dprint ""&total
+            if total>0 and player.dead=0 then trading(10)
+            if player.dead=-1 then player.dead=0
+            if player.dead>0 then
+                for a=1 to 128
+                    if crew(a).hpmax>0 then player.deadredshirts+=1
+                next
+                if fleet(f).ty=2 then
+                    player.dead=5
+                else 
+                    player.dead=13
+                endif
+            endif
+            fleet(f).ty=0
             cls
         endif
         lastturncalled=player.turn
@@ -67,40 +89,9 @@ function meetfleet(f as short)as short
     endif
     show_stars(1,0)
     displayship
-    return 0
+    return player
 end function
 
-function playerfightfleet(f as short) as short
-    dim as short a,total
-    for a=1 to 8
-        basis(10).inv(a).v=0
-        basis(10).inv(a).p=0
-    next
-    
-    player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
-    player.shield=player.shieldmax
-    if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
-    if player.dead>0 and fleet(f).ty=5 then player.dead=21
-    for a=1 to 8
-        total=total+basis(10).inv(a).v
-    next 
-    'dprint ""&total
-    if total>0 and player.dead=0 then trading(10)
-    if player.dead=-1 then player.dead=0
-    if player.dead>0 then
-        for a=1 to 128
-            if crew(a).hpmax>0 then player.deadredshirts+=1
-        next
-        if fleet(f).ty=2 then
-            player.dead=5
-        else 
-            player.dead=13
-        endif
-    endif
-    fleet(f).ty=0
-    return 0
-end function
-        
 
 function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
     dim as integer rscore,bscore
@@ -138,7 +129,6 @@ end function
         
 function collidefleets() as short
     dim as short a,b,c,d    
-    if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         for b=a to lastfleet
             if b<>a then
@@ -190,7 +180,6 @@ function collidefleets() as short
                                     planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
                                 endif
                             endif
-                            if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
                             fleet(a)=fleetbattle(fleet(a),fleet(b))
                             fleet(a)=load_f(fleet(a),10)
                             for d=1 to 5
@@ -210,66 +199,9 @@ function collidefleets() as short
     return 0
 end function
 
-function ss_sighting(i as short) as short
-    dim as string text,text2
-    dim as short fn,a 
-    dim as _cords p
-    if basis(i).lastsighting=0 then return 0
-    fn=basis(i).lastsighting
-    if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
-        if basis(i).lastsightingturn-player.turn<25 then
-            text ="There are some rumors about"
-            if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
-            if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with talk about a"
-        else
-            return 0
-        endif
-        if basis(i).lastsightingdis>5 then
-            text=text & " a long distance unidentified sensor contact, "& basis(i).lastsightingdis &" parsecs out."
-        else
-            if basis(i).lastsightingdis>2 and basis(i).lastsightingdis<=5  then
-                text = text &" mid range sensor contact with"
-            endif
-            if basis(i).lastsightingdis<=2  then
-                text = text &" short range sensor contact with"
-            endif
-            if fleet(fn).ty=2 then text=text &" a pirate fleet."
-            if fleet(fn).ty=4 then 
-                if basis(i).lastsightingdis<=3  then
-                    text=text &" the pirate ship "& fleet(fn).mem(1).desig &"!"
-                else
-                    text=text &" a pirate fleet."
-                endif
-            endif
-            if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
-        endif
-    endif
-    if rnd_range(1,100)>alienattacks and player.questflag(3)=0 then
-        if alienattacks>5 then text2=" You hear a rumor about disappearing scout ships." 
-        if alienattacks>10 then text2=" You hear a rumor about disappearing merchant convoys." 
-        if alienattacks>25 then text2=" You hear a rumor about disappearing patrol ships." 
-        if alienattacks>50 then text2=" Every conversation you overhear seems to be about disappearing ships and fleets." 
-        if alienattacks>75 then
-            if sysfrommap(specialplanet(29))>0 then
-                p=map(sysfrommap(specialplanet(29))).c
-            else
-                p=map(sysfrommap(specialplanet(30))).c
-            endif
-            for a=0 to rnd_range(1,6)
-                p=movepoint(p,5)
-            next
-            text2=" The station is abuzz with talk about ships disappearing around coordinates "&p.x &":"&p.y &"." 
-        endif
-    endif
-    text=text & fn &"typ:"&fleet(fn).ty
-    if text<>"" or text2<>"" then dprint trim(text &text2)
-    return 0
-end function
-    
 function movefleets() as short
-    dim as short a,b,c,roll,direction,freecargo,s
+    dim as short a,b,c,roll,direction,freecargo
     a=0
-    if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         updatetargetlist()
         if fleet(a).ty=2 then
@@ -297,6 +229,11 @@ function movefleets() as short
             print "   "
         endif
         fleet(a).c=movepoint(fleet(a).c,direction,,1)
+        if show_npcs=1 then
+            color fleet(a).ty+10,0
+            locate fleet(a).c.y+1,fleet(a).c.x+1
+            print "F"&a 
+        endif
         
         'Check if reached target (for targetnumbers 1-7)
         if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<7 then
@@ -308,15 +245,6 @@ function movefleets() as short
             fleet(a)=unload_f(fleet(a),6)
             fleet(a).t=9
         endif
-        for s=0 to 2
-            if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
-                if distance(fleet(a).c,basis(s).c)<12 then
-                    basis(s).lastsighting=a
-                    basis(s).lastsightingdis=fix(distance(fleet(a).c,basis(s).c))
-                    basis(s).lastsightingturn=player.turn
-                endif
-            endif
-        next
     next
     return 0
 end function
@@ -464,11 +392,7 @@ function makealienfleet() as _fleet
     dim f as _fleet
     f.ty=5
     f.mem(0)=makeship(11)
-    if sysfrommap(specialplanet(29))>0 then
-        f.c=map(sysfrommap(specialplanet(29))).c
-    else
-        f.c=map(sysfrommap(specialplanet(30))).c
-    endif
+    f.c=map(sysfrommap(specialplanet(9))).c
     return f
 end function
 
@@ -687,17 +611,27 @@ function makemonster(a as short, map as short) as _monster
         if crew(g).hp>0 then ahp=ahp+1
     next
     
-    b=(ahp\12)+1 'HD size
+    b=(ahp\8)+1 'HD size
     b=b+planets(map).depth
-    if b<2 then b=2
-    if b>8 then b=8
+    if b<3 then b=3
+    if b>12 then b=12
     
-    c=(ahp\15)+1 'Times rolled
+    c=(ahp\12)+1 'Times rolled
     if c<1 then c=1
-    if c>10 then c=10
+    if c>13 then c=13
      'maxpossible
 '        
     enemy.made=a 'saves how the critter was made for respawning
+    'a=1 Standard critter
+    'a=2 Powerful standard critter
+    'a=3 Pirate band
+    'a=4 Plantmonster
+    'a=5 Fighting leaf
+    'a=6 Merry pirate band
+    'a=7 Defense bots
+    'a=8 Vault defense bots
+    'a=10 Seewead breeder
+    'a=15 Awayteam
     
     if a=1 or a=24 then 'standard critter
         'Postion
@@ -771,9 +705,11 @@ function makemonster(a as short, map as short) as _monster
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
         if rnd_range(1,100)<25-enemy.intel then enemy.disease=rnd_range(1,15)
-        
-        enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
-            
+        mapo=0
+        for l=1 to c+ad(g)
+            enemy.hp=enemy.hp+rnd_range(1,b)
+            mapo=mapo+b-1
+        next
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
         enemy.sdesc=ti(g)
@@ -794,9 +730,9 @@ function makemonster(a as short, map as short) as _monster
         endif
         
         if enemy.weapon>2 then enemy.col=12
-        if enemy.hp>5 then 
+        if enemy.hp>mapo*0.7 then 
             enemy.tile=asc(ucase(chr(enemy.tile)))
-            enemy.hpmax=enemy.hpmax+rnd_range(1,2)
+            enemy.hpmax=enemy.hpmax+rnd_range(1,6)
             enemy.hp=enemy.hpmax
         else
             enemy.tile=asc(lcase(chr(enemy.tile)))
@@ -817,7 +753,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,4)-2
         if enemy.weapon<0 then enemy.weapon=0
-        enemy.hp=10+rnd_range(5,15)+rnd_range(5,ad(g))*5+rnd_range(1,1+planets(map).depth)
+        for l=1 to c+1+ad(g)
+            enemy.hp=enemy.hp+rnd_range(3,b)
+        next
         enemy.hp=enemy.hp+rnd_range(1,2)+enemy.weapon
         enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)+2
@@ -1490,7 +1428,7 @@ function makemonster(a as short, map as short) as _monster
     
     if a=22 then 'Intelligent Centipede
         enemy.sdesc="centipede"
-        enemy.ldesc="a 3m long centipede. It only uses its lower 12 legs for movement. It's upper body is erect and its 12 arms end in slender 3 fingered hands. It has a single huge compound eye at the top of its head. It has 2 mouths, one for eating and one for breathing and talking. It is a herbivore." 
+        enemy.ldesc="a 3m long centipede. It only uses its lower 12 legs for movement. It's upper body is erect and its 12 arms end in slender 3 fingered hands. It has a single huge compound eye at the top of its head. It has 2 mouths, one for eating and one for breathing and talking. It is a herbivour." 
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.sight=3
@@ -2904,6 +2842,7 @@ function makemonster(a as short, map as short) as _monster
         endif
         enemy.hp=enemy.hpmax
     endif
+    
         
     if a=66 then 'Citizen
         enemy.sdesc="citizen"
@@ -2927,7 +2866,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=1
     endif
     
-    if a=67 then  'Burrower
+    
+    if a=67 then  'Hunting Spider
         enemy.sdesc="Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -2936,20 +2876,19 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=1
         enemy.armor=1
-        enemy.hp=rnd_range(1,5)+3
+        enemy.hp=rnd_range(1,5)+5
         enemy.atcost=rnd_range(6,8)/10
         enemy.hpmax=enemy.hp
         enemy.biomod=1
         enemy.move=0.7
         enemy.aggr=0
-        enemy.lang=-30
         enemy.tile=Asc("I")
         enemy.sprite=285
         enemy.col=162
         enemy.invis=2
     endif
     
-    if a=68 then  'Burrower Mom
+    if a=68 then  'Hunting Spider
         enemy.sdesc="Huge Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -2972,7 +2911,6 @@ function makemonster(a as short, map as short) as _monster
         enemy.itemch(1)=110
         enemy.col=204
         enemy.invis=2
-        enemy.lang=-31
     endif
     
     if a=69 then
@@ -3093,6 +3031,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.armor=1
         enemy.move=.8
     endif
+    
     
     if a=72 then
         enemy.faction=1
@@ -3435,12 +3374,6 @@ dim as short c,b
 
     if a=1 then
         'players ship    
-        'retirementassets(9)=1
-        'retirementassets(6)=1
-        'retirementassets(11)=1
-        'p.questflag(3)=1
-        'artflag(5)=1
-        'artflag(7)=1
         p.c=basis(0).c
         p.sensors=1
         p.hull=5

@@ -1,4 +1,3 @@
-
 function alienname(flag as short) as string
     dim as string n,vokal,cons
     dim as short a,b
@@ -90,14 +89,13 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             dprint "Your established communication with the " & e.sdesc &"."
             e.lang=-e.lang
             e.cmmod=e.cmmod+1
-            if e.lang=30 then e.aggr=0
-            if e.lang=31 then e.aggr=0
         else
             if player.science<>captainskill or crew(4).onship=0 then
-                dprint "Your science officer cant make any sense out of the " &e.sdesc &"s sounds and actions."
+                dprint "Your science officer can't make any sense out of the " &e.sdesc &"'s sounds and actions."
                 e.cmmod=e.cmmod-1
             else
                 dprint "No science officer in the team."
+                return -1
             endif
         endif
     endif
@@ -108,7 +106,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if e.aggr=1 then
                 if findbest(23,1)<>-1 and rnd_range(1,6)+rnd_range(1,6)<2*e.intel then
                     if item(findbest(23,-1)).v1=3 then 
-                        dprint "It says 'That doesnt belong to you, give it back!'"
+                        dprint "It says 'That doesn't belong to you, give it back!'"
                         e.cmmod=e.cmmod-rnd_range(1,4)
                     else
                         dprint "It says 'You have pretty things!'"
@@ -158,6 +156,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                             if b>0 then
                                 item(b).w.s=0
                                 item(b).w.p=monslot
+                                'reward(2)=rnd_range(1,reward(2)-item(b).v5)
                                 reward(2)=reward(2)-item(b).v5
                                 lastlocalitem=lastlocalitem+1
                                 li(lastlocalitem)=b
@@ -631,7 +630,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     if e.lang=29 then
         if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
         if e.aggr=1 then
-            a=rnd_range(1,6)
+            a=rnd_range(1,1)
             if a=1 then dprint "He says 'We are fighting pirates over the control of some ancient ruins. Do you want to help'"
             if a=2 then dprint "He says ''"
             if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
@@ -642,43 +641,6 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=2 then dprint "I surrender!"
     endif
     
-    if e.lang=30 then
-        if e.aggr=0 then dprint "It signals with its feelers that it wants to eat you."
-        if e.aggr=1 then
-            a=rnd_range(1,6)
-            if a=1 then dprint "It signals with its feelers that it's just a warrior, ordered to repel the invading bipeds."
-            if a=2 then dprint "It signals with its feelers you are the first who is trying to talk to it."
-            if a=3 then dprint "It signals with its feelers that it's just a warrior, ordered to repel the invading bipeds."
-            if a=4 then dprint "It signals with its feelers if you want to talk peace, you better talk to one of the mothers. It's just a warrior."
-            if a=5 then dprint "It signals with its feelers that it's just a warrior, ordered to repel the invading bipeds."
-            if a=6 then dprint "It signals with its feelers that it doesn't like eating bipeds, they taste funny."
-        endif
-        if e.aggr=2 then dprint "It signals with its feelers that it would rather go away."
-    endif
-        
-    if e.lang=31 then
-        if e.aggr=0 then dprint "It signals with its feelers that it wants to eat you."
-        if e.aggr=1 then
-            a=rnd_range(1,6)
-            if a=1 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
-            if a=2 then dprint "It signals with its feelers you are the first who is trying to talk to it."
-            if a=3 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
-            if a=4 then 
-                if player.questflag(25)=0 then
-                    if askyn("Do you want to try and negotiate peace between the burrowers and the settlers?") then
-                        player.questflag(25)=1
-                        dprint "It signals it's terms with its feelers: No underground construction, and humans have to ask the mothers if they want to build a new farm."
-                    endif
-                else
-                    dprint "It signals with its feelers cooperating with the bipeds is working out ok."
-                endif
-            endif
-            if a=5 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
-            if a=6 then dprint "It signals with its feelers that it doesn't like eating bipeds, they taste funny."
-        endif
-        if e.aggr=2 then dprint "It signals with its feelers that it would rather go away."
-    endif
-    
     return 0
 end function
 
@@ -687,6 +649,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
     dim it as _items
     dprint "What do you want to offer the "&e.sdesc &"."
     a=getitem()
+    if a<=0 then return -1
     if a>0 then
      if (e.lang=6 or e.lang=7) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
          item(a).w.p=nr
@@ -728,7 +691,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                     placeitem(it,0,0,0,0,-1)
                 endif
             else
-               dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+               dprint "The "&e.sdesc &" doesn't want the "& item(a).desig
             endif
         case else
             if item(a).ty=13 and rnd_range(1,6)+rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
@@ -738,7 +701,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                 item(a)=item(lastitem)
                 lastitem=lastitem-1
             else
-                dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+                dprint "The "&e.sdesc &" doesn't want the "& item(a).desig
             endif
         end select
     endif
@@ -1092,21 +1055,9 @@ if rnd_range(1,6)<3 then
 endif
 
 text=text &" It weighs appr. "&weight*rnd_range(1,8)*rnd_range(1,10) &" Kg."
-if flies=1 then 
-    if rnd_range(1,100)<66 then 
-        text= text &" It flies using "&wings(rnd_range(1,3)) &"."
-    else
-        text= text &" It flies using "&rnd_range(1,3) & " pairs of "&wings(rnd_range(2,4)) &"."
-    endif
-endif
+if flies=1 then text= text &" It flies using "&wings(rnd_range(1,3)) &"."
 if diet=1 then text=text &" It is a predator."
-if diet=2 then 
-    if rnd_range(1,100)<66 then
-        text=text &" It is a herbivore."
-    else
-        text=text &" It is an omnivore"
-    endif
-endif
+if diet=2 then text=text &" It is a herbivour."
 if diet=3 then text=text &" It is a scavenger."
 enemy.ldesc=text
 return enemy

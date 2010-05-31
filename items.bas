@@ -123,12 +123,12 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     i.w.s=s
     i.discovered=show_allitems
     dim a as short
-    if lastitem<25000 then 'Noch platz für neues
+    if lastitem<25000 then 'Still space for new
         lastitem=lastitem+1
         item(lastitem)=i
         return lastitem
     else
-        for a=1 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
+        for a=1 to lastitem 'Override the first item not in the ship and no resource
             if item(a).w.s>0 and item(a).ty<>15 then
                 item(a)=i
                 return a
@@ -138,10 +138,10 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     dprint "ITEM PLACEMENT ERROR!(lastitem="&lastitem &")",14
 end function
 
-function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
+function makeitem(a as short, mod1 as short=0,mod2 as short=0) as _items
     dim i as _items
     dim as short f,roll,target
-    if uid=4294967295 then 
+    if uid=4294967295 then
         dprint "Can't make any more items!"
         return i
     endif
@@ -1456,33 +1456,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=100
     endif
     
-    if a=75 then
-        i.id=75
-        i.ty=41
-        i.desig="AT landing gear"
-        i.desigp="AT Landing gears"
-        i.ldesc="special landing struts designed to make landing in all kinds of terrain easier"
-        i.v1=2
-        i.icon=chr(208)
-        i.col=8
-        i.res=100
-        i.price=250
-    endif
-        
-    
-    if a=76 then
-        i.id=76
-        i.ty=41
-        i.desig="Imp. AT landing gear"
-        i.desigp="Imp. AT Landing gears"
-        i.ldesc="special landing struts designed to make landing in all kinds of terrain easier"
-        i.v1=5
-        i.icon=chr(208)
-        i.col=14
-        i.res=100
-        i.price=500
-    endif
-    
     if a=86 then
         i.id=86
         i.ty=86
@@ -1619,11 +1592,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
         i.desigp="resources"
         i.v1=rnd_range(1,4+mod1)
-        if rnd_range(1,100)>15 then
-            i.v2=rnd_range(1,8+mod2)
-        else
-            i.v2=prefmin
-        endif
+        i.v2=rnd_range(1,8+mod2)
+        
         if i.v2>9 then i.v1=i.v1-1
         if i.v2>10 then i.v1=i.v1-1
         if i.v2>11 then i.v1=i.v1-1
@@ -1679,7 +1649,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
         i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(rnd_range(1,5+player.science))
         i.price=i.v5/10   
-        i.res=i.v5*10         
+        i.res=i.v5*10        
         
         i.scanmod=rnd_range(0,i.v1)
         i.icon="*"
@@ -1848,6 +1818,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     for a=1 to lastitem
         if item(a).w.s=-2 then item(a).w.s=-1
     next
+
     for a=1 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
@@ -1884,6 +1855,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 for b=0 to lastitem
                     if item(b).uid=crew(a).pref_ccweap then
                         c=b
+                        if item(b).w.s=-2 then c=-1
                         exit for
                     endif
                 next
@@ -1900,6 +1872,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 for b=0 to lastitem
                     if item(b).uid=crew(a).pref_lrweap then
                         c=b
+                        if item(b).w.s=-2 then c=-1
                         exit for
                     endif
                 next
@@ -1918,6 +1891,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 for b=0 to lastitem
                     if item(b).uid=crew(a).pref_armor then
                         c=b
+                        if item(b).w.s=-2 then c=-1
                         exit for
                     endif
                 next
@@ -1943,7 +1917,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
             if crew(a).equips=0 then
                 b=findbest(2,-1)        
                 if b>-1 and crew(a).weap=0 then
-                    'dprint "Equipping "&item(b).desig & b
+                    'dprint "Equipping "&item(b).desig & b (ranged weapon)
                     awayteam.secweap(a)=item(b).v1
                     awayteam.secweapran(a)=item(b).v2
                     awayteam.secweapthi(a)=item(b).v3
@@ -1998,7 +1972,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     
     for a=128 to 1 step -1
         b=findbest(4,-1)
-        'give to redshirt
+        'give to redshirt melee weapon
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 and crew(a).blad=0 then
             if b>-1 then
                 'dprint "Equipping "&item(b).desig & b
@@ -2042,37 +2016,6 @@ function removeequip() as short
     return 0
 end function
 
-function listartifacts() as string
-    dim as short a,c
-    dim flagst(16) as string
-    flagst(1)="Fuel System"
-    flagst(2)="Disintegrator"
-    flagst(3)="Scanner"
-    flagst(4)=" Ion canon"
-    flagst(5)="Bodyarmor"
-    flagst(6)="Engine"
-    flagst(7)="Sensors"
-    flagst(8)=" Cryochamber"
-    flagst(9)="Teleportation device"
-    flagst(10)=""
-    flagst(11)=""
-    flagst(12)="Cloaking device"
-    flagst(13)="Wormhole shield"
-    flagst(16)="Wormhole navigation device"
-    color 15,0
-    flagst(0)=" {15} Alien Artifacts {11}|"
-    for a=1 to 16
-        if artflag(a)>0 then
-            c=c+1
-            flagst(0)=flagst(0) &flagst(a) &"|"
-        endif
-    next
-    if c=0 then
-        flagst(0)=flagst(0) &"      {14} None |"
-    endif
-    return flagst(0)    
-end function
-
 function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
     dim as short b,a,set,lastinv
     for a=0 to lastitem
@@ -2087,7 +2030,7 @@ function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
             if set=0 then
                 inv(lastinv)=item(a)
                 invn(lastinv)=1
-                lastinv=lastinv+1                
+                lastinv=lastinv+1
             endif
         endif
     next
@@ -2123,28 +2066,30 @@ end function
 
 function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     dim as short i,offset,a,b,c,li,cu,set,k
-    dim mls(127) as string
-    dim mno(127) as short
-    dim mit(127) as short
+    dim mls(127) as string 'mls is item type
+    dim mno(127) as short 'mno is number of same type items
+    dim mit(127) as short 'mit(b) is the number of the first item of type b
     dim lin(20) as string
     dim it(20) as short
     dim as string key,mstr
+
     screenshot(1)
-    for a=0 to lastitem
-        if ((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999) then 'fr=999 means 
+    for a=0 to lastitem 'counts items of same type
+        if ((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999) then
+            'fr=999
             set=0
-            for c=0 to li
-                if item(a).desig=mls(c) then
-                    set=1
+            for c=0 to li 'li is the number of types of items already counted
+                if item(a).desig=mls(c) then 'already have a same type item
+                    set=1 'skip "new item check"
                     mno(c)=mno(c)+1
                 endif
             next
-            if set=0 then
+            if set=0 then 'new item
                 b=b+1
-                li=li+1
+                li=li+1 'li is the number of types of items already counted, here it adds one type
                 mls(b)=item(a).desig
                 mls(b)=mls(b)
-                mit(b)=a
+                mit(b)=a 'mit(b) is the number of the first item of type b
                 mno(b)=mno(b)+1
             endif
         endif
@@ -2154,65 +2099,88 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     
     if li=0 then return -1
     if li=1 and (fr=999 or ty=999) and forceselect=0 then return mit(1)
-    cu=1
-    for a=1 to li
-        for b=1 to li-1
-            if item(mit(b)).ty>item(mit(b+1)).ty or (item(mit(b)).ty=item(mit(b+1)).ty and better_item(item(mit(b)),item(mit(b+1)))=1) then
-                swap mno(b),mno(b+1)
-                swap mls(b),mls(b+1)
-                swap mit(b),mit(b+1)
-            endif
-        next
-    next
+    cu=1 'cursor position in list
     do
+        for a=li to 1 step -1
+            for b=li to 2 step -1
+                if (item(mit(b)).ty=item(mit(b-1)).ty and better_item(item(mit(b-1)),item(mit(b)))=1) or item(mit(b-1)).ty>item(mit(b)).ty then
+                    'Orders item types from best to worst
+                    swap mno(b),mno(b-1)
+                    swap mls(b),mls(b-1)
+                    swap mit(b),mit(b-1) 'mit(b) is the number of the first item of type b
+                endif
+            next
+        next
+        
         if k=8 then cu=cu-1
+        if k=9 then offset-=15
         if k=2 then cu=cu+1
-        if cu<1 then 
+        if k=3 then offset+=15
+        if offset<0 and offset>-14 then offset=0
+        if cu<1 then
+            'go from first item to last item in list if press up
+            'this is broken
             if offset>0 then
-                offset=offset-1
-                cu=1
-            else 
-                cu=li
+                offset=offset-1 'if offset is 1+ it goes back when cu is negative
+                cu=1 'cursor goes to 15
+            else
+                offset=int(li/15)*15 'cursor goes to last item if offset is 0 and offset to last page
+                cu=li-offset
             endif
         endif
-        if cu>15 and li>15 then 
-            if cu+offset>li then
-                cu=1
-                offset=0
-            else
-                offset=offset+1
+        if li>15 then
+            if cu+offset>li then 'cursor goes to first item
+                if k=2 then
+                    offset=0
+                    cu=1
+                endif
+            elseif cu>15 then
+                offset+=1
                 cu=15
             endif
         endif
         
         Color 15,0
         locate 3,3
-        draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
-        if offset<0 then offset=0
-        if li>15 and offset>li-cu then offset=li-cu
-        if cu>li then 
+        print "Select item:" 
+        if offset<0 then
+            offset=int(li/15)*15 'no negative offset, goes to last page
+            cu=li-offset
+        endif
+        if li>15 and offset>li-cu then offset=0
+        if cu>li then 'if cursor goes over last item in list it goes to first item
             cu=1
             offset=0
         endif
         if cu<0 then cu=0
         for a=1 to 15
             if mls(a+offset)<>"" then
+                locate a+3,6
                 color 0,0
-                draw string (3*_fw1,3*_fh1+a*_fh2),space(35),,font2,custom,@_col
+                print space(35)
                 if cu=a then
                     color 15,5
                 else
                     color 11,0
                 endif
-                draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset),,font2,custom,@_col
-                if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
+                locate a+3,6
+                print str(a+offset)&"-"; mls(a+offset); 'print item description
+                'print the number of equal items in parenteses next to the item name
+                if mno(a+offset)>1 then print "("&mno(a+offset) &")"
+            else
+                locate a+3,6
+                color 0,0
+                print space(35)
             endif
         next
+        locate 19,6
         color 15,0
         if li>15 then 
-            draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
+            print "[More]"
+            locate 20,3
         endif
-        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit",,font2,custom,@_col
+        locate 21,6
+        print "Return to select item, esc to quit"
         key=keyin
         k=getdirection(key)
         
@@ -2280,15 +2248,6 @@ function findworst(t as short,p as short=0, m as short=0) as short
 end function
 
 function better_item(i1 as _items,i2 as _items) as short
-    dim as short i,l
-    if len(i1.desig)>len(i2.Desig) then 
-        l=len(i1.desig)
-    else
-        l=len(i2.desig)
-    endif
-    for i=1 to l-1
-        if asc(mid(i1.desig,i,1))>asc(mid(i2.desig,i,1)) then return 1
-    next
     if i1.v1+i1.v2+i1.v3+i1.v4+i1.v5>i2.v1+i2.v2+i2.v3+i2.v4+i2.v5 then return 1
     return 0
 end function
@@ -2843,7 +2802,7 @@ function artifact(c as short,awayteam as _monster) as short
             if map(d).planets(e)>0 then f=f+1
         next
         if map(d).discovered=1 then
-            dprint "But you have already discovered that that system."
+            dprint "But you have already discovered that system."
         else
             dprint "It is at "&map(d).c.x &":"&map(d).c.y &" It is a "&spectralname(map(d).spec)&" with " & f & " planets."  
             map(d).discovered=1

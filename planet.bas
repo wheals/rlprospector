@@ -191,6 +191,22 @@ function make_spacemap() as short
         print ".";
     next
     
+    print
+    print "Pregenerating planets ";
+    for c=0 to 5
+        print ".";
+        a=getrandomsystem()
+        if a>0 then
+            b=rnd_range(1,9)
+            if map(a).planets(b)<=0 then
+                lastplanet=lastplanet+1
+                map(a).planets(b)=lastplanet
+            endif
+            makeplanetmap(map(a).planets(b),b,map(a).spec)
+            planet_event(rnd_range(1,10),map(a).planets(b))
+            if show_eventp=1 then map(a).discovered=1
+        endif
+    next
     'print pirateplanet
     'sleep
     print
@@ -238,7 +254,6 @@ function make_spacemap() as short
     
     a=sysfrommap(specialplanet(26))
     swap map(a).c,map(d).c
-    
     
     
 '    for a=0 to lastspecial
@@ -297,26 +312,6 @@ function make_spacemap() as short
     
     print "checking for starmap errors: ";
     fixstarmap()
-    color 7,0
-    print
-    print "Pregenerating planets ";
-    for c=0 to 5
-        print ".";
-        a=getrandomsystem(0)
-        if a>0 then
-            b=getrandomplanet(a)
-            if b>0 and b<=lastplanet then
-                if is_special(b)=0 then
-                    makeplanetmap(b,rnd_range(1,9),map(a).spec)
-                    planet_event(b)
-                        
-                    if show_eventp=1 then map(a).discovered=1
-                else
-                    print "TRIED TO MAKE EVENT PLANET ON SPECIAL PLANET!"
-                endif
-            endif
-        endif
-    next
     
     if findcompany(1)=0 then specialplanet(40)=32767
     if findcompany(2)=0 then specialplanet(41)=32767
@@ -402,8 +397,8 @@ function make_spacemap() as short
     
     if show_specials>0 then map(sysfrommap(specialplanet(show_specials))).discovered=1
     
-    print
-    color 11,0
+    
+    color 14,0
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
     color 15,0
     print "Star distribution:"
@@ -507,7 +502,6 @@ sub make_clouds()
         c=-6
         if rnd_range(1,100)<33 then c=-7
         if rnd_range(1,100)<33 then c=-8
-        if rnd_range(1,100)<66 then c=-(8+rnd_range(1,9))
         for b=1 to 9
             if rnd_range(1,100)>66 then
                 p2=p1
@@ -527,7 +521,13 @@ sub make_clouds()
         for x=0 to sm_x
             for y=0 to sm_y
                 if spacemap(x,y)=0  then spacemap(x,y)=1                    
-                if abs(spacemap(x,y))>1  then spacemap(x,y)=abs(spacemap(x,y))
+                if spacemap(x,y)=-2  then spacemap(x,y)=2                    
+                if spacemap(x,y)=-3  then spacemap(x,y)=3                    
+                if spacemap(x,y)=-4  then spacemap(x,y)=4                    
+                if spacemap(x,y)=-5  then spacemap(x,y)=5 
+                if spacemap(x,y)=-6  then spacemap(x,y)=6 
+                if spacemap(x,y)=-7  then spacemap(x,y)=7 
+                if spacemap(x,y)=-8  then spacemap(x,y)=8 
             next
         next    
     endif
@@ -2322,7 +2322,6 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     dim as short b,c,d,e
     dim watercount as integer
     dim waterreplace as short
-    dim as short prefmin
     dim as _cords p,p1,p2,p3,p4
     dim ti as short
     dim it as _items
@@ -2335,7 +2334,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
        dprint "ERROR: Attempting to make planet map at "&a,14
        return
     endif
-    prefmin=rnd_range(1,14)
+    
     planettype=rnd_range(1,100)
     o=orbit
     planets(a).orbit=o
@@ -2363,8 +2362,8 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if spect=6 then gascloud=gascloud
     if spect=7 then gascloud=gascloud+1
     if spect=8 then gascloud=gascloud+2
-    planets(a).minerals=rnd_range(2,spect)+rnd_range(1,4)+disnbase(player.c)\7
-    if gascloud<6 then planets(a).minerals+=gascloud
+    planets(a).minerals=rnd_range(2,spect)+rnd_range(1,4)+gascloud+disnbase(player.c)\7
+    
     
     roll=rnd_range(1,100)
     b1=3
@@ -2475,7 +2474,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),p.x,p.y,a)
         next b
     endif
     
@@ -2484,7 +2483,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),p.x,p.y,a)
         next b
     endif
     
@@ -2497,7 +2496,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                d=d+1
                p=rnd_point
             loop until planetmap(p.x,p.y,a)=-7 or planetmap(p.x,p.y,a)=-8 or d=10
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),p.x,p.y,a)
         next b
     
     endif
@@ -2505,7 +2504,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         makecraters(a,o)'craters
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),p.x,p.y,a)
             if rnd_range(1,100)<66 then
                 d=158
             else
@@ -2526,7 +2525,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                d=d+1
                p=rnd_point
             loop until planetmap(p.x,p.y,a)=-1 or planetmap(p.x,p.y,a)=-2 or d=10
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud),p.x,p.y,a)
         next b
     
     endif
@@ -2593,7 +2592,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         
         endif
         
-        if rnd_range(1,200)<25 then 'Geyser
+        if rnd_range(1,200)<15 then 'Geyser
             for b=0 to rnd_range(1,8)+rnd_range(1,8)+planets(a).atmos
                 p1=rnd_point
                 planetmap(p1.x,p1.y,a)=-29
@@ -2630,13 +2629,10 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         endif
         
         planets(a).life=(((planets(a).water/10)+1)*planets(a).atmos)/10
-        if planettype>=44 and planettype<65 then planets(a).life+=rnd_range(1,3)
-    
         if planets(a).orbit>2 and planets(a).orbit<6 then planets(a).life=planets(a).life+rnd_range(1,5)
         if planets(a).life>10 then planets(a).life=10 
         planets(a).rot=(rnd_range(0,10)+rnd_range(0,5)+rnd_range(0,5)-4)/10
         if planets(a).rot<0 then planets(a).rot=0 
-        
         'Flowers
         if rnd_range(1,200)<planets(a).atmos+planets(a).life and planets(a).atmos>1 then
             b=rnd_range(0,12)+rnd_range(0,12)+rnd_range(0,12)+1
@@ -2656,8 +2652,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             if b>50 then d=4
             if b>75 then d=8
             if b>95 then d=12
-            planetmap(p1.x,p1.y,a)=(-127-c-d)*-1
-            'planetmap(p1.x,p1.y,a)=241
+            planetmap(p1.x,p1.y,a)=-127-c-d
             for b=0 to 1+d
                 if rnd_range(1,100)<11 then placeitem(rnd_item(21),p1.x,p1.y,a)
             next
@@ -2667,19 +2662,19 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         if rnd_range(1,200)<15-disnbase(player.c) then
             p1=rnd_point
             planetmap(p1.x,p1.y,a)=-76
-            for b=0 to rnd_range(1,4)
-                if rnd_range(1,100)<25 then placeitem(rnd_item(6),p1.x,p1.y,a)
-                if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a)
-            next
             if rnd_range(1,100)<42 then 
                 p1=movepoint(p1,5)
                 planetmap(p1.x,p1.y,a)=-68
             endif
+            for b=0 to rnd_range(1,4)
+                if rnd_range(1,100)<25 then placeitem(rnd_item(6),p1.x,p1.y,a)
+                if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a)
+            next
             if rnd_range(1,100)<25 then
-                for b=0 to rnd_range(1,4)
-                    p1=rnd_point
-                    if rnd_range(1,100)<25 then placeitem(makeitem(rnd_range(53,55)),p1.x,p1.y,a)
-                next
+            for b=0 to rnd_range(1,4)
+                p1=rnd_point
+                if rnd_range(1,100)<25 then placeitem(makeitem(rnd_range(53,55)),p1.x,p1.y,a)
+            next
             endif
         endif
         
@@ -2720,8 +2715,8 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             placeitem(it,p1.x,p1.y,a)        
         endif
         
-        if is_special(a)=0 and rnd_range(1,100)<15-disnbase(player.c)/2 then
-            planet_event(a)
+        if rnd_range(1,100)<15-disnbase(player.c)/2 then
+            planet_event(rnd_range(1,2),a)
         endif
     endif
     
@@ -3205,21 +3200,6 @@ sub makecanyons(a as short, o as short)
     next    
     togglingfilter(a,8,7)
     togglingfilter(a,8,7)
-    if rnd_range(1,100)<10 then
-        planets(a).atmos=1
-        for x=0 to 60
-            for y=0 to 20
-                if planetmap(x,y,a)<>-7 and planetmap(x,y,a)<>-8 then 
-                    if rnd_range(1,100)<66 then
-                        planetmap(x,y,a)=-4
-                    else
-                        planetmap(x,y,a)=-14
-                    endif
-                    if rnd_range(1,100)<6 then planetmap(x,y,a)=-158
-                endif
-            next
-        next
-    endif
     planets(a).water=0
     if rnd_range(1,100)<50 then makeice(a,o)
 end sub
@@ -3414,7 +3394,7 @@ sub makespecialplanet(a as short)
             for b=0 to 1
                 p=rnd_point
                 if p.x>=52 then p.x=51
-                if p.y>=15 then p.y=14
+                if p.x>=15 then p.y=14
                 for x=p.x to p.x+8
                     for y=p.y to p.y+5
                         planetmap(x,y,a)=-68
@@ -3664,7 +3644,6 @@ sub makespecialplanet(a as short)
             x=rnd_range(p2.x-wx,p2.x+wx)
             y=rnd_range(p2.y,p2.y+wy)
         loop until planetmap(x,y,a)<30 or cnt>9999
-        
         if a=pirateplanet(0) then 
             planetmap(x,y,a)=74
         else
@@ -3680,17 +3659,8 @@ sub makespecialplanet(a as short)
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
-            y=rnd_range(p2.y-wy,p2.y+wy)
-        loop until planetmap(x,y,a)<30 or cnt>40000
-        if a<>pirateplanet(0) then planetmap(x,y,a)=270
-        
-        
-        do
-            cnt=cnt+1
-            x=rnd_range(p2.x-wx,p2.x+wx)
             y=rnd_range(p2.y,p2.y+wy)
         loop until planetmap(x,y,a)<30 or cnt>40000
-        
         if a<>pirateplanet(0) then 
             planetmap(x,y,a)=89
         else
@@ -3699,7 +3669,7 @@ sub makespecialplanet(a as short)
         planets(a).mon_template(0)=makemonster(14,a)
         planets(a).mon_noamin(0)=8
         planets(a).mon_noamax(0)=17
-        
+            
         if a=pirateplanet(0) then 'add spaceport
             c=rnd_range(1,53)
             if c>p4.x then 
@@ -3854,19 +3824,6 @@ sub makespecialplanet(a as short)
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
         planetmap(p4.x,p4.y,lastplanet)=-261
-        
-        
-        do
-            p4=rnd_point(lastplanet,0)
-        loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
-        planetmap(p4.x,p4.y,lastplanet)=-271
-        
-        
-        do
-            p4=rnd_point(lastplanet,0)
-        loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
-        planetmap(p4.x,p4.y,lastplanet)=-270
-        
         
         planets(lastplanet).depth=1
         planets(lastplanet).mon_template(2)=makemonster(39,lastplanet)
@@ -5733,7 +5690,7 @@ sub makespecialplanet(a as short)
         
 end sub
 
-sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
+sub makedrifter(d as _driftingship, bg as short=0)
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
     dim s as _ship
     dim pods(6,5,1) as short
@@ -5742,18 +5699,13 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     dim from as _cords
     dim dest as _cords
     dim lastcrate as short
+    loadmap(d.s,lastplanet)  
     if bg=0 then
         m=d.m
     else
         m=lastplanet+1
         lastplanet+=1
-        from.x=d.x
-        from.y=d.y
-        from.m=d.m
-        dprint "from:"&d.m &":"&d.x &"-"&d.y
-        dprint "to:"&m
     endif
-    loadmap(d.s,lastplanet)  
     d.start.x=d.x
     d.start.y=d.y
     f=freefile
@@ -5767,17 +5719,16 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     next
     close #f
     s=gethullspecs(d.s)
-    if bg=0 then
-        addweap=s.h_maxweaponslot*10
-        addcarg=s.h_maxcargo*10
-        for a=6 to 6+s.h_maxweaponslot
-            if rnd_range(1,100)<66 then planets(m).flags(a)=rnd_range(1,6)
-            if rnd_range(1,100)<16+addweap then planets(m).flags(a)=planets(m).flags(a)+rnd_range(0,4)
-            if rnd_range(1,100)<25 then planets(m).flags(a)=-rnd_range(1,2)
-            if planets(m).flags(a)=-1 then addcarg=addcarg+10
-            if planets(m).flags(a)=-2 then s.h_maxcrew=s.h_maxcrew+3
-        next
-    endif
+    addweap=s.h_maxweaponslot*10
+    addcarg=s.h_maxcargo*10
+    for a=6 to 6+s.h_maxweaponslot
+        if rnd_range(1,100)<66 then planets(m).flags(a)=rnd_range(1,6)
+        if rnd_range(1,100)<16+addweap then planets(m).flags(a)=planets(m).flags(a)+rnd_range(0,4)
+        if rnd_range(1,100)<25 then planets(m).flags(a)=-rnd_range(1,2)
+        if planets(m).flags(a)=-1 then addcarg=addcarg+10
+        if planets(m).flags(a)=-2 then s.h_maxcrew=s.h_maxcrew+3
+    next
+    
     for x=0 to 60
         for y=0 to 20
             ti=abs(planetmap(x,y,m))
@@ -5818,7 +5769,7 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
                     planetmap(x,y,m)=-221
                     if rnd_range(1,100)<66 then planetmap(x,y,m)=-222
                     for a=0 to rnd_range(0,1)
-                        if bg=0 then placeitem(rnd_item(21),x,y,m)
+                        placeitem(rnd_item(21),x,y,m)
                     next
                 endif
             endif
@@ -5832,19 +5783,19 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     
     for x=0 to 60
         for y=0 to 20
-            if abs(planetmap(x,y,m))=200 and bg<>0 then planetmap(x,y,m)=-bg
+            if abs(planetmap(x,y,m))=200 and bg<>0 then planetmap(x,y,m)=bg
         next
     next
-    if bg=0 then
-        if s.h_maxcargo>5 then s.h_maxcargo=5
-        for a=1 to s.h_maxcargo
-            if rnd_range(1,100)>25+addcarg then
-                p=crates(rnd_range(1,lastcrate))
-                planetmap(p.x,p.y,m)=-214-a
-                planets(m).flags(10+a)=rnd_range(2,6)
-            endif
-        next
-    endif
+    
+    if s.h_maxcargo>5 then s.h_maxcargo=5
+    for a=1 to s.h_maxcargo
+        if rnd_range(1,100)>25+addcarg then
+            p=crates(rnd_range(1,lastcrate))
+            planetmap(p.x,p.y,m)=-214-a
+            planets(m).flags(10+a)=rnd_range(2,6)
+        endif
+    next
+    
     for x=1 to 59
         for y=1 to 19
             if abs(planetmap(x,y,m))=201 then 
@@ -5862,167 +5813,146 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     
         
     planets(m).depth=1
-    
-    if bg=0 then
-        roll=rnd_range(1,100)
-        if roll<40 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            
-            planets(m).mon_template(0)=makemonster(32,m)
-            planets(m).mon_noamin(0)=s.h_maxcrew-1
-            planets(m).mon_noamax(0)=s.h_maxcrew
-            
-            planets(m).mon_template(1)=makemonster(33,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-        endif
+    roll=rnd_range(1,100)
+    if roll<40 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
         
-        if roll>39 and roll<50 then
-            planets(m).darkness=5
-            planets(m).depth=1
-            planets(m).atmos=1
-            planets(m).mon_template(0)=makemonster(33,m)
-            planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
-            planets(m).mon_noamax(0)=s.h_maxcrew
-            
-            planets(m).mon_template(1)=makemonster(33,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. You feel like defiling a grave."
-        endif
+        planets(m).mon_template(0)=makemonster(32,m)
+        planets(m).mon_noamin(0)=s.h_maxcrew-1
+        planets(m).mon_noamax(0)=s.h_maxcrew
         
-        if roll>49 and roll<60 then
-            planets(m).darkness=5
-            planets(m).depth=1
-            planets(m).atmos=1
-            planets(m).mon_template(0)=makemonster(31,m)
-            planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
-            planets(m).mon_noamax(0)=s.h_maxcrew
-            
-            planets(m).mon_template(1)=makemonster(33,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            
-            planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. No sound reaches you through the vacuum but you see red alert lights still flashing."
-        endif
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
         
-        if roll>59 and roll<70 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            planets(m).mon_template(0)=makemonster(34,m)
-            planets(m).mon_noamin(0)=d.s+10
-            planets(m).mon_noamax(0)=d.s+15
-            
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
-        endif
-        
-        if roll>69 and roll<80 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            planets(m).mon_template(0)=makemonster(3,m)
-            planets(m).mon_noamin(0)=1
-            planets(m).mon_noamax(0)=2
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-        endif
-        
-        if roll>79 and roll<85 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            planets(m).mon_template(0)=makemonster(18,m)
-            planets(m).mon_noamin(0)=1
-            planets(m).mon_noamax(0)=2
-            
-            planets(m).mon_template(1)=makemonster(18,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-        endif
-        
-        if roll>84 and roll<90 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            
-            planets(m).mon_template(0)=makemonster(19,m)
-            planets(m).mon_noamin(0)=1
-            planets(m).mon_noamax(0)=2
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-        endif
-        
-        if roll>89 and roll<95 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            planets(m).mon_template(0)=makemonster(35,m)
-            planets(m).mon_noamin(0)=1
-            planets(m).mon_noamax(0)=2
-            
-            planets(m).mon_template(1)=makemonster(35,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-        endif
-        
-        
-        if roll>94 and roll<100 then
-            planets(m).darkness=0
-            planets(m).depth=1
-            planets(m).atmos=4
-            planets(m).mon_template(0)=makemonster(65,m)
-            planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
-            planets(m).mon_noamax(0)=s.h_maxcrew
-            
-            planets(m).mon_template(1)=makemonster(29,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=2
-            
-            planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
-        endif
-        
-        if roll>98 then
-            planets(m).darkness=5
-            planets(m).depth=1
-            planets(m).atmos=4
-            
-            planets(m).mon_template(0)=makemonster(38,m)
-            planets(m).mon_noamin(0)=1
-            planets(m).mon_noamax(0)=1
-            
-            planets(m).mon_template(1)=makemonster(47,m)
-            planets(m).mon_noamin(1)=1
-            planets(m).mon_noamax(1)=1
-            
-            planets(m).flavortext="As you enter this " &shiptypes(d.s)& " you hear a squeaking noise almost like a jiggle. You feel uneasy. Something is here, and it is not friendly." 
-        endif
-    else
-        'On planets surface
-        for x=0 to 60
-            for y=0 to 20
-                if abs(planetmap(x,y,m))=203 then 'Add portals from airlocks to planet surfaces
-                    dest.x=x
-                    dest.y=y
-                    dest.m=lastplanet
-                    addportal(from,dest,0,asc("@"),"abandoned ship",11)
-                    exit for, for
-                endif
-            next
-        next
-        for x=0 to 60
-            for y=0 to 20
-                if broken=1 and abs(planetmap(x,y,m))=220 then planetmap(x,y,m)=-202
-            next
-        next
-        if d.s=18 and broken=0 then planetmap(30,20,m)=-220
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
     endif
+    
+    if roll>39 and roll<50 then
+        planets(m).darkness=5
+        planets(m).depth=1
+        planets(m).atmos=1
+        planets(m).mon_template(0)=makemonster(33,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. You feel like defiling a grave."
+    endif
+    
+    if roll>49 and roll<60 then
+        planets(m).darkness=5
+        planets(m).depth=1
+        planets(m).atmos=1
+        planets(m).mon_template(0)=makemonster(31,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(33,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
+        planets(m).flavortext="It is dark as you enter the " &shiptypes(d.s)&". A thin layer of ice covers everything. The air is gone. No sound reaches you through the vacuum but you see red alert lights still flashing."
+    endif
+    
+    if roll>59 and roll<70 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        planets(m).mon_template(0)=makemonster(34,m)
+        planets(m).mon_noamin(0)=d.s+10
+        planets(m).mon_noamax(0)=d.s+15
+        
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
+    endif
+    
+    if roll>69 and roll<80 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        planets(m).mon_template(0)=makemonster(3,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+    endif
+    
+    if roll>79 and roll<85 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        planets(m).mon_template(0)=makemonster(18,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        
+        planets(m).mon_template(1)=makemonster(18,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+    endif
+    
+    if roll>84 and roll<90 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        
+        planets(m).mon_template(0)=makemonster(19,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+    endif
+    
+    if roll>89 and roll<95 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        planets(m).mon_template(0)=makemonster(35,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=2
+        
+        planets(m).mon_template(1)=makemonster(35,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+    endif
+    
+    
+    if roll>94 and roll<100 then
+        planets(m).darkness=0
+        planets(m).depth=1
+        planets(m).atmos=4
+        planets(m).mon_template(0)=makemonster(65,m)
+        planets(m).mon_noamin(0)=minimum(1,s.h_maxcrew-3)
+        planets(m).mon_noamax(0)=s.h_maxcrew
+        
+        planets(m).mon_template(1)=makemonster(29,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=2
+        
+        planets(m).flavortext="No hum from the engines is heard as you enter the " &shiptypes(d.s)&". Emergency lighting bathes the corridors in red light, and the air smells stale. An alert klaxon is the only sound you hear."
+    endif
+    
+    if roll>98 then
+        planets(m).darkness=5
+        planets(m).depth=1
+        planets(m).atmos=4
+        
+        planets(m).mon_template(0)=makemonster(38,m)
+        planets(m).mon_noamin(0)=1
+        planets(m).mon_noamax(0)=1
+        
+        planets(m).mon_template(1)=makemonster(47,m)
+        planets(m).mon_noamin(1)=1
+        planets(m).mon_noamax(1)=1
+        
+        planets(m).flavortext="As you enter this " &shiptypes(d.s)& " you hear a squeaking noise almost like a jiggle. You feel uneasy. Something is here, and it is not friendly." 
+    endif
+    
     planets(m).flags(0)=0
     planets(m).flags(1)=d.s
     planets(m).flags(2)=rnd_range(1,s.h_maxhull)
@@ -6411,14 +6341,12 @@ sub makemudsshop(slot as short, x1 as short, y1 as short)
     planetmap(x1,y1-2,slot)=-68
 end sub
 
-sub planet_event(slot as short)
+sub planet_event(t as short,slot as short)
     dim as _cords p1
     dim as _cords gc1,gc
-    dim as short x,y,a,b,t
-    t=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
-    if t<1 then t=1
-    if t>7 then t=7
-    if t=1 or t=2 then 'Mining Colony in Distress Flag 22 
+    dim as short x,y,a,b
+    
+    if t=1 or t=2 or t=6 or t=8 then 'Mining Colony in Distress Flag 22 
         p1.x=rnd_range(0,50)
         p1.y=rnd_range(0,15)
         planetmap(p1.x,p1.y,slot)=-76
@@ -6440,11 +6368,11 @@ sub planet_event(slot as short)
             planets(slot).flags(22)=2
             planetmap(p1.x,p1.y+2,slot)=-76
         endif
+        lastplanet=lastplanet+1
         gc1.x=p1.x+1
         gc1.y=p1.y+1
         gc1.m=slot
         
-        lastplanet=lastplanet+1
         gc.x=rnd_range(1,59)
         gc.y=rnd_range(1,19)
         gc.m=lastplanet
@@ -6567,7 +6495,7 @@ sub planet_event(slot as short)
         next b
     
     endif
-    if t=6 or t=7 then
+    if t=9 or t=10 then
         makemossworld(slot,5)
         planets(slot).atmos=4
         planets(slot).flags(25)=1
@@ -6950,45 +6878,6 @@ function digger(byval p as _cords,map() as short,d as byte,ti as short=2,stopti 
     return 0
 end function
 
-function dominant_terrain(x as short,y as short,m as short) as short
-    dim as short x2,y2,i,in,set,dom,t1
-    dim t(9) as short
-    dim c(9) as short
-    in=1
-    for x2=x-1 to x+1
-        for y2=y-1 to y+1
-            if x2>=0 and x2<=60 and y2>=0 and y2<=20 then
-                for i=1 to 9
-                    set=0
-                    if t(i)=abs(planetmap(x2,y2,m)) then
-                        c(i)+=1
-                        set+=1
-                    endif
-                next
-                if set=0 then 
-                    t(in)=abs(planetmap(x2,y2,m))
-                    in+=1
-                endif
-            endif
-        next
-    next
-    for i=1 to in-1
-        if c(i)>dom then 
-            dom=c(i)
-            t1=t(i)
-            dprint ""&dom
-        endif
-    next
-    return t1
-end function
-
-function is_special(m as short) as short
-    dim a as short
-    for a=0 to lastspecial
-        if m=specialplanet(a) then return -1
-    next
-    return 0
-end function    
 
 function fillmap(map() as short,tile as short) as short
     dim x as short
