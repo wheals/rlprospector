@@ -1334,7 +1334,7 @@ function shipupgrades(st as short) as short
             
             if c=3 then 'engine
                 do
-                    d=menu("Engine:/ Engine MKI    -  300 Cr/ Engine MKII   - 1200 Cr/ Engine MKIII  - 2700 Cr/ Engine MKIV   - 4800 Cr/ Engine MKV    - 7500 Cr/ AT Landing Gear - 500Cr/ Imp. AT Landing Gear - 500Cr/ Exit")
+                    d=menu("Engine:/ Engine MKI    -  300 Cr/ Engine MKII   - 1200 Cr/ Engine MKIII  - 2700 Cr/ Engine MKIV   - 4800 Cr/ Engine MKV    - 7500 Cr/ AT Landing Gear - 250Cr/ Imp. AT Landing Gear - 500Cr/ Exit")
                     if d<6 and d<=player.h_maxengine then
                         if d<player.engine then dprint "You already have a better engine"
                         if d=player.engine then dprint "You already have this engine"

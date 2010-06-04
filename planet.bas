@@ -18,21 +18,6 @@ function make_spacemap() as short
     print
     Print " generating "
     color 7,0
-    lastwaypoint=6
-    
-    targetlist(0)=basis(0).c
-    targetlist(1).x=rnd_range(0,30)
-    targetlist(1).y=rnd_range(15,20)
-    targetlist(2)=basis(1).c
-    
-    targetlist(3).x=rnd_range(0,60)
-    targetlist(3).y=rnd_range(1,20)
-    
-    targetlist(4).x=rnd_range(30,59)
-    targetlist(4).y=rnd_range(15,20)
-    targetlist(5)=basis(2).c
-    targetlist(6).x=rnd_range(0,60)
-    targetlist(6).y=rnd_range(0,20)
     
     rerollshops
     'generate starmap
@@ -297,6 +282,11 @@ function make_spacemap() as short
     
     print "checking for starmap errors: ";
     fixstarmap()
+    
+    print "generating traderoutes"
+    gen_traderoutes()
+    
+    
     color 7,0
     print
     print "Pregenerating planets ";
@@ -416,6 +406,161 @@ function make_spacemap() as short
     return 0
 end function
 
+function gen_traderoutes() as short
+    dim as _pfcords start,goal,wpl(40680)
+    dim as _cords p
+    dim t as short
+    dim map(sm_x,sm_y) as byte
+    dim as integer x,y,i,offset,a
+    dim as integer fp,lp
+    lastwaypoint=5
+    firstwaypoint=5
+    for a=0 to 4068
+        targetlist(a).x=0
+        targetlist(a).y=0
+    next
+    for x=1 to sm_x
+        for y=1 to sm_y
+            p.x=x
+            p.y=y
+            if abs(spacemap(x,y))>=2 then map(x,y)=2
+            if abs(spacemap(x,y))>=5 then map(x,y)=2
+            'if abs(spacemap(x-1,y))>=2 then map(x,y)=1
+            'if abs(spacemap(x,y-1))>=2 then map(x,y)=1
+            'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
+            'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
+            'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
+            'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
+            if map(x,y)>0 and show_NPCs=1 then
+                locate y+1,x+1
+                print "#"
+            endif
+        next
+    next
+    map(basis(0).c.x,basis(0).c.y)=0
+    map(basis(1).c.x,basis(1).c.y)=0
+    map(basis(2).c.x,basis(2).c.y)=0
+    
+    
+    start.x=0
+    start.y=0
+    goal.x=basis(0).c.x
+    goal.y=basis(0).c.y
+    lp=gen_waypoints(wpl(),goal,start,map())
+    for i=0 to lp
+        targetlist(i+offset).x=wpl(i).x
+        targetlist(i+offset).y=wpl(i).y
+        wpl(i).i=0
+        wpl(i).c=0
+        wpl(i).x=0
+        wpl(i).y=0
+    next
+    
+    offset=offset+lp+1
+    lastwaypoint=lastwaypoint+lp+1
+    firststationw=lp
+    for a=1 to 2
+        start.x=basis(a-1).c.x
+        start.y=basis(a-1).c.y
+        goal.x=basis(a).c.x
+        goal.y=basis(a).c.y
+        lp=gen_waypoints(wpl(),goal,start,map())
+        for i=0 to lp
+            targetlist(i+offset).x=wpl(i).x
+            targetlist(i+offset).y=wpl(i).y
+            wpl(i).i=0
+            wpl(i).c=0
+            wpl(i).x=0
+            wpl(i).y=0
+        next
+        
+        offset=offset+lp+1
+        lastwaypoint=lastwaypoint+lp+1
+    next
+    
+    
+    start.x=basis(2).c.x
+    start.y=basis(2).c.y
+    goal.x=basis(0).c.x
+    goal.y=basis(0).c.y
+    lp=gen_waypoints(wpl(),goal,start,map())
+    for i=0 to lp
+        targetlist(i+offset).x=wpl(i).x
+        targetlist(i+offset).y=wpl(i).y
+    next
+    offset=offset+lp+1
+    lastwaypoint=lastwaypoint+lp
+    
+    for a=5 to lastwaypoint
+        if firstwaypoint=5 and targetlist(a).x<>0 and targetlist(a).y<>0 then firstwaypoint=a-1
+    next
+    if targetlist(firstwaypoint).x>1 and targetlist(firstwaypoint).y>1 then
+        if spacemap(targetlist(firstwaypoint).x,0)=0 or spacemap(targetlist(firstwaypoint).x,0)=1 then
+            targetlist(firstwaypoint).y=0
+        else
+            targetlist(firstwaypoint).x=0
+        endif
+    endif
+    print firstwaypoint &"-"&lastwaypoint
+    if show_NPCs=1 then
+        for x=0 to sm_x
+            for y=0 to sm_y
+                if spacemap(x,y)<>0 and spacemap(x,y)<>1 then 
+                    map(x,y)=2
+                    if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 then map(x,y)=1
+                
+                else
+                    map(x,y)=0
+                endif
+                locate y+1,x+1
+                if map(x,y)=1 then
+                    color 15,0
+                    print "#";
+                endif
+                if map(x,y)=2 then
+                    color 15,0
+                    print ":";
+                endif
+                
+                if map(x,y)=0 then
+                    color 1,0
+                    print ".";
+                endif
+            next
+        next
+        color 10,0
+        for x=firstwaypoint to lastwaypoint
+            for y=0 to 2
+                if basis(y).c.x=targetlist(x).x and basis(y).c.y=targetlist(x).y then t=y
+            next
+            locate targetlist(x).y+1,targetlist(x).x+1
+            if t=0 then print "0";
+            if t=1 then print "1";
+            if t=2 then print "2";
+            sleep 66
+        next
+        sleep
+        cls
+    endif
+    
+'    
+'    targetlist(0)=basis(0).c
+'    targetlist(1).x=rnd_range(0,30)
+'    targetlist(1).y=rnd_range(15,20)
+'    targetlist(2)=basis(1).c
+'    
+'    targetlist(3).x=rnd_range(0,60)
+'    targetlist(3).y=rnd_range(1,20)
+'    
+'    targetlist(4).x=rnd_range(30,59)
+'    targetlist(4).y=rnd_range(15,20)
+'    targetlist(5)=basis(2).c
+'    targetlist(6).x=rnd_range(0,60)
+'    targetlist(6).y=rnd_range(0,20)
+    return 0
+end function
+
+
 sub make_clouds()
     dim wmap(sm_x,sm_y)as ubyte
     dim as short x,y,bx,by,highest,count,a,b,c,r
@@ -461,25 +606,6 @@ sub make_clouds()
                 if abs(spacemap(x,y))>2 then count+=1
             next
         next
-        attempt=attempt+.01
-        if attempt>0.1 then attempt=0.1
-        flood_fill(35,20,spacemap(),1)
-    loop until spacemap(10,30)=11 and spacemap(60,10)=11 
-    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
-        p1=map(piratebase(0)).c
-        do
-            spacemap(p1.x,p1.y)=11
-            p1=movepoint(p1,5)
-            print ".";
-        loop until spacemap(p1.x,p1.y)=11
-        
-    endif
-    
-    for x=0 to sm_x
-        for y=0 to sm_y
-            if spacemap(x,y)=11 then spacemap(x,y)=0
-        next
-    next
     
     if rnd_range(1,100)<33 then
         p1.x=rnd_range(1,sm_x)
@@ -520,6 +646,25 @@ sub make_clouds()
                     spacemap(p2.x,p2.y)=c                    
                 loop until rnd_range(1,100)>66 or (p2.x=10 and p2.y=30) or (p2.x=60 and p2.y=10) or (p2.x=35 and p2.y=20)
             endif
+        next
+    next
+        attempt=attempt+.01
+        if attempt>0.1 then attempt=0.1
+        flood_fill(35,20,spacemap(),1)
+    loop until spacemap(10,30)=255 and spacemap(60,10)=255
+    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
+        p1=map(piratebase(0)).c
+        do
+            spacemap(p1.x,p1.y)=255
+            p1=movepoint(p1,5)
+            print ".";
+        loop until spacemap(p1.x,p1.y)=255
+        
+    endif
+    
+    for x=0 to sm_x
+        for y=0 to sm_y
+            if spacemap(x,y)=255 then spacemap(x,y)=0
         next
     next
     
@@ -5088,9 +5233,6 @@ sub makespecialplanet(a as short)
         planets(a).mon_template(1)=makemonster(48,a)
         planets(a).mon_noamin(1)=1
         planets(a).mon_noamax(1)=1
-        planets(a).mon_template(2)=makemonster(1,a)
-        planets(a).mon_noamin(2)=1
-        planets(a).mon_noamax(2)=5
         
         planets(a).temp=12.3
         planets(a).atmos=5
@@ -5750,10 +5892,10 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
         from.x=d.x
         from.y=d.y
         from.m=d.m
-        dprint "from:"&d.m &":"&d.x &"-"&d.y
-        dprint "to:"&m
+        d.m=m
     endif
     loadmap(d.s,lastplanet)  
+    planets(m).flags(1)=d.s
     d.start.x=d.x
     d.start.y=d.y
     f=freefile
@@ -6022,6 +6164,7 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
             next
         next
         if d.s=18 and broken=0 then planetmap(30,20,m)=-220
+        m=dest.m
     endif
     planets(m).flags(0)=0
     planets(m).flags(1)=d.s
@@ -6029,7 +6172,6 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     planets(m).flags(3)=rnd_range(1,s.h_maxengine)
     planets(m).flags(4)=rnd_range(1,s.h_maxsensors)
     planets(m).flags(5)=rnd_range(0,s.h_maxshield)
-        
 end sub
 
 sub makeice(o as short,a as short)
@@ -6799,7 +6941,7 @@ function flood_fill(x as short,y as short,map() as short, flag as short=0) as sh
   if flag=1 then
       if x>0 and y>0 and x<sm_x and y<sm_y then
           if map(x,y)=0 then
-              map(x,y)=11
+              map(x,y)=255
           else
               return 0
           endif

@@ -148,16 +148,18 @@ function background(fn as string) as short
 end function
 
 function loadkeyset() as short
-    dim as short f,a,c,i,j
+    dim as short f,a,b,c,i,j,li
     dim as string text,lctext
     dim keys(256) as string
+    dim texts(256) as string
     f=freefile
     if fileexists("keybindings.txt") then
         
         open "keybindings.txt" for input as #f
         print "loading keyset";
         do 
-            line input #f,text
+            b+=1
+            line input #f,texts(b)
             if instr(text,"#")=0 and len(text)>0 then                            
                 a+=1
                 keys(a)=right(text,1)
@@ -167,7 +169,10 @@ function loadkeyset() as short
             for j=1 to a
                 if i<>j then
                     if keys(i)=keys(j) then
-                        print "Two commands bound to "&keys(j) &"in line "&i &" and "&j
+                        for c=1 to b
+                            if right(texts(c),1)=keys(j) then li=c
+                        next
+                        print "Two commands bound to "&keys(j) &"in line "&li &" ("&texts(li) &")"
                         print "using default keys"
                         sleep 250
                         close f
@@ -178,12 +183,10 @@ function loadkeyset() as short
         next
         
         close f
-        f=freefile
-        open "keybindings.txt" for input as #f
             
-        do
+        for i=1 to b
             print ".";
-            line input #f,text
+            text=texts(i)
             if instr(text,"#")=0 and len(text)>0 then                            
                 lctext=lcase(text)
                 if instr(lctext,"key_nw")>0 then key_nw=right(text,1)
@@ -242,8 +245,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_yes")>0 then key_yes=right(text,1)
 
             endif
-        loop until eof(f)
-        close f
+        next
     else
         color 14,0
         print "File keybindings.txt not found. Using default keys"
@@ -882,6 +884,12 @@ function savegame() as short
     next
     print ".";
     
+    put #f,,firstwaypoint
+    put #f,,lastwaypoint
+    for a=0 to lastwaypoint
+        put #f,,targetlist(a)
+    next
+    
     put #f,,lastfleet
     for a=0 to lastfleet
         put #f,,fleet(a)
@@ -1069,6 +1077,13 @@ function loadgame(filename as string) as short
             get #f,,artflag(a)
         next
         print ".";
+        
+        
+        get #f,,firstwaypoint
+        get #f,,lastwaypoint
+        for a=0 to lastwaypoint
+            get #f,,targetlist(a)
+        next
         
         get #f,,lastfleet
         for a=0 to lastfleet

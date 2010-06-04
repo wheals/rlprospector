@@ -173,9 +173,39 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                             dprint("It seems dissapointed.")
                             e.cmmod=e.cmmod-1
                         endif
+                    case 56 to 66
+                        if askyn("It says 'do you want to play with me?'(y/n)") then
+                            dprint "You play with the alien."
+                            e.cmmod+=2
+                            if rnd_range(1,100)<66 then
+                                dprint "it says 'That was fun! Here take this gift!'"
+                                it=makeitem(94)
+                                placeitem(it,0,0,0,0,-1)
+                                dprint "It hands you "&it.desig &"."   
+                            else
+                                if rnd_range(1,100)<55 then
+                                    b=getrnditem(-2,rnd_range(2,13))
+                                    if b>0 then
+                                        if item(b).ty<>3 then
+                                            dprint "It suddenly has your "&item(b).desig &" and starts running away!"
+                                            e.aggr=2
+                                            item(b).w.s=0
+                                            item(b).w.p=monslot
+                                            reward(2)=reward(2)-item(b).v5
+                                            lastlocalitem=lastlocalitem+1
+                                            li(lastlocalitem)=b
+                                        endif
+                                    endif
+                                endif
+                            endif
+                        else
+                            dprint "It asks incredulous 'You dont enjoy to play?"
+                        endif
+                    
                     case else
                         dprint "It says 'You are not from around here'"
                     end select
+                    
                 endif
             endif
             if e.aggr=2 then 
@@ -697,6 +727,17 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
          dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
          return 0
      endif
+     
+     if e.lang=4 then
+        if item(a).price>1000 then            
+             item(a).w.p=nr
+             item(a).w.s=0
+            dprint "Apollo accepts your tribute"
+            e.aggr=1
+        else
+            dprint "'You can't soothe me with such worthless trinkets!'"
+        endif
+    endif
      
      if (e.lang=28) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
          item(a).w.p=nr

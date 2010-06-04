@@ -193,11 +193,15 @@ function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, la
                     addship.m=slot
                     addship.s=b
                     makedrifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot))
-                    planets(lastplanet)=planets(slot)
+                    'planets(lastplanet)=planets(slot)
                     planets(lastplanet).depth=1
+                    planets(lastplanet).atmos=planets(slot).atmos
+                    planets(lastplanet).grav=planets(slot).grav
+                    planets(lastplanet).temp=30
                     for a=1 to 16
-                        planets(lastplanet).mon_noamin(a)=planets(lastplanet).mon_noamin(a)/3-1
-                        planets(lastplanet).mon_noamax(a)=planets(lastplanet).mon_noamax(a)/3-1 
+                        planets(lastplanet).mon_template(a)=planets(slot).mon_template(a)
+                        planets(lastplanet).mon_noamin(a)=planets(slot).mon_noamin(a)/3-1
+                        planets(lastplanet).mon_noamax(a)=planets(slot).mon_noamax(a)/3-1 
                     next
                     
                 endif
@@ -2759,7 +2763,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             planets(slot).mon_killed(1)=0
             b=(enemy(1).hpmax+enemy(1).armor+enemy(1).weapon+rnd_range(1,2))*10
             player.money=player.money+b
-            dprint "You get "& b &" Cr. for the fight.",12
+            dprint "You get "& b &" Cr. for the fight.",10
             for x=awayteam.c.x+1 to awayteam.c.x+5
                 for y=awayteam.c.y-2 to awayteam.c.y+2
                     planetmap(x,y,slot)=4
@@ -3143,6 +3147,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                                         player.landed=ship
                                         nextmap=portal(c).from
                                         deleteportal(portal(c).from.m,portal(c).dest.m)
+                                        deleteportal(portal(c).dest.m,portal(c).from.m)
                                     endif
                                 next
                             endif

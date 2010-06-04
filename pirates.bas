@@ -220,7 +220,7 @@ function ss_sighting(i as short) as short
         if basis(i).lastsightingturn-player.turn<25 then
             text ="There are some rumors about"
             if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
-            if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with talk about a"
+            if basis(i).lastsightingturn-player.turn<5 then text="The station is abuzz with talk about "
         else
             return 0
         endif
@@ -261,7 +261,7 @@ function ss_sighting(i as short) as short
             text2=" The station is abuzz with talk about ships disappearing around coordinates "&p.x &":"&p.y &"." 
         endif
     endif
-    text=text & fn &"typ:"&fleet(fn).ty
+    'text=text & fn &"typ:"&fleet(fn).ty
     if text<>"" or text2<>"" then dprint trim(text &text2)
     return 0
 end function
@@ -284,30 +284,22 @@ function movefleets() as short
             if freecargo=0 then fleet(a).t=10
         endif
         roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
-        if roll>7 then
+        if roll>5 then
             'move towards target
             direction=nearest(targetlist(fleet(a).t),fleet(a).c)
         else
             'move random
             direction=5
         endif
-        if show_npcs=1 and fleet(a).ty>0 then
-            color 0,0
-            locate fleet(a).c.y+1,fleet(a).c.x+1
-            print "   "
-        endif
         fleet(a).c=movepoint(fleet(a).c,direction,,1)
         
         'Check if reached target (for targetnumbers 1-7)
-        if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<7 then
+        if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<=lastwaypoint then
             if fleet(a).ty=1 then fleet(a)=merctrade(fleet(a))
             fleet(a).t=fleet(a).t+1 'Pirates have targetnumbers 8 or 9, they will never see this
-            if fleet(a).t>lastwaypoint then fleet(a).t=0
+            if fleet(a).t>lastwaypoint then fleet(a).t=firststationw
         endif
-        if fleet(a).t=10 and fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
-            fleet(a)=unload_f(fleet(a),6)
-            fleet(a).t=9
-        endif
+        
         for s=0 to 2
             if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
                 if distance(fleet(a).c,basis(s).c)<12 then
@@ -359,13 +351,13 @@ function makequestfleet(a as short) as _fleet
     f.c=p1
     if a=1 then
         f.ty=4
-        f.t=8 'All pirates start with target 9 (random point)
+        f.t=0 'All pirates start with target 9 (random point)
         f.mem(1)=makeship(8)
         f.flag=15'the infamous anne bonny
     endif
     if a=2 then
         f.ty=4
-        f.t=8 'All pirates start with target 9 (random point)
+        f.t=0 'All pirates start with target 9 (random point)
         f.mem(1)=makeship(10) 'the infamous black corsair
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -373,7 +365,7 @@ function makequestfleet(a as short) as _fleet
     endif
     if a=3 then
         f.ty=4
-        f.t=8 'All pirates start with target 9 (random point)
+        f.t=0 'All pirates start with target 9 (random point)
         f.mem(1)=makeship(30) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -381,7 +373,7 @@ function makequestfleet(a as short) as _fleet
     endif
     if a=4 then
         f.ty=4
-        f.t=8 'All pirates start with target 9 (random point)
+        f.t=0 'All pirates start with target 9 (random point)
         f.mem(1)=makeship(31) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -390,7 +382,7 @@ function makequestfleet(a as short) as _fleet
     endif
     if a=5 then
         f.ty=4
-        f.t=8 'All pirates start with target 9 (random point)
+        f.t=0 'All pirates start with target 9 (random point)
         f.mem(1)=makeship(32) 'the infamous anne bonny
         f.mem(2)=makeship(2)
         f.mem(3)=makeship(2)
@@ -407,6 +399,8 @@ function makepatrol() as _fleet
     f.mem(3)=makeship(7)'one company battleship
     if rnd_range(1,100)>75 then f.mem(4)=makeship(9)
     if rnd_range(1,100)>45 then f.mem(5)=makeship(7)
+    f.c=targetlist(firstwaypoint)
+    f.t=firstwaypoint+1
     return f
 end function
 
@@ -430,6 +424,8 @@ function makemerchantfleet() as _fleet
             endif
         next
     endif
+    f.c=targetlist(firstwaypoint)
+    f.t=firstwaypoint+1
     if show_NPCs=1 then dprint ""&a &":"& b &":"& text
     return f
 end function 
@@ -446,7 +442,7 @@ function makepiratefleet(modifier as short=0) as _fleet
     loop until piratebase(b)>0 or c>5
     if c>5 then return f
     f.ty=2
-    f.t=9 'All pirates start with target 9 (random point)
+    f.t=0 'All pirates start with target 9 (random point)
     f.c=map(piratebase(b)).c
     maxroll=player.turn/150
     if maxroll>60 then maxroll=60
@@ -592,12 +588,12 @@ function updatetargetlist()as short
     b=rnd_range(0,_NoPB+1)
     if b>_NoPB then b=0
     if piratebase(b)<0 then return 0
-    targetlist(8).x=player.c.x
-    targetlist(8).y=player.c.y
+    targetlist(1).x=player.c.x
+    targetlist(1).y=player.c.y
     if frac(lastcalled/25)=0 then
-    targetlist(9).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
-    targetlist(9).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
-    targetlist(10)=map(piratebase(b)).c
+    targetlist(0).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
+    targetlist(0).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
+    targetlist(2)=map(piratebase(b)).c
     'targetlist(9)=fleet(rnd_range(1,lastfleet)).c
     endif
     lastcalled=lastcalled+1
@@ -2828,9 +2824,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.dkill="dies"
         enemy.biomod=1
         enemy.hasoxy=1
-        enemy.hp=rnd_range(2,18)+rnd_range(2,8)
+        enemy.hp=rnd_range(1,2)+rnd_range(2,4)
         enemy.range=1.5
-        enemy.weapon=2
+        enemy.weapon=1
         enemy.move=.3
         enemy.tile=asc("9")
         enemy.sdesc="floating mushroom"
@@ -2872,9 +2868,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.pumod=5
         enemy.sight=4
         enemy.range=1.5
-        enemy.weapon=4
+        enemy.weapon=2
         enemy.atcost=1.1
-        enemy.armor=7
+        enemy.armor=3
         enemy.hasoxy=1
         enemy.tile=Asc("*")
         enemy.sprite=180
@@ -2936,7 +2932,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=1
         enemy.armor=1
-        enemy.hp=rnd_range(1,5)+3
+        enemy.hp=rnd_range(3,5)
         enemy.atcost=rnd_range(6,8)/10
         enemy.hpmax=enemy.hp
         enemy.biomod=1
@@ -2957,10 +2953,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.swhat="spits acid"
         enemy.scol=12
         enemy.sight=4
-        enemy.range=4
+        enemy.range=2
         enemy.weapon=2
         enemy.armor=2
-        enemy.hp=rnd_range(1,5)+18
+        enemy.hp=rnd_range(1,5)+8
         enemy.atcost=rnd_range(6,8)/10
         enemy.hpmax=enemy.hp
         enemy.biomod=1
@@ -2981,10 +2977,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=5+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3020,10 +3013,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(2,5)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+10+enemy.weapon
+        enemy.hp=10+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3059,10 +3049,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=5+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3100,10 +3087,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(2,5)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+10+enemy.weapon
+        enemy.hp=10+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3164,10 +3148,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=5+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3206,10 +3187,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(2,5)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+10+enemy.weapon
+        enemy.hp=10+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3246,10 +3224,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=5+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3288,10 +3263,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(2,5)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+10+enemy.weapon
+        enemy.hp=10+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -3347,13 +3319,13 @@ function makemonster(a as short, map as short) as _monster
     
     if a=79 then
         enemy.aggr=0
-        enemy.hp=20+rnd_range(1,b)*c
+        enemy.hp=rnd_range(1,30)+20
         enemy.hpmax=enemy.hp
         enemy.move=.5
         enemy.atcost=.8
         enemy.breedson=2
         enemy.weapon=3
-        enemy.armor=3
+        enemy.armor=0
         enemy.sight=3
         enemy.range=1.5
         enemy.biomod=5
@@ -3448,7 +3420,7 @@ dim as short c,b
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
-        p.money=500
+        p.money=5000
         p.pilot=1
         p.gunner=1
         p.science=1

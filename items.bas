@@ -1618,7 +1618,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=15
         
         i.desigp="resources"
-        i.v1=rnd_range(1,4+mod1)
+        i.v1=rnd_range(1,4)+mod1
         if rnd_range(1,100)>15 then
             i.v2=rnd_range(1,8+mod2)
         else

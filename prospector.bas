@@ -736,20 +736,13 @@ if key="1" then
     cls
     color 11,0
     if b<5 then
-        draw string(50,3*_fh2), "An unexplored sector of the galaxy. You are a private Prospector.",,font2,custom,@_col
-        draw string(50,4*_fh2), "You can earn money by mapping planets and finding resources.",,font2,custom,@_col
-        draw string(50,5*_fh2), "Your goal is to make sure you can life out your live in comfort in your retirement.",,font2,custom,@_col
-        draw string(50,7*_fh2), "But beware of alien lifeforms and pirates",,font2,custom,@_col
-        draw string(50,8*_fh2), "You start your career with a nice little "&player.h_desig &".",,font2,custom,@_col
-        draw string(50,9*_fh2), "You christen the beauty:",,font2,custom,@_col
+        c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can life out your live in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
+        draw string(5*_fw1,5*_fh1+c*_fh2), "You christen the beauty:",,font2,custom,@_col
     else
-        draw string(50,4*_fh2), "A life of danger and adventure awaits you, harassing the local",,font2,custom,@_col
-        draw string(50,5*_fh2), "shipping lanes as a pirate. It won't be easy but if you manage to get",,font2,custom,@_col  
-        draw string(50,6*_fh2), "a lot of money you will be able to spend the rest of your life in luxury.",,font2,custom,@_col
-        draw string(50,8*_fh2), "You start your career with a nice little "&player.h_desig &".",,font2,custom,@_col
-        draw string(50,9*_fh2), "You christen the beauty:",,font2,custom,@_col
+        c=5+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to get a lot of money you will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
+        draw string(5*_fw1,(c+1)*_fh2), "You christen the beauty:",,font2,custom,@_col
     endif
-    player.desig=gettext(31,9,13,"")
+    player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
     if player.desig="" then player.desig=randomname()
     a=freefile
     text="savegames\"&player.desig &".sav"
@@ -758,7 +751,7 @@ if key="1" then
         do
             draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
             draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
-            player.desig=gettext(31,9,13,"")
+            player.desig=gettext((5*_fw1+18*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
             if player.desig="" then player.desig=randomname()
             text="savegames\"&player.desig &".sav"    
         loop until fileexists(text)=0    
@@ -1768,7 +1761,7 @@ function move_ship(key as string,byref walking as short) as _ship
         endif
         if spacemap(player.c.x,player.c.y)>=6 and spacemap(player.c.x,player.c.y)<=17 then 
             player.turn=player.turn-rnd_range(1,6)+rnd_range(1,6)
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>spacemap(player.c.x,player.c.y) then
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>maximum(9,spacemap(player.c.x,player.c.y)) then
                 if spacemap(player.c.x,player.c.y)=6 then player.fuel=player.fuel-1
                 if spacemap(player.c.x,player.c.y)=7 then player.fuel=player.fuel-1.5
                 if spacemap(player.c.x,player.c.y)=8 then player.fuel=player.fuel-.3
@@ -1866,7 +1859,7 @@ function explore_space() as short
         if fleet(fl).ty=4 then dprint "there is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack."
         allowed=allowed+key_fi
     endif
-    key=keyin(allowed,walking)
+    if just_run=0 then key=keyin(allowed,walking)
     player=move_ship(key,walking)
     
     if key=key_fi and fl>0 then playerfightfleet(fl)
@@ -2740,7 +2733,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     'Planet Exploration Loop
     '
     '***********************
-    
+    'lastenemy=0
     do
         if show_all=1 then
             color 15,0
@@ -3687,11 +3680,6 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     return defender
 end function
 
-ERRORMESSAGE:
-e=err
-text=__VERSION__ &" Error #"&e &" in "& " "&erl &":" & *ERFN() &" " & *ERMN()
-f=freefile
-open "error.log" for append as #f
 
 function clear_gamestate() as short
     dim as short a,x,y
@@ -3818,25 +3806,17 @@ function clear_gamestate() as short
         basis(a).inv(5).p=2500
     next
     
-    lastwaypoint=6
-    
-    targetlist(0)=basis(0).c
-    targetlist(1).x=rnd_range(0,30)
-    targetlist(1).y=rnd_range(15,20)
-    targetlist(2)=basis(1).c
-    
-    targetlist(3).x=rnd_range(0,60)
-    targetlist(3).y=rnd_range(1,20)
-    
-    targetlist(4).x=rnd_range(30,59)
-    targetlist(4).y=rnd_range(15,20)
-    targetlist(5)=basis(2).c
-    targetlist(6).x=rnd_range(0,60)
-    targetlist(6).y=rnd_range(0,20)
     
     return 0
 end function
 
+dim as byte attempts
+
+ERRORMESSAGE:
+e=err
+text=__VERSION__ &" Error #"&e &" in "& " "&erl &":" & *ERFN() &" " & *ERMN()
+f=freefile
+open "error.log" for append as #f
 
 print #f,text 
 close #f
@@ -3847,7 +3827,12 @@ print "matthias.mennel@gmail.com"
 color 14,0
 print text
 sleep
+if attempts=0 then
 print "attempting to save game"
-savegame()
+    savegame()
+    attempts=1
+else
+    print "Failed to save game."
+endif
 print "key to exit"
 sleep

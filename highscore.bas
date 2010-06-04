@@ -76,6 +76,7 @@ function retirement() as short
     desc(9)="A planet with an oxygen atmosphere, oceans and continents. Lifeforms are present, but nothing dangerous."
     price(9)=1000000
     mtext="Assets/"
+    htext="/"
     for a=1 to 9
         mtext=mtext &asset(a) &space(26-len(asset(a)))&price(a)& "Cr./"
         htext=htext &desc(a) &"/"
@@ -96,9 +97,9 @@ function retirement() as short
                 b=menu(mtext,htext)
                 
                 if b>0 and b<10 then
-                    if retirementassets(b-1)=0 or b=2 then
-                        if paystuff(price(b-1)) then
-                            dprint "You buy a "&asset(b-1)
+                    if retirementassets(b-1)=0 or b=2 or b=1 then
+                        if paystuff(price(b)) then
+                            dprint "You buy a "&asset(b)
                             if retirementassets(b-1)<255 then retirementassets(b-1)+=1
                         endif
                     else

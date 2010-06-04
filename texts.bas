@@ -541,7 +541,7 @@ function es_part1() as string
         if rnd_range(1,100)<66 then
             t=t &" ||  Unfortunately the diplomats can't work out a lasting peace. When you lie on your Deathbed the war for the galaxy still rages on, and propably will for many more centuries to come."
         else
-            t=t &" ||  Peacefull relations are established quickly, and a joint project is founded: Launching a joint expedtition to andromeda! " 
+            t=t &" ||  Peacefull relations are established quickly, and a joint project is founded: Launching an expedtition to Andromeda! " 
             if rnd_range(1,100)<66 then
                 t=t &"|| As you lie on your deathbed you wish you were young enough to join the adventure. But you have led a life, more exciting than most can claim, and the next adventure for you, won't be in space."
             else

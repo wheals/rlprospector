@@ -2,9 +2,9 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.12"
+const __VERSION__="0.1.12a"
 
-Const Show_NPCs=0 'shows pirates and mercs
+Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -20,6 +20,7 @@ const easy_fights=0
 const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
+const show_mnr=0
 
 const toggling_filter=0
 const fuel_usage=0 
@@ -593,11 +594,25 @@ type _shipfire
     tile as string*1
 end type
 
+type _civilisation
+    n as string
+    ship as _ship
+    spec as _monster
+    aggr as byte
+    inte as byte
+end type
+
 Type FONTTYPE
   As Integer w
   As Any Ptr dataptr
 End Type
 
+type _pfcords
+    x as short
+    y as short
+    c as uinteger
+    i as byte
+end type
 
 type MODE
   As Integer mode_num      '/* Current mode number */
@@ -721,7 +736,7 @@ dim shared dtextcol(255) as short
 
 dim shared patrolmod as short
 dim shared fleet(255) as _fleet
-dim shared targetlist(10) as _cords
+dim shared targetlist(4068) as _cords
 dim shared drifting(128) as _driftingship
 dim shared crew(128) as _crewmember
 dim shared shiptypes(19) as string
@@ -738,7 +753,10 @@ dim shared portal(255) as _transfer
 dim shared lastportal as short
 dim shared lastplanet as short
 dim shared lastcom as short
+dim shared as byte pf_stp=1
 dim shared lastwaypoint as short
+dim shared firstwaypoint as short
+dim shared firststationw as short
 dim shared lastfleet as short
 dim shared alienattacks as integer
 dim shared lastdrifting as short=16
@@ -978,6 +996,7 @@ declare function checkdoor(x as short,y as short, map() as short) as short
 declare function checkbord(x as short,y as short, map() as short) as short
 declare function playerfightfleet(f as short) as short
 declare function is_special(m as short) as short
+declare function gen_traderoutes() as short
 
 'pirates
 
@@ -1108,6 +1127,11 @@ declare function maximum(a as double,b as double) as double
 declare function minimum(a as double,b as double) as double
 declare function dominant_terrain(x as short,y as short,m as short) as short
 
+declare function checkandadd(queue() as _pfcords,map() as byte,in as short) as short
+declare function add_p(queue() as _pfcords,p as _pfcords) as short
+declare function check(queue() as _pfcords, p as _pfcords) as short
+declare function nearlowest(p as _pfcords,queue() as _pfcords) as _pfcords
+declare function gen_waypoints(queue() as _pfcords,start as _pfcords,goal as _pfcords,map() as byte) as short
 
 'quest
 declare function dodialog(no as short) as short

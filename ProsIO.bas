@@ -1052,6 +1052,13 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     text=atmdes(p.atmos) &" atmosphere"
     textbox(text,63,(7*_fh2)/_fh1,16,11,0)    
     draw string(62*_fw1,12*_fh2), "Gravity:"&p.grav &"g",,font2,custom,@_col
+    color 10,0
+    if p.grav<1 then draw string(62*_fw1+13*_fw2,12*_fh2), "(Low)",,font2,custom,@_col
+    color 14,0
+    if p.grav>1.5 then draw string(62*_fw1+13*_fw2,12*_fh2), "(High)",,font2,custom,@_col
+    color 11,0
+            
+    
     draw string(62*_fw1,13*_fh2), "Avg. Temperature",,font2,custom,@_col
     draw string(62*_fw1,15*_fh2), p.temp &" "&chr(248)&"c",,font2,custom,@_col
     if p.rot>0 then
@@ -1188,11 +1195,19 @@ sub show_stars(bg as short=0,byref walking as short)
                         draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
                     else
                         color 1,0
-                        if navcom>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
+                        'if navcom>0 and spacemap(x+player.osx,y+player.osy)>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
                     endif
                 endif
             next
         next
+        if show_NPCs=1 then
+            for a=0 to 4068
+                color 15,0
+                if targetlist(a).x-player.osx>=0 and targetlist(a).x-player.osx<=60 and targetlist(a).y-player.osy>=0 and targetlist(a).y-player.osy<=20 then
+                    draw string((targetlist(a).x-player.osx)*_fw1,(targetlist(a).y-player.osy)*_fh1),";",,Font1,Custom,@_tcol
+                endif
+            next
+        endif
     endif
     color 1,0
     for x=player.c.x-10 to player.c.x+10
@@ -2422,6 +2437,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         if loctime=0 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2)," Day ",,Font2,Custom,@_col
         if loctime=1 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),"Dawn ",,Font2,Custom,@_col
         if loctime=2 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),"Dusk ",,Font2,Custom,@_col
+        if show_mnr=1 then draw string(15*_fw2,21*_fh1+(_fh1-_fh2)/2),""&map &":"&planets(map).flags(1),,Font2,Custom,@_col
         color 10,0
         locate 22,xoffset
         if awayteam.invis>0 then
@@ -3037,12 +3053,10 @@ function locEOL() as _cords
     dim as short y,x,a,winh,firstline
     dim as _cords p
     winh=fix((_screeny-_fh1*22)/_fh2)-1
-    if _fh1=_fh2 then
-        firstline=22
-        winh=_lines-22
-    else
-        firstline=fix((22*_fh1)/_fh2)+1
-    endif
+    do
+        firstline+=1
+    loop until firstline*_fh2>=22*_fh1
+    
     y=firstline+winh
     for a=firstline+winh to firstline step -1
         if displaytext(a+1)="" then y=a
@@ -3085,9 +3099,11 @@ function dprint(t as string, col as short=11) as short
     firstline=fix((22*_fh1)/_fh2)
     winw=fix((_fw1*61)/_fw2)
     winh=fix((_screeny-_fh1*22)/_fh2)
+    firstline=0
+    do
+        firstline+=1
+    loop until firstline*_fh2>=22*_fh1
     
-    if firstline*_fh2+winh*_fh2>_screeny-_fh2 then winh-=1
-    if firstline*_fh2+winh*_fh2>_screeny-_fh2 then winh-=1
     if _fh1=_fh2 then
         firstline=22
         winh=_lines-22
@@ -3150,9 +3166,11 @@ function dprint(t as string, col as short=11) as short
                     scrollup(winh-2)
                     for b=firstline to firstline+winh
                         color 0,0
-                        draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
+                        'draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
+                        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
                         color dtextcol(b),1
-                        draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
+                        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
+                        'draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
                     next
                     color 14,1
                     if displaytext(firstline+winh+1)<>"" then
@@ -3170,9 +3188,11 @@ function dprint(t as string, col as short=11) as short
     endif
     for b=firstline to firstline+winh
         color 0,0
-        draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
+        'draw string(0,(b-firstline)*_fh2+22*_fh1), space(winw),,font2,custom,@_col
+        draw string(0,b*_fh2), space(winw),,font2,custom,@_col
         color dtextcol(b),0
-        draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
+        'draw string(0,(b-firstline)*_fh2+22*_fh1), displaytext(b),,font2,custom,@_col
+        draw string(0,b*_fh2), displaytext(b),,font2,custom,@_col
     next
     locate 24,1
     color 11,0
@@ -3308,19 +3328,19 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
 end function
 
 function getrandomsystem(unique as short=0) as short 'Returns a random system. If unique=1 then specialplanets are possible
-    dim as short a,b,c,p,u,add
+    dim as short a,b,c,p,u,ad
     dim pot(laststar) as short
     for a=0 to laststar
         if map(a).discovered=0 and map(a).spec<8 then
             if unique=0 then
-                add=0
+                ad=0
                 for p=1 to 9
                     for u=0 to lastspecial
-                        if map(a).planets(p)=specialplanet(u) then add=1
+                        if map(a).planets(p)=specialplanet(u) then ad=1
                     next
                 next
             endif
-            if add=0 then
+            if ad=0 then
                 pot(b)=a
                 b=b+1
             endif
