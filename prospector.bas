@@ -846,7 +846,7 @@ fSOUND_close
 end
 
 
-sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
+function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) as short
     dim as short l,m,a,b,c,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad,landinggear
     dim light as single
     dim p as _cords
@@ -869,7 +869,7 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
         if mapslot=specialplanet(30) and findbest(89,-1)=-1 then mapslot=specialplanet(29)
         if mapslot=specialplanet(29) then specialflag(30)=1
         if _warnings=0 and player.hull=1 then
-            if not askyn("Pilot: 'Are you sure captain? I can't guarantee i get this bucket up again'(Y/N)",14) then return
+            if not askyn("Pilot: 'Are you sure captain? I can't guarantee i get this bucket up again'(Y/N)",14) then return 0
         endif
         if mapslot>0 then
             cls
@@ -1067,10 +1067,10 @@ sub landing(mapslot as short,lx as short=0,ly as short=0,test as short=0)
         else
             dprint ""
         endif
-    
-end sub
+    return 0
+end function
 
-sub scanning()
+function scanning() as short
     dim mapslot as short
     dim as short slot
     dim sys as short
@@ -1156,7 +1156,8 @@ sub scanning()
     endif
     'show_stars(1,0)
     'displayship
-end sub
+    return 0
+end function
 
 function asteroidmining(slot as short) as short
     dim it as _items
@@ -1275,7 +1276,7 @@ function asteroidmining(slot as short) as short
     return slot
 end function
 
-sub gasgiantfueling(p as short, orbit as short, sys as short)
+function gasgiantfueling(p as short, orbit as short, sys as short) as short
     dim as short fuel,roll,noa,a,mo,m
     dim en as _fleet
     dim as string mon(6)
@@ -1291,7 +1292,7 @@ sub gasgiantfueling(p as short, orbit as short, sys as short)
         if planetmap(0,0,m)<>0 then makespecialplanet(m)
         if askyn("As you dive into the upper atmosphere of the gas giant your sensor pick up a huge metal structure. It is a platform, big enough to land half a fleet on it, connected to struts that extend out into the atmosphere. Do you want to try to land on it? (y/n)") then
             landing(map(sys).planets(orbit))
-            return
+            return 0
         else
             p=-20001
             
@@ -1301,7 +1302,7 @@ sub gasgiantfueling(p as short, orbit as short, sys as short)
     if player.fuel<player.fuelmax then
         if askyn("Do you want to refuel in the gas giants atmosphere?(y/n)") then
             if _warnings=0 and player.hull=1 then
-                if not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) then exit sub
+                if not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) then return 0
             endif
             if rnd_range(1,6)+rnd_range(1,6)+player.pilot+addtalent(2,9,1)<=8+mo then
                 dprint "Your Pilot damaged the ship diving into the dense atmosphere",12
@@ -1348,9 +1349,10 @@ sub gasgiantfueling(p as short, orbit as short, sys as short)
             endif
         endif
     endif
-end sub    
+    return 0
+end function
 
-sub driftingship(a as short)
+function driftingship(a as short)  as short
     dim as short m,b,c,x,y
     dim p(1024) as _cords
     dim land as _cords
@@ -1369,9 +1371,10 @@ sub driftingship(a as short)
     land.y=p(c).y
     land.m=m
     landing(m,p(c).x,p(c).y,1)
-end sub
+    return 0
+end function
 
-sub moverover(pl as short)
+function moverover(pl as short)  as short
     dim as integer a,b,c,i,t,ti,x,y
     dim as integer carn,herb,mins,oxy,food,energy
     dim as single minebase
@@ -1446,9 +1449,10 @@ sub moverover(pl as short)
         if item(i).v1>item(i).v2 then item(i).v1=item(i).v2
         if rnd_range(1,150)<planets(pl).atmos+2 then item(i)=makeitem(66)
     endif
-end sub
+    return 0
+end function
 
-sub rescue()
+function rescue() as short
     dim as short a,c,dis,beacon
     dim as single b,d
     d=256
@@ -1510,7 +1514,8 @@ sub rescue()
         locate 1,1
         no_key=keyin
     endif
-end sub
+    return 0
+end function
 
 
 
@@ -1904,9 +1909,9 @@ function explore_space() as short
         endif
         if pl>1 and key=key_la then
             player.towed=0
+            map(pl).planets(2)=1
             if artflag(16)=0 then
                 b=map(pl).planets(1)
-                map(pl).planets(2)=1
             else
                 dprint "Wormhole navigation system engaged!(+/- to choose wormhole, "&key_la &" to select)",10
                 for c=laststar+1 to laststar+wormhole

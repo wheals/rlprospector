@@ -571,6 +571,10 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                 endif
             endif
+            if blocktype=4 then
+                locate y+1,x+1
+                print "*"
+            endif
         next
 
     if blocktype=2 then sleep delay

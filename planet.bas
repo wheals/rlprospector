@@ -75,7 +75,7 @@ function make_spacemap() as short
         map(a+1).c.x=rnd_range(0,sm_x)
         map(a+1).c.y=rnd_range(0,sm_y)
         map(a+1).spec=9
-        map(a+1).discovered=show_all
+        map(a+1).discovered=maximum(show_all,show_wormholes)
         
     next
     lastplanet=c
@@ -3369,7 +3369,7 @@ sub makecanyons(a as short, o as short)
     if rnd_range(1,100)<50 then makeice(a,o)
 end sub
 
-sub makespecialplanet(a as short)
+function makespecialplanet(a as short) as short
     dim as short x,y,b,c,d,b1,b2,b3,cnt,wx,wy,ti,x1,y1
     dim as _cords p,p1,p2,p3,p4,p5
     dim as _cords pa(5)
@@ -3692,8 +3692,11 @@ sub makespecialplanet(a as short)
         
     endif
     
-    if specialplanet(7)=a then 'stranded ship
+    if specialplanet(7)=a then 'Civ 1
+        'Make Spacefaring civilization
+        
         planetmap(rnd_range(0,60),rnd_range(0,20),a)=-9
+    
     endif
     
     if specialplanet(8)=a then 'Pirate treasure on stormy world
@@ -5872,10 +5875,10 @@ sub makespecialplanet(a as short)
             planets(a).mon_noamax(0)=3
         endif
     endif
-        
-end sub
+    return 0
+end function
 
-sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
+function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as short
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
     dim s as _ship
     dim pods(6,5,1) as short
@@ -6172,9 +6175,14 @@ sub makedrifter(d as _driftingship, bg as short=0,broken as short=0)
     planets(m).flags(3)=rnd_range(1,s.h_maxengine)
     planets(m).flags(4)=rnd_range(1,s.h_maxsensors)
     planets(m).flags(5)=rnd_range(0,s.h_maxshield)
-end sub
+    return 0
+end function
 
-sub makeice(o as short,a as short)
+function makecivilisation(slot as short) as short
+    return 0
+end function
+
+function makeice(o as short,a as short) as short
     dim as short ice,x,y
     ice=(10-o)*rnd_range(5,10)
     if o<3 then ice=100
@@ -6206,8 +6214,8 @@ sub makeice(o as short,a as short)
             endif
         next
     next
-
-end sub
+    return 0
+end function
 
 function addportal(from as _cords, dest as _cords, oneway as short, tile as short,desig as string, col as short) as short
     lastportal=lastportal+1
@@ -6608,6 +6616,7 @@ sub planet_event(slot as short)
 
     endif
     
+    
     if t=3 then 'Smith & Pirates fighting over an ancient factory Flag 23
         for a=0 to rnd_range(2,5)
             p1=rnd_point()
@@ -6714,6 +6723,7 @@ sub planet_event(slot as short)
         planets(slot).atmos=4
         planets(slot).flags(25)=1
     endif
+    
 end sub
 
 sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)

@@ -1914,6 +1914,43 @@ function messages() as short
     return 0
 end function
 
+function showwormholemap() as short
+    dim as short x,y,i
+    cls
+    displayship
+    for x=0 to sm_x
+        for y=0 to sm_y
+            if spacemap(x,y)>0 then
+                color 1,0
+                locate map(i).c.y+1,map(i).c.x+1
+                print "."
+            endif
+        next
+    next
+    color 15,0
+    for i=laststar+1 to laststar+wormhole
+        if map(i).planets(2)=1 then
+            pathblock(map(i).c,map(map(i).planets(1)).c,0,4)
+        endif
+    next
+    for i=laststar+1 to laststar+wormhole
+        if map(i).discovered<>0 then
+            locate map(i).c.y+1,map(i).c.x+1
+            print "o"
+        endif
+    next
+    for i=1 to laststar
+        if map(i).discovered<>0 then
+            locate map(i).c.y+1,map(i).c.x+1
+            print "*"
+        endif
+    next
+    dprint "Displaying wormhole map"
+    no_key=keyin
+    return 0
+end function
+
+
 function keyin(byref allowed as string="" , byref walking as short=0,blocked as short=0)as string
     dim key as string
     static as byte recording
@@ -1999,6 +2036,10 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
 
             if key=key_quests then
                 showquests
+                return ""
+            endif
+            if key=key_wormholemap then
+                showwormholemap
                 return ""
             endif
         endif

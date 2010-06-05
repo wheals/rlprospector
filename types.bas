@@ -21,6 +21,7 @@ const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
+const show_wormholes=0
 
 const toggling_filter=0
 const fuel_usage=0 
@@ -142,7 +143,9 @@ dim shared as string*1 key_layfire="0"
 dim shared as string*1 key_portal="<"
 dim shared as string*1 key_logbook="L"
 dim shared as string*1 key_yes="y"
+dim shared as string*1 key_wormholemap="W"
 dim shared as string*1 no_key
+
 dim shared uid as uinteger
 
 
@@ -784,13 +787,13 @@ dim shared endstory as string
 
 ' prospector .bas
 
-declare sub landing(mapslot as short,lx as short=0,ly as short=0, test as short=0)
-declare sub scanning()
-declare sub rescue()
+declare function landing(mapslot as short,lx as short=0,ly as short=0, test as short=0) as short
+declare function scanning() as short
+declare function rescue() as short
 declare function asteroidmining(slot as short) as short
-declare sub gasgiantfueling(t as short,orbit as short,sys as short)
-declare sub driftingship(a as short)
-declare sub moverover(pl as short)
+declare function gasgiantfueling(t as short,orbit as short,sys as short) as short
+declare function driftingship(a as short) as short
+declare function moverover(pl as short) as short
 declare function rnd_crewmember(onship as short=0) as short
 declare function alerts(awayteam as _monster,walking as short) as short
 
@@ -858,6 +861,7 @@ declare function removemember(n as short, f as short) as short
 declare function changemoral(value as short, where as short) as short
 declare function isgardenworld(m as short) as short
 
+declare function showwormholemap() as short
 
 declare sub shipstatus(heading as short=0)
 declare sub show_stars(bg as short=0,byref walking as short)
@@ -968,9 +972,10 @@ declare sub makeroots(slot as short)
 declare sub makeplanetmap(a as short,orbit as short, spect as short)
 declare sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, froti as short,blocked as short=1)
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
-declare sub makespecialplanet(a as short)
-declare sub makedrifter(d as _driftingship,bg as short=0,broken as short=0)
-declare sub makeice(a as short, o as short)
+declare function makespecialplanet(a as short) as short
+declare function makedrifter(d as _driftingship,bg as short=0,broken as short=0) as short
+declare function makecivilisation(slot as short) as short
+declare function makeice(a as short, o as short) as short
 declare sub makecanyons(a as short, o as short)
 declare sub makecraters(a as short, o as short)
 declare sub makemossworld(a as short,o as short)
