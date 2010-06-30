@@ -240,102 +240,117 @@ function company(st as short,byref questroll as short) as short
     endif
     if player.questflag(2)=2 then
         dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+15000
         player.questflag(2)=4
         no_key=keyin
     endif
     if player.questflag(2)=3 then
         dprint "The Company Rep congratulates you on a job well done and pays you 10.000 Cr.",10
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+10000
         player.questflag(2)=4
         no_key=keyin
     endif
     if player.questflag(3)=1 then
         dprint "After some negotiations you convince the company rep to buy the secret of controling the alien ships for ... 1.000.000 CR!",10
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+1000000
         player.questflag(3)=2
         no_key=keyin
     endif
     if player.questflag(5)=2 then
         dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+15000
         player.questflag(5)=3
         no_key=keyin
     endif 
     if player.questflag(6)=2 then
         dprint "The Company Rep congratulates you on a job well done and pays you 15.000 Cr.",10
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+15000
         player.questflag(6)=3
         no_key=keyin
     endif
     if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).flags(21)=1 then
         player.money=player.money+1000
-        player.merchant_agr=player.merchant_agr-5
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         dprint "The company rep pays your contract for mapping the planet",10
         player.questflag(7)=0
     endif
     if player.questflag(9)=2 and basis(st).company=2 then 
         player.money=player.money+5000
-        player.merchant_agr=player.merchant_agr-5
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         dprint "The company rep pays your contract for finding a robot factory.",10
         player.questflag(9)=3
     endif
     if player.questflag(10)<0 and basis(st).company=4 then
         player.money=player.money+2500
-        player.merchant_agr=player.merchant_agr-5
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         dprint "The company rep pays you for finding a planet to conduct their experiment on.",10
         planetmap(rnd_range(0,60),rnd_range(0,20),abs(player.questflag(10)))=16
         player.questflag(10)=0
     endif
     if player.questflag(11)=2 then 
         player.money=player.money+5000
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         dprint "The company rep remarks that these crystal creatures could be a threat to colonizing this sector and pays you your reard.",10
         player.questflag(11)=3
     endif
     if player.questflag(12)=0 and checkcomplex(specialplanet(33),1)=4 then 
         player.questflag(12)=1
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+10000
         dprint "The company rep pays you 10.000 Cr. for destroying the pirates asteroid hideout.",10
     endif
     
     if player.questflag(15)=2 then 
         player.questflag(15)=3
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+10000
         dprint "The company rep pays you 10.000 Cr. for destroying the pirate Battleship 'Anne Bonny'.",10
     endif
     
     if player.questflag(16)=2 then 
         player.questflag(16)=3
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+8000
         dprint "The company rep pays you 8.000 Cr. for destroying the pirate Destroyer 'Black corsair'.",10
     endif
     
     if player.questflag(17)=2 then 
         player.questflag(17)=3
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+5000
         dprint "The company rep pays you 5.000 Cr. for destroying the pirate Cruiser 'Hussar'.",10
     endif
     
     if player.questflag(18)=2 then 
         player.questflag(18)=3
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+2500
         dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Adder'.",10
     endif
     
     if player.questflag(19)=2 then 
         player.questflag(19)=3
-        player.merchant_agr=player.merchant_agr-15
+        faction(0).war(1)-=15
+        faction(0).war(3)-=15
         player.money=player.money+2500
         dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Widow'.",10
     endif
@@ -343,7 +358,8 @@ function company(st as short,byref questroll as short) as short
     if player.questflag(21)=1 then
         if basis(st).company=1 then
             if askyn("Do you want to blackmail Eridiani Explorations with your information on their Drug business?(y/n)") then
-                player.merchant_agr+=1
+                faction(0).war(1)+=1
+                faction(0).war(3)+=1
                 player.money=player.money+1000
                 companystats(1).capital=companystats(1).capital-rnd_range(1,100)
                 dprint "The Rep pays 1000 Cr. for your Silence"
@@ -362,7 +378,8 @@ function company(st as short,byref questroll as short) as short
     if player.questflag(22)=1 then
         if basis(st).company=2 then
             if askyn("Do you want to blackmail Smith Heavy Industries with your informatin on their slave work?(y/n)") then
-                player.merchant_agr+=1
+                faction(0).war(1)+=1
+                faction(0).war(3)+=1
                 player.money=player.money+1000
                 companystats(2).capital=companystats(2).capital-rnd_range(1,100)
                 dprint "The Rep pays 1000 Cr. for your Silence"
@@ -370,7 +387,7 @@ function company(st as short,byref questroll as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" the secret of Smith Heavy Industries slave business?(y/n)") then
                 dprint "The Rep pays 10000 Cr. for your the information"
-                companystats(2).capital=companystats(1).capital-500
+                companystats(2).capital=companystats(2).capital-500
                 player.questflag(22)=2
                 player.money=player.money+10000
             endif
@@ -380,7 +397,8 @@ function company(st as short,byref questroll as short) as short
     if player.questflag(23)=2 then
         if basis(st).company=3 then
             if askyn("Do you want to blackmail Triax Traders with your information on their agreement with pirates?(y/n)") then
-                player.merchant_agr+=1
+                faction(0).war(1)+=1
+                faction(0).war(3)+=1
                 player.money=player.money+1000
                 companystats(3).capital=companystats(3).capital-rnd_range(1,100)
                 dprint "The Rep pays 1000 Cr. for your Silence"
@@ -388,7 +406,7 @@ function company(st as short,byref questroll as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" your information on Triax Traders agreement with pirates?(y/n)") then
                 dprint "The Rep pays 10000 Cr. for your the information"
-                companystats(3).capital=companystats(1).capital-500
+                companystats(3).capital=companystats(3).capital-500
                 player.questflag(23)=3
                 player.money=player.money+10000
             endif
@@ -398,7 +416,8 @@ function company(st as short,byref questroll as short) as short
     if player.questflag(24)=1 then
         if basis(st).company=4 then
             if askyn("Do you want to blackmail Omega Bioengineering with your informatin on their experiments?(y/n)") then
-                player.merchant_agr+=1
+                faction(0).war(1)+=1
+                faction(0).war(3)+=1
                 player.money=player.money+1000
                 companystats(4).capital=companystats(4).capital-rnd_range(1,100)
                 dprint "The Rep pays 1000 Cr. for your Silence"
@@ -417,7 +436,8 @@ function company(st as short,byref questroll as short) as short
         if askyn("The company rep is fascinated about your report on the ancient space station in the asteroid belt. He offers you 75.000 Credits for the coordinates. Do you accept?(y/n)") then
             player.money=player.money+75000
             a=sysfrommap(specialplanet(31))
-            player.merchant_agr=player.merchant_agr-25
+            faction(0).war(1)-=25
+            faction(0).war(3)-=25
             basis(4)=makecorp(0)
             basis(4).discovered=1
             basis(4).c=map(a).c
@@ -431,7 +451,8 @@ function company(st as short,byref questroll as short) as short
     if findbest(24,-1)>0 then
         dprint "The company Rep is highly interested in buying that portable nanobot factory. He offers you "&25000*basis(st).biomod &" credits."
         if askyn("Accept(y/n)") then
-            player.merchant_agr=player.merchant_agr-35
+            faction(0).war(1)-=35
+            faction(0).war(3)-=35
             player.money=player.money+25000*basis(st).biomod
             destroyitem(findbest(24,-1))
         else
@@ -590,14 +611,19 @@ function company(st as short,byref questroll as short) as short
         no_key=keyin
     endif
     dprint "you leave the company office"
-    if m<0 and player.money>0 then player.merchant_agr=player.merchant_agr-1
+    if m<0 and player.money>0 then 
+        faction(0).war(1)-=1
+        faction(0).war(3)-=1
+    endif
     return 0
 end function
 
 function casino(staked as short=0, st as short=-1) as short
-    dim as short a,b,c,d,bet,num,fi,col,times,mbet,gpld,asst,x,y,z
+    dim as short a,b,c,d,e,f,pr,bet,num,fi,col,times,mbet,gpld,asst,x,y,z
+    dim ba(3) as short
     dim as uinteger mwon,mlos
     dim as integer result
+    dim as string text
     dim p as _cords
     dim coltable(36) as short
     coltable(0)=10
@@ -787,12 +813,13 @@ function casino(staked as short=0, st as short=-1) as short
                 changemoral(1,0)
             endif
             if rnd_range(1,100)<66 and player.money>=0 then
-                b=rnd_range(1,28)
+                b=rnd_range(1,29)
+                b=29
                 c=rnd_range(0,2)
                 d=rnd_range(1,5)
-                if player.merchant_agr>50 or player.tradingmoney/player.money>0.5 then 
+                if faction(0).war(1)>50 or player.tradingmoney/player.money>0.5 then 
                     if basis(st).spy=0 and rnd_range(1,100)<50 and st>-1 then b=30
-                    if player.tradingmoney=0 and player.merchant_agr<51 then b=rnd_range(1,26)
+                    if player.tradingmoney=0 and faction(0).war(1)<51 then b=rnd_range(1,26)
                 endif
                 p=fleet(rnd_range(1,lastfleet)).c
                 if p.x=0 and p.y=0 then p=rnd_point
@@ -825,24 +852,65 @@ function casino(staked as short=0, st as short=-1) as short
                 if b=26 then dprint "Another prospector tells you that there is a rumor about a planet who's inhabitants are immortal."
                 if b=27 then dprint "A science officer tells you that most animals on earth live for about 5 million heartbeats. 'Life expectancy is mainly a function of metabolism. A mouse just uses them up a little faster than an elephant.'"
                 if b=28 then dprint "A scout captain tells you that he went refueling on a gas giant when his sensors picked up a huge metallic structure. He decided discretion was the better part of valor and left, barely making it back to base."
+                if b=29 then
+                    'Merchant captain selling data
+                    c=rnd_range(0,3)
+                    d=c+1
+                    if d>3 then d=1
+                    if d<c then swap d,c
+                    ba(0)=10
+                    for e=10 to lastwaypoint
+                        if targetlist(e).x=basis(1).c.x and targetlist(e).y=basis(1).c.y then ba(1)=e 
+                        if targetlist(e).x=basis(2).c.x and targetlist(e).y=basis(2).c.y then ba(2)=e 
+                        if targetlist(e).x=basis(3).c.x and targetlist(e).y=basis(3).c.y then ba(3)=e 
+                    next
+                    pr=abs(ba(d)-ba(c))
+                    if c=0 then 
+                        text="A merchant captain offers to sell sensor data from his trip form earth to station 1 for " &pr &" Credits."
+                    else
+                        text="A merchant captain offers to sell sensor data from his trip form station "&c &" to station "&d &" for " &pr &" Credits."
+                    endif
+                    ba(0)=10
+                    if askyn(text) then
+                        if paystuff(pr) then
+                            dprint "The merchant captain hands you a data crystal."
+                            for e=ba(c) to ba(d)
+                                for x=targetlist(e).x-1 to targetlist(e).x+1
+                                    for y=targetlist(e).y-1 to targetlist(e).y+1
+                                        if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                                            if spacemap(x,y)=0 then
+                                                spacemap(x,y)=1
+                                            else
+                                                spacemap(x,y)=abs(spacemap(x,y))
+                                            endif
+                                            for f=0 to laststar
+                                                if map(f).c.x=x and map(f).c.y=y then map(f).discovered=1
+                                            next
+                                        endif
+                                    next
+                                next
+                            next
+                        endif
+                    endif
+                endif
                 if b=30 then 
-                    if player.merchant_agr>50 then
+                    if faction(0).war(1)>50 then
                         if askyn ("A seedy looking indivdual comes up to you. 'If you are interested i could keep you informed about what the merchants are loading. What do you say? 100 Cr. each time you come here?'(y/n)") then
-                            player.merchant_agr=player.merchant_agr-5
+                            faction(0).war(1)-=5
                             basis(st).spy=1 
                             dprint "'Deal then. Of course we never had this conversation'"
                         else
                             dprint "He says: 'I must have mistaken you for someone else. I apologize' and dissapears in the crowd."
-                            player.merchant_agr=player.merchant_agr+5
+                            faction(0).war(1)+=5
                         endif
                     else
                         if askyn ("A seedy looking indivdual comes up to you. 'If you are interested i could see to it that the pirates don't get information about your cargo. what do you say? 100 Cr. each time you come here?'(y/n)") then
-                            player.merchant_agr=player.merchant_agr-5
+                            faction(0).war(1)-=5
                             basis(st).spy=2 
                             dprint "'Deal then. Of course we never had this conversation'"
                         else
                             dprint "He says: 'I must have mistaken you for someone else. I apologize' and dissapears in the crowd."
-                            player.merchant_agr=player.merchant_agr+5
+                            faction(0).war(1)+=5
                         endif
                     endif
                 endif
@@ -1685,8 +1753,8 @@ function dividend() as short
     dim payout(4) as single
     dim a as short
     for a=0 to lastshare
-        if shares(a).company>0 and shares(a).lastpayed<=player.turn-100 then
-            payout(shares(a).company)=payout(shares(a).company)+companystats(shares(a).company).rate/10
+        if shares(a).company>0 and shares(a).lastpayed<=player.turn-250 then
+            payout(shares(a).company)=payout(shares(a).company)+companystats(shares(a).company).rate/100
             shares(a).lastpayed=player.turn
         endif
     next
@@ -1728,9 +1796,11 @@ function buyshares(comp as short,n as short) as short
     if n>0 then
         for a=1 to n
             lastshare=lastshare+1
-            shares(lastshare).company=comp
-            shares(lastshare).bought=player.turn
-            shares(lastshare).lastpayed=player.turn
+            if lastshare<2048 then
+                shares(lastshare).company=comp
+                shares(lastshare).bought=player.turn
+                shares(lastshare).lastpayed=player.turn
+            endif
         next
     else
         n=0
@@ -1782,6 +1852,7 @@ function merctrade(f as _fleet) as _fleet
         if f.c.x=basis(a).c.x and f.c.y=basis(a).c.y then st=a
     next
     if st<>-1 then
+        if show_NPCs then dprint "fleet is trading at "&st+1 &"."
         f=unload_f(f,st)
         f=load_f(f,st)
     endif
@@ -2569,8 +2640,8 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
                             player.money=player.money+price
                             reward(2)=reward(2)-item(a).v5                        
                             player.tradingmoney=player.tradingmoney+price
-                            player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
-                            player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
+                            faction(0).war(1)+=(item(a).price/disnbase(player.c))/100*aggrmod
+                            faction(0).war(2)-=(item(a).price/dispbase(player.c))/100*aggrmod
                             destroyitem(a)                
                         endif
                     endif
@@ -2588,8 +2659,8 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
                     player.money=player.money+price
                     reward(2)=reward(2)-item(a).v5                        
                     player.tradingmoney=player.tradingmoney+price
-                    player.merchant_agr=player.merchant_agr+(item(a).price/disnbase(player.c))/100*aggrmod
-                    player.pirate_agr=player.pirate_agr-(item(a).price/dispbase(player.c))/100*aggrmod
+                    faction(0).war(1)+=(item(a).price/disnbase(player.c))/100*aggrmod
+                    faction(0).war(2)-=(item(a).price/dispbase(player.c))/100*aggrmod
                     destroyitem(a)
                 endif
             next

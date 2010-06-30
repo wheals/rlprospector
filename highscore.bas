@@ -1,7 +1,8 @@
 function buytitle() as short
-    dim a as short
+    dim as short a,b
     dim as integer price
     dim as string title
+    dim sameorbetter as byte
     a=menu("Buy title /Lord - 1000 Cr./Baron - 5000 Cr./Viscount - 10.000 Cr./Count 25.000 Cr./Marquees - 50.000 Cr./Duke - 100.000 Cr./Exit")
     if a>0 and a<7 then
         if a=1 then
@@ -28,12 +29,15 @@ function buytitle() as short
             title="Duke"
             price=100000
         endif
-        if retirementassets(a+8)=0 then
+        for b=1 to 6
+            if retirementassets(b+8)=1 and a<b then sameorbetter=1
+        next
+        if retirementassets(a+8)=0 and sameorbetter=0 then
             if paystuff(price) then
                 retirementassets(a+8)=1
             endif
         else
-            dprint "You already have the title of "&title &"."
+            dprint "You already have a better title."
         endif
     endif
     

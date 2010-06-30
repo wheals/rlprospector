@@ -6,7 +6,7 @@ function rnd_item(t as short) as _items
             t=rnd_range(1,4) 'weapons and armor
         else
             t=-1
-            i=makeitem(rnd_range(31,33))
+            i=makeitem(rnd_range(36,37))
         endif
     endif
     if t=21 then 
@@ -61,9 +61,10 @@ function rnd_item(t as short) as _items
                 endif
             endif
         endif
+        if rnd_range(1,100)<5 then i=makeitem(77)
     endif
     if t=12 then 'All but weapons and meds
-        r=rnd_range(1,28)
+        r=rnd_range(1,29)
         if r=1 then i=makeitem(1)
         if r=2 then i=makeitem(2)
         if r=3 then i=makeitem(21)
@@ -92,6 +93,7 @@ function rnd_item(t as short) as _items
         if r=26 then i=makeitem(71)
         if r=27 then i=makeitem(72)
         if r=28 then i=makeitem(73)
+        if r=29 then i=makeitem(77)
     endif
         
     return i
@@ -1483,6 +1485,19 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=500
     endif
     
+    if a=77 then 
+        i.id=77
+        i.ty=42
+        i.desig="Ground penetrating radar"
+        i.desigp="Ground penetrating radars"
+        i.ldesc="A modified portable sensor set. Enables the user to see through walls"
+        i.v1=1
+        i.icon=":"
+        i.col=7
+        i.res=80
+        i.price=150
+    endif
+    
     if a=86 then
         i.id=86
         i.ty=86
@@ -1685,7 +1700,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="*"
         i.bgcol=0  
         roll=rnd_range(1,100+player.turn/100+mod1+mod2)
-        if roll>125 and mod1>0 and mod2>0 then i=makeitem(99)
+        if roll>125 and mod1>0 and mod2>0 then i=makeitem(99,0,0)
         if make_files=1 then
             f=freefile
             open "artrolls.txt" for append as #f
@@ -1792,10 +1807,30 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=99
         i.icon="*"
         i.col=1
-        if rnd_range(1,100)<35 then i=makeitem(98)
-        if rnd_range(1,100)<45 then i=makeitem(97)
-        if rnd_range(1,100)<16 then i=makeitem(95)
+        if mod1>0 then 
+            i.v5=mod1
+        else
+            if rnd_range(1,100)<35 then i=makeitem(98)
+            if rnd_range(1,100)<45 then i=makeitem(97)
+            if rnd_range(1,100)<16 then i=makeitem(95)
+        endif
         i.res=100
+    endif
+    
+    if a=201 then 'Alien civ gun
+        i=civ(0).item(0)
+    endif
+    
+    if a=202 then 'Alien civ ccweapon
+        i=civ(0).item(1)
+    endif
+    
+    if a=203 then 'Alien civ gun
+        i=civ(1).item(0)
+    endif
+    
+    if a=204 then 'Alien civ ccweapon
+        i=civ(1).item(1)
     endif
     
     if a=301 then
@@ -2744,17 +2779,21 @@ function makeweapon(a as short) as _weap
     return w
 end function
 
-function findartifact(awayteam as _monster) as short
+function findartifact(awayteam as _monster,v5 as short) as short
             dim c as short
             dprint "After examining closely, your science officer has found an alien artifact."
             do
             loop until inkey<>""
             
             if all_resources_are=0 then
-                c=rnd_range(1,16)
-                if c=2 or c=5 then
-                    c=rnd_range(1,10)
-                    if c=2 or c=5 then artflag(c)=1
+                if v5=0 then
+                    c=rnd_range(1,16)
+                    if c=2 or c=5 then
+                        c=rnd_range(1,10)
+                        if c=2 or c=5 then artflag(c)=1
+                    endif
+                else
+                    c=v5
                 endif
             else
                 c=all_resources_are

@@ -1,7 +1,8 @@
 
 function alienname(flag as short) as string
     dim as string n,vokal,cons
-    dim as short a,b
+    dim as short a,b,f2,i,f
+    dim as string txt(2000)
     if flag=1 then
         for a=1 to 2
             if len(n)>0 then n=n &"-"
@@ -36,7 +37,25 @@ function alienname(flag as short) as string
                 n=n &lcase(vokal)
             next
         next
-    if rnd_range(1,100)<50 then n=n &lcase(cons)
+        if rnd_range(1,100)<50 then n=n &lcase(cons)
+    endif
+    if flag=3 then
+        f2=freefile
+        open "data/syllables.txt" for input as #f2
+        while not eof(f2)
+            i+=1
+            line input #f2,txt(i)
+        wend
+        close f2
+        
+        for f=0 to rnd_range(1,3)
+            if rnd_range(1,100)<50 then
+            n=n & txt(rnd_range(1,i))
+        else
+            n=n & left(txt(rnd_range(1,i)),2)
+            endif
+        next
+        n=left(n,1)&lcase(mid(n,2,len(n)))    
     endif
     return n
 end function 
@@ -82,6 +101,8 @@ end function
   
 function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as short,lastlocalitem as short,monslot as short) as short
     dim as short roll,a,b
+    dim as byte c,o
+    dim as string t
     dim it as _items
     dim p as _cords
     roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,14,2)
@@ -401,8 +422,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=1 then
             if planets(mapslot).flags(0)=0 then
             if askyn("The crewmember says: 'are you willing to sell us enough fuel to return to the nearest station?' (y/n)") then
-                player.merchant_agr=player.merchant_agr-rnd_range(1,4)*rnd_range(1,4)
-                player.pirate_agr=player.pirate_agr+rnd_range(1,4)*rnd_range(1,4)
+                faction(0).war(2)-=rnd_range(1,4)*rnd_range(1,4)
                 If player.fuel>disnbase(player.c) then
                     dprint "How much do you want to charge per ton of fuel?"
                     a=getnumber(0,99,0)
@@ -709,8 +729,163 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=2 then dprint "It signals with its feelers that it would rather go away."
     endif
     
+    if e.lang=32 or e.lang=33 then
+        if e.lang=32 then
+            c=0
+            o=1
+        else
+            c=1
+            o=0
+        endif
+        civ(c).contact=1
+        if e.aggr=1 then
+            dprint "Do you want to talk about (t)hem, (o)ther species or (f)oreign politics?(t/o/f)"
+            t=ucase(keyin("tofTOF"))
+            if t="T" then
+                a=rnd_range(1,6)
+                if a=1 then dprint "It says: 'We call ourselves the "&civ(c).n &"'"
+                if a=2 then 
+                    if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
+                    if civ(c).inte=2 then 
+                        if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
+                        if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
+                        if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                    endif
+                    if civ(c).inte=3 then
+                        if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
+                        if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
+                        if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                    endif
+                endif
+                if a=3 then dprint "It says 'We, the "&civ(c).n &" have invented FTL travel "&civ(c).tech*100 &" cycles ago. How long have you known the secret?"
+                if a=4 then
+                    if civ(c).phil=1 then dprint "It says 'I believe strongly in the right of the individual. How about you?"
+                    if civ(c).phil=2 then dprint "It says 'We, the "&civ(c).n &" strive for a balance between common good and individual freedom. How about your species?"
+                    if civ(c).phil=3 then dprint "It says 'We, the "&civ(c).n &" think the foremost reason for existence is for the species to survive and prosper. How about your species?"
+                endif
+                if a=5 then 
+                    if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
+                    if civ(c).inte=2 then 
+                        if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
+                        if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
+                        if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                    endif
+                    if civ(c).inte=3 then
+                        if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
+                        if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
+                        if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                    endif
+                endif
+                if a=6 then 
+                    if civ(c).aggr=1 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
+                    if civ(c).aggr=2 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
+                    if civ(c).aggr=3 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and increasing.'"
+                endif
+            endif
+            if t="O" then
+                a=rnd_range(1,6)
+                if a=1 then
+                    if civ(o).phil=civ(c).phil then 
+                        dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" have a similiar outlook to us concerning life."
+                    else
+                        if civ(o).phil>civ(c).phil then
+                            dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" don't value freedom like we do."
+                        else
+                            dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" aren't very well organized."
+                        endif
+                    endif
+                endif
+                if a=2 then
+                    if civ(o).tech=civ(c).tech then 
+                        dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" are on the same level technlogically as we are."
+                    else
+                        if civ(o).tech>civ(c).tech then
+                            dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" know secrets we do not know yet."
+                        else
+                            dprint "There is another space faring civilisation in this sector. The "&civ(o).n &" are more primitive than us."
+                        endif
+                    endif
+                endif
+                if a=3 then
+                    if civ(o).aggr=1 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " like to keep close to home."
+                    if civ(o).aggr=2 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " are interested in exploring new systems"
+                    if civ(o).aggr=3 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " are very expansionist"
+                endif
+                if a=4 then
+                    if civ(o).inte=1 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " are prolific merchants."
+                    if civ(o).inte=2 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " very interested in science"
+                    if civ(o).inte=3 then dprint "There is another space faring civilisation in this sector. The "&civ(o).n & " are very warlike"
+                endif
+                if a=5 then dprint "There is another space faring civilisation in this sector, the "&civ(o).n &"."
+            endif
+            if t="F" then
+                foreignpolicy(c,1)
+            endif
+        endif
+    endif
     return 0
 end function
+
+function foreignpolicy(c as short, i as byte) as short
+    dim as byte o,l,a,b,f,add
+    dim t as string
+    t="Who/Merchants/Pirates"
+    if c=0 then
+        o=1
+    else
+        o=0
+    endif
+    if i=0 then
+        if civ(c).phil=1 then add=5
+        if civ(c).phil=2 then add=3
+        if civ(c).phil=3 then add=1
+    else
+        if civ(c).phil=1 then add=1
+        if civ(c).phil=2 then add=3
+        if civ(c).phil=3 then add=5
+    endif
+    if civ(o).contact=1 then 
+        t=t &"/" & civ(o).n    
+        l=4
+    else
+        l=3
+    endif
+    t=t & "/Exit"
+    a=menu(t)
+    if a<l then
+        b=menu("What/Status/Declare war/Initiate peace talks/Exit")
+        if a=1 then f=1
+        if a=2 then f=2
+        if a=3 then f=6+o
+        if b=1 then
+            select case faction(c+6).war(f)>=90 
+            case is >90
+                dprint "We are currently at war with them"
+            case 50 to 90
+                dprint "There are serious tensions with them"
+            case else
+                dprint "There are no problems between us and them"
+            end select
+        endif
+        if b=2 then
+            dprint "You try to convince the "&civ(c).n &" to declare war"
+            if rnd_range(1,6)+rnd_range(1,6)+civ(o).contact>9 then 
+                faction(c+6).war(f)+=5
+                dprint "They seem to consider your arguments"
+            endif
+        endif
+        if b=2 then
+            dprint "You try to convince the "&civ(c).n &" to initiate peace talks"
+            if rnd_range(1,6)+rnd_range(1,6)+civ(o).contact>9 then 
+                faction(c+6).war(f)+=5
+                dprint "They seem to consider your arguments"
+            endif
+        endif
+            
+    endif
+    return 0
+end function
+
 
 function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
     dim as short a
@@ -727,11 +902,21 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
          dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
          return 0
      endif
-     
-     if e.lang=4 then
+     if e.allied>0 and item(a).price>10 then
+        dprint "The "&e.sdesc &" accepts the gift."
+        faction(0).war(e.allied)-=5
+        lastlocalitem=lastlocalitem+1
+        item(a).w.p=nr
+        item(a).w.s=0
+        li(lastlocalitem)=a
+    endif
+         
+    if e.lang=4 then
         if item(a).price>1000 then            
-             item(a).w.p=nr
-             item(a).w.s=0
+            lastlocalitem=lastlocalitem+1
+            item(a).w.p=nr
+            item(a).w.s=0
+            li(lastlocalitem)=a
             dprint "Apollo accepts your tribute"
             e.aggr=1
         else
@@ -739,13 +924,15 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
         endif
     endif
      
-     if (e.lang=28) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
-         item(a).w.p=nr
-         item(a).w.s=0
-         dprint "The worker hides the "&item(a).sdesc &"quickly saying 'Thank you, now if i only had a way to get off this rock'" 
-         if rnd_range(1,6)<3 then e.faction=2
-         return 0
-     endif
+    if (e.lang=28) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
+        lastlocalitem=lastlocalitem+1
+        item(a).w.p=nr
+        item(a).w.s=0
+        li(lastlocalitem)=a     
+        dprint "The worker hides the "&item(a).sdesc &"quickly saying 'Thank you, now if i only had a way to get off this rock'" 
+        if rnd_range(1,6)<3 then e.faction=2
+        return 0
+    endif
      
      
      select case e.intel

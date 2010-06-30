@@ -753,6 +753,8 @@ function savegame() as short
     
     'save player
     put #f,,player
+    put #f,,whtravelled
+    put #f,,whplanet
     put #f,,_autopickup
     put #f,,_autoinspect
     for a=1 to 128
@@ -790,7 +792,7 @@ function savegame() as short
         put #f,,map(a)
         print ".";
     next
-    for a=0 to 3
+    for a=0 to 12
         put #f,,basis(a)
         print ".";
     next
@@ -860,6 +862,11 @@ function savegame() as short
         put #f,,specialplanet(a)
         put #f,,specialflag(a)
     next
+    
+    for a=272 to 279
+        put #f,,tiles(a)
+    next
+    
     print ".";
     
     put #f,,uid
@@ -868,6 +875,9 @@ function savegame() as short
         put #f,,item(a)
         dat(12)=dat(12)+sizeof(item(a))
     next
+    
+    
+    
     print ".";
     'save pirates
     for a=0 to 9
@@ -953,6 +963,8 @@ function loadgame(filename as string) as short
         get #f,,player
         get #f,,_autopickup
         get #f,,_autoinspect
+        get #f,,whtravelled
+        get #f,,whplanet
         for a=1 to 128
             get #f,,crew(a)
         next
@@ -985,7 +997,7 @@ function loadgame(filename as string) as short
             print ".";
         next
                     
-        for a=0 to 3
+        for a=0 to 12
             get #f,,basis(a)
             print ".";
         next
@@ -1055,6 +1067,10 @@ function loadgame(filename as string) as short
             get #f,,specialplanet(a)
             get #f,,specialflag(a)
             print ".";
+        next
+        
+        for a=272 to 279 
+            get #f,,tiles(a)
         next
         
         get #f,,uid

@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.12a"
+const __VERSION__="0.1.13"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -22,15 +22,20 @@ const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-
+const rev_map=0
+const no_enemys=0
+const more_mets=0
+const all_drifters_are=0
+const show_civs=0
 const toggling_filter=0
 const fuel_usage=0 
 const just_run=0
 const show_eq=0 'Show earthquakes
+
 const lstcomit=56
 const lstcomty=20 'Last common item
 const laststar=90
-const lastspecial=45
+const lastspecial=46
 const _debug=0
 const xk=chr(255) 
 const key_up = xk + "H"
@@ -234,6 +239,11 @@ type _weap
     col as byte
 end type
 
+type _faction
+    war(7) as short
+    alli as short
+end type
+
 type _ship
     c as _cords
     map as short
@@ -292,8 +302,6 @@ type _ship
     alienkills as uinteger
     deadredshirts as uinteger
     score as uinteger
-    pirate_agr as single
-    merchant_agr as single
     questflag(31) as short
     discovered(9) as byte
     towed as byte
@@ -329,6 +337,8 @@ type _monster
     intel as short
     lang as short
     faction as short
+    allied as short
+    enemy as short
     desc as string*127
     sdesc as string*64
     ldesc as string*512
@@ -367,8 +377,8 @@ type _monster
     atcost as single
     lastaction as byte
     stuff(16) as single
-    items(8) as byte
-    itemch(8) as byte
+    items(8) as short
+    itemch(8) as short
 end type
 
 type _stars
@@ -490,7 +500,7 @@ end type
 type _tile
     no as short
     tile as short
-    desc as string
+    desc as string*512
     bgcol as short
     col as short
     stopwalking as byte
@@ -505,25 +515,25 @@ type _tile
     dam as short
     range as short
     tohit as short
-    hitt as string
-    misst as string
-    deadt as string
+    hitt as string*512
+    misst as string*512
+    deadt as string*512
     turnsinto as short
-    succt as string
-    failt as string
-    killt as string
+    succt as string*512
+    failt as string*512
+    killt as string*512
     spawnson as short
     spawnswhat as short
     spawnsmax as short
     spawnblock as short '=0 spawns forever, >0 each spawn =-3, <0 spawning blocked
-    spawntext as string
+    spawntext as string*512
     survivors as short
     resources as short
     gives as short
     vege as byte
     disease as byte
     turnsoninspect as short
-    turntext as string
+    turntext as string*512
     causeaeon as byte
     aetype as byte
     hides as byte
@@ -531,7 +541,7 @@ type _tile
     onclose as short
     onopen as short
     turnsonleave as short
-    turnsonleavetext as string
+    turnsonleavetext as string*512
 end type
 
 type _disease
@@ -599,10 +609,19 @@ end type
 
 type _civilisation
     n as string
-    ship as _ship
+    home as _cords
+    ship(1) as _ship
+    item(1) as _items
     spec as _monster
+    knownstations(2) as byte
+    contact as byte
+    popu as byte
     aggr as byte
     inte as byte
+    tech as byte
+    phil as byte
+    wars(2) as short '0 other civ, 1 pirates, 2 Merchants
+    prefweap as byte
 end type
 
 Type FONTTYPE
@@ -617,52 +636,52 @@ type _pfcords
     i as byte
 end type
 
-type MODE
-  As Integer mode_num      '/* Current mode number */
-  As Byte Ptr ptr page      '/* Pages memory */
-  As Integer num_pages      '/* Number of requested pages */
-  As Integer work_page      '/* Current work page number */
-  As Byte Ptr framebuffer   '/* Our current visible framebuffer */
-  As Byte Ptr ptr Line      '/* Line pointers into current active framebuffer */
-  As Integer pitch      '/* Width of a framebuffer line in bytes */
-  As Integer target_pitch   '/* Width of current target buffer line in bytes */
-  As Any Ptr last_target   '/* Last target buffer set */
-  As Integer max_h      '/* Max registered height of target buffer */
-  As Integer bpp      '/* Bytes per pixel */
-  As Uinteger Ptr Palette   '/* Current RGB color values for each palette index */
-  As Uinteger Ptr device_palette   '/* Current RGB color values of visible device palette */
-  As Byte Ptr color_association   '/* Palette color index associations for CGA/EGA emulation */
-  As Byte Ptr dirty               '/* Dirty lines buffer */
-  As Any Ptr driver      '/* Gfx driver in use */
-  As Integer w
-  As Integer h         '/* Current mode width and height */
-  As Integer depth      '/* Current mode depth */
-  As Integer color_mask      '/* Color bit mask for colordepth emulation */
-  As Any Ptr default_palette   '/* Default palette for current mode */
-  As Integer scanline_size   '/* Vertical size of a single scanline in pixels */
-  As Uinteger fg_color
-  As Uinteger bg_color      '/* Current foreground and background colors */
-  As Single last_x
-  As Single last_y      '/* Last pen position */
-  As Integer cursor_x
-  As Integer cursor_y      '/* Current graphical text cursor position (in chars, 0 based) */
-  As fonttype Ptr font      '/* Current font */
-  As Integer view_x
-  As Integer view_y
-  As Integer view_w
-  As Integer view_h      '/* VIEW coordinates */
-  As Single win_x
-  As Single win_y
-  As Single win_w
-  As Single win_h      '/* WINDOW coordinates */
-  As Integer text_w
-  As Integer text_h      '/* Graphical text console size in characters */
-  As Byte Ptr Key      '/* Keyboard states */
-  As Integer refresh_rate   '/* Driver refresh rate */
-  As Integer flags      '/* Status flags */
-End Type
+'type MODE
+'  As Integer mode_num      '/* Current mode number */
+'  As Byte Ptr ptr page      '/* Pages memory */
+'  As Integer num_pages      '/* Number of requested pages */
+'  As Integer work_page      '/* Current work page number */
+'  As Byte Ptr framebuffer   '/* Our current visible framebuffer */
+'  As Byte Ptr ptr Line      '/* Line pointers into current active framebuffer */
+'  As Integer pitch      '/* Width of a framebuffer line in bytes */
+'  As Integer target_pitch   '/* Width of current target buffer line in bytes */
+'  As Any Ptr last_target   '/* Last target buffer set */
+'  As Integer max_h      '/* Max registered height of target buffer */
+'  As Integer bpp      '/* Bytes per pixel */
+'  As Uinteger Ptr Palette   '/* Current RGB color values for each palette index */
+'  As Uinteger Ptr device_palette   '/* Current RGB color values of visible device palette */
+'  As Byte Ptr color_association   '/* Palette color index associations for CGA/EGA emulation */
+'  As Byte Ptr dirty               '/* Dirty lines buffer */
+'  As Any Ptr driver      '/* Gfx driver in use */
+'  As Integer w
+'  As Integer h         '/* Current mode width and height */
+'  As Integer depth      '/* Current mode depth */
+'  As Integer color_mask      '/* Color bit mask for colordepth emulation */
+'  As Any Ptr default_palette   '/* Default palette for current mode */
+'  As Integer scanline_size   '/* Vertical size of a single scanline in pixels */
+'  As Uinteger fg_color
+'  As Uinteger bg_color      '/* Current foreground and background colors */
+'  As Single last_x
+'  As Single last_y      '/* Last pen position */
+'  As Integer cursor_x
+'  As Integer cursor_y      '/* Current graphical text cursor position (in chars, 0 based) */
+'  As fonttype Ptr font      '/* Current font */
+'  As Integer view_x
+'  As Integer view_y
+'  As Integer view_w
+'  As Integer view_h      '/* VIEW coordinates */
+'  As Single win_x
+'  As Single win_y
+'  As Single win_w
+'  As Single win_h      '/* WINDOW coordinates */
+'  As Integer text_w
+'  As Integer text_h      '/* Graphical text console size in characters */
+'  As Byte Ptr Key      '/* Keyboard states */
+'  As Integer refresh_rate   '/* Driver refresh rate */
+'  As Integer flags      '/* Status flags */
+'End Type
 
-Extern fb_mode As MODE Ptr
+'Extern fb_mode As MODE Ptr
 
 '
 '
@@ -701,7 +720,7 @@ dim shared savefrom(16) as _planetsave
 dim shared stationroll as short
 dim shared player as _ship
 dim shared map(laststar+wormhole+1) as _stars
-dim shared basis(10) as _station
+dim shared basis(12) as _station
 dim shared companystats(4) as _company
 dim shared companyname(4) as string
 dim shared shares(2047) as _share
@@ -710,6 +729,7 @@ dim shared spacemap(sm_x,sm_y) as short
 dim shared combatmap(60,20) as byte
 dim shared planetmap(60,20,max_maps) as short
 dim shared planets(max_maps) as _planet
+dim shared civ(3) as _civilisation
 dim shared retirementassets(16) as ubyte
 for a=0 to max_maps
     planets(a).darkness=5
@@ -745,7 +765,7 @@ dim shared crew(128) as _crewmember
 dim shared shiptypes(19) as string
 dim shared disease(17) as _disease
 dim shared awayteamcomp(4) as byte
-dim shared fightmatrix(5,5) as byte
+dim shared faction(7) as _faction
 dim shared empty_ship as _ship
 dim shared empty_fleet as _fleet
 
@@ -764,8 +784,8 @@ dim shared lastfleet as short
 dim shared alienattacks as integer
 dim shared lastdrifting as short=16
 dim shared liplanet as short 'last input planet
-
-
+dim shared whtravelled as short
+dim shared whplanet as short
 dim shared tmap(60,20) as _tile
 dim as _cords p1,p2,p3
 dim shared pwa(128) as _cords'Points working array
@@ -825,6 +845,7 @@ declare function ep_lava(awayteam as _monster,lavapoint() as _cords,ship as _cor
 declare function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
 declare function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,vismask() as byte) as short
 declare function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as short) as short
+declare function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as short, byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single) as short
 
 declare function teleport(awaytam as _cords, map as short) as _cords
 declare function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() as _tile) as _monster
@@ -882,6 +903,7 @@ declare function infect(a as short, dis as short) as short
 declare function diseaserun(a as short) as short
 declare function settactics() as short
 declare function makevismask(vismask()as byte,byval a as _monster,m as short) as short
+declare function vistest(a as _monster,m as short,mx as short,my as short,x as short,y as short, vismask() as byte) as short
 declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship) as _ship
 declare function maxsecurity() as short
@@ -924,19 +946,23 @@ declare function savegame()as short
 declare function loadgame(filename as string) as short
 declare function copytile (byval a as short) as _tile
 declare function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr     
+declare function makealienship(slot as short, t as short) as short
+declare function makecivfleet(slot as short) as _fleet
+declare function civfleetdescription(f as _fleet) as string
 
 declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as _cords,e_track_v()as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_fire(target as _ship,attacker as _ship,w as _weap, gunner as short, range as short, senac as short) as _ship
 declare function com_hit(target as _ship, w as _weap,dambonus as short, range as short, senac as short) as _ship
 declare function com_criticalhit(t as _ship, roll as short) as _ship
-declare function com_flee(defender as _ship,lastenemy as short) as short
+declare function com_flee(defender as _ship,attacker() as _ship,lastenemy as short) as short
 declare function com_wstring(w as _weap, range as short) as string
 declare function com_testweap(w as _weap, p1 as _cords,attacker() as _ship,lastenemy as short,mines_p() as _cords,mines_last as short) as short
 declare function com_remove(attacker() as _ship, t as short, lastenemy as short) as short
 declare function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as short,byref mines_last as short) as short
 declare function com_detonatemine(d as short,mines_p() as _cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
 declare function com_damship(byref t as _ship, dam as short, col as short) as _ship
+declare function com_mindist(s as _ship) as short
 
 declare function chr850(c as short) as string
 declare function keyin(allowed as string ="", byref walking as short=0,blocked as short=0)as string
@@ -950,7 +976,7 @@ declare function communicate(awayteam as _monster, e as _monster, mapslot as sho
 declare function artifact(c as short,awayteam as _monster) as short
 declare function getshipweapon() as short
 declare function getmonster(enemy() as _monster, byref lastenemy as short) as short
-declare function findartifact(awayteam as _monster) as short
+declare function findartifact(awayteam as _monster,v5 as short) as short
     
 declare function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
 declare function earthquake(t as _tile,dam as short)as _tile
@@ -974,7 +1000,7 @@ declare sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
 declare function makespecialplanet(a as short) as short
 declare function makedrifter(d as _driftingship,bg as short=0,broken as short=0) as short
-declare function makecivilisation(slot as short) as short
+declare function makecivilisation(slot as short, m as short) as short
 declare function makeice(a as short, o as short) as short
 declare sub makecanyons(a as short, o as short)
 declare sub makecraters(a as short, o as short)
@@ -984,6 +1010,7 @@ declare sub makeoceanworld(a as short,o as short)
 declare sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
 declare sub planet_event(slot as short)
+declare function makewhplanet() as short
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
 declare function makesettlement(p as _cords,slot as short, typ as short) as short
 declare function makevault(r as _rect,slot as short,nsp as _cords, typ as short) as short
@@ -991,6 +1018,7 @@ declare function rndwallpoint(r as _rect, w as byte) as _cords
 declare function rndwall(r as _rect) as short
 declare function digger(byval p as _cords,map() as short,d as byte,ti as short=2,stopti as short=0) as short
 declare function flood_fill(x as short,y as short,map()as short, flag as short=0) as short
+declare function flood_fill2(x as short,y as short, xm as short, ym as short, map() as byte) as short
 declare function findsmartest(start as short, iq as short, enemy() as _monster, lastenemy as short) as short
 declare function makeroad(byval s as _cords,byval e as _cords, a as short) as short
 declare function addportal(from as _cords, dest as _cords, twoway as short, tile as short,desig as string, col as short) as short
@@ -1008,7 +1036,7 @@ declare function gen_traderoutes() as short
 declare function ss_sighting(i as short) as short
 declare function makeweapon(a as short) as _weap
 declare function makeship(a as short) as _ship
-declare function makemonster(a as short, map as short) as _monster
+declare function makemonster(a as short, map as short, forcearms as byte=0) as _monster
 'awayteam as _monster, map as short, spawnmask() as _cords,lsp as short,x as short=0,y as short=0, mslot as short=0) as _monster    
 declare function makecorp(a as short) as _station
 declare function collidefleets() as short
@@ -1030,6 +1058,7 @@ declare function scorefleet(byval f as _fleet) as integer
 declare function makequestfleet(a as short) as _fleet
 declare function makealienfleet() as _fleet
 declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
+declare function makealiencolony(slot as short,map as short, popu as short) as short
 
 
 
@@ -1154,6 +1183,7 @@ declare function es_part1() as string
 declare function Crewblock() as string
 declare function shipstatsblock() as string
 declare function uniques() as string
+declare function foreignpolicy(c as short, i as byte) as short
 
 declare function hasassets() as short
 declare function sellassetts () as string

@@ -1023,7 +1023,7 @@ function levelup(p as _ship) as _ship
         next
     endif
     if vet>1 then text=text &" "&vet &" of your security are now veterans."
-    if elite>1 then text=text &" "&elite &" of your security are now veterans."
+    if elite>1 then text=text &" "&elite &" of your security are now elite."
     if text<>"" then dprint text,10
     displayship()
     return p
@@ -1263,7 +1263,7 @@ sub show_stars(bg as short=0,byref walking as short)
 
     a=findbest(51,-1)
     if a>0 then
-        for b=1 to lastfleet
+        for b=3 to lastfleet
             x=fleet(b).c.x
             y=fleet(b).c.y
             locate y+1-player.osy,x+1-player.osx,0
@@ -1276,6 +1276,8 @@ sub show_stars(bg as short=0,byref walking as short)
                     if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
                     if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
                     if fleet(b).ty=5 then color 5,0
+                    if fleet(b).ty=6 then color 8,0
+                    if fleet(b).ty=7 then color 8,0
                     draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                 endif
             else
@@ -1317,18 +1319,29 @@ sub show_stars(bg as short=0,byref walking as short)
             endif
         endif
     next
-    if show_NPCs=1 then
-        for a=1 to lastfleet
+    if show_NPCs>0 then
+        for a=3 to lastfleet
             x=fleet(a).c.x-player.osx
             y=fleet(a).c.y-player.osy
             if x>=0 and x<=60 and y>=0 and y<=20 then
-                if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
-                if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
-                if fleet(b).ty=5 then color 5,0
+                if fleet(a).ty=1 or fleet(a).ty=3 then color 10,0
+                if fleet(a).ty=2 or fleet(a).ty=4 then color 12,0
+                if fleet(a).ty=5 then color 5,0
+                if fleet(b).ty=6 then color 8,0
+                if fleet(b).ty=7 then color 6,0
                 draw string ((x)*_fw1,(y)*_fh1),"s",,Font1,custom,@_col
             endif
         next
-        
+    endif
+    if show_civs=1 then
+        for a=0 to 1
+            x=civ(a).home.x-player.osx
+            y=civ(a).home.y-player.osy
+            if x>=0 and x<=60 and y>=0 and y<=20 then
+                color 11,0
+                draw string ((x)*_fw1,(y)*_fh1)," "&a,,Font1,custom,@_col
+            endif
+        next
     endif
     color 11,0
     for a=1 to lastcom
@@ -1915,7 +1928,7 @@ function messages() as short
 end function
 
 function showwormholemap() as short
-    dim as short x,y,i
+    dim as short x,y,i,x1,x2,i2,y1,y2,d,n
     cls
     displayship
     for x=0 to sm_x
@@ -1928,19 +1941,37 @@ function showwormholemap() as short
         next
     next
     color 15,0
+    
     for i=laststar+1 to laststar+wormhole
         if map(i).planets(2)=1 then
-            pathblock(map(i).c,map(map(i).planets(1)).c,0,4)
+            x1=map(i).c.x
+            y1=map(i).c.y
+            x2=map(map(i).planets(1)).c.x
+            y2=map(map(i).planets(1)).c.y
+            d=abs(x1-x2)
+            if abs(y1-y2)>d then d=abs(y1-y2)
+            for i2=0 to d
+                locate y1+1,x1+1
+                color 15,0
+                print "."
+                x1=x1+(x2-x1)*i2/(d)
+                y1=y1+(y2-y1)*i2/(d)
+            next
         endif
     next
     for i=laststar+1 to laststar+wormhole
         if map(i).discovered<>0 then
+            n=distance(map(i).c,map(map(i).planets(1)).c)/5
+            if n<1 then n=1
+            if n>6 then n=6
+            color 179+n,0
             locate map(i).c.y+1,map(i).c.x+1
             print "o"
         endif
     next
     for i=1 to laststar
         if map(i).discovered<>0 then
+            color spectraltype(map(i).spec),0
             locate map(i).c.y+1,map(i).c.x+1
             print "*"
         endif
@@ -3150,19 +3181,22 @@ function dprint(t as string, col as short=11) as short
         winh=_lines-22
     endif
     curline=locEOL.y+1
-    
-    if t<>"" then
+    for a=0 to len(t)
+        if mid(t,a,1)<>"|" then text=text & mid(t,a,1)
+    next
+    if text<>"" and len(text)<winw-4 then
         if lastmessage=t then
             a=curline-1
             lastmessagecount+=1
             if len(displaytext(a))<winw-4 then
-                displaytext(a)=t &"(x"&lastmessagecount &")"
+                displaytext(a)=text &"(x"&lastmessagecount &")"
                 t=""
             else
-                displaytext(a)=t
+                displaytext(a)=text
                 displaytext(a+1)="(x"&lastmessagecount &")"
                 t=""
             endif
+            text=""
         else
             lastmessage=t
             lastmessagecount=1
@@ -3179,9 +3213,7 @@ function dprint(t as string, col as short=11) as short
     'draw string (61*_fw1,(firstline+winh)*_fh2),"*",,font1,custom,@_col
     'find offset
     'if offset=0 then offset=firstline
-    for a=0 to len(t)
-        if mid(t,a,1)<>"|" then text=text & mid(t,a,1)
-    next
+    
     if text<>"" then
         while displaytext(curline)<>"" 
             curline+=1
@@ -3191,7 +3223,7 @@ function dprint(t as string, col as short=11) as short
             if mid(text,a,1)=" " then b+=1
         next
         for a=0 to b
-            if len(displaytext(curline+tlen)&words(a))>winw then
+            if len(displaytext(curline+tlen))+len(words(a))>=winw then
                 displaytext(curline+tlen)=trim(displaytext(curline+tlen))                
                 tlen+=1
             endif

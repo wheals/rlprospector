@@ -54,9 +54,9 @@ function moneytext() as string
     text=text & " | "
         
     if player.money-500>0 then
-        if player.merchant_agr<=0 then text=text & "Made all money with honest hard work"
-        if player.merchant_agr>0 and player.pirate_agr<50 then text = text & "Found piracy not to be worth the hassle"
-        if player.pirate_agr<=0 and player.merchant_agr>50 then text = text & "Made a name as a bloodthirsty pirate"
+        'if faction(0).war(1)<=0 then text=text & "Made all money with honest hard work"
+        'if player.merchant_agr>0 and player.pirate_agr<50 then text = text & "Found piracy not to be worth the hassle"
+        'if player.pirate_agr<=0 and player.merchant_agr>50 then text = text & "Made a name as a bloodthirsty pirate"
     endif
     text=text &" |"
     return text
@@ -73,7 +73,7 @@ function uniques() as string
     descr(4)="Another ancient city"
     descr(5)="A world without water and huge sandworms"
     descr(6)="A world with invisible beasts"
-    descr(7)="A lost scoutship"
+    descr(7)="the homeworld of the "&civ(0).n
     descr(8)="A world with very violent weather"
     descr(9)="An alien base still in good condition"
     descr(10)="An independent colony"
@@ -106,6 +106,7 @@ function uniques() as string
     descr(43)="A world under control of Omega Bioengineering"
     descr(43)="A world under control of Omega Bioengineering"
     descr(44)="The ruins of an ancient war"
+    descr(46)="the homeworld of the "&civ(1).n
     
     text= "{15}Unique planets discovered:{11}|"
     
@@ -193,13 +194,13 @@ function missiontype() as string
     per(2)=explper
     per(0)=100-per(1)-per(2)
     text= " |Mission type: "
-    if player.pirate_agr<=0 and player.merchant_agr>50 then 
-        text=text & "Bloodthristy pirate scum!|"
-    else
+    'if player.pirate_agr<=0 and player.merchant_agr>50 then 
+     '   text=text & "Bloodthristy pirate scum!|"
+    'else
         if per(0)>per(1) and per(0)>per(2) then text=text & "Explorer |"
         if per(1)>per(2) and per(1)>per(0) then text=text & "Merchant |"
         if per(2)>per(0) and per(2)>per(1) then text=text & "Pirate Killer |"
-    endif
+'    endif
     return text
 end function
 

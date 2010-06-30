@@ -289,16 +289,13 @@ end function
 
 function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     dim as short illu
-    dim as short x2,x1,y2,y1,mx,my
-    Dim As Integer i, deltax, deltay, numtiles
-    Dim As Integer d, dinc1, dinc2
-    Dim As Integer x, xinc1, xinc2
-    Dim As Integer y, yinc1, yinc2
+    dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
     dim as byte mask
     dim as _cords p
     x1=a.c.x
     y1=a.c.y
     if m>0 then
+        if findbest(42,-1)>0 then grr=1
         illu=10-a.dark
         if a.light>illu then illu=a.light
         if a.sight>illu then a.sight=illu
@@ -309,48 +306,44 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         mx=sm_x
         my=sm_y
     endif
-    
-    for x=a.c.x-12 to a.c.x+12 step 2
-        for y=a.c.y-12 to a.c.y+12 step 2
-            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or x=0 or y=my or x=mx or x=0 then    
-                'if x>=0 and x<=79 and y>=0 and y<=25 then level(l).vis(x,y)=1
-                
-                mask=1
-                x2=x
-                y2=y
-                x1=a.c.x
-                y1=a.c.y
-                d=abs(x1-x2)
-                if abs(y1-y2)>d then d=abs(y1-y2)
-                for i=0 to d*2
-                    x1=x1+(x2-x1)*i/(d*2)
-                    y1=y1+(y2-y1)*i/(d*2)
-                    p.x=x1
-                    p.y=y1
-                    if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
-                        if m>0 then
-                            vismask(x1,y1)=mask
-                            if tmap(x1,y1).seetru=1 or distance(a.c,p)>a.sight then 
-                                mask=0
-                            else
-                                if x1<mx then vismask(x1+1,y1)=mask
-                                if x1>0 then vismask(x1-1,y1)=mask
-                                if y1<my then vismask(x1,y1+1)=mask
-                                if y1>0 then vismask(x1,y1-1)=mask
+    for x=0 to mx
+        for y=0 to my
+            vismask(x,y)=-1
+        next
+    next
+    for x=a.c.x-12 to a.c.x+12 step 1
+        for y=a.c.y-12 to a.c.y+12 step 1
+            'if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or x=0 or y=my or x=mx or x=0 then    
+            
+            'if x>=0 and x<=79 and y>=0 and y<=25 then level(l).vis(x,y)=1
+            if y>=0 and x>=0 and y<=my and x<=mx then
+                if vismask(x,y)=-1 then
+                    mask=1
+                    p.x=x
+                    p.y=y
+                    x2=x
+                    y2=y
+                    x1=a.c.x
+                    y1=a.c.y
+                    if distance(p,a.c)<=a.sight then
+                        d=abs(x1-x2)
+                        if abs(y1-y2)>d then d=abs(y1-y2)
+                        for i=0 to d*2
+                            p.x=x1
+                            p.y=y1
+                            if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
+                                if m>0 then
+                                    if tmap(x1,y1).seetru>=grr+1 then mask=0
+                                else
+                                    If abs(spacemap(x1,y1))>1 Then mask=0
+                                endif
                             endif
-                        else
-                            vismask(x1,y1)=mask
-                            If spacemap(x1,y1)>1 or distance(a.c,p)>a.sight Then
-                                mask=0
-                            else
-                                if x1<mx then vismask(x1+1,y1)=mask
-                                if x1>0 then vismask(x1-1,y1)=mask
-                                if y1<my then vismask(x1,y1+1)=mask
-                                if y1>0 then vismask(x1,y1-1)=mask
-                            endif
-                        endif
+                            x1=x1+(x2-x1)*i/(d*2)
+                            y1=y1+(y2-y1)*i/(d*2)
+                        next
+                        vismask(x,y)=mask
                     endif
-                next
+                endif
             endif
         next
     next
@@ -361,109 +354,80 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         next
     next
     
+    for x=0 to a.c.x
+        for y=0 to a.c.y
+            vistest(a,m,mx,my,x,y,vismask())
+        next
+    next
+    
+    
+    for x=mx to a.c.x step -1
+        for y=0 to a.c.y
+            vistest(a,m,mx,my,x,y,vismask())
+        next
+    next
+    
+    for x=0 to a.c.x 
+        for y=my to a.c.y step -1
+            vistest(a,m,mx,my,x,y,vismask())
+        next
+    next
+    
+    for x=mx to a.c.x step -1
+        for y=my to a.c.y step -1
+            vistest(a,m,mx,my,x,y,vismask())
+        next
+    next
+            
+    flood_fill2(a.c.x,a.c.y,mx,my,vismask())
+    for x=0 to mx
+        for y=0 to my
+            if vismask(x,y)=1 then vismask(x,y)=0
+            if vismask(x,y)=2 then vismask(x,y)=1
+        next
+    next
     return 0
 end function
 
-'
-'function makevismask(vismask()as byte,byval a as _monster,m as short) as short
-'    dim as single dx,dy 'delta
-'    dim as single cx,cy 'center
-'    dim as single ex,ey
-'    dim as short mx,my
-'    dim l as short
-'    dim length as single
-'    dim dis as single 
-'    dim as short yt,yb,xr,xl 'Y top, Y bottom, Xright, Xleft
-'    dim as single x,y 'point we are looking at
-'    dim as _cordsp
-'    dim as short tile
-'    dim as short mask
-'    cx=a.c.x
-'    cy=a.c.y
-'    yt=cy-10
-'    yb=cy+10
-'    xl=cx-10
-'    xr=cx+10
-'    
-'    if m>0 then
-'        a.dark=a.dark-a.light
-'        if a.dark<0 then a.dark=0
-'        a.sight=a.sight-a.dark
-'        if a.sight<2 then a.sight=2
-'        mx=60
-'        my=20
-'    else
-'        mx=sm_x
-'        my=sm_y
-'    endif
-'    if yt<0 then yt=0
-'    if xl<0 then xl=0
-'    if m>0 then
-'        if yb>20 then yb=20
-'        if xr>60 then xr=60
-'    else
-'        if yb>sm_y then yb=sm_y
-'        if xr>sm_x then xr=sm_x
-'    endif
-'    'clear old
-'    for x=0 to mx
-'        for y=0 to my
-'            vismask(x,y)=0
-'            p.x=x
-'            p.y=y
-'            if distance(p,a.c)<=a.sight or distance(p,a.c)<1.5 then vismask(x,y)=1
-'        next
-'    next
-'    for ex=xl to xr 
-'        for ey=yt to yb 
-'            if ex=xl or ex=xr or ey=yt or ey=yb then  
-'                mask=1
-'                x=cx
-'                y=cy
-'                dx=ex-cx
-'                dy=ey-cy
-'                length=sqr((dx*dx)+(dy*dy))
-'                dx=dx/length
-'                dy=dy/length
-'                for l=1 to length
-'                    x=x+dx
-'                    y=y+dy
-'                    dis=sqr(((cx-x)*(cx-x))+((cy-y)*(cy-y)))                    
-'                    if x>=0 and y>=0 and x<=mx and y<=my then    
-'                        if dis>a.sight  then mask=0
-'                        if vismask(x,y)=1 then vismask(x,y)=mask
-'                        if m>0 then
-'                            if tmap(x,y).seetru=1 then mask=0
-''                            if tiles(tile).seetru=0 and mask=1 then
-''                                if x-1>=0 then vismask(x-1,y)=1
-''                                if x+1<=mx then vismask(x+1,y)=1
-''                                if y-1>=0 then vismask(x,y-1)=1
-''                                if y+1<=my then vismask(x,y+1)=1
-''                            endif
-'                        else
-'                            if abs(spacemap(x,y))=2 then mask=0
-'                        endif
-'                    endif
-'                next
-'    
-'            endif
-'        next
-'    next
-'    for x=0 to mx
-'        for y=0 to my
-'            p.x=x
-'            p.y=y
-'            if distance(p,a.c)>a.sight then vismask(x,y)=0
-'        next
-'    next
-'    
-'    for x=cx-1 to cx+1
-'        for y=cy-1 to cy+1
-'            if x>=0 and y>=0 and x<=mx and y<=my then vismask(x,y)=1
-'        next
-'    next
-'    return 0
-'end function
+function vistest(a as _monster,m as short,mx as short,my as short,x as short,y as short, vismask() as byte) as short
+    if vismask(x,y)=-1 then vismask(x,y)=0
+    if vismask(x,y)=1 then
+        if m>0 then
+            if tmap(x,y).seetru=0 then
+                if x>0 then
+                    if vismask(x-1,y)=0 and a.c.x>x then vismask(x-1,y)=1
+                endif
+                if x<mx then
+                    if vismask(x+1,y)=0 and a.c.x<x then vismask(x+1,y)=1
+                endif
+                if y>0 then
+                    if vismask(x,y-1)=0 and a.c.y>y then vismask(x,y-1)=1
+                endif
+                if y<my then
+                    if vismask(x,y+1)=0 and a.c.y<y then vismask(x,y+1)=1
+                endif
+            endif
+        else
+            if spacemap(x,y)<=1 then
+                if x>0 then
+                    if vismask(x-1,y)=0 and abs(spacemap(x-1,y))>1 and a.c.x>=x then vismask(x-1,y)=1
+                endif
+                if x<mx then
+                    if vismask(x+1,y)=0 and abs(spacemap(x+1,y))>1 and a.c.x<=x then vismask(x+1,y)=1
+                endif
+                if y>0 then
+                    if vismask(x,y-1)=0 and abs(spacemap(x,y-1))>1 and a.c.y>=y then vismask(x,y-1)=1
+                endif
+                if y<my then
+                    if vismask(x,y+1)=0 and abs(spacemap(x,y+1))>1 and a.c.y<=y then vismask(x,y+1)=1
+                endif
+            endif
+        
+        endif
+    endif
+    return 0
+end function
+
 
 function nextpoint(byval start as _cords, byval target as _cords) as _cords
     dim as short dx,dy,d,x1,x2,y1,y2 
@@ -537,7 +501,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
           y = y + yinc2
         End If
     
-            if blocktype=1 or blocktype=3 then 'check for firetru
+            if blocktype=1 or blocktype=3 or blocktype=4 then 'check for firetru
                if x<0 then x=0
                if x>60 then x=60
                if y<0 then y=0
@@ -545,7 +509,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                if tmap(x,y).firetru=1  then 
                     if not (x=b.x and y=b.y) then
                         result=0
-                        if blocktype=3 then
+                        if blocktype=3 or blocktype=4 then
                            b.x=x
                            b.y=y
                            return 0
@@ -556,6 +520,10 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                     color col,0
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                     sleep delay
+                endif
+                if blocktype=4 then
+                    locate y+1,x+1
+                    print "*"
                 endif
             endif
             if blocktype=2 then
@@ -570,10 +538,6 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 if col>0 and co<l then 
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                 endif
-            endif
-            if blocktype=4 then
-                locate y+1,x+1
-                print "*"
             endif
         next
 

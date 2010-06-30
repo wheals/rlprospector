@@ -410,7 +410,7 @@ tiles(51).tile=178
 tiles(51).bgcol=216
 tiles(51).col=215
 tiles(51).desc="hard rock"
-tiles(51).seetru=1
+tiles(51).seetru=2
 tiles(51).walktru=5
 tiles(51).firetru=1
 tiles(51).shootable=1
@@ -424,7 +424,7 @@ tiles(52).tile=176
 tiles(52).col=137
 tiles(52).bgcol=137
 tiles(52).desc="steel wall"
-tiles(52).seetru=1
+tiles(52).seetru=2
 tiles(52).walktru=5
 tiles(52).firetru=1
 
@@ -1154,7 +1154,7 @@ tiles(151).tile=178
 tiles(151).col=215
 tiles(151).bgcol=216
 tiles(151).desc="hard rock"
-tiles(151).seetru=1
+tiles(151).seetru=2
 tiles(151).walktru=5
 tiles(151).firetru=1
 tiles(151).shootable=1
@@ -1419,7 +1419,7 @@ tiles(181).firetru=1
 tiles(182).tile=35
 tiles(182).col=14
 tiles(182).desc="a not working powerplant"
-tiles(182).turntext="Nothing seriously wrong, just a software glitch. You restart the system and wonder why the colonists didn't do it themselfes." 
+tiles(182).turntext="Nothing seriously wrong, just a software glitch. You restart the system and wonder why the colonists didn't do it themselves." 
 tiles(182).dr=1
 tiles(182).hp=30
 tiles(182).turnsoninspect=184
@@ -1506,7 +1506,7 @@ tiles(192).hides=2
 tiles(193).tile=asc("^")
 tiles(193).col=-1
 tiles(193).bgcol=-77
-tiles(193).seetru=1
+tiles(193).seetru=2
 tiles(193).walktru=2
 tiles(193).firetru=1
 tiles(193).desc="crystal mountains"
@@ -1808,7 +1808,7 @@ tiles(243).tile=176
 tiles(243).col=17
 tiles(243).bgcol=7
 tiles(243).walktru=5
-tiles(243).seetru=1
+tiles(243).seetru=2
 tiles(243).firetru=1
 tiles(243).shootable=1
 tiles(243).dr=5
@@ -2035,6 +2035,7 @@ tiles(269).turnsinto=269
 tiles(269).hides=2
 
 tiles(270)=tiles(69)
+tiles(270).col=7
 tiles(270).gives=47
 tiles(270).turnsinto=270
 tiles(270).hides=2
@@ -2043,6 +2044,11 @@ tiles(271)=tiles(69)
 tiles(271).gives=48
 tiles(271).turnsinto=271
 tiles(271).hides=2
+
+'272-277 taken for alien structures
+
+
+
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

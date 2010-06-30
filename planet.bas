@@ -70,7 +70,7 @@ function make_spacemap() as short
         map(a).c.y=rnd_range(0,sm_y)
         map(a).spec=9
         map(a).planets(1)=a+1
-        map(a).discovered=show_all
+        map(a).discovered=maximum(show_all,show_wormholes)
         map(a+1).planets(1)=a
         map(a+1).c.x=rnd_range(0,sm_x)
         map(a+1).c.y=rnd_range(0,sm_y)
@@ -180,10 +180,14 @@ function make_spacemap() as short
     'sleep
     print
     print "distributing ";
-    for a=0 to laststar+wormhole
+    for a=0 to laststar
         map(a).discovered=show_all
         pwa(a)=map(a).c
         print ".";
+    next
+    for a=laststar+1 to laststar+wormhole
+        map(a).discovered=show_wormholes
+        pwa(a)=map(a).c
     next
     a=distributepoints(pwa(),pwa(),laststar+wormhole)
     for a=0 to laststar+wormhole
@@ -308,6 +312,12 @@ function make_spacemap() as short
         endif
     next
     
+    makecivilisation(0,specialplanet(7))
+    makecivilisation(1,specialplanet(46))
+    specialplanettext(7,0)="The homeworld of the "&civ(0).n
+    specialplanettext(46,0)="The homeworld of the "&civ(1).n
+    
+    
     if findcompany(1)=0 then specialplanet(40)=32767
     if findcompany(2)=0 then specialplanet(41)=32767
     if findcompany(3)=0 then specialplanet(42)=32767
@@ -321,6 +331,7 @@ function make_spacemap() as short
         drifting(a).y=rnd_range(0,sm_y)
         drifting(a).s=rnd_range(1,a)
         if drifting(a).s>16 then drifting(a).s=rnd_range(1,12)
+        if all_drifters_are>0 then drifting(a).s=all_drifters_are
         drifting(a).m=lastplanet
         if a=1 then drifting(a).s=17
         if a=2 then drifting(a).s=18 
@@ -392,6 +403,14 @@ function make_spacemap() as short
     
     if show_specials>0 then map(sysfrommap(specialplanet(show_specials))).discovered=1
     
+    fleet(0).mem(1)=makeship(33)
+    fleet(0).ty=1
+    fleet(1).mem(1)=makeship(33)
+    fleet(1).ty=1
+    fleet(2).mem(1)=makeship(33)
+    fleet(2).ty=1
+    lastfleet=3
+    
     print
     color 11,0
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
@@ -415,12 +434,12 @@ function gen_traderoutes() as short
     dim as integer fp,lp
     lastwaypoint=5
     firstwaypoint=5
-    for a=0 to 4068
+    for a=10 to 4068
         targetlist(a).x=0
         targetlist(a).y=0
     next
-    for x=1 to sm_x
-        for y=1 to sm_y
+    for x=0 to sm_x
+        for y=0 to sm_y
             p.x=x
             p.y=y
             if abs(spacemap(x,y))>=2 then map(x,y)=2
@@ -440,13 +459,13 @@ function gen_traderoutes() as short
     map(basis(0).c.x,basis(0).c.y)=0
     map(basis(1).c.x,basis(1).c.y)=0
     map(basis(2).c.x,basis(2).c.y)=0
-    
-    
-    start.x=0
-    start.y=0
+    start.x=targetlist(0).x
+    start.y=targetlist(0).y
+
     goal.x=basis(0).c.x
     goal.y=basis(0).c.y
     lp=gen_waypoints(wpl(),goal,start,map())
+    offset=10
     for i=0 to lp
         targetlist(i+offset).x=wpl(i).x
         targetlist(i+offset).y=wpl(i).y
@@ -457,8 +476,8 @@ function gen_traderoutes() as short
     next
     
     offset=offset+lp+1
-    lastwaypoint=lastwaypoint+lp+1
-    firststationw=lp
+    lastwaypoint=lastwaypoint+lp+1+offset
+    firststationw=lastwaypoint
     for a=1 to 2
         start.x=basis(a-1).c.x
         start.y=basis(a-1).c.y
@@ -473,7 +492,6 @@ function gen_traderoutes() as short
             wpl(i).x=0
             wpl(i).y=0
         next
-        
         offset=offset+lp+1
         lastwaypoint=lastwaypoint+lp+1
     next
@@ -490,10 +508,7 @@ function gen_traderoutes() as short
     next
     offset=offset+lp+1
     lastwaypoint=lastwaypoint+lp
-    
-    for a=5 to lastwaypoint
-        if firstwaypoint=5 and targetlist(a).x<>0 and targetlist(a).y<>0 then firstwaypoint=a-1
-    next
+    firstwaypoint=10
     if targetlist(firstwaypoint).x>1 and targetlist(firstwaypoint).y>1 then
         if spacemap(targetlist(firstwaypoint).x,0)=0 or spacemap(targetlist(firstwaypoint).x,0)=1 then
             targetlist(firstwaypoint).y=0
@@ -652,6 +667,30 @@ sub make_clouds()
         if attempt>0.1 then attempt=0.1
         flood_fill(35,20,spacemap(),1)
     loop until spacemap(10,30)=255 and spacemap(60,10)=255
+    do
+        x=rnd_range(0,sm_x)
+        y=rnd_range(0,sm_y)
+        if spacemap(x,0)=255 then
+            targetlist(0).x=x
+            targetlist(0).y=0
+        endif
+        
+        if spacemap(x,sm_y)=255 then
+            targetlist(0).x=x
+            targetlist(0).y=sm_y
+        endif
+        
+        if spacemap(0,y)=255 then
+            targetlist(0).x=0
+            targetlist(0).y=y
+        endif
+        
+        if spacemap(sm_x,y)=255 then
+            targetlist(0).x=sm_x
+            targetlist(0).y=y
+        endif
+    loop until targetlist(0).x=0 xor targetlist(0).y=0
+    
     if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
         p1=map(piratebase(0)).c
         do
@@ -2968,6 +3007,13 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     endif
     makespecialplanet(a)
     
+    if is_special(a)=0 and distance(map(sysfrommap(a)).c,civ(0).home)<2*civ(0).tech+2*civ(0).aggr and rnd_range(1,100)<civ(0).aggr*15 then
+        makealiencolony(0,a,rnd_range(2,4))    
+        planets(a).mon_template(1)=civ(0).spec
+        planets(a).mon_noamin(1)=rnd_range(2,4)
+        planets(a).mon_noamax(1)=planets(a).mon_noamin(1)+rnd_range(2,4)
+    endif
+    
     if planets(a).atmos>=8 then
         for x=0 to 60
             for y=0 to 20
@@ -3369,6 +3415,43 @@ sub makecanyons(a as short, o as short)
     if rnd_range(1,100)<50 then makeice(a,o)
 end sub
 
+function makewhplanet() as short
+    dim as short a,b,c,x,y
+    dim as _cords p
+    lastplanet+=1
+    a=lastplanet
+    whplanet=a
+    b=-13
+    makeplanetmap(a,3,9)
+    deletemonsters(a)
+    planets(a).mon_template(1)=makemonster(55,a)
+    planets(a).mon_noamin(1)=2
+    planets(a).mon_noamax(1)=3
+    for x=0 to 60
+        for y=0 to 20
+            planetmap(x,y,a)=b
+            if rnd_range(1,100)<22 then b=-14
+            if rnd_range(1,100)<22 then b=-4
+            if rnd_range(1,100)<22 then b=-3
+            if rnd_range(1,100)<22 then b=-13
+        next
+    next
+    
+    for b=0 to 25
+        p=rnd_point
+            
+        for c=0 to 15+rnd_range(2,6)+rnd_range(2,6)
+            p=movepoint(p,5)
+            planetmap(p.x,p.y,a)=-193
+        next
+    next
+    p=rnd_point
+    placeitem(makeitem(99,13),p.x,p.y,a)
+    p=rnd_point
+    placeitem(makeitem(99,16),p.x,p.y,a)
+    return 0
+end function
+
 function makespecialplanet(a as short) as short
     dim as short x,y,b,c,d,b1,b2,b3,cnt,wx,wy,ti,x1,y1
     dim as _cords p,p1,p2,p3,p4,p5
@@ -3694,9 +3777,6 @@ function makespecialplanet(a as short) as short
     
     if specialplanet(7)=a then 'Civ 1
         'Make Spacefaring civilization
-        
-        planetmap(rnd_range(0,60),rnd_range(0,20),a)=-9
-    
     endif
     
     if specialplanet(8)=a then 'Pirate treasure on stormy world
@@ -3748,10 +3828,6 @@ function makespecialplanet(a as short) as short
     
     if specialplanet(10)=a or a=pirateplanet(0) then 'Settlement
         deletemonsters(a)
-        if a<>pirateplanet(0) then
-            lastwaypoint=7
-            targetlist(7)=map(sysfrommap(a)).c
-        endif
 
         planets(a).grav=0.8+rnd_range(1,3)/2
         planets(a).atmos=6
@@ -3899,8 +3975,8 @@ function makespecialplanet(a as short) as short
     
     
     
-        'Turn all around
-        if not(player.pirate_agr=-100 and a=pirateplanet(0)) then        
+        'Turn all around if player isnt pirate
+        if not(faction(0).war(2)>=0 and a=pirateplanet(0)) then        
             for x=0 to 60
                 for y=0 to 20
                     if planetmap(x,y,a)>0 then planetmap(x,y,a)=-planetmap(x,y,a)
@@ -3913,6 +3989,12 @@ function makespecialplanet(a as short) as short
     if specialplanet(11)=a then
         p1=rnd_point
         planetmap(p1.x,p1.y,a)=79
+        p2=movepoint(p1,5)
+        planetmap(p2.x,p2.y,a)=270
+        do
+            p3=movepoint(p1,5)
+        loop until (p1.x<>p3.x or p1.y<>p3.y) and (p2.x<>p3.x or p2.y<>p3.y)
+        planetmap(p3.x,p3.y,a)=271
     endif
     
     if specialplanet(12)=a then
@@ -4059,11 +4141,13 @@ function makespecialplanet(a as short) as short
         endif
         p2=rnd_point
         p3=rnd_point
+        p4=rnd_point
         makeoutpost(a,p2.x,p2.y)
         makeoutpost(a,p3.x,p3.y)
         p1=rnd_point
         makeroad(p1,p2,a)
         makeroad(p1,p3,a)
+        makeroad(p1,p4,a)
         if p1.x>50 then p1.x=50
         if p1.x<5 then p1.x=10
         if p1.y<5 then p1.y=5
@@ -4089,6 +4173,9 @@ function makespecialplanet(a as short) as short
         planetmap(p2.x-1,p2.y+2,a)=-237
         planetmap(p2.x-1,p2.y+4,a)=-259
         planetmap(p3.x,p3.y,a)=-261
+        planetmap(p4.x,p4.y,a)=-270
+        p4=movepoint(p4,5)
+        planetmap(p4.x,p4.y,a)=-271
     endif
     
     if specialplanet(15)=a then
@@ -5515,7 +5602,7 @@ function makespecialplanet(a as short) as short
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         p1=rnd_point(lastplanet,0)
-        planetmap(p1.x,p1.y,lastplanet)=250
+        planetmap(p1.x,p1.y,lastplanet)=252
         lastplanet+=1
         makecomplex4(lastplanet,10,1)
         p=rnd_point(lastplanet-1,0)
@@ -6178,9 +6265,285 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
     return 0
 end function
 
-function makecivilisation(slot as short) as short
+function makecivilisation(slot as short,m as short) as short
+    dim  as _cords p,p2
+    dim as short x,y,a
+'    n as string
+'    ship as _ship
+'    spec as _monster
+'    aggr as byte
+'    inte as byte
+'    tech as byte
+'    phil as byte
+
+    civ(slot).n=alienname(3)
+    civ(slot).popu=rnd_range(1,4)+rnd_range(1,4)+rnd_range(1,4)
+    civ(slot).aggr=rnd_range(1,3) '1=submissive 2=neutral 3=agressive
+    civ(slot).inte=rnd_range(1,3) '1=Science 2=Trade 3=conquest
+    civ(slot).tech=rnd_range(1,3) 
+    civ(slot).phil=rnd_range(1,3)'1=individualists 2=organized 3=collectivists
+    if rnd_range(1,100)<50 then
+        civ(slot).prefweap=0
+    else
+        civ(slot).prefweap=5
+    endif
+    civ(slot).spec=makemonster(1,m,1)
+    civ(slot).spec.hpmax=civ(slot).spec.hpmax+rnd_range(1,civ(slot).tech)+rnd_range(1,civ(slot).aggr)
+    civ(slot).spec.hp=civ(slot).spec.hpmax
+    civ(slot).spec.armor=rnd_range(1,civ(slot).tech)
+    civ(slot).spec.lang=32+slot
+    civ(slot).spec.col=rnd_range(8,15)
+    civ(slot).spec.aggr=1
+    civ(slot).spec.allied=6+slot
+    civ(slot).spec.hasoxy=1
+    civ(slot).spec.cmmod=10-civ(slot).aggr
+    civ(slot).spec.items(1)=201+slot*2
+    civ(slot).spec.itemch(1)=35+civ(slot).aggr*10
+    civ(slot).spec.items(2)=202+slot*2
+    civ(slot).spec.itemch(2)=35+civ(slot).aggr*10
+    civ(slot).spec.items(3)=-21
+    civ(slot).spec.itemch(3)=88
+    civ(slot).spec.items(3)=96
+    civ(slot).spec.itemch(3)=25
+    civ(slot).spec.items(4)=96
+    civ(slot).spec.itemch(4)=77
+    civ(slot).spec.items(5)=96
+    civ(slot).spec.itemch(5)=66
+    civ(slot).spec.swhat=" an exotic weapon"
+    civ(slot).spec.scol=rnd_range(1,6)
+    civ(slot).home=map(sysfrommap(m)).c
+    for a=0 to 7
+        faction(slot+6).war(a)=civ(slot).aggr*10 'Other Civ
+    next
+    makeplanetmap(m,3,3)
+    deletemonsters(m)
+    planets(m).mon_template(0)=civ(slot).spec
+    planets(m).mon_noamin(0)=10
+    planets(m).mon_noamax(0)=20
+    makealiencolony(slot,m,civ(slot).popu)
+    planetmap(rnd_range(1,60),rnd_range(1,20),m)=276+slot
+    planetmap(rnd_range(1,60),rnd_range(1,20),m)=278+slot
+
+    civ(slot).item(0).desig=civ(slot).n &" gun"
+    civ(slot).item(0).desigp=civ(slot).n &" guns"
+    civ(slot).item(0).ty=2
+    civ(slot).item(0).id=201+slot*2
+    civ(slot).item(0).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-2)/10'damage
+    civ(slot).item(0).v2=(rnd_range(1,3)+rnd_range(1,3)+civ(slot).aggr+civ(slot).tech-2)'range
+    civ(slot).item(0).v3=(rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-5)'tohit
+    civ(slot).item(0).price=(civ(slot).item(1).v1+civ(slot).item(1).v2+civ(slot).item(1).v3)*75
+    civ(slot).item(0).col=civ(slot).spec.col
+    civ(slot).item(0).icon="-"
+    
+    civ(slot).item(1).desig=civ(slot).n &" blade"
+    civ(slot).item(1).desigp=civ(slot).n &" blades"
+    civ(slot).item(1).ty=4
+    civ(slot).item(1).id=202+slot*2
+    civ(slot).item(1).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-2)/10'damage
+    civ(slot).item(1).v3=(rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-5)'tohit
+    civ(slot).item(1).price=(civ(slot).item(1).v1+civ(slot).item(1).v3)*50
+    civ(slot).item(1).col=civ(slot).spec.col
+    civ(slot).item(1).icon="("
+    
+    makealienship(slot,0)
+    makealienship(slot,1)
+    
+    tiles(272+slot).tile=64 
+    tiles(272+slot).col=civ(slot).spec.col
+    tiles(272+slot).bgcol=0
+    tiles(272+slot).desc="A "&civ(slot).n &" spaceship."
+    tiles(272+slot).seetru=1
+    tiles(272+slot).hides=2
+    
+    if rnd_range(1,100)<55 then
+        tiles(274+slot).tile=asc("#") 
+        tiles(274+slot).col=17
+    else
+        tiles(274+slot).tile=asc("O") 
+        tiles(274+slot).col=137
+    endif
+    tiles(274+slot).bgcol=0
+    tiles(274+slot).desc="A "&civ(slot).n &" building."
+    tiles(274+slot).seetru=1
+    tiles(274+slot).hides=2
+    
+    tiles(276+slot).tile=tiles(274+slot).tile
+    tiles(276+slot).col=tiles(274+slot).col+2
+    tiles(276+slot).seetru=1
+    tiles(276+slot).gives=301+slot
+    tiles(276+slot).hides=2
+    tiles(276+slot).turnsinto=276+slot
+    
+    tiles(278+slot).tile=tiles(274+slot).tile
+    tiles(278+slot).col=tiles(274+slot).col+3
+    tiles(278+slot).seetru=1
+    tiles(278+slot).gives=311+slot
+    tiles(278+slot).hides=2
+    tiles(278+slot).turnsinto=278+slot
+    
     return 0
 end function
+
+function makealiencolony(slot as short,map as short, popu as short) as short
+    dim as short a,x,y
+    dim as _cords p,p2
+    if civ(slot).phil=1 then
+        for a=0 to popu*10
+            p=rnd_point
+            planetmap(p.x,p.y,map)=-274-slot
+        next
+        for a=0 to popu*3
+            p=rnd_point
+            planetmap(p.x,p.y,map)=-68
+            if rnd_range(1,100)<civ(slot).tech*10 then planetmap(p.x,p.y,map)=-272-slot
+        next
+    endif
+    if civ(slot).phil=2 then
+        for a=0 to popu*10
+            p=rnd_point
+            if p.x<1 then p.x=1
+            if p.x>59 then p.x=59
+            if p.y<1 then p.y=1
+            if p.y>19 then p.y=19
+            planetmap(p.x,p.y,map)=-274-slot
+            planetmap(p.x,p.y-1,map)=-274-slot
+            planetmap(p.x,p.y+1,map)=-274-slot
+            planetmap(p.x+1,p.y,map)=-274-slot
+            planetmap(p.x-1,p.y,map)=-274-slot
+        next
+        for a=1 to rnd_range(1,3)
+            p=rnd_point
+            for x=p.x to p.x+rnd_range(2,4)
+                for y=p.y to p.y+rnd_range(2,4)
+                    if x>=0 and x<=60 and y>=0 and y<=20 then
+                    planetmap(x,y,map)=-68
+                    if rnd_range(1,100)<civ(slot).tech*10 then planetmap(p.x,p.y,map)=-272-slot
+                    endif
+                next
+            next
+        next
+    endif
+    if civ(slot).phil=3 then
+        p=rnd_point
+        for x=p.x-10 to p.x+10
+            for y=p.y-10 to p.y+10
+                if x>=0 and x<=60 and y>=0 and y<=20 then
+                    p2.x=x
+                    p2.y=y
+                    if distance(p2,p)<popu+2 then planetmap(x,y,map)=-68
+                    if rnd_range(1,100)<civ(slot).tech*10 then planetmap(p.x,p.y,map)=-272-slot
+                    if distance(p2,p)<popu then planetmap(x,y,map)=-274-slot
+                endif
+            next
+        next
+        planetmap(p.x,p.y,map)=-68
+    endif
+    return 0
+end function
+
+
+function makealienship(slot as short,t as short) as short
+    dim as short c,wc,cc,roll
+    dim chance(3) as short '3 chance for weapon 2 chance for cargo 1 chance for sensors
+    if civ(slot).inte=1 then
+        chance(1)=20
+    else
+        chance(1)=10
+    endif
+    
+    if civ(slot).inte=2 then
+        chance(2)=20
+    else
+        chance(2)=10
+    endif
+    
+    if civ(slot).inte=3 then
+        chance(3)=30
+    else
+        chance(3)=10
+    endif
+    
+    
+    civ(slot).ship(t).hull=5+rnd_range(1,civ(slot).tech)*5*(t+1)-rnd_range(1,civ(slot).phil)*3*(t+1)
+    if civ(slot).ship(t).hull<1 then civ(slot).ship(t).hull=1
+    civ(slot).ship(t).shieldmax=rnd_range(1,civ(slot).tech)-2
+    if civ(slot).ship(t).shieldmax<0 then civ(slot).ship(t).shieldmax=0
+    civ(slot).ship(t).shield=civ(slot).ship(t).shieldmax
+    civ(slot).ship(t).sensors=rnd_range(1,civ(slot).tech)
+    civ(slot).ship(t).col=civ(slot).spec.col
+    civ(slot).ship(t).engine=1
+    civ(slot).ship(t).pilot=3
+    civ(slot).ship(t).gunner=3
+    wc=2
+    cc=1
+    civ(slot).ship(t).weapons(1)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+    for c=0 to civ(slot).ship(t).hull step 5
+        if rnd_range(1,100)<75 then
+            civ(slot).ship(t).engine+=1
+        else
+            civ(slot).ship(t).engine-=1
+        endif
+        if rnd_range(1,100)<50 then
+            civ(slot).ship(t).pilot+=1
+        else
+            civ(slot).ship(t).pilot-=1
+        endif
+        if rnd_range(1,100)<50 then
+            civ(slot).ship(t).gunner+=1
+        else
+            civ(slot).ship(t).gunner-=1
+        endif
+            
+        roll=rnd_range(1,100)
+        select case roll
+        case 0 to chance(1)
+            civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+            wc+=1
+        case chance(1)+1 to chance(1)+chance(2)
+            civ(slot).ship(t).cargo(cc).x=1
+            cc+=1
+        case chance(1)+chance(2)+1 to chance(1)+chance(2)+chance(3)
+            civ(slot).ship(t).sensors+=1
+        case else
+            if civ(slot).inte=1 then
+                civ(slot).ship(t).sensors+=1
+            endif
+            if civ(slot).inte=2 then
+                civ(slot).ship(t).cargo(cc).x=1
+                cc+=1
+            endif
+            if civ(slot).inte=3 then
+                civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+                wc+=1
+            endif
+        end select
+        
+    
+    next
+    civ(slot).ship(t).c.x=rnd_range(1,60)
+    civ(slot).ship(t).c.y=rnd_range(1,20)
+    if civ(slot).ship(t).engine<1 then civ(slot).ship(t).engine=1
+    if civ(slot).ship(t).gunner<1 then civ(slot).ship(t).gunner=1
+    if civ(slot).ship(t).pilot<1 then civ(slot).ship(t).pilot=1
+    civ(slot).ship(t).h_maxweaponslot=wc-1
+    civ(slot).ship(t).h_maxhull=civ(slot).ship(t).hull
+    if t=0 then civ(slot).ship(t).icon=left(civ(slot).n,1)
+    if t=1 then civ(slot).ship(t).icon=lcase(left(civ(slot).n,1))
+    if civ(slot).inte=1 then
+        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" explorer"
+        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" scout"
+    endif
+    if civ(slot).inte=2 then 
+        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" merchantman"
+        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" transporter"
+    endif
+    if civ(slot).inte=3 then 
+        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" warship"
+        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" fighter"
+    endif
+    return 0
+end function
+
 
 function makeice(o as short,a as short) as short
     dim as short ice,x,y
@@ -6567,7 +6930,7 @@ sub planet_event(slot as short)
     dim as short x,y,a,b,t
     t=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
     if t<1 then t=1
-    if t>7 then t=7
+    if t>8 then t=8
     if t=1 or t=2 then 'Mining Colony in Distress Flag 22 
         p1.x=rnd_range(0,50)
         p1.y=rnd_range(0,15)
@@ -6616,8 +6979,11 @@ sub planet_event(slot as short)
 
     endif
     
+    if t=3 then
+        planetmap(rnd_range(0,60),rnd_range(0,20),slot)=-9
+    endif
     
-    if t=3 then 'Smith & Pirates fighting over an ancient factory Flag 23
+    if t=4 then 'Smith & Pirates fighting over an ancient factory Flag 23
         for a=0 to rnd_range(2,5)
             p1=rnd_point()
             planetmap(p1.x,p1.y,slot)=246
@@ -6665,7 +7031,7 @@ sub planet_event(slot as short)
     
     endif
     
-    if t=4 or t=5 then
+    if t=5 or t=6 then
         deletemonsters(slot)
         planets(slot).flags(24)=1
         for x=0 to 60
@@ -6718,7 +7084,7 @@ sub planet_event(slot as short)
         next b
     
     endif
-    if t=6 or t=7 then
+    if t=7 or t=8 then
         makemossworld(slot,5)
         planets(slot).atmos=4
         planets(slot).flags(25)=1
@@ -6759,7 +7125,7 @@ sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
         planetmap(x,y,slot)=-33
         endif
     next
-    if player.pirate_agr=0 then
+    if faction(0).war(2)<50 then
         for x=x1 to x1+w
             for y=y1 to y1+h
                 planetmap(x,y,slot)=-planetmap(x,y,slot)
@@ -6949,7 +7315,7 @@ function flood_fill(x as short,y as short,map() as short, flag as short=0) as sh
       endif
   endif
   if flag=1 then
-      if x>0 and y>0 and x<sm_x and y<sm_y then
+      if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
           if map(x,y)=0 then
               map(x,y)=255
           else
@@ -6961,8 +7327,35 @@ function flood_fill(x as short,y as short,map() as short, flag as short=0) as sh
           Flood_Fill(x,y-1,map(),1)
       endif
   endif
+  if flag=2 then
+      if x>=0 and y>=0 and x<=60 and y<=20 then
+          if map(x,y)=0 then
+              map(x,y)=255
+          else
+              return 0
+          endif
+          Flood_Fill(x+1,y,map(),2)
+          Flood_Fill(x-1,y,map(),2)
+          Flood_Fill(x,y+1,map(),2)
+          Flood_Fill(x,y-1,map(),2)
+      endif
+  endif
+  
 end function
 
+function flood_fill2(x as short,y as short, xm as short, ym as short, map() as byte) as short
+    if x>=0 and y>=0 and x<=xm and y<=ym then
+      if map(x,y)=1 then
+          map(x,y)=2
+      else
+          return 0
+      endif
+      Flood_Fill2(x+1,y,xm,ym,map())
+      Flood_Fill2(x-1,y,xm,ym,map())
+      Flood_Fill2(x,y+1,xm,ym,map())
+      Flood_Fill2(x,y-1,xm,ym,map())
+  endif
+end function
 
 function floodfill3(x as short,y as short,map() as short) as short
     if x>=0 and y>=0 and x<=60 and y<=20 then

@@ -1,42 +1,45 @@
 
 function meetfleet(f as short)as short
     static lastturncalled as integer
-    dim as short aggr,roll,frd,des,dialog,a,total,cloak,x,y
-    dim question(2,4) as string
+    dim as short aggr,roll,frd,des,dialog,q,a,total,cloak,x,y
+    dim question(1,7) as string
     if findbest(25,-1)>0 then cloak=5
     if player.turn>lastturncalled+2 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
             
-        question(1,1)="A Merchant Convoy hails us. Attack anyway? (y/n)"
-        question(2,1)="A Merchant Concoy. Their Escorts are on intercept course! Stay and fight? (y/n)"
+        question(0,1)="A Merchant Convoy hails us. Attack anyway? (y/n)"
+        question(1,1)="A Merchant Concoy. Their Escorts are on intercept course! Stay and fight? (y/n)"
         
-        question(1,2)="A fleet without friend foe signature. Attack them? (y/n)"
-        question(2,2)="An unidentified sensor blip. Engage? (y/n)"
+        question(0,2)="A fleet without friend foe signature. Attack them? (y/n)"
+        question(1,2)="An unidentified sensor blip. Engage? (y/n)"
         
-        question(1,3)="A company battleship on anti pirate patrol. They hail us. Attack anyway? (y/n)"
-        question(2,3)="A company battleship hails us 'Pirate Vessel stand down and prepare to be boareded.' Stay and fight? (y/n)"
+        question(0,3)="A company battleship on anti pirate patrol. They hail us. Attack anyway? (y/n)"
+        question(1,3)="A company battleship hails us 'Pirate Vessel stand down and prepare to be boareded.' Stay and fight? (y/n)"
+
+        question(0,4)="A fleet without friend foe signature. Attack them? (y/n)"
+        question(1,4)="An unidentified sensor blip. Engage? (y/n)"
         
-        question(1,4)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
-        question(2,4)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
-        if fleet(f).ty=1 or fleet(f).ty=3 then
-            aggr=player.merchant_agr
-            dialog=fleet(f).ty
+        question(0,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
+        question(1,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
+        if fleet(f).ty>5 then
+            if civ(0).contact=0 then
+                question(0,6)=civfleetdescription(fleet(f)) &", hailing us."
+                question(1,6)=civfleetdescription(fleet(f)) &",on an attack vector. Shall we engage?(y/n)"
+            else
+                question(0,6)="A "&civ(0).n &" fleet, hailing us."
+                question(1,6)="A "&civ(0).n &" fleet on an attack vector. Shall we engage?(y/n)"
+            endif
+        endif
+        dialog=fleet(f).ty
+        if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 then 
+            q=1
         else
-            aggr=player.pirate_agr
-            dialog=2
+            q=0
         endif
-        if fleet(f).ty=5 then 
-            dialog=4
-            aggr=100
-        endif
-        roll=rnd_range(1,20)+aggr
-        if roll>100 then 
-            frd=2 'tries to attack
-        else
-            return f 'tries to talk
-        endif
-        des=askyn(question(frd,dialog))
+        if q=0 then return f
+        
+        des=askyn(question(q,dialog))
         if des=0 then
-            if frd=2 then
+            if q=1 then
                 if rnd_range(1,6)+rnd_range(1,6)+player.pilot+cloak>10 then
                     dprint "you got away"
                 else
@@ -48,18 +51,9 @@ function meetfleet(f as short)as short
             endif
         endif
         if des=-1 then 
-            if dialog=2 then 'pirate
-                player.merchant_agr=player.merchant_agr-65/disnbase(player.c)
-                player.pirate_agr=player.pirate_agr+65/dispbase(player.c)
-            else
-                if dialog<>4 then
-                    player.merchant_agr=player.merchant_agr+65/disnbase(player.c)
-                    player.pirate_agr=player.pirate_agr-65/dispbase(player.c)
-                endif
-            endif
-            
+            faction(0).war(fleet(f).ty)+=5
+            if faction(0).alli>0 then faction(0).war(faction(0).alli)+=5
             playerfightfleet(f)
-            
             cls
         endif
         lastturncalled=player.turn
@@ -76,7 +70,8 @@ function playerfightfleet(f as short) as short
         basis(10).inv(a).v=0
         basis(10).inv(a).p=0
     next
-    
+    faction(0).war(fleet(f).ty)+=15
+    if faction(fleet(f).ty).alli>0 then faction(fleet(f).ty).war(faction(fleet(f).ty).alli)+=15
     player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
     player.shield=player.shieldmax
     if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
@@ -137,42 +132,40 @@ function scorefleet(byval f as _fleet) as integer
 end function
         
 function collidefleets() as short
-    dim as short a,b,c,d    
+    dim as short a,b,c,d,civ1,civ2,roll1,roll2    
     if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         for b=a to lastfleet
             if b<>a then
                 if distance(fleet(a).c,fleet(b).c)<2 and fleet(a).ty>0 and fleet(b).ty>0 then
                     c=c+1
-                    if show_npcs=1 then dprint a &" meets " & b
                     if show_npcs=1 then dprint (debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b)))
                     if fleet(a).ty<>fleet(b).ty then
-                        if fightmatrix(fleet(a).ty,fleet(b).ty)=1 then
+                        if show_npcs=3 then dprint (debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b)))
+                        roll1=0
+                        roll2=0
+                        if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
+                        if fleet(a).ty<fleet(b).ty then swap fleet(a),fleet(b) 'Higher number on a, gets rid of half of the permutations
+                        if faction(fleet(a).ty).alli<>fleet(b).ty and faction(fleet(b).ty).alli<>fleet(a).ty then
+                            roll1=rnd_range(1,10)+faction(fleet(a).ty).war(fleet(b).ty)
+                            roll2=rnd_range(1,10)+faction(fleet(b).ty).war(fleet(a).ty)
+                            if fleet(a).ty=5 then roll1=100
+                            if fleet(b).ty=5 then roll2=100
+                            if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
+                            if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
+                            if roll1>10 then faction(fleet(a).ty).war(fleet(b).ty)+=10
+                            if roll2>10 then faction(fleet(b).ty).war(fleet(a).ty)+=10
+                        endif
+                        if show_npcs=3 then dprint roll1 &":"& roll2
+                        if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
+                            if show_npcs=1 then dprint "they battle"
                             for d=1 to 5
                                 basis(10).inv(d).v=0
                                 basis(10).inv(d).p=0
                             next
                             fleet(a)=unload_f(fleet(a),10)'
                             fleet(b)=unload_f(fleet(b),10)'
-                            if fleet(a).ty=1 and fleet(b).ty=2 then 
-                                patrolmod=patrolmod+1
-                                if rnd_range(1,100)<10 and lastdrifting<128 then
-                                    lastdrifting+=1                                    
-                                    lastplanet+=1
-                                    drifting(lastdrifting).x=fleet(a).c.x
-                                    drifting(lastdrifting).y=fleet(a).c.y
-                                    drifting(lastdrifting).s=rnd_range(1,16)
-                                    drifting(lastdrifting).m=lastplanet
-                                    makedrifter(drifting(lastdrifting))
-                                    planets(lastplanet).darkness=0
-                                    planets(lastplanet).depth=1
-                                    planets(lastplanet).atmos=4
-                                    planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
-                                    planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
-                                    planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-                                endif
-                            endif
-                            if fleet(a).ty=2 and fleet(b).ty=1 then 
+                            if ((fleet(a).ty=1 and fleet(b).ty=2) or (fleet(a).ty=2 and fleet(b).ty=1)) and a>2 and b>2 then 
                                 patrolmod=patrolmod+1
                                 if rnd_range(1,100)<10 and lastdrifting<128 then
                                     lastdrifting+=1                                    
@@ -198,21 +191,28 @@ function collidefleets() as short
                                 basis(10).inv(d).p=0
                             next
                             fleet(b).ty=0
+                        
                         endif
-                    else
-                        if fleet(a).ty=2 and distance(fleet(a).c,fleet(b).c)<1 then fleet(a)=addfleets(fleet(a),fleet(b))
                     endif
-                    if show_npcs=1 then dprint debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b))
+                else
+                    if fleet(a).ty=2 and distance(fleet(a).c,fleet(b).c)<1 then fleet(a)=addfleets(fleet(a),fleet(b))
                 endif
+                if show_npcs=1 then dprint debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b))
             endif
         next
+    next
+    for a=3 to lastfleet
+        if fleet(a).ty=0 then 
+            fleet(a)=fleet(lastfleet)
+            lastfleet-=1
+        endif
     next
     return 0
 end function
 
 function ss_sighting(i as short) as short
     dim as string text,text2
-    dim as short fn,a 
+    dim as short fn,a,s 
     dim as _cords p
     if basis(i).lastsighting=0 then return 0
     fn=basis(i).lastsighting
@@ -242,6 +242,14 @@ function ss_sighting(i as short) as short
                 endif
             endif
             if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
+            if fleet(fn).ty>5 then
+                s=fleet(fn).ty-6
+                if civ(s).contact=1 then
+                    text=text &" a "&civ(s).n &" ship."
+                else
+                    text =text &" a ship of unknown configuration."
+                endif
+            endif
         endif
     endif
     if rnd_range(1,100)>alienattacks and player.questflag(3)=0 then
@@ -270,7 +278,7 @@ function movefleets() as short
     dim as short a,b,c,roll,direction,freecargo,s
     a=0
     if lastfleet>255 then lastfleet=255
-    for a=1 to lastfleet
+    for a=3 to lastfleet
         updatetargetlist()
         if fleet(a).ty=2 then
             freecargo=0
@@ -281,7 +289,7 @@ function movefleets() as short
                     next
                 endif
             next
-            if freecargo=0 then fleet(a).t=10
+            if freecargo=0 then fleet(a).t=0
         endif
         roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
         if roll>5 then
@@ -295,9 +303,22 @@ function movefleets() as short
         
         'Check if reached target (for targetnumbers 1-7)
         if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<=lastwaypoint then
-            if fleet(a).ty=1 then fleet(a)=merctrade(fleet(a))
+            if fleet(a).ty=1 then
+                fleet(a)=merctrade(fleet(a))
+            endif
+            if fleet(a).ty>5 then
+                if civ(fleet(a).ty-6).inte=2 then
+                    fleet(a)=merctrade(fleet(a))
+                endif
+                if fleet(a).c.x=civ(fleet(a).ty-6).home.x and fleet(a).c.y=civ(fleet(a).ty-6).home.y then
+                    fleet(a)=unload_f(fleet(a),11)
+                    fleet(a)=load_f(fleet(a),11)
+                endif
+            endif
             fleet(a).t=fleet(a).t+1 'Pirates have targetnumbers 8 or 9, they will never see this
-            if fleet(a).t>lastwaypoint then fleet(a).t=firststationw
+            if fleet(a).t>lastwaypoint and fleet(a).ty=1 or fleet(a).ty=3 then fleet(a).t=firststationw
+            if fleet(a).ty=6 and fleet(a).t>6 then fleet(a).t=3
+            if fleet(a).ty=7 and fleet(a).t>10 then fleet(a).t=7
         endif
         
         for s=0 to 2
@@ -308,6 +329,12 @@ function movefleets() as short
                     basis(s).lastsightingturn=player.turn
                 endif
             endif
+            if fleet(a).ty>5 then
+                if distance(fleet(a).c,basis(s).c)<fleet(a).mem(1).sensors then 
+                    civ(fleet(a).ty-6).knownstations(s)=1
+                    if show_npcs then dprint civ(fleet(a).ty-6).n &"has discovered station "&s+1
+                endif
+            endif
         next
     next
     return 0
@@ -316,7 +343,7 @@ end function
 function makefleet(f as _fleet) as _fleet
     dim as short roll
     roll=rnd_range(1,6)
-    if countfleet(1)<countfleet(2) or player.merchant_agr>player.pirate_agr then 
+    if countfleet(1)<countfleet(2) or faction(0).war(1)>faction(0).war(2) then 
         f=makemerchantfleet
     else
         if _easy=1 or player.turn>250 then 
@@ -331,7 +358,6 @@ function makefleet(f as _fleet) as _fleet
         patrolmod=0
         makepat=makepat+1
     endif
-    if frac(player.turn/100)=0 and player.turn>1000 then f=makealienfleet
     return f 
 end function
 
@@ -459,13 +485,77 @@ end function
 function makealienfleet() as _fleet
     dim f as _fleet
     f.ty=5
-    f.mem(0)=makeship(11)
+    f.mem(1)=makeship(11)
     if sysfrommap(specialplanet(29))>0 then
         f.c=map(sysfrommap(specialplanet(29))).c
     else
         f.c=map(sysfrommap(specialplanet(30))).c
     endif
     return f
+end function
+
+function makecivfleet(slot as short) as _fleet
+    dim f as _fleet
+    dim as short s,p
+    f.ty=6+slot
+    s=civ(slot).phil
+    if civ(slot).phil=2 and rnd_range(1,100)<50 then s=s+rnd_range(1,2)
+    if civ(slot).phil=3 and rnd_range(1,100)<33 then s=s+rnd_range(2,8)
+    for p=1 to s
+        if rnd_range(0,100)<55-civ(slot).phil*5 then
+            f.mem(p)=civ(slot).ship(0)
+        else
+            f.mem(p)=civ(slot).ship(1)
+        endif
+        f.mem(p).c=rnd_point
+    next
+    f.c=civ(slot).home
+    f.t=3'+slot
+    return f
+end function
+
+function civfleetdescription(f as _fleet) as string
+    dim t as string
+    dim as short slot,nos,a
+    slot=f.ty-6
+    for a=1 to 15
+        if f.mem(a).hull>0 then nos+=1
+    next
+    if nos=1 then t="a single "
+    if nos>1 and nos<4 then t="a small group of "
+    if nos>=4 and nos<8 then t="a group of "
+    if nos>=8 then t="a fleet of "
+    t=t &"("&slot &")"
+    if f.mem(1).hull<=2 then t=t &" tiny "
+    if f.mem(1).hull>2 and f.mem(1).hull<5 then t=t &" small "
+    if f.mem(1).hull>10 and f.mem(1).hull<15 then t=t &" big "
+    if f.mem(1).hull>15 then t=t &" huge "
+    if nos=1 then
+        t=t &" ship "
+    else
+        t=t &" ships "
+    endif
+    if civ(slot).contact=1 then
+        if nos=1 then
+            t=t &" It's configuration is "&civ(slot).n &"."
+        else
+            t=t &" They are "&civ(slot).n &"."
+        endif
+    else
+        if nos=1 then
+            t=t &"It's configuration is alien, but it seems to be "
+            if civ(slot).inte=1 then t=t &"an explorer."
+            if civ(slot).inte=2 then t=t &"a trader."
+            if civ(slot).inte=3 then t=t &"a warship."
+        else
+            t=t &"their configuration is alien but they seem to be "
+            if civ(slot).inte=1 then t=t &"explorers."
+            if civ(slot).inte=2 then t=t &"traders."
+            if civ(slot).inte=3 then t=t &"warships."
+        endif
+    endif
+    if show_NPCs then t=t &slot
+    return t
 end function
 
 function addfleets(byref target as _fleet,byref source as _fleet) as _fleet
@@ -554,7 +644,7 @@ function clearfleetlist() as short
     do
     c=0
     countpatrol=0
-    for a=1 to lastfleet
+    for a=3 to lastfleet
         if fleet(a).ty=3 then countpatrol=countpatrol+1
         if fleet(a).ty=0 then
             c=c+1
@@ -576,7 +666,7 @@ end function
 
 function countfleet(ty as short) as short
     dim as short a,r
-    for a=1 to lastfleet
+    for a=3 to lastfleet
         if fleet(a).ty=ty then r=r+1
     next
     return r
@@ -591,10 +681,34 @@ function updatetargetlist()as short
     targetlist(1).x=player.c.x
     targetlist(1).y=player.c.y
     if frac(lastcalled/25)=0 then
-    targetlist(0).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
-    targetlist(0).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
-    targetlist(2)=map(piratebase(b)).c
-    'targetlist(9)=fleet(rnd_range(1,lastfleet)).c
+        targetlist(0).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
+        targetlist(0).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
+        targetlist(2)=map(piratebase(b)).c
+        targetlist(3).x=rnd_range(0,sm_x)
+        targetlist(3).y=rnd_range(0,sm_y)
+        targetlist(4).x=rnd_range(0,sm_x)
+        targetlist(4).y=rnd_range(0,sm_y)
+        targetlist(5).x=rnd_range(0,sm_x)
+        targetlist(5).y=rnd_range(0,sm_y)
+        
+        targetlist(7).x=rnd_range(0,sm_x)
+        targetlist(7).y=rnd_range(0,sm_y)
+        targetlist(8).x=rnd_range(0,sm_x)
+        targetlist(8).y=rnd_range(0,sm_y)
+        targetlist(9).x=rnd_range(0,sm_x)
+        targetlist(9).y=rnd_range(0,sm_y)
+    endif
+    targetlist(6)=civ(0).home
+    if civ(0).inte=2 then
+        if civ(0).knownstations(0)=1 then targetlist(3)=basis(0).c
+        if civ(0).knownstations(1)=1 then targetlist(4)=basis(1).c
+        if civ(0).knownstations(2)=1 then targetlist(5)=basis(2).c
+    endif
+    targetlist(10)=civ(1).home
+    if civ(1).inte=2 then
+        if civ(1).knownstations(0)=1 then targetlist(7)=basis(0).c
+        if civ(1).knownstations(1)=1 then targetlist(8)=basis(1).c
+        if civ(1).knownstations(2)=1 then targetlist(9)=basis(2).c
     endif
     lastcalled=lastcalled+1
     return 0
@@ -628,9 +742,9 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
     return enemy
 end function
 
-function makemonster(a as short, map as short) as _monster
+function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     dim enemy as _monster
-    dim as short b,c,d,l,mapo,g,r,ahp
+    dim as short d,e,l,mapo,g,r,ahp
     dim as single easy
     static ti(11) as string
     static ch(11) as short
@@ -683,15 +797,15 @@ function makemonster(a as short, map as short) as _monster
         if crew(g).hp>0 then ahp=ahp+1
     next
     
-    b=(ahp\12)+1 'HD size
-    b=b+planets(map).depth
-    if b<2 then b=2
-    if b>8 then b=8
-    
-    c=(ahp\15)+1 'Times rolled
-    if c<1 then c=1
-    if c>10 then c=10
-     'maxpossible
+    'b=(ahp\12)+1 'HD size
+'    'b=b+planets(map).depth
+'    if b<2 then b=2
+'    if b>8 then b=8
+'    
+'    c=(ahp\15)+1 'Times rolled
+'    if c<1 then c=1
+'    if c>10 then c=10
+'     'maxpossible
 '        
     enemy.made=a 'saves how the critter was made for respawning
     
@@ -757,7 +871,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.items(2)=92
             enemy.itemch(2)=55
         endif
-        
+        if forcearms>0 then enemy.pumod=-1 '2 arms minimum
         g=rnd_range(0,10)
         if a=24 and rnd_range(1,100)>50 then g=11
         enemy.tile=ch(g)
@@ -779,7 +893,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.breedson=rnd_range(0,5+planets(map).depth)
         endif
         if enemy.breedson=0 and enemy.aggr=0 and enemy.intel<4 and rnd_range(1,100)<33 then
-            enemy.hp=enemy.hp+rnd_range(1,b)+rnd_range(1,b)
+            enemy.hp=enemy.hp+rnd_range(1,4)+rnd_range(1,2)
             enemy.hpmax=enemy.hp
             enemy.invis=2
             enemy.aggr=0
@@ -909,12 +1023,11 @@ function makemonster(a as short, map as short) as _monster
         'Fighting Stats
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
+        enemy.hp=enemy.hp+rnd_range(4,10)
         enemy.hp=enemy.hp+5+enemy.weapon
         enemy.sight=rnd_range(3,6)
-        
+        enemy.allied=2
+        enemy.enemy=1
         'Behavior
         enemy.aggr=0
         enemy.respawns=0
@@ -926,7 +1039,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=276
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -942,7 +1055,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=enemy.hp
         enemy.cmmod=6
         enemy.lang=9
-        if player.pirate_agr>0 or a=3 then 
+        if faction(0).war(2)>100 or a=3 then 
             enemy.aggr=0
         else
             enemy.aggr=1
@@ -956,7 +1069,7 @@ function makemonster(a as short, map as short) as _monster
         
         enemy.weapon=rnd_range(0,1)
         enemy.range=2+enemy.weapon
-        enemy.hp=(rnd_range(1,b)+rnd_range(1,b))*(enemy.weapon+1)
+        enemy.hp=(rnd_range(1,3)+rnd_range(1,3))*(enemy.weapon+1)
         
         enemy.hpmax=enemy.hp
         enemy.aggr=0
@@ -1040,10 +1153,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.hasoxy=1
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
-        enemy.hp=5+enemy.hp+b+planets(a).depth
+        enemy.hp=5+enemy.hp+planets(a).depth
         enemy.biomod=0
         enemy.weapon=rnd_range(1,6)-3
         if enemy.weapon<0 then enemy.weapon=0
@@ -1077,10 +1190,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=5
         enemy.hasoxy=1
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 5+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,5+planets(a).depth)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
         enemy.range=enemy.weapon+1
@@ -1129,9 +1242,9 @@ function makemonster(a as short, map as short) as _monster
      
     if a=11 then 'Sandworm
         enemy.made=11
-        enemy.hp=rnd_range(1,c)+rnd_range(1,c)+rnd_range(1,c)+50        
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        enemy.hp=50        
+        for l=1 to 8
+            enemy.hp=enemy.hp+rnd_range(1,10)
         next
         enemy.armor=3
         enemy.weapon=2
@@ -1160,10 +1273,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=1
         enemy.range=1.5
         enemy.weapon=2
-        enemy.hp=rnd_range(1,c)+8
+        enemy.hp=rnd_range(1,3)+8
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
         enemy.hpmax=enemy.hp
         enemy.biomod=1
@@ -1186,9 +1299,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=1.3
         enemy.atcost=rnd_range(9,12)/10
         enemy.weapon=1
-        enemy.hp=rnd_range(1,b)
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        enemy.hp=rnd_range(1,3)
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
         enemy.biomod=1.5
         enemy.hpmax=enemy.hp
@@ -1208,10 +1321,12 @@ function makemonster(a as short, map as short) as _monster
         enemy.move=0.8
         enemy.pumod=5
         enemy.sight=4
+        enemy.allied=1
+        enemy.enemy=2
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
         enemy.hasoxy=1
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -1229,6 +1344,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=6
+        enemy.allied=1
+        enemy.enemy=2
         enemy.aggr=1
         enemy.hasoxy=1
         enemy.diet=4 'Resources
@@ -1276,8 +1393,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=rnd_range(1,4)-2
         if enemy.weapon<0 then enemy.weapon=0
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(2,8)
         next
         enemy.hp=enemy.hp+rnd_range(1,2)+enemy.weapon
         enemy.hpmax=enemy.hp
@@ -1311,10 +1428,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.atcost=rnd_range(8,12)/10
         enemy.weapon=rnd_range(1,2)
         enemy.range=2+enemy.weapon
-        enemy.hp=(rnd_range(1,c)+rnd_range(1,c))*(enemy.weapon)
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
-        next
+        enemy.hp=(rnd_range(1,3)+rnd_range(1,3))*(enemy.weapon)
         enemy.biomod=1.4
         enemy.hpmax=enemy.hp
         enemy.aggr=0
@@ -1334,8 +1448,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,5)-3+planets(map).depth
         if enemy.weapon<0 then enemy.weapon=0
-        for l=1 to c+planets(map).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 1+planets(map).depth
+            enemy.hp=enemy.hp+rnd_range(1,2)
         next
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
@@ -1385,9 +1499,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=5
         enemy.hasoxy=1
         enemy.invis=1
-        enemy.hp=rnd_range(1,c)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        enemy.hp=rnd_range(1,5)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,10)
         next
         enemy.weapon=rnd_range(4,6)-3
         if enemy.weapon<0 then enemy.weapon=0
@@ -1418,9 +1532,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=2
         enemy.swhat="shoots its gaussgun!"
         enemy.scol=11
-        enemy.hp=rnd_range(1,b)
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3
+            enemy.hp=enemy.hp+rnd_range(1,3)
         next
         enemy.hpmax=enemy.hp
         enemy.move=0.8
@@ -1441,9 +1554,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=1
         enemy.range=1.5
         enemy.weapon=2
-        enemy.hp=rnd_range(1,c)+8
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
         enemy.sprite=274
         enemy.hpmax=enemy.hp
@@ -1492,9 +1604,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=3
         enemy.range=1.5
         enemy.weapon=1
-        enemy.hp=rnd_range(1,c)+8
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 2
+            enemy.hp=enemy.hp+rnd_range(1,10)
         next
         enemy.cmmod=8
         enemy.atcost=rnd_range(6,8)/10
@@ -1531,11 +1642,11 @@ function makemonster(a as short, map as short) as _monster
             enemy.scol=12
             enemy.swhat="shoots lasers"
         endif
-        enemy.hp=rnd_range(2,5)+rnd_range(2,5)+b+c
+        enemy.hp=rnd_range(2,5)+rnd_range(2,5)
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,1)
         enemy.weapon=rnd_range(1,3)
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=277
         enemy.col=18
         enemy.move=1
@@ -1596,7 +1707,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.dkill="dies"
         enemy.biomod=1
         enemy.hasoxy=1
-        enemy.hp=rnd_range(2,18)+rnd_range(2,8)+c+b
+        enemy.hp=rnd_range(2,18)+rnd_range(2,8)
         enemy.range=3.5
         enemy.weapon=2
         enemy.move=1.3
@@ -1619,7 +1730,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.pumod=5
         enemy.sight=4
         enemy.range=1.5
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -1670,7 +1781,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=1'Resources
         enemy.pumod=60
         enemy.range=rnd_range(1,4)+0.5
-        enemy.hp=rnd_range(2,5)+rnd_range(2,5)+b+c
+        enemy.hp=rnd_range(1,4)+rnd_range(1,4)
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,1)
         enemy.tile=asc("x")
@@ -1719,6 +1830,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.cmmod=6
         enemy.aggr=1
         enemy.diet=0
+        enemy.allied=1
+        enemy.enemy=2
         enemy.hasoxy=1
         enemy.pumod=60
         enemy.atcost=rnd_range(6,8)/10
@@ -1754,32 +1867,32 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=53
         enemy.respawns=0
         enemy.sdesc="crewmember"
-        b=rnd_range(1,100)
-        if b<20 then
-            c=rnd_range(3,9)
-            enemy.ldesc="a dead member of the crew of this ship. He has a " & makeitem(c).desig &" between his legs, firm in his hands. His head is missing."
-            enemy.items(0)=c
+        e=rnd_range(1,100)
+        if e<20 then
+            d=rnd_range(3,9)
+            enemy.ldesc="a dead member of the crew of this ship. He has a " & makeitem(d).desig &" between his legs, firm in his hands. His head is missing."
+            enemy.items(0)=d
             enemy.itemch(0)=100
         endif
-        if b>19 and b<50 then
+        if e>19 and e<50 then
             enemy.ldesc="This crewmember suffocated in his spacesuit."
         endif
-        if b>49 and b<60 then
+        if e>49 and e<60 then
             enemy.ldesc="A crewmember lying dead in a corner."
         endif
-        if b>59 and b<70 then
+        if e>59 and e<70 then
             enemy.ldesc="This crewmember took off his helmet. His head is covered in ice."
         endif
-        if b>69 and b<80 then
+        if e>69 and e<80 then
             enemy.ldesc="This crewmember suffocated in his spacesuit."
         endif
-        if b>79 then
+        if e>79 then
             enemy.ldesc="This crewmember suffocated in his spacesuit. His oxygen tank is missing"
         endif
     endif
     
     if a=34 then 'Mushroom
-        enemy.hp=rnd_range(2,25)
+        enemy.hp=rnd_range(2,5)
         enemy.hpmax=enemy.hp
         enemy.tile=asc("9")
         enemy.col=26
@@ -1805,8 +1918,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,4)-2
         if enemy.weapon<0 then enemy.weapon=0
-        for l=1 to c+1+ad(g)
-            enemy.hp=enemy.hp+rnd_range(3,b)
+        for l=1 to 5+ad(g)
+            enemy.hp=enemy.hp+rnd_range(3,6)
         next
         enemy.hp=enemy.hp+rnd_range(1,2)+enemy.weapon+10
         enemy.hpmax=enemy.hp
@@ -1886,12 +1999,14 @@ function makemonster(a as short, map as short) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
+        enemy.allied=1
+        enemy.enemy=2
         enemy.pumod=5
         enemy.sight=4
         enemy.move=0.6
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -1924,7 +2039,7 @@ function makemonster(a as short, map as short) as _monster
             enemy.scol=12
             enemy.swhat="shoots lasers"
         endif
-        enemy.hp=rnd_range(2,5)+rnd_range(2,5)+b+c+a
+        enemy.hp=rnd_range(2,5)+rnd_range(2,5)+5
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(1,3)
         enemy.weapon=rnd_range(1,3)
@@ -1950,8 +2065,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,4)-2
         if enemy.weapon<0 then enemy.weapon=0
-        for l=1 to c+1+ad(g)
-            enemy.hp=enemy.hp+rnd_range(3,b)
+        for l=1 to 6+ad(g)
+            enemy.hp=enemy.hp+rnd_range(3,6)
         next
         enemy.hp=enemy.hp+rnd_range(1,2)+enemy.weapon
         enemy.hpmax=enemy.hp
@@ -2052,7 +2167,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.aggr=1
         enemy.pumod=60
         enemy.range=rnd_range(1,4)+0.5
-        enemy.hp=rnd_range(2,5)+rnd_range(2,5)+b+c
+        enemy.hp=rnd_range(2,5)+rnd_range(2,5)
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,1)
         enemy.tile=asc("Q")
@@ -2126,7 +2241,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-21
         enemy.pumod=-60
         enemy.range=1.5
-        enemy.hp=10+rnd_range(1,b)+rnd_range(1,c)
+        enemy.hp=10+rnd_range(1,5)+rnd_range(1,5)
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,3)
         enemy.tile=asc("T")
@@ -2152,10 +2267,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 5+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=20+enemy.hp+planets(a).depth
         
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
@@ -2210,7 +2325,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=4
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -2229,10 +2344,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=rnd_range(0,5)+5+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
@@ -2241,10 +2353,12 @@ function makemonster(a as short, map as short) as _monster
         enemy.stuff(1)=rnd_range(0,1)
         enemy.stuff(2)=rnd_range(0,1)
         'Looks
+        enemy.allied=1
+        enemy.enemy=2
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=276
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -2260,7 +2374,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=enemy.hp
         enemy.cmmod=6
         enemy.lang=9
-        if player.pirate_agr>0 then 
+        if faction(0).war(2)>=100 then 
             enemy.aggr=0
         else
             enemy.aggr=1
@@ -2286,12 +2400,11 @@ function makemonster(a as short, map as short) as _monster
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(2,b)
-        next
-        enemy.hp=enemy.hp+5+enemy.weapon
+        enemy.hp=rnd_range(10,15)+15+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
+        enemy.allied=1
+        enemy.enemy=2
         enemy.respawns=0
         enemy.move=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))/10
         if enemy.move<=0.5 then enemy.move=.6
@@ -2300,7 +2413,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=276
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -2315,7 +2428,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=enemy.hp
         enemy.cmmod=6
         enemy.lang=9
-        if player.pirate_agr>0 then 
+        if faction(0).war(2)>=100 then 
             enemy.aggr=0
         else
             enemy.aggr=1
@@ -2349,10 +2462,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.sight=5
         enemy.hasoxy=1
             
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 6
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
-        enemy.hp=5+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         enemy.biomod=0
         enemy.weapon=rnd_range(1,6)-3
         if enemy.weapon<0 then enemy.weapon=0
@@ -2394,10 +2507,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.hasoxy=1
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
-        enemy.hp=5+enemy.hp+b+planets(a).depth
+        enemy.hp=5+enemy.hp+planets(a).depth
         enemy.biomod=0
         enemy.weapon=rnd_range(1,6)-3
         if enemy.weapon<0 then enemy.weapon=0
@@ -2440,10 +2553,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,3)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
         enemy.range=4
@@ -2495,10 +2608,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
         enemy.range=4
@@ -2552,10 +2665,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,6)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
         enemy.range=4
@@ -2568,9 +2681,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=137
         enemy.sight=rnd_range(1,3)+rnd_range(1,3)-1
         enemy.sprite=278
-        enemy.hp=rnd_range(1,c)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        enemy.hp=rnd_range(1,5)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
         enemy.atcost=.2
         enemy.sdesc="living energy"
@@ -2600,10 +2713,10 @@ function makemonster(a as short, map as short) as _monster
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
-        for l=1 to c+planets(a).depth
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3+planets(a).depth
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
-        enemy.hp=15+enemy.hp+b+planets(a).depth
+        enemy.hp=15+enemy.hp+planets(a).depth
         
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
@@ -2617,9 +2730,9 @@ function makemonster(a as short, map as short) as _monster
         enemy.col=137
         enemy.sight=rnd_range(1,3)+rnd_range(1,3)-1
         enemy.sprite=278
-        enemy.hp=30+rnd_range(1,c)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        enemy.hp=30+rnd_range(1,5)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
         next
         enemy.sdesc="bladebot"
         enemy.weapon=10
@@ -2645,6 +2758,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.dkill="dies"
         enemy.cmmod=6
         enemy.aggr=1
+        enemy.allied=2
+        enemy.enemy=1
         enemy.pumod=6
         enemy.atcost=rnd_range(6,8)/10
         for l=1 to 5
@@ -2662,7 +2777,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(1,3)
         enemy.weapon=rnd_range(1,3)
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=287
         enemy.col=20
         enemy.move=.6
@@ -2688,9 +2803,8 @@ function makemonster(a as short, map as short) as _monster
         enemy.weapon=2
         enemy.swhat="shoots its gaussgun!"
         enemy.scol=11
-        enemy.hp=rnd_range(1,b)
-        for l=1 to c
-            enemy.hp=enemy.hp+rnd_range(1,b)
+        for l=1 to 3
+            enemy.hp=enemy.hp+rnd_range(1,3)
         next
         enemy.hpmax=enemy.hp
         enemy.move=0.8
@@ -2716,15 +2830,13 @@ function makemonster(a as short, map as short) as _monster
         enemy.atcost=1.1
         enemy.armor=7
         enemy.hasoxy=1
-            
-        enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.stuff(1)=0
         enemy.col=239
         enemy.aggr=0
         enemy.move=1.8
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sdesc="crystal hybrid"
         enemy.ldesc="this once was a human being. It's arms, legs and head are encased in crystal tubes, fused to bare flesh. The torso is covered in the torn remains of a starship uniform. The half covered head looks like a grotesque helmet."
         enemy.armor=3
@@ -2824,7 +2936,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.dkill="dies"
         enemy.biomod=1
         enemy.hasoxy=1
-        enemy.hp=rnd_range(1,2)+rnd_range(2,4)
+        enemy.hp=rnd_range(2,4)
         enemy.range=1.5
         enemy.weapon=1
         enemy.move=.3
@@ -2872,14 +2984,13 @@ function makemonster(a as short, map as short) as _monster
         enemy.atcost=1.1
         enemy.armor=3
         enemy.hasoxy=1
-        enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.stuff(1)=0
         enemy.col=240
         enemy.aggr=0
         enemy.move=1.8
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sdesc="crystal hybrid"
         enemy.ldesc="this once was a human being. It's arms, legs and head are encased in crystal tubes, fused to bare flesh. The torso is still bare. You can see the torn uniform of a scout ship security team member."
         enemy.hpmax=rnd_range(2,5)+rnd_range(2,5)
@@ -2912,9 +3023,11 @@ function makemonster(a as short, map as short) as _monster
         enemy.pumod=5
         enemy.sight=4
         enemy.range=1.5
+        enemy.allied=2
+        enemy.enemy=1
         enemy.atcost=rnd_range(6,12)/10
         enemy.hasoxy=1
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -2987,7 +3100,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=2
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3023,7 +3136,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=10
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3061,7 +3174,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=2
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3097,7 +3210,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=10
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3133,7 +3246,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
         enemy.hasoxy=1
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
@@ -3160,7 +3273,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=2
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3197,7 +3310,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=10
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3236,7 +3349,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=2
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3273,7 +3386,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.biomod=0
         enemy.col=10
         enemy.scol=10
-        enemy.tile=asc("@")
+        enemy.tile=asc("H")
         enemy.sprite=2
         enemy.dhurt="hurt"
         enemy.dkill="dies" 
@@ -3308,7 +3421,7 @@ function makemonster(a as short, map as short) as _monster
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)/10
         enemy.hasoxy=1
-        enemy.tile=Asc("@")
+        enemy.tile=Asc("H")
         enemy.sprite=286
         enemy.hpmax=1
         enemy.hp=1
@@ -3427,8 +3540,6 @@ dim as short c,b
         p.doctor=1
         p.engine=1
         p.weapons(1)=makeweapon(1)
-        p.pirate_agr=100
-        p.merchant_agr=0
         p.lastvisit.s=-1
     endif
     
@@ -3995,7 +4106,27 @@ dim as short c,b
         p.cargo(2).x=1
     endif
     
-    
+    if a=33 then
+        p.c.x=30
+        p.c.y=10
+        p.shiptype=2
+        p.sensors=7
+        p.hull=128
+        p.shield=8
+        p.gunner=4
+        p.ecm=0
+        p.desig="Spacestation"
+        p.icon="S"
+        p.col=15
+        p.weapons(1)=makeweapon(7)
+        p.weapons(2)=makeweapon(7)
+        p.weapons(3)=makeweapon(7)
+        p.weapons(4)=makeweapon(7)
+        p.weapons(5)=makeweapon(7)
+        p.weapons(6)=makeweapon(3)
+        p.weapons(7)=makeweapon(3)
+        p.weapons(8)=makeweapon(3)
+    endif
     return p
 end function
 

@@ -68,7 +68,6 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             endif
         endif
     next
-    
     p=defender.c
     defender.dead=-1
     defender.c.x=30
@@ -77,6 +76,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     senbat=defender.sensors+2
     senbat1=defender.sensors+1
     senbat2=defender.sensors
+    if attacker(1).shiptype=2 then defender.c.x=0
     cls
     player=defender
     displayship(0)
@@ -92,7 +92,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         st=speed(0)
         for a=1 to lastenemy
             speed(a)=speed(a)+attacker(a).engine
-            attacker(a).sensors=attacker(a).sensors*3
+            attacker(a).sensors=attacker(a).sensors+2
             if attacker(a).c.x=attacker(a+1).c.x and attacker(a).c.y=attacker(a+1).c.y  then attacker(a).c=movepoint(attacker(a).c,5)
             if st<speed(a) then st=speed(a)
         next
@@ -129,7 +129,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 endif
                 
                 if key=key_ru then 
-                    victory=com_flee(defender,lastenemy)
+                    victory=com_flee(defender,attacker(),lastenemy)
                     if victory=1 then
                         defender.c=p
                         return defender
@@ -176,7 +176,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             for b=1 to lastenemy 'enemymovement
                 if a>=tick(b)and speed(b)>0 then
                     if attacker(b).shiptype=0 then                    
-                        if distance(defender.c,attacker(b).c)>attacker(b).sensors+(senbat*senac) then
+                        if distance(defender.c,attacker(b).c)>attacker(b).sensors then
                             attacker(b).target.x=rnd_range(0,60)
                             attacker(b).target.y=rnd_range(0,20)
                         else
@@ -187,7 +187,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     
                     c=nearest(attacker(b).target,attacker(b).c)
                     old=attacker(b).c
-                    attacker(b).c=movepoint(attacker(b).c,c)
+                    if distance(defender.c,attacker(b).c)>com_mindist(attacker(b)) and attacker(b).shiptype=0 and distance(defender.c,attacker(b).c)<attacker(b).sensors then attacker(b).c=movepoint(attacker(b).c,c)
                     if old.x<>attacker(b).c.x or old.y<>attacker(b).c.y then
                         e_last=e_last+1
                         if e_last>128 then e_last=1
@@ -255,7 +255,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             player=defender
             displayship(0)
         endif
-        if key=key_ru then victory=com_flee(defender,lastenemy)
+        if key=key_ru then victory=com_flee(defender,attacker(),lastenemy)
         if victory=1 then 
             defender.c=p
             return defender
@@ -359,7 +359,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             endif
         next
         
-        if key=key_ru and victory<>1 then victory=com_flee(defender,lastenemy)
+        if key=key_ru and victory<>1 then victory=com_flee(defender,attacker(),lastenemy)
         if victory=1 then
             defender.c=p
             return defender
@@ -993,22 +993,21 @@ function com_criticalhit(t as _ship, roll as short) as _ship
     return t
 end function
 
-function com_flee(defender as _ship,lastenemy as short) as short
+function com_flee(defender as _ship,attacker() as _ship,lastenemy as short) as short
     dim as short roll,victory 
     if defender.c.x=0 or defender.c.x=60 or defender.c.y=0 or defender.c.y=20 then
         roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot+addtalent(2,7,1)
         if findbest(25,-1)>0 then roll=roll+5
-        if roll>6+lastenemy then
-                dprint "you manage to get away",10
-                victory=1            
-            else
-                cls
-                displayship(0)
-                dprint "you dont get away",12
-                defender.c.x=30
-                defender.c.y=10
-            endif
-       
+        if roll>6+lastenemy or attacker(1).shiptype=2 then
+            dprint "you manage to get away",10
+            victory=1            
+        else
+            cls
+            displayship(0)
+            dprint "you dont get away",12
+            defender.c.x=30
+            defender.c.y=10
+        endif
     else
         dprint "you need to be at a map border",14
     endif
@@ -1042,6 +1041,15 @@ function com_testweap(w as _weap, p1 as _cords,attacker() as _ship,lastenemy as 
         if b=0 then r=0
     endif
     return r
+end function
+
+function com_mindist(s as _ship) as short
+    dim as short d,a
+    d=999
+    for a=1 to 10
+        if s.weapons(a).range>0 and s.weapons(a).range<d then d=s.weapons(a).range
+    next
+    return d
 end function
 
 function com_remove(attacker() as _ship, t as short, lastenemy as short) as short
