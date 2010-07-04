@@ -2834,12 +2834,20 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     endif
     
     dawn=rnd_range(1,60)
-    
+    do
+        b=0
+        for a=1 to lastenemy
+            if enemy(a).c.x=awayteam.c.x and enemy(a).c.y=enemy(a).c.y then 
+                enemy(a).c=movepoint(enemy(a).c,5)
+                b=1
+            endif
+        next
+    loop until b=0
+
     if planets(slot).flavortext<>"" then
         dprint planets(slot).flavortext
         no_key=keyin
     endif
-    
     '***********************
     '
     'Planet Exploration Loop

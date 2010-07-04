@@ -874,7 +874,7 @@ function foreignpolicy(c as short, i as byte) as short
                 dprint "They seem to consider your arguments"
             endif
         endif
-        if b=2 then
+        if b=3 then
             dprint "You try to convince the "&civ(c).n &" to initiate peace talks"
             if rnd_range(1,6)+rnd_range(1,6)+civ(o).contact>9 then 
                 faction(c+6).war(f)+=5

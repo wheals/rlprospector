@@ -306,16 +306,15 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         mx=sm_x
         my=sm_y
     endif
+    
     for x=0 to mx
         for y=0 to my
             vismask(x,y)=-1
         next
     next
+    
     for x=a.c.x-12 to a.c.x+12 step 1
         for y=a.c.y-12 to a.c.y+12 step 1
-            'if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 or x=0 or y=my or x=mx or x=0 then    
-            
-            'if x>=0 and x<=79 and y>=0 and y<=25 then level(l).vis(x,y)=1
             if y>=0 and x>=0 and y<=my and x<=mx then
                 if vismask(x,y)=-1 then
                     mask=1
@@ -347,7 +346,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             endif
         next
     next
-    
+
     for x2=a.c.x-1 to a.c.x+1
         for y2=a.c.y-1 to a.c.y+1
             if x2>=0 and y2>=0 and x2<=mx and y2<=my then vismask(x2,y2)=1
@@ -390,21 +389,30 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
 end function
 
 function vistest(a as _monster,m as short,mx as short,my as short,x as short,y as short, vismask() as byte) as short
+    dim p as _cords
     if vismask(x,y)=-1 then vismask(x,y)=0
     if vismask(x,y)=1 then
         if m>0 then
             if tmap(x,y).seetru=0 then
                 if x>0 then
-                    if vismask(x-1,y)=0 and a.c.x>x then vismask(x-1,y)=1
+                    p.x=x-1
+                    p.y=y
+                    if vismask(x-1,y)=0 and a.c.x>x and distance(a.c,p)<=a.sight then vismask(x-1,y)=1
                 endif
                 if x<mx then
-                    if vismask(x+1,y)=0 and a.c.x<x then vismask(x+1,y)=1
+                    p.x=x+1
+                    p.y=y
+                    if vismask(x+1,y)=0 and a.c.x<x and distance(a.c,p)<=a.sight then vismask(x+1,y)=1
                 endif
                 if y>0 then
-                    if vismask(x,y-1)=0 and a.c.y>y then vismask(x,y-1)=1
+                    p.x=x
+                    p.y=y-1
+                    if vismask(x,y-1)=0 and a.c.y>y and distance(a.c,p)<=a.sight then vismask(x,y-1)=1
                 endif
                 if y<my then
-                    if vismask(x,y+1)=0 and a.c.y<y then vismask(x,y+1)=1
+                    p.x=x
+                    p.y=y+1
+                    if vismask(x,y+1)=0 and a.c.y<y and distance(a.c,p)<=a.sight then vismask(x,y+1)=1
                 endif
             endif
         else
