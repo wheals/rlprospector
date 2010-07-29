@@ -51,8 +51,7 @@ function meetfleet(f as short)as short
             endif
         endif
         if des=-1 then 
-            faction(0).war(fleet(f).ty)+=5
-            if faction(0).alli>0 then faction(0).war(faction(0).alli)+=5
+            factionadd(0,fleet(f).ty,+5)
             playerfightfleet(f)
             cls
         endif
@@ -70,8 +69,7 @@ function playerfightfleet(f as short) as short
         basis(10).inv(a).v=0
         basis(10).inv(a).p=0
     next
-    faction(0).war(fleet(f).ty)+=15
-    if faction(fleet(f).ty).alli>0 then faction(fleet(f).ty).war(faction(fleet(f).ty).alli)+=15
+    factionadd(0,fleet(f).ty,15)
     player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
     player.shield=player.shieldmax
     if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
@@ -97,22 +95,22 @@ function playerfightfleet(f as short) as short
 end function
         
 
-function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
+function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as short
     dim as integer rscore,bscore
     do
-    rscore=scorefleet(red)
-    bscore=scorefleet(blue)
-    rscore=rscore+rnd_range(1,6)
-    bscore=bscore+rnd_range(1,6)
-    if abs(bscore-rscore)<10 then
-        red.mem(rnd_range(1,15))=empty_ship
-        blue.mem(rnd_range(1,15))=empty_ship
-    endif
+        rscore=scorefleet(red)
+        bscore=scorefleet(blue)
+        rscore=rscore+rnd_range(1,6)
+        bscore=bscore+rnd_range(1,6)
+        if abs(bscore-rscore)<10 then
+            red.mem(rnd_range(1,15))=empty_ship
+            blue.mem(rnd_range(1,15))=empty_ship
+        endif
     loop until abs(bscore-rscore)>=10 or rscore<10 or bscore<10
     if rscore>bscore then
-        return red
+        return a
     else
-        return blue
+        return b
     endif
 end function
 
@@ -132,7 +130,7 @@ function scorefleet(byval f as _fleet) as integer
 end function
         
 function collidefleets() as short
-    dim as short a,b,c,d,civ1,civ2,roll1,roll2    
+    dim as short a,b,c,d,civ1,civ2,roll1,roll2,victor,loser    
     if lastfleet>255 then lastfleet=255
     for a=1 to lastfleet
         for b=a to lastfleet
@@ -153,8 +151,7 @@ function collidefleets() as short
                             if fleet(b).ty=5 then roll2=100
                             if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
                             if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
-                            if roll1>10 then faction(fleet(a).ty).war(fleet(b).ty)+=10
-                            if roll2>10 then faction(fleet(b).ty).war(fleet(a).ty)+=10
+                            if roll1>10 or roll2>10 then factionadd(fleet(a).ty,fleet(b).ty,10)
                         endif
                         if show_npcs=3 then dprint roll1 &":"& roll2
                         if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
@@ -184,14 +181,29 @@ function collidefleets() as short
                                 endif
                             endif
                             if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
-                            fleet(a)=fleetbattle(fleet(a),fleet(b))
-                            fleet(a)=load_f(fleet(a),10)
+
+                            victor=fleetbattle(fleet(a),fleet(b),a,b)
+                            if victor=b then loser=a
+                            if victor=a then loser=b
+                            fleet(victor)=load_f(fleet(victor),10)
                             for d=1 to 5
                                 basis(10).inv(d).v=0
                                 basis(10).inv(d).p=0
                             next
-                            fleet(b).ty=0
-                        
+                            if a<3 or b<3 then 'Station attacked
+                                if fleet(loser).mem(1).hull<=0 and loser<3 then
+                                    basis(loser).c.x=-1
+                                    basis(loser).c.y=-1
+                                else
+                                    if a>3 then
+                                        basis(b).lastattacked=fleet(a).ty
+                                    else
+                                        basis(a).lastattacked=fleet(b).ty
+                                    endif
+                                endif
+                            endif
+                            fleet(loser).ty=0
+                            
                         endif
                     endif
                 else
@@ -211,7 +223,7 @@ function collidefleets() as short
 end function
 
 function ss_sighting(i as short) as short
-    dim as string text,text2
+    dim as string text,text2,text3
     dim as short fn,a,s 
     dim as _cords p
     if basis(i).lastsighting=0 then return 0
@@ -252,6 +264,15 @@ function ss_sighting(i as short) as short
             endif
         endif
     endif
+    if fleet(i).mem(1).hull<66 then
+        text3="There is some damage from a fight being repaired."
+    endif
+    if fleet(i).mem(1).hull<33 then
+        text3="There is some heavy damage from a fight being repaired."
+    endif
+    if fleet(i).mem(1).hull<11 then
+        text3="The station is heavily damaged, barely operational."
+    endif
     if rnd_range(1,100)>alienattacks and player.questflag(3)=0 then
         if alienattacks>5 then text2=" You hear a rumor about disappearing scout ships." 
         if alienattacks>10 then text2=" You hear a rumor about disappearing merchant convoys." 
@@ -270,7 +291,7 @@ function ss_sighting(i as short) as short
         endif
     endif
     'text=text & fn &"typ:"&fleet(fn).ty
-    if text<>"" or text2<>"" then dprint trim(text &text2)
+    if text<>"" or text3<>"" or text2<>"" then dprint trim(text3 &text &text2)
     return 0
 end function
     
@@ -525,7 +546,7 @@ function civfleetdescription(f as _fleet) as string
     if nos>1 and nos<4 then t="a small group of "
     if nos>=4 and nos<8 then t="a group of "
     if nos>=8 then t="a fleet of "
-    t=t &"("&slot &")"
+    't=t &"("&slot &")"
     if f.mem(1).hull<=2 then t=t &" tiny "
     if f.mem(1).hull>2 and f.mem(1).hull<5 then t=t &" small "
     if f.mem(1).hull>10 and f.mem(1).hull<15 then t=t &" big "
@@ -699,24 +720,27 @@ function updatetargetlist()as short
         targetlist(9).y=rnd_range(0,sm_y)
     endif
     targetlist(6)=civ(0).home
-    if civ(0).inte=2 then
+    if civ(0).inte=2 or 1=1 then
         if civ(0).knownstations(0)=1 then targetlist(3)=basis(0).c
         if civ(0).knownstations(1)=1 then targetlist(4)=basis(1).c
-        if civ(0).knownstations(2)=1 then targetlist(5)=basis(2).c
+        if civ(0).knownstations(2)=1 or 1=1 then targetlist(5)=basis(2).c
     endif
     targetlist(10)=civ(1).home
-    if civ(1).inte=2 then
+    if civ(1).inte=2 or 1=1 then
         if civ(1).knownstations(0)=1 then targetlist(7)=basis(0).c
         if civ(1).knownstations(1)=1 then targetlist(8)=basis(1).c
-        if civ(1).knownstations(2)=1 then targetlist(9)=basis(2).c
+        if civ(1).knownstations(2)=1 or 1=1 then targetlist(9)=basis(2).c
     endif
     lastcalled=lastcalled+1
     return 0
 end function
 
-function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
-    dim as short l
-    l=rnd_range(0,lsp)
+function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
+    dim as short l,c
+    do
+        l=rnd_range(0,lsp)
+        c+=1
+    loop until vismask(spawnmask(l).x,spawnmask(l).y)=0 or c=500
     if x=0 then x=spawnmask(l).x
     if y=0 then y=spawnmask(l).y
     enemy.c.x=x
@@ -739,8 +763,29 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
             endif
         next
     endif
+    if enemy.allied<>0 then
+        if rnd_range(1,100)<faction(0).war(enemy.allied) then
+            enemy.aggr=0
+        else
+            enemy.aggr=1
+        endif
+    endif
     return enemy
 end function
+
+function monster2crew(m as _monster) as _crewmember
+    dim c as _crewmember
+    c.icon=Chr(m.tile)
+    c.hpmax=m.hpmax/5
+    c.hp=c.hpmax
+    if m.pumod>4 then
+        c.equips=1
+    else
+        c.equips=0
+    endif
+    return c
+end function
+
 
 function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     dim enemy as _monster
@@ -1019,7 +1064,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         'Postion
        enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
-        enemy.faction=1
+        enemy.faction=2
         'Fighting Stats
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
@@ -1141,7 +1186,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=10
     endif
     
-    if a=8 then 'robots
+    if a=8 then
+        enemy.faction=5 'robots
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
@@ -1177,7 +1223,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.faction=1    
     endif
     
-    if a=9 then 'Vault bots
+    if a=9 then
+        enemy.faction=5 'Vault bots
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
@@ -1311,7 +1358,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=4
     endif
         
-    if a=14 then 'Citizen
+    if a=14 then
+        enemy.faction=1 'Citizen
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
         enemy.lang=2
@@ -1335,9 +1383,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=1
     endif
     
-    if a=15 then 'Enemy Awayteam
+    if a=15 then
+        enemy.faction=1 'Enemy Awayteam
         enemy.made=15
-        enemy.sight=35
         enemy.sdesc="awayteam"
         enemy.ldesc="another freelancer team"
         enemy.lang=5
@@ -1349,11 +1397,13 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=1
         enemy.hasoxy=1
         enemy.diet=4 'Resources
+        enemy.sight=35
         enemy.pumod=60
-        enemy.atcost=rnd_range(6,8)/10
         for l=1 to 5
             enemy.stuff(l)=1
         next
+        enemy.atcost=rnd_range(6,8)/10
+        
         enemy.range=rnd_range(1,4)+0.5
         if enemy.range<=2.5 then
             enemy.scol=11
@@ -1486,6 +1536,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=19 then 'Invisible bot
+        enemy.faction=5
         enemy.sdesc="????"
         enemy.ldesc="the air shimmers showing some kind of cloaking device."
         enemy.dhurt="damaged"
@@ -1521,7 +1572,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ldesc="A 3m tall reptile with yellow scales. It has 3 tentacles as arms, and 4 legs. It wears clothes and a blue helmet, and wields an obviously human made Gauss gun!"
         enemy.lang=6
         enemy.sprite=290
-        enemy.faction=1
+        enemy.faction=8
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.aggr=1
@@ -1545,7 +1596,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif  
 
  
-    if a=21 OR a=66 or a=67 or a=68 then 'Tombspider 
+    if a=21 OR a=66 or a=67 or a=68 or a=69 then 'Tombspider 
         enemy.sdesc="Spider"
         enemy.ldesc="A huge hunting spider. They seem to have found a taste for human flesh"
         enemy.dhurt="hurt"
@@ -1660,7 +1711,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     'a=24 is taken for fish
     
     if a=25 or a=26 or a=37 or a=80 then 'Intelligent Insectoids
-        enemy.faction=1
+        enemy.faction=9
         enemy.sight=3
         enemy.sdesc="insectoid"
         enemy.ldesc="an insect with 6 legs, compound eyes and long feelers. They are between 1 and 3 m long and can stand on their hindlegs to use theif front legs for manipulation. Their colourfull carapace seems to signifiy some caste system."
@@ -1820,6 +1871,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
 
     if a=32 then
+        enemy.faction=1
         enemy.made=32
         enemy.sight=35
         enemy.sdesc="crewmember"
@@ -1965,7 +2017,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hasoxy=1
         enemy.sdesc="batlike creature"
         enemy.ldesc="a small creature with 3 eyes, no mouth or legs, using 2 skin wings to fly"
-        enemy.faction=1
+        enemy.faction=9
     endif
     
     '37=aliens on generation ship
@@ -1992,6 +2044,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=39 then 'Citizen
+        enemy.faction=1
         enemy.hasoxy=1
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
@@ -2255,6 +2308,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=46 then 'Defense bots
+        enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
@@ -2339,7 +2393,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=49 then 'Pirate Ship Crew
         
-        enemy.faction=1
+        enemy.faction=2
         enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
@@ -2395,7 +2449,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=50 then 'Pirate elite band
         
-        enemy.faction=1
+        enemy.faction=2
         enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
         enemy.weapon=rnd_range(1,4)
@@ -2450,6 +2504,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=51 then 'Defensebot
+        enemy.faction=5
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
@@ -2496,6 +2551,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=52 then 'Defensebot
+        enemy.faction=5
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
         enemy.dhurt="damaged"
@@ -2541,6 +2597,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=53 then 'Fast Bot
+        enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
@@ -2596,6 +2653,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=54 then 'Defense Bot
+        enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
@@ -2653,6 +2711,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=55 then 'Living Energy
+        enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
@@ -2701,6 +2760,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=56 then 'Bladebot
+        enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It's locomotion unit seems to be damaged, it lies on the ground, surrounded by pieces of primitve art, now and then rising a few centimeters into the air, and slamming back into the ground."     
@@ -2750,6 +2810,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
 
 
     If a=57 then 'Armed Citizen
+        enemy.faction=1
         enemy.sight=5
         enemy.sdesc="armed citizen"
         enemy.ldesc="a gruff human pioneer hardened by living away from civilization"
@@ -2792,7 +2853,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ldesc="A 3m tall reptile with yellow scales. It has 3 tentacles as arms, and 4 legs. It wears clothes and a red helmet, and wields an obviously human made Gauss gun!"
         enemy.lang=7
         enemy.sprite=291
-        enemy.faction=2
+        enemy.faction=9
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.aggr=1
@@ -3011,150 +3072,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         endif
         enemy.hp=enemy.hpmax
     endif
-        
-    if a=66 then 'Citizen
-        enemy.sdesc="citizen"
-        enemy.ldesc="a friendly human pioneer"
-        enemy.lang=23
-        enemy.dhurt="hurt"
-        enemy.dkill="dies"
-        enemy.cmmod=7
-        enemy.move=0.8
-        enemy.pumod=5
-        enemy.sight=4
-        enemy.range=1.5
-        enemy.allied=2
-        enemy.enemy=1
-        enemy.atcost=rnd_range(6,12)/10
-        enemy.hasoxy=1
-        enemy.tile=Asc("H")
-        enemy.sprite=286
-        enemy.hpmax=4
-        enemy.hp=4
-        enemy.stuff(1)=0
-        enemy.col=23
-        enemy.aggr=1
-    endif
     
-    if a=67 then  'Burrower
-        enemy.sdesc="Burrower"
-        enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
-        enemy.dhurt="hurt"
-        enemy.dkill="dies"
-        enemy.sight=4
-        enemy.range=1.5
-        enemy.weapon=1
-        enemy.armor=1
-        enemy.hp=rnd_range(3,5)
-        enemy.atcost=rnd_range(6,8)/10
-        enemy.hpmax=enemy.hp
-        enemy.biomod=1
-        enemy.move=0.7
-        enemy.aggr=0
-        enemy.lang=-30
-        enemy.tile=Asc("I")
-        enemy.sprite=285
-        enemy.col=162
-        enemy.invis=2
-    endif
+    '66,67,68,69: Tomb critters
     
-    if a=68 then  'Burrower Mom
-        enemy.sdesc="Huge Burrower"
-        enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
-        enemy.dhurt="hurt"
-        enemy.dkill="dies"
-        enemy.swhat="spits acid"
-        enemy.scol=12
-        enemy.sight=4
-        enemy.range=2
-        enemy.weapon=2
-        enemy.armor=2
-        enemy.hp=rnd_range(1,5)+8
-        enemy.atcost=rnd_range(6,8)/10
-        enemy.hpmax=enemy.hp
-        enemy.biomod=1
-        enemy.move=0.7
-        enemy.aggr=0
-        enemy.tile=Asc("I")
-        enemy.sprite=285
-        enemy.items(1)=86
-        enemy.itemch(1)=110
-        enemy.col=204
-        enemy.invis=2
-        enemy.lang=-31
-    endif
-    
-    if a=69 then
-        enemy.faction=1
-        enemy.atcost=rnd_range(6,9)/10
-        enemy.hasoxy=1
-        enemy.weapon=rnd_range(1,4)
-        enemy.range=0.5+enemy.weapon
-        enemy.hp=5+enemy.weapon
-        enemy.sight=rnd_range(3,6)
-        enemy.aggr=0
-        enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
-        'Looks
-        enemy.biomod=0
-        enemy.col=2
-        enemy.scol=10
-        enemy.tile=asc("H")
-        enemy.sprite=2
-        enemy.dhurt="hurt"
-        enemy.dkill="dies" 
-        enemy.swhat="shoot laser guns "
-        enemy.sdesc="eridiani exploration security team"
-        enemy.ldesc="a squad of Eridiani Security Troops, armed to the teeth and ready to fight"        
-    
-        for l=0 to rnd_range(1,2)
-            enemy.items(l)=-20
-            enemy.itemch(l)=33
-        next
-        enemy.hpmax=enemy.hp
-        enemy.cmmod=4
-        enemy.lang=24
-        enemy.aggr=1
-        enemy.armor=1
-        enemy.move=.8
-    endif
-    
-    if a=70 then
-        enemy.faction=1
-        enemy.atcost=rnd_range(5,6)/10
-        enemy.hasoxy=1
-        enemy.weapon=rnd_range(2,5)
-        enemy.range=0.5+enemy.weapon
-        enemy.hp=10+enemy.weapon
-        enemy.sight=rnd_range(3,6)
-        enemy.aggr=0
-        enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
-        'Looks
-        enemy.biomod=0
-        enemy.col=10
-        enemy.scol=10
-        enemy.tile=asc("H")
-        enemy.sprite=2
-        enemy.dhurt="hurt"
-        enemy.dkill="dies" 
-        enemy.swhat="shoot laser guns "
-        enemy.sdesc="Elite eridiani exploration security team"
-        enemy.ldesc="a squad of Elite Eridiani Security Troops, armed to the teeth and ready to fight"        
-    
-        for l=0 to rnd_range(1,2)
-            enemy.items(l)=-20
-            enemy.itemch(l)=66
-        next
-        enemy.hpmax=enemy.hp
-        enemy.cmmod=3
-        enemy.lang=24
-        enemy.aggr=1
-        enemy.armor=2
-        enemy.move=.9
-    endif
     
     if a=71 then
         enemy.faction=1
@@ -3449,7 +3369,180 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sdesc="blob"
         enemy.ldesc="A huge pale amorphous mass wobbles towards you trying to engulf you. It's skin is covered in a highly corrosive substance"
     endif
-
+    
+    '80 taken
+    
+    if a=81 then
+        enemy=civ(0).spec
+        enemy.made=a
+        enemy.diet=4
+        enemy.hasoxy=1
+        enemy.sight=35
+        enemy.pumod=60
+        for l=1 to 5
+            enemy.stuff(l)=1
+        next
+    endif
+    
+    if a=82 then
+        enemy=civ(1).spec
+        enemy.made=a
+        enemy.diet=4
+        enemy.hasoxy=1
+        enemy.sight=35
+        enemy.pumod=60
+        for l=1 to 5
+            enemy.stuff(l)=1
+        next
+    endif
+    
+    
+    if a=83 then  'Burrower
+        enemy.sdesc="Burrower"
+        enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.sight=4
+        enemy.range=1.5
+        enemy.weapon=1
+        enemy.armor=1
+        enemy.hp=rnd_range(3,5)
+        enemy.atcost=rnd_range(6,8)/10
+        enemy.hpmax=enemy.hp
+        enemy.biomod=1
+        enemy.move=0.7
+        enemy.aggr=0
+        enemy.lang=-30
+        enemy.tile=Asc("I")
+        enemy.sprite=285
+        enemy.col=162
+        enemy.invis=2
+    endif
+    
+    if a=84 then  'Burrower Mom
+        enemy.sdesc="Huge Burrower"
+        enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.swhat="spits acid"
+        enemy.scol=12
+        enemy.sight=4
+        enemy.range=2
+        enemy.weapon=2
+        enemy.armor=2
+        enemy.hp=rnd_range(1,5)+8
+        enemy.atcost=rnd_range(6,8)/10
+        enemy.hpmax=enemy.hp
+        enemy.biomod=1
+        enemy.move=0.7
+        enemy.aggr=0
+        enemy.tile=Asc("I")
+        enemy.sprite=285
+        enemy.items(1)=86
+        enemy.itemch(1)=110
+        enemy.col=204
+        enemy.invis=2
+        enemy.lang=-31
+    endif
+    
+    
+    if a=85 then 'Citizen
+        enemy.sdesc="citizen"
+        enemy.ldesc="a friendly human pioneer"
+        enemy.lang=23
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.cmmod=7
+        enemy.move=0.8
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.range=1.5
+        enemy.allied=2
+        enemy.enemy=1
+        enemy.atcost=rnd_range(6,12)/10
+        enemy.hasoxy=1
+        enemy.tile=Asc("H")
+        enemy.sprite=286
+        enemy.hpmax=4
+        enemy.hp=4
+        enemy.stuff(1)=0
+        enemy.col=23
+        enemy.aggr=1
+        enemy.faction=1
+    endif
+    
+    
+    if a=86 then
+        enemy.faction=1
+        enemy.atcost=rnd_range(6,9)/10
+        enemy.hasoxy=1
+        enemy.weapon=rnd_range(1,4)
+        enemy.range=0.5+enemy.weapon
+        enemy.hp=5+enemy.weapon
+        enemy.sight=rnd_range(3,6)
+        enemy.aggr=0
+        enemy.respawns=0
+        enemy.stuff(1)=rnd_range(0,1)
+        enemy.stuff(2)=rnd_range(0,1)
+        'Looks
+        enemy.biomod=0
+        enemy.col=2
+        enemy.scol=10
+        enemy.tile=asc("H")
+        enemy.sprite=2
+        enemy.dhurt="hurt"
+        enemy.dkill="dies" 
+        enemy.swhat="shoot laser guns "
+        enemy.sdesc="eridiani exploration security team"
+        enemy.ldesc="a squad of Eridiani Security Troops, armed to the teeth and ready to fight"        
+    
+        for l=0 to rnd_range(1,2)
+            enemy.items(l)=-20
+            enemy.itemch(l)=33
+        next
+        enemy.hpmax=enemy.hp
+        enemy.cmmod=4
+        enemy.lang=24
+        enemy.aggr=1
+        enemy.armor=1
+        enemy.move=.8
+    endif
+    
+    if a=87 then
+        enemy.faction=1
+        enemy.atcost=rnd_range(5,6)/10
+        enemy.hasoxy=1
+        enemy.weapon=rnd_range(2,5)
+        enemy.range=0.5+enemy.weapon
+        enemy.hp=10+enemy.weapon
+        enemy.sight=rnd_range(3,6)
+        enemy.aggr=0
+        enemy.respawns=0
+        enemy.stuff(1)=rnd_range(0,1)
+        enemy.stuff(2)=rnd_range(0,1)
+        'Looks
+        enemy.biomod=0
+        enemy.col=10
+        enemy.scol=10
+        enemy.tile=asc("H")
+        enemy.sprite=2
+        enemy.dhurt="hurt"
+        enemy.dkill="dies" 
+        enemy.swhat="shoot laser guns "
+        enemy.sdesc="Elite eridiani exploration security team"
+        enemy.ldesc="a squad of Elite Eridiani Security Troops, armed to the teeth and ready to fight"        
+    
+        for l=0 to rnd_range(1,2)
+            enemy.items(l)=-20
+            enemy.itemch(l)=66
+        next
+        enemy.hpmax=enemy.hp
+        enemy.cmmod=3
+        enemy.lang=24
+        enemy.aggr=1
+        enemy.armor=2
+        enemy.move=.9
+    endif
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     
@@ -3533,7 +3626,7 @@ dim as short c,b
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
-        p.money=500
+        p.money=Startingmoney
         p.pilot=1
         p.gunner=1
         p.science=1
@@ -3847,12 +3940,12 @@ dim as short c,b
         p.pilot=4
         p.gunner=3
         p.engine=5
-        p.desig="Alien Scoutship"
+        p.desig="Ancient Alien Ship"
         p.icon="8"
         p.ecm=2
         p.weapons(1)=makeweapon(66)
         p.weapons(2)=makeweapon(3)
-        p.weapons(2)=makeweapon(3)
+        p.weapons(3)=makeweapon(3)
         p.col=7
         p.bcol=0
         p.mcol=14
@@ -4129,7 +4222,7 @@ dim as short c,b
     endif
     return p
 end function
-
+    
 function debug_printfleet(f as _fleet) as string
     dim text as string
     dim a as short

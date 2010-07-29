@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.13"
+const __VERSION__="0.1.13-2"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -21,22 +21,26 @@ const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
-const show_wormholes=0
-const rev_map=0
+const show_wormholes=1
+const rev_map=1
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
-const show_civs=0
+const show_civs=1
 const toggling_filter=0
 const fuel_usage=0 
 const just_run=0
 const show_eq=0 'Show earthquakes
-
+const dbshow_factionstatus=0
 const lstcomit=56
 const lstcomty=20 'Last common item
 const laststar=90
 const lastspecial=46
 const _debug=0
+const make_vault=0
+const addpyramids=0
+const startingmoney=500
+
 const xk=chr(255) 
 const key_up = xk + "H"
 const key_dn = xk + "P"
@@ -163,6 +167,7 @@ type _cords
     m as short
     x as short
     y as short
+    z as short
 end type
 
 type _driftingship
@@ -200,6 +205,8 @@ type _transfer
     spmap as short 'make specialmap if non0
     froti as short 'from what tile
 end type
+
+
 
 type _items
     id as short 
@@ -336,9 +343,11 @@ type _monster
     diet as byte
     intel as short
     lang as short
+    
     faction as short
     allied as short
     enemy as short
+    
     desc as string*127
     sdesc as string*64
     ldesc as string*512
@@ -348,10 +357,12 @@ type _monster
     scol as ubyte
     invis as byte
     aggr as byte
+    
     tile as short
     sprite as short
     col as ubyte
     dcol as ubyte
+    
     move as single
     track as short
     range as short
@@ -482,7 +493,7 @@ type _station
     lastsighting as short
     lastsightingdis as short
     lastsightingturn as short
-                
+    lastattacked as short
 end type
 
 type _comment
@@ -499,10 +510,12 @@ end type
 
 type _tile
     no as short
+    
     tile as short
-    desc as string*512
     bgcol as short
     col as short
+    
+    desc as string*512
     stopwalking as byte
     oxyuse as byte
     locked as byte
@@ -622,6 +635,7 @@ type _civilisation
     phil as byte
     wars(2) as short '0 other civ, 1 pirates, 2 Merchants
     prefweap as byte
+    culture(6) as byte '0 birth 1 Childhood 2 Adult 3 Death 4 Religion 5 Art 6 story about a unique
 end type
 
 Type FONTTYPE
@@ -737,7 +751,7 @@ next
 dim shared item(25000) as _items
 dim shared lastitem as integer
 dim shared _last_title_pic as byte=9
-dim shared shopitem(20,21) as _items
+dim shared shopitem(20,23) as _items
 dim shared makew(20,5) as byte
 
 dim shared tiles(512) as _tile
@@ -846,6 +860,8 @@ declare function ep_communicateoffer(key as string, awayteam as _monster,enemy()
 declare function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,vismask() as byte) as short
 declare function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as short) as short
 declare function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as short, byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single) as short
+declare function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short,enemy() as _monster, lastenemy as short, awayteam as _monster, mapmask() as byte, first as short=0,last as short=0) as short
+
 
 declare function teleport(awaytam as _cords, map as short) as _cords
 declare function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() as _tile) as _monster
@@ -1053,11 +1069,11 @@ declare function clearfleetlist() as short
 declare function countfleet(ty as short) as short
 declare function meetfleet(f as short)as short
 declare function debug_printfleet(f as _fleet) as string
-declare function fleetbattle(byval red as _fleet,byval blue as _fleet) as _fleet
+declare function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as short
 declare function scorefleet(byval f as _fleet) as integer
 declare function makequestfleet(a as short) as _fleet
 declare function makealienfleet() as _fleet
-declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
+declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
 declare function makealiencolony(slot as short,map as short, popu as short) as short
 
 
@@ -1121,7 +1137,7 @@ declare function sickbay(st as short=0) as short
 'Items
 declare function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
 declare function removeequip() as short
-declare function findbest(t as short,p as short=0, m as short=0) as short
+declare function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
 declare function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
@@ -1153,6 +1169,8 @@ declare function distance(first as _cords, last as _cords) as single
 declare Function rnd_range (first As short, last As short) As short
 declare function movepoint(byval c as _cords, a as short, eo as short=0,showstats as short=0) as _cords
 declare function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=0) as short
+declare function line_in_points(b as _cords,c as _cords,p() as _cords) as short
+
 declare function nearest(c as _cords,b as _cords) as single
 declare function farthest(c as _cords,b as _cords) as single
 declare function distributepoints(result() as _cords, ps() as _cords, last as short) as single
@@ -1183,6 +1201,7 @@ declare function es_part1() as string
 declare function Crewblock() as string
 declare function shipstatsblock() as string
 declare function uniques() as string
+declare function talk_culture(c as short) as short
 declare function foreignpolicy(c as short, i as byte) as short
 
 declare function hasassets() as short
@@ -1225,3 +1244,5 @@ Function _icol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As An
     endif
 end function
 
+declare function factionadd(a as short,b as short, add as short) as short
+    

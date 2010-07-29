@@ -1928,7 +1928,8 @@ function messages() as short
 end function
 
 function showwormholemap() as short
-    dim as short x,y,i,x1,x2,i2,y1,y2,d,n
+    dim as short x,y,i,x1,x2,i2,y1,y2,d,n,l
+    dim p(128) as _cords
     cls
     displayship
     for x=0 to sm_x
@@ -1944,18 +1945,10 @@ function showwormholemap() as short
     
     for i=laststar+1 to laststar+wormhole
         if map(i).planets(2)=1 then
-            x1=map(i).c.x
-            y1=map(i).c.y
-            x2=map(map(i).planets(1)).c.x
-            y2=map(map(i).planets(1)).c.y
-            d=abs(x1-x2)
-            if abs(y1-y2)>d then d=abs(y1-y2)
-            for i2=0 to d
-                locate y1+1,x1+1
-                color 15,0
+            l=line_in_points(map(i).c,map(map(i).planets(1)).c,p())
+            for i2=1 to l-1
+                locate p(i2).y+1,p(i2).x+1
                 print "."
-                x1=x1+(x2-x1)*i2/(d)
-                y1=y1+(y2-y1)*i2/(d)
             next
         endif
     next
@@ -1984,6 +1977,7 @@ end function
 
 function keyin(byref allowed as string="" , byref walking as short=0,blocked as short=0)as string
     dim key as string
+    dim as string text
     static as byte recording
     static as byte seq
     static as string*3 comseq
@@ -2099,7 +2093,18 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
         if key=key_quit then 
             if askyn("do you really want to quit? (y/n)") then player.dead=6
         endif
+        if key="$" and dbshow_factionstatus=1 then
+            
+            for a=0 to 7
+                text="Faction "&a
+                for b=0 to 7
+                    text=text &":"&faction(a).war(b)
+                next
+                dprint text
+            next
+            
         
+        endif
         if len(allowed)>0 and key<>key_esc and key<>key_enter and getdirection(key)=0 then
             if instr(allowed,key)=0 then key=""
         endif
@@ -2138,7 +2143,7 @@ sub displaystar(a as short)
             for n=0 to lastspecial
                 color 11,0
                 locate 1,1
-                if map(a).planets(p)=specialplanet(n) and planetmap(0,0,map(a).planets(p))<>0 then 
+                if map(a).planets(p)=specialplanet(n) and planets(map(a).planets(p)).mapstat>0 then 
                     bg=233
                 endif
                 if show_specials<>0 and map(a).planets(p)=specialplanet(show_specials) then
@@ -2490,8 +2495,6 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         dim thp as short
         dim as string poi
         xoffset=22
-        if awayteam.oxygen=awayteam.oxymax then wg=0
-        if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.move=2 then wj=0
         locate 22,1
         color 15,0
         if awayteam.stuff(8)=1 and player.landed.m=map and planets(map).depth=0 then
@@ -2625,82 +2628,84 @@ function alerts(awayteam as _monster,walking as short) as short
     dim a as short
     static wg as short
     static wj as short
+    if awayteam.oxygen=awayteam.oxymax then wg=0
+    if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.move=2 then wj=0
     if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
-            dprint ("Reporting oxygen tanks half empty",14)
-            wg=1
-            for a=1 to wg
-                if _sound=0 or _sound=2 then    
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                
-                endif
-            next
-            walking=0
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-        endif
-        if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
-            dprint ("Oxygen low.",14)
-            wg=2
-            for a=1 to wg
-                if _sound=0 or _sound=2 then
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))   
-                    sleep 350
-                endif
-            next
-            walking=0
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
-        endif
-        if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
-            dprint ("Switching to oxygen reserve!",12)
-            wg=3
-            for a=1 to wg
-                if _sound=0 or _sound=2 then 
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
-                    sleep 350
-                endif
-            next
-            walking=0
-            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
-        endif
-        if awayteam.jpfuel<awayteam.jpfuelmax then
-                if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
-                    wj=1
-                    for a=1 to wj
-                        if _sound=0 or _sound=2 then    
-                            sleep 350
-                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
-                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-                        endif
-                    next  
-            walking=0  
-                    dprint ("Jetpack fuel low",14)
-                endif
-                if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
-                    wj=2
-                    for a=1 to wj
-                        if _sound=0 or _sound=2 then    
-                            sleep 350
-                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
-                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-                        endif
-                    next   
-            walking=0 
-                    dprint ("Jetpack fuel very low",14)
-                endif
-                
-                if awayteam.jpfuel<5 and wj=2 then 
-                    wj=3
-                    for a=1 to wj
-                        if _sound=0 or _sound=2 then    
-                            sleep 350
-                            FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
-                            if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
-                        endif
-                    next    
-                    dprint ("Switching to jetpack fuel reserve",12)
-                endif
-            walking=0
-            else
-                wj=0
+        dprint ("Reporting oxygen tanks half empty",14)
+        wg=1
+        for a=1 to wg
+            if _sound=0 or _sound=2 then    
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))                
             endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+    endif
+    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
+        dprint ("Oxygen low.",14)
+        wg=2
+        for a=1 to wg
+            if _sound=0 or _sound=2 then
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))   
+                sleep 350
+            endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
+    endif
+    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
+        dprint ("Switching to oxygen reserve!",12)
+        wg=3
+        for a=1 to wg
+            if _sound=0 or _sound=2 then 
+                FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
+                sleep 350
+            endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
+    endif
+    if awayteam.jpfuel<awayteam.jpfuelmax then
+        if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
+            wj=1
+            for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next  
+            walking=0  
+            dprint ("Jetpack fuel low",14)
+        endif
+        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
+            wj=2
+            for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next   
+            walking=0 
+            dprint ("Jetpack fuel very low",14)
+        endif
+        
+        if awayteam.jpfuel<5 and wj=2 then 
+            wj=3
+        for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next    
+            dprint ("Switching to jetpack fuel reserve",12)
+            walking=0
+        endif
+    else
+        wj=0
+    endif
     return walking
 end function
 
@@ -3477,75 +3482,6 @@ function getsystem(player as _ship) as short
     next
     return b
 end function
-
-function isgardenworld(m as short) as short
-    if planets(m).grav>1.1 then return 0
-    if planets(m).atmos<3 or planets(m).atmos>5 then return 0
-    if planets(m).temp<-20 or planets(m).temp>55 then return 0
-    if planets(m).weat>1 then return 0
-    if planets(m).water<30 then return 0
-    if planets(m).rot<0.5 or planets(m).rot>1.5 then return 0
-    return -1
-end function
-
-
-function isgasgiant(m as short) as short
-    if m<-20000 then return 1
-    if m=specialplanet(21) then return 21
-    if m=specialplanet(22) then return 22
-    if m=specialplanet(23) then return 23
-    if m=specialplanet(24) then return 24
-    if m=specialplanet(25) then return 25
-    if m=specialplanet(43) then return 43
-    return 0
-end function
-
-function isasteroidfield(m as short) as short
-    if m>=-20000 and m<0 then return 1
-    if m=specialplanet(31) then return 1 
-    if m=specialplanet(32) then return 1 
-    if m=specialplanet(33) then return 1
-    if m=specialplanet(41) then return 1
-    return 0
-end function
-
-function countasteroidfields(sys as short) as short
-    dim as short a,b
-    for a=1 to 9
-        if map(sys).planets(a)<0 and isgasgiant(map(sys).planets(a))=0 then b=b+1
-    next
-    return b
-end function
-
-
-function countgasgiants(sys as short) as short
-    dim as short a,b
-    for a=1 to 9
-        if isgasgiant(map(sys).planets(a))>0 then b=b+1
-    next
-    return b
-end function
-
-function checkcomplex(map as short,fl as short) as integer
-    dim result as integer
-    dim maps(36) as short
-    dim as short nextmap,lastmap,foundport,a,b,done
-    maps(0)=map
-    do
-    ' Suche portal auf maps(lastmap)
-        lastmap=nextmap
-        nextmap+=1
-        for a=1 to lastportal
-            if portal(a).from.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
-        next
-    loop until maps(nextmap)=0
-    
-    for a=1 to lastmap
-        if maps(a)>0 and planets(maps(a)).genozide=0 then result+=1
-    next
-    return result
-end function
-
 
 function getnumber(a as short,b as short, e as short) as short
     dim key as string

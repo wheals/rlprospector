@@ -125,7 +125,7 @@ end function
 
 function explper() as short
     dim as single per
-    dim as short a,b,tp,xx,yy,expl, exps,expp,total
+    dim as integer a,b,tp,xx,yy,expl, exps,expp,total
     for a=0 to laststar
         if map(a).discovered>0 then
             exps=exps+1
@@ -458,6 +458,8 @@ function getdeath() as string
     if player.dead=28 then death="Underestimated the risks of surgical body augmentation"
     if player.dead=29 then death="Got caught in a huge explosion"
     if player.dead=30 then death="Lost while exploring an anomaly"
+    if player.dead=31 then death="Died in battle with the "&civ(0).n 
+    if player.dead=32 then death="Died in battle with the "&civ(1).n
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

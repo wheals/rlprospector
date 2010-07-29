@@ -395,7 +395,15 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     cls
     defender.shield=defender.shieldmax
     defender.c=p
-    if victory=3 then defender.dead=13
+    if victory=3 then 
+        if atts.ty=1 or atts.ty=3 then defender.dead=5 'merchants
+        if atts.ty=2 or atts.ty=4 then defender.dead=13 'Pirates
+        if atts.ty=8 then defender.dead=20 'Asteroid belt monster '
+        if atts.ty=5 then defender.dead=21 'ACSC
+        if atts.ty=9 then defender.dead=23 'GG monster
+        if atts.ty=6 then defender.dead=31 'Civ 1
+        if atts.ty=7 then defender.dead=32 'Civ 2
+    endif
     if victory=2 then defender.dead=0
     if victory=1 and player.towed<>0 then
         dprint "You leave behind the ship you had in tow.",14

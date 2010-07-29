@@ -2045,7 +2045,7 @@ tiles(271).gives=48
 tiles(271).turnsinto=271
 tiles(271).hides=2
 
-'272-277 taken for alien structures
+'272-282 taken for alien structures
 
 
 

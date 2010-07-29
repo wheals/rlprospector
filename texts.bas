@@ -83,9 +83,9 @@ function uniques() as string
     descr(14)="The blackmarket"
     descr(15)="A pirate gunrunner operation" 
     descr(16)="A planet with immortal beings" 
-    descr(17)="A civilisation upon entering the space age"
+    descr(17)="A civilization upon entering the space age"
     descr(18)="The home planet of a civilization about to explore the stars"
-    descr(19)="The outpost of an advanced civilication"
+    descr(19)="The outpost of an advanced civilization"
     descr(20)="A creepy colony"
     descr(26)="A crystal planet"
     descr(27)="A living planet"
@@ -161,7 +161,7 @@ function explorationtext() as string
             if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
         endif
     next
-    text=text &" |   {15} Discoveries {11} |Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (" &explper &" %)"
+    text=text &" |   {15} Discoveries {11} |Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (" &explper &" %) |"
     
     b=0
     for a=0 to 25

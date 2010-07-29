@@ -1509,7 +1509,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
     endif
         
-    
     if a=88 then
         i.id=94
         i.ty=23
@@ -1833,6 +1832,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i=civ(1).item(1)
     endif
     
+    if a=205 then
+        i.id=205
+        i.ty=23
+        i.desigp="pieces of alien art"
+        i.col=14
+        i.icon="?"
+        i.v1=10
+        i.v2=rnd_range(1,6)+rnd_range(1,6)
+        i.v3=mod1
+        i.desig="A " & civ(mod1).n & " artifact"
+        i.price=i.v1*i.v2*20
+        i.res=100
+    endif
+    
     if a=301 then
         i.id=301
         i.ty=45
@@ -2080,26 +2093,48 @@ end function
 function listartifacts() as string
     dim as short a,c
     dim flagst(16) as string
+    dim as short hd,sd
     flagst(1)="Fuel System"
-    flagst(2)="Disintegrator"
+    flagst(2)=" hand disintegrator"
     flagst(3)="Scanner"
-    flagst(4)=" Ion canon"
+    flagst(4)=" ship disintegrator"
     flagst(5)="Bodyarmor"
     flagst(6)="Engine"
     flagst(7)="Sensors"
-    flagst(8)=" Cryochamber"
+    flagst(8)=" cryochamber"
     flagst(9)="Teleportation device"
-    flagst(10)=""
-    flagst(11)=""
+    flagst(10)="Air recycler"
+    flagst(11)="Data crystal(s)"
     flagst(12)="Cloaking device"
     flagst(13)="Wormhole shield"
     flagst(16)="Wormhole navigation device"
     color 15,0
     flagst(0)=" {15} Alien Artifacts {11}|"
+    for a=0 to 5
+        if player.weapons(a).desig="Disintegrator" then sd+=1
+    next
+    for a=0 to lastitem
+        if item(a).w.s=-1 and item(a).id=97 then hd+=1
+    next
     for a=1 to 16
         if artflag(a)>0 then
-            c=c+1
-            flagst(0)=flagst(0) &flagst(a) &"|"
+            if a=2 or a=4 or a=8 then
+                if a=2 then 
+                    if hd=1 then flagst(0)=flagst(0) & hd & flagst(a)&"|"
+                    if hd>1 then flagst(0)=flagst(0) & hd & flagst(a)&"s|"
+                endif
+                if a=4 then 
+                    if sd=1 then flagst(0)=flagst(0) & sd & flagst(a)&"|"
+                    if sd>1 then flagst(0)=flagst(0) & sd & flagst(a)&"s|"
+                endif
+                if a=8 then 
+                    if player.cryo=1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"|"
+                    if player.cryo>1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"s|"
+                endif
+            else
+                c=c+1
+                flagst(0)=flagst(0) &flagst(a) &"|"
+            endif
         endif
     next
     if c=0 then
@@ -2139,15 +2174,17 @@ end function
 
 function getrnditem(fr as short,ty as short) as short
     dim as short a,i,lst
-    dim list(128) as short
+    dim list(1048) as short
     for a=0 to lastitem
         if item(a).w.s=fr then
             if (ty>0 and item(a).ty=ty) or ty=0 then
                 lst=lst+1
+                if lst>1048 then lst=rnd_range(1,1048)
                 list(lst)=a
             endif
         endif
     next
+    if lst>1048 then lst=1048
     if lst>0 then
         i=list(rnd_range(1,lst))
     else 
@@ -2262,7 +2299,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
 end function
 
 
-function findbest(t as short,p as short=0, m as short=0) as short
+function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
     dim as single a,b,r
     r=-1
     for a=0 to lastitem
@@ -2272,6 +2309,7 @@ function findbest(t as short,p as short=0, m as short=0) as short
                     r=a
                     b=item(a).v1
                 endif
+                if id<>0 and item(a).ty=id then return a
             endif
         endif
         

@@ -50,9 +50,16 @@ function alienname(flag as short) as string
         
         for f=0 to rnd_range(1,3)
             if rnd_range(1,100)<50 then
-            n=n & txt(rnd_range(1,i))
-        else
-            n=n & left(txt(rnd_range(1,i)),2)
+                n=n & txt(rnd_range(1,i))
+            else
+                n=n & left(txt(rnd_range(1,i)),2)
+            endif
+            if rnd_range(1,100)<10 then
+                if rnd_range(1,100)<50 then
+                    n=n &"'"
+                else
+                    n=n &"-"
+                endif
             endif
         next
         n=left(n,1)&lcase(mid(n,2,len(n)))    
@@ -422,7 +429,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         if e.aggr=1 then
             if planets(mapslot).flags(0)=0 then
             if askyn("The crewmember says: 'are you willing to sell us enough fuel to return to the nearest station?' (y/n)") then
-                faction(0).war(2)-=rnd_range(1,4)*rnd_range(1,4)
+                factionadd(0,2,(rnd_range(1,4)+rnd_range(1,4))*-1)
                 If player.fuel>disnbase(player.c) then
                     dprint "How much do you want to charge per ton of fuel?"
                     a=getnumber(0,99,0)
@@ -739,47 +746,62 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         endif
         civ(c).contact=1
         if e.aggr=1 then
+            b=findbest(23,-1,,205)
+            dprint ""& b
+            if b>0 and civ(c).culture(4)=2 then
+                if askyn("I will pay you 10000 Cr. for the symbol of our ancient leader! Do you accept(y/n)") then
+                    player.money=player.money+10000
+                    item(b).w.s=0
+                    item(b).w.p=monslot
+                else
+                    dprint "It is dissapointed."
+                endif
+            endif
             dprint "Do you want to talk about (t)hem, (o)ther species or (f)oreign politics?(t/o/f)"
             t=ucase(keyin("tofTOF"))
             if t="T" then
-                a=rnd_range(1,6)
-                if a=1 then dprint "It says: 'We call ourselves the "&civ(c).n &"'"
-                if a=2 then 
-                    if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
-                    if civ(c).inte=2 then 
-                        if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
-                        if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
-                        if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                if rnd_range(1,100)<66 then
+                    a=rnd_range(1,6)
+                    if a=1 then dprint "It says: 'We call ourselves the "&civ(c).n &"'"
+                    if a=2 then 
+                        if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
+                        if civ(c).inte=2 then 
+                            if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
+                            if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
+                            if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                        endif
+                        if civ(c).inte=3 then
+                            if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
+                            if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
+                            if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                        endif
                     endif
-                    if civ(c).inte=3 then
-                        if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
-                        if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
-                        if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                    if a=3 then dprint "It says 'We, the "&civ(c).n &" have invented FTL travel "&civ(c).tech*100 &" cycles ago. How long have you known the secret?"
+                    if a=4 then
+                        if civ(c).phil=1 then dprint "It says 'I believe strongly in the right of the individual. How about you?"
+                        if civ(c).phil=2 then dprint "It says 'We, the "&civ(c).n &" strive for a balance between common good and individual freedom. How about your species?"
+                        if civ(c).phil=3 then dprint "It says 'We, the "&civ(c).n &" think the foremost reason for existence is for the species to survive and prosper. How about your species?"
                     endif
-                endif
-                if a=3 then dprint "It says 'We, the "&civ(c).n &" have invented FTL travel "&civ(c).tech*100 &" cycles ago. How long have you known the secret?"
-                if a=4 then
-                    if civ(c).phil=1 then dprint "It says 'I believe strongly in the right of the individual. How about you?"
-                    if civ(c).phil=2 then dprint "It says 'We, the "&civ(c).n &" strive for a balance between common good and individual freedom. How about your species?"
-                    if civ(c).phil=3 then dprint "It says 'We, the "&civ(c).n &" think the foremost reason for existence is for the species to survive and prosper. How about your species?"
-                endif
-                if a=5 then 
-                    if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
-                    if civ(c).inte=2 then 
-                        if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
-                        if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
-                        if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                    if a=5 then 
+                        if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
+                        if civ(c).inte=2 then 
+                            if civ(c).aggr=1 then dprint "It says' A new space faring species! I wonder if you have interesting things for us to buy!"
+                            if civ(c).aggr=2 then dprint "It says' A new space faring species! May we enter fruitfull trading relations soon!"
+                            if civ(c).aggr=3 then dprint "It says' A new space faring species! We have many interesting things to sell! You sure will find something!"
+                        endif
+                        if civ(c).inte=3 then
+                            if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
+                            if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
+                            if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                        endif
                     endif
-                    if civ(c).inte=3 then
-                        if civ(c).aggr=1 then dprint "It says 'Beware! We will defend our territory!"
-                        if civ(c).aggr=2 then dprint "It says 'I hope your species does not plan to interfere with our plans of expansion."
-                        if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
+                    if a=6 then 
+                        if civ(c).aggr=1 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
+                        if civ(c).aggr=2 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
+                        if civ(c).aggr=3 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and increasing.'"
                     endif
-                endif
-                if a=6 then 
-                    if civ(c).aggr=1 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
-                    if civ(c).aggr=2 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and stable.'"
-                    if civ(c).aggr=3 then dprint "It says 'our population is "&civ(c).popu &" billion "&civ(c).n &"s and increasing.'"
+                else
+                    talk_culture(c)
                 endif
             endif
             if t="O" then
@@ -822,12 +844,94 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                 foreignpolicy(c,1)
             endif
         endif
+        if e.lang=34 then
+            if e.aggr=0 or e.aggr=2 then
+                dprint "It says 'You are evil, you hurt the masters'"
+            else
+                dprint "It says 'I like the masters, do you like the masters too?'"
+            endif
+            
+        endif
     endif
     return 0
 end function
 
+function talk_culture(c as short) as short
+    dim as short a,nwh,b,d
+    dim as _cords p
+    dim as string t(6,6)
+    d=999
+    if c=0 then p=map(sysfrommap(specialplanet(7))).c
+    if c=1 then p=map(sysfrommap(specialplanet(46))).c
+    for a=laststar+1 to laststar+wormhole
+        if distance(map(a).c,p)<d then
+            nwh=a
+            d=distance(map(a).c,p)
+        endif
+    next
+    
+    t(0,0)="Reproduction works remarkably similiar to your species here."
+    t(0,1)="Our young are born in batches of 6 to 10. They immediately start fighting each other. Rarely more than 2 survive until adulthood."
+    t(0,2)="Twin births are the norm for our species. Each parent adopts one, and contact in later life between the twins is discouraged."
+    t(0,3)="The females of our species lay eggs, in common hatcheries. The children get raised by the community. Usually nobody takes a particular interest into who's kid is who's"
+    t(0,4)="The males of our species are barely sentient, and have only one function. Raising children is done by the female, with help from society"
+    t(0,5)="Our species has 3 sexes. Male, Female, and a sterile 'incubator'. In more primitive times their main job was to defend the young. Now they make up our military and police force."
+    t(0,6)="After pregnancy our females change gender."
+    
+    t(1,0)="Our families and education of the young is actually pretty similiar to yours"
+    t(1,1)="Our young mature very fast, and have an urge to leave their parents as soon as possible"
+    t(1,2)="In our families there is always a constant power struggle. Young like to challenge the leader"
+    t(1,3)="Our young need to go through a rite of passage before they are accepted among society"
+    t(1,4)="Our society is based on extended families and clans. You are who you are related to"
+    t(1,5)="Educating our young in as many fields as possisble is one of the main goals of our society. We pool resources to accomplish that."
+    t(1,6)="We have come to the conclusion that the education of the young is too important to be left to the whims of indiviuals. Young are educated by experts, as soon as they no longer require their parents for survival."
+    
+    t(2,0)="Our concept of art is very similiar to yours. Maybe we could engage in trade on the matter."
+    t(2,1)="We value art as a form of individual expression. There are no 'professionals' or an 'industry'"
+    t(2,2)="Art is a waste of resources. Growing civilisations need it. We have outgrown that phase centuries ago."
+    t(2,3)="We base the value of art on its educational value."
+    t(2,4)="Our language will be rather hard for you to learn:' - the alien presents a little blue bug - 'Part of the meaning is conveyed by this animal changing it's color. Its a chameleon, and trained to react to the users touches."
+    t(2,5)="We are most impressed with feats of the body. Our most import areas of art are sport, dance, and general acrobatics. We get very little out of a film, picture or books other than for education"
+    t(2,6)="The value of Art is its contribution to the survival of the species. It can do so by reminding individuals that they are nothing without the group."
+    
+    t(3,0)="Some of us follow a monotheistic religion. Most of us think its just ancient superstition"
+    t(3,1)="There are many religions among us. Most are a form of ancestor worship. But it is all superstition, and  tradition."
+    t(3,2)="Our species worshipped the ancient civilisation that once lived here. Imagine our shock, when we started to explore the stars and found out that god is real!"
+    t(3,3)="This concept of God is foreign to us. We believe in a force, that inhabits all living things. It gets released upon death. Sentient beings can control this force. They can also hinder it in having unwanted effects on society."
+    t(3,4)="We have discovered that our species has a genetic flaw, which can cause a sudden failure of the circulatory system. We now have the technology to repair it, but earlier this sudden dropping dead was the main focus of our religious practices. It was held that god considers your job complete, and takes you back."
+    t(3,5)="On our homeworld there was an ancient robot factory. Most religious rituals have evolved around it."
+    t(3,6)="Our species evolved from a primitive form that migrated between two different habitats. Our religions are mainly about 'finding ones way', propably for that reason. Many of us still have 2 houses, in different parts of the planet, and live in each for half a year. Poor people try to do it too, by swapping homes."
+    
+    t(4,0)="Much like you we try only to interfere with free markets if they fail at allocatig goods efficiently"
+    t(4,1)="You could call our economic system industrial feudalism: The power of individuals is measured in their wealth. There is no authority regulating them."
+    t(4,2)="There is a legend about a leader of our people. He perished 2000 years ago, taking the symbol of his power with him."
+    t(4,3)="We had a very agressive colonisation phase in our past. Some laws still survive from that day, concerning the conquest of undiscovered land. It has led to many of us trying to make independent expeditions to the stars. Discovering a planet means you own it."
+    t(4,4)="There is a semi intelligent species on our world. We feed and clothe them, in exchange for their labor."
+    t(4,5)="The thing we are most proud of, you will have noticed upon landing: we have built a space lift. A space station in geostationary orbit, connected by a tether to the ground. It was constructed during the beginning of our exploration of our system, and is still useful."
+    t(4,6)="Central government decides, and distributes goods according to their needs."
+   
+    t(5,0)="The most usual ways to dispose of our dead is to bury them. Incineration is also popular."
+    t(5,1)="They say 'the sun made us, the sun will take us away' thats why we used to burn our dead. These days we shoot them into the sun."
+    t(5,2)="Our tradition is to eat those that have died. Usually only the closest family gets a piece though."
+    t(5,3)="The dead are mummified, and put into the walls of the house to watch over the living."
+    t(5,4)="All of us have a plant symbiote or parasite. We could remove it, but it has several beneficial effects. Natural death triggers its growth into a treelike plant. It uses the body of the dead as first nourishment. Family members usually nurture it. It is only displaced when the death occured at a very inconvenient spot. Most citizens try to avoid that."
+    t(5,5)="Our dead are returned to the circle of life: there is a special profession who cuts them into tiny pieces and feeds them to scavenging animals."
+    t(5,6)="We used to set our dead adrift at sea, later we used space. Since the discovery of the wormhole at " &map(nwh).c.x &":"&map(nwh).c.y &" that is where their last journey starts."
+    
+    t(6,1)="Our expeditions have found a city of the ancients at "& map(sysfrommap(specialplanet(3))).c.x &":"& map(sysfrommap(specialplanet(3))).c.y &". No ship that has landed there has so far returned"
+    t(6,2)="We have found a friendly race of highly intelligent centipedes at "& map(sysfrommap(specialplanet(16))).c.x &":"& map(sysfrommap(specialplanet(16))).c.y &"."
+    t(6,3)="We have found a living planet at "& map(sysfrommap(specialplanet(27))).c.x &":"& map(sysfrommap(specialplanet(27))).c.y &" It is very dangerous, especially if you land there."
+    t(6,4)="We have discovered a wormhole at " &map(nwh).c.x &":"&map(nwh).c.y &"."
+    t(6,5)="Our expeditions have found a city of the ancients at "& map(sysfrommap(specialplanet(2))).c.x &":"& map(sysfrommap(specialplanet(2))).c.y &". No ship that has landed there has so far returned"
+    t(6,6)="Our expeditions have found a city of the ancients at "& map(sysfrommap(specialplanet(4))).c.x &":"& map(sysfrommap(specialplanet(4))).c.y &". No ship that has landed there has so far returned"
+    a=rnd_range(1,6)
+    dprint t(a,civ(c).culture(a))
+    return 0
+end function
+
+
 function foreignpolicy(c as short, i as byte) as short
-    dim as byte o,l,a,b,f,add
+    dim as byte o,l,a,b,f,add,roll,art
     dim t as string
     t="Who/Merchants/Pirates"
     if c=0 then
@@ -850,6 +954,10 @@ function foreignpolicy(c as short, i as byte) as short
     else
         l=3
     endif
+    if findbest(23,-1,,205)>0 and civ(c).culture(4)=2 then 
+        art=1
+        add=add+6/civ(c).phil
+    endif
     t=t & "/Exit"
     a=menu(t)
     if a<l then
@@ -857,6 +965,8 @@ function foreignpolicy(c as short, i as byte) as short
         if a=1 then f=1
         if a=2 then f=2
         if a=3 then f=6+o
+        if art>0 then dprint "The "&civ(c).n &" are obviously impressed by you bearing their artifact."
+        roll=rnd_range(1,6)+rnd_range(1,6)+civ(o).contact+add
         if b=1 then
             select case faction(c+6).war(f)>=90 
             case is >90
@@ -869,17 +979,29 @@ function foreignpolicy(c as short, i as byte) as short
         endif
         if b=2 then
             dprint "You try to convince the "&civ(c).n &" to declare war"
-            if rnd_range(1,6)+rnd_range(1,6)+civ(o).contact>9 then 
-                faction(c+6).war(f)+=5
+            if faction(c+6).war(f)>50 then roll=roll+1
+            if roll>9 then 
+                factionadd(c+6,f,5)
                 dprint "They seem to consider your arguments"
             endif
+            if roll<4 then
+                factionadd(c+6,0,3)
+                dprint "They dont think that you are in a position to tell them that."
+            endif
+            if roll>=4 and roll<=9 then dprint "Your argument falls on deaf ears"
         endif
         if b=3 then
             dprint "You try to convince the "&civ(c).n &" to initiate peace talks"
-            if rnd_range(1,6)+rnd_range(1,6)+civ(o).contact>9 then 
-                faction(c+6).war(f)+=5
+            if faction(c+6).war(f)<30 then roll=roll-1
+            if roll>9 then 
+                factionadd(c+6,f,-5)
                 dprint "They seem to consider your arguments"
             endif
+            if roll<4 then
+                factionadd(c+6,0,3)
+                dprint "They dont think that you are in a position to tell them that."
+            endif
+            if roll>=4 and roll<=9 then dprint "Your argument falls on deaf ears"
         endif
             
     endif
@@ -904,7 +1026,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
      endif
      if e.allied>0 and item(a).price>10 then
         dprint "The "&e.sdesc &" accepts the gift."
-        faction(0).war(e.allied)-=5
+        factionadd(0,e.allied,-5)
         lastlocalitem=lastlocalitem+1
         item(a).w.p=nr
         item(a).w.s=0

@@ -553,6 +553,74 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     return result
 end function
 
+function line_in_points(b as _cords,c as _cords,p() as _cords) as short
+    dim last as short
+    dim as single px,py
+    dim deltax as single
+    dim deltay as single
+    dim numtiles as single
+    dim l as single
+    dim  as short result
+    dim text as string
+    dim as short co,i
+    Dim As Integer d, dinc1, dinc2
+    Dim As Integer x, xinc1, xinc2
+    Dim As Integer y, yinc1, yinc2
+    
+    deltax = Abs(c.x - b.x)
+    deltay = Abs(c.y - b.y)
+    If deltax >= deltay Then
+        numtiles = deltax + 1
+        d = (2 * deltay) - deltax
+        dinc1 = deltay Shl 1
+        dinc2 = (deltay - deltax) Shl 1
+        xinc1 = 1
+        xinc2 = 1
+        yinc1 = 0
+        yinc2 = 1
+    Else
+        numtiles = deltay + 1
+        d = (2 * deltax) - deltay
+        dinc1 = deltax Shl 1
+        dinc2 = (deltax - deltay) Shl 1
+        xinc1 = 0
+        xinc2 = 1
+        yinc1 = 1
+        yinc2 = 1
+    End If
+
+    If c.x > b.x Then
+        xinc1 = - xinc1
+        xinc2 = - xinc2
+    End If
+   
+    If c.y > b.y Then
+        yinc1 = - yinc1
+        yinc2 = - yinc2
+    End If
+
+    x = c.x
+    y = c.y
+    result=-1
+    For i = 1 To numtiles
+        
+        If d < 0 Then
+          d = d + dinc1
+          x = x + xinc1
+          y = y + yinc1
+        Else
+          d = d + dinc2
+          x = x + xinc2
+          y = y + yinc2
+        End If
+        last+=1
+        p(last).x=x
+        p(last).y=y
+    next
+    
+    return last
+end function
+
 
 function nearest(c as _cords, b as _cords) as single
     ' Moves B towards C, or C away from B
@@ -927,3 +995,32 @@ function nearlowest(p as _pfcords,queue() as _pfcords) as _pfcords
         return pot2(b)
     endif
 end function
+
+function factionadd(a as short,b as short, add as short) as short
+    dim as short c
+    faction(a).war(b)+=add
+    faction(b).war(a)+=add
+    if faction(a).alli<>0 then 
+        c=faction(a).alli
+        faction(b).war(c)+=add
+        faction(c).war(b)+=add
+        if faction(b).war(c)>100 then faction(b).war(c)=100
+        if faction(c).war(b)>100 then faction(c).war(b)=100
+        if faction(b).war(c)<0 then faction(b).war(c)=0
+        if faction(c).war(b)<0 then faction(c).war(b)=0
+    endif
+    if faction(b).alli<>0 then 
+        c=faction(b).alli
+        faction(a).war(a)+=add
+        faction(c).war(c)+=add
+        if faction(a).war(c)>100 then faction(a).war(c)=100
+        if faction(c).war(a)>100 then faction(c).war(a)=100
+        if faction(a).war(c)<0 then faction(a).war(c)=0
+        if faction(c).war(a)<0 then faction(c).war(a)=0
+    endif
+    if faction(a).war(b)>100 then faction(a).war(b)=100
+    if faction(b).war(a)>100 then faction(b).war(a)=100
+    if faction(a).war(b)<0 then faction(a).war(b)=0
+    if faction(b).war(a)<0 then faction(b).war(a)=0
+    return 0
+end function        

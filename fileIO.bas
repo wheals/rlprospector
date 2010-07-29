@@ -961,10 +961,10 @@ function loadgame(filename as string) as short
         print ".";
         'save player
         get #f,,player
-        get #f,,_autopickup
-        get #f,,_autoinspect
         get #f,,whtravelled
         get #f,,whplanet
+        get #f,,_autopickup
+        get #f,,_autoinspect
         for a=1 to 128
             get #f,,crew(a)
         next
