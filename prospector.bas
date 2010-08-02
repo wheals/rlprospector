@@ -245,9 +245,9 @@ specialplanettext(4,0)="Ruins of buildings cover the whole planet, but i get no 
 specialplanettext(5,0)="Readings indicate almost no water, and extremly high winds. Also very strong readings for lifeforms"
 specialplanettext(6,0)="The atmosphere of this planet is very peculiar. It only lets light in the UV range to the surface"
 specialplanettext(8,0)="Extremly high winds and severe lightning storms on this planet"
-specialplanettext(10,0)="There is a settlement on this planet. Humans"
+specialplanettext(10,0)="There is a settlement on this planet. Humans."
 specialplanettext(10,1)="The colony sends us greetings."
-specialplanettext(11,0)="There is a ship here sending a distress signal"
+specialplanettext(11,0)="There is a ship here sending a distress signal."
 specialplanettext(11,1)="They are still sending a distress signal"
 specialplanettext(12,0)="This is a sight you get once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone."
 specialplanettext(13,0)="There is a modified emergency beacon on this planet. It broadcasts this message: 'Visit Murchesons Ditch, best Entertainment this side of the coal sack nebula'"
@@ -1016,7 +1016,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 next
             loop until nextmap.m=-1 or player.dead<>0
             for c=0 to 127
-                for b=5 to 127
+                for b=6 to 127
                     if crew(b).hp<=0 then swap crew(b),crew(b+1)
                 next
                 
@@ -2031,40 +2031,11 @@ function explore_space() as short
             if player.osy<=0 then player.osy=0
             if player.osx>=sm_x-60 then player.osx=sm_x-60
             if player.osy>=sm_y-20 then player.osy=sm_y-20
-            
             d=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<10 and artflag(13)=0 then d=rnd_range(1,4)+rnd_range(1,4)
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<5+int(distance(player.c,map(b).c)/5) and artflag(13)=0 then d=rnd_range(1,3)
             player.hull=player.hull-d
             if player.hull>0 then
-                x2=player.c.x
-                y2=player.c.y
-                p1.x=x2
-                p1.y=y2
-                player.c=map(b).c
-                map(b).discovered=2
-                x=player.c.x-p1.x
-                y=player.c.y-p1.y
-                x1=x/distance(p1,player.c)
-                y1=y/distance(p1,player.c)
-                for b=1 to distance(p1,player.c)
-                    x2=x2+x1
-                    y2=y2+y1
-                    color rnd_range(180,214),rnd_range(170,204)
-                    if x2-player.osx>=0 and x2-player.osx<=60 and y2-player.osy>=0 and y2-player.osy<=20 then
-                        locate y2+1-player.osy,x2+1-player.osx
-                        draw string((x2-player.osx)*_fw1,(y2-player.osy)*_fh1),"@",,font1,custom,@_col
-                        sleep 50
-                        for c=0 to laststar+wormhole
-                            if map(c).discovered>0 then displaystar(c)
-                        next
-                    else
-                        cls
-                        displayship(1)
-                        show_stars(1,0)
-                        dprint ""
-                    endif
-                next
-                cls
+                wormhole_ani(map(b).c)
                 if d>0 then dprint "Your ship is damaged ("&d &").",14
                 displayship(1)
                 show_stars(1,0)
@@ -2382,7 +2353,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     dim as short skill
     dim mapmask(60,20) as byte
     dim vismask(60,20) as byte
-    dim nightday(60,20) as byte
+    dim nightday(60) as byte
     dim watermap(60,20) as byte
     dim localtemp(60,20) as single
     dim spawnmask(1281) as _cords
@@ -2827,7 +2798,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     if awayteam.c.y>20 then awayteam.c.y=20
     displayplanetmap(slot)
     ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship, nightday(awayteam.c.x,awayteam.c.y))
+    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship, nightday(awayteam.c.x))
     dprint ""
     '
     ' EXPLORE PLANET
@@ -2888,15 +2859,15 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             print awayteam.disease;":";player.disease;":";planets(slot).visited;":";slot;"Temp:";localtemp(awayteam.c.x,awayteam.c.y)
         endif
         
-        awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x,awayteam.c.y)
+        awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
         if awayteam.move=3 and  player.teleportload<15 then player.teleportload+=1
         if awayteam.disease>player.disease then player.disease=awayteam.disease
         if planets(slot).atmos<=1 or planets(slot).atmos>=8 then awayteam.helmet=1
         if (tmap(awayteam.c.x,awayteam.c.y).no=1 or tmap(awayteam.c.x,awayteam.c.y).no=26 or tmap(awayteam.c.x,awayteam.c.y).no=20) and awayteam.hp<=awayteam.nohp*5 then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if tmap(awayteam.c.x,awayteam.c.y).oxyuse<0 then awayteam.oxygen=awayteam.oxygen-tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
-        if _warnings=0 and nightday(awayteam.c.x,awayteam.c.y)=1 and nightday(old.x,old.y)<>1 then dprint "The sun rises"
-        if _warnings=0 and nightday(awayteam.c.x,awayteam.c.y)=2 and nightday(old.x,old.y)<>2 then dprint "The sun sets"
+        if _warnings=0 and nightday(awayteam.c.x)=1 and nightday(old.x)<>1 then dprint "The sun rises"
+        if _warnings=0 and nightday(awayteam.c.x)=2 and nightday(old.x)<>2 then dprint "The sun sets"
         old=awayteam.c
         
         if walking<>0 then
@@ -2948,9 +2919,6 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             next
             deadcounter=ep_monstermove(awayteam,enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),walking)
         endif
-        
-        
-         
             
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_i then nextmap=ep_Portal(awayteam,walking)
         
@@ -2965,7 +2933,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if awayteam.move=3 then allowed=allowed &key_te
             displayplanetmap(slot)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
             dprint("")
             walking=0
         endif
@@ -2983,12 +2951,17 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             cls
             displayplanetmap(slot)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+            color 11,0
+            for x=0 to 60
+                if nightday(x)=1 then draw string(x*_fw2,21*_fh1+(_fh1-_fh2)/2-_fh2/2),chr(193),,Font2,Custom,@_tcol
+                if nightday(x)=2 then draw string(x*_fw2,21*_fh1+(_fh1-_fh2)/2-_fh1/2),chr(193),,Font2,Custom,@_tcol
+            next
             dprint ""
             flip
             screenset 1,1
     '       
-            key=(keyin(allowed,walking))
+            if nextmap.m=0 then key=(keyin(allowed,walking))
             if rnd_range(1,100)<disease(awayteam.disease).nac then 
                 key=""
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
@@ -3461,6 +3434,30 @@ function teleport(from as _cords,map as short) as _cords
     endif
     return from
 end function
+
+function wormhole_ani(target as _cords) as short
+    dim p(sm_x*sm_y) as _cords
+    dim as short last,a,c
+    last=Line_in_points(target,player.c,p())
+    for a=1 to last-1
+        color rnd_range(180,214),rnd_range(170,204)
+        if p(a).x-player.osx>=0 and p(a).x-player.osx<=60 and p(a).y-player.osy>=0 and p(a).y-player.osy<=20 then
+            draw string((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),"@",,font1,custom,@_col
+            sleep 50
+            for c=0 to laststar+wormhole
+                if map(c).discovered>0 then displaystar(c)
+            next
+        else
+            cls
+            displayship(1)
+            show_stars(1,0)
+            dprint ""
+        endif
+    next
+    player.c=p(last-1)
+    return 0
+end function
+
 
 function planetflags_toship(m as short) as _ship
     dim s as _ship

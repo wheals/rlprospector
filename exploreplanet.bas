@@ -335,6 +335,7 @@ function ep_atship(awayteam as _monster,ship as _cords,walking as short) as shor
             dprint "Refilling Jetpacks",10
             awayteam.jpfuel=awayteam.jpfuelmax
         endif
+        alerts(awayteam, walking)
         return 0
     else 
         return walking
@@ -436,7 +437,7 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
     endif
      
     if (planets(slot).atmos<4 and planets(slot).depth=0 and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))+countasteroidfields(sysfrommap(slot))*2-map(sysfrommap(slot)).spec and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))) or more_mets=1 then 
-        if lastmet>150 or more_mets=1 then ep_crater(slot,ship,awayteam,li(),lastlocalitem,shipfire(),sf)
+        if lastmet>500 or more_mets=1 then ep_crater(slot,ship,awayteam,li(),lastlocalitem,shipfire(),sf)
         lastmet+=1
         if more_mets=1 then dprint ""&lastmet
     endif
@@ -1137,8 +1138,8 @@ function ep_tileeffects(awayteam as _monster,areaeffect() as _ae, byref last_ae 
                     endif
                 endif
                 
-                if nightday(x,y)=3 then localtemp(x,y)=localtemp(x,y)-.0005'rnd_range(1,(10-planets(slot).dens))/15+orbit
-                if nightday(x,y)=0 then localtemp(x,y)=localtemp(x,y)+.0005'rnd_range(1,(10-planets(slot).dens))/15+orbit
+                if nightday(x)=3 then localtemp(x,y)=localtemp(x)-.0005'rnd_range(1,(10-planets(slot).dens))/15+orbit
+                if nightday(x)=0 then localtemp(x,y)=localtemp(x)+.0005'rnd_range(1,(10-planets(slot).dens))/15+orbit
                 
                 if localtemp(x,y)>10 and tmap(x,y).no=27 or tmap(x,y).no=260 then
                     tmap(x,y).hp-=localtemp(x,y)/25
@@ -1233,13 +1234,12 @@ function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as by
         dawn2=dawn+30
         if dawn2>60 then dawn2=dawn2-60
         for x=60 to 0 step -1
-            for y=0 to 20
-                nightday(x,y)=0
-                if (dawn<dawn2 and (x>dawn and x<dawn2))  then nightday(x,y)=3
-                if (dawn>dawn2 and (x>dawn or x<dawn2)) then nightday(x,y)=3
-                if x=int(dawn) then nightday(x,y)=1
-                if x=int(dawn2) then nightday(x,y)=2
-            next
+            nightday(x)=0
+            if (dawn<dawn2 and (x>dawn and x<dawn2))  then nightday(x)=3
+            if (dawn>dawn2 and (x>dawn or x<dawn2)) then nightday(x)=3
+            if x=int(dawn) then nightday(x)=1
+            if x=int(dawn2) then nightday(x)=2
+        
         next
     endif
         
@@ -2184,7 +2184,7 @@ end function
 
 function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short,enemy() as _monster, lastenemy as short, awayteam as _monster, mapmask() as byte, first as short=0,last as short=0) as short
     dim as short d,f
-    dim as short dam
+    dim as single dam
     if first=0 and last=0 then 
         first=1
         last=awayteam.hpmax

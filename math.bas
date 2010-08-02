@@ -853,7 +853,7 @@ function gen_waypoints(queue() as _pfcords,start as _pfcords,goal as _pfcords,ma
             queue(s).x=0
             queue(s).y=0
         next
-        print "found path with "&in &" waypoints."
+        print "found path with "&in &" waypoints. ";
     endif
     return in
 end function

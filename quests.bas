@@ -384,7 +384,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             a=rnd_range(1,8)
             if a=1 then dprint "It says: 'Do you like our research station?'"
             if a=2 then dprint "It says: 'We do pick up signals from 3 gigantic artificial structures in space. Are they yours?'"
-            if a=3 then dprint "It says: 'You should visit our main world. Its the third planet in this system.'"
+            if a=3 then dprint "It says: 'You should visit our main world. It's in the third orbit of this system.'"
             if a=4 then dprint "It says: 'FTL technology is still very new for our kind. We hope you come in peace and we can learn a lot from you'"
             if a=5 then dprint "It says: 'This is a research station. There are no warriors here."
             if a=6 then dprint "It says: 'Some of my colleagues thought the answer to the xixrit paradox would be that we were the first to advance this far in technology. I knew they were wrong! Ha!'"

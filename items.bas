@@ -2322,6 +2322,9 @@ function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
             endif
         endif
     next
+    if id<>0 and r>0 then
+        if item(r).id<>id then r=-1
+    endif
     return r
 end function
 
@@ -2820,8 +2823,6 @@ end function
 function findartifact(awayteam as _monster,v5 as short) as short
             dim c as short
             dprint "After examining closely, your science officer has found an alien artifact."
-            do
-            loop until inkey<>""
             
             if all_resources_are=0 then
                 if v5=0 then
@@ -2836,7 +2837,8 @@ function findartifact(awayteam as _monster,v5 as short) as short
             else
                 c=all_resources_are
             endif
-            if rnd_range(1,6)+rnd_range(1,6)+player.science>7 and artflag(c)=0 or all_resources_are>0 then
+            if c<0 or c>16 then c=rnd_range(1,16)
+            if (rnd_range(1,6)+rnd_range(1,6)+player.science>7 and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
                 artflag(c)=1                
                 artifact(c,awayteam)
             else

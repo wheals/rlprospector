@@ -1809,7 +1809,7 @@ end function
 
 
 ' trading
-function merctrade(f as _fleet) as _fleet
+function merctrade(byref f as _fleet) as short
     dim as short st,a
     st=-1
     for a=0 to 2
@@ -1820,7 +1820,7 @@ function merctrade(f as _fleet) as _fleet
         f=unload_f(f,st)
         f=load_f(f,st)
     endif
-    return f
+    return 0
 end function
 
 function load_f(f as _fleet, st as short) as _fleet
@@ -2291,7 +2291,6 @@ sub recalcshipsbays()
             'if player.cargo(b).x<player.cargo(b+1).x then swap player.cargo(b),player.cargo(b+1)
         next
     next
-    dprint "recalcshipsbays"&player.crewpod
     player.fuelpod=0
     player.crewpod=0
     soll=player.h_maxcargo

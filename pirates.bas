@@ -137,9 +137,7 @@ function collidefleets() as short
             if b<>a then
                 if distance(fleet(a).c,fleet(b).c)<2 and fleet(a).ty>0 and fleet(b).ty>0 then
                     c=c+1
-                    if show_npcs=1 then dprint (debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b)))
                     if fleet(a).ty<>fleet(b).ty then
-                        if show_npcs=3 then dprint (debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b)))
                         roll1=0
                         roll2=0
                         if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
@@ -313,7 +311,7 @@ function movefleets() as short
             if freecargo=0 then fleet(a).t=0
         endif
         roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
-        if roll>5 then
+        if roll>5 or (fleet(a).ty=1 or fleet(a).ty=3) then
             'move towards target
             direction=nearest(targetlist(fleet(a).t),fleet(a).c)
         else
@@ -322,27 +320,28 @@ function movefleets() as short
         endif
         fleet(a).c=movepoint(fleet(a).c,direction,,1)
         
-        'Check if reached target (for targetnumbers 1-7)
-        if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y and fleet(a).t<=lastwaypoint then
-            if fleet(a).ty=1 then
-                fleet(a)=merctrade(fleet(a))
-            endif
+        'Check if reached target 
+        if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
             if fleet(a).ty>5 then
                 if civ(fleet(a).ty-6).inte=2 then
-                    fleet(a)=merctrade(fleet(a))
+                    merctrade(fleet(a))
                 endif
                 if fleet(a).c.x=civ(fleet(a).ty-6).home.x and fleet(a).c.y=civ(fleet(a).ty-6).home.y then
                     fleet(a)=unload_f(fleet(a),11)
                     fleet(a)=load_f(fleet(a),11)
                 endif
             endif
-            fleet(a).t=fleet(a).t+1 'Pirates have targetnumbers 8 or 9, they will never see this
-            if fleet(a).t>lastwaypoint and fleet(a).ty=1 or fleet(a).ty=3 then fleet(a).t=firststationw
+            fleet(a).t=fleet(a).t+1 
+            if fleet(a).t>=lastwaypoint and (fleet(a).ty=1 or fleet(a).ty=3) then fleet(a).t=firststationw
+            if (fleet(a).ty=2 or fleet(a).ty=4) and fleet(a).t>2 then fleet(a).t=0
             if fleet(a).ty=6 and fleet(a).t>6 then fleet(a).t=3
             if fleet(a).ty=7 and fleet(a).t>10 then fleet(a).t=7
         endif
         
         for s=0 to 2
+            if fleet(a).ty=1 then
+                if fleet(a).c.x=basis(s).c.x and fleet(a).c.x=basis(s).c.x then merctrade(fleet(a))
+            endif
             if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
                 if distance(fleet(a).c,basis(s).c)<12 then
                     basis(s).lastsighting=a
@@ -531,7 +530,7 @@ function makecivfleet(slot as short) as _fleet
         f.mem(p).c=rnd_point
     next
     f.c=civ(slot).home
-    f.t=3'+slot
+    f.t=3+(slot*4)
     return f
 end function
 
@@ -719,28 +718,30 @@ function updatetargetlist()as short
         targetlist(9).x=rnd_range(0,sm_x)
         targetlist(9).y=rnd_range(0,sm_y)
     endif
-    targetlist(6)=civ(0).home
     if civ(0).inte=2 or 1=1 then
         if civ(0).knownstations(0)=1 then targetlist(3)=basis(0).c
         if civ(0).knownstations(1)=1 then targetlist(4)=basis(1).c
-        if civ(0).knownstations(2)=1 or 1=1 then targetlist(5)=basis(2).c
+        if civ(0).knownstations(2)=1 then targetlist(5)=basis(2).c
     endif
-    targetlist(10)=civ(1).home
+    targetlist(6)=civ(0).home
     if civ(1).inte=2 or 1=1 then
         if civ(1).knownstations(0)=1 then targetlist(7)=basis(0).c
         if civ(1).knownstations(1)=1 then targetlist(8)=basis(1).c
-        if civ(1).knownstations(2)=1 or 1=1 then targetlist(9)=basis(2).c
+        if civ(1).knownstations(2)=1 then targetlist(9)=basis(2).c
     endif
+    targetlist(10)=civ(1).home
     lastcalled=lastcalled+1
     return 0
 end function
 
 function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
     dim as short l,c
-    do
-        l=rnd_range(0,lsp)
-        c+=1
-    loop until vismask(spawnmask(l).x,spawnmask(l).y)=0 or c=500
+    if x=0 and y=0 then
+        do
+            l=rnd_range(0,lsp)
+            c+=1
+        loop until vismask(spawnmask(l).x,spawnmask(l).y)=0 or c=500
+    endif
     if x=0 then x=spawnmask(l).x
     if y=0 then y=spawnmask(l).y
     enemy.c.x=x

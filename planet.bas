@@ -466,7 +466,7 @@ function gen_traderoutes() as short
     goal.x=basis(0).c.x
     goal.y=basis(0).c.y
     lp=gen_waypoints(wpl(),goal,start,map())
-    offset=10
+    offset=11
     for i=0 to lp
         targetlist(i+offset).x=wpl(i).x
         targetlist(i+offset).y=wpl(i).y
@@ -476,8 +476,9 @@ function gen_traderoutes() as short
         wpl(i).y=0
     next
     
-    offset=offset+lp+1
-    lastwaypoint=lastwaypoint+lp+1+offset
+    lastwaypoint=lp+offset
+    print offset;"-";lastwaypoint
+    offset=lastwaypoint+1
     firststationw=lastwaypoint
     for a=1 to 2
         start.x=basis(a-1).c.x
@@ -493,10 +494,10 @@ function gen_traderoutes() as short
             wpl(i).x=0
             wpl(i).y=0
         next
-        offset=offset+lp+1
+        print offset;"-";lastwaypoint+lp
         lastwaypoint=lastwaypoint+lp+1
+        offset=lastwaypoint
     next
-    
     
     start.x=basis(2).c.x
     start.y=basis(2).c.y
@@ -508,8 +509,9 @@ function gen_traderoutes() as short
         targetlist(i+offset).y=wpl(i).y
     next
     offset=offset+lp+1
+    print offset;"-";lastwaypoint+lp
     lastwaypoint=lastwaypoint+lp
-    firstwaypoint=10
+    firstwaypoint=11
     if targetlist(firstwaypoint).x>1 and targetlist(firstwaypoint).y>1 then
         if spacemap(targetlist(firstwaypoint).x,0)=0 or spacemap(targetlist(firstwaypoint).x,0)=1 then
             targetlist(firstwaypoint).y=0
@@ -517,8 +519,9 @@ function gen_traderoutes() as short
             targetlist(firstwaypoint).x=0
         endif
     endif
+    lastwaypoint-=1
     print firstwaypoint &"-"&lastwaypoint
-    if show_NPCs=1 then
+    if show_NPCs=5 then
         for x=0 to sm_x
             for y=0 to sm_y
                 if spacemap(x,y)<>0 and spacemap(x,y)<>1 then 
@@ -545,7 +548,11 @@ function gen_traderoutes() as short
             next
         next
         color 10,0
-        for x=firstwaypoint to lastwaypoint
+        x=firstwaypoint
+        do
+            color 10,0
+            x+=1
+            if x>lastwaypoint then x=firststationw
             for y=0 to 2
                 if basis(y).c.x=targetlist(x).x and basis(y).c.y=targetlist(x).y then t=y
             next
@@ -554,7 +561,10 @@ function gen_traderoutes() as short
             if t=1 then print "1";
             if t=2 then print "2";
             sleep 66
-        next
+            color 1,0
+            locate targetlist(x).y+1,targetlist(x).x+1
+            print "."
+        loop until inkey<>""
         sleep
         cls
     endif

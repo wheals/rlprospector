@@ -1200,9 +1200,10 @@ sub show_stars(bg as short=0,byref walking as short)
                 endif
             next
         next
-        if show_NPCs=1 then
-            for a=0 to 4068
-                color 15,0
+        if show_NPCs>0 then
+            for a=firstwaypoint to lastwaypoint
+                color 11,0
+                if a>=firststationw then color 15,0
                 if targetlist(a).x-player.osx>=0 and targetlist(a).x-player.osx<=60 and targetlist(a).y-player.osy>=0 and targetlist(a).y-player.osy<=20 then
                     draw string((targetlist(a).x-player.osx)*_fw1,(targetlist(a).y-player.osy)*_fh1),";",,Font1,Custom,@_tcol
                 endif
@@ -1327,9 +1328,15 @@ sub show_stars(bg as short=0,byref walking as short)
                 if fleet(a).ty=1 or fleet(a).ty=3 then color 10,0
                 if fleet(a).ty=2 or fleet(a).ty=4 then color 12,0
                 if fleet(a).ty=5 then color 5,0
-                if fleet(b).ty=6 then color 8,0
-                if fleet(b).ty=7 then color 6,0
-                draw string ((x)*_fw1,(y)*_fh1),"s",,Font1,custom,@_col
+                if fleet(a).ty=6 then color 8,0
+                if fleet(a).ty=7 then color 6,0
+                draw string (x*_fw1,(y)*_fh1),"s",,Font1,custom,@_col
+            endif
+            x=targetlist(fleet(a).t).x-player.osx
+            y=targetlist(fleet(a).t).y-player.osy
+            if x>=0 and x<=60 and y>=0 and y<=20 then
+                color 15,0
+                draw string (x*_fw1,y*_fh1),"*",,Font1,custom,@_col
             endif
         next
     endif
@@ -1946,6 +1953,10 @@ function showwormholemap() as short
     for i=laststar+1 to laststar+wormhole
         if map(i).planets(2)=1 then
             l=line_in_points(map(i).c,map(map(i).planets(1)).c,p())
+            n=distance(map(i).c,map(map(i).planets(1)).c)/5
+            if n<1 then n=1
+            if n>6 then n=6
+            color 179+n,0
             for i2=1 to l-1
                 locate p(i2).y+1,p(i2).x+1
                 print "."
@@ -1960,6 +1971,7 @@ function showwormholemap() as short
             color 179+n,0
             locate map(i).c.y+1,map(i).c.x+1
             print "o"
+            locate map(i).c.y+1,map(i).c.x+2
         endif
     next
     for i=1 to laststar

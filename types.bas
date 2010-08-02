@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.13-2"
+const __VERSION__="0.1.13a"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -21,12 +21,12 @@ const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
-const show_wormholes=1
+const show_wormholes=0
 const rev_map=1
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
-const show_civs=1
+const show_civs=0
 const toggling_filter=0
 const fuel_usage=0 
 const just_run=0
@@ -820,7 +820,7 @@ dim shared endstory as string
 ' SUB DECLARATION
 
 ' prospector .bas
-
+declare function wormhole_ani(target as _cords) as short
 declare function landing(mapslot as short,lx as short=0,ly as short=0, test as short=0) as short
 declare function scanning() as short
 declare function rescue() as short
@@ -1112,7 +1112,8 @@ declare function upgradehull(t as short,byref s as _ship) as short
 declare function gethullspecs(t as short) as _ship
 declare function makehullbox(t as short) as string
 declare function company(st as short,byref questroll as short) as short
-declare function merctrade(f as _fleet) as _fleet
+declare function merctrade(byref f as _fleet) as short
+
 declare function unload_f(f as _fleet, st as short) as _fleet
 declare function unload_s(s as _ship, st as short) as _ship
 declare function load_f(f as _fleet, st as short) as _fleet
