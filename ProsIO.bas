@@ -1032,16 +1032,7 @@ end function
 function dplanet(p as _planet,orbit as short,scanned as short) as short
     dim a as short
     dim text as string
-    
-    color 224,0
-    for a=0 to 61
-        draw string (a*_fw1,21*_fh1),chr(196),,Font1,custom,@_col
-    next
-    for a=0 to _lines
-        draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
-    next
-    draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
-    color 15,0
+    draw_border(0)
       
     color 15,0
     draw string(62*_fw1,1*_fh2), "Scanning Results:",,font2,custom,@_col
@@ -1137,6 +1128,31 @@ function mondis(enemy as _monster) as string
     return text
 end function
 
+function draw_border(xoffset as short) as short
+    dim as short fh1,fw1,fw2,a
+    if _tiles=0 then
+        fh1=16
+        Fw1=gfx.font.gettextwidth(FONT1,"W")
+        fw2=_fw2
+    else
+        fh1=_fh1
+        fw1=_fw1
+        fw2=_fw2
+    endif
+    color 224,1
+    if xoffset>0 then draw string(xoffset*fw2,21*_fh1),chr(195),,Font1,Custom,@_col
+    for a=(xoffset+1)*fw2 to 61*_fw1 step fw1
+        draw string (a,21*_fh1),chr(196),,Font1,custom,@_col
+    next
+    for a=0 to _screeny-fh1 step fh1
+        draw string (61*_fw1,a),chr(179),,Font1,custom,@_col
+    next
+    draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
+    
+    return 0
+end function
+
+
 sub show_stars(bg as short=0,byref walking as short)
     dim as short a,b,x,y,navcom,mask
     dim as _cords p,p1,p2
@@ -1169,14 +1185,14 @@ sub show_stars(bg as short=0,byref walking as short)
                 color 1,0
                 if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then 
                     if _tiles=0 then
-                        put (x*8+1,y*16+1),gtiles(11),pset
+                        put (x*_fw1+1,y*_fh1+1),gtiles(50),pset
                     else
                         draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                     endif
                 endif
                 if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then 
                     if _tiles=0 then
-                        put (x*8+1,y*16+1),gtiles(9),pset
+                        put (x*_fw1+1,y*_fh1+1),gtiles(abs(spacemap(x+player.osx,y+player.osy))+49),pset
                     else                        
                         color rnd_range(48,59),1
                         if spacemap(x+player.osx,y+player.osy)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
@@ -1187,15 +1203,21 @@ sub show_stars(bg as short=0,byref walking as short)
                     endif
                 endif
                 if abs(spacemap(x+player.osx,y+player.osy))>=6 and abs(spacemap(x+player.osx,y+player.osy))<=17 then
-                    if abs(spacemap(x+player.osx,y+player.osy))=6 then color 9,0
-                    if abs(spacemap(x+player.osx,y+player.osy))=7 then color 113,0
-                    if abs(spacemap(x+player.osx,y+player.osy))=8 then color 53,0
-                    if abs(spacemap(x+player.osx,y+player.osy))>8 then color 3,0
-                    if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
-                        draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
+                    if _tiles=0 then 
+                        if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
+                            put (x*_fw1+1,y*_fh1+1),gtiles(abs(spacemap(x+player.osx,y+player.osy))+49),pset
+                        endif
                     else
-                        color 1,0
-                        'if navcom>0 and spacemap(x+player.osx,y+player.osy)>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
+                        if abs(spacemap(x+player.osx,y+player.osy))=6 then color 9,0
+                        if abs(spacemap(x+player.osx,y+player.osy))=7 then color 113,0
+                        if abs(spacemap(x+player.osx,y+player.osy))=8 then color 53,0
+                        if abs(spacemap(x+player.osx,y+player.osy))>8 then color 3,0
+                        if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
+                            draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
+                        else
+                            color 1,0
+                            'if navcom>0 and spacemap(x+player.osx,y+player.osy)>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
+                        endif
                     endif
                 endif
             next
@@ -1229,7 +1251,7 @@ sub show_stars(bg as short=0,byref walking as short)
                     if _tiles=1 then
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
                     else
-                        put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(11),pset
+                        put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(50),pset
                     endif
                 endif
                 if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then 
@@ -1241,16 +1263,25 @@ sub show_stars(bg as short=0,byref walking as short)
                         if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(177),,Font1,custom,@_col 
                     else                        
-                        put ((x-player.osx)*8+1,(y-player.osy)*16+1),gtiles(9),pset
+                        put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),pset
+                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),pset
+                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(52),pset
+                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(53),pset
+                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(54),pset
                     endif
                 endif
                 if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=17) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
                     if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8  then 
-                        if abs(spacemap(x,y))>8 then color 3,0
-                        if abs(spacemap(x,y))=6 then color 9,0
-                        if abs(spacemap(x,y))=7 then color 113,0
-                        if abs(spacemap(x,y))=8 then color 53,0
-                        draw string (x*_fw1-player.osx*_fw1,y*_fh1-player.osy*_fh1),":",,Font1,custom,@_col
+                        if _tiles=0 then
+                            put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(49+abs(spacemap(x,y))),pset
+                        else
+                            if abs(spacemap(x,y))>8 then color 3,0
+                            if abs(spacemap(x,y))=6 then color 9,0
+                            if abs(spacemap(x,y))=7 then color 113,0
+                            if abs(spacemap(x,y))=8 then color 53,0
+                            draw string (x*_fw1-player.osx*_fw1,y*_fh1-player.osy*_fh1),":",,Font1,custom,@_col
+                        endif
+                        if spacemap(x,y)<=-6 then ano_money+=15
                         spacemap(x,y)=abs(spacemap(x,y))
                     else
                         color 1,0
@@ -1271,31 +1302,26 @@ sub show_stars(bg as short=0,byref walking as short)
             if vismask(x,y)=1 and distance(player.c,fleet(b).c)<player.sensors then
                 color 11,0 
                 if item(a).v1=1 then
-                    color 11,0 
-                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
+                    color 11,0
+                    if _tiles=0 then
+                        put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(86),pset
+                    else
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
+                    endif
                 else
-                    if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
-                    if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
-                    if fleet(b).ty=5 then color 5,0
-                    if fleet(b).ty=6 then color 8,0
-                    if fleet(b).ty=7 then color 8,0
-                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
-                endif
-            else
-                color 1,0
-                if navcom>0 then 
-                   if spacemap(x,y)=1 then draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
-                else
-                   if spacemap(x,y)>=2 and spacemap(x,y)<=5 then
-                        color rnd_range(9,14),1
-                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
-                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
-                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
-                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
-                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(175),,Font1,custom,@_col
-                   else
-                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1)," ",,Font1,custom,@_col
-                   endif
+                    
+                    if _tiles=0 then
+                        put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(86),pset
+                        if fleet(b).ty=1 or fleet(b).ty=3 then put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(67),pset
+                        if fleet(b).ty=2 or fleet(b).ty=4 then put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(68),pset
+                    else
+                        if fleet(b).ty=1 or fleet(b).ty=3 then color 10,0
+                        if fleet(b).ty=2 or fleet(b).ty=4 then color 12,0
+                        if fleet(b).ty=5 then color 5,0
+                        if fleet(b).ty=6 then color 8,0
+                        if fleet(b).ty=7 then color 8,0
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
+                    endif
                 endif
             endif
         next
@@ -1313,7 +1339,11 @@ sub show_stars(bg as short=0,byref walking as short)
             if (a>0 and vismask(p.x,p.y)=1 and distance(player.c,p)<player.sensors) or drifting(x).p>0 then
                 if p.x+1-player.osx>0 and p.x+1-player.osx<61 and p.y+1-player.osy>0 and p.y+1-player.osy<21 then 
                     locate p.y+1-player.osy,p.x+1-player.osx
-                    draw string ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),"s",,Font1,custom,@_col
+                    if _tiles=0 then
+                        put ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),gtiles(87),pset
+                    else
+                        draw string ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),"s",,Font1,custom,@_col
+                    endif
                     if drifting(x).p=0 then walking=0
                     drifting(x).p=1
                 endif
@@ -1403,59 +1433,12 @@ function screenshot(a as short) as short
     dim as integer bg,fg,col
     dim as string fname
     dim row as wstring*80
+    if a=3 then
+        bsave player.desig &".bmp",0
+    endif
     'a=0 screen in file drucken
     'a=1 screen in scrn speichern
     'a=2 screen aus scrn ausgeben
-    if _tiles=0 then
-        if a=0 then dprint "Screenshots in graphics mode not possible."
-        if a=1 then get(0,0)-(600,300),scr
-        if a=2 then put (0,0),scr,pset
-    else        
-        if a=0 or a=1 then
-            for x=1 to 80
-                for y=1 to 25
-                    scrn(x,y,0)=screen(y,x)
-                    col = Screen(y,x,1)
-                    scrn(x,y,1) = col And &HFF
-                    scrn(x,y,2) = (col Shr 8) And &HFF
-                next
-            next
-        endif
-        
-        if a=0 then
-            'find filename
-            do
-                b=b+1
-                fname="scrn"& b &".txt"
-            loop until not(fileexists(fname)) or b>255
-            f=freefile
-            open fname for output as #f
-            for y=1 to 25
-                row=""
-                for x=1 to 80
-                    
-                        row=row &chr850(scrn(x,y,0))
-                    
-                next
-                print #f,row
-            next
-            close #f
-            dprint "screenshot saved as "&fname
-        endif
-        
-        if a=2 then
-            for y=1 to 25
-                for x=1 to 80
-                    fg=scrn(x,y,1)
-                    bg=scrn(x,y,2)
-                    locate y,x,0
-                    color fg,bg
-                    print chr(scrn(x,y,0));
-                next
-            next
-        endif
-    endif
-    color 11,0
     return 0
 end function
 
@@ -2040,7 +2023,8 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 return ""
             endif
             if key=key_screenshot then 
-                screenshot(0)
+                screenshot(3)
+                dprint "saved screenshot in screenshot.bmp"
                 return ""
             endif
             if key=key_messages then 
@@ -2174,7 +2158,7 @@ sub displaystar(a as short)
         map(a).discovered=1
     endif
     if _tiles=0 then
-        put ((map(a).c.x-player.osx)*8+1,(map(a).c.y-player.osy)*16+1),gtiles(map(a).spec+1),trans
+        put (x*_tix+1,y*_tiy+1),gtiles(map(a).ti_no),trans
     else        
         color spectraltype(map(a).spec),bg
         locate map(a).c.y+1-player.osy,map(a).c.x+1-player.osx,0
@@ -2204,7 +2188,7 @@ sub displaystation(a as short)
     if _tiles=1 then
         draw string (x*_fw1,y*_fh1),"S",,Font1,custom,@_col
     else
-        put ((basis(a).c.x-player.osx)*8+1,(basis(a).c.y-player.osy)*16+1),gtiles(10),pset
+        put ((x)*_tix+1,(y)*_tiy+1),gtiles(44),pset
     endif
 end sub
 
@@ -2221,7 +2205,7 @@ sub dtile(x as short,y as short, tiles as _tile,bg as short=0)
         bgcol=0
     endif
     if _tiles=0 then
-        put (x*8,y*16),gtiles(tiles.no+19),pset
+        put (x*_tix,y*_tiy),gtiles(gt_no(tiles.ti_no)),pset
     else
         if _showvis=0 and bg>0 and bgcol=0 then 
             bgcol=234
@@ -2506,6 +2490,9 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         static wj as byte
         dim thp as short
         dim as string poi
+        dim as byte fw1,fh1
+        Fh1=22
+        
         xoffset=22
         locate 22,1
         color 15,0
@@ -2552,20 +2539,14 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         xoffset+=2
         draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),tacdes(player.tactic+3),,Font2,Custom,@_col
         xoffset=xoffset+len(tacdes(player.tactic+3))
-        color 11,1
-        draw string(xoffset*_fw2,21*_fh1),chr(195),,Font1,Custom,@_col
-        for a=(xoffset+1)*_fw2 to 61*_fw1 step _fw1
-            draw string (a,21*_fh1),chr(196),,Font1,custom,@_col
-        next
-        for a=0 to _lines
-            draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
-        next
-        draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
+        
+        draw_border(xoffset)
+        
         color 15,0
         if player.landed.m=map then
             if planetmap(ship.x,ship.y,map)>0 or player.stuff(3)=2 then    
                 if _tiles=0 then
-                    put (ship.x*8,ship.y*16),gtiles(12),trans
+                    put (ship.x*_tix-(_tiy-_tix)/2,ship.y*_tiy),stiles(5,player.ti_no),trans
                 else
                     color _shipcolor,0
                     draw string(ship.x*_fw1,ship.y*_fh1),"@",,Font1,custom,@_col
@@ -2573,7 +2554,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             endif
         endif        
         if _tiles=0 then
-            put (awayteam.c.x*8,awayteam.c.y*16),gtiles(13),trans
+            put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
         else
             color _teamcolor,0
             draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
@@ -2845,6 +2826,10 @@ sub displayship(show as byte=0)
     static wg as byte
     dim t as string
     dim as string p,g,s,d,carg
+    dim as byte fw1,fh1
+    Fw1=gfx.font.gettextwidth(FONT1,"W")
+    Fh1=22
+    
     if player.fuel=player.fuelmax then wg=0
     locate 22,1
     color 15,0
@@ -2856,16 +2841,7 @@ sub displayship(show as byte=0)
         draw string (0,21*_fh1), "No navcomp",, font2,custom,@_col
     endif
         
-    color 224,0
-    draw string (11*_fw1,21*_fh1), chr(195),,font1,custom,@_col
-    for a=12 to 61
-        draw string (a*_fw1,21*_fh1),chr(196),,Font1,custom,@_col
-    next
-    for a=0 to _lines
-        draw string (61*_fw1,a*_fh1),chr(179),,Font1,custom,@_col
-    next
-    draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
-    color 15,0
+    draw_border(11)
     draw string(62*_fw1,0*_fh1),(player.h_sdesc &" "& player.desig),,Font2,custom,@_col 
     color 11,0
     draw string(62*_fw1,1*_fh2),"HP:"&space(4) &" "&"SP:"&player.shield &" ",,Font2,custom,@_col
@@ -2977,7 +2953,7 @@ sub displayship(show as byte=0)
     next
     if show=1 then
         if _tiles=0 then
-            put ((player.c.x-player.osx)*8,(player.c.y-player.osy)*16),gtiles(12),trans
+            put ((player.c.x-player.osx)*_tix-(_tiy-_tix)/2,(player.c.y-player.osy)*_tiy),stiles(player.di,player.ti_no),trans
         else
             color _shipcolor,0
             draw string ((player.c.x-player.osx)*_fw1,(player.c.y-player.osy)*_fh1),"@",,Font1,custom,@_col
@@ -3000,21 +2976,29 @@ sub displayplanetmap(a as short)
     next
     for b=0 to lastportal
         if portal(b).from.m=a and portal(b).discovered=1 then
-            color portal(b).col,0
-            draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            if _tiles=0 then
+                put (portal(b).from.x*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),pset
+            else
+                color portal(b).col,0
+                draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            endif
         endif
         if portal(b).oneway=0 and portal(b).dest.m=a and portal(b).discovered=1 then
-            color portal(b).col,0
-            draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            if _tiles=0 then
+                put (portal(b).dest.x*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),pset
+            else
+                color portal(b).col,0
+                draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            endif
         endif
     next
     for b=1 to lastitem
         if item(b).w.m=a and item(b).w.s=0 and item(b).w.p=0 and item(b).discovered=1 then
             if _tiles=0 then
                 if item(a).ty<>15 then
-                    put (item(a).w.x*8,item(a).w.y*16),gtiles(item(a).ty+200),trans
+                    put (item(b).w.x*_tix,item(b).w.y*_tiy),gtiles(gt_no(item(b).ti_no)),pset
                 else                                
-                    put (item(a).w.x*8,item(a).w.y*16),gtiles(item(a).v2+250),trans
+                    put (item(b).w.x*_tix,item(b).w.y*_tiy),gtiles(gt_no(item(b).ti_no)),pset
                 endif
             else            
                 color item(b).col,item(b).bgcol

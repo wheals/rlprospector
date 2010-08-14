@@ -927,7 +927,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
         if rnd_range(1,100)<25-enemy.intel then enemy.disease=rnd_range(1,15)
-        
+        enemy.ti_no=g+1001
         enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
             
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
@@ -968,6 +968,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         g=rnd_range(0,4)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
+        enemy.ti_no=g+1001
+        
         enemy.sprite=261+g
         'Fighting Stats
         enemy.range=1.5
@@ -1066,6 +1068,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
        enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
         enemy.faction=2
+        enemy.ti_no=a+1010
         'Fighting Stats
         enemy.weapon=rnd_range(1,4)
         enemy.range=0.5+enemy.weapon
@@ -1111,6 +1114,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=4 then 'Plantmonster 
             
+        enemy.ti_no=1014
         enemy.move=-1
         
         enemy.weapon=rnd_range(0,1)
@@ -1122,6 +1126,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=1.2
         enemy.tile=ASC("P")
         enemy.sprite=277
+        enemy.ti_no=1014
         enemy.col=4
         enemy.scol=4
         enemy.atcost=rnd_range(6,8)/10
@@ -1133,6 +1138,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=5 then 'apollo
+        enemy.ti_no=1015
         enemy.lang=4
         enemy.weapon=4
         enemy.range=1.5
@@ -1162,6 +1168,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=6 then 'Fighting leaf
+        enemy.ti_no=1016
         'Fighting Stats
         enemy.range=1.5
         enemy.weapon=0
@@ -1188,6 +1195,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=8 then
+        enemy.ti_no=1018
         enemy.faction=5 'robots
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
@@ -1225,6 +1233,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=9 then
+        enemy.ti_no=1019
         enemy.faction=5 'Vault bots
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
@@ -1262,6 +1271,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
             
     if a=10 then 'seeweed
+        enemy.ti_no=1020
         enemy.made=10
         'Fighting Stats
         enemy.range=1.5
@@ -1289,6 +1299,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
      
     if a=11 then 'Sandworm
+        enemy.ti_no=1021
         enemy.made=11
         enemy.hp=50        
         for l=1 to 8
@@ -1314,6 +1325,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=12 then  'Hunting Spider
+        enemy.ti_no=1022
         enemy.sdesc="Spider"
         enemy.ldesc="A huge hunting spider. They seem to have found a taste for human flesh"
         enemy.dhurt="hurt"
@@ -1336,6 +1348,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=13 then 'Invisibles
+        enemy.ti_no=1023
         enemy.sdesc="????"
         enemy.ldesc="Something is here. But you cant see anything."
         enemy.dhurt="hurt"
@@ -1361,6 +1374,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         
     if a=14 then
         enemy.faction=1 'Citizen
+        enemy.ti_no=1024
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
         enemy.lang=2
@@ -1385,6 +1399,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=15 then
+        enemy.ti_no=1025
         enemy.faction=1 'Enemy Awayteam
         enemy.made=15
         enemy.sdesc="awayteam"
@@ -1438,6 +1453,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=16 then 'Spitting Critter
+        enemy.ti_no=1001+g
         enemy.range=2.5
         enemy.swhat="spits acid"
         enemy.scol=10
@@ -1475,6 +1491,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         
     
     if a=17 then 'Stone Monster
+        enemy.ti_no=1026
         enemy.move=-1
         enemy.atcost=rnd_range(8,12)/10
         enemy.weapon=rnd_range(1,2)
@@ -1495,6 +1512,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=18 then 'Breedworm
+        enemy.ti_no=1027
         enemy.atcost=rnd_range(7,9)/10
         enemy.range=1.5
         enemy.weapon=rnd_range(1,5)-3+planets(map).depth
@@ -1537,6 +1555,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=19 then 'Invisible bot
+        enemy.ti_no=1028
         enemy.faction=5
         enemy.sdesc="????"
         enemy.ldesc="the air shimmers showing some kind of cloaking device."
@@ -1568,6 +1587,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             
     
     if a=20 then 'bluecap
+        enemy.ti_no=1029
         enemy.atcost=rnd_range(6,8)/10
         enemy.sdesc="armed reptile"
         enemy.ldesc="A 3m tall reptile with yellow scales. It has 3 tentacles as arms, and 4 legs. It wears clothes and a blue helmet, and wields an obviously human made Gauss gun!"
@@ -1598,6 +1618,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
 
  
     if a=21 OR a=66 or a=67 or a=68 or a=69 then 'Tombspider 
+        enemy.ti_no=1030
         enemy.sdesc="Spider"
         enemy.ldesc="A huge hunting spider. They seem to have found a taste for human flesh"
         enemy.dhurt="hurt"
@@ -1616,6 +1637,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=1.45
         enemy.tile=Asc("A")
         if a=66 then 'Tombworm
+            enemy.ti_no=1031
             enemy.tile=Asc("I")
             enemy.col=8
             enemy.armor=3
@@ -1625,6 +1647,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         endif
         if a=67 then enemy.invis=2 'Hiding TOmbspider
         if a=68 then 'Tombworm
+            enemy.ti_no=1032
             enemy.tile=asc("w")
             enemy.col=15
             enemy.armor=0
@@ -1636,6 +1659,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.invis=0
         endif 
         if a=69 then 'Tombworm
+            enemy.ti_no=1033
             enemy.tile=asc("w")
             enemy.col=14
             enemy.armor=1
@@ -1649,6 +1673,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=22 then 'Intelligent Centipede
+        enemy.ti_no=1034
         enemy.sdesc="centipede"
         enemy.ldesc="a 3m long centipede. It only uses its lower 12 legs for movement. It's upper body is erect and its 12 arms end in slender 3 fingered hands. It has a single huge compound eye at the top of its head. It has 2 mouths, one for eating and one for breathing and talking. It is a herbivore." 
         enemy.dhurt="hurt"
@@ -1675,6 +1700,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
             
     if a=23 then 'Casino Thug
+        enemy.ti_no=1035
         enemy.sight=35
         enemy.sdesc="thug"
         enemy.ldesc="an armed band of thugs"
@@ -1712,6 +1738,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     'a=24 is taken for fish
     
     if a=25 or a=26 or a=37 or a=80 then 'Intelligent Insectoids
+        if a=25 then enemy.ti_no=1036
+        if a=26 then enemy.ti_no=1037
+        if a=37 or a=80 then enemy.ti_no=1038
         enemy.faction=9
         enemy.sight=3
         enemy.sdesc="insectoid"
@@ -1749,6 +1778,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=27 then 'Living Plasma
+        enemy.ti_no=1039
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -1773,6 +1803,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=28 then 'Slaved Citizen
+        enemy.ti_no=1040
         enemy.sdesc="citizen"
         enemy.ldesc="a dazed looking human pioneer"
         enemy.lang=14
@@ -1795,6 +1826,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=29 then 'Living crystal
+        enemy.ti_no=1041
         enemy.sdesc="living crystal"
         enemy.ldesc="This being resembles an insect. 3 meters high, 6 legs and 5 arms and a tiny head. Underneath it's transparent crystaline shell you see pink flesh and blue veins."
         enemy.lang=15
@@ -1821,9 +1853,10 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=30 then
+        enemy.ti_no=1042
         enemy.sight=3
         enemy.sdesc="starcreature"
-        enemy.ldesc="This creature resembles are giant see star with 5 legs bent downwards ending in 7 fingered hands. It uses them for walking as well as for fine manipulating. The top of it's body features 3 eye stalks with compound eyes. A tube under its body ends in a maw with sharp teeth."
+        enemy.ldesc="This creature resembles are giant starfish with 5 legs bent downwards ending in 7 fingered hands. It uses them for walking as well as for fine manipulating. The top of it's body features 3 eye stalks with compound eyes. A tube under its body ends in a maw with sharp teeth."
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.intel=3
@@ -1846,6 +1879,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=31 then
+        enemy.ti_no=1043
         enemy.sdesc="living crystal"
         enemy.ldesc="This being resembles an insect. 3 meters high, 6 legs and 5 arms and a tiny head. Underneath it's transparent crystaline shell you see pink flesh and blue veins."
         enemy.lang=15
@@ -1872,6 +1906,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
 
     if a=32 then
+        enemy.ti_no=1044
         enemy.faction=1
         enemy.made=32
         enemy.sight=35
@@ -1911,7 +1946,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         next
     endif
     
-    if a=33 then 'Dead Crewmembers
+    if a=33 then
+        enemy.ti_no=1045 'Dead Crewmembers
         enemy.made=32
         enemy.hpmax=rnd_range(2,5)+rnd_range(2,5)
         enemy.hp=0
@@ -1945,6 +1981,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=34 then 'Mushroom
+        enemy.ti_no=1046
         enemy.hp=rnd_range(2,5)
         enemy.hpmax=enemy.hp
         enemy.tile=asc("9")
@@ -1962,7 +1999,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.breedson=25
     endif
     
-    if a=35 then 'Powerful standard critter
+    if a=35 then
+        enemy.ti_no=1001+g 'Powerful standard critter
         g=rnd_range(0,4)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
@@ -2005,6 +2043,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=36 then
+        enemy.ti_no=1047
         enemy.hp=1
         enemy.hpmax=1
         enemy.aggr=0
@@ -2024,6 +2063,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     '37=aliens on generation ship
     
     if a=38 then 'Bouncy Ball
+        enemy.ti_no=1048
         enemy.hp=1
         enemy.hpmax=enemy.hp
         enemy.tile=asc("Q")
@@ -2045,6 +2085,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=39 then 'Citizen
+        enemy.ti_no=1049
         enemy.faction=1
         enemy.hasoxy=1
         enemy.sdesc="citizen"
@@ -2071,6 +2112,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=40 then 'zombies
+        enemy.ti_no=1050
         enemy.hasoxy=1
         enemy.made=40
         enemy.sight=35
@@ -2112,6 +2154,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=41 then 'Powerful space standard critter
+        enemy.ti_no=1001+g
         g=rnd_range(0,4)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
@@ -2147,6 +2190,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             if rnd_range(1,100)<33 then
             select case planets(map).temp
                    case is>200
+                    enemy.ti_no=1051
                     enemy.armor=2
                     enemy.col=12
                     enemy.tile=asc("W")
@@ -2158,6 +2202,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                     enemy.swhat="spits molten rock"
                     enemy.ldesc="A huge worm. It's biochemistry silicon based, wich allows it to live in extremely high heat. It's body is made of rock, and molten sulfur is used as blood."
                    case is<-150
+                    enemy.ti_no=1052
+                
                     enemy.armor=2
                     enemy.col=11
                     enemy.tile=asc("W")
@@ -2168,7 +2214,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                     enemy.ldesc="A huge worm. It's biochemistry is ammonia based, allowing it to survive in very low temperatures. It slithers leaving an ammonia track."
                    
                    case else
-                    
+                    enemy.ti_no=1053
+                
                     enemy.armor=2
                     enemy.col=4
                     enemy.tile=asc("W")
@@ -2185,6 +2232,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                 next
             endif
             If planets(map).depth>0 then
+                enemy.ti_no=1054
                 enemy.stuff(5)=1
                 enemy.track=4
                 enemy.weapon=5
@@ -2208,7 +2256,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=6
     endif
     
-    if a=42 then 'Intelligent Cephalopods       
+    if a=42 then 'Intelligent Cephalopods  
+        enemy.ti_no=1055     
         enemy.sight=3
         enemy.sdesc="amphibious cephalopod"
         enemy.ldesc="A cephalopod with 9 arms, 3 end in big suction cups, with serrated edges that also serve as fingers. 3 others end in beaked mouths and 3 end in fins. It's saucer shaped body has 9 small eyes, spaced evenly along the rim. It's body is about 0.5m wide and its tentacles are 1m long."  
@@ -2235,6 +2284,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=43 then 'Mushrroompickers
+        enemy.ti_no=1056     
         enemy.sight=3
         enemy.sdesc="small humanoid"
         enemy.ldesc="a 0.5m high humaoid, with long arms and legs, and green, scaly skin. It's very light and thin, and its fingers end in sucking cups."
@@ -2260,6 +2310,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=44 then 'Cavemonster
+        enemy.ti_no=1057     
         enemy.sight=3
         enemy.sdesc="small humanoid"
         enemy.ldesc="a 1m high humaoid, with long arms and legs, and green, scaly skin. It's very light and thin, and its fingers end in sucking cups. It has horns and a spiked tail."
@@ -2284,6 +2335,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=45 then 'Scentient Tree
+        enemy.ti_no=1058     
         enemy.sight=3
         enemy.sdesc="tree"
         enemy.ldesc="a small tree or big bush with a cone shaped trunk, and a wide surface root system. It has several small openings and a few flexible branches near the top that end in big blue globes. It is obviously capable of moving slowly!"
@@ -2309,6 +2361,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=46 then 'Defense bots
+        enemy.ti_no=1059     
         enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
@@ -2357,6 +2410,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=47 then 'Sgt Pinback
+        enemy.ti_no=1060     
         enemy.made=47
         enemy.hpmax=rnd_range(2,5)+rnd_range(2,5)
         enemy.hp=0
@@ -2369,6 +2423,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=48 then 'Ted ROfes
+        enemy.ti_no=1061
         enemy.biomod=0
         enemy.sdesc="Ted Rofes, the shipsdoctor. "
         enemy.ldesc="Ted Rofes, the shipsdoctor."
@@ -2393,7 +2448,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=49 then 'Pirate Ship Crew
-        
+        enemy.ti_no=1062
         enemy.faction=2
         enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
@@ -2449,7 +2504,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=50 then 'Pirate elite band
-        
+        enemy.ti_no=1063
         enemy.faction=2
         enemy.atcost=rnd_range(7,9)/10
         enemy.hasoxy=1
@@ -2505,6 +2560,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=51 then 'Defensebot
+        enemy.ti_no=1064
         enemy.faction=5
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
@@ -2552,6 +2608,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=52 then 'Defensebot
+        enemy.ti_no=1065
         enemy.faction=5
         enemy.sdesc="defense robot"
         enemy.ldesc="a metal ball, about 1m in diameter, sensor array to the right, weapons array to the left. It wobbly floats, obviously using some sort of antigrav."
@@ -2598,6 +2655,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=53 then 'Fast Bot
+        enemy.ti_no=1066
         enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
@@ -2654,6 +2712,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=54 then 'Defense Bot
+        enemy.ti_no=1067
         enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
@@ -2712,6 +2771,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=55 then 'Living Energy
+        enemy.ti_no=1068
         enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
@@ -2761,6 +2821,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=56 then 'Bladebot
+        enemy.ti_no=1069
         enemy.faction=5
         enemy.hasoxy=1
         enemy.sdesc="defense robot"
@@ -2811,6 +2872,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
 
 
     If a=57 then 'Armed Citizen
+        enemy.ti_no=1070
         enemy.faction=1
         enemy.sight=5
         enemy.sdesc="armed citizen"
@@ -2849,6 +2911,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=58 then 'Redhat
+        enemy.ti_no=1071
         enemy.atcost=rnd_range(6,8)/10
         enemy.sdesc="armed reptile"
         enemy.ldesc="A 3m tall reptile with yellow scales. It has 3 tentacles as arms, and 4 legs. It wears clothes and a red helmet, and wields an obviously human made Gauss gun!"
@@ -2878,6 +2941,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif  
         
     if a=59 then 'Crystal Hybrid
+        enemy.ti_no=1072
         enemy.sdesc="living crystal"
         enemy.ldesc="This being resembles an insect. 3 meters high, 6 legs and 5 arms and a tiny head. Underneath it's transparent crystaline shell you see pink flesh and blue veins."
         enemy.lang=15
@@ -2920,6 +2984,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=60 then 'Floater
+        enemy.ti_no=1073
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -2943,6 +3008,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=61 then 'floauter
+        enemy.ti_no=1074
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -2966,6 +3032,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
 
     if a=62 then 'Cloudshark
+        enemy.ti_no=1075
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -2988,6 +3055,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
 
     if a=63 then 'Living Mushroom
+        enemy.ti_no=1076
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -3011,6 +3079,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
 
     if a=64 then 'Hydrogen Worm
+        enemy.ti_no=1077
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)/10
         enemy.stuff(4)=1
@@ -3032,6 +3101,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=65 then 'Crystal Hybrid
+        enemy.ti_no=1078
         enemy.sdesc="living crystal"
         enemy.ldesc="This being resembles an insect. 3 meters high, 6 legs and 5 arms and a tiny head. Underneath it's transparent crystaline shell you see pink flesh and blue veins."
         enemy.lang=15
@@ -3078,6 +3148,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=71 then
+        enemy.ti_no=1079
         enemy.faction=1
         enemy.atcost=rnd_range(6,9)/10
         enemy.hasoxy=1
@@ -3116,6 +3187,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=72 then
+        enemy.ti_no=1080
         enemy.faction=1
         enemy.atcost=rnd_range(5,6)/10
         enemy.hasoxy=1
@@ -3153,6 +3225,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=73 then 'Citizen
+        enemy.ti_no=1081
         enemy.faction=1
         enemy.intel=-1 'Should make them not ally with the guards
         enemy.sdesc="worker"
@@ -3177,6 +3250,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=74 then
+        enemy.ti_no=1082
         enemy.faction=1
         enemy.atcost=rnd_range(6,9)/10
         enemy.hasoxy=1
@@ -3216,6 +3290,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=75 then
+        enemy.ti_no=1083
         enemy.faction=1
         enemy.atcost=rnd_range(5,6)/10
         enemy.hasoxy=1
@@ -3253,6 +3328,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=76 then
+        enemy.ti_no=1084
         enemy.faction=1
         enemy.atcost=rnd_range(6,9)/10
         enemy.hasoxy=1
@@ -3292,6 +3368,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=77 then
+        enemy.ti_no=1085
         enemy.faction=1
         enemy.atcost=rnd_range(5,6)/10
         enemy.hasoxy=1
@@ -3328,6 +3405,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=78 then 'Citizen
+        enemy.ti_no=1086
         enemy.faction=1
         enemy.intel=5 'Should make them not ally with the guards
         enemy.sdesc="scientist"
@@ -3352,6 +3430,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=79 then
+        enemy.ti_no=1087
         enemy.aggr=0
         enemy.hp=rnd_range(1,30)+20
         enemy.hpmax=enemy.hp
@@ -3399,6 +3478,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=83 then  'Burrower
+        enemy.ti_no=1088
         enemy.sdesc="Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -3421,6 +3501,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=84 then  'Burrower Mom
+        enemy.ti_no=1089
         enemy.sdesc="Huge Burrower"
         enemy.ldesc="A huge burrowing insect, with a thick carapace and huge mandibles. It hides in loose soil to suprise its prey"
         enemy.dhurt="hurt"
@@ -3448,6 +3529,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=85 then 'Citizen
+        enemy.ti_no=1090
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
         enemy.lang=23
@@ -3474,6 +3556,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if a=86 then
+        enemy.ti_no=1091
         enemy.faction=1
         enemy.atcost=rnd_range(6,9)/10
         enemy.hasoxy=1
@@ -3510,6 +3593,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=87 then
+        enemy.ti_no=1092
         enemy.faction=1
         enemy.atcost=rnd_range(5,6)/10
         enemy.hasoxy=1
@@ -3620,10 +3704,12 @@ dim as short c,b
         'p.questflag(3)=1
         'artflag(5)=1
         'artflag(7)=1
-        p.c=basis(0).c
+        p.c=targetlist(firstwaypoint)
+        p.di=nearest(basis(0).c,p.c)
         p.sensors=1
         p.hull=5
         p.hulltype=10
+        p.ti_no=1
         p.fuel=100
         p.fuelmax=100
         p.fueluse=1
@@ -3643,6 +3729,7 @@ dim as short c,b
         p.c.y=rnd_range(0,20)
         p.sensors=3
         p.hull=2
+        p.ti_no=18
         p.pilot=1
         p.gunner=3
         p.engine=5
@@ -3661,6 +3748,7 @@ dim as short c,b
         p.c.y=rnd_range(0,20)
         p.sensors=3
         p.hull=10
+        p.ti_no=19
         p.pilot=1
         p.gunner=4
         p.engine=4
@@ -3683,6 +3771,7 @@ dim as short c,b
         p.c.y=rnd_range(0,20)
         p.sensors=4
         p.hull=15
+        p.ti_no=20
         p.shieldmax=1
         p.shield=1
         p.pilot=2
@@ -3710,6 +3799,7 @@ dim as short c,b
         p.c.y=rnd_range(0,20)
         p.sensors=5
         p.hull=25
+        p.ti_no=21
         p.shieldmax=2
         p.shield=2
         p.pilot=1
@@ -3752,6 +3842,7 @@ dim as short c,b
             next
             p.desig="light transport"
             p.icon="t"
+            p.ti_no=22
         endif
         if c>4 then
                     
@@ -3770,6 +3861,7 @@ dim as short c,b
             p.desig="heavy transport"
             p.weapons(1)=makeweapon(1)
             p.icon="T"
+            p.ti_no=23
         endif
         if c>7 then
             p.hull=12
@@ -3787,6 +3879,7 @@ dim as short c,b
             p.weapons(0)=makeweapon(2)
             p.desig="merchantman"
             p.icon="m"
+            p.ti_no=24
         endif
         if c=10 then 
                     
@@ -3806,6 +3899,7 @@ dim as short c,b
             p.weapons(0)=makeweapon(2)
             p.desig="armed merchantman"
             p.icon="M"
+            p.ti_no=25
         endif
         'Merchant
         p.c.x=60
@@ -3836,6 +3930,7 @@ dim as short c,b
         p.weapons(2)=makeweapon(1)
         p.desig="Escort"
         p.icon="E"
+        p.ti_no=26
         p.money=0
         p.security=20
         p.col=10
@@ -3856,6 +3951,7 @@ dim as short c,b
         p.engine=3
         p.desig="Anne Bonny"
         p.icon="A"
+        p.ti_no=27
         p.money=15000
         p.ecm=2
         p.weapons(6)=makeweapon(9)       
@@ -3887,6 +3983,7 @@ dim as short c,b
         p.engine=3
         p.desig="Company Battleship"
         p.icon="U"
+        p.ti_no=28
         p.money=0
         p.ecm=1
         p.weapons(4)=makeweapon(7)       
@@ -3911,6 +4008,7 @@ dim as short c,b
         p.engine=3
         p.desig="Black Corsair"
         p.icon="D"
+        p.ti_no=29
         p.money=8000
         p.ecm=1
         
@@ -3943,6 +4041,7 @@ dim as short c,b
         p.engine=5
         p.desig="Ancient Alien Ship"
         p.icon="8"
+        p.ti_no=30
         p.ecm=2
         p.weapons(1)=makeweapon(66)
         p.weapons(2)=makeweapon(3)
@@ -3963,6 +4062,7 @@ dim as short c,b
         p.engine=4
         p.desig="Fighter"
         p.icon="F"
+        p.ti_no=31
         p.weapons(1)=makeweapon(7)
         p.col=10
         p.bcol=0
@@ -3980,6 +4080,7 @@ dim as short c,b
         p.sensors=3
         p.gunner=5
         p.icon="S"
+        p.ti_no=37
         p.desig="crystal spider"
         p.col=11
         p.mcol=1
@@ -3996,6 +4097,7 @@ dim as short c,b
         p.sensors=15
         p.gunner=5
         p.icon="Q"
+        p.ti_no=38
         p.desig="living sphere"
         p.col=8
         p.mcol=1
@@ -4014,6 +4116,7 @@ dim as short c,b
         p.sensors=2
         p.gunner=2
         p.icon=chr(176)
+        p.ti_no=39
         p.desig="symbiotic cloud"
         p.col=14
         p.mcol=1
@@ -4032,6 +4135,7 @@ dim as short c,b
         p.sensors=3
         p.gunner=3
         p.icon="W"
+        p.ti_no=40
         p.desig="hydrogen worm"
         p.col=121
         p.mcol=1
@@ -4050,6 +4154,7 @@ dim as short c,b
         p.sensors=4
         p.gunner=4
         p.icon=chr(176)
+        p.ti_no=41
         p.desig="living plasma"
         p.col=11
         p.mcol=14
@@ -4066,6 +4171,7 @@ dim as short c,b
         p.sensors=3
         p.gunner=2
         p.icon="J"
+        p.ti_no=42
         p.desig="starjellyfish"
         p.col=11
         p.mcol=14
@@ -4086,6 +4192,7 @@ dim as short c,b
         p.gunner=2
         p.icon="S"
         p.desig="cloudshark"
+        p.ti_no=43
         p.col=205
         p.mcol=1
         p.weapons(1)=makeweapon(101)
@@ -4101,6 +4208,7 @@ dim as short c,b
         p.sensors=3
         p.gunner=2
         p.icon="O"
+        p.ti_no=44
         p.desig="Gasbubble"
         p.col=203
         p.mcol=1
@@ -4118,6 +4226,7 @@ dim as short c,b
         p.sensors=3
         p.gunner=2
         p.icon="F"
+        p.ti_no=45
         p.desig="Floater"
         p.col=138
         p.mcol=1
@@ -4138,6 +4247,7 @@ dim as short c,b
         p.engine=2
         p.desig="Hussar"
         p.icon="C"
+        p.ti_no=34
         p.money=5000
         p.ecm=1
         p.weapons(2)=makeweapon(7)
@@ -4165,6 +4275,7 @@ dim as short c,b
         p.engine=3
         p.desig="Adder"
         p.icon="F"
+        p.ti_no=35
         p.money=2500
         p.ecm=1
         p.weapons(1)=makeweapon(7)
@@ -4189,6 +4300,7 @@ dim as short c,b
         p.engine=2
         p.desig="Black Widow"
         p.icon="F"
+        p.ti_no=36
         p.money=2500
         p.ecm=1
         p.weapons(1)=makeweapon(8)
@@ -4211,6 +4323,7 @@ dim as short c,b
         p.ecm=0
         p.desig="Spacestation"
         p.icon="S"
+        p.ti_no=44
         p.col=15
         p.weapons(1)=makeweapon(7)
         p.weapons(2)=makeweapon(7)

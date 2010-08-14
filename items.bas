@@ -152,6 +152,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     i.uid=uid
     
     if a=1 then
+        i.ti_no=2001
         i.id=1
         i.ty=1
         i.desig="hover platform"
@@ -182,6 +183,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=2 then
+        i.ti_no=2002
         i.id=2
         i.ty=1
         i.desig="jetpack"
@@ -197,6 +199,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=3 then
+        i.ti_no=2003
         i.id=3
         i.ty=2
         i.desig="gun"
@@ -213,6 +216,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=4 then
+        i.ti_no=2004
         i.id=4
         i.ty=2
         i.desig="rifle"
@@ -229,6 +233,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=5 then
+        i.ti_no=2005
         i.id=5
         i.ty=2
         i.desig="gyro jet gun"
@@ -245,6 +250,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=6 then
+        i.ti_no=2006
         i.id=6
         i.ty=2
         i.desig="gyro jet rifle"
@@ -261,6 +267,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=7 then
+        i.ti_no=2007
         i.id=7
         i.ty=2
         i.desig="gauss gun"
@@ -277,6 +284,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=8 then
+        i.ti_no=2008
         i.id=8
         i.ty=2
         i.desig="gauss rifle"
@@ -293,6 +301,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=9 then
+        i.ti_no=2009
         i.id=9
         i.ty=2
         i.desig="laser gun"
@@ -309,6 +318,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=10 then
+        i.ti_no=2010
         i.id=10
         i.ty=2
         i.desig="laser rifle"
@@ -325,6 +335,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=11 then 
+        i.ti_no=2011
         i.id=11
         i.ty=2
         i.desig="plasma rifle"
@@ -376,6 +387,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=12 then
+        i.ti_no=2012
         i.id=12
         i.ty=3
         i.desig="ballistic suit"
@@ -390,6 +402,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=13 then
+        i.ti_no=2013
         i.id=13
         i.ty=3
         i.desig="full ballistic suit"
@@ -404,6 +417,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=14 then
+        i.ti_no=2014
         i.id=14
         i.ty=3
         i.desig="protective suit"
@@ -418,6 +432,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=15 then
+        i.ti_no=2015
         i.id=15
         i.ty=3
         i.desig="full protective suit"
@@ -432,6 +447,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=16 then
+        i.ti_no=2016
         i.id=16
         i.ty=3
         i.desig="fullerene suit"
@@ -446,6 +462,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=17 then
+        i.ti_no=2017
         i.id=17
         i.ty=3
         i.desig="combat armor"
@@ -460,6 +477,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=18 then
+        i.ti_no=2018
         i.id=18
         i.ty=3
         i.desig="heavy combat armor"
@@ -493,7 +511,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
             
     
-    if a=19 then                 
+    if a=19 then   
+        i.ti_no=2019              
         i.id=19
         i.ty=3
         i.desig="p. Forcefield"
@@ -508,6 +527,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif    
          
     if a=20 then
+        i.ti_no=2020
         i.id=20
         i.ty=3
         i.desig="layered p. forcefield"
@@ -541,6 +561,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=21 then
+        i.ti_no=2021
         i.id=21
         i.ty=17
         i.desig="imp. air filters"
@@ -570,6 +591,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif   
     
     if a=22 then
+        i.ti_no=2022
         i.id=22
         i.ty=5
         i.desig="mining drill"
@@ -599,6 +621,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=23 then
+        i.ti_no=2023
         i.id=23
         i.ty=5
         i.desig="laser drill"
@@ -628,6 +651,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=24 then
+        i.ti_no=2024
         i.id=24
         i.ty=7
         i.desig="grenade"
@@ -641,6 +665,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif 
     
     if a=25 then
+        i.ti_no=2025
         i.id=25
         i.ty=7
         i.desig="fusion grenade"
@@ -654,6 +679,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=26 then
+        i.ti_no=2026
         i.id=26
         i.ty=8
         i.desig="set of binoculars"
@@ -682,6 +708,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=27 then
+        i.ti_no=2027
         i.id=27
         i.ty=8
         i.desig="portable sensorset"
@@ -710,6 +737,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=28 then
+        i.ti_no=2028
         i.id=28
         i.ty=9
         i.desig="helmet lamp"
@@ -739,6 +767,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=29 then
+        i.ti_no=2029
         i.id=29
         i.ty=9
         i.desig="flood light"
@@ -767,6 +796,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=30 then
+        i.ti_no=2030
         i.id=30
         i.ty=10
         i.desig="communication satellite"
@@ -780,6 +810,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=31 then
+        i.ti_no=2031
         i.id=31
         i.ty=11
         i.desig="medpack"
@@ -795,6 +826,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     
     if a=32 then
+        i.ti_no=2032
         i.id=32
         i.ty=11
         i.desig="medpack II"
@@ -810,6 +842,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=33 then
+        i.ti_no=2033
         i.id=33
         i.ty=11
         i.desig="medpack III"
@@ -824,6 +857,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=34 then
+        i.ti_no=2034
         i.id=34
         i.ty=12
         i.desig="mechanical lockpicks"
@@ -838,6 +872,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=35 then
+        i.ti_no=2035
         i.id=35
         i.ty=12
         i.desig="electronic lockpicks"
@@ -851,6 +886,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=36 then
+        i.ti_no=2036
         i.id=36
         i.ty=13
         i.desig="anaesthetics"
@@ -864,6 +900,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=37 then
+        i.ti_no=2037
         i.id=37
         i.ty=13
         i.desig="strong anaesthetics"
@@ -877,6 +914,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=38 then
+        i.ti_no=2038
         i.id=38
         i.ty=14
         i.desig="aux. oxygen tank"
@@ -905,6 +943,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=39 then
+        i.ti_no=2039
         i.id=39
         i.ty=16
         i.desig="seismograph"
@@ -917,6 +956,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=40 then
+        i.ti_no=2040
         i.id=40
         i.ty=4
         i.desig="combat knife"
@@ -930,6 +970,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=41 then
+        i.ti_no=2041
         i.id=41
         i.ty=4
         i.desig="combat blade"
@@ -943,6 +984,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=42 then
+        i.ti_no=2042
         i.id=42
         i.ty=4
         i.desig="vibro knife"
@@ -956,6 +998,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
 
     if a=43 then
+        i.ti_no=2043
         i.id=43
         i.ty=4
         i.desig="vibro blade"
@@ -969,6 +1012,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=44 then
+        i.ti_no=2044
         i.id=44
         i.ty=4
         i.desig="vibro sword"
@@ -982,6 +1026,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=45 then
+        i.ti_no=2045
         i.id=45
         i.ty=4
         i.desig="mono blade"
@@ -996,6 +1041,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
      
     if a=46 then
+        i.ti_no=2046
         i.id=46
         i.ty=4
         i.desig="mono sword"
@@ -1009,6 +1055,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=47 then
+        i.ti_no=2047
         i.id=47
         i.ty=4
         i.desig="combat gloves"
@@ -1057,6 +1104,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=48 then
+        i.ti_no=2048
         i.id=48
         i.ty=17
         i.desig="grenade launcher"
@@ -1069,6 +1117,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=49 then
+        i.ti_no=2049
         i.id=49
         i.ty=19
         i.v1=25
@@ -1098,6 +1147,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=50 then
+        i.ti_no=2050
         i.id=50
         i.ty=18
         i.desig="simple rover"
@@ -1116,6 +1166,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=51 then
+        i.ti_no=2051
         i.id=51
         i.ty=18
         i.desig="rover"
@@ -1134,6 +1185,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=52 then
+        i.ti_no=2052
         i.id=52
         i.ty=18
         i.desig="improved rover"
@@ -1152,6 +1204,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=53 then
+        i.ti_no=2053
         i.id=53
         i.ty=27
         i.desig="simple mining robot"
@@ -1170,6 +1223,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=54 then
+        i.ti_no=2054
         i.id=54
         i.ty=27
         i.desig="mining robot"
@@ -1188,6 +1242,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=55 then
+        i.ti_no=2055
         i.id=55
         i.ty=27
         i.desig="improved mining robot"
@@ -1206,6 +1261,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=56 then
+        i.ti_no=2056
         i.id=56
         i.ty=19
         i.desig="disease kit I"
@@ -1220,6 +1276,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=57 then
+        i.ti_no=2057
         i.id=57
         i.ty=19
         i.desig="disease kit II"
@@ -1233,6 +1290,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=58 then
+        i.ti_no=2058
         i.id=58
         i.ty=19
         i.desig="disease kit III"
@@ -1246,6 +1304,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=59 then
+        i.ti_no=2059
         i.id=59
         i.ty=21
         i.desig="conventional mine"
@@ -1258,6 +1317,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=60 then
+        i.ti_no=2060
         i.id=60
         i.ty=21
         i.desig="imp. mine"
@@ -1270,6 +1330,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=61 then
+        i.ti_no=2061
         i.id=61
         i.ty=22
         i.desig="stun mine"
@@ -1282,6 +1343,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=62 then
+        i.ti_no=2062
         i.id=62
         i.ty=26
         i.desig="cage"
@@ -1295,6 +1357,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=63 then
+        i.ti_no=2063
         i.id=63
         i.ty=26
         i.desig="stasis field"
@@ -1309,6 +1372,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=64 then
+        i.ti_no=2064
         i.id=64
         i.ty=26
         i.desig="improved stasis field"
@@ -1322,6 +1386,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=65 then
+        i.ti_no=2065
         i.id=65
         i.ty=20
         i.desig="debris from a destroyed rover"
@@ -1333,6 +1398,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=66 then
+        i.ti_no=2066
         i.id=65
         i.ty=20
         i.desig="debris from a destroyed mining robot"
@@ -1344,6 +1410,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=67 then
+        i.ti_no=2067
         i.id=67
         i.ty=21
         i.desig="basic Infirmary"
@@ -1359,6 +1426,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=68 then
+        i.ti_no=2068
         i.id=68
         i.ty=21
         i.desig="infirmary"
@@ -1374,6 +1442,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=69 then
+        i.ti_no=2069
         i.id=69
         i.ty=21
         i.desig="advanced Infirmary"
@@ -1388,6 +1457,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=70 then
+        i.ti_no=2070
         i.id=70
         i.ty=36
         i.desig="emergency beacon"
@@ -1401,6 +1471,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=71 then
+        i.ti_no=2071
         i.id=71
         i.ty=36
         i.desig="imp. Emergency beacon"
@@ -1414,6 +1485,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=72 then
+        i.ti_no=2072
         i.id=72
         i.ty=40
         i.desig="anti-ship mine"
@@ -1429,6 +1501,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=73 then
+        i.ti_no=2073
         i.id=73
         i.ty=40
         i.desig="anti-ship mine MKII"
@@ -1444,6 +1517,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=74 then
+        i.ti_no=2074
         i.id=74
         i.ty=40
         i.desig="improvised mine"
@@ -1459,6 +1533,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=75 then
+        i.ti_no=2075
         i.id=75
         i.ty=41
         i.desig="AT landing gear"
@@ -1473,6 +1548,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     
     if a=76 then
+        i.ti_no=2076
         i.id=76
         i.ty=41
         i.desig="Imp. AT landing gear"
@@ -1486,6 +1562,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=77 then 
+        i.ti_no=2077
         i.id=77
         i.ty=42
         i.desig="Ground penetrating radar"
@@ -1499,6 +1576,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=86 then
+        i.ti_no=2078
         i.id=86
         i.ty=86
         i.v1=1
@@ -1510,6 +1588,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=88 then
+        i.ti_no=2079
         i.id=94
         i.ty=23
         i.desigp="pieces of alien art"
@@ -1524,6 +1603,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=89 then
+        i.ti_no=2080
         i.id=89
         i.ty=89
         i.desig="crystal shard"
@@ -1536,6 +1616,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=90 then
+        i.ti_no=2081
         i.id=90
         i.ty=24
         i.desig="nanobot factory"
@@ -1548,6 +1629,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=91 then
+        i.ti_no=2082
         i.id=93
         i.ty=23
         i.desig="bow and arrows"
@@ -1559,6 +1641,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=92 then
+        i.ti_no=2083
         i.id=93
         i.ty=23
         i.desig="primitive handgun"
@@ -1570,6 +1653,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=93 then
+        i.ti_no=2084
         i.id=93
         i.ty=23
         i.desigp="pieces of alien art"
@@ -1593,6 +1677,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
         
     if a=94 then
+        i.ti_no=2084
         i.id=94
         i.ty=23
         i.desigp="pieces of alien art"
@@ -1616,6 +1701,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=95 then
+        i.ti_no=2085
         i.id=95
         i.ty=12
         i.desig="alien holokeycard"
@@ -1651,45 +1737,59 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         'unused 4 6 8 9 12
         if i.v2=1 then i.desig="iron"
         if i.v2=1 then i.col=4
+        if i.v2=1 then i.ti_no=2086
         
         if i.v2=2 then i.desig="copper"
         if i.v2=2 then i.col=2
+        if i.v2=2 then i.ti_no=2087
         
         if i.v2=3 then i.desig="sulfur"
         if i.v2=3 then i.col=6
+        if i.v2=3 then i.ti_no=2088
         
         if i.v2=4 then i.desig="silver"
         if i.v2=4 then i.col=7
+        if i.v2=4 then i.ti_no=2089
         
         if i.v2=5 then i.desig="gold"
         if i.v2=5 then i.col=14
+        if i.v2=5 then i.ti_no=2090
         
         if i.v2=6 then i.desig="osmodium"
         if i.v2=6 then i.col=8
+        if i.v2=6 then i.ti_no=2091
         
         if i.v2=7 then i.desig="palladium"
         if i.v2=7 then i.col=15
+        if i.v2=7 then i.ti_no=2092
         
         if i.v2=8 then i.desig="gems"
         if i.v2=8 then i.col=5
+        if i.v2=8 then i.ti_no=2093
         
         if i.v2=9 then i.desig="transuranic metals"
         if i.v2=9 then i.col=11
+        if i.v2=9 then i.ti_no=2094
         
         if i.v2=10 then i.desig="monocrystals"
         if i.v2=10 then i.col=10
+        if i.v2=10 then i.ti_no=2095
         
         if i.v2=11 then i.desig="exotic gems"
         if i.v2=11 then i.col=13
+        if i.v2=11 then i.ti_no=2096
         
         if i.v2=12 then i.desig="iridium"
         if i.v2=12 then i.col=9
+        if i.v2=12 then i.ti_no=2097
         
         if i.v2=13 then i.desig="lutetium"
         if i.v2=13 then i.col=3
+        if i.v2=13 then i.ti_no=2098
         
         if i.v2=14 then i.desig="rhodium"
         if i.v2=14 then i.col=12
+        if i.v2=14 then i.ti_no=2099
         
         i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(rnd_range(1,5+player.science))
         i.price=i.v5/10   
@@ -1717,9 +1817,11 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp="cloaking devices"
         i.v1=5
         i.price=100000
+        i.ti_no=2100
     endif
 
     if a=97 then
+        i.ti_no=2101
         i.id=97
         i.ty=2
         i.desig="disintegrator"
@@ -1767,7 +1869,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     endif
     
-    if a=98 then                 
+    if a=98 then   
+        i.ti_no=2102              
         i.id=98
         i.ty=3
         i.desig="adaptive bodyarmor"
@@ -1802,6 +1905,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=99 then
+        i.ti_no=2103
         i.id=99
         i.ty=99
         i.icon="*"
@@ -1818,21 +1922,26 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=201 then 'Alien civ gun
         i=civ(0).item(0)
+        i.ti_no=2104
     endif
     
     if a=202 then 'Alien civ ccweapon
         i=civ(0).item(1)
+        i.ti_no=2105
     endif
     
     if a=203 then 'Alien civ gun
         i=civ(1).item(0)
+        i.ti_no=2106
     endif
     
     if a=204 then 'Alien civ ccweapon
         i=civ(1).item(1)
+        i.ti_no=2107
     endif
     
     if a=205 then
+        i.ti_no=2108
         i.id=205
         i.ty=23
         i.desigp="pieces of alien art"
@@ -1847,6 +1956,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=301 then
+        i.ti_no=2109
         i.id=301
         i.ty=45
         i.icon="'"
@@ -1859,6 +1969,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=302 then
+        i.ti_no=2110
         i.id=301
         i.ty=46
         i.icon="'"
@@ -2465,359 +2576,46 @@ end function
 
 
 function makeweapon(a as short) as _weap
-    dim w as _weap
-    w.made=a
-        
-    if a=1 then
-        w.desig="Ship Gun"
-        w.dam=1
-        w.range=2
-        w.ammo=20
-        w.ammomax=20
-        w.ecmmod=1
-        w.p=1000
-        w.col=7
-   '     w.desc="A simple gun firing metal shells propelled by an explosion. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
+    'w.made &";"&w.desig &";" &w.range &";"& w.ammo &";"&w.ammomax &";"& w.ecmmod &";"& w.p &";"
+    '& w.col &";"& w.heat &";"& w.heatsink &";"& w.heatadd
+
+    dim as _weap w,w2
+    dim as string l
+    dim as string word(15)
+    dim as short f,i,t,j
+    f=freefile
+    open "data/weapons.csv" for input as #f
+    do
+        line input #f,l
+        j=0
+        for t=0 to len(l)
+            if mid(l,t,1)=";" then
+                j+=1
+            else
+                word(j)=word(j) &mid(l,t,1)
+            endif
+        next
+        w.made=val(word(0))
+        w.desig=word(1)
+        w.range=val(word(2))
+        w.ammo=val(word(3))
+        w.ammomax=val(word(4))
+        w.ecmmod=val(word(5))
+        w.p=val(word(6))
+        w.col=val(word(7))
+        w.heat=val(word(8))
+        w.heatsink=val(word(9))
+        w.heatadd=val(word(10))
+        for t=0 to 10
+            word(t)=""
+        next
+    loop until w.made=a or eof(f)
+    close #f
+    if a=w.made then
+        return w
+    else 
+        return w2 'return empty weapon instead of last if not found
     endif
-    
-    if a=2 then
-        w.desig="Rail Gun"
-        w.dam=2
-        w.range=3
-        w.ammo=20
-        w.ammomax=20
-        w.ecmmod=1
-        w.p=2000
-        w.col=7
-  '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=3 then
-        w.desig="Rocketlauncher"
-        w.dam=3
-        w.range=3
-        w.ammo=10
-        w.ammomax=10
-        w.ecmmod=2
-        w.p=3000
-        w.col=7
- '       w.desc="Self propelled rockets with chemical explosives. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif    
-    
-    if a=4 then
-        w.desig="Imp. Rockets"
-        w.dam=4
-        w.range=4
-        w.ammo=10
-        w.ammomax=10
-        w.ecmmod=2
-        w.p=4000
-        w.col=7
-'        w.desc="Self propelled rockets with nuclear warheads. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=5 then
-        w.desig="LR Launcher"
-        w.dam=5
-        w.range=5
-        w.ammo=5
-        w.ammomax=5
-        w.ecmmod=1
-        w.p=5000
-        w.col=7
-       ' w.desc="Self propelled rockets with nuclear warheads and increased range. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=6 then
-        w.desig="Plasma Gun"
-        w.dam=1
-        w.range=1
-        w.ammo=0
-        w.ammomax=0
-        w.ecmmod=1
-        w.p=1250
-        w.col=14
-      '  w.desc="Ionized hydrogen. Low impact damage, low penetration. A targetable ships drive basically. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=7 then 
-        w.desig="Laser Bank"
-        w.dam=2
-        w.range=1
-        w.ammo=0
-        w.ammomax=0
-        w.ecmmod=1
-        w.p=2500
-        w.col=14
-     '   w.desc="Lasers burn through the enemys ships armor. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=8 then
-        w.desig="X-Ray Laser"
-        w.dam=3
-        w.range=1
-        w.ammo=0
-        w.ammomax=0
-        w.ecmmod=1
-        w.p=3750
-        w.col=14
-    '    w.desc="Higher energy per particle increases the damage of a Laser. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=9 then
-        w.desig="Gammaray Laser"
-        w.dam=4
-        w.range=2
-        w.ammo=0
-        w.ammomax=0
-        w.ecmmod=1
-        w.p=5000
-        w.col=14
-   '     w.desc="Bremsstrahlung wreaks havocs inside the target even if the particles don't penetrate the hull. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=10 then
-        w.desig="ParticleCannon"
-        w.dam=5
-        w.range=2
-        w.ammo=0
-        w.ammomax=0
-        w.ecmmod=1
-        w.p=6250
-        w.col=9
-  '      w.desc="Heavy particles accelerated to near light speeds penetrate and rip apart the enemys armor. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-        
-        
-    if a=11 then
-        w.desig="Gunbattery"
-        w.dam=1
-        w.range=1
-        w.ROF=3
-        w.ammo=20
-        w.ammomax=20
-        w.ecmmod=2
-        w.p=2000
-        w.col=15
-  '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-        
-    if a=12 then
-        w.desig="Railgunbat."
-        w.dam=2
-        w.range=1
-        w.ROF=3
-        w.ammo=20
-        w.ammomax=20
-        w.ecmmod=2
-        w.p=4000
-        w.col=15
-  '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    
-    if a=13 then
-        w.desig="Rocketbat."
-        w.dam=3
-        w.range=1
-        w.ROF=2
-        w.ammo=10
-        w.ammomax=10
-        w.ecmmod=2
-        w.p=6000
-        w.col=15
-  '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=14 then
-        w.desig="I. Rocketbat."
-        w.dam=4
-        w.range=1
-        w.ROF=2
-        w.ammo=10
-        w.ammomax=10
-        w.ecmmod=1
-        w.p=8000
-        w.col=15
-  '      w.desc="Metal shells accelerated to high speeds using electric fields.  | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=66 then
-        w.desig="Disintegrator"
-        w.dam=6
-        w.range=6
-        w.ammo=0
-        w.ecmmod=0
-        w.ammomax=0
-        w.p=25000
-        w.col=12
- '       w.desc="You are uncertain how this wapon works, but it seems to disrupt the bonds formed by strong interaction in subatomic particles. | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
-    endif
-    
-    if a=87 then
-        w.desig="Armor Plates"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=100
-    endif
-    
-    if a=88 then
-        w.desig="Man-Jets I"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=500
-    endif
-    
-    if a=89 then
-        w.desig="Man-Jets II"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=1500
-    endif
-    
-    if a=90 then
-        w.desig="Aux.Shield Gen."
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=800
-    endif
-        
-    if a=91 then
-        w.desig="Aux. Power Gen."
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=1000
-    endif
-    
-    if a=92 then
-        w.desig="Aux.Pow.MKII"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=2500
-    endif
-    
-    if a=93 then
-        w.desig="Ded. Sensors"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=800
-    endif
-    
-    if a=94 then
-        w.desig="Ded. Sens MKII"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=2000
-    endif
-    
-    if a=95 then
-        w.desig="Imp Trac Beam"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.ROF=-3
-        w.p=1500
-    endif
-    
-    if a=96 then
-        w.desig="Tractor Beam"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.ROF=-1
-        w.p=500
-'        w.desc="Crew Quaters | | A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
-    endif
-    
-    if a=97 then
-        w.desig="Crew Quarters"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=1500
-'        w.desc="Crew Quaters | | A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
-    endif
-    
-    if a=98 then
-        w.desig="Fuel Tank"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=1000
-        'w.desc="Fuel Tank | | Not the safest way to store fuel. It holds 50 tons"
-    endif
-    
-    if a=99 then
-        w.desig="Cargo Bay"
-        w.dam=0
-        w.range=0
-        w.ammo=0
-        w.ammomax=0
-        w.p=500
-        'w.desc="Cargo Bay | | A weapons turret modified to hold an additional ton of cargo."
-    endif
-    
-    if a=101 then
-        w.desig="It bites"
-        w.dam=2
-        w.range=.5
-        w.ammomax=0
-        w.ammo=0
-        w.p=-1
-        w.col=2
-    endif
-    
-    if a=102 then
-        w.desig="It fires a concentrated beam of radiation"
-        w.dam=3
-        w.range=4
-        w.ammomax=0
-        w.ammo=0
-        w.p=-1
-        w.col=2
-    endif
-    
-    if a=103 then
-        w.desig="It hits with a tentacle"
-        w.dam=2
-        w.range=1
-        w.ammomax=0
-        w.ammo=0
-        w.p=-1
-        w.col=2
-    endif
-    
-    if a=104 then
-        w.desig="It fires a lightning bolt"
-        w.dam=2
-        w.range=3
-        w.ammomax=0
-        w.ammo=0
-        w.p=-1
-        w.col=11
-    endif
-    
-    return w
 end function
 
 function findartifact(awayteam as _monster,v5 as short) as short

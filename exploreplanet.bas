@@ -539,8 +539,12 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
             if (vismask(portal(a).from.x,portal(a).from.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
                 if portal(a).discovered=0 then walking=0
                 portal(a).discovered=1
-                color portal(a).col,0
-                draw string(portal(a).from.x*_fw1,portal(a).from.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
+                if _tiles=0 then
+                    put (portal(a).from.x*_tix,portal(a).from.y*_tiy),gtiles(gt_no(portal(a).ti_no)),pset
+                else
+                    color portal(a).col,0
+                    draw string(portal(a).from.x*_fw1,portal(a).from.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
+                endif
             endif
         endif
         if portal(a).oneway=0 then
@@ -548,10 +552,14 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 p.x=portal(a).dest.x
                 p.y=portal(a).dest.y
                 if (vismask(portal(a).dest.x,portal(a).dest.y)>0 and awayteam.sight>cint(distance(awayteam.c,p))) or portal(a).discovered=1 then
-                    color portal(a).col,0
-                    draw string(portal(a).dest.x*_fw1,portal(a).dest.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
                     if portal(a).discovered=0 then walking=0
-                    portal(a).discovered=1                        
+                    portal(a).discovered=1   
+                    if _tiles=0 then
+                        put (portal(a).dest.x*_tix,portal(a).dest.y*_tiy),gtiles(gt_no(portal(a).ti_no)),pset
+                    else
+                        color portal(a).col,0
+                        draw string(portal(a).dest.x*_fw1,portal(a).dest.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
+                    endif
                 endif    
             endif
         endif
@@ -572,11 +580,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                     
                 locate item(li(a)).w.y+1,item(li(a)).w.x+1
                 if _tiles=0 then
-                    if item(li(a)).ty<>15 then
-                        put (item(li(a)).w.x*8,item(li(a)).w.y*16),gtiles(item(li(a)).ty+200),trans
-                    else                                
-                        put (item(li(a)).w.x*8,item(li(a)).w.y*16),gtiles(item(li(a)).v2+250),trans
-                    endif
+                    put (item(li(a)).w.x*_tix,item(li(a)).w.y*_tiy),gtiles(gt_no(item(li(a)).ti_no)),trans
                 else
                     if _transitems=1 then
                         draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_col
@@ -606,7 +610,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 if vismask(p.x,p.y)>0 and awayteam.sight>cint(distance(awayteam.c,p)) then
                     color 12,0
                     if _tiles=0 then
-                        if enemy(a).hpmax>0 then put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(270),trans
+                        if enemy(a).hpmax>0 then put (enemy(a).c.x*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(1093)),trans
                     else
                         if enemy(a).hpmax>0 then draw string(p.x*_fw1,P.y*_fh1), "%",,font1,custom,@_col
                     endif
@@ -628,7 +632,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                     endif
                     if enemy(a).invis=0 then
                         if _tiles=0 then
-                            put (enemy(a).c.x*8,enemy(a).c.y*16),gtiles(enemy(a).sprite),trans
+                            put (enemy(a).c.x*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),pset
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
@@ -1656,6 +1660,7 @@ end function
 
 function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,vismask() as byte) as short
     dim as short a,b,c,x,y,d,slot
+    if _spawnoff=1 then return 0
     slot=player.map
     for x=0 to 60
         for y=0 to 20
@@ -2080,8 +2085,12 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     dim as _cords p,p1,p2
     dim text as string
     slot=player.map
-    color _teamcolor,0
-    draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
+    if _tiles=0 then
+        put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
+    else
+        color _teamcolor,0
+        draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
+    endif
     if walking=0 then
         if key=key_fi then dprint "Fire direction ("& key_wait &" to chose target. "&key_layfire &" to divide fire)?"
         if key=key_autofire then dprint "Fire direction?"

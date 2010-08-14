@@ -5,13 +5,14 @@
 const __VERSION__="0.1.13a"
 
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0 'special planets already discovered
+Const Show_specials=30 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0 'outputs statistics to txt files
 Const show_all=0
 const show_items=0 'shows entire maps
-const alien_scanner=0'player has alien scanner
+const alien_scanner=0
+const start_teleport=1'player has alien scanner
 Const show_critters=0 
 Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0 
@@ -21,7 +22,7 @@ const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
-const show_wormholes=0
+const show_wormholes=1
 const rev_map=1
 const no_enemys=0
 const more_mets=0
@@ -40,6 +41,8 @@ const _debug=0
 const make_vault=0
 const addpyramids=0
 const startingmoney=500
+const _spawnoff=0
+
 
 const xk=chr(255) 
 const key_up = xk + "H"
@@ -54,6 +57,8 @@ const sm_x=75
 const sm_y=35
 const max_maps=2047
 
+const _tix=16
+const _tiy=24
 dim shared as integer fmod_error
 dim shared as byte _NoPB=2
 dim shared as byte wormhole=8
@@ -197,6 +202,7 @@ type _transfer
     dest as _cords
     tile as short
     col as short
+    ti_no as uinteger
     oneway as short
     discovered as short
     desig as string*64
@@ -210,6 +216,7 @@ end type
 
 type _items
     id as short 
+    ti_no as uinteger
     uid as uinteger
     w as _cords
     icon as string*1
@@ -244,6 +251,9 @@ type _weap
     p as short
     made as byte
     col as byte
+    heat as byte
+    heatadd as byte
+    heatsink as byte
 end type
 
 type _faction
@@ -261,6 +271,8 @@ type _ship
     money as integer
     desig as string *24
     icon as string *1
+    ti_no as uinteger
+    di as byte
     sensors as short
     pilot as short
     gunner as short
@@ -359,6 +371,7 @@ type _monster
     aggr as byte
     
     tile as short
+    ti_no as uinteger
     sprite as short
     col as ubyte
     dcol as ubyte
@@ -395,6 +408,7 @@ end type
 type _stars
     c as _cords
     spec as byte
+    ti_no as uinteger
     discovered as byte
     planets(1 to 9) as short
     desig as string*12
@@ -512,6 +526,7 @@ type _tile
     no as short
     
     tile as short
+    ti_no as uinteger
     bgcol as short
     col as short
     
@@ -714,6 +729,7 @@ end type
 dim shared talent_desig(26) as string
 dim shared evkey as EVENT
 dim shared reward(9) as single
+dim shared ano_money as short
 
 dim shared baseprice(8) as short
 dim shared avgprice(8) as single
@@ -755,7 +771,9 @@ dim shared shopitem(20,23) as _items
 dim shared makew(20,5) as byte
 
 dim shared tiles(512) as _tile
-dim shared gtiles(512) as any ptr
+dim shared gtiles(2048) as any ptr
+dim shared stiles(9,34) as any ptr
+dim shared gt_no(4096) as integer
 dim shared scr as any ptr
 
 dim shared dprintline as byte
@@ -889,6 +907,7 @@ declare function loadmap(m as short,slot as short) as short
 declare function texttofile(text as string) as string
 
 ' prosIO.bas
+declare function draw_border(xoffset as short) as short
 declare function skillcheck(targetnumber as short,skill as short, modifier as short) as short
 declare function showteam(from as short, r as short=0,text as string="") as short
 declare function gainxp(slot as short) as short
@@ -961,7 +980,8 @@ declare function getfilename() as string
 declare function savegame()as short
 declare function loadgame(filename as string) as short
 declare function copytile (byval a as short) as _tile
-declare function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr     
+declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr     
+declare function load_tiles() as short
 declare function makealienship(slot as short, t as short) as short
 declare function makecivfleet(slot as short) as _fleet
 declare function civfleetdescription(f as _fleet) as string
@@ -1003,7 +1023,7 @@ declare function numfromstr(t as string) as short
 declare function make_spacemap() as short
 declare sub make_clouds()
 declare sub makefinalmap(m as short)
-declare sub makecomplex(byref enter as _cords, down as short)
+declare sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
 declare sub makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
 declare sub makecomplex3(slot as short,cn as short, rc as short,collums as short,t as short)
 declare sub makecomplex4(slot as short,rn as short,tileset as short)

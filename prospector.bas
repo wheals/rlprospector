@@ -29,6 +29,10 @@ print
 loadconfig
 if _lines<23 then _lines=23
 screen 12
+if _tiles=0 then 
+    _fohi2=10
+    _fohi1=26
+endif
 if _fohi1=9 then _fohi1=10
 if _fohi1=11 then _fohi1=12
 if _fohi1=13 then _fohi1=14
@@ -54,9 +58,9 @@ if _fohi2>_fohi1 then _fohi2=_fohi1
 
 if _customfonts=1 then
     print "loading font 1"
-    font1=loadfont(""&_fohi1,_FH1)
+    font1=load_font(""&_fohi1,_FH1)
     print "loading font 2"
-    font2=loadfont(""&_fohi2,_FH2)
+    font2=load_font(""&_fohi2,_FH2)
 else 
     Font1 = ImageCreate((254-1) * 8, 17)
     dim as ubyte ptr p
@@ -76,9 +80,13 @@ endif
     
 _FW1=gfx.font.gettextwidth(FONT1,"W")
 _FW2=gfx.font.gettextwidth(FONT2,"W")
+if _tiles=0 then
+    _Fw1=_tix
+    _Fh1=_tiy
+endif
 if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
 _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
-_screenx=80*_fw1
+_screenx=60*_fw1+25*_fw2
 for a=0 to 255
     dtextcol(a)=11
 next
@@ -88,7 +96,7 @@ next
 gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
 
 if _tiles=0 then
-    screenres _screenx,_screeny,8,2,GFX_FULLSCREEN
+    screenres _screenx,_screeny,8,2,GFX_WINDOWED
 else
     screenres _screenx,_screeny,8,2,GFX_WINDOWED
 endif
@@ -102,24 +110,19 @@ text=""
 'next
 
 bload "tiles.bmp"
+
 for a=1 to 512
     tiles(a).no=a
+    tiles(a).ti_no=100+a
 next
-for a=1 to 512
-    gtiles(a)=imagecreate(8,16)
-next
+
 for a=1 to max_maps
     planets(a)=planets(0)
     planets(a).grav=1
 next
 d=0
 a=1
-for y=0 to 96 step 16
-    for x=0 to 392 step 8
-        get (x,y)-(x+7,y+15),gtiles(a)
-        a=a+1 
-    next
-next
+if _tiles=0 then load_tiles 
 cls
 
 if chdir("savegames")=-1 then
@@ -261,12 +264,12 @@ specialplanettext(19,0)="There are buildings on this planet and a big sensor arr
 specialplanettext(20,0)="There is a human colony on this planet."
 specialplanettext(20,1)="There is a human colony on this planet. Also some signs of beginning construction since we were last here."
 specialplanettext(26,0)="No water, but the mountains on this planet are high rising spires of crystal and quartz. This place is lifeless, but beautiful!"
-specialplanettext(27,0)="This small planet has no atmosphere. A huge and unusually deep crater dominates it's surface."
+specialplanettext(27,0)="This small planet has no atmosphere. A huge and unusually deep crater dominates its surface."
 specialplanettext(27,1)="The Planetmonster is dead."
 specialplanettext(28,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
 specialplanettext(29,0)="This is the most boring piece of rock I ever saw. Just a featureless plain of stone."
 specialplanettext(30,0)="I don't know why, but this planet has a temperate climate now. There are signs of life and a huge structure on the western hemishpere."
-specialplanettext(31,0)="There is a perfectly spherical large asteroid here. 2km diameter it shows no signs of any impact craters and reads very high metals"
+specialplanettext(31,0)="There is a perfectly spherical large asteroid here. 2km diameter it shows no signs of any impact craters and readings indicate a very high metal content"
 specialplanettext(32,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures."
 specialplanettext(33,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures. There are ships on the surface"
 specialplanettext(34,0)="I am getting very, very high radiaton readings for this planet. Landing here might be dangerous."
@@ -613,12 +616,6 @@ disease(17).desig="zombie disease"
 disease(17).duration=15
 disease(17).fatality=85
 
-'
-'makecivilisation(0,specialplanet(7))
-'makecivilisation(0,specialplanet(7))
-'makealienship(0,0)
-'makealienship(0,1)
-
 do
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
     background(rnd_range(1,_last_title_pic)&".bmp")
@@ -632,7 +629,7 @@ do
     draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_tcol
     draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration",,FONT2,custom,@_tcol
     draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit",,FONT2,custom,@_tcol
-    key=keyin("12345678")
+    key=keyin("123456")
     if key="8" then
         player=civ(0).ship(0)
         shipstatus()
@@ -725,7 +722,7 @@ if key="1" then
         next
     endif
     for a=1 to 8
-        if rnd_range(1,100)<60 then
+        if rnd_range(1,100)<40 then
             placeitem(rnd_item(20),0,0,0,0,-1)
         else
             placeitem(makeitem(rnd_range(3,lstcomty)),0,0,0,0,-1)
@@ -754,7 +751,8 @@ if key="1" then
         next
     endif
     'placeitem(makeitem(77),0,0,0,0,-1)
-    'placeitem(makeitem(89),0,0,0,0,-1)
+    placeitem(makeitem(89),0,0,0,0,-1)
+    if start_teleport=1 then artflag(9)=1
     cls
     color 11,0
     if b<5 then
@@ -812,6 +810,8 @@ endif
 
 if player.dead>0 then
     text=""
+    
+    if not fileexists(player.desig &".bmp") then screenshot(3)
     cls
     background(rnd_range(1,_last_title_pic)&".bmp")
     color 12,0
@@ -1774,6 +1774,7 @@ function move_ship(key as string,byref walking as short) as _ship
     else
         a=walking
     endif
+    if a<>0 then player.di=a
     old=player.c
     player.c=movepoint(player.c,a,,1)
     if player.c.x<0 then player.c.x=0
@@ -2022,6 +2023,9 @@ function explore_space() as short
                 loop until key=key_enter or key=key_la
                 b=pl
             endif
+            if map(b).planets(2)=0 then
+                ano_money+=cint(distance(map(b).c,player.c)*25)
+            endif
             map(b).planets(2)=1
             dprint "you travel through the wormhole",10
             if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
@@ -2032,7 +2036,7 @@ function explore_space() as short
             if player.osx>=sm_x-60 then player.osx=sm_x-60
             if player.osy>=sm_y-20 then player.osy=sm_y-20
             d=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<5+int(distance(player.c,map(b).c)/5) and artflag(13)=0 then d=rnd_range(1,3)
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<7+int(distance(player.c,map(b).c)/5) and artflag(13)=0 then d=rnd_range(1,3)
             player.hull=player.hull-d
             if player.hull>0 then
                 wormhole_ani(map(b).c)
@@ -2334,6 +2338,7 @@ function explore_space() as short
     flip
     screenset 1,1
 loop until player.dead>0
+
     return 0
 end function
 
@@ -3223,7 +3228,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         savefrom(a).enemy(b)=enemy(b)
     next
     if slot=specialplanet(12) and player.dead<>0 then player.dead=17
-    
+    if player.dead<>0 then screenshot(3)
     return nextmap
 end function
 
@@ -3326,9 +3331,6 @@ function grenade(from as _cords,map as short) as _cords
     if findbest(17,-1)>0 then
         dprint "Choose target"
         do 
-            locate p.y+1,p.x+1
-            color _teamcolor,0
-            print "@"
             key=cursor(ntarget,map)
             if distance(ntarget,from)<5 then
                 target.x=ntarget.x

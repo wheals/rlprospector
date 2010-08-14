@@ -156,6 +156,7 @@ sub postmortem
     dim b as short
     dim c as short
     dim f as short
+    dim ll as short
     dim exps as short
     dim expp as short
     dim tp as short
@@ -169,7 +170,7 @@ sub postmortem
     dim old_g as short
     dim expl as integer
     dim total as integer
-    dim lines(26) as string
+    dim lines(127) as string
     dim inv(255) as _items
     dim invn(255) as short
     dim text as string
@@ -216,49 +217,58 @@ sub postmortem
     endif
         
     if askyn("Save mission summary to file?(y/n)") then
-        
         f=freefile
-        open player.desig &".txt" for output as f
-        dprint "saving to "&player.desig &".txt"
-        Print UCASE(st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts")
-        print #f,getdeath
-        print #f,""
-        print #f,texttofile(endstory)
-        print #f,texttofile(missiontype)
-        print #f,texttofile(moneytext)
-        print #f,texttofile(explorationtext)
-        print #f,texttofile(uniques)
-        print #f,""
-        if player.science=6 then print #f,"Found and recruited the best science officer in the sector"    
-        if player.gunner=6 then print #f,"Found and recruited the best gunner in the sector"
-        if player.pilot=6 then print #f,"Found and recruited the best pilot in the sector";
-        print #f,""
-        if player.questflag(1)=4 then print #f,"Destroyed the infamous Anne Bonny."
-        if player.questflag(2)=4 then print #f,"Brought the kidnappers to justice."
-        if player.questflag(4)=4 then print #f,"Destroyed the Black Corsair."
-        if player.questflag(5)=4 then print #f,"Managed to defeat a mysterious ship."
-        if specialflag(20)=1 then print #f,,"Managed to free a colony of an opressive crystal intelligence."
-        if player.questflag(3)=2 then print #f,"Secured the use of alien robot ships."
-        print #f,""
-        
-        print #f,texttofile(listartifacts)
-        print #f,""
-        print #f,"Equipment:"
-        
-        lastinv=getitemlist(inv(),invn())
-        for a=0 to lastinv
-            color 11,0
-            locate 2+a,53
-            if invn(a)>1 then
-                print #f,trim(invn(a)&" "&inv(a).desigp)
-            else
-                print #f,trim(inv(a).desig)
-            endif
-        next
-        print #f,""
-        print #f,"END OF MISSION SUMMARY"
-        dprint "saved"
+        open "data/template.html" for input as f
+        ll=0
+        while not eof(f)
+            ll+=1
+            line input #f,lines(ll)
+        wend
         close f
+        dprint "saving to "&player.desig &".html"
+        f=freefile
+        open player.desig &".html" for output as f
+        for a=1 to ll
+            if lcase(lines(a))="missionsummary" then lines(a)=UCASE(st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts")
+            if lcase(lines(a))="screenshot" then lines(a)="<img src="&chr(34)&player.desig &".bmp"&chr(34)&">"
+            if lcase(lines(a))="death" then lines(a)=getdeath
+            if lcase(lines(a))="endstory" then 
+                lines(a)="<b>Epilogue</b><br>" &texttofile(endstory)
+            endif
+            if lcase(lines(a))="missiontype" then lines(a)=texttofile(missiontype)
+            if lcase(lines(a))="moneytext" then lines(a)=texttofile(moneytext)
+            if lcase(lines(a))="explorationtext" then lines(a)=texttofile(explorationtext)
+            if lcase(lines(a))="uniques" then lines(a)=texttofile(uniques)
+            if lcase(lines(a))="accomplishments" then
+                lines(a)=""
+                if player.science=6 then print #f,"Found and recruited the best science officer in the sector"    
+                if player.gunner=6 then print #f,"Found and recruited the best gunner in the sector"
+                if player.pilot=6 then print #f,"Found and recruited the best pilot in the sector";
+                print #f,""
+                if player.questflag(1)=4 then print #f,"Destroyed the infamous Anne Bonny."
+                if player.questflag(2)=4 then print #f,"Brought the kidnappers to justice."
+                if player.questflag(4)=4 then print #f,"Destroyed the Black Corsair."
+                if player.questflag(5)=4 then print #f,"Managed to defeat a mysterious ship."
+                if specialflag(20)=1 then print #f,,"Managed to free a colony of an opressive crystal intelligence."
+                if player.questflag(3)=2 then print #f,"Secured the use of alien robot ships."
+            endif
+            if lcase(lines(a))="items" then
+                lines(a)=""
+                print #f,"<b>Equipment:</b><br>"
+                lastinv=getitemlist(inv(),invn())
+                for b=0 to lastinv
+                    if invn(b)>1 then
+                        print #f,trim(invn(b)&" "&inv(b).desigp) &"<br>"
+                    else
+                        print #f,trim(inv(b).desig)&"<br>"
+                    endif
+                next
+            endif
+            print #f,lines(a)
+        next
+        close f
+        dprint "saved"
+        
     endif
     _tiles=old_g
 end sub

@@ -3,14 +3,15 @@ function moneytext() as string
     dim text as string
     dim as short b,a
     dim per(3) as single
+    text=text &" || "
     if player.money-500>0 then
-        text=" Made a profit of {10} "&player.money-500 &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &" Made a profit of {10} "&player.money-500 &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500=0 then
-        text=" Didn't earn any money in {15} "&player.turn &" {11} turns." 
+        text=text &" Didn't earn any money in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500<0 then
-        text=" Made a loss of {12} "&abs(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &" Made a loss of {12} "&abs(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif 
     
     text=text & " | "
@@ -108,7 +109,7 @@ function uniques() as string
     descr(44)="The ruins of an ancient war"
     descr(46)="the homeworld of the "&civ(1).n
     
-    text= "{15}Unique planets discovered:{11}|"
+    text= "|{15}Unique planets discovered:{11}|"
     
     for a=0 to lastspecial
         if specialplanet(a)>0 and specialplanet(a)<=lastplanet then

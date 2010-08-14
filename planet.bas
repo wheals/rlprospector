@@ -35,6 +35,7 @@ function make_spacemap() as short
         else
             map(a).spec=rnd_range(1,7)
         endif
+        map(a).ti_no=map(a).spec+68
         if rnd_range(1,100)<91 then
             for b=1 to 9
                 map(a).planets(b)=rnd_range(1,24)-((map(a).spec-3)^2+rnd_range(1,12))
@@ -65,6 +66,7 @@ function make_spacemap() as short
         else
             c=c+1
             map(a).spec=8
+            map(a).ti_no=76
             map(a).planets(1)=c
         endif
     next
@@ -72,12 +74,14 @@ function make_spacemap() as short
         map(a).c.x=rnd_range(0,sm_x)
         map(a).c.y=rnd_range(0,sm_y)
         map(a).spec=9
+        map(a).ti_no=77
         map(a).planets(1)=a+1
         map(a).discovered=maximum(show_all,show_wormholes)
         map(a+1).planets(1)=a
         map(a+1).c.x=rnd_range(0,sm_x)
         map(a+1).c.y=rnd_range(0,sm_y)
         map(a+1).spec=9
+        map(a+1).ti_no=77
         map(a+1).discovered=maximum(show_all,show_wormholes)
         
     next
@@ -134,6 +138,7 @@ function make_spacemap() as short
             portal(a).desig="A natural tunnel. "
             portal(a).tile=111
             portal(a).col=7
+            portal(a).ti_no=3001
             print ".";
             do
                 portal(a).from.s=getrandomsystem
@@ -732,7 +737,7 @@ end sub
 
 
 sub makefinalmap(m as short)
-    
+    dim as _cords p
     dim as short f,x,y,c
     planets(m).darkness=5
     planets(m).teleport=1
@@ -743,33 +748,23 @@ sub makefinalmap(m as short)
             get #f,,planetmap(x,y,m)
             if planetmap(x,y,m)=-80 and rnd_range(1,100)<20 then planetmap(x,y,m)=-81
             if planetmap(x,y,m)=-54 and rnd_range(1,100)<80 then planetmap(x,y,m)=-55
-            
         next
-     next
-     do
-     for y=0 to 20
-             for x=0 to 60
-                 if planetmap(x,y,m)=-82 then
-                     if rnd_range(1,100)>22 and c=0 then 
-                        planetmap(x,y,m)=-127
-                        c=1
-                    endif
-                endif
-            next
-        next
-     loop until c=1
-     close #f
-     for y=0 to 20
+    next
+    close #f
+    
+    p=rnd_point(m,0)
+    planetmap(p.x,p.y,m)=-127
+    for y=0 to 20
         for x=0 to 60
              if show_all=1 then planetmap(x,y,m)=planetmap(x,y,m)*-1
         next
     next
-    
-     planets(m).mon_template(0)=makemonster(19,m)
-     planets(m).Mon_noamax(0)=28
-     planets(m).mon_noamin(0)=22
-     planets(m).grav=0.5
-     planets(m).atmos=3
+    planets(m).depth=1
+    planets(m).mon_template(0)=makemonster(19,m)
+    planets(m).Mon_noamax(0)=28
+    planets(m).mon_noamin(0)=22
+    planets(m).grav=0.5
+    planets(m).atmos=3
 end sub
 
 sub makeplatform(slot as short,platforms as short,rooms as short, translate as short, adddoors as short=0)
@@ -993,7 +988,7 @@ sub makeplatform(slot as short,platforms as short,rooms as short, translate as s
 
 end sub
 
-sub makecomplex(byref enter as _cords, down as short)
+sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
     
     dim as short last,wantsize,larga,largb,lno,x,y,mi,slot,old,a,dx,dy,dis,d,b,c,best,startdigging
     dim t as _rect
@@ -1193,7 +1188,7 @@ do
         y=rnd_range(r(a).y,r(a).y+r(a).h)
         planetmap(x,y,slot)=-84
     next
-    if rnd_range(1,100)<33 or planets(slot).depth>7 then
+    if (rnd_range(1,100)<33 or planets(slot).depth>7) and blocked=0 then
         do
             a=rnd_range(0,last)
         loop until r(a).wd(5)=0 and a<>b
@@ -1223,7 +1218,7 @@ do
         planets(slot).vault=r(rnd_range(0,last))
         planets(slot).vault.wd(5)=1
     endif
-    planetmap(enter.x,enter.y,enter.m)=-80
+    planetmap(enter.x,enter.y,slot)=-80
 end sub
 
 sub makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
@@ -4947,10 +4942,11 @@ function makespecialplanet(a as short) as short
             next
         next
         planetmap(wx+4,wy+4,a)=-4
-        planets(a).depth=7
+        'planets(a).depth=7
         lastportal=lastportal+1
         portal(lastportal).desig="A building still in good condition. "
         portal(lastportal).tile=ASC("#")
+        portal(lastportal).ti_no=3006
         portal(lastportal).col=14
         portal(lastportal).from.m=a
         portal(lastportal).from.x=wx+4
@@ -4964,6 +4960,7 @@ function makespecialplanet(a as short) as short
         portal(lastportal).dimod=-3
         lastplanet=lastplanet+1
         
+        makecomplex(portal(lastportal).dest,lastplanet,1)
         wx=rnd_range(0,53)
         wy=rnd_range(0,13)
         for x=wx to wx+4
@@ -4979,9 +4976,22 @@ function makespecialplanet(a as short) as short
             next
         next
         
-        
+        for b=0 to 6
+            p1=rnd_point(lastplanet,0)
+            p1.m=lastplanet
+            lastplanet+=1
+            p2=rnd_point(lastplanet,0)
+            p2.m=lastplanet
+            makecomplex(p2,lastplanet,1)
+            if b<6 then addportal(p1,p2,0,asc("o"),"A shaft",14)
+        next    
+        lastplanet+=1
+        p2.x=30
+        p2.y=2
+        p2.m=lastplanet
+        addportal(p1,p2,0,asc("o"),"A very deep shaft",14)
+        makefinalmap(lastplanet)
     endif
-    
     
     if a=specialplanet(31)then
         makemossworld(a,4)
@@ -5054,6 +5064,8 @@ function makespecialplanet(a as short) as short
             planets(lastplanet).mon_noamax(0)=15
         
         next
+        p=rnd_point(lastplanet,0)
+        planetmap(p.x,p.y,lastplanet)=-234
     endif
     
     if a=specialplanet(32) then
@@ -6779,6 +6791,10 @@ function makealienship(slot as short,t as short) as short
         if t=0 then civ(slot).ship(t).desig=civ(slot).n &" warship"
         if t=1 then civ(slot).ship(t).desig=civ(slot).n &" fighter"
     endif
+    civ(0).ship(0).ti_no=45
+    civ(0).ship(1).ti_no=46
+    civ(1).ship(0).ti_no=47
+    civ(1).ship(1).ti_no=48
     return 0
 end function
 
@@ -6861,6 +6877,11 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
     portal(lastportal).col=col
     portal(lastportal).desig=desig
     portal(lastportal).discovered=show_all
+    if tile=asc("o") then portal(lastportal).ti_no=3001
+    if tile=asc("#") and col=14 then portal(lastportal).ti_no=3002
+    if tile=asc("o") and col=14 then portal(lastportal).ti_no=3003
+    if tile=asc(">") then portal(lastportal).ti_no=3004
+    if tile=asc("^") then portal(lastportal).ti_no=3005
     return 0
 end function
 
@@ -7493,13 +7514,13 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                 placeitem(makeitem(98),p.x,p.y,lastplanet)
             endif
             
-            if rnd_range(1,100)<33 or addpyramids=1 then
-                vt=rnd_range(1,4)
+            if rnd_range(1,100)<55 or addpyramids=1 then
+                vt=rnd_range(1,6)
                 p=rnd_point
-                x=rnd_range(5,8)+rnd_range(0,3)
-                y=rnd_range(4,6)+rnd_range(0,2)
-                if p.x+x>59 then p.x=59-x
-                if p.y+y>19 then p.y=19-y
+                x=rnd_range(6,9)+rnd_range(0,3)
+                y=rnd_range(5,7)+rnd_range(0,2)
+                if p.x+x>=59 then p.x=58-x
+                if p.y+y>=19 then p.y=18-y
                 r.x=p.x
                 r.y=p.y
                 r.w=x
@@ -7509,6 +7530,11 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                         planetmap(x,y,lastplanet)=-4
                         if x=r.x or x=r.x+r.w or y=r.y or y=r.y+r.h then
                             planetmap(x,y,lastplanet)=-51
+                            if vt=5 then 
+                                planetmap(x,y,lastplanet)=-50
+                                placeitem(makeitem(96,-2,-3),x,y,lastplanet)
+                                placeitem(makeitem(96,-2,-3),x,y,lastplanet)
+                            endif
                             if rnd_range(1,100)<33 then
                                 if planetmap(x-1,y,lastplanet)=-4 then planetmap(x,y,lastplanet)=-151
                                 if planetmap(x+1,y,lastplanet)=-4 then planetmap(x,y,lastplanet)=-151
@@ -7519,16 +7545,18 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                             if vt=2 then planetmap(x,y,lastplanet)=-154
                         endif
                     next
-                next                 
-                for i=0 to rnd_range(1,6)+rnd_range(1,6)+vt
-                    p.x=rnd_range(r.x+1,r.x+r.w-1)
-                    p.y=rnd_range(r.y+1,r.y+r.h-1)
-                    placeitem(makeitem(96,-2,-3),p.x,p.y,lastplanet)
-                    p.x=rnd_range(r.x+1,r.x+r.w-1)
-                    p.y=rnd_range(r.y+1,r.y+r.h-1)
-                    placeitem(makeitem(94),p.x,p.y,lastplanet)
                 next
-                if vt=3 then
+                if vt<5 then
+                    for i=0 to rnd_range(1,6)+rnd_range(1,6)+vt
+                        p.x=rnd_range(r.x+1,r.x+r.w-2)
+                        p.y=rnd_range(r.y+1,r.y+r.h-2)
+                        placeitem(makeitem(96,-2,-3),p.x,p.y,lastplanet)
+                        p.x=rnd_range(r.x+1,r.x+r.w-2)
+                        p.y=rnd_range(r.y+1,r.y+r.h-2)
+                        placeitem(makeitem(94),p.x,p.y,lastplanet)
+                    next
+                endif
+                if vt=3 or vt=5 then
                     planets(lastplanet).vault=r
                     planets(lastplanet).vault.wd(5)=2
                     planets(lastplanet).vault.wd(6)=rnd_range(66,68)
@@ -7537,6 +7565,17 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                     planets(lastplanet).vault=r
                     planets(lastplanet).vault.wd(5)=2
                     planets(lastplanet).vault.wd(6)=rnd_range(16,18)
+                endif
+                if vt=6 then
+                    planets(lastplanet).vault=r
+                    planets(lastplanet).vault.wd(5)=2
+                    planets(lastplanet).vault.wd(6)=rnd_range(16,18)
+                    for x=r.x to r.x+r.w
+                        for y=r.y to r.y+r.h
+                            if x=r.x+1 or x=r.x+r.w-1 or y=r.y+1 or y=r.y+r.h-1 then planetmap(x,y,lastplanet)=-225
+                            if x=r.x+r.w/2 and y=r.x+r.h/2 then planetmap(x,y,lastplanet)=-225
+                        next
+                    next
                 endif
             endif
                 

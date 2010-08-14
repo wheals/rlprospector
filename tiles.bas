@@ -230,7 +230,6 @@ tiles(26).tohit=10
 tiles(26).dam=1
 tiles(26).range=0
 tiles(26).hitt="You get splashed with liquid ammonium!"
-
 tiles(26).shootable=1
 tiles(26).dr=-1
 tiles(26).hp=20
@@ -559,7 +558,6 @@ tiles(61).survivors=33
 tiles(61).resources=66
 tiles(61).turnsinto=62
 tiles(61).hides=2
-
 
 tiles(62).tile=64
 tiles(62).col=11
@@ -1004,13 +1002,6 @@ tiles(127).col=15
 tiles(127).desc="A computer"
 tiles(127).turnsinto=84
 tiles(127).gives=999
-
-
-tiles(62).tile=64
-tiles(62).col=11
-tiles(62).desc="A stranded ship beyond repair"
-tiles(62).hides=2
-
 
 tiles(128).tile=64
 tiles(128).col=11
@@ -1788,10 +1779,13 @@ tiles(239).desc="A floating wooden platform"
 tiles(239).col=156
 tiles(239).hides=2
 
+
 tiles(240).tile=asc("C")
 tiles(240).col=11
 tiles(240).gives=111
 tiles(240).turnsinto=84
+
+'Mittwoch 22:08
 
 tiles(241).tile=64
 tiles(241).col=8

@@ -102,6 +102,8 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             tick(a)=0
         next
         player=defender
+        screenset 0,1
+        cls
         displayship(0)
         com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
    '
@@ -139,7 +141,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 if key=key_dr then
                     com_dropmine(defender,mines_p(),mines_v(),mines_last)
                 endif
-                
+                if getdirection(key)<>0 then player.di=getdirection(key)
                 old=defender.c
                 defender.c=movepoint(defender.c,getdirection(key))
                 
@@ -171,6 +173,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 
                 tick(0)=tick(0)+tickr(0)
                 speed(0)=speed(0)-1
+                screenset 0,1
+                cls
+                displayship(0)
                 com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
             endif
             for b=1 to lastenemy 'enemymovement
@@ -184,16 +189,17 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             attacker(b).target.y=player.c.y
                         endif
                     endif
-                    
-                    c=nearest(attacker(b).target,attacker(b).c)
-                    old=attacker(b).c
-                    if distance(defender.c,attacker(b).c)>com_mindist(attacker(b)) and attacker(b).shiptype=0 and distance(defender.c,attacker(b).c)<attacker(b).sensors then attacker(b).c=movepoint(attacker(b).c,c)
-                    if old.x<>attacker(b).c.x or old.y<>attacker(b).c.y then
-                        e_last=e_last+1
-                        if e_last>128 then e_last=1
-                        e_track_p(e_last)=old
-                        e_track_v(e_last)=attacker(b).engine
+                    if attacker(b).shiptype=1 then
+                        attacker(b).target.x=0
+                        attacker(b).target.y=attacker(b).c.y
                     endif
+                    attacker(b).di=nearest(attacker(b).target,attacker(b).c)
+                    old=attacker(b).c
+                    if distance(defender.c,attacker(b).c)>com_mindist(attacker(b)) and attacker(b).shiptype=0 and distance(defender.c,attacker(b).c)<attacker(b).sensors then attacker(b).c=movepoint(attacker(b).c,attacker(b).di)
+                    e_last=e_last+1
+                    if e_last>128 then e_last=1
+                    e_track_p(e_last)=movepoint(attacker(b).c,10-attacker(b).di)
+                    e_track_v(e_last)=attacker(b).engine
                     speed(b)=speed(b)-1
                     tick(b)=tick(b)+tickr(b)
                     if attacker(b).c.x=defender.c.x and attacker(b).c.y=defender.c.y then attacker(b).c=old
@@ -204,6 +210,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             endif
                         next
                     endif
+                    screenset 0,1
+                    cls
+                    displayship(0)
                     com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
                 endif
             next b
@@ -422,7 +431,6 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     dim list_c(128) as _cords
     dim list_e(128) as short
     dim last as short
-    
     for a=1 to lastenemy
             last+=1
             list_c(last)=attacker(a).c
@@ -447,16 +455,23 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
                 locate y+1,x+1
                 draw string(x*_fw1,y*_fh1)," ",,font1,custom,@_col
                 if distance(p1,defender.c)<=senbat*senac then
-                    locate y+1,x+1
-                    if distance(p1,defender.c)<=senbat*senac then color 8,0
-                    if distance(p1,defender.c)<=senbat1*senac then color 7,0
-                    if distance(p1,defender.c)<=senbat2*senac then color 15,0
-                    if combatmap(x,y)=0 then draw string(x*_fw1,y*_fh1),".",,font1,custom,@_col
-                    if combatmap(x,y)=1 or combatmap(x,y)=6 then draw string(x*_fw1,y*_fh1),chr(183),,font1,custom,@_col
-                    if (combatmap(x,y)>1 and combatmap(x,y)<6) or combatmap(x,y)=7 then
-                        color rnd_range(48,59),0
-                        if combatmap(x,y)=7 then color rnd_range(186,210),0
-                        draw string(x*_fw1,y*_fh1), chr(176),,font1,custom,@_col
+                    if _tiles=0 then
+                        if distance(p1,defender.c)<=senbat*senac and combatmap(x,y)=0 then put (x*_tix,y*_tiy),gtiles(78),pset
+                        if distance(p1,defender.c)<=senbat1*senac and combatmap(x,y)=0 then put (x*_tix,y*_tiy),gtiles(79),pset
+                        if distance(p1,defender.c)<=senbat2*senac and combatmap(x,y)=0 then put (x*_tix,y*_tiy),gtiles(80),pset
+                        if combatmap(x,y)=1 or combatmap(x,y)=6 then put (x*_tix,y*_tiy),gtiles(76),pset
+                        if combatmap(x,y)>1 and combatmap(x,y)<6 then put (x*_tix,y*_tiy),gtiles(51),pset
+                    else
+                        if distance(p1,defender.c)<=senbat*senac then color 8,0
+                        if distance(p1,defender.c)<=senbat1*senac then color 7,0
+                        if distance(p1,defender.c)<=senbat2*senac then color 15,0
+                        if combatmap(x,y)=0 then draw string(x*_fw1,y*_fh1),".",,font1,custom,@_col
+                        if combatmap(x,y)=1 or combatmap(x,y)=6 then draw string(x*_fw1,y*_fh1),chr(183),,font1,custom,@_col
+                        if (combatmap(x,y)>1 and combatmap(x,y)<6) or combatmap(x,y)=7 then
+                            color rnd_range(48,59),0
+                            if combatmap(x,y)=7 then color rnd_range(186,210),0
+                            draw string(x*_fw1,y*_fh1), chr(176),,font1,custom,@_col
+                        endif
                     endif
                 endif
             endif
@@ -465,29 +480,44 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     
     for b=1 to e_last    
         locate e_track_p(b).y+1,e_track_p(b).x+1,0
-        color 0,0
-        if e_track_v(b)>=4 then color 15,0
-        if e_track_v(b)=3 then color 11,0
-        if e_track_v(b)=2 then color 9,0
-        if e_track_v(b)=1 then color 1,0 
-        if distance(e_track_p(b),defender.c)<=senbat*(senac+1) and e_track_v(b)>0 then draw string(e_track_p(b).x*_fw1,e_track_p(b).y*_fh1),"*",,font1,custom,@_col 
+        if distance(e_track_p(b),defender.c)<=senbat*(senac+1) and e_track_v(b)>0 then 
+            if _tiles=0 then
+                if e_track_v(b)>=4 then put (e_track_p(b).x*_tix,e_track_p(b).y*_tiy),gtiles(81),pset
+                if e_track_v(b)=3 then put (e_track_p(b).x*_tix,e_track_p(b).y*_tiy),gtiles(82),pset
+                if e_track_v(b)=2 then put (e_track_p(b).x*_tix,e_track_p(b).y*_tiy),gtiles(83),pset
+                if e_track_v(b)=1 then put (e_track_p(b).x*_tix,e_track_p(b).y*_tiy),gtiles(84),pset
+            else
+                color 0,0
+                if e_track_v(b)>=4 then color 15,0
+                if e_track_v(b)=3 then color 11,0
+                if e_track_v(b)=2 then color 9,0
+                if e_track_v(b)=1 then color 1,0 
+                draw string(e_track_p(b).x*_fw1,e_track_p(b).y*_fh1),"*",,font1,custom,@_col 
+            endif
+        endif
         e_track_v(b)=e_track_v(b)-1
     next
     
     if mines_last>0 then
         for b=1 to mines_last
-            locate mines_p(b).y+1,mines_p(b).x+1,0
             color 0,0
             draw string(mines_p(b).x*_fw1,mines_p(b).y*_fh1)," ",,font1,custom,@_col
-            locate mines_p(b).y+1,mines_p(b).x+1,0
-            if b+lastenemy=marked then 
-                color 8,11
+            if _tiles=0 then
+                if distance(mines_p(b),defender.c)<senbat*(senac+1) then 
+                    put (mines_p(b).x*_fw1,mines_p(b).y*_fh1),gtiles(gt_no(item(mines_v(b)).ti_no)),pset
+                    denemy+=1
+                endif
+                if b+lastenemy=marked then put (mines_p(b).x*_fw1,mines_p(b).y*_fh1),gtiles(85),trans
             else
-                color 8,0
-            endif
-            if distance(mines_p(b),defender.c)<senbat*(senac+1) then 
-                draw string(mines_p(b).x*_fw1,mines_p(b).y*_fh1),"ö",,font1,custom,@_col
-                denemy+=1
+                if b+lastenemy=marked then 
+                    color 8,11
+                else
+                    color 8,0
+                endif
+                if distance(mines_p(b),defender.c)<senbat*(senac+1) then 
+                    draw string(mines_p(b).x*_fw1,mines_p(b).y*_fh1),"ö",,font1,custom,@_col
+                    denemy+=1
+                endif
             endif
         next
     endif
@@ -495,29 +525,44 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     for c=1 to last
         if c<=lastenemy then
             b=list_e(c)
-            if c=marked then
-                color attacker(b).bcol,attacker(b).col
+            if _tiles=0 then
+                if distance(attacker(b).c,defender.c)<senbat*senac then
+                    denemy=denemy+1
+                    put (attacker(b).c.x*_tix,attacker(b).c.y*_tiy),gtiles(86),pset
+                endif
+                if distance(attacker(b).c,defender.c)<=senbat1*senac or distance(attacker(b).c,defender.c)<=sqr(2) or show_enemyships=1 then
+                    if attacker(b).ti_no<35 then
+                        put (attacker(b).c.x*_tix-(_tiy-_tix)/2,attacker(b).c.y*_tiy),stiles(attacker(b).di,attacker(b).ti_no),pset
+                    else
+                        put (attacker(b).c.x*_tix,attacker(b).c.y*_tiy),gtiles(attacker(b).ti_no),trans
+                    endif
+                endif
+                if c=marked then 
+                    put (attacker(b).c.x*_tix,attacker(b).c.y*_tiy),gtiles(85),trans
+                endif
             else
-                color attacker(b).col,attacker(b).bcol
-            endif
-            if distance(attacker(b).c,defender.c)<senbat*senac then
-                denemy=denemy+1
-                draw string(attacker(b).c.x*_fw1,attacker(b).c.y*_fh1),"?",,font1,custom,@_col
-            endif
-            if distance(attacker(b).c,defender.c)<=senbat1*senac or distance(attacker(b).c,defender.c)<=sqr(2) or show_enemyships=1 then
-                locate attacker(b).c.y+1,attacker(b).c.x+1
-                draw string(attacker(b).c.x*_fw1,attacker(b).c.y*_fh1),attacker(b).icon,,font1,custom,@_col
-            endif
-        else
-            b=list_e(c)
-            if c=marked then
-                color 0,7
-                draw string(mines_p(b).x*_fw1,mines_p(b).y*_fh1),"ö",,font1,custom,@_col
+                if c=marked then
+                    color attacker(b).bcol,attacker(b).col
+                else
+                    color attacker(b).col,attacker(b).bcol
+                endif
+                if distance(attacker(b).c,defender.c)<senbat*senac then
+                    denemy=denemy+1
+                    draw string(attacker(b).c.x*_fw1,attacker(b).c.y*_fh1),"?",,font1,custom,@_col
+                endif
+                if distance(attacker(b).c,defender.c)<=senbat1*senac or distance(attacker(b).c,defender.c)<=sqr(2) or show_enemyships=1 then
+                    draw string(attacker(b).c.x*_fw1,attacker(b).c.y*_fh1),attacker(b).icon,,font1,custom,@_col
+                endif
             endif
         endif
-    next 
-    color _shipcolor,0
-    draw string(defender.c.x*_fw1,defender.c.y*_fh1),"@",,font1,custom,@_col
+    next
+    if _tiles=0 then
+        put (defender.c.x*_tix-(_tiy-_tix)/2,defender.c.y*_tiy),stiles(player.di,player.ti_no)
+    else
+        color _shipcolor,0
+        draw string(defender.c.x*_fw1,defender.c.y*_fh1),"@",,font1,custom,@_col
+    endif
+    flip
     return denemy
 end function
 

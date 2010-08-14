@@ -14,7 +14,7 @@ function loadmap(m as short,slot as short)as short
     return 0
 end function
 
-function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr      
+function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr      
     Dim as ubyte ptr img
     dim font as ubyte ptr
     Dim As Integer imgwidth,imgheight,i,ff
@@ -48,6 +48,98 @@ function loadfont(fontdir as string,byref fh as ubyte) as ubyte ptr
     return font
 end function
 
+function load_tiles() as short
+    dim as short x,y,a,n,sx,sy 
+    for a=0 to 4096
+        gt_no(a)=2048
+    next
+    
+    bload "graphics/ships.bmp"
+    for y=0 to 24*16 step 24
+        sx=1
+        sy+=1
+        for x=0 to 24*8 step 24
+            stiles(sx,sy)=imagecreate(24,24)
+            get (x,y)-(x+23,y+23),stiles(sx,sy)
+            sx+=1
+        next
+    next
+    
+    bload "graphics/ships2.bmp"
+    for y=0 to 24*16 step 24
+        sx=1
+        sy+=1
+        for x=0 to 24*8 step 24
+            stiles(sx,sy)=imagecreate(24,24)
+            get (x,y)-(x+23,y+23),stiles(sx,sy)
+            sx+=1
+        next
+    next
+    
+    a=1
+    n=1
+    bload "graphics/space.bmp"
+    for y=0 to _tiy*6 step _tiy
+        for x=0 to _tix*15 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1 
+            n+=1
+        next
+    next
+    n=101
+    bload "graphics/land.bmp"
+    for y=0 to _tiy*15 step _tiy
+        for x=0 to _tix*19 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1 
+            n+=1 
+        next
+    next
+    n=1000
+    bload "graphics/critters.bmp"
+    for y=0 to _tiy*4 step _tiy
+        for x=0 to _tix*19 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1 
+            n+=1 
+        next
+    next
+    n=2001
+    bload "graphics/items.bmp"
+    for y=0 to _tiy*5 step _tiy
+        for x=0 to _tix*19 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1 
+            n+=1 
+        next
+    next
+    
+    n=3001
+    bload "graphics/portals.bmp"
+    y=0
+    for x=0 to _tix*4 step _tix
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1 
+        n+=1 
+    next
+    
+    bload "graphics/missing.bmp"
+    gtiles(2048)=imagecreate(_tix,_tiy)
+    get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
+    cls
+    print "loaded "& a &" sprites."
+    return 0
+end function
 
 function randomname() as string
     dim f as integer
@@ -385,15 +477,28 @@ end function
 
 function texttofile(text as string) as string
     dim a as short
+    dim head as short
     dim outtext as string
+    outtext="<p>"
     for a=0 to len(text)
         if mid(text,a,1)="|" or mid(text,a,1)="{" then
-            if mid(text,a,1)="|" then outtext=outtext &chr(13)& chr(10)
+            if mid(text,a,1)="|" then 
+                if head=1 then 
+                    outtext=outtext &"</b>"
+                    head=2
+                endif
+                if head=0 then 
+                    outtext=outtext &"<b>"
+                    head=1
+                endif
+                outtext=outtext &"<br>"'chr(13)& chr(10)
+            endif
             if mid(text,a,1)="{" then a=a+3
         else
             outtext=outtext &mid(text,a,1)
         endif
     next
+    outtext=outtext &"</p>"
     return outtext
 end function            
 
@@ -755,6 +860,7 @@ function savegame() as short
     put #f,,player
     put #f,,whtravelled
     put #f,,whplanet
+    put #f,,ano_money
     put #f,,_autopickup
     put #f,,_autoinspect
     for a=1 to 128
@@ -963,6 +1069,7 @@ function loadgame(filename as string) as short
         get #f,,player
         get #f,,whtravelled
         get #f,,whplanet
+        get #f,,ano_money
         get #f,,_autopickup
         get #f,,_autoinspect
         for a=1 to 128

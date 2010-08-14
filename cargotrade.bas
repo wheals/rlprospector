@@ -148,6 +148,7 @@ function upgradehull(t as short,byref s as _ship) as short
         flg=-1
     endif
     if flg=-1 then
+        s.ti_no=n.h_no
         s.h_no=n.h_no
         s.h_desig=n.h_desig
         s.h_sdesc=n.h_sdesc
@@ -564,6 +565,15 @@ function company(st as short,byref questroll as short) as short
             player.money=player.money+cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2)))
             reward(3)=0
             no_key=keyin
+        endif
+    endif
+    if ano_money>0 then
+        if _autosell=1 then q=askyn("do you want to sell your information on wormholes and anomalies? (y/n)")
+        if q=-1 then
+            if basis(st).company=3 then ano_money=cint(ano_money*1.5)
+            dprint "You recieve "&ano_money &" credits for your information on wormholes and anomalies."
+            ano_money=0
+            player.money+=ano_money
         endif
     endif
     if reward(4)>1 then
