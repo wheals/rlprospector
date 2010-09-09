@@ -334,6 +334,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_activatesensors")>0 then key_ac=right(text,1)
                 if instr(lctext,"key_run")>0 then key_ru=right(text,1)
                 if instr(lctext,"key_dropmine")>0 then key_dr=right(text,1)
+                if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=right(text,1)
                 if instr(lctext,"key_yes")>0 then key_yes=right(text,1)
 
             endif
@@ -637,13 +638,12 @@ function configuration() as short
             end select
         endif
         if c=13 then
-            dprint "Tiles are planned, but not working yet."
-'            select case _tiles
-'            case is=1
-'                _tiles=0
-'            case is=0
-'                _tiles=1
-           ' end select
+            select case _tiles
+            case is=1
+                _tiles=0
+            case is=0
+                _tiles=1
+            end select
         endif
         if c=14 then
             select case _easy
@@ -839,7 +839,6 @@ function savegame() as short
     dim desig as string*36
     dim names as string*36
     dim cl as string
-    dim dat(13) as uinteger
     cl=player.h_sdesc
     names=player.desig
     desig="("&cl &", "&player.money &"Cr T:" &player.turn &")"
@@ -865,8 +864,10 @@ function savegame() as short
     put #f,,_autoinspect
     for a=1 to 128
         put #f,,crew(a)
+    next
     
-        dat(0)=dat(0)+sizeof(crew(a))
+    for a=0 to 7
+        put #f,,faction(a)
     next
     
     put #f,,captainskill
@@ -914,6 +915,10 @@ function savegame() as short
         put #f,,shares(a)
     next
     
+    for a=0 to 2
+        put #f,,shop_order(a)
+    next
+    
     for a=0 to 20
         for b=0 to 20
             put #f,,shopitem(a,b)
@@ -957,7 +962,6 @@ function savegame() as short
             for b=0 to 60
                 for c=0 to 20
                     put #f,,planetmap(b,c,a)
-                    dat(11)=dat(11)+sizeof(planetmap(b,c,a))
                 next
             next
             put #f,,planets(a)
@@ -979,7 +983,6 @@ function savegame() as short
     put #f,,lastitem
     for a=0 to lastitem
         put #f,,item(a)
-        dat(12)=dat(12)+sizeof(item(a))
     next
     
     
@@ -1009,7 +1012,6 @@ function savegame() as short
     put #f,,lastfleet
     for a=0 to lastfleet
         put #f,,fleet(a)
-        dat(13)=dat(13)+sizeof(fleet(a))
     next
     print ".";
     
@@ -1021,13 +1023,6 @@ function savegame() as short
     next
     close f
     
-    f=freefile
-    fname=player.desig &".log"
-    open fname for output as #f
-    for a=0 to 13
-        print #f,a &":" &dat(a)
-    next
-    close f
     color 14,0
     cls
     return back
@@ -1075,6 +1070,11 @@ function loadgame(filename as string) as short
         for a=1 to 128
             get #f,,crew(a)
         next
+        
+        for a=0 to 7
+            get #f,,faction(a)
+        next
+        
         get #f,,captainskill
         get #f,,wage
         for a=0 to 16
@@ -1120,6 +1120,11 @@ function loadgame(filename as string) as short
         for a=0 to lastshare
             Get #f,,shares(a)
         next
+                    
+        for a=0 to 2
+            Get #f,,shop_order(a)
+        next
+        
                     
         for a=0 to 20
             for b=0 to 20

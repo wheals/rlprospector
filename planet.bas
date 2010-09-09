@@ -249,7 +249,9 @@ function make_spacemap() as short
 '    next
     
     for a=0 to laststar
-        if map(a).discovered=2 then map(a).discovered=1'map(a).discovered=show_specials
+        if map(a).discovered=2 then 
+            map(a).discovered=show_specials
+        endif
         if map(a).discovered=-3 then map(a).discovered=show_portals
         if abs(spacemap(map(a).c.x,map(a).c.y))>1 then
             map(a).spec=map(a).spec+abs(spacemap(map(a).c.x,map(a).c.y))/2
@@ -258,8 +260,13 @@ function make_spacemap() as short
         scount(map(a).spec)+=1
         'map(a).discovered=1
     next
-    
-    
+    if show_specials<>0 then
+        for a=0 to laststar
+            for b=1 to 9
+                if map(a).planets(b)=show_specials then map(a).discovered=1
+            next
+        next
+    endif
     print
     for e=0 to 2
     print "Moving Base ";e    
@@ -309,13 +316,10 @@ function make_spacemap() as short
         if a>0 then
             b=getrandomplanet(a)
             if b>0 and b<=lastplanet then
-                if is_special(b)=0 then
+                if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
                     makeplanetmap(b,rnd_range(1,9),map(a).spec)
                     planet_event(b)
-                        
                     if show_eventp=1 then map(a).discovered=1
-                else
-                    print "TRIED TO MAKE EVENT PLANET ON SPECIAL PLANET!"
                 endif
             endif
         endif
@@ -339,48 +343,85 @@ function make_spacemap() as short
         if drifting(a).s>16 then drifting(a).s=rnd_range(1,12)
         if all_drifters_are>0 then drifting(a).s=all_drifters_are
         drifting(a).m=lastplanet
-        if a=1 then drifting(a).s=17
-        if a=2 then drifting(a).s=18 
-        if a=3 then drifting(a).s=19 
-        if drifting(a).s<=19 then makedrifter(drifting(a))
+        if a=1 then drifting(a).s=20
+        if a=2 then drifting(a).s=20
+        if a=3 then drifting(a).s=20
+        if a=4 then drifting(a).s=17
+        if a=5 then drifting(a).s=18 
+        if a=6 then drifting(a).s=19 
+        if drifting(a).s<=22 then makedrifter(drifting(a))
         drifting(a).p=show_all
     next
-    drifting(1).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
-    drifting(1).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
-    if drifting(1).x<0 then drifting(lastdrifting).x=0
-    if drifting(1).y<0 then drifting(lastdrifting).y=0
-    if drifting(1).x>sm_x then drifting(lastdrifting).x=sm_x
-    if drifting(1).y>sm_y then drifting(lastdrifting).y=sm_y
-    planets(drifting(1).m).flavortext="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
-    planets(drifting(1).m).atmos=4
+    
+    drifting(1).x=targetlist(firstwaypoint).x
+    drifting(1).y=targetlist(firstwaypoint).y
+    planets(drifting(1).m).atmos=5
     planets(drifting(1).m).depth=1
     deletemonsters(drifting(1).m)
-    planets(drifting(1).m).mon_template(0)=makemonster(37,drifting(1).m)
-    planets(drifting(1).m).mon_noamin(0)=16
-    planets(drifting(1).m).mon_noamax(0)=26
+    planets(drifting(1).m).mon_template(0)=makemonster(39,drifting(1).m)
+    planets(drifting(1).m).mon_noamin(0)=2
+    planets(drifting(1).m).mon_noamax(0)=6
     
-    planets(drifting(2).m).flavortext="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
-    planets(drifting(2).m).darkness=5
-    planets(drifting(2).m).atmos=1
+    do
+        a=rnd_range(firststationw,lastwaypoint)
+    loop until targetlist(a).x>=20 and targetlist(a).x<=25
+    drifting(2).x=targetlist(a).x
+    drifting(2).y=targetlist(a).y
+    planets(drifting(2).m).atmos=5
     planets(drifting(2).m).depth=1
     deletemonsters(drifting(2).m)
-    planets(drifting(2).m).mon_template(0)=makemonster(9,drifting(1).m)
-    planets(drifting(2).m).mon_noamin(0)=16
-    planets(drifting(2).m).mon_noamax(0)=26
-    planets(drifting(2).m).flags(6)=66
-    planets(drifting(2).m).flags(7)=66
-    planets(drifting(2).m).flags(4)=6
+    planets(drifting(2).m).mon_template(0)=makemonster(39,drifting(2).m)
+    planets(drifting(2).m).mon_noamin(0)=3
+    planets(drifting(2).m).mon_noamax(0)=6
     
-    planets(drifting(3).m).flavortext="You dock at the ancient space probe."
-    planets(drifting(3).m).darkness=5
-    deletemonsters(drifting(3).m)
-    planets(drifting(3).m).atmos=1
+    do
+        a=rnd_range(firststationw,lastwaypoint)
+    loop until targetlist(a).x>=45 and targetlist(a).x<=50
+    drifting(3).x=targetlist(a).x
+    drifting(3).y=targetlist(a).y
+    planets(drifting(3).m).atmos=5
     planets(drifting(3).m).depth=1
+    deletemonsters(drifting(3).m)
+    planets(drifting(3).m).mon_template(0)=makemonster(39,drifting(3).m)
+    planets(drifting(3).m).mon_noamin(0)=3
+    planets(drifting(3).m).mon_noamax(0)=6
+    
+    drifting(4).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
+    drifting(4).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
+    if drifting(4).x<0 then drifting(lastdrifting).x=0
+    if drifting(4).y<0 then drifting(lastdrifting).y=0
+    if drifting(4).x>sm_x then drifting(lastdrifting).x=sm_x
+    if drifting(4).y>sm_y then drifting(lastdrifting).y=sm_y
+    planets(drifting(4).m).flavortext="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
+    planets(drifting(4).m).atmos=4
+    planets(drifting(4).m).depth=1
+    deletemonsters(drifting(4).m)
+    planets(drifting(4).m).mon_template(0)=makemonster(37,drifting(4).m)
+    planets(drifting(4).m).mon_noamin(0)=16
+    planets(drifting(4).m).mon_noamax(0)=26
+    
+    planets(drifting(5).m).flavortext="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
+    planets(drifting(5).m).darkness=5
+    planets(drifting(5).m).atmos=1
+    planets(drifting(5).m).depth=1
+    deletemonsters(drifting(5).m)
+    planets(drifting(5).m).mon_template(0)=makemonster(9,drifting(5).m)
+    planets(drifting(5).m).mon_noamin(0)=16
+    planets(drifting(5).m).mon_noamax(0)=26
+    planets(drifting(5).m).flags(6)=66
+    planets(drifting(5).m).flags(7)=66
+    planets(drifting(5).m).flags(4)=6
+    
+    planets(drifting(6).m).flavortext="You dock at the ancient space probe."
+    planets(drifting(6).m).darkness=5
+    deletemonsters(drifting(6).m)
+    planets(drifting(6).m).atmos=1
+    planets(drifting(6).m).depth=1
     
     if map(sysfrommap(specialplanet(17))).c.x>=sm_x-4 then map(sysfrommap(specialplanet(17))).c.x-=4
     if map(sysfrommap(specialplanet(17))).c.y>=sm_y-4 then map(sysfrommap(specialplanet(17))).c.y-=4
-    drifting(3).x=map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3)
-    drifting(3).y=map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3)
+    drifting(6).x=map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3)
+    drifting(6).y=map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3)
     
     
     do
@@ -399,12 +440,12 @@ function make_spacemap() as short
     loop until d=0
     
     for a=0 to 15
-        p1=rnd_point(drifting(2).m,0)
-        planetmap(p1.x,p1.y,drifting(2).m)=-81
+        p1=rnd_point(drifting(5).m,0)
+        planetmap(p1.x,p1.y,drifting(5).m)=-81
     next
     for a=0 to 15
-        p1=rnd_point(drifting(2).m,0)
-        planetmap(p1.x,p1.y,drifting(2).m)=-158
+        p1=rnd_point(drifting(5).m,0)
+        planetmap(p1.x,p1.y,drifting(5).m)=-158
     next
     
     if show_specials>0 then map(sysfrommap(specialplanet(show_specials))).discovered=1
@@ -2919,7 +2960,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             placeitem(it,p1.x,p1.y,a)        
         endif
         
-        if is_special(a)=0 and rnd_range(1,100)<15-disnbase(player.c)/2 then
+        if is_special(a)=0 and a<>pirateplanet(0) and a<>pirateplanet(1) and a<>pirateplanet(2) and rnd_range(1,100)<15-disnbase(player.c)/2 then
             planet_event(a)
         endif
     endif
@@ -3897,6 +3938,7 @@ function makespecialplanet(a as short) as short
             next
         next
         cnt=0
+        
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
@@ -3938,6 +3980,19 @@ function makespecialplanet(a as short) as short
         planets(a).mon_noamin(0)=8
         planets(a).mon_noamax(0)=17
         
+        if specialplanet(10)=a then 'Small spaceport for colony
+            p3.x=p2.x+wx
+            p3.y=10
+            if p3.x+3>60 then p3.x-=3
+            for x=p3.x to p3.x+3
+                for y=10 to 12
+                    planetmap(x,y,a)=68
+                next
+            next
+            planetmap(p3.x,10,a)=70
+            planetmap(p3.x,11,a)=71
+        endif
+        
         if a=pirateplanet(0) then 'add spaceport
             c=rnd_range(1,53)
             if c>p4.x then 
@@ -3965,6 +4020,7 @@ function makespecialplanet(a as short) as short
             next
             
             planetmap(c,p4.y-3,a)=-259
+            planetmap(c,p4.y-2,a)=74
             do
                 p=rnd_point(a,0)
             loop until tiles(abs(planetmap(p.x,p.y,a))).walktru>0 or abs(planetmap(p.x,p.y,a))<15
@@ -4031,13 +4087,24 @@ function makespecialplanet(a as short) as short
         if p2.x+4>60 then p2.x=55
         if p2.y+4>20 then p2.y=15
         makeroad(p,p2,a)
+        p3=rnd_point
+        if p3.x+3>60 then p3.x-=3
+        makeroad(p3,p2,a)
+        for x=p3.x to p3.x+3
+            for y=10 to 12
+                planetmap(x,y,a)=68
+            next
+        next
+        planetmap(p3.x,10,a)=70
+        planetmap(p3.x,11,a)=71
+        
         for x=p2.x to p2.x+4
             for y=p2.y to p2.y+4
                 planetmap(x,y,a)=-68
             next
         next
         p.m=a
-                planetmap(p.x,p.y,a)=-4
+        planetmap(p.x,p.y,a)=-4
         
         lastplanet+=1
         makecomplex3(lastplanet,5,6,0,3)
@@ -4156,12 +4223,26 @@ function makespecialplanet(a as short) as short
         p2=rnd_point
         p3=rnd_point
         p4=rnd_point
+        p5=rnd_point
         makeoutpost(a,p2.x,p2.y)
         makeoutpost(a,p3.x,p3.y)
         p1=rnd_point
         makeroad(p1,p2,a)
         makeroad(p1,p3,a)
         makeroad(p1,p4,a)
+        makeroad(p1,p5,a)
+        
+        if p5.x+3>60 then p5.x-=3
+        if p5.y+3>20 then p5.y-=3
+        for x=p5.x to p5.x+3
+            for y=p5.y to p5.y+3
+                planetmap(x,y,a)=68
+            next
+        next
+        
+        planetmap(p3.x,10,a)=70
+        planetmap(p3.x,11,a)=71
+        
         if p1.x>50 then p1.x=50
         if p1.x<5 then p1.x=10
         if p1.y<5 then p1.y=5
@@ -6071,6 +6152,17 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
                     next
                 endif
             endif
+            if ti=999 then
+                if rnd_range(1,100)<10 then
+                    if rnd_range(1,100)<50 then
+                        planetmap(x,y,m)=-261
+                    else
+                        planetmap(x,y,m)=-98
+                    endif
+                else
+                    planetmap(x,y,m)=-202
+                endif
+            endif
         next
     next
     
@@ -6078,7 +6170,7 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
     for x=0 to 60
         for y=0 to 20
             if abs(planetmap(x,y,m))=204 and rnd_range(1,100)<66 then planetmap(x,y,m)=-205
-            if abs(planetmap(x,y,m))=202 and rnd_range(1,100)<8 then 
+            if abs(planetmap(x,y,m))=202 and rnd_range(1,100)<8 and (d.s<=19) then 
                 if abs(planetmap(x-1,y,m))=201 or abs(planetmap(x+1,y,m))=201 or abs(planetmap(x,y-1,m))=201 or abs(planetmap(x,y+1,m))=201 then 
                     planetmap(x,y,m)=-221
                     if rnd_range(1,100)<66 then planetmap(x,y,m)=-222
@@ -7202,6 +7294,8 @@ sub invisiblelabyrinth(tmap() as _tile,xoff as short ,yoff as short, _x as short
 end sub
 
 sub makemudsshop(slot as short, x1 as short, y1 as short) 
+    dim as short x,y
+    dim as _cords p3
     if x1<3 then x1=3
     if x1>57 then x1=57
     if y1<3 then y1=3
@@ -7215,6 +7309,19 @@ sub makemudsshop(slot as short, x1 as short, y1 as short)
     planetmap(x1+2,y1,slot)=-68
     planetmap(x1,y1+2,slot)=-68
     planetmap(x1,y1-2,slot)=-68
+    
+    p3.x=x1+2
+    p3.y=y1+2
+    if p3.x+3<60 and p3.y+3<20 and rnd_range(1,100)<10 then 
+        for x=p3.x to p3.x+3
+            for y=p3.y to p3.y+3
+                planetmap(x,y,slot)=68
+            next
+        next
+        planetmap(p3.x+1,p3.y,slot)=70
+        planetmap(p3.x+2,p3.y,slot)=71
+    endif
+
 end sub
 
 sub planet_event(slot as short)

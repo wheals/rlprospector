@@ -18,7 +18,13 @@ function rnd_item(t as short) as _items
     if t=2 then i=makeitem(rnd_range(3,11)) 'ranged weapons
     if t=3 then i=makeitem(rnd_range(40,47)) 'close weapons
     if t=4 then i=makeitem(rnd_range(12,20)) 'Armor
-    if t=5 then i=makeitem(rnd_range(21,39)) 'misc
+    if t=5 then 
+        if rnd_range(1,100)<10 then 
+            i=makeitem(rnd_range(78,80))
+        else
+            i=makeitem(rnd_range(21,39)) 'misc
+        endif
+    endif
     if t=6 then 'misc2 mining
         if rnd_range(1,100)<70 then
             i=makeitem(rnd_range(21,23)) 
@@ -211,7 +217,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.1
         i.v2=2
         i.v3=1
-        i.price=50
+        i.price=25
         i.res=15
     endif
     
@@ -228,7 +234,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.2
         i.v2=2
         i.v3=0
-        i.price=100
+        i.price=75
         i.res=20
     endif
     
@@ -245,7 +251,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.3
         i.v2=3
         i.v3=1
-        i.price=200
+        i.price=150
         i.res=25
     endif
     
@@ -262,7 +268,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.4
         i.v2=3
         i.v3=0
-        i.price=300
+        i.price=250
         i.res=25
     endif
     
@@ -279,7 +285,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.5
         i.v2=4
         i.v3=1
-        i.price=400
+        i.price=375
         i.res=25
     endif
     
@@ -296,7 +302,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.6
         i.v2=4
         i.v3=0
-        i.price=500
+        i.price=525
         i.res=25
     endif
     
@@ -313,7 +319,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.7
         i.v2=5
         i.v3=1
-        i.price=600
+        i.price=700
         i.res=30
     endif
     
@@ -330,7 +336,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.8
         i.v2=5
         i.v3=0
-        i.price=700
+        i.price=900
         i.res=30
     endif
     
@@ -347,7 +353,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=.9
         i.v2=6
         i.v3=0
-        i.price=800
+        i.price=1125
         i.res=35
     endif
     
@@ -396,8 +402,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=14
         i.bgcol=0
-        i.v1=1
-        i.price=50
+        i.v1=3
+        i.price=75
         i.res=25
     endif
     
@@ -411,8 +417,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=14
         i.bgcol=0
-        i.v1=2
-        i.price=100
+        i.v1=4
+        i.price=175
         i.res=25
     endif
     
@@ -426,8 +432,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=14
         i.bgcol=0
-        i.v1=3
-        i.price=150
+        i.v1=5
+        i.price=300
         i.res=25
     endif
     
@@ -441,8 +447,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=14
         i.bgcol=0
-        i.v1=4
-        i.price=200
+        i.v1=6
+        i.price=450
         i.res=25
     endif
     
@@ -456,8 +462,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=14
         i.bgcol=0
-        i.v1=5
-        i.price=400
+        i.v1=7
+        i.price=625
         i.res=25
     endif
     
@@ -471,8 +477,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=6
         i.bgcol=0
-        i.v1=6
-        i.price=600
+        i.v1=8
+        i.price=825
         i.res=45
     endif
     
@@ -486,8 +492,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=6
         i.bgcol=0
-        i.v1=7
-        i.price=800
+        i.v1=9
+        i.price=1050
         i.res=45
     endif
     
@@ -521,8 +527,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=2
         i.bgcol=0
-        i.v1=8
-        i.price=1000
+        i.v1=12
+        i.price=1300
         i.res=65
     endif    
          
@@ -536,8 +542,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=6
         i.bgcol=0
-        i.v1=9
-        i.price=1200
+        i.v1=15
+        i.price=1575
         i.res=45
     endif
     
@@ -964,7 +970,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.2
-        i.price=25
+        i.price=20
         i.ldesc="A short blade to stick into enemies."
         i.res=10
     endif
@@ -992,7 +998,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.4
-        i.price=100
+        i.price=90
         i.ldesc="A blade for slashing and piercing. Sawing motions increase damage."
         i.res=20
     endif
@@ -1006,7 +1012,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.5
-        i.price=200
+        i.price=140
         i.ldesc="A wide blade connected to a gauntlet. Sawing motions increase damage."
         i.res=25
     endif
@@ -1020,7 +1026,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.6
-        i.price=300
+        i.price=200
         i.ldesc="A long blade connected to a gauntlet. Sawing motions increase damage."
         i.res=35
     endif
@@ -1034,7 +1040,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.7
-        i.price=400
+        i.price=270
         i.ldesc="A sturdy gauntlet ending in a blade a single molecule wide."
         i.res=45
     endif
@@ -1049,7 +1055,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.8
-        i.price=500
+        i.price=350
         i.ldesc="A gauntlet with a long blade attached. It is a single molecule wide and heated to increase damage."
         i.res=55
     endif
@@ -1063,7 +1069,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="("
         i.col=8
         i.v1=.9
-        i.price=650
+        i.price=440
         i.ldesc="A sturdy gauntlet, connected to plastic sleeves going up to the shoulders. Servos increase the wearers strength. mono blades connected to the fingers hurt opponents."
         i.res=65
     endif
@@ -1572,9 +1578,96 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon=":"
         i.col=7
         i.res=80
-        i.price=150
+        i.price=350
     endif
     
+    if a=78 then 
+        i.ti_no=2111
+        i.id=78
+        i.ty=7
+        i.desig="Flash Grenade"
+        i.desigp="Flash Grenades"
+        i.ldesc=""
+        i.v1=66
+        i.v2=1
+        i.icon="."
+        i.col=7
+        i.res=80
+        i.price=5
+    endif
+    
+    if a=79 then 
+        i.ti_no=2112
+        i.id=79
+        i.ty=7
+        i.desig="Stun Grenade"
+        i.desigp="Stun Grenades"
+        i.ldesc=""
+        i.v1=3
+        i.v2=2
+        i.icon="."
+        i.col=7
+        i.res=80
+        i.price=20
+    endif
+    
+    
+    if a=80 then 
+        i.ti_no=2112
+        i.id=79
+        i.ty=7
+        i.desig="Imp. Stun Grenade"
+        i.desigp="Imp. Stun Grenades"
+        i.ldesc=""
+        i.v1=5
+        i.v2=2
+        i.icon="."
+        i.col=7
+        i.res=80
+        i.price=80
+    endif
+'    
+'    if a=81 then
+'        i.ti_no=2003
+'        i.id=81
+'        i.ty=2
+'        i.desig="Injector gun"
+'        i.desitp="injector guns"
+'        i.ldesc="A nonlethal weapon. It fires several small darts, filled with a drug paralyzing most lifeforms. It does negligable damage, but may incapacitate an opponent."
+'        i.v1=.1
+'        i.v2=2
+'        i.v4=30
+'    endif
+'    
+'    if a=82 then
+'        i.ti_no=2003
+'        i.id=79
+'        i.ty=2
+'        i.desig="Disruptor"
+'        i.desigp="Disruptor"
+'        i.ldesc="A nonlethal weapon. A strong magnetic field disrupts nerve signals in the target, leaving only minor damage, but stunning it."
+'        i.v1=.1
+'        i.v2=4
+'        i.v4=30
+'        i.icon="-"
+'        i.col=7
+'        i.res=80
+'        i.price=80
+'    endif
+'    
+'    if a=83 then
+'        i.ty=4
+'        i.desig="Electric baton"
+'        i.v1=.1
+'        i.v4=15
+'    endif
+'    
+'    if a=84 then
+'        i.desig="Sonic Mace"
+'        i.v1=.1
+'        i.v4=30
+'    endif
+'        
     if a=86 then
         i.ti_no=2078
         i.id=86
@@ -1879,7 +1972,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=10
         i.bgcol=0
-        i.v1=10
+        i.v1=15
         i.res=120
         i.price=19000
         if rnd_range(1,100)<30 then
@@ -1994,7 +2087,7 @@ end function
 function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
     dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
     dim as single oxytanks,oxy
-    dim as short cantswim,cantfly
+    dim as short cantswim,cantfly,invisibility
     cmove=awayteam.move
     awayteam.jpfueluse=0
     awayteam.stuff(1)=0
@@ -2082,7 +2175,13 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 next
                 if c>0 then
                     awayteam.secarmo(a)=item(c).v1
-                    if awayteam.invis>item(c).v2 then awayteam.invis=item(b).v2
+                    invisibility=0
+                    if item(c).v2>crew(a).augment(9) then 
+                        invisibility=item(c).v2
+                    else
+                        invisibility=crew(a).augment(9)
+                    endif    
+                    if awayteam.invis>invisibility then awayteam.invis=invisibility
                     awayteam.armor=awayteam.armor+item(c).v1
                     crew(a).armo=c
                     item(c).w.s=-2
@@ -2097,8 +2196,8 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
         'give to redshirt
 
         if crew(a).hp>0 and crew(a).onship=0 then 
-            if crew(a).typ<>10 and crew(a).typ<>13 then cantswim+=1
-            if crew(a).typ<>13 then cantfly+=1
+            if crew(a).augment(7)=0 then cantswim+=1
+            if crew(a).augment(8)=0 then cantfly+=1
             if crew(a).equips=0 then
                 b=findbest(2,-1)        
                 if b>-1 and crew(a).weap=0 then
@@ -2115,7 +2214,13 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 'give to redshirt
                 if b>-1 and crew(a).armo=0 then
                     awayteam.secarmo(a)=item(b).v1
-                    if awayteam.invis>item(b).v2 then awayteam.invis=item(b).v2
+                    invisibility=0
+                    if item(b).v2>crew(a).augment(9) then 
+                        invisibility=item(c).v2
+                    else
+                        invisibility=crew(a).augment(9)
+                    endif    
+                    if awayteam.invis>invisibility then awayteam.invis=invisibility
                     awayteam.armor=awayteam.armor+item(b).v1
                     crew(a).armo=b
                     item(b).w.s=-2
@@ -2152,7 +2257,6 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 endif
             endif
         endif
-        
     next
     
     for a=128 to 1 step -1
@@ -2170,7 +2274,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     next
     'count teleportation devices
     if artflag(9)>0 then awayteam.move=3
-    'dprint "hovers:" & hovers &" Jetpacks:"&jpacks
+    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks
     if awayteam.move<3 and cantswim<=hovers then awayteam.move=1
     if awayteam.move<3 and cantfly<=jpacks then awayteam.move=2
         
@@ -2314,7 +2418,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     dim as string key,mstr
     screenshot(1)
     for a=0 to lastitem
-        if ((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999) then 'fr=999 means 
+        if (((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999)) then 'fr=999 means 
             set=0
             for c=0 to li
                 if item(a).desig=mls(c) then
@@ -2415,7 +2519,7 @@ function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
     r=-1
     for a=0 to lastitem
         if p<>0 then
-            if item(a).w.s=p and item(a).ty=t then
+            if (item(a).w.s=p and item(a).ty=t) then
                 if item(a).v1>b then
                     r=a
                     b=item(a).v1
@@ -2515,8 +2619,8 @@ function buyweapon(st as short) as _ship
         if makew(a,st)=13 then help=help &"Several light rockets combined into a battery "
         if makew(a,st)=14 then help=help &"Several rockets combined into a battery "
         if makew(a,st)=87 then help=help &"Sacrifices a weapon turret to install additional armor | | +5 to HP"
-        if makew(a,st)=88 then help=help &"Additional thrusters increasing maneuverability in space combat. | | +1 to MP"
-        if makew(a,st)=89 then help=help &"Additional thrusters and an auxillary power plant increasing maneuverability in space combat. | | +2 to MP"
+        if makew(a,st)=88 then help=help &"expandable radiating surfaces, to dissipate weapons heat | | 4 points of heat dissipation"
+        if makew(a,st)=89 then help=help &"expandable radiating surfaces, to dissipate weapons heat | | 8 points of heat dissipation"
         if makew(a,st)=90 then help=help &"An auxillary powerplant dedicated to the shield generator, improving their recharging rate. | | Shields recharge at 2 pts per round"
         if makew(a,st)=91 then help=help &"A small auxillary powerplant feeding energy weapons. | | +1 to energy weapons damage"
         if makew(a,st)=92 then help=help &"A large auxillary powerplant feeding energy weapons. | | +2 to energy weapons damage."
@@ -2530,7 +2634,7 @@ function buyweapon(st as short) as _ship
         
         if makew(a,st)<15 then help=help &" | | Damage: "&inv(a).dam &" | Range: "&inv(a).range &"\"&inv(a).range*2 &"\" &inv(a).range*3 
         if inv(a).ammomax>0 then help=help &" | Ammuniton: "&inv(a).ammomax 
-       
+        help=help &"| Heat:"&inv(a).heat &"\"&inv(a).heatadd &"\"& inv(a).heatsink
     next
     weapons=weapons &"/Exit"
     help=help &" /"
@@ -2597,16 +2701,18 @@ function makeweapon(a as short) as _weap
         next
         w.made=val(word(0))
         w.desig=word(1)
-        w.range=val(word(2))
-        w.ammo=val(word(3))
-        w.ammomax=val(word(4))
-        w.ecmmod=val(word(5))
-        w.p=val(word(6))
-        w.col=val(word(7))
-        w.heat=val(word(8))
-        w.heatsink=val(word(9))
-        w.heatadd=val(word(10))
-        for t=0 to 10
+        w.dam=val(word(2))
+        w.range=val(word(3))
+        w.ammo=val(word(4))
+        w.ammomax=val(word(5))
+        w.ecmmod=val(word(6))
+        w.p=val(word(7))
+        w.col=val(word(8))
+        w.heat=val(word(9))
+        w.heatsink=val(word(10))
+        w.heatadd=val(word(11))
+        w.reload=val(word(12))
+        for t=0 to 12
             word(t)=""
         next
     loop until w.made=a or eof(f)

@@ -175,6 +175,7 @@ for a=0 to 4
     companystats(a).capital=1000
     companystats(a).profit=0
     companystats(a).rate=0
+    companystats(a).shares=100
 next
 
 awayteamcomp(0)=1
@@ -457,6 +458,7 @@ if fileexists("data/ships.csv") then
     shiptypes(17)="alien vessel"
     shiptypes(18)="ancient alien scoutship. It's hull covered in tiny impact craters"
     shiptypes(19)="primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
+    shiptypes(20)="a small space station"
 else
     color 14,0
     print "ships.csv not found. Can't start game"
@@ -751,7 +753,10 @@ if key="1" then
         next
     endif
     'placeitem(makeitem(77),0,0,0,0,-1)
-    placeitem(makeitem(89),0,0,0,0,-1)
+    'placeitem(makeitem(89),0,0,0,0,-1)
+    placeitem(makeitem(79),0,0,0,0,-1)
+    placeitem(makeitem(79),0,0,0,0,-1)
+    placeitem(makeitem(79),0,0,0,0,-1)
     if start_teleport=1 then artflag(9)=1
     cls
     color 11,0
@@ -1610,7 +1615,12 @@ function spacestation(st as short) as _ship
         dprint "your crew gets "&a &" Cr. in wages"        
         player.money=player.money-a
         player=levelup(player)
-    
+        if shop_order(st)<>0 and rnd_range(1,100)<10 then
+            b=rnd_range(1,20)
+            shopitem(b,st)=makeitem(shop_order(st))
+            shopitem(b,st).price=shopitem(b,st).price*2
+            shop_order(st)=0
+        endif
     endif
     ss_sighting(st)
     if basis(st).spy=1 or basis(st).spy=2 then
@@ -2670,11 +2680,13 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 enemy(lastenemy)=makemonster(15,slot)
                 enemy(lastenemy).hp=-1
             next
-        else
+        endif
+        if specialflag(2)=2 then
             for x=0 to 60
                 for y=0 to 20
                     if planetmap(x,y,slot)=-168 then planetmap(x,y,slot)=-169
                     if planetmap(x,y,slot)=168 then planetmap(x,y,slot)=169
+                    if abs(planetmap(x,y,slot))=169 then tmap(x,y)=tiles(169)
                 next
             next
         endif
@@ -2917,12 +2929,12 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(awayteam,rnd_range(1,awayteam.hp),1),12
             ep_tileeffects(awayteam,areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),vismask())
             ep_shipfire(shipfire(),vismask(),enemy(),lastenemy,awayteam)
-            ep_items(awayteam,li(),lastlocalitem,enemy(),lastenemy,localturn)
+            ep_items(awayteam,li(),lastlocalitem,enemy(),lastenemy,localturn,vismask())
             walking=alerts(awayteam,walking)
             for a=1 to lastenemy
                 if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
             next
-            deadcounter=ep_monstermove(awayteam,enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),walking)
+            deadcounter=ep_monstermove(awayteam,enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),nightday(),walking)
         endif
             
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_i then nextmap=ep_Portal(awayteam,walking)
@@ -3010,7 +3022,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if key=key_awayteam then showteam(1)
             if key=key_report then bioreport(slot)
             if key=key_close then ep_closedoor(awayteam)
-            if key=key_gr then ep_grenade(awayteam,shipfire(),sf)
+            if key=key_gr then ep_grenade(awayteam,shipfire(),sf,li(),lastlocalitem)
             if key=key_fi or key=key_autofire or walking=10 then ep_fire(awayteam,enemy(),lastenemy,vismask(),mapmask(),walking,key,autofire_target)
             if key=key_ra then ep_radio(awayteam,ship,nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf)
             if key=key_oxy then ep_helmet(awayteam)
@@ -3743,7 +3755,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         if crew(a).hp>0 and crew(a).onship=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner+attacker.secweapthi(a)>9 then 
                 b=b+attacker.secweap(a)+addtalent(3,11,.1)+addtalent(a,26,.1)
-                if a>5 then gainxp(a)
+                if a>5 then gainxp(a) 
             endif
             if distance(defender.c,attacker.c)<=1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+addtalent(3,10,1)+addtalent(a,21,1)+crew(a).hp>9 then 
                 b=b+0.2+maximum(attacker.secweapc(a),attacker.secweap(a))+addtalent(3,11,.1)+addtalent(a,25,.1)+crew(a).augment(2)/10

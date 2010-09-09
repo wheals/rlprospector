@@ -2,17 +2,17 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.13a"
+const __VERSION__="0.1.14"
 
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=30 'special planets already discovered
+Const Show_specials=0 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0 'outputs statistics to txt files
 Const show_all=0
 const show_items=0 'shows entire maps
 const alien_scanner=0
-const start_teleport=1'player has alien scanner
+const start_teleport=0'player has alien scanner
 Const show_critters=0 
 Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0 
@@ -22,7 +22,7 @@ const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
-const show_wormholes=1
+const show_wormholes=0
 const rev_map=1
 const no_enemys=0
 const more_mets=0
@@ -40,9 +40,9 @@ const lastspecial=46
 const _debug=0
 const make_vault=0
 const addpyramids=0
-const startingmoney=500
+const startingmoney=5000
 const _spawnoff=0
-
+const show_moral=0
 
 const xk=chr(255) 
 const key_up = xk + "H"
@@ -158,6 +158,7 @@ dim shared as string*1 key_portal="<"
 dim shared as string*1 key_logbook="L"
 dim shared as string*1 key_yes="y"
 dim shared as string*1 key_wormholemap="W"
+dim shared as string*1 key_togglemanjets="M"
 dim shared as string*1 no_key
 
 dim shared uid as uinteger
@@ -254,6 +255,21 @@ type _weap
     heat as byte
     heatadd as byte
     heatsink as byte
+    oldloadout as byte
+    loadout as byte
+    reload as byte
+    shutdown as byte
+end type
+
+type _ammotype
+    made as byte
+    desig as string*32
+    tohit as byte
+    todam as byte
+    toran as byte
+    toheat as byte
+    price as byte
+    size as byte
 end type
 
 type _faction
@@ -281,6 +297,7 @@ type _ship
     security as short
     disease as byte
     engine as short
+    manjets as short
     weapons(25) as _weap    
     hull as short
     hulltype as short
@@ -352,9 +369,11 @@ type _monster
     dark as ubyte
     sight as single
     biomod as single
+    stunres as byte
     diet as byte
     intel as short
     lang as short
+    nocturnal as byte
     
     faction as short
     allied as short
@@ -611,7 +630,7 @@ type _crewmember
     pref_lrweap as uinteger
     pref_armor as uinteger
     talents(26) as byte
-    augment(9) as byte
+    augment(16) as byte
     xp as short
     morale as short
 end type
@@ -626,6 +645,7 @@ type _company
     profit as integer
     capital as integer
     rate as integer
+    shares as short
 end type
 
 type _shipfire
@@ -633,6 +653,7 @@ type _shipfire
     when as short
     where as _cords
     tile as string*1
+    stun as byte
 end type
 
 type _civilisation
@@ -794,7 +815,7 @@ dim shared fleet(255) as _fleet
 dim shared targetlist(4068) as _cords
 dim shared drifting(128) as _driftingship
 dim shared crew(128) as _crewmember
-dim shared shiptypes(19) as string
+dim shared shiptypes(20) as string
 dim shared disease(17) as _disease
 dim shared awayteamcomp(4) as byte
 dim shared faction(7) as _faction
@@ -827,7 +848,7 @@ dim text as string
 dim as short astcou,gascou,pl
 dim shared spectralshrt(9) as string
 dim shared tacdes(5) as string
-
+dim shared shop_order(2) as short
 
 dim shared as FB.IMAGE ptr TITLEFONT
 dim shared as any ptr FONT1,FONT2
@@ -859,11 +880,11 @@ declare function ep_examine(awayteam as _monster,ship as _cords,vismask() as byt
 declare function ep_helmet(awayteam as _monster) as short
 declare function ep_closedoor(awateam as _monster) as short
 declare function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single) as short
-declare function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as single) as short
+declare function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as single,li() as short ,byref lastlocalitem as short) as short
 declare function ep_fire(awayteam as _monster, enemy() as _monster,lastenemy as short,vismask() as byte,mapmask() as byte,byref walking as short,key as string,byref autofire_target as _cords) as short
 declare function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
-declare function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte, byref walking as short) as short
-declare function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short) as short
+declare function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte,nightday() as byte, byref walking as short) as short
+declare function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short,vismask()as byte) as short
 declare function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as byte, byref dawn as single, byref dawn2 as single) as short
 declare function ep_tileeffects(awayteam as _monster,areaeffect() as _ae, byref last_ae as short,lavapoint() as _cords, nightday() as byte, localtemp() as single,vismask() as byte) as short
 declare function ep_landship(byref ship_landing as short,nextlanding as _cords,ship as _cords,nextmap as _cords,vismask() as byte,enemy() as _monster,lastenemy as short) as short
@@ -871,7 +892,7 @@ declare function ep_areaeffects(awayteam as _monster,areaeffect() as _ae,byref l
 declare function ep_atship(awayteam as _monster,ship as _cords,walking as short) as short
 declare function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monster, lastenemy as short,li() as short,byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,vismask() as byte,localturn as short) as short
 declare function ep_jumppackjump(awayteam as _monster) as short
-declare function ep_inspect(awayteam as _monster,ship as _cords, enemy() as _monster, lastenemy as short, li() as short,byref  lastlocalitem as short,byref localturn as short,byref walking as short) as short
+declare function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monster, lastenemy as short, li() as short,byref  lastlocalitem as short,byref localturn as short,byref walking as short) as short
 declare function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _cords) as short
 declare function ep_lava(awayteam as _monster,lavapoint() as _cords,ship as _cords, vismask() as byte, byref walking as short) as short
 declare function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
@@ -879,6 +900,10 @@ declare function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() 
 declare function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as short) as short
 declare function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as short, byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single) as short
 declare function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short,enemy() as _monster, lastenemy as short, awayteam as _monster, mapmask() as byte, first as short=0,last as short=0) as short
+
+declare Function fuzzyMatch( Byref correct As String, Byref match As String ) As single
+declare function place_shop_order(sh as short) as short
+declare Function lev_minimum( a As Integer, b As Integer, c As Integer ) As Integer
 
 
 declare function teleport(awaytam as _cords, map as short) as _cords
@@ -925,6 +950,7 @@ declare sub displaystar(a as short)
 declare sub displayplanetmap(a as short)
 declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
+declare function display_ship_weapons(m as short=0) as short
 declare sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
 declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short)
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
@@ -988,7 +1014,9 @@ declare function civfleetdescription(f as _fleet) as string
 
 declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as _cords,e_track_v()as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
-declare function com_fire(target as _ship,attacker as _ship,w as _weap, gunner as short, range as short, senac as short) as _ship
+declare function com_getweapon() as short
+declare function com_fire(target as _ship,attacker as _ship,byref w as _weap, gunner as short, range as short, senac as short) as _ship
+declare function com_sinkheat(s as _ship) as short
 declare function com_hit(target as _ship, w as _weap,dambonus as short, range as short, senac as short) as _ship
 declare function com_criticalhit(t as _ship, roll as short) as _ship
 declare function com_flee(defender as _ship,attacker() as _ship,lastenemy as short) as short
@@ -1016,7 +1044,7 @@ declare function findartifact(awayteam as _monster,v5 as short) as short
     
 declare function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
 declare function earthquake(t as _tile,dam as short)as _tile
-declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
+declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
 declare function numfromstr(t as string) as short
 
 'planets
@@ -1090,7 +1118,8 @@ declare function countfleet(ty as short) as short
 declare function meetfleet(f as short)as short
 declare function debug_printfleet(f as _fleet) as string
 declare function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as short
-declare function scorefleet(byval f as _fleet) as integer
+declare function getship(f as _fleet) as short
+
 declare function makequestfleet(a as short) as _fleet
 declare function makealienfleet() as _fleet
 declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    

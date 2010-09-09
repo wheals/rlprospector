@@ -173,13 +173,27 @@ function showteam(from as short, r as short=0,text as string="") as short
                         endif
                     next
                     
-                    if crew(b-offset).augment(1)>0 then augments=augments &"Targeting "
-                    if crew(b-offset).augment(2)>0 then augments=augments &"Muscle Enh. "
+                    if crew(b-offset).augment(1)=1 then augments=augments &"Targeting "
+                    if crew(b-offset).augment(1)=2 then augments=augments &"Targeting II "
+                    if crew(b-offset).augment(1)=3 then augments=augments &"Targeting III "
+                    if crew(b-offset).augment(2)=1 then augments=augments &"Muscle Enh. "
+                    if crew(b-offset).augment(2)=2 then augments=augments &"Muscle Enh. II "
+                    if crew(b-offset).augment(2)=3 then augments=augments &"Muscle Enh. III "
                     if crew(b-offset).augment(3)>0 then augments=augments &"Imp. Lungs "
                     if crew(b-offset).augment(4)>0 then augments=augments &"Speed Enh. "
-                    if crew(b-offset).augment(5)>0 then augments=augments &"Exosceleton "
-                    if crew(b-offset).augment(6)>0 then augments=augments &"Imp. Metabolism "
-                    
+                    if crew(b-offset).augment(5)=1 then augments=augments &"Exosceleton "
+                    if crew(b-offset).augment(5)=2 then augments=augments &"Exosceleton II "
+                    if crew(b-offset).augment(5)=3 then augments=augments &"Exosceleton III "
+                    if crew(b-offset).augment(6)=1 then augments=augments &"Improved Metabolism "
+                    if crew(b-offset).augment(6)=2 then augments=augments &"Improved Metabolism II "
+                    if crew(b-offset).augment(6)=3 then augments=augments &"Improved Metabolism III "
+                    if crew(b-offset).augment(7)>0 then augments=augments &"FloatLegs "
+                    if crew(b-offset).augment(8)>0 then augments=augments &"Jetpack "
+                    if crew(b-offset).augment(9)>0 then augments=augments &"Chameleon Skin "
+                    if crew(b-offset).augment(10)>0 then augments=augments &"Neural Computer "
+                    if crew(b-offset).augment(11)>0 then augments=augments &"Loyality Chip "
+                    if crew(b-offset).augment(12)>0 then augments=augments &"Synthetic Nerves "
+                    'if show_moral=1 then augments=augments &":"&crew(b-offset).morale
                     if skills<>"" then skills=skills &" "
                     color 15,bg
                     if b-offset>9 then
@@ -480,6 +494,7 @@ function addmember(a as short) as short
             crew(slot).xp=-1
             crew(slot).n=alienname(2)
             crew(slot).morale=25000
+            crew(slot).augment(7)=1
         endif
         if a=11 then
             crew(slot).equips=1
@@ -513,6 +528,7 @@ function addmember(a as short) as short
             crew(slot).n="Robot"
             crew(slot).xp=-1
             crew(slot).morale=25000
+            crew(slot).augment(8)=1
         endif
         if a=14 then 'SO
             player.science=3
@@ -790,6 +806,8 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     
+    if armeff>0 then text=text &armeff &" prevented by armor. "
+    
     for b=1 to 13
         if injured(b)>0 then
             if injured(b)>1 then
@@ -810,7 +828,6 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             changemoral(-3*killed(b),0)
         endif
     next
-    if armeff>0 then text=text &armeff &" prevented by armor"
     hpdisplay(a)
     if killed(2)>0 then player.pilot=captainskill
     if killed(3)>0 then player.gunner=captainskill
@@ -930,13 +947,13 @@ function levelup(p as _ship) as _ship
     for a=1 to 128
         if crew(a).hp>0  then
             roll=rnd_range(1,crew(a).xp)
-            if roll>5+crew(a).hp^2 and crew(a).xp>0 then
+            if roll+crew(a).augment(10)*2>5+crew(a).hp^2 and crew(a).xp>0 then
                 lev(a)+=1
             'else
              '   dprint "Rolled "&roll &", needed "&5+crew(a).hp^2,14,14
             endif
             if a>1 then
-                if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 then
+                if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
                     if a=2 then 
                         text =text &" Pilot "&crew(a).n &" retired."
                         player.pilot=captainskill
@@ -1148,7 +1165,7 @@ function draw_border(xoffset as short) as short
         draw string (61*_fw1,a),chr(179),,Font1,custom,@_col
     next
     draw string (61*_fw1,21*_fh1),chr(180),,Font1,custom,@_col
-    
+    color 11,0
     return 0
 end function
 
@@ -1336,6 +1353,7 @@ sub show_stars(bg as short=0,byref walking as short)
         
         if planets(drifting(x).m).flags(0)=0 then
             color 7,0
+            if drifting(x).s>=20 then color 15,0
             if (a>0 and vismask(p.x,p.y)=1 and distance(player.c,p)<player.sensors) or drifting(x).p>0 then
                 if p.x+1-player.osx>0 and p.x+1-player.osx<61 and p.y+1-player.osy>0 and p.y+1-player.osy<21 then 
                     locate p.y+1-player.osy,p.x+1-player.osx
@@ -2842,6 +2860,7 @@ sub displayship(show as byte=0)
     endif
         
     draw_border(11)
+    color 15,0
     draw string(62*_fw1,0*_fh1),(player.h_sdesc &" "& player.desig),,Font2,custom,@_col 
     color 11,0
     draw string(62*_fw1,1*_fh2),"HP:"&space(4) &" "&"SP:"&player.shield &" ",,Font2,custom,@_col
@@ -2903,33 +2922,9 @@ sub displayship(show as byte=0)
     draw string(62*_fw1,23*_fh2),"Credits:"&player.money &"    ",,Font2,custom,@_col
     draw string(62*_fw1,24*_fh2),"Turns:"&player.turn,,Font2,custom,@_col
     color 15,0
-    draw string (62*_fw1,7*_fh2), "Weapons:",,font2,custom,@_col
-    color 11,0
-    player.tractor=0
-    for a=1 to 5
-        if player.weapons(a).desig<>"" then
-            color 15,0
-            draw string(63*_fw1,(8+b)*_fh2),trim(player.weapons(a).desig),,font2,custom,@_col
-            color 11,0
-            draw string(64*_fw1+len(trim(player.weapons(a).desig))*_fw2,(8+b)*_fh2),"D:"&player.weapons(a).dam,,Font2,custom,@_col
-            if player.weapons(a).ammomax>0 then 
-                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ",,Font2,custom,@_col
-            else
-                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" ",,Font2,custom,@_col
-            endif
-            if player.weapons(a).ROF<0 then 
-                player.tractor=1
-                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
-                    dprint "Your tractor beam breaks down",14
-                    player.tractor=0
-                    player.towed=0
-                    player.weapons(a)=makeweapon(0)
-                endif
-            endif
-        endif
-        b=b+2
-    next
-    locate 21,63
+    
+    display_ship_weapons()
+    
     draw string(62*_fw1,20*_fh2), "Cargo",,font2,custom,@_col
     for a=1 to 10
         carg=""
@@ -2962,6 +2957,61 @@ sub displayship(show as byte=0)
     color 11,0
     if player.tractor=0 then player.towed=0
 end sub
+
+function display_ship_weapons(m as short=0) as short
+    dim as short a,b,bg
+    color 15,0
+    draw string (62*_fw1,7*_fh2), "Weapons:",,font2,custom,@_col
+    color 11,0
+    player.tractor=0
+    for a=1 to 5
+        if m<>0 and a=m then 
+            bg=1
+        else
+            bg=0
+        endif
+        if player.weapons(a).desig<>"" then
+            if player.weapons(a).shutdown=0 then
+                color 15,bg
+            else
+                color 14,bg
+            endif
+            draw string(63*_fw1,(8+b)*_fh2),space(25),,font2,custom,@_col
+            draw string(63*_fw1,(8+b)*_fh2),trim(player.weapons(a).desig),,font2,custom,@_col
+            color 11,bg
+            draw string(64*_fw1+len(trim(player.weapons(a).desig))*_fw2,(8+b)*_fh2),"D:"&player.weapons(a).dam,,Font2,custom,@_col
+            if player.weapons(a).ammomax>0 then 
+                draw string(63*_fw1,(8+b+1)*_fh2),space(25),,font2,custom,@_col
+                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" A:"&player.weapons(a).ammomax &"/" &player.weapons(a).ammo &" ",,Font2,custom,@_col
+            else
+                draw string(63*_fw1,(8+b+1)*_fh2),space(25),,font2,custom,@_col
+                draw string(64*_fw1,(8+b+1)*_fh2), "R:"& player.weapons(a).range &"/"& player.weapons(a).range*2 &"/" & player.weapons(a).range*3 &" ",,Font2,custom,@_col
+            endif
+            if player.weapons(a).heat>=0 then
+                color 11,bg
+                if player.weapons(a).heat>5 then color 14,bg
+                if player.weapons(a).heat>10 then color 12,bg
+                draw string(63*_fw1,(8+b+2)*_fh2),space(25),,font2,custom,@_col
+                if player.weapons(a).shutdown=0 then
+                    draw string(64*_fw1,(8+b+2)*_fh2), "Heat:"& player.weapons(a).heat,,Font2,custom,@_col
+                else
+                    draw string(64*_fw1,(8+b+2)*_fh2), "Heat:"& player.weapons(a).heat &"-Shutdown",,Font2,custom,@_col
+                endif
+            endif
+            if player.weapons(a).ROF<0 then 
+                player.tractor=1
+                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
+                    dprint "Your tractor beam breaks down",14
+                    player.tractor=0
+                    player.towed=0
+                    player.weapons(a)=makeweapon(0)
+                endif
+            endif
+        endif
+        b=b+3
+    next
+    return 0
+end function
 
 sub displayplanetmap(a as short)
     dim x as short

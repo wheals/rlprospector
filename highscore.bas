@@ -201,13 +201,13 @@ sub postmortem
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
     draw string (10,10), st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",,titlefont,custom,@_col
     color 11,0
-    a=textbox(moneytext,10,2,_screenx/_fw2-20,11)
-    b=textbox(explorationtext,1,3+a,38,11)+a
-    c=textbox(listartifacts,41,3+a,38,11)+a
+    a=cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
+    b=cint((textbox(explorationtext,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
+    c=cint((textbox(listartifacts,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
     if c>b then
-        textbox(missiontype,20,10+c,40)
+        textbox(missiontype,_screenx/(_fw1*2)-15,a+c,30,15)
     else
-        textbox(missiontype,20,10+b,40)
+        textbox(missiontype,_screenx/(_fw1*2)-15,a+b,30,15)
     endif
     'sleep 800,1
     if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then

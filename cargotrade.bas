@@ -969,32 +969,143 @@ end function
 
 function sickbay(st as short=0) as short
     dim text as string
-    dim augn(6) as string
-    dim augp(6) as short
-    dim augd(6) as string
+    dim lastaug as byte
+    dim augn(20) as string
+    dim augp(20) as short
+    dim augd(20) as string
+    dim augf(20) as byte
+    dim augv(20) as byte
     '"Augments/ Targeting - 100 Cr/ Muscle Enhancement - 100 Cr/ Infrared Vision - 100 Cr/ Speed Enhancement - 100 Cr/ Exosceleton - 100 Cr/ Damage resistance - 100Cr/Exit")
                 
     augn(1)="Targeting"
     augp(1)=100-st*20
     augd(1)="A targeting computer linked directly to the brain"
+    augf(1)=1
+    augv(1)=1
+    
     augn(2)="Muscle Enhancement"
     augp(2)=100-st*20
+    augf(2)=2
+    augv(2)=1
     augd(2)="Artificial glands producing adrenalin on demand, increasing strength."
+    
     augn(3)="Improved lungs"
     augp(3)=80-st*20
+    augf(3)=3
+    augv(3)=1
     augd(3)="User has lower oxygen requirement." 
+    
     augn(4)="Speed Enhancement"
     augp(4)=150-st*20
     augd(4)="Artificial muscular tissue, increasing running speed"
+    augf(4)=4
+    augv(4)=1
+    
     augn(5)="Exosceleton"
     augp(5)=100-st*20
     augd(5)="An artificial exosceleton to prevent damage."
+    augf(5)=5
+    augv(5)=1
+    
     augn(6)="Metabolism Enhancement"
     augp(6)=150-st*20
     augd(6)="Increased pain threshholds and higher hormone output enable to withstand wounds longer."
+    augf(6)=6
+    augv(6)=1
+    
+    augn(7)="Floatation Legs"
+    augp(7)=50-st*20
+    augd(7)="Allowes walking on water"
+    augf(7)=7
+    augv(7)=1
+    
+    augn(8)="Built in Jetpack"
+    augp(8)=200-st*20
+    augd(8)="Allowes the user to fly similiar like when using a jetpack"
+    augf(8)=8
+    augv(8)=1
+    
+    augn(9)="Chameleon Skin"
+    augp(9)=100-st*20
+    augd(9)="Not so much like a skin, this installs a field bending light around the wearer, rendering him invisible."
+    augf(9)=9
+    augv(9)=1
+    
+    augn(10)="Neural Computer"
+    augp(10)=100-st*20
+    augd(10)="Increases the users learning ability."
+    augf(10)=10
+    augv(10)=1
+    
+    augn(11)="Targeting II"
+    augp(11)=300-st*20
+    augd(11)="A targeting computer linked directly to the brain"
+    augf(11)=1
+    augv(11)=2
+    
+    augn(12)="Muscle Enhancement II"
+    augp(12)=300-st*20
+    augf(12)=2
+    augv(12)=2
+    augd(12)="Artificial glands producing adrenalin on demand, increasing strength."
+
+    augn(13)="Exosceleton II"
+    augp(13)=300-st*20
+    augd(13)="An artificial exosceleton to prevent damage."
+    augf(13)=5
+    augv(13)=2
+    
+    augn(14)="Metabolism Enhancement II"
+    augp(14)=450-st*20
+    augd(14)="Increased pain threshholds and higher hormone output enable to withstand wounds longer."
+    augf(14)=6
+    augv(14)=2    
+    
+    if st=1 then
+        lastaug=20
+        
+        augn(15)="Targeting III"
+        augp(15)=500-st*20
+        augd(15)="A targeting computer linked directly to the brain. This level of augmentation is usually reserved for the Military and megacorps."
+        augf(15)=1
+        augv(15)=3
+        
+        augn(16)="Muscle Enhancement III"
+        augp(16)=500-st*20
+        augf(16)=2
+        augv(16)=3
+        augd(16)="Artificial glands producing adrenalin on demand, increasing strength. This level of augmentation is usually reserved for the Military and megacorps"
+    
+        augn(17)="Exosceleton III"
+        augp(17)=500-st*20
+        augd(17)="An artificial exosceleton to prevent damage. This level of augmentation is usually reserved for the Military and megacorps"
+        augf(17)=5
+        augv(17)=3
+        
+        augn(18)="Metabolism Enhancement III"
+        augp(18)=750-st*20
+        augd(18)="Increased pain threshholds and higher hormone output enable to withstand wounds longer. This level of augmentation is usually reserved for the Military and megacorps"
+        augf(18)=6
+        augv(18)=3
+        
+        augn(19)="Loyalty chip"
+        augp(19)=200
+        augd(19)="Instills respect and loyalty, making it impossible to retire. There are rumors that these are used in some elite military squads, but in most places they are illegal."
+        augf(19)=11
+        augv(19)=1
+    
+        augn(20)="Synthetic Nerves"
+        augp(20)=300
+        augd(20)="Replaces the recipients nerve system, making it easer to control augmentations (And survive the process of adding them)."
+        augf(20)=12
+        augv(20)=1
+    
+    else
+        lastaug=14
+    endif
     
     dim as short a,b,c,price,cured,c2
-    for a=1 to 6
+    for a=1 to lastaug
         augn(0)=augn(0)&augn(a)&" - "&augp(a)&"Cr. /"
         augd(0)=augd(0)&augd(a)&"/"
     next
@@ -1040,7 +1151,7 @@ function sickbay(st as short=0) as short
                 displayship()
                 dprint ""
                 b=menu("Augments/"&augn(0)&"Exit","/"&augd(0))
-                if b>0 and b<7 then
+                if b>0 and b<=lastaug then
                     do
                         c=showteam(0,1,augn(b)&c)
                         if c>0 then c2=1
@@ -1061,24 +1172,33 @@ function sickbay(st as short=0) as short
                             do
 
                                 if crew(c).typ<=9 and b>0 and c>0 then
-                                    if crew(c).augment(b)=0 then
+                                    if crew(c).augment(augf(b))<augv(b) then
                                         if player.money>=augp(b) and crew(c).hp>0 then
-                                            if crew(c).augment(9)<3 or st<>0 then
-                                                if st<>0 and crew(c).augment(9)>=3 then 
+                                            if crew(c).augment(0)<=2 or st<>0 then
+                                                if st<>0 and crew(c).augment(0)>2 then 
                                                     if not(askyn("Installing more than 3 augmentations can be dangerous, even kill the recipient. shall we proceed? (y/n)")) then c=-1
                                                 endif        
                                                     if c>0 then
-                                                    crew(c).augment(9)+=1
+                                                    if crew(c).augment(augf(b))=0 then crew(c).augment(0)+=1
                                                     player.money=player.money-augp(b)
-                                                    crew(c).augment(b)=1
-                                                    if b=6 then 
-                                                        crew(c).hp+=1
-                                                        crew(c).hpmax+=1
+                                                    if augf(b)=6 then 
+                                                        crew(c).hp=crew(c).hp+augv(b)-crew(c).augment(augf(b))
+                                                        crew(c).hpmax=crew(c).hpmax+augv(b)-crew(c).augment(augf(b))
                                                     endif
+                                                    crew(c).augment(augf(b))=augv(b)
                                                     dprint augn(b) & " installed in "&crew(c).n &"."
-                                                    if crew(c).augment(9)>3 and rnd_range(1,6)+rnd_range(1,6)>11-crew(c).augment(9) then
-                                                        dprint crew(c).n &" has died during the operation."
-                                                        crew(c).hp=0
+                                                    if crew(c).augment(0)>3 and rnd_range(1,6)+rnd_range(1,6)-crew(c).augment(12)*2>11-crew(c).augment(0) then
+                                                        if rnd_range(1,100)<33-crew(c).augment(12)*15 then
+                                                            crew(c).hp=0
+                                                        else
+                                                            crew(c).hpmax-=rnd_range(1,3-crew(c).augment(12)*2)
+                                                            if crew(c).hp>crew(c).hpmax then crew(c).hp=crew(c).hpmax
+                                                        endif
+                                                        if crew(c).hp<=0 then
+                                                            dprint crew(c).n &" has died during the operation."
+                                                        else
+                                                            dprint crew(c).n &" was permanently injured during the operation."
+                                                        endif
                                                         no_key=keyin
                                                         if c=1 then player.dead=28
                                                     endif
@@ -1109,7 +1229,7 @@ function sickbay(st as short=0) as short
                         endif
                     loop until c=0
                 endif
-            loop until b=7 or b=-1 or player.dead<>0
+            loop until b=lastaug+1 or b=-1 or player.dead<>0
         endif
     loop until a=4
     return player.disease
@@ -1376,7 +1496,7 @@ function shipupgrades(st as short) as short
             
             if c=3 then 'engine
                 do
-                    d=menu("Engine:/ Engine MKI    -  300 Cr/ Engine MKII   - 1200 Cr/ Engine MKIII  - 2700 Cr/ Engine MKIV   - 4800 Cr/ Engine MKV    - 7500 Cr/ AT Landing Gear - 250Cr/ Imp. AT Landing Gear - 500Cr/ Exit")
+                    d=menu("Engine:/ Engine MKI    -  300 Cr/ Engine MKII   - 1200 Cr/ Engine MKIII  - 2700 Cr/ Engine MKIV   - 4800 Cr/ Engine MKV    - 7500 Cr/ AT Landing Gear - 250Cr/ Imp. AT Landing Gear - 500Cr/ Maneuver Jets I - 250Cr/ Maneuver Jets II - 500Cr/ Maneuver Jets III - 1000 Cr/ Exit")
                     if d<6 and d<=player.h_maxengine then
                         if d<player.engine then dprint "You already have a better engine"
                         if d=player.engine then dprint "You already have this engine"
@@ -1405,8 +1525,46 @@ function shipupgrades(st as short) as short
                             placeitem(makeitem(76),,,,,-1)
                             endif
                         endif
+                        if d=8 then
+                            if paystuff(250) then
+                                if player.manjets<1 then
+                                    dprint "You buy Maneuver Jets I"
+                                    player.manjets=1
+                                else
+                                    if player.manjets>1 then dprint "you alrealdy have better maneuvering jets"
+                                    if player.manjets=1 then dprint "you alrealdy have these maneuvering jets"
+                                    player.money=player.money+250
+                                endif
+                            endif
+                        endif
+                        
+                        if d=9 then
+                            if paystuff(500) then
+                                if player.manjets<2 then
+                                    dprint "You buy Maneuver Jets II"
+                                    player.manjets=2
+                                else
+                                    if player.manjets>2 then dprint "you alrealdy have better maneuvering jets"
+                                    if player.manjets=2 then dprint "you alrealdy have these maneuvering jets"
+                                    player.money=player.money+500
+                                endif
+                            endif
+                        endif
+                        
+                        if d=10 then
+                            if paystuff(1000) then
+                                if player.manjets<3 then
+                                    dprint "You buy Maneuver Jets III"
+                                    player.manjets=3
+                                else
+                                    if player.manjets>3 then dprint "you alrealdy have better maneuvering jets"
+                                    if player.manjets=3 then dprint "you alrealdy have these maneuvering jets"
+                                    player.money=player.money+1000
+                                endif
+                            endif
+                        endif
                     endif
-                loop until d=8
+                loop until d=11
             endif
                 
             if c=4 then 'weapons
@@ -1737,7 +1895,7 @@ function dividend() as short
     next
     if payout(0)>1 then
         for a=1 to 4
-            if payout(a)>0 then dprint "Your share in "&companyname(a) &" has payed a dividend of "&payout(a) &" Cr."
+            if payout(a)>0 then dprint "Your share in "&companyname(a) &" has payed a dividend of "&int(payout(a)) &" Cr."
         next
         player.money=player.money+int(payout(0))
         player.tradingmoney=player.tradingmoney+int(payout(0))
@@ -1766,14 +1924,16 @@ end function
 
 function buyshares(comp as short,n as short) as short
     dim a as short
+    if companystats(comp).shares=0 then dprint "No shares availiable for this company",14
     if lastshare+n>2048 then n=2048-lastshare
-    if n>0 then
+    if n>0 and companystats(comp).shares>0 then
         for a=1 to n
             lastshare=lastshare+1
-            if lastshare<2048 then
+            if lastshare<2048 and companystats(comp).shares>0 then
                 shares(lastshare).company=comp
                 shares(lastshare).bought=player.turn
                 shares(lastshare).lastpayed=player.turn
+                companystats(comp).shares-=1
             endif
         next
     else
@@ -1790,6 +1950,7 @@ function sellshares(comp as short,n as short) as short
             player.money=player.money+companystats(shares(a).company).rate
             player.tradingmoney=player.tradingmoney+companystats(shares(a).company).rate
             shares(a).company=-1
+            companystats(comp).shares+=1
             n=n-1
         endif
     next
@@ -2353,7 +2514,6 @@ sub recalcshipsbays()
     next
     if player.hull>player.h_maxhull+player.addhull then player.hull=player.h_maxhull+player.addhull
     
-    dprint "recalcshipsbays"&player.crewpod
 end sub
 
 function paystuff(price as integer) as integer
@@ -2399,6 +2559,10 @@ function shop(sh as short,pmod as short,t as string) as short
             desc=desc &"/"&inv(a).ldesc
             b=b+1
     next
+    if sh<=2 then 
+        t=t &"/Order Item"
+        desc="/Order an item not in stock for double the price"
+    endif
     t=t & "/Exit"
     desc=desc &"/"
     displayship()
@@ -2424,10 +2588,156 @@ function shop(sh as short,pmod as short,t as string) as short
             dprint "You don't have enough money"
         endif
     else
-        c=-1
+        if c=b+1 and sh<=2 then
+            place_shop_order(sh)
+        else
+            c=-1
+        endif
     endif
     return c
 end function
+
+function place_shop_order(sh as short) as short
+    dim as string t,w
+    dim as short a,b,f
+    dim as single bestmatch,bmc,candidate,s,l
+    dim tried(80) as byte
+    dim as _cords p
+    dim as _items i
+    p=locEOL
+    dprint "What would you like to order?"
+    t=gettext(p.x,p.y,26,t)
+    t=ucase(t)
+    f=0
+    do
+    bestmatch=9999
+    f+=1
+    for a=1 to 80
+        i=makeitem(a)
+        i.desig=ucase(i.desig)
+        l=len(i.desig)
+        w=""
+        if trim(ucase(i.desig))=trim(ucase(t)) and tried(a)=0 then
+            candidate=a
+            bestmatch=0
+        else
+            for b=1 to l
+                w=w &mid(i.desig,b,1)
+                print #f,w
+                if mid(i.desig,b,1)=" " or b=l then
+                    s=fuzzymatch(w,t)
+                    if s<bestmatch and tried(a)=0 then
+                        candidate=a
+                        bestmatch=s
+                    endif
+                    print #f,"score:";s;"Words:";t;":";w
+                    w=""
+                endif
+            next
+        endif
+    next
+    if bestmatch<0.2 then
+        i=makeitem(candidate)
+        if askyn("Do you want to order a "&i.desig &"? (y/n)") then
+            shop_order(sh)=candidate
+            dprint "I can't say for certain when it will arive, but it should be here soon. ("& bestmatch &" %)"
+            f=3
+            candidate=0
+        else
+            tried(candidate)=1
+        endif
+    else
+        dprint "I don't think I ever heard of those ("& bestmatch &" %)"
+        f=3
+    endif
+    loop until f=3
+    return 0
+end function
+
+
+Function fuzzymatch( s As String, t As String ) As single
+dim as string dic
+Dim As Integer k, i, j, n, m, cost
+dim as single dis
+Dim As Integer Ptr d
+dim as short  f
+    f=freefile
+    open "data\dictionary.txt" for input as #f
+    while not eof(f)
+        line input #f,dic
+        if ucase(trim(t))=ucase(trim(dic)) then t=""
+    wend
+    close f
+   s=trim(s)
+   t=trim(t)
+n = Len(s)
+m = Len(t)
+
+If (n <> 0) And (m <> 0) Then
+   
+   d = allocate( sizeof(Integer) * (m+1) * (n+1) )
+   m += 1
+   n += 1
+   k = 0
+
+   While k < n
+      d[k]=k
+      k += 1
+   Wend
+
+   k = 0
+   While k < m
+      d[k*n]=k
+      k += 1
+   Wend
+
+   i = 1
+   While i < n
+      j = 1
+
+      While j<m
+         If (s[i-1] = t[j-1]) Then
+            cost = 0
+
+         Else
+            cost = 1
+
+         End If
+
+         d[j*n+i] = lev_minimum(d[(j-1)*n+i]+1, d[j*n+i-1]+1, d[(j-1)*n+i-1]+cost)
+
+         j += 1
+      Wend
+
+      i += 1
+   Wend
+
+   dis = d[n*m-1]
+   deallocate d
+    if n>m then 
+        dis=dis/n
+    else
+        dis=dis/m
+    endif
+   Return dis
+
+Else
+   Return -1
+
+End If
+
+End Function
+
+Function lev_minimum( a As Integer, b As Integer, c As Integer ) As Integer
+
+var min = a
+
+If (b<min) Then min = b
+If (c<min) Then min = c
+
+Return min
+
+End Function
 
 function rerollshops() as short
     dim as short a,b,i,c,sh,flag,roll
@@ -2572,7 +2882,7 @@ function rerollshops() as short
             next
         endif
         
-        for a=87 to 99
+        for a=85 to 99
             if rnd_range(1,100)<55 then
                 i+=1
                 if i>20 then i=20

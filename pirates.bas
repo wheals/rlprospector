@@ -96,17 +96,37 @@ end function
         
 
 function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as short
-    dim as integer rscore,bscore
+    dim as integer rscore,bscore,tim
+    dim as short i,f,t
+    tim=timer
     do
-        rscore=scorefleet(red)
-        bscore=scorefleet(blue)
-        rscore=rscore+rnd_range(1,6)
-        bscore=bscore+rnd_range(1,6)
-        if abs(bscore-rscore)<10 then
-            red.mem(rnd_range(1,15))=empty_ship
-            blue.mem(rnd_range(1,15))=empty_ship
-        endif
-    loop until abs(bscore-rscore)>=10 or rscore<10 or bscore<10
+        for i=1 to 15
+            if red.mem(i).hull>0 then
+                rscore=rscore+red.mem(a).hull
+                for f=1 to 25
+                    if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner>9 then
+                        t=getship(blue)
+                        if t>0 then
+                            blue.mem(t).hull=blue.mem(t).hull-red.mem(i).weapons(f).dam
+                        endif
+                    endif
+                next
+            endif
+            
+            if blue.mem(i).hull>0 then
+                bscore=bscore+red.mem(a).hull
+                for f=1 to 25
+                    if blue.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+blue.mem(i).gunner>9 then
+                        t=getship(red)
+                        if t>0 then
+                            red.mem(t).hull=red.mem(t).hull-blue.mem(i).weapons(f).dam
+                        endif
+                    endif
+                next
+            endif
+        next
+    
+    loop until rscore=0 or bscore=0 or getship(red)=-1 or getship(blue)=-1 or timer>tim+1
     if rscore>bscore then
         return a
     else
@@ -114,21 +134,19 @@ function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as shor
     endif
 end function
 
-function scorefleet(byval f as _fleet) as integer
-    dim as integer a,b,scr
-    for a=1 to 15
-        scr=scr+f.mem(a).hull
-        scr=scr+f.mem(a).shieldmax
-        scr=scr+f.mem(a).engine
-        scr=scr+f.mem(a).sensors
-        scr=scr+f.mem(a).gunner
-        for b=1 to 25
-            scr=scr+f.mem(a).weapons(b).dam
-        next
+function getship(f as _fleet) as short
+    dim as short i,c
+    dim as short m(15)
+    for i=1 to 15
+        if f.mem(i).hull>0 then
+            c+=1
+            m(c)=i
+        endif
     next
-    return scr
+    if c=0 then return -1
+    return m(rnd_range(1,c))
 end function
-        
+
 function collidefleets() as short
     dim as short a,b,c,d,civ1,civ2,roll1,roll2,victor,loser    
     if lastfleet>255 then lastfleet=255
@@ -864,7 +882,11 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.weapon<0 then enemy.weapon=0
         enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)
-        
+        if rnd_range(1,100)<66 then
+            enemy.nocturnal=rnd_range(1,2)
+        else 
+            enemy.nocturnal=0
+        endif
         'Behavior
         enemy.aggr=rnd_range(0,2)
         enemy.respawns=1
@@ -1195,6 +1217,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=8 then
+        enemy.stunres=1
         enemy.ti_no=1018
         enemy.faction=5 'robots
         enemy.sdesc="defense robot"
@@ -1233,6 +1256,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=9 then
+        enemy.stunres=1
         enemy.ti_no=1019
         enemy.faction=5 'Vault bots
         enemy.sdesc="defense robot"
@@ -2361,6 +2385,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=46 then 'Defense bots
+        enemy.stunres=1
         enemy.ti_no=1059     
         enemy.faction=5
         enemy.hasoxy=1
@@ -2560,6 +2585,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=51 then 'Defensebot
+        enemy.stunres=1
         enemy.ti_no=1064
         enemy.faction=5
         enemy.sdesc="defense robot"
@@ -2608,6 +2634,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=52 then 'Defensebot
+        enemy.stunres=1
         enemy.ti_no=1065
         enemy.faction=5
         enemy.sdesc="defense robot"
@@ -2655,6 +2682,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=53 then 'Fast Bot
+        enemy.stunres=1
         enemy.ti_no=1066
         enemy.faction=5
         enemy.hasoxy=1
@@ -2712,6 +2740,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=54 then 'Defense Bot
+        enemy.stunres=1
         enemy.ti_no=1067
         enemy.faction=5
         enemy.hasoxy=1
@@ -2771,6 +2800,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=55 then 'Living Energy
+        enemy.stunres=1
         enemy.ti_no=1068
         enemy.faction=5
         enemy.hasoxy=1
@@ -2821,6 +2851,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=56 then 'Bladebot
+        enemy.stunres=1
         enemy.ti_no=1069
         enemy.faction=5
         enemy.hasoxy=1
@@ -4317,7 +4348,7 @@ dim as short c,b
         p.c.y=10
         p.shiptype=2
         p.sensors=7
-        p.hull=128
+        p.hull=255
         p.shield=8
         p.gunner=4
         p.ecm=0

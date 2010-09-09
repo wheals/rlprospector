@@ -306,7 +306,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
         mx=sm_x
         my=sm_y
     endif
-    
+'    
     for x=0 to mx
         for y=0 to my
             vismask(x,y)=-1

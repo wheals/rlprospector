@@ -169,10 +169,10 @@ function explorationtext() as string
         if discovered(a)=1 then b=b+1
     next
     if b=0 then 
-        text=text & "| no remarkable planets discovered."
+        text=text & "|No remarkable planets discovered."
     endif
     if b>0 then
-        text=text & b &"| remarkable planets discovered."
+        text=text & "|"& b &" remarkable planets discovered."
     endif
     
     text=text & " |Defeated "
