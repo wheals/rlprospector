@@ -16,9 +16,9 @@ function make_spacemap() as short
     dim as _cords p1,p2,p3
     dim as _stars del
     
-    color 14,0
+    color 11,0
     print
-    Print " generating "
+    Print "Generating sector"
     color 7,0
     
     rerollshops
@@ -237,7 +237,7 @@ function make_spacemap() as short
     a=sysfrommap(specialplanet(26))
     swap map(a).c,map(d).c
     
-    
+    loadbones
     
 '    for a=0 to lastspecial
 '        print ".";
@@ -257,6 +257,8 @@ function make_spacemap() as short
             map(a).spec=map(a).spec+abs(spacemap(map(a).c.x,map(a).c.y))/2
             if map(a).spec>7 then map(a).spec=7
         endif
+        if map(a).discovered=4 then map(a).discovered=_debug_bones
+        if _debug_bones=1 then player.c=map(a).c
         scount(map(a).spec)+=1
         'map(a).discovered=1
     next
@@ -302,7 +304,8 @@ function make_spacemap() as short
     
     print "checking for starmap errors: ";
     fixstarmap()
-    
+
+    color 7,0
     print "generating traderoutes"
     gen_traderoutes()
     
@@ -357,6 +360,7 @@ function make_spacemap() as short
     drifting(1).y=targetlist(firstwaypoint).y
     planets(drifting(1).m).atmos=5
     planets(drifting(1).m).depth=1
+    planets(drifting(1).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
     deletemonsters(drifting(1).m)
     planets(drifting(1).m).mon_template(0)=makemonster(39,drifting(1).m)
     planets(drifting(1).m).mon_noamin(0)=2
@@ -370,6 +374,7 @@ function make_spacemap() as short
     planets(drifting(2).m).atmos=5
     planets(drifting(2).m).depth=1
     deletemonsters(drifting(2).m)
+    planets(drifting(2).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(2).m).mon_template(0)=makemonster(39,drifting(2).m)
     planets(drifting(2).m).mon_noamin(0)=3
     planets(drifting(2).m).mon_noamax(0)=6
@@ -382,6 +387,7 @@ function make_spacemap() as short
     planets(drifting(3).m).atmos=5
     planets(drifting(3).m).depth=1
     deletemonsters(drifting(3).m)
+    planets(drifting(3).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(3).m).mon_template(0)=makemonster(39,drifting(3).m)
     planets(drifting(3).m).mon_noamin(0)=3
     planets(drifting(3).m).mon_noamax(0)=6
@@ -3976,6 +3982,16 @@ function makespecialplanet(a as short) as short
         else
             planetmap(x,y,a)=164
         endif
+        
+        
+        do
+            cnt=cnt+1
+            x=rnd_range(p2.x-wx,p2.x+wx)
+            y=rnd_range(p2.y,p2.y+wy)
+        loop until abs(planetmap(x,y,a))<30 or cnt>40000
+        
+        planetmap(x,y,a)=286
+        
         planets(a).mon_template(0)=makemonster(14,a)
         planets(a).mon_noamin(0)=8
         planets(a).mon_noamax(0)=17
@@ -4032,7 +4048,6 @@ function makespecialplanet(a as short) as short
             planets(a).mon_template(0)=makemonster(3,a)
             planets(a).mon_noamin(0)=8
             planets(a).mon_noamax(0)=15
-            
             
             planets(a).mon_template(1)=makemonster(49,a)
             planets(a).mon_noamin(1)=6
@@ -6081,6 +6096,7 @@ end function
 
 function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as short
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
+    dim as byte retirementshop
     dim s as _ship
     dim pods(6,5,1) as short
     dim p as _cords
@@ -6153,14 +6169,22 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
                 endif
             endif
             if ti=999 then
-                if rnd_range(1,100)<10 then
-                    if rnd_range(1,100)<50 then
-                        planetmap(x,y,m)=-261
-                    else
-                        planetmap(x,y,m)=-98
+                planetmap(x,y,m)=-202
+                if rnd_range(1,100)<66 then
+                    if retirementshop=1 and rnd_range(1,100)<33 then
+                        planetmap(x,y,m)=-262
                     endif
-                else
-                    planetmap(x,y,m)=-202
+                    if retirementshop=0 then
+                        retirementshop=1
+                        planetmap(x,y,m)=-270
+                    endif
+                    if rnd_range(1,100)<10 then
+                        if rnd_range(1,100)<50 then
+                            planetmap(x,y,m)=-261
+                        else
+                            planetmap(x,y,m)=-98
+                        endif
+                    endif
                 endif
             endif
         next
@@ -6579,7 +6603,6 @@ function makecivilisation(slot as short,m as short) as short
             specialplanettext(46,1)=specialplanettext(46,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
         endif
     endif
-    civ(slot).culture(3)=5
     if civ(slot).culture(3)=5 then 'Tamed robots
         planets(m).mon_template(2)=makemonster(8,m)
         planets(m).mon_template(2).faction=1+slot
@@ -6587,7 +6610,6 @@ function makecivilisation(slot as short,m as short) as short
         planets(m).mon_noamin(2)=3
         planets(m).mon_noamax(2)=8
     endif
-    civ(slot).culture(4)=2
     if civ(slot).culture(4)=2 then
         lastplanet+=1
         p1=rnd_point
@@ -7327,8 +7349,25 @@ end sub
 sub planet_event(slot as short)
     dim as _cords p1
     dim as _cords gc1,gc
-    dim as short x,y,a,b,t
-    t=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
+    dim as short x,y,a,b,t1,t2,t
+    static generated(8) as short
+    t1=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
+    t2=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
+    if t1<1 then t1=1
+    if t2<1 then t2=1
+    if t1>8 then t1=8
+    if t2>8 then t2=8
+    if generated(t1)>generated(t2) then t=t2
+    if generated(t1)<generated(t2) then t=t1
+    if generated(t1)=generated(t2) then 
+        if rnd_range(1,100)<=50 then
+            t=t1
+        else
+            t=t2
+        endif
+    endif
+    generated(t)+=1
+    
     if t<1 then t=1
     if t>8 then t=8
     if t=1 or t=2 then 'Mining Colony in Distress Flag 22 
@@ -7628,6 +7667,10 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
                 y=rnd_range(5,7)+rnd_range(0,2)
                 if p.x+x>=59 then p.x=58-x
                 if p.y+y>=19 then p.y=18-y
+                if p.x=0 then p.x=1
+                if p.y=0 then p.y=1
+                if p.x+x>=59 then x=59-p.x
+                if p.y+y>=19 then y=19-p.y
                 r.x=p.x
                 r.y=p.y
                 r.w=x
@@ -8062,6 +8105,14 @@ function checkcomplex(map as short,fl as short) as integer
         if maps(a)>0 and planets(maps(a)).genozide=0 then result+=1
     next
     return result
+end function
+
+function is_drifter(m as short) as short
+    dim a as short
+    for a=0 to lastdrifting
+        if m=drifting(a).m then return -1
+    next
+    return 0
 end function
 
 function is_special(m as short) as short

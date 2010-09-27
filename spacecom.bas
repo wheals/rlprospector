@@ -84,6 +84,17 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     player=defender
     displayship(0)
     do
+        if com_log=1 then
+            f=freefile
+            open "combatlog.txt" for append as #f
+            key=""
+            for a=0 to lastenemy
+                key=key &lastaction(a)&":"
+            next
+            print #f,key
+            close #f
+            key=""
+        endif
         nexsen=senac
         'movement
         movementcost(0)=defender.engine+2-cint(defender.h_maxhull\15)+defender.manjets*(1+manjetson)
@@ -92,7 +103,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         if speed(0)<1 then speed(0)=1
         st=speed(0)
         for a=1 to lastenemy
-            movementcost(a)=20-attacker(a).engine
+            movementcost(a)=10-attacker(a).engine
             lastaction(a)-=1
             speed(a)=speed(a)+attacker(a).engine
             if attacker(a).c.x=attacker(a+1).c.x and attacker(a).c.y=attacker(a+1).c.y  then attacker(a).c=movepoint(attacker(a).c,5)
@@ -109,7 +120,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         displayship(0)
         com_display(defender, attacker(),lastenemy,0,senac,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
    '
-    
+            key=""
             if lastaction(0)<=0 and defender.hull>0 then 'playermovement
                 
                 f=0
@@ -125,11 +136,13 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 color 11,0
                 draw string(62*_fw1,5*_fh2), "Engine :"&player.engine &" ("&speed(0) &" MP)",,Font2,custom,@_col
     
-                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc &key_dr &key_fi &key_sh &key_ru &key_togglemanjets)
+                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc &key_dr &key_fi &key_sh &key_ru &key_togglemanjets &key_cheat)
                 if key=key_ac then
                     if senac=2 then nexsen=1
                     if senac=1 then nexsen=2
                 endif
+                
+                if key=key_cheat then com_cheat=1
                 
                 if key=key_togglemanjets then
                     if defender.manjets=0 then 
@@ -179,7 +192,8 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 if t>0 and t<100 then 
                                     if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(w).col)=-1 then
                                         attacker(t)=com_fire(attacker(t),defender,defender.weapons(w),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
-                                        lastaction(0)=lastaction(0)+defender.weapons(w).reload
+                                        lastaction(0)=lastaction(0)+1
+                                        defender.weapons(w).reloading=defender.weapons(w).reload
                                         if attacker(t).hull<=0 then
                                             dprint "Target destroyed",10
                                             reward(3)=reward(3)+attacker(t).money
@@ -206,16 +220,16 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 endif
                 
                 
-                if getdirection(key)<>0 then player.di=getdirection(key)
-                old=defender.c
-                defender.c=movepoint(defender.c,getdirection(key))
+                if getdirection(key)<>0 then 
+                    player.di=getdirection(key)
                 
-                if old.x<>defender.c.x or old.y<>defender.c.y then
+                    old=defender.c
+                    defender.c=movepoint(defender.c,getdirection(key))
                     
                     lastaction(0)+=movementcost(0)
                     e_last=e_last+1
                     if e_last>128 then e_last=1
-                    e_track_p(e_last)=old
+                    e_track_p(e_last)=movepoint(defender.c,10-getdirection(key))
                     e_track_v(e_last)=defender.engine+2
                     if combatmap(defender.c.x,defender.c.y)>0 and rnd_Range(1,6)+rnd_range(1,6)+player.pilot<combatmap(defender.c.x,defender.c.y)*2 then
                         defender.shield=defender.shield-1
@@ -236,6 +250,21 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             endif
                         next
                     endif
+                    
+                    for c=1 to e_last
+                        if defender.c.x=e_track_p(c).x and defender.c.y=e_track_p(c).y then 
+                            defender.shield=defender.shield-e_track_v(c)
+                            text="The "&defender.desig &" ran into a plasma stream! "
+                            if defender.shield<0 and defender.shieldmax>0 then text=text &"Shields penetrated! "
+                            if defender.shield<0 then 
+                                defender.hull=defender.hull+defender.shield
+                                defender.shield=0
+                            endif
+                            if defender.hull<=0 then text=text &defender.desig &" destroyed!"                        
+                            dprint text,12
+                            no_key=keyin
+                        endif
+                    next
                 endif      
                 
                 tick(0)=tick(0)+tickr(0)
@@ -338,18 +367,6 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             endif
                         endif
                     next
-                    if defender.c.x=e_track_p(a).x and defender.c.y=e_track_p(a).y then 
-                        defender.shield=defender.shield-e_track_v(a)
-                        text="The "&defender.desig &"ran into plasma stream! "
-                        if defender.shield<0 and defender.shieldmax>0 then text=text &"Shields penetrated! "
-                        if defender.shield<0 then 
-                            defender.hull=defender.hull+defender.shield
-                            defender.shield=0
-                        endif
-                        if defender.hull<=0 then text=text &defender.desig &" destroyed!"                        
-                        dprint text,12
-                        no_key=keyin
-                    endif
                     
                     if mines_last>0 then
                         for c=1 to mines_last
@@ -362,19 +379,24 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             next
             
             
-        if localturn=5 or localturn=10 then
+        if localturn mod 2=0 then
             for b=1 to e_last
                 e_track_v(b)=e_track_v(b)-1
             next
         endif
         
-        if localturn=10 then
-            com_sinkheat(defender)
+        if localturn mod 5=0 then
             for a=1 to lastenemy
-                com_sinkheat(attacker(a))
+                com_regshields(attacker(a))
             next
-            localturn=0
+            com_regshields(defender)
         endif
+        
+        com_sinkheat(defender,manjetson)
+        for a=1 to lastenemy
+            com_sinkheat(attacker(a),0)
+        next
+
         localturn+=1
         if key=key_ru and victory<>1 then victory=com_flee(defender,attacker(),lastenemy)
         if victory=1 then
@@ -408,6 +430,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         next
         FSOUND_Update
     loop until victory<>0
+    
     if attacker(16).desig="" and col=10 then atts.con(1)=-1
     cls
     defender.shield=defender.shieldmax
@@ -462,7 +485,7 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
                 p1.y=y
                 locate y+1,x+1
                 draw string(x*_fw1,y*_fh1)," ",,font1,custom,@_col
-                if distance(p1,defender.c)<=senbat*senac then
+                if distance(p1,defender.c)<=senbat*senac or com_cheat=1 then
                     if _tiles=0 then
                         if distance(p1,defender.c)<=senbat*senac and combatmap(x,y)=0 then put (x*_tix,y*_tiy),gtiles(78),pset
                         if distance(p1,defender.c)<=senbat1*senac and combatmap(x,y)=0 then put (x*_tix,y*_tiy),gtiles(79),pset
@@ -593,9 +616,9 @@ function com_getweapon() as short
     endif
     do
         display_ship_weapons(m)
-        key=keyin(key_esc & key_enter &"123456789")
-        if keyplus(key) then m-=1
-        if keyminus(key) then m+=1
+        key=keyin(key_esc & key_enter &key_up &key_lt &key_dn &key_rt &"+-123456789")
+        if keyplus(key) or key="8" then m-=1
+        if keyminus(key) or key="2" then m+=1
         if m>lastslot then m=1
         if m<1 then m=lastslot
     loop until key=key_esc or key=key_enter
@@ -698,8 +721,9 @@ function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as
     do
         if w.ammomax>0 then w.ammo=w.ammo-1 
         if w.ammo>0 or w.ammomax=0 then
-            w.heat=w.heat+w.heatadd
-            if rnd_range(1,6)+rnd_range(1,6)+gunner>=w.heat then
+            w.heat=w.heat+w.heatadd*25
+            w.reloading=w.reload
+            if rnd_range(1,6)+rnd_range(1,6)+gunner>=w.heat/25  then
                 roll=rnd_range(1,6)+rnd_range(1,6)+gunner+senac+tohitbonus-(target.ecm*w.ecmmod)
                 'if range<=w.range*3 then roll=roll+1
                 if range<=w.range*2 then roll=roll+1
@@ -716,12 +740,11 @@ function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as
                     else
                         dprint "It missed."
                     endif
-                    no_key=keyin
                 endif
             else
                 dprint w.desig &" shuts down due to heat."
                 w.shutdown=1
-                if rnd_range(1,6)+rnd_range(1,6)+gunner<w.heat then
+                if rnd_range(1,6)+rnd_range(1,6)+gunner<w.heat/10 then
                     dprint w.desig &" is irreperably damaged."
                     w=del
                 endif
@@ -843,30 +866,48 @@ function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as short,b
     return 0
 end function
 
-function com_sinkheat(s as _ship) as short
+function com_regshields(s as _ship) as short
+    dim a as short
+    dim shieldreg as short
+    for a=1 to 25
+        if s.weapons(a).made=90 then shieldreg=2
+    next
+    if s.shield<s.shieldmax then s.shield=s.shield+shieldreg
+    if s.shield>s.shieldmax then s.shield=s.shieldmax
+    return 0
+end function
+
+
+function com_sinkheat(s as _ship,manjets as short) as short
     dim as short a,sink,heat,shieldreg
     sink=s.h_maxweaponslot
     for a=1 to 25
         sink=sink+s.weapons(a).heatsink
         if s.weapons(a).made=90 then shieldreg=2
     next
+    if sink>0 and manjets>0 then
+        sink=sink-s.manjets*(manjets+1)
+    endif
     if sink>0 and s.shield<s.shieldmax then
-        sink-=1
-        s.shield+=shieldreg
+        sink-=5
     endif
     do
         heat=0
         for a=1 to 25
             if s.weapons(a).heat>0 then 
-                sink-=1
-                s.weapons(a).heat-=1
+                if sink>0 then
+                    sink-=1
+                    s.weapons(a).heat-=1
+                endif
             else
                 s.weapons(a).shutdown=0
             endif
             if s.weapons(a).heat>0 then heat=1
         next
-    loop until sink=0 or heat=0
-    
+    loop until sink<=0 or heat<=0
+    for a=1 to 25
+        if s.weapons(a).reloading>0 then s.weapons(a).reloading-=1
+    next
     return 0
 end function
 
@@ -1159,6 +1200,8 @@ function com_testweap(w as _weap, p1 as _cords,attacker() as _ship,lastenemy as 
     if w.dam>0 then
         r=-1 'kein cargo bay oder empty slot
         if w.ammomax>0 and w.ammo<=0 then r=0 'waffe braucht ammo und hat keine
+        if w.shutdown<>0 then r=0
+        if w.reloading<>0 then r=0
     endif
     if r=-1 then
         for a=1 to lastenemy

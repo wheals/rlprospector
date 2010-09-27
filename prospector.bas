@@ -131,11 +131,11 @@ else
     chdir("..")
 endif
 
-'if chdir("bones")=-1 then
-'    mkdir("bones")
-'else
-'    chdir("..")
-'endif
+if chdir("bones")=-1 then
+    mkdir("bones")
+else
+    chdir("..")
+endif
 
 wage=10
 
@@ -727,7 +727,7 @@ if key="1" then
         if rnd_range(1,100)<40 then
             placeitem(rnd_item(20),0,0,0,0,-1)
         else
-            placeitem(makeitem(rnd_range(3,lstcomty)),0,0,0,0,-1)
+            placeitem(makeitem(rnd_range(3,lstcomit)),0,0,0,0,-1)
         endif
     next
     if rnd_range(1,100)<51 then
@@ -752,11 +752,7 @@ if key="1" then
             fleet(a).c=basis(rnd_range(0,2)).c
         next
     endif
-    'placeitem(makeitem(77),0,0,0,0,-1)
-    'placeitem(makeitem(89),0,0,0,0,-1)
-    placeitem(makeitem(79),0,0,0,0,-1)
-    placeitem(makeitem(79),0,0,0,0,-1)
-    placeitem(makeitem(79),0,0,0,0,-1)
+    'placeitem(makeitem(79),0,0,0,0,-1)
     if start_teleport=1 then artflag(9)=1
     cls
     color 11,0
@@ -770,7 +766,7 @@ if key="1" then
         faction(0).war(5)=100
     else
         c=5+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to get a lot of money you will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
-        draw string(5*_fw1,(c+1)*_fh2), "You christen the beauty:",,font2,custom,@_col
+        draw string(5*_fw1,5*_fh1+c*_fh2), "You christen the beauty:",,font2,custom,@_col
         faction(0).war(1)=100
         faction(0).war(2)=0
         faction(0).war(3)=100
@@ -786,7 +782,7 @@ if key="1" then
         do
             draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
             draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
-            player.desig=gettext((5*_fw1+18*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
+            player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
             if player.desig="" then player.desig=randomname()
             text="savegames\"&player.desig &".sav"    
         loop until fileexists(text)=0    
@@ -853,9 +849,9 @@ if player.dead>0 then
     if player.dead=30 then text="High gravity shakes your ship. Suddenly an energy discharge out of nowhere evaporates your ship!"
     if player.dead=98 then 
         endstory=es_part1
-        
         textbox (endstory,2,2,_screenx/_fw2-5)
     endif
+    if player.dead=99 then text="Till next time!"
     if text<>"" then
         color 11,0
         gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
@@ -872,9 +868,10 @@ if player.dead>0 then
         draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),text,,TITLEFONT,custom,@_tcol
     endif
     
+    no_key=""
+    no_key=keyin
+        
     if player.dead<99 then 
-        no_key=""
-        no_key=keyin
         if askyn("Do you want to see the last messages again?(y/n)") then messages
         highsc()
     endif
@@ -1603,7 +1600,7 @@ function spacestation(st as short) as _ship
                     faction(0).war(1)+=1
                 endif
             next
-            if d=0 then dprint "everything seems to be ok.",10
+            if d=0 then dprint "Everything seems to be ok.",10
         endif
         
         for b=2 to 128
@@ -1612,10 +1609,11 @@ function spacestation(st as short) as _ship
                 crew(b).morale=crew(b).morale+(Wage-10)^3*(9/100)+addtalent(1,4,5)
             endif
         next
-        dprint "your crew gets "&a &" Cr. in wages"        
+        dprint "Your crew gets "&a &" Cr. in wages"        
         player.money=player.money-a
         player=levelup(player)
-        if shop_order(st)<>0 and rnd_range(1,100)<10 then
+        if shop_order(st)<>0 and rnd_range(1,100)<33 then
+            dprint  "Your ordered "&makeitem(shop_order(st)).desig &" has arrived.",12
             b=rnd_range(1,20)
             shopitem(b,st)=makeitem(shop_order(st))
             shopitem(b,st).price=shopitem(b,st).price*2
@@ -1810,9 +1808,10 @@ function move_ship(key as string,byref walking as short) as _ship
                 dprint "You succesfully navigate the gascloud",10
                 player.fuel=player.fuel-rnd_range(1,3)
             else
-                dam=rnd_range(1,3)+spacemap(player.c.x,player.c.y)
+                dam=rnd_range(0,3)+spacemap(player.c.x,player.c.y)
                 if dam>player.shield then
-                    dprint "your Ship is damaged",12
+                    dam=dam-player.shield
+                    dprint "Your Ship is damaged",12
                     player.hull=player.hull-dam
                     player.fuel=player.fuel-rnd_range(1,5)
                     if player.hull<=0 then player.dead=12
@@ -1821,7 +1820,7 @@ function move_ship(key as string,byref walking as short) as _ship
         endif
         if spacemap(player.c.x,player.c.y)>=6 and spacemap(player.c.x,player.c.y)<=17 then 
             player.turn=player.turn-rnd_range(1,6)+rnd_range(1,6)
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>maximum(9,spacemap(player.c.x,player.c.y)) then
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>7 then
                 if spacemap(player.c.x,player.c.y)=6 then player.fuel=player.fuel-1
                 if spacemap(player.c.x,player.c.y)=7 then player.fuel=player.fuel-1.5
                 if spacemap(player.c.x,player.c.y)=8 then player.fuel=player.fuel-.3
@@ -1831,7 +1830,7 @@ function move_ship(key as string,byref walking as short) as _ship
                     else
                         player.fuel=player.fuel-2.5
                     endif
-                    if rnd_range(1,10)>player.engine then
+                    if rnd_range(1,20)>player.engine then
                         player.c=movepoint(player.c,a)
                         dprint "Your ship is swept away in a gravitational current!",14
                     endif
@@ -1839,13 +1838,15 @@ function move_ship(key as string,byref walking as short) as _ship
                 old=player.c
                 dprint "You succesfully navigate the anomaly",10
             else
-                dam=rnd_range(1,3)
+                dam=rnd_range(0,3)
                 if dam>player.shield then
                     dam=1
-                    dprint "your Ship is damaged",12
+                    dprint "Your Ship is damaged",12
                     player.hull=player.hull-dam
                     player.fuel=player.fuel-rnd_range(1,5)
                     if player.hull<=0 then player.dead=30
+                else
+                    dprint "Your shields are hit, but hold",10
                 endif
             endif
             if rnd_range(1,100)+player.pilot<10+spacemap(player.c.x,player.c.y) then 
@@ -1895,6 +1896,7 @@ function explore_space() as short
         if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
             dPrint "A "&spectralname(map(a).spec)& ". Press "&key_sc &" to scan, "&key_la &" to land."
             if a=piratebase(0) then dprint "Lots of traffic in this system"
+            map(a).discovered=2
             displaysystem(a)
             walking=0
         endif
@@ -1907,7 +1909,7 @@ function explore_space() as short
     next
     for a=1 to lastdrifting
         if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 and player.towed<>a then
-            if player.tractor>0 then dprint "A "&shiptypes(drifting(a).s)&" is drifting in space here. "&key_do &" to dock. "&key_tow &" to tow."
+            if player.tractor>0 and a>3 then dprint "A "&shiptypes(drifting(a).s)&" is drifting in space here. "&key_do &" to dock. "&key_tow &" to tow."
             if player.tractor=0 then dprint "A "&shiptypes(drifting(a).s)&" is drifting in space here. "&key_do &" to dock."
             drifting(a).p=1
             walking=0
@@ -2046,7 +2048,7 @@ function explore_space() as short
             if player.osx>=sm_x-60 then player.osx=sm_x-60
             if player.osy>=sm_y-20 then player.osy=sm_y-20
             d=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<7+int(distance(player.c,map(b).c)/5) and artflag(13)=0 then d=rnd_range(1,3)
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+int(distance(player.c,map(b).c)/3) and artflag(13)=0 then d=rnd_range(1,3)
             player.hull=player.hull-d
             if player.hull>0 then
                 wormhole_ani(map(b).c)
@@ -2147,7 +2149,7 @@ function explore_space() as short
     
     if key=key_tow then
         if player.towed=0 then
-            for a=1 to lastdrifting
+            for a=4 to lastdrifting
                 if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 then 
                     if player.tractor>0 then
                         player.towed=a
@@ -2437,8 +2439,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     allowed=allowed & key_la & key_pickup & key_I & key_ex & key_of & key_co & key_drop & key_gr & key_wait 
     allowed=allowed & key_portal &key_oxy &key_close & key_report &key_autofire
     if rev_map=1 then allowed=allowed &"ä"
-    if awayteam.move=2 then allowed=allowed &key_ju
-    if awayteam.move=3 then allowed=allowed &key_te
+    if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
+    if awayteam.move=4 then allowed=allowed &key_te
     
     if planets(slot).atmos=0 then planets(slot).atmos=1
     if planets(slot).grav=0 then planets(slot).grav=.5
@@ -2522,6 +2524,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 enemy(lastenemy)=makemonster(46,slot)
                 enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
                 enemy(lastenemy).slot=16
+                if rnd_range(1,100)<disnbase(player.c)*2 then placeitem(makeitem(81),enemy(lastenemy).c.x,enemy(lastenemy).c.y,slot)
             endif        
             if rnd_range(1,100)<26-disnbase(player.c) then 'deadawayteam 
                 lastenemy=lastenemy+1
@@ -2546,15 +2549,6 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             endif
         endif
         if slot=pirateplanet(0) then
-            for a=1 to 25
-                if faction(0).war(2)>50 then
-                    enemy(a)=makemonster(3,slot)
-                    enemy(a)=setmonster(enemy(a),slot,spawnmask(),lsp,vismask(),,,a,1)
-                else
-                    enemy(a)=makemonster(7,slot)
-                    enemy(a)=setmonster(enemy(a),slot,spawnmask(),lsp,vismask(),,,a,1)
-                endif
-            next
             for x=0 to 60
                 for y=0 to 20
                     if abs(planetmap(p.x,p.y,slot))=246 then
@@ -2564,7 +2558,9 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 next
             next
             if rnd_range(1,100)<25 then
-                p=rnd_point(slot,,68)
+                do
+                    p=rnd_point(slot,,68)
+                loop until tmap(p.x,p.y).gives=0
                 planetmap(p.x,p.y,slot)=-246
                 tmap(p.x,p.y)=tiles(246)
             endif
@@ -2625,13 +2621,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if slot=pirateplanet(a) then
             c=5+rnd_range(1,6)
             for b=lastenemy to lastenemy+c
-                if faction(0).war(1)>0 then
-                    enemy(b)=makemonster(7,slot)
-                    enemy(b)=setmonster(enemy(b),slot,spawnmask(),lsp,vismask(),,,b,1)
-                else
-                    enemy(b)=makemonster(3,slot)
-                    enemy(b)=setmonster(enemy(b),slot,spawnmask(),lsp,vismask(),,,b,1)
-                endif
+                enemy(b)=makemonster(3,slot)
+                enemy(b)=setmonster(enemy(b),slot,spawnmask(),lsp,vismask(),,,b,1)
             next
             lastenemy=lastenemy+c
         endif
@@ -2750,6 +2741,14 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             c=c+1
             if c<=256 then 
                 li(c)=a
+                if item(li(c)).ty=47 then 'Dogtag
+                    lastenemy=lastenemy+1
+                    enemy(lastenemy)=makemonster(15,slot)
+                    enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+                    enemy(lastenemy).hp=-1
+                    enemy(lastenemy).hpmax=55
+                    enemy(lastenemy).slot=16
+                endif
                 if slot=pirateplanet(0) and item(li(c)).w.p=0 then item(li(c)).w.p=rnd_range(1,lastenemy) 'Pirates get all the goods
             endif
         endif
@@ -2877,7 +2876,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         endif
         
         awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
-        if awayteam.move=3 and  player.teleportload<15 then player.teleportload+=1
+        if awayteam.move=4 and  player.teleportload<15 then player.teleportload+=1
         if awayteam.disease>player.disease then player.disease=awayteam.disease
         if planets(slot).atmos<=1 or planets(slot).atmos>=8 then awayteam.helmet=1
         if (tmap(awayteam.c.x,awayteam.c.y).no=1 or tmap(awayteam.c.x,awayteam.c.y).no=26 or tmap(awayteam.c.x,awayteam.c.y).no=20) and awayteam.hp<=awayteam.nohp*5 then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
@@ -2946,8 +2945,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,spawnmask(),lsp,key,walking,ship)
             equip_awayteam(player,awayteam,slot)
             cls
-            if awayteam.move=2 then allowed=allowed &key_ju
-            if awayteam.move=3 then allowed=allowed &key_te
+            if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
+            if awayteam.move=4 then allowed=allowed &key_te
             displayplanetmap(slot)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
             displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
@@ -2971,8 +2970,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
             color 11,0
             for x=0 to 60
-                if nightday(x)=1 then draw string(x*_fw2,21*_fh1+(_fh1-_fh2)/2-_fh2/2),chr(193),,Font2,Custom,@_tcol
-                if nightday(x)=2 then draw string(x*_fw2,21*_fh1+(_fh1-_fh2)/2-_fh1/2),chr(193),,Font2,Custom,@_tcol
+                if nightday(x)=1 then draw string(x*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2),chr(193),,Font2,Custom,@_tcol
+                if nightday(x)=2 then draw string(x*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh1/2),chr(193),,Font2,Custom,@_tcol
             next
             dprint ""
             flip
@@ -3056,7 +3055,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 walking=getdirection(keyin)  
             endif
             if key=key_co or key=key_of then ep_communicateoffer(key,awayteam,enemy(),lastenemy,li(),lastlocalitem)
-            if key=key_te and awayteam.move=3 then awayteam.c=teleport(awayteam.c,slot) 
+            if key=key_te and awayteam.move=4 then awayteam.c=teleport(awayteam.c,slot) 
             if key="ä" then
                 for x=0 to 60
                     for y=0 to 20
@@ -3135,7 +3134,6 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if enemy(a).hp>0 then b=b+1
     next
     if b=0 then planets(slot).genozide=1
-    
 
     if awayteam.hp<=0 then 
         reward(2)=0
@@ -3154,6 +3152,11 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if slot=specialplanet(5) then player.dead=11
         if awayteam.oxygen<1 then player.dead=14
         no_key=keyin
+    endif
+    
+    if player.dead<>0 then
+        player.c=awayteam.c
+        savebones(ship,awayteam.c,1) 'On planet
     endif
     
     if player.dead=0 and planets(slot).atmos>0 and planets(slot).depth=0 and planets(slot).atmos=player.questflag(10) then 
@@ -3529,8 +3532,8 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
     do
     cls
         color 15,0
-        draw string(0,0),"your ship",,font2,custom,@_col
-        draw string(35*_fw2,0),"other ship",,font2,custom,@_col
+        draw string(0,0),"New Ship",,font2,custom,@_col
+        draw string(35*_fw2,0),"Old Ship",,font2,custom,@_col
         for x=0 to 1
             for y=1 to 5
                 bg=0

@@ -509,7 +509,8 @@ function configuration() as short
     dim warn(2) as string
     dim res as string
     dim as short c,d,f
-
+    dim oldtiles as byte
+    oldtiles=_tiles
     onoff(0)=" On "
     onoff(1)=" Off"
     warn(0)="On  "
@@ -534,7 +535,7 @@ function configuration() as short
         text=text &"/ Any key counts as no on yes-no questions:" & onoff(_anykeyno)
         text=text &"/ Return to start menu on death:" & onoff(_restart)
         text=text &"/ Navigational Warnings(Gasclouds & 1HP landings):" & onoff(_warnings)
-        text=text &"/ Graphic tiles:" & onoff(_tiles)
+        text=text &"/ Graphic tiles:" & onoff(oldtiles)
         text=text &"/ Easy start:" & onoff(_easy)
         text=text &"/ Volume (0-4):" & _volume
         text=text &"/ Resolution: "&res
@@ -638,12 +639,13 @@ function configuration() as short
             end select
         endif
         if c=13 then
-            select case _tiles
+            select case oldtiles
             case is=1
-                _tiles=0
+                oldtiles=0
             case is=0
-                _tiles=1
+                oldtiles=1
             end select
+            dprint "Change will have effect after restart of the game."
         endif
         if c=14 then
             select case _easy
@@ -749,7 +751,7 @@ function configuration() as short
     print #f,"anykeyno:"&_anykeyno
     print #f,"restart:"&_restart
     print #f,"warnings:"&_warnings
-    print #f,"tiles:"&_tiles
+    print #f,"tiles:"& oldtiles
     print #f,"easy:"&_easy
     print #f,"volume:"&_volume
     print #f,"altnum:"&_altnumber
@@ -794,40 +796,120 @@ function getfilename() as string
     return filename    
 end function
 
-function savebones(t as short) as short
+function savebones(ship as _cords,team as _cords,t as short) as short
     dim f as integer
-    dim as short x,y,a
+    dim as short x,y,a,b
+    dim bones_item(128) as _items
+    if _debug_bones=1 then dprint "Saving bones file"
+    if is_special(ship.m) then return 0
+    if is_drifter(ship.m) then return 0
+    if planets(ship.m).depth=0 then planetmap(ship.x,ship.y,ship.m)=127+player.h_no
     f=freefile
     open "bones/"&player.desig &".bon" for binary as #f
-    put #f,,t
-    put #f,,planets(lastplanet)
+    put #f,,planets(ship.m)
     for x=0 to 60
         for y=0 to 20
-            put #f,,planetmap(x,y,lastplanet)
+            if planetmap(x,y,ship.m)>0 then planetmap(x,y,ship.m)=-planetmap(x,y,ship.m)
+            put #f,,planetmap(x,y,ship.m)
         next
     next
+    
     for a=0 to lastitem
-        if item(a).w.s=-1 and rnd_range(1,100)<10 then
+        if item(a).w.s=-1 and rnd_range(1,100)<50 then
+            b+=1
             item(a).w.s=0
             item(a).w.p=0
-            item(a).w.x=player.c.x
-            item(a).w.x=player.c.y
-        else
-            destroyitem(a)
+            item(a).w.x=team.x
+            item(a).w.y=team.y
+            if b<=128 then bones_item(b)=item(a)
         endif
     next
-    put #f,,lastitem
-    for a=0 to lastitem
-        put #f,,item(a)
+    b+=1
+    if b>128 then b=128
+    bones_item(b)=makeitem(81)
+    bones_item(b).ldesc="The Id-tag of Captain  "&crew(1).n &" of the "&player.desig
+    bones_item(b).w.x=team.x
+    bones_item(b).w.y=team.y
+            
+    put #f,,b
+    for a=1 to b
+        put #f,,bones_item(a)
     next
     close #f
     return 0
 end function
 
 function loadbones() as short
+    dim s as string
+    dim as short d,c,m,f,sys
+    dim as _cords p
+    dim as _planet pl
+    s=getbonesfile
+    if _debug_bones=1 then dprint "loading bones file:" &s
+    if s<>"" then
+        f=freefile
+        open "bones/"&s for binary as #f
+        get #f,,pl
+        if pl.depth=0 then 
+            do
+                sys=getrandomsystem
+                m=getrandomplanet(sys)
+            loop until m>0 and isgasgiant(m)=0 and is_special(m)=0
+            for x=0 to 60
+                for y=0 to 20
+                    get #f,,planetmap(x,y,m)
+                    if _debug_bones=1 then planetmap(x,y,m)=-planetmap(x,y,m)
+                next
+            next
+            map(sys).discovered=4                
+        else
+            sys=rnd_range(1,lastportal)
+            m=portal(sys).dest.m
+            for x=0 to 60
+                for y=0 to 20
+                    get #f,,planetmap(x,y,m)
+                    if _debug_bones=1 then planetmap(x,y,m)=-planetmap(x,y,m)
+                next
+            next
+            p=rnd_point(m,0)
+            portal(sys).dest.x=p.x
+            portal(sys).dest.y=p.y
+            map(sysfrommap(portal(sys).from.m)).discovered=4
+        endif
+        get #f,,d
+        for c=lastitem+1 to lastitem+1+d
+            get #f,,item(c)
+            item(c).w.m=m
+        next
+        lastitem=lastitem+1+d
+        close #f
+        planets(m)=pl
+        planets(m).visited=_debug_bones
+        planets(m).flavortext="You get a wierd sense of deja vu from this place."
+        kill "bones/"&s
+    endif
     return 0
 end function
 
+function getbonesfile() as string
+    dim s as string
+    dim d as string
+    dim as short chance
+    d=dir$("bones/*.bon")
+    chance=10
+    do
+        d=dir()
+        chance=chance+1
+    loop until d=""
+    if _debug_bones=2 then print "chance for bones file:"&chance
+    d=dir$("bones/*.bon")
+    do
+        if (rnd_range(1,100)<chance or _debug_bones=1) and s="" then s=d
+        d=dir()
+    loop until d=""
+    if _debug_bones=1 then dprint s
+    return s
+end function
 
 function savegame() as short
     dim back as short
@@ -920,7 +1002,7 @@ function savegame() as short
     next
     
     for a=0 to 20
-        for b=0 to 20
+        for b=0 to 21
             put #f,,shopitem(a,b)
         next
         print ".";
@@ -1127,7 +1209,7 @@ function loadgame(filename as string) as short
         
                     
         for a=0 to 20
-            for b=0 to 20
+            for b=0 to 21
                 get #f,,shopitem(a,b)
             next
             print ".";

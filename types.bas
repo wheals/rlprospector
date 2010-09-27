@@ -23,7 +23,7 @@ const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=1
+const rev_map=0
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -38,12 +38,14 @@ const lstcomty=20 'Last common item
 const laststar=90
 const lastspecial=46
 const _debug=0
+const _debug_bones=0
 const make_vault=0
 const addpyramids=0
-const startingmoney=5000
+const com_log=1
+const startingmoney=500
 const _spawnoff=0
 const show_moral=0
-
+const makemoodlog=0
 const xk=chr(255) 
 const key_up = xk + "H"
 const key_dn = xk + "P"
@@ -159,6 +161,8 @@ dim shared as string*1 key_logbook="L"
 dim shared as string*1 key_yes="y"
 dim shared as string*1 key_wormholemap="W"
 dim shared as string*1 key_togglemanjets="M"
+dim shared as string*1 key_cheat="ü"
+dim shared as byte com_cheat=0
 dim shared as string*1 no_key
 
 dim shared uid as uinteger
@@ -258,6 +262,7 @@ type _weap
     oldloadout as byte
     loadout as byte
     reload as byte
+    reloading as byte
     shutdown as byte
 end type
 
@@ -925,8 +930,9 @@ declare function planetflags_toship(m as short) as _ship
 ' fileIO.bas
 declare function loadconfig() as short
 declare function background(fn as string) as short
-declare function savebones(t as short) as short
+declare function savebones(ship as _cords, team as _cords,t as short) as short
 declare function loadbones() as short
+declare function getbonesfile() as string
 declare function configuration() as short
 declare function loadmap(m as short,slot as short) as short
 declare function texttofile(text as string) as string
@@ -1016,7 +1022,7 @@ declare function com_display(defender as _ship, attacker() as _ship, lastenemy a
 declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_getweapon() as short
 declare function com_fire(target as _ship,attacker as _ship,byref w as _weap, gunner as short, range as short, senac as short) as _ship
-declare function com_sinkheat(s as _ship) as short
+declare function com_sinkheat(s as _ship,manjets as short) as short
 declare function com_hit(target as _ship, w as _weap,dambonus as short, range as short, senac as short) as _ship
 declare function com_criticalhit(t as _ship, roll as short) as _ship
 declare function com_flee(defender as _ship,attacker() as _ship,lastenemy as short) as short
@@ -1027,6 +1033,7 @@ declare function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as
 declare function com_detonatemine(d as short,mines_p() as _cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship, byref lastenemy as short) as short
 declare function com_damship(byref t as _ship, dam as short, col as short) as _ship
 declare function com_mindist(s as _ship) as short
+declare function com_regshields(s as _ship) as short 
 
 declare function chr850(c as short) as string
 declare function keyin(allowed as string ="", byref walking as short=0,blocked as short=0)as string
@@ -1092,6 +1099,7 @@ declare function floodfill3(x as short,y as short,map() as short) as short
 declare function checkdoor(x as short,y as short, map() as short) as short
 declare function checkbord(x as short,y as short, map() as short) as short
 declare function playerfightfleet(f as short) as short
+declare function is_drifter(m as short) as short
 declare function is_special(m as short) as short
 declare function gen_traderoutes() as short
 
@@ -1140,6 +1148,7 @@ declare function getdeath() as string
 
 'cargotrade
 declare function pirateupgrade() as short
+declare function customize_item() as short 
 declare function findcompany(c as short) as short
 declare function drawroulettetable() as short
 declare function towingmodules() as short
@@ -1189,8 +1198,9 @@ declare function equip_awayteam(player as _ship,awayteam as _monster, m as short
 declare function removeequip() as short
 declare function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
+declare function modify_item(i as _items) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
-declare function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
+declare function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
 declare function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
 declare function changetile(x as short,y as short,m as short,t as short) as short

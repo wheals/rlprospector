@@ -341,6 +341,14 @@ function company(st as short,byref questroll as short) as short
         dprint "The company rep pays you 2.500 Cr. for destroying the pirate fighter 'Widow'.",10
     endif
     
+    for a=0 to lastitem
+        if item(a).w.s=-1 and item(a).ty=43 and item(a).v1>1 then 
+            dprint "The relatives of the spacer who's ID-tag you found put a reward of " & item(a).v1*20 &" credits on any information on his wearabouts."
+            player.money=player.money+item(a).v1*20
+            destroyitem(a)
+        endif
+    next
+    
     if player.questflag(21)=1 then
         if basis(st).company=1 then
             if askyn("Do you want to blackmail Eridiani Explorations with your information on their Drug business?(y/n)") then
@@ -536,7 +544,7 @@ function company(st as short,byref questroll as short) as short
             player.money=player.money+cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2)))
             reward(1)=0
             for a=1 to lastitem
-                if item(a).ty=26 and item(a).w.s=-1 then item(a).v1=0
+                if item(a).ty=26 and item(a).w.s<0 then item(a).v1=0
             next
             k=keyin
         endif
@@ -549,10 +557,7 @@ function company(st as short,byref questroll as short) as short
             reward(2)=0
             for b=0 to 1
                 for a=0 to lastitem
-                    if item(a).ty=15 and item(a).w.s<0 then
-                        item(a)=item(lastitem)
-                        lastitem=lastitem-1
-                    endif
+                    if item(a).ty=15 and item(a).w.s<0 then destroyitem(a)
                 next
             next
             k=keyin
@@ -934,7 +939,7 @@ function refuel() as short
             endif
         next
     else
-        dprint "You don't have any money." 
+        if player.money<=0 then dprint "You don't have any money." 
     endif
     if player.money=c and c>=0 then dprint "Your tanks and ammo bins are full."
     return 0
@@ -1593,6 +1598,71 @@ function pirateupgrade() as short
     return 0
 end function
 
+function customize_item() as short
+    dim as short a,b,i,price,c
+    dim as string t
+    do
+        a=menu("Customize item/Increase accuracy/Add camo/Add imp. Camo/Acidproof/Exit")
+        if a=1 then
+            i=getitem(,2,,4)
+            if i>0 then
+                price=(item(i).v3+1)*(item(i).v3+1)*100
+                if askyn("That will cost "&price &" Cr.(y/n)") then
+                    if paystuff(price) then 
+                        item(i).v3+=1
+                        for c=1 to len(item(i).ldesc)
+                            if mid(item(i).ldesc,c,1)<>"|" then
+                                t=t &mid(item(i).ldesc,c,1)
+                            else
+                                exit for
+                            endif
+                        next
+                        item(i).ldesc=t &  "  | | Accuracy: "&item(i).v3 &" | Damage: "&item(i).v1 &" | Range:"&item(i).v2
+                    endif
+                endif
+            endif
+        endif
+        if a=2 or a=3 then
+            i=getitem(,3)
+            if i>0 then
+                if a=2 then price=100
+                if a=3 then price=250
+                if item(i).v2>0 then 
+                    dprint "That suit is already camoflaged."
+                else
+                    if askyn("that will cost "&price &" Cr.(y/n)") then
+                        if paystuff(price) then
+                            if a=2 then 
+                                item(i).v2=1
+                                item(i).desig="Camo "&item(i).desig
+                            endif
+                            if a=3 then 
+                                item(i).v2=3
+                                item(i).desig="Imp. Camo "&item(i).desig
+                            endif
+                        endif
+                    endif
+                endif
+            endif
+        endif
+        if a=4 then
+            if askyn("That will cost 50 cr.(y/n)") then
+                if paystuff(50) then
+                    i=getitem()
+                    if i>0 then
+                        item(i).res=120
+                        item(i).desig="Acidproof "&item(i).desig
+                    else
+                        player.money+=50
+                    endif
+                endif
+            endif
+        endif
+    loop until a=5
+    return 0
+    
+end function
+
 
 function hiring(st as short,byref hiringpool as short,hp as short) as short
     dim as short b,c,d,e,officers,maxsec,neodog,robots,w
@@ -2128,6 +2198,7 @@ end function
 '
 sub trading(st as short)
     dim a as short
+    screenset 1,1
     if st<3 then
         do
             cls
@@ -2143,10 +2214,10 @@ sub trading(st as short)
             cls
             displayship()
             displaywares(st)
-            a=menu(" /Buy/Sell/Exit",,2,14)
+            if st<>10 then a=menu(" /Buy/Sell/Exit",,2,14)
+            if st=10 then a=menu(" /Plunder/Leave behind/Exit",,2,14)
             if a=1 then buygoods(st)
             if a=2 then sellgoods(st)
-            
         loop until a=3
     endif
     cls
@@ -2161,19 +2232,20 @@ sub buygoods(st as short)
     dim f as short
     dim text as string
     text=stationgoods(st)
-        cls
-        displayship
-        displaywares(st)
-        c=menu(text,"",2,3)
-        if c<9 then
-            
-            m=basis(st).inv(c).v
-            if basis(st).inv(c).v>0 then
+    cls
+    displayship
+    displaywares(st)
+    dprint ""
+    c=menu(text,"",2,3)
+    if c<9 then
+        m=basis(st).inv(c).v
+        if basis(st).inv(c).v>0 then
             if m>getfreecargo() then m=getfreecargo
             if m>0 then
                 displayship
                 displaywares(st)
-                dprint "how many tons of "& basis(st).inv(c).n &" do you want to buy?"
+                if st<>10 then dprint "how many tons of "& basis(st).inv(c).n &" do you want to buy?"
+                if st=10 then dprint "how many tons of "& basis(st).inv(c).n &" do you want to transfer?"
                 d=getnumber(0,m,0)
                 p=basis(st).inv(c).p
                 if d>0 and d<=m then 
@@ -2222,7 +2294,8 @@ sub sellgoods(st as short)
                 if player.cargo(c).x>1 and player.cargo(c).x<10 then
                     m=getinvbytype(player.cargo(c).x-1) ' wie viele insgesamt
                     if player.cargo(c).x<10 then
-                        dprint "how many tons of "& basis(st).inv(player.cargo(c).x-1).n &" do you want to sell?"
+                        if st<>10 then dprint "how many tons of "& basis(st).inv(player.cargo(c).x-1).n &" do you want to sell?"
+                        if st=10 then dprint "how many tons of "& basis(st).inv(player.cargo(c).x-1).n &" do you want to leave behind?"
                         sold=getnumber(0,m,0)
                         if sold>0 then
                             player.money=player.money+sold*basis(st).inv(player.cargo(c).x-1).p*(0.8+addtalent(1,6,.01))
@@ -2561,7 +2634,7 @@ function shop(sh as short,pmod as short,t as string) as short
     next
     if sh<=2 then 
         t=t &"/Order Item"
-        desc="/Order an item not in stock for double the price"
+        desc=desc &"/Order an item not in stock for double the price"
     endif
     t=t & "/Exit"
     desc=desc &"/"
@@ -2574,8 +2647,8 @@ function shop(sh as short,pmod as short,t as string) as short
             v=getnumber(0,fix(player.money/(inv(c).price*pmod)),1)
             if v>0 then
                 if paystuff(inv(c).price*pmod*v)=-1 then
-                    for a=1 to .v
-                        e=placeitem(inv(c),0,0,0,0,-1)
+                    for a=1 to v
+                        placeitem(inv(c),0,0,0,0,-1)
                     next
                     if v=1 then
                         dprint "you buy a "&inv(c).desig
@@ -2640,14 +2713,14 @@ function place_shop_order(sh as short) as short
         i=makeitem(candidate)
         if askyn("Do you want to order a "&i.desig &"? (y/n)") then
             shop_order(sh)=candidate
-            dprint "I can't say for certain when it will arive, but it should be here soon. ("& bestmatch &" %)"
+            dprint "I can't say for certain when it will arive, but it should be here soon."
             f=3
             candidate=0
         else
             tried(candidate)=1
         endif
     else
-        dprint "I don't think I ever heard of those ("& bestmatch &" %)"
+        dprint "I don't think I ever heard of those."
         f=3
     endif
     loop until f=3

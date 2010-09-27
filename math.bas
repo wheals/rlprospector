@@ -11,10 +11,12 @@ end function
 function fixstarmap() as short
     dim p(2048) as short
     dim sp(lastspecial) as short
-    dim as short a,b,c,fixed,fsp
+    dim as short a,b,c,fixed,fsp,pis
     for a=0 to laststar
+        pis=0
         for b=1 to 9
             if map(a).planets(b)>0 then
+                pis+=1
                 p(map(a).planets(b))+=1
                 if p(map(a).planets(b))>1  then
                     lastplanet=lastplanet+1
@@ -26,6 +28,11 @@ function fixstarmap() as short
                 next
             endif
         next
+        if map(a).spec=8 and pis=0 then 
+            fixed+=1
+            lastplanet+=1
+            map(a).planets(1)=lastplanet
+        endif
     next
     for c=0 to lastspecial
         if sp(c)=0 then 
@@ -832,11 +839,14 @@ function gen_waypoints(queue() as _pfcords,start as _pfcords,goal as _pfcords,ma
             if frac(in/100)=0 then print ".";
         next
         count+=1
-    loop until s<>0 or count>500
+    loop until s<>0 or count>50
     
     if s=0 then
         print "unable to find path from "&start.x &":"&start.y &" to "&goal.x &":"&goal.y &" in "& count &" attempts"
-        sleep
+        queue(0)=start
+        queue(1)=goal
+        in=1
+        return in
     else
         in=0
         path(in)=queue(s)

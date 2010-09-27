@@ -326,7 +326,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=2 then dprint "They ask if you know of any merchant routes."
             if a=3 then dprint "They ask if you know of any good bars here."
             if a=4 then dprint "They ask if you read the review of the new Plasma rifle."
-            if a=5 then dprint "They ask if you how the drinks in space stations are."
+            if a=5 then dprint "They ask if you know how the drinks in space stations are."
             if a=6 then dprint "'Have you already visited the base at "&map(piratebase(rnd_range(0,_NoPB))).c.x &":"&map(piratebase(rnd_range(0,_NoPB))).c.y &"?'"
         endif
         if e.aggr=2 then dprint "They yell 'We are going to get you!' as they retreat."
@@ -747,7 +747,6 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         civ(c).contact=1
         if e.aggr=1 then
             b=findbest(23,-1,,205)
-            dprint ""& b
             if b>0 and civ(c).culture(4)=2 then
                 if askyn("I will pay you 10000 Cr. for the symbol of our ancient leader! Do you accept(y/n)") then
                     player.money=player.money+10000

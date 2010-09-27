@@ -137,7 +137,7 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
         return lastitem
     else
         for a=1 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
-            if item(a).w.s>0 and item(a).ty<>15 then
+            if item(a).w.s>=0 and item(a).ty<>15 then
                 item(a)=i
                 return a
             endif
@@ -170,21 +170,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=5
         i.price=i.v2*100
         i.res=60
-        if rnd_range(1,100)<20 then
-            if rnd_range(1,100)<50 then
-                i.desig="small "&i.desig
-                i.desigp="small "&i.desigp
-                i.v2=4
-                i.price=i.v2*115
-                i.id=101
-            else
-                i.desig="large "&i.desig
-                i.desigp="large "&i.desigp
-                i.v2=6
-                i.price=i.v2*85
-                i.id=102
-            endif
-        endif
         i.ldesc="A platform held aloft by aircushions. It can transport up to "&i.v2 &" persons and cross water. Going up mountains is impossible though"
     endif
     
@@ -357,41 +342,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.res=35
     endif
     
-    if a>=3 and a<=11 then
-        if rnd_range(1,100)<10 then
-            if rnd_range(1,100)<50 then
-                if rnd_range(1,100)<75 then
-                    i.desig="balanced "&i.desig
-                    i.desigp="balanced "&i.desigp
-                    i.id=i.id+100
-                    i.v3=i.v3+1
-                    i.price=i.price*1.2
-                else
-                    i.desig="well balanced "&i.desig
-                    i.desigp="well balanced "&i.desigp
-                    i.id=i.id+110
-                    i.v3=i.v3+2
-                    i.price=i.price*1.5
-                endif
-            else
-                if rnd_range(1,100)<75 then
-                    i.desig="powerful "&i.desig
-                    i.desigp="powerful "&i.desigp
-                    i.id=i.id+120
-                    i.v1=i.v1+.1
-                    i.price=i.price*1.2
-                else
-                    i.desig="very powerful "&i.desig
-                    i.desigp="very powerful "&i.desigp
-                    i.id=i.id+130
-                    i.v1=i.v1+.2
-                    i.price=i.price*1.5
-                endif
-            endif
-        endif
-        i.ldesc=i.ldesc &"  | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
-    endif
-    
     if a=12 then
         i.ti_no=2012
         i.id=12
@@ -497,26 +447,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.res=45
     endif
     
-    if a>=12 and a<=18 and rnd_range(1,100)<10 then
-        if rnd_range(1,100)<50 then
-            i.desig="thick "&i.desig
-            i.desigp="thick "&i.desigp
-            i.id=i.id+100
-            i.v1=i.v1+1
-            i.price=i.price*1.2
-        else
-            if i.v1>1 then
-                i.desig="old "&i.desig
-                i.desigp="old "&i.desigp
-                i.id=i.id+110
-                i.v1=i.v1-1
-                i.price=i.price*0.8
-            endif
-        endif
-    endif
-    
-            
-    
     if a=19 then   
         i.ti_no=2019              
         i.id=19
@@ -547,24 +477,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.res=45
     endif
     
-    if a>=12 and a<=20 then
-        if rnd_range(1,100)<10+a then
-            if rnd_range(1,100)<66 then
-                i.desig="camo "&i.desig
-                i.desigp="camo "&i.desigp
-                i.v2=1
-                i.id=i.id+110
-                i.price=i.price*1.1
-            else
-                i.desig="imp. camo "&i.desig
-                i.desigp="imp. camo "&i.desigp
-                i.id=i.id+120
-                i.v2=3
-                i.price=i.price*1.25
-            endif
-        endif
-        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
-    endif
     
     if a=21 then
         i.ti_no=2021
@@ -1074,40 +986,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.res=65
     endif
     
-    if a>=40 and a<=47 then
-        if rnd_range(1,100)<10 then
-            if rnd_range(1,100)<50 then
-                if rnd_range(1,100)<75 then
-                    i.desig="balanced "&i.desig
-                    i.desigp="balanced "&i.desigp
-                    i.id=i.id+100
-                    i.v3=i.v3+1
-                    i.price=i.price*1.2
-                else
-                    i.desig="well balanced "&i.desig
-                    i.desigp="well balanced "&i.desigp
-                    i.id=i.id+110
-                    i.v3=i.v3+2
-                    i.price=i.price*1.5
-                endif
-            else
-                if rnd_range(1,100)<75 then
-                    i.desig="sharp "&i.desig
-                    i.desigp="sharp "&i.desigp
-                    i.id=i.id+120
-                    i.v1=i.v1+.1
-                    i.price=i.price*1.2
-                else
-                    i.desig="very sharp "&i.desig
-                    i.desigp="very sharp "&i.desigp
-                    i.id=i.id+130
-                    i.v1=i.v1+.2
-                    i.price=i.price*1.5
-                endif
-            endif
-        endif
-        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1
-    endif
     
     if a=48 then
         i.ti_no=2048
@@ -1134,21 +1012,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=10
         i.ldesc="Small portable tanks to store auxillary jetpack fuel."
         i.res=65
-        if rnd_range(1,100)<30 then
-            if rnd_range(1,100)<50 then
-                i.id=i.id+100
-                i.desig="big "&i.desig
-                i.desigp="big "&i.desigp
-                i.v1=30
-                i.price=12
-            else
-                i.id=i.id+110
-                i.desig="small "&i.desig
-                i.desigp="small "&i.desigp
-                i.v1=20
-                i.price=8
-            endif
-        endif
+        
     endif
     
     
@@ -1614,7 +1478,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=80 then 
         i.ti_no=2112
-        i.id=79
+        i.id=80
         i.ty=7
         i.desig="Imp. Stun Grenade"
         i.desigp="Imp. Stun Grenades"
@@ -1625,6 +1489,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=7
         i.res=80
         i.price=80
+    endif
+    
+    if a=81 then
+        i.ti_no=2111
+        i.id=81
+        i.ty=47
+        i.desig="Id Tag"
+        i.desigp="Id Tags"
+        i.ldesc="An Id Tag of a spaceship crew member"
+        i.v1=rnd_range(1,3)
+        i.col=11
+        i.res=89
+        i.icon="?"
+        i.price=0
     endif
 '    
 '    if a=81 then
@@ -1892,6 +1770,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="*"
         i.bgcol=0  
         roll=rnd_range(1,100+player.turn/100+mod1+mod2)
+        if i.v1<5 then i.desig="small amount of "&i.desig
+        if i.v1>10 then i.desig="big amount of "&i.desig
         if roll>125 and mod1>0 and mod2>0 then i=makeitem(99,0,0)
         if make_files=1 then
             f=freefile
@@ -1928,38 +1808,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v3=2
         i.res=120
         i.price=22000
-        if rnd_range(1,100)<33 then
-            if rnd_range(1,100)<50 then
-                if rnd_range(1,100)<50 then
-                    i.desig="balanced "&i.desig
-                    i.desigp="balanced "&i.desigp
-                    i.id=i.id+100
-                    i.v3=i.v3+1
-                    i.price=i.price*1.2
-                else
-                    i.desig="well balanced "&i.desig
-                    i.desigp="well balanced "&i.desigp
-                    i.id=i.id+101
-                    i.v3=i.v3+2
-                    i.price=i.price*1.5
-                endif
-            else
-                if rnd_range(1,100)<50 then
-                    i.desig="powerful "&i.desig
-                    i.desigp="very powerful "&i.desigp
-                    i.id=i.id+102
-                    i.v1=i.v1+.1
-                    i.price=i.price*1.2
-                else
-                    i.desig="powerful "&i.desig
-                    i.desigp="very powerful "&i.desigp
-                    i.id=i.id+103
-                    i.v1=i.v1+.2
-                    i.price=i.price*1.5
-                endif
-            endif
-        endif
-        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
+        
     endif
     
     if a=98 then   
@@ -1975,25 +1824,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=15
         i.res=120
         i.price=19000
-        if rnd_range(1,100)<30 then
-            if rnd_range(1,100)<5 then
-                if rnd_range(1,100)<50 then
-                    i.desig="thick "&i.desig
-                    i.desigp="thick "&i.desigp
-                    i.id=i.id+100
-                    i.v1=i.v1+1
-                    i.price=i.price*1.5
-                else
-                    i.desig="tattered "&i.desig
-                    i.desigp="tattered "&i.desigp
-                    i.id=i.id+101
-                    i.v3=i.v3-1
-                    i.price=i.price*0.75
-                endif
-            endif
-        endif
-        
-        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif  
     
     
@@ -2079,10 +1909,253 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     i.discovered=show_items
     
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
-    
+    i=modify_item(i)
     return i
     
 end function
+
+function modify_item(i as _items) as _items
+    dim as short a
+    a=i.id
+    if i.id>=12 and i.id<=18 and rnd_range(1,100)<10 then
+        if rnd_range(1,100)<50 then
+            i.desig="thick "&i.desig
+            i.desigp="thick "&i.desigp
+            i.id=i.id+100
+            i.v1=i.v1+1
+            i.price=i.price*1.2
+        else
+            if i.v1>1 then
+                i.desig="old "&i.desig
+                i.desigp="old "&i.desigp
+                i.id=i.id+110
+                i.v1=i.v1-1
+                i.price=i.price*0.8
+            endif
+        endif
+    endif
+    
+    if i.id>=12 and i.id<=20 then
+        if rnd_range(1,100)<10+a then
+            if rnd_range(1,100)<66 then
+                i.desig="camo "&i.desig
+                i.desigp="camo "&i.desigp
+                i.v2=1
+                i.id=i.id+110
+                i.price=i.price*1.1
+            else
+                i.desig="imp. camo "&i.desig
+                i.desigp="imp. camo "&i.desigp
+                i.id=i.id+120
+                i.v2=3
+                i.price=i.price*1.25
+            endif
+        endif
+        if rnd_range(1,100)<15 then
+            if rnd_range(1,100)<75 then
+                i.desig="sturdy "&i.desig
+                i.desigp="sturdy "&i.desigp
+                i.res=i.res+50
+                i.price=i.price*1.1
+            else
+                i.desig="acidproof "&i.desig
+                i.desigp="acidproof "&i.desigp
+                i.res=i.res+100
+                i.price=i.price*1.25
+            endif
+        endif
+        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
+    endif
+    
+    if i.id>=3 and i.id<=11 then
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                if rnd_range(1,100)<75 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+110
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
+            else
+                if rnd_range(1,100)<75 then
+                    i.desig="powerful "&i.desig
+                    i.desigp="powerful "&i.desigp
+                    i.id=i.id+120
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="very powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+130
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
+            endif
+        endif
+        if rnd_range(1,100)<15 then
+            if rnd_range(1,100)<75 then
+                i.desig="sturdy "&i.desig
+                i.desigp="sturdy "&i.desigp
+                i.res=i.res+50
+                i.price=i.price*1.1
+            else
+                i.desig="acidproof "&i.desig
+                i.desigp="acidproof "&i.desigp
+                i.res=i.res+100
+                i.price=i.price*1.25
+            endif
+        endif
+        i.ldesc=i.ldesc &"  | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
+    endif
+    
+    if i.id=1 then
+        if rnd_range(1,100)<20 then
+            if rnd_range(1,100)<50 then
+                i.desig="small "&i.desig
+                i.desigp="small "&i.desigp
+                i.v2=4
+                i.price=i.v2*115
+                i.id=101
+            else
+                i.desig="large "&i.desig
+                i.desigp="large "&i.desigp
+                i.v2=6
+                i.price=i.v2*85
+                i.id=102
+            endif
+        endif
+        i.ldesc="A platform held aloft by aircushions. It can transport up to "&i.v2 &" persons and cross water. Going up mountains is impossible though"
+    endif
+    if i.id>=40 and i.id<=47 then
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                if rnd_range(1,100)<75 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+110
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
+            else
+                if rnd_range(1,100)<75 then
+                    i.desig="sharp "&i.desig
+                    i.desigp="sharp "&i.desigp
+                    i.id=i.id+120
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="very sharp "&i.desig
+                    i.desigp="very sharp "&i.desigp
+                    i.id=i.id+130
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
+            endif
+        endif
+        if rnd_range(1,100)<15 then
+            if rnd_range(1,100)<75 then
+                i.desig="sturdy "&i.desig
+                i.desigp="sturdy "&i.desigp
+                i.res=i.res+50
+                i.price=i.price*1.1
+            else
+                i.desig="acidproof "&i.desig
+                i.desigp="acidproof "&i.desigp
+                i.res=i.res+100
+                i.price=i.price*1.25
+            endif
+        endif
+        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1
+    endif
+    
+    if i.id=49 then
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<50 then
+                i.id=i.id+100
+                i.desig="big "&i.desig
+                i.desigp="big "&i.desigp
+                i.v1=30
+                i.price=12
+            else
+                i.id=i.id+110
+                i.desig="small "&i.desig
+                i.desigp="small "&i.desigp
+                i.v1=20
+                i.price=8
+            endif
+        endif
+    endif
+    if i.id=97 then
+        if rnd_range(1,100)<33 then
+            if rnd_range(1,100)<50 then
+                if rnd_range(1,100)<50 then
+                    i.desig="balanced "&i.desig
+                    i.desigp="balanced "&i.desigp
+                    i.id=i.id+100
+                    i.v3=i.v3+1
+                    i.price=i.price*1.2
+                else
+                    i.desig="well balanced "&i.desig
+                    i.desigp="well balanced "&i.desigp
+                    i.id=i.id+101
+                    i.v3=i.v3+2
+                    i.price=i.price*1.5
+                endif
+            else
+                if rnd_range(1,100)<50 then
+                    i.desig="powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+102
+                    i.v1=i.v1+.1
+                    i.price=i.price*1.2
+                else
+                    i.desig="powerful "&i.desig
+                    i.desigp="very powerful "&i.desigp
+                    i.id=i.id+103
+                    i.v1=i.v1+.2
+                    i.price=i.price*1.5
+                endif
+            endif
+        endif
+        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
+    
+    endif
+    if i.id=98 then 
+        if rnd_range(1,100)<30 then
+            if rnd_range(1,100)<5 then
+                if rnd_range(1,100)<50 then
+                    i.desig="thick "&i.desig
+                    i.desigp="thick "&i.desigp
+                    i.id=i.id+100
+                    i.v1=i.v1+1
+                    i.price=i.price*1.5
+                else
+                    i.desig="tattered "&i.desig
+                    i.desigp="tattered "&i.desigp
+                    i.id=i.id+101
+                    i.v3=i.v3-1
+                    i.price=i.price*0.75
+                endif
+            endif
+        endif
+        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
+    endif
+    return i
+end function
+
 
 function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
     dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
@@ -2103,7 +2176,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     for a=1 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
     next
     for a=1 to 128
         if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
@@ -2120,7 +2193,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     for a=1 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=3        
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
     next
     infra=2
     awayteam.invis=6
@@ -2272,28 +2345,29 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
             endif
         endif
     next
+    'dprint ""&awayteam.move
     'count teleportation devices
-    if artflag(9)>0 then awayteam.move=3
-    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks
-    if awayteam.move<3 and cantswim<=hovers then awayteam.move=1
-    if awayteam.move<3 and cantfly<=jpacks then awayteam.move=2
-        
+    awayteam.move=0
+    if awayteam.move<4 and cantswim<=hovers then awayteam.move=1
+    if awayteam.move<4 and cantfly<=jpacks then awayteam.move=awayteam.move+2
+    if artflag(9)>0 then awayteam.move=4
+    
     awayteam.nohp=hovers
     awayteam.nojp=jpacks
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
     if findbest(46,-1)>-1 then awayteam.invis=7
-    awayteam.sight=3+infra
+    awayteam.sight=3
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
     if awayteam.oxymax<200 then awayteam.oxymax=200
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
-    if artflag(9)=1 then awayteam.move=3
     awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
+    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
     return 0
 end function
 
@@ -2408,7 +2482,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
+function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
     dim as short i,offset,a,b,c,li,cu,set,k
     dim mls(127) as string
     dim mno(127) as short
@@ -2418,7 +2492,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0) as short
     dim as string key,mstr
     screenshot(1)
     for a=0 to lastitem
-        if (((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or ty=999)) then 'fr=999 means 
+        if (((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or (ty2>0 and item(a).ty=ty2) or ty=999)) then 'fr=999 means 
             set=0
             for c=0 to li
                 if item(a).desig=mls(c) then
@@ -2705,14 +2779,15 @@ function makeweapon(a as short) as _weap
         w.range=val(word(3))
         w.ammo=val(word(4))
         w.ammomax=val(word(5))
-        w.ecmmod=val(word(6))
-        w.p=val(word(7))
-        w.col=val(word(8))
-        w.heat=val(word(9))
-        w.heatsink=val(word(10))
-        w.heatadd=val(word(11))
-        w.reload=val(word(12))
-        for t=0 to 12
+        w.ROF=val(word(6))
+        w.ecmmod=val(word(7))
+        w.p=val(word(8))
+        w.col=val(word(9))
+        w.heat=val(word(10))
+        w.heatsink=val(word(11))
+        w.heatadd=val(word(12))
+        w.reload=val(word(13))
+        for t=0 to 13
             word(t)=""
         next
     loop until w.made=a or eof(f)
@@ -2811,7 +2886,7 @@ function artifact(c as short,awayteam as _monster) as short
     endif
     if c=9 then
         dprint "This is a portable Teleportation Device!"
-        awayteam.move=3
+        awayteam.move=4
         reward(5)=5
     endif
     if c=10 then

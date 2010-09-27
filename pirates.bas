@@ -102,7 +102,7 @@ function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as shor
     do
         for i=1 to 15
             if red.mem(i).hull>0 then
-                rscore=rscore+red.mem(a).hull
+                rscore=rscore+red.mem(i).hull
                 for f=1 to 25
                     if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner>9 then
                         t=getship(blue)
@@ -114,7 +114,7 @@ function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as shor
             endif
             
             if blue.mem(i).hull>0 then
-                bscore=bscore+red.mem(a).hull
+                bscore=bscore+red.mem(i).hull
                 for f=1 to 25
                     if blue.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+blue.mem(i).gunner>9 then
                         t=getship(red)
@@ -882,10 +882,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.weapon<0 then enemy.weapon=0
         enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)
-        if rnd_range(1,100)<66 then
-            enemy.nocturnal=rnd_range(1,2)
-        else 
-            enemy.nocturnal=0
+        
+        enemy.nocturnal=0
+        if planets(map).rot>0 and planets(map).depth=0 then
+            if rnd_range(1,100)<66 then
+                enemy.nocturnal=rnd_range(1,2)
+            endif
         endif
         'Behavior
         enemy.aggr=rnd_range(0,2)
@@ -1126,12 +1128,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.cmmod=6
         enemy.lang=9
-        if faction(0).war(2)>100 or a=3 then 
+        if faction(0).war(2)>=100 then 
             enemy.aggr=0
         else
             enemy.aggr=1
         endif
-        enemy.faction=1
+        enemy.faction=2
     endif
     
     if a=4 then 'Plantmonster 
@@ -1252,7 +1254,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(l)=96
             enemy.itemch(l)=33
         next       
-        enemy.faction=1    
+        enemy.faction=5    
     endif
     
     if a=9 then
@@ -1291,7 +1293,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(l)=96
             enemy.itemch(l)=33
         next
-        enemy.faction=1
+        enemy.faction=5
     endif
             
     if a=10 then 'seeweed
@@ -2431,7 +2433,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(l)=94
             enemy.itemch(l)=33
         next
-        enemy.faction=1
+        enemy.faction=5
     endif
     
     if a=47 then 'Sgt Pinback
@@ -2488,7 +2490,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=rnd_range(0,1)
         enemy.stuff(2)=rnd_range(0,1)
         'Looks
-        enemy.allied=1
+        enemy.allied=2
         enemy.enemy=2
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
@@ -2524,8 +2526,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.itemch(l)=33
         next
         enemy.respawns=0
-        
-        enemy.faction=1
+        if faction(0).war(2)>=100 then 
+            enemy.aggr=0
+        else
+            enemy.aggr=1
+        endif
+        enemy.faction=2
     endif
     
     if a=50 then 'Pirate elite band
@@ -2538,7 +2544,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=rnd_range(10,15)+15+enemy.weapon
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
-        enemy.allied=1
+        enemy.allied=2
         enemy.enemy=2
         enemy.respawns=0
         enemy.move=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))/10
@@ -2563,11 +2569,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.cmmod=6
         enemy.lang=9
-        if faction(0).war(2)>=100 then 
-            enemy.aggr=0
-        else
-            enemy.aggr=1
-        endif
         enemy.col=108  
         enemy.sdesc="pirate elite troopers"
         enemy.armor=2
@@ -2581,7 +2582,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(l)=-20
             enemy.itemch(l)=33
         next           
-        enemy.faction=1 
+        
+        if faction(0).war(2)>=100 then 
+            enemy.aggr=0
+        else
+            enemy.aggr=1
+        endif
     endif
     
     if a=51 then 'Defensebot
@@ -2630,7 +2636,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.atcost=rnd_range(4,6)/10
         enemy.items(0)=96
         enemy.itemch(0)=33
-        enemy.faction=1
+        enemy.faction=5
     endif
     
     if a=52 then 'Defensebot
@@ -2678,7 +2684,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.atcost=rnd_range(8,10)/10
         enemy.items(0)=96
         enemy.itemch(0)=33
-        enemy.faction=1
+        enemy.faction=5
     endif
         
     if a=53 then 'Fast Bot
@@ -2736,7 +2742,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.atcost=rnd_range(3,4)/10
         enemy.items(0)=96
         enemy.itemch(0)=33
-        enemy.faction=1
+        enemy.faction=5
     endif
     
     if a=54 then 'Defense Bot
@@ -2796,7 +2802,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=282
         enemy.items(0)=96
         enemy.itemch(0)=33
-        enemy.faction=1
+        enemy.faction=5
     endif
     
     if a=55 then 'Living Energy
@@ -2847,7 +2853,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.move=4
         enemy.stuff(5)=1
         enemy.hpmax=enemy.hp
-        enemy.faction=1
+        enemy.faction=5
     endif
     
     if a=56 then 'Bladebot
@@ -2898,7 +2904,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.range=1.5
         enemy.sight=4
         enemy.hpmax=enemy.hp
-        enemy.faction=1
+        enemy.faction=5
     endif
 
 

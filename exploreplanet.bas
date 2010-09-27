@@ -82,7 +82,6 @@ function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as 
         endif
     endif
     if d=1 then
-        screenshot(1)
         c=getitem()
         if c>0 then
             if item(c).ty=45 then
@@ -435,7 +434,7 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
     endif
      
     if (planets(slot).atmos<4 and planets(slot).depth=0 and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))+countasteroidfields(sysfrommap(slot))*2-map(sysfrommap(slot)).spec and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))) or more_mets=1 then 
-        if lastmet>500 or more_mets=1 then ep_crater(slot,ship,awayteam,li(),lastlocalitem,shipfire(),sf)
+        if lastmet>1000 and rnd_range(1,100)<30 or more_mets=1 then ep_crater(slot,ship,awayteam,li(),lastlocalitem,shipfire(),sf)
         lastmet+=1
         if more_mets=1 then dprint ""&lastmet
     endif
@@ -649,18 +648,18 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
                     if enemy(a).cmshow=1 then
                         enemy(a).cmshow=0    
-                        color enemy(a).col,203
+                        color enemy(a).col,179
                     else
                         color enemy(a).col,0
                     endif
-                    if enemy(a).invis=0 then
+                    if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if _tiles=0 then
-                            put (enemy(a).c.x*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),pset
+                            put (p.x*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),pset
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
                         if enemy(a).sleeping>0 then 
-                            color  1,0
+                            color  203,0
                             draw string (p.x*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                         endif
                         if player.stuff(3)<>2 then walking=0
@@ -873,10 +872,12 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
         awayteam.c=movepoint(old,bestaltdir(getdirection(key),0))
         if awayteam.move<tmap(awayteam.c.x,awayteam.c.y).walktru then awayteam.c=movepoint(old,bestaltdir(getdirection(key),1))
     endif
-    select case tmap(awayteam.c.x,awayteam.c.y).walktru
-        case is=0
-        case is=1
-            if awayteam.hp>awayteam.nohp*5 and awayteam.move<3 then
+    if tmap(awayteam.c.x,awayteam.c.y).walktru>awayteam.move then '1= can swim 2= can fly 3=can swim and fly 4= can teleport
+        awayteam.c=old
+    else
+        'Terrain needs flying or swimmint
+        if tmap(awayteam.c.x,awayteam.c.y).walktru=1 then
+            if awayteam.move=2 then
                 if awayteam.hp<=awayteam.nojp then
                     if awayteam.jpfuel>awayteam.jpfueluse then
                         awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
@@ -889,8 +890,10 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
                     dprint "blocked"
                 endif
             endif
-        case is=2
-            if awayteam.move<3 then
+        endif
+        'Terrain needs flying
+        if tmap(awayteam.c.x,awayteam.c.y).walktru=2 then
+            if awayteam.move<4 then
                 if awayteam.hp<=awayteam.nojp then
                     if awayteam.jpfuel>awayteam.jpfueluse then
                         awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
@@ -903,9 +906,41 @@ function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as stri
                     dprint "blocked"
                 endif
             endif
-        case else
-            awayteam.c=old
-    end select
+        endif
+    endif
+'    select case tmap(awayteam.c.x,awayteam.c.y).walktru
+'        case is=0
+'        case is=1
+'            if awayteam.hp>awayteam.nohp*5 and awayteam.move<3 then
+'                if awayteam.hp<=awayteam.nojp then
+'                    if awayteam.jpfuel>awayteam.jpfueluse then
+'                        awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
+'                    else
+'                        dprint "Jetpacks empty",14
+'                        awayteam.c=old
+'                    endif
+'                else
+'                    awayteam.c=old
+'                    dprint "blocked"
+'                endif
+'            endif
+'        case is=2
+'            if awayteam.move<3 then
+'                if awayteam.hp<=awayteam.nojp then
+'                    if awayteam.jpfuel>awayteam.jpfueluse then
+'                        awayteam.jpfuel=awayteam.jpfuel-awayteam.jpfueluse
+'                    else
+'                        dprint "Jetpacks empty",14
+'                        awayteam.c=old
+'                    endif
+'                else
+'                    awayteam.c=old
+'                    dprint "blocked"
+'                endif
+'            endif
+'        case else
+'            awayteam.c=old
+'    end select
     if old.x=awayteam.c.x and old.y=awayteam.c.y then
         if walking>0 and walking<10 then walking=0
     else
@@ -1260,7 +1295,7 @@ end function
 function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as byte, byref dawn as single, byref dawn2 as single) as short
     dim as short lsp,x,y,slot
     slot=player.map
-    if planets(slot).depth=0 and planets(slot).rot>0 then
+    if planets(slot).depth=0 then
         dawn=dawn+planets(slot).rot
         if dawn>60 then dawn=dawn-60
         dawn2=dawn+30
@@ -1271,7 +1306,10 @@ function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as by
             if (dawn>dawn2 and (x>dawn or x<dawn2)) then nightday(x)=3
             if x=int(dawn) then nightday(x)=1
             if x=int(dawn2) then nightday(x)=2
-        
+        next
+    else
+        for x=0 to 60
+            nightday(x)=4
         next
     endif
         
@@ -1366,12 +1404,17 @@ function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as sh
 
 function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte,nightday() as byte, byref walking as short) as short
     dim deadcounter as short
-    dim as short a,b,c,slot,ti
+    dim as short a,b,c,slot,ti,f
     dim moa as byte 'monster attack
     dim as _cords p1,p2
     dim as single tb,dam
     slot=player.map
     deadcounter=0
+    if makemoodlog=1 then
+        f=freefile
+        open "monstermood.txt" for append as #f
+        print +f," "
+    endif
     for a=1 to lastenemy        
         if player.questflag(25)<>0 then
             if enemy(a).made=66 or enemy(a).made=67 or enemy(a).made=68 then
@@ -1379,6 +1422,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                 enemy(a).aggr=1
             endif
         endif
+        if makemoodlog=1 then print #f,enemy(a).aggr;" ";enemy(a).made;" ";enemy(a).faction
         if enemy(a).c.x<0 then enemy(a).c.x=0
         if enemy(a).c.y<0 then enemy(a).c.y=0
         if enemy(a).c.x>60 then enemy(a).c.x=60
@@ -1409,20 +1453,20 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
             if enemy(a).nocturnal<>0 then
                 if enemy(a).nocturnal=1 then 
                     if nightday(enemy(a).c.x)=3 then
-                        if enemy(a).sleeping<=0 and rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then enemy(a).invis=2
-                        enemy(a).sleeping+=1
+                        if enemy(a).sleeping<=0 and rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then enemy(a).invis=3
+                        enemy(a).sleeping=2
                     else
                         enemy(a).sleeping-=1
-                        if enemy(a).sleeping<=0 then enemy(a).invis=0
+                        if enemy(a).sleeping<=0 and enemy(a).invis=3 then enemy(a).invis=0
                     endif
                 endif
                 if enemy(a).nocturnal=2 then
                     if nightday(enemy(a).c.x)=0 then
-                        if enemy(a).sleeping<=0 and rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then enemy(a).invis=2
-                        enemy(a).sleeping+=1
+                        if enemy(a).sleeping<=0 and rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then enemy(a).invis=3
+                        enemy(a).sleeping=2
                     else
                         enemy(a).sleeping-=1
-                        if enemy(a).sleeping<=0 then enemy(a).invis=0
+                        if enemy(a).sleeping<=0 and enemy(a).invis=3 then enemy(a).invis=0
                     endif
                 endif
             endif
@@ -1596,6 +1640,8 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
             deadcounter=deadcounter+1
         endif
     next
+    
+    if makemoodlog=1 then close #f
     
     for a=1 to lastenemy
         if enemy(a).c.x<0 then enemy(a).c.x=0
@@ -2354,11 +2400,19 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
     do
         ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)               
         color _teamcolor,0
-        draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
+        if _tiles=0 then
+            put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
+        else
+            draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
+        endif
         if planetmap(ship.x,ship.y,slot)>0 and slot=player.landed.m then
             locate ship.y+1,ship.x+1
             color _shipcolor,0
-            draw string(ship.x*_fw1,ship.y*_fh1), "@",,font1,custom,@_col
+            if _tiles=0 then
+                put (ship.x*_tix-(_tiy-_tix)/2,ship.y*_tiy),stiles(5,player.ti_no),trans
+            else
+                draw string(ship.x*_fw1,ship.y*_fh1), "@",,font1,custom,@_col
+            endif
         endif
         p3=p2
         key=cursor(p2,slot)
@@ -2454,7 +2508,7 @@ function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as sho
     dim as short b,r,x,y,c
     dim as _cords p2,p1
     dim m(60,20) as short
-    b=rnd_range(5,15)
+    b=rnd_range(1,15)-countgasgiants(sysfrommap(slot))+countasteroidfields(sysfrommap(slot))
     b=b-planets(slot).atmos
     if b>0 then
         c=0
@@ -2480,8 +2534,8 @@ function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as sho
                 next
             next
             flood_fill(ship.x,ship.y,m(),2)
-        loop until m(awayteam.c.x,awayteam.c.y)=255 or c=255
-        if c=255 then return 0
+        loop until m(awayteam.c.x,awayteam.c.y)=255 or c=25
+        if c=25 then return 0
         
         for x=0 to 60
             for y=0 to 20
@@ -2508,7 +2562,7 @@ function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as sho
         player.weapons(shipfire(sf).what)=makeweapon(1)
         player.weapons(shipfire(sf).what).ammomax=1 'Sets color to redish
         player.weapons(shipfire(sf).what).dam=r 'Sets color to redish
-        if rnd_range(1,100)<66+r then
+        if rnd_range(1,100)<33+r then
             lastlocalitem=lastlocalitem+1
             lastitem=lastitem+1
             li(lastlocalitem)=lastitem
@@ -2573,21 +2627,17 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             endif
             if tmap(awayteam.c.x,awayteam.c.y).gives=8 then
                 for a=1 to 8
-                    basis(8).inv(a).v=rnd_range(1,8-a)
+                    basis(9).inv(a).v=rnd_range(1,8-a)
                 next
             endif
-            if player.lastvisit.s<>tmap(awayteam.c.x,awayteam.c.y).gives+1 then
+            if player.lastvisit.s<>tmap(awayteam.c.x,awayteam.c.y).gives+1 or player.turn-player.lastvisit.t>100 then
                 changeprices(tmap(awayteam.c.x,awayteam.c.y).gives+1,(player.turn-player.lastvisit.t)\5)
             endif 
-            if tmap(awayteam.c.x,awayteam.c.y).gives=7 and specialflag(20)=0 then
-                for a=1 to 8
-                    basis(8).inv(a).v=0
-                next
-            endif
             trading(tmap(awayteam.c.x,awayteam.c.y).gives+1)
             player.lastvisit.s=tmap(awayteam.c.x,awayteam.c.y).gives+1
+            player.lastvisit.t=player.turn
         else
-            dprint "they dont want to trade with you." & faction(0).war(2)
+            dprint "they dont want to trade with you."
         endif
     endif
     
@@ -2710,7 +2760,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     
     if tmap(awayteam.c.x,awayteam.c.y).gives=28 then              
         dprint "Spaceship fuel for sale"
-        if slot<>pirateplanet(0) or faction(0).war(1)<=0 then
+        if slot<>pirateplanet(0) or faction(0).war(2)<=0 then
             if askyn("Do you want to refuel and reload ammo? (y/n)") then refuel()
         else
             dprint "they deny your request"& faction(0).war(2)
@@ -2752,6 +2802,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     endif
     
     if tmap(awayteam.c.x,awayteam.c.y).gives=32 then  
+        dprint "This is the Villa of the Pirate Leader."
         if faction(0).war(2)<=20 then
             if player.towed<>0 then
                 towed=gethullspecs(drifting(player.towed).s)
@@ -2781,7 +2832,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 endif
             endif
         else
-            dprint "The pirate chief does not want to talk to you"
+            dprint "He does not want to talk to you"
         endif
     endif
     
@@ -2933,6 +2984,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     if tmap(awayteam.c.x,awayteam.c.y).gives=47 then retirement()
     
     if tmap(awayteam.c.x,awayteam.c.y).gives=48 then buytitle()
+    
+    if tmap(awayteam.c.x,awayteam.c.y).gives=49 then customize_item()
     
     if tmap(awayteam.c.x,awayteam.c.y).gives=51 then
         dprint tmap(awayteam.c.x,awayteam.c.y).hitt

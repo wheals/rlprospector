@@ -268,7 +268,8 @@ sub postmortem
         next
         close f
         dprint "saved"
-        
+    else
+        kill player.desig &".bmp"
     endif
     _tiles=old_g
 end sub
@@ -459,7 +460,7 @@ function getdeath() as string
     if player.dead=19 then death="Underestimated the dangers of asteroid mining"
     if player.dead=20 then death="Got gobbled up by a space monster"
     if player.dead=21 then death="Got destroyed by an alien scoutship"
-    if player.dead=22 then death="Sufferd a accident while refueling at a gas giant"
+    if player.dead=22 then death="Suffered an accident while refueling at a gas giant"
     if player.dead=23 then death="Got eaten by gas giant inhabitants"
     if player.dead=24 then death="Lost in a worm hole"
     'player dead 25 is taken

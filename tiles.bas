@@ -613,9 +613,10 @@ tiles(68).col=8
 tiles(68).bgcol=7
 tiles(68).desc="landing pad"
 
-tiles(69).tile=35 'bar
+tiles(69).tile=asc("B")
+tiles(69).col=17
+tiles(69).bgcol=2 'bar
 tiles(69).desc="Building"
-tiles(69).col=15
 tiles(69).seetru=1
 tiles(69).firetru=1
 tiles(69).gives=27
@@ -623,27 +624,42 @@ tiles(69).turnsinto=69
 tiles(69).hides=2
 
 tiles(70)=tiles(69)
+tiles(70).tile=asc("F")
+tiles(70).col=18
+tiles(70).bgcol=7
 tiles(70).gives=28
 tiles(70).turnsinto=70
 tiles(70).hides=2
 
 tiles(71)=tiles(69)
+tiles(71).tile=asc("R")
+tiles(71).col=12
+tiles(71).bgcol=7
 tiles(71).gives=29
 tiles(71).turnsinto=71
 tiles(71).hides=2
 
 tiles(72)=tiles(69)
+tiles(72).tile=asc("H")
+tiles(72).col=2
+tiles(72).bgcol=15
 tiles(72).gives=30
 tiles(72).turnsinto=72
 tiles(72).hides=2
 
 
 tiles(73)=tiles(69)
+tiles(73).tile=asc("U")
+tiles(73).col=2
+tiles(73).bgcol=15
 tiles(73).gives=31
 tiles(73).turnsinto=73
 tiles(73).hides=2
 
 tiles(74)=tiles(69)
+tiles(74).tile=asc("T")
+tiles(74).col=2
+tiles(74).bgcol=15
 tiles(74).gives=5
 tiles(74).turnsinto=74
 tiles(74).hides=2
@@ -769,6 +785,7 @@ tiles(88).seetru=1
 tiles(89).tile=35
 tiles(89).desc="Building"
 tiles(89).col=15
+tiles(89).bgcol=7
 tiles(89).seetru=1
 tiles(89).firetru=1
 tiles(89).gives=15
@@ -1293,8 +1310,9 @@ tiles(163).desc="Several pipes come up from the ground"
 
 
 tiles(164).tile=35
-tiles(164).desc="Building"
+tiles(164).desc="Warehouse"
 tiles(164).col=15
+tiles(164).bgcol=7
 tiles(164).seetru=1
 tiles(164).firetru=1
 tiles(164).gives=18
@@ -1355,9 +1373,10 @@ tiles(171).turnsinto=47
 tiles(171).seetru=1
 tiles(171).firetru=1
 
-tiles(172).tile=asc("#")
-tiles(172).desc="Building"
-tiles(172).col=75
+
+tiles(172).tile=asc("T")
+tiles(172).col=10
+tiles(172).bgcol=77
 tiles(172).seetru=1
 tiles(172).firetru=1
 tiles(172).gives=6
@@ -1419,8 +1438,10 @@ tiles(182).firetru=1
 tiles(182).locked=2
 tiles(182).hides=2
 
-tiles(183).tile=35
-tiles(183).col=15
+
+tiles(183).tile=asc("T")
+tiles(183).col=2
+tiles(183).bgcol=15
 tiles(183).desc="a run down building"
 tiles(183).dr=1
 tiles(183).turnsinto=183
@@ -1755,9 +1776,10 @@ tiles(236).col=8
 tiles(236).desc="A reactor control console. It is broken beyond repair"
 
 
-tiles(237).tile=35 'Weapons shop
+tiles(237).tile=asc("W") 'Weapons shop
 tiles(237).desc="Building"
-tiles(237).col=15
+tiles(237).col=2
+tiles(237).bgcol=15
 tiles(237).seetru=1
 tiles(237).firetru=1
 tiles(237).gives=34
@@ -1765,9 +1787,10 @@ tiles(237).turnsinto=237
 tiles(237).hides=2
 
 
-tiles(238).tile=35 'Shipyard
+tiles(238).tile=asc("H") 'Shipyard
 tiles(238).desc="Building"
-tiles(238).col=15
+tiles(238).col=7
+tiles(238).bgcol=15
 tiles(238).seetru=1
 tiles(238).firetru=1
 tiles(238).gives=35
@@ -1784,8 +1807,6 @@ tiles(240).tile=asc("C")
 tiles(240).col=11
 tiles(240).gives=111
 tiles(240).turnsinto=84
-
-'Mittwoch 22:08
 
 tiles(241).tile=64
 tiles(241).col=8
@@ -1935,9 +1956,9 @@ tiles(258).tile=asc("C")
 tiles(258).col=11
 tiles(258).desc="Computer"
 
-tiles(259).tile=ASC("#")
-tiles(259).col=15
-tiles(259).bgcol=0
+tiles(259).tile=ASC("H")
+tiles(259).col=0
+tiles(259).bgcol=14
 tiles(259).desc="Hullrefits"
 tiles(259).gives=42
 tiles(259).turnsinto=259
@@ -1961,8 +1982,9 @@ tiles(261).gives=43
 tiles(261).turnsinto=261
 
 
-tiles(262).tile=35 'Mudds
-tiles(262).col=15
+tiles(262).tile=asc("M") 'Mudds
+tiles(262).col=236
+tiles(262).bgcol=7
 tiles(262).desc="Building"
 tiles(262).seetru=1
 tiles(262).firetru=1
@@ -2001,23 +2023,27 @@ tiles(264).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(264).killt="That will teach those pirates a lesson!"
 tiles(264).hides=2
 
-tiles(265).tile=asc("#") 'Arena
+tiles(265).tile=asc("A") 'Arena
 tiles(265).gives=44
-tiles(265).col=14
+tiles(265).col=12
+
+tiles(265).bgcol=7
 tiles(265).hides=2
 tiles(265).turnsinto=265
 
-tiles(266).tile=asc("#") 'Casino
+tiles(266).tile=asc("$") 'Casino
 tiles(266).gives=45
-tiles(266).col=54
+tiles(266).col=14
+tiles(266).bgcol=2
 tiles(266).turnsinto=266
 
 tiles(267).tile=128
 tiles(267).col=9
 
-tiles(268).tile=asc("#") 'Casino
+tiles(268).tile=asc("Z") 'Zoo
 tiles(268).gives=46
 tiles(268).col=14
+tiles(268).bgcol=7
 tiles(268).turnsinto=268
 
 tiles(269).tile=asc("@") 'Generation Ship landed
@@ -2039,9 +2065,21 @@ tiles(271).gives=48
 tiles(271).turnsinto=271
 tiles(271).hides=2
 
-'272-282 taken for alien structures
+'272-284 taken for alien structures
 
 
+tiles(286).tile=35 'Customize Item shop
+tiles(286).col=17
+tiles(286).desc="a building"
+tiles(286).dr=4
+tiles(286).shootable=1
+tiles(286).hp=30
+tiles(286).turnsinto=286
+tiles(286).seetru=1
+tiles(286).firetru=1
+tiles(286).locked=0
+tiles(286).hides=2
+tiles(286).gives=49
 
 
 tiles(401).tile=ASC("#")
