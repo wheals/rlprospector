@@ -60,8 +60,6 @@ const sm_y=35
 const max_maps=2047
 const _clearmap=1
 
-dim shared as byte _mwinx=60
-dim shared as byte _mwiny=20
 dim shared as byte _tix=16
 dim shared as byte _tiy=24
 dim shared _debugflag(1) as byte
