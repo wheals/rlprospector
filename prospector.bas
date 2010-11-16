@@ -18,6 +18,7 @@
 #include once "fileIO.bas"
 #include once "exploreplanet.bas"
 #include once "texts.bas"
+#include once "crew.bas"
 on error goto errormessage
 
 cls
@@ -27,7 +28,7 @@ print
 print "Prospector "&__VERSION__
 print
 loadconfig
-if _lines<23 then _lines=23
+if _lines<25 then _lines=25
 screen 12
 if _tiles=0 then 
     _fohi2=10
@@ -95,11 +96,7 @@ for a=0 to fix((22*_fh1)/_fh2)
 next
 gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
 
-if _tiles=0 then
-    screenres _screenx,_screeny,8,2,GFX_WINDOWED
-else
-    screenres _screenx,_screeny,8,2,GFX_WINDOWED
-endif
+screenres _screenx,_screeny,8,2,GFX_WINDOWED
 
 'dprint "now i need a really long run on sentence, and it also shouldnt repeat too soon, so i can tell where the problems, if any, start. Also I remember i already did this once, and maybe this time i should just comment it out. In case this makes it into the source code: this is to test the dprint command! Also hi there! Should be long enough now."
 text=""
@@ -238,6 +235,10 @@ talent_desig(23)="Sharp shooter"
 talent_desig(24)="Fast"
 talent_desig(25)="Strong"
 talent_desig(26)="Aim"
+
+talent_desig(27)="Squad Leader"
+talent_desig(28)="Sniper"
+talent_desig(29)="Paramedic"
 
 
 specialplanettext(1,0)="I got some strange sensor readings here sir. cant make any sense of it"
@@ -621,27 +622,30 @@ disease(17).fatality=85
 do
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
     background(rnd_range(1,_last_title_pic)&".bmp")
-    color 11,0
+    
+    
+    color 228,0
+    draw string(_screenx/30+4,_screeny/8+4),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    color 227,0
+    draw string(_screenx/30+3,_screeny/8+3),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    
+    color 226,0
+    draw string(_screenx/30+2,_screeny/8+2),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    color 225,0
+    draw string(_screenx/30+1,_screeny/8+1),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    
+    color 101,0
     draw string(_screenx/30,_screeny/8),"PROSPECTOR",,TITLEFONT,custom,@_tcol
     color 15,0
     draw string(_screenx-22*_FW2,_screeny-9*_FH2),__VERSION__ ,,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-8*_FH2),"1) start new game",,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-7*_FH2),"2) load saved game",,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-6*_FH2),"3) display highscore",,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration",,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit",,FONT2,custom,@_tcol
+    draw string(_screenx-22*_FW2,_screeny-8*_FH2),"1) start new game    ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-7*_FH2),"2) load saved game   ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-6*_FH2),"3) display highscore ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration     ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit              ",,FONT2,custom,@_col
     key=keyin("123456")
-    if key="8" then
-        player=civ(0).ship(0)
-        shipstatus()
-        sleep
-    endif
-    if key="7" then
-        player=civ(0).ship(1)
-        shipstatus()
-        sleep
-    endif
+    
     if key="2" then
         c=0
         chdir "savegames"
@@ -752,12 +756,12 @@ if key="1" then
             fleet(a).c=basis(rnd_range(0,2)).c
         next
     endif
-    'placeitem(makeitem(79),0,0,0,0,-1)
+    'placeitem(makeitem(301),0,0,0,0,-1)
     if start_teleport=1 then artflag(9)=1
     cls
     color 11,0
     if b<5 then
-        c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can life out your live in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
+        c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw string(5*_fw1,5*_fh1+c*_fh2), "You christen the beauty:",,font2,custom,@_col
         faction(0).war(1)=0
         faction(0).war(2)=100
@@ -1403,6 +1407,21 @@ function driftingship(a as short)  as short
     dim p(1024) as _cords
     dim land as _cords
     m=drifting(a).m
+    if a<=3 and rnd_range(1,100)<5 then
+        if rnd_range(1,100)<66 then
+            planets(m).flags(26)=1
+            planets(m).depth=0
+            planets(m).mon_template(2)=makemonster(2,m)
+            planets(m).mon_noamin(2)=1
+            planets(m).mon_noamax(2)=1
+            planets(m).depth=1
+        else
+            planets(m).flags(26)=4
+            planets(m).mon_template(2)=makemonster(34,m)
+            planets(m).mon_noamin(2)=1
+            planets(m).mon_noamax(2)=1
+        endif
+    endif
     for x=0 to 60
         for y=0 to 20
             if abs(planetmap(x,y,m))=203 then 
@@ -1591,7 +1610,7 @@ function spacestation(st as short) as _ship
                 if c=1 and rnd_range(1,100)>30+player.shieldedcargo-player.cargo(b).x then
                     d=1
                     if player.cargo(b).y>0 then
-                        dprint "You are informed that importing "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" is illegal and that the cargo will be confiscated",12
+                        dprint "You are informed that there is an import embargo on "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" and that the cargo will be confiscated.",12
                     else
                         dprint basis(st).inv(player.cargo(b).x-1).n &" gets confiscated because it lacks proper documentation.",12
                     endif
@@ -2587,7 +2606,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 endif
             endif
             
-            if planets(slot).vault.wd(5)=2 and planets(slot).vault.wd(6)>0 then
+            if planets(slot).vault.wd(5)=2 and planets(slot).vault.wd(6)<>0 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 c=lastenemy
                 lastenemy=lastenemy+b
@@ -2597,10 +2616,15 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                         x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
                         y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
                     loop until tmap(x,y).walktru=0
-                    enemy(d)=makemonster(planets(slot).vault.wd(6),slot)
-                    enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
+                    if planets(slot).vault.wd(6)>0 then 
+                        enemy(d)=makemonster(planets(slot).vault.wd(6),slot)
+                        enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
+                    else
+                        enemy(d)=setmonster(planets(slot).mon_template(-planets(slot).vault.wd(6)),slot,spawnmask(),lsp,vismask(),x,y,d)
+                    endif
                 next
             endif
+            
             if planets(slot).vault.wd(5)=3 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 c=lastenemy
@@ -3023,7 +3047,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if key=key_close then ep_closedoor(awayteam)
             if key=key_gr then ep_grenade(awayteam,shipfire(),sf,li(),lastlocalitem)
             if key=key_fi or key=key_autofire or walking=10 then ep_fire(awayteam,enemy(),lastenemy,vismask(),mapmask(),walking,key,autofire_target)
-            if key=key_ra then ep_radio(awayteam,ship,nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf)
+            if key=key_ra then ep_radio(awayteam,ship,nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf)
             if key=key_oxy then ep_helmet(awayteam)
             if key=key_ju and awayteam.move>=2 then ep_jumppackjump(awayteam)
             if key=key_la then ep_launch(awayteam,ship,nextmap)
@@ -3742,6 +3766,8 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim text as string
     dim wtext as string
     dim mname as string
+    dim SLBonus(255) as byte
+    dim slbc as byte
     dim as short slot
     slot=player.map
     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
@@ -3753,14 +3779,22 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     else
         noa=last
     endif
-        
+    
+    for a=first to noa
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).talents(27)>0 then
+            slbc+=1
+            SLBonus(slbc)=1
+        endif
+    next
+    slbc=1
     for a=first to noa
         if crew(a).hp>0 and crew(a).onship=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
-            if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner+attacker.secweapthi(a)>9 then 
+            slbc+=1
+            if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*3+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner+attacker.secweapthi(a)+SLBonus(slbc)>9 then 
                 b=b+attacker.secweap(a)+addtalent(3,11,.1)+addtalent(a,26,.1)
                 if a>5 then gainxp(a) 
             endif
-            if distance(defender.c,attacker.c)<=1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+addtalent(3,10,1)+addtalent(a,21,1)+crew(a).hp>9 then 
+            if distance(defender.c,attacker.c)<=1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+addtalent(3,10,1)+crew(a).talents(28)*3+addtalent(a,21,1)+crew(a).hp-crew(a).talents(29)*3+SLBonus(slbc)>9 then 
                 b=b+0.2+maximum(attacker.secweapc(a),attacker.secweap(a))+addtalent(3,11,.1)+addtalent(a,25,.1)+crew(a).augment(2)/10
                 if a>5 then gainxp(a)
             endif
@@ -3972,9 +4006,9 @@ color 14,0
 print text
 sleep
 if attempts=0 then
-print "attempting to save game"
+    print "Trying to save game"
     savegame()
-    attempts=1
+    attempts=2
 else
     print "Failed to save game."
 endif

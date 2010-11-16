@@ -11,41 +11,56 @@ end function
 function fixstarmap() as short
     dim p(2048) as short
     dim sp(lastspecial) as short
-    dim as short a,b,c,fixed,fsp,pis
-    for a=0 to laststar
-        pis=0
-        for b=1 to 9
-            if map(a).planets(b)>0 then
-                pis+=1
-                p(map(a).planets(b))+=1
-                if p(map(a).planets(b))>1  then
-                    lastplanet=lastplanet+1
-                    fixed=fixed+1
-                    map(a).planets(b)=lastplanet
+    dim as short a,b,c,fixed,fsp,pis,newfix,cc
+    do
+        cc+=1
+        newfix=0
+        
+        for a=0 to laststar
+            for b=1 to 9
+                if map(a).planets(b)>0 then
+                    p(map(a).planets(b))=0
                 endif
-                for c=0 to lastspecial
-                    if specialplanet(c)=map(a).planets(b) and specialplanet(c)>0 then sp(c)=sp(c)+1
-                next
+            next
+        next
+        
+        for a=0 to laststar
+            pis=0
+            for b=1 to 9
+                if map(a).planets(b)>0 then
+                    pis+=1
+                    p(map(a).planets(b))+=1
+                    if p(map(a).planets(b))>1  then
+                        newfix+=1
+                        lastplanet=lastplanet+1
+                        fixed=fixed+1
+                        map(a).planets(b)=lastplanet
+                    endif
+                    for c=0 to lastspecial
+                        if specialplanet(c)=map(a).planets(b) and specialplanet(c)>0 then sp(c)=sp(c)+1
+                    next
+                endif
+            next
+            if map(a).spec=8 and pis=0 then 
+                fixed+=1
+                newfix+=1
+                lastplanet+=1
+                map(a).planets(1)=lastplanet
             endif
         next
-        if map(a).spec=8 and pis=0 then 
-            fixed+=1
-            lastplanet+=1
-            map(a).planets(1)=lastplanet
-        endif
-    next
+    loop until newfix=0
     for c=0 to lastspecial
         if sp(c)=0 then 
             fsp=fsp+1
         endif
     next
-    if fsp>1 then
+    if fsp>1 then 
         color 14,0
         print fsp &"specials missing. ";
     endif
     if fixed>0 then
         color 14,0
-        print fixed &" fixed."
+        print fixed &" fixed in "&cc &" loops."
         color 14,0
     else
         color 10,0

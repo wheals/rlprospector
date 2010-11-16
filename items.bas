@@ -20,7 +20,11 @@ function rnd_item(t as short) as _items
     if t=4 then i=makeitem(rnd_range(12,20)) 'Armor
     if t=5 then 
         if rnd_range(1,100)<10 then 
-            i=makeitem(rnd_range(78,80))
+            if rnd_range(1,100)<50 then
+                i=makeitem(rnd_range(78,80))
+            else
+                i=makeitem(rnd_range(82,84))
+            endif
         else
             i=makeitem(rnd_range(21,39)) 'misc
         endif
@@ -112,16 +116,45 @@ function destroyitem(b as short) as short
         lastitem=lastitem-1
         return 0
     else
-        if b>0 then
+        if b>lastitem then
             lastitem=lastitem+1
             item(b)=item(lastitem)
             lastitem=lastitem-1
+            'dprint "ERROR: attempted to destroy nonexistent item "& b,14
         endif
-        dprint "ERROR: attempted to destroy nonexistent item "& b,14
         return -1
     endif
 end function
     
+function destroy_all_items_at(ty as short, wh as short) as short
+    dim as short i,d,c
+    do
+        if item(i).ty=ty and item(i).w.s=wh then
+            item(i)=item(lastitem)
+            lastitem-=1
+            d+=1
+        else
+            i+=1
+        endif
+        c+=1
+    loop until i>lastitem or c>lastitem
+    return d
+end function
+
+function calc_resrev() as short
+    dim as short i
+    static v as integer
+    static called as byte
+    if called=0 or called mod 10=0 then
+        for i=0 to lastitem
+            if item(i).ty=15 and item(i).w.s<0 then v=v+item(i).v5
+        next
+    endif
+    if called=10 then called=0
+    called+=1
+    if v>reward(1) then reward(1)=v
+    return 0
+end function
 
 function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as short=0, s as short=0) as short
     i.w.x=x
@@ -1504,8 +1537,90 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="?"
         i.price=0
     endif
-'    
-'    if a=81 then
+    
+    if a=82 then
+        i.ti_no=2112
+        i.ty=48
+        i.desig="Autopsy kit"
+        i.desigp="Autopsy kits"
+        i.ldesc="Tools for analyzing alien corpses"
+        i.v1=2
+        i.col=0
+        i.bgcol=15
+        i.icon="+"
+        i.price=250
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.desig="Small autopsy kit"
+                i.desigp="Small autopsy kits"
+                i.v1=1
+                i.price=200
+            else
+                i.desig="Good autopsy kit"
+                i.desigp="Good autopsy kits"
+                i.v1=3
+                i.price=300
+            endif
+        endif
+    endif
+
+    if a=83 then
+        i.ti_no=2112
+        i.ty=49
+        i.desig="Botany kit"
+        i.desigp="Botany kits"
+        i.ldesc="A kit containing tools for advanced plant analysis"
+        i.v1=2
+        i.col=4
+        i.bgcol=15
+        i.icon="+"
+        i.price=250
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.desig="Small botany kit"
+                i.desigp="Small botany kits"
+                i.v1=1
+                i.price=200
+            else
+                i.desig="Good botany kit"
+                i.desigp="Good botany kits"
+                i.v1=3
+                i.price=300
+            endif
+        endif
+    endif
+    
+    
+    if a=84 then
+        i.ti_no=2112
+        i.ty=50
+        i.desig="Ship repair kit"
+        i.desigp="Ship repair kits"
+        i.ldesc="A kit containing tools for ship repair"
+        i.v1=2
+        i.col=4
+        i.bgcol=15
+        i.icon="+"
+        i.price=500
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.desig="Small ship repair kit"
+                i.desigp="Small ship repair kits"
+                i.v1=1
+                i.price=250
+            else
+                i.desig="Good ship kit"
+                i.desigp="Good ship kits"
+                i.v1=3
+                i.price=750
+            endif
+        endif
+    endif
+'   
+
+'   
+
+'if a=81 then
 '        i.ti_no=2003
 '        i.id=81
 '        i.ty=2
@@ -1770,8 +1885,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="*"
         i.bgcol=0  
         roll=rnd_range(1,100+player.turn/100+mod1+mod2)
-        if i.v1<5 then i.desig="small amount of "&i.desig
-        if i.v1>10 then i.desig="big amount of "&i.desig
         if roll>125 and mod1>0 and mod2>0 then i=makeitem(99,0,0)
         if make_files=1 then
             f=freefile
@@ -2485,6 +2598,7 @@ end function
 function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
     dim as short i,offset,a,b,c,li,cu,set,k
     dim mls(127) as string
+    dim mdesc(127) as string
     dim mno(127) as short
     dim mit(127) as short
     dim lin(20) as string
@@ -2504,6 +2618,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 b=b+1
                 li=li+1
                 mls(b)=item(a).desig
+                mdesc(b)=item(a).ldesc
                 mls(b)=mls(b)
                 mit(b)=a
                 mno(b)=mno(b)+1
@@ -2528,6 +2643,8 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
     do
         if k=8 then cu=cu-1
         if k=2 then cu=cu+1
+        if key=key_pageup then cu=cu-14
+        if key=key_pagedown then cu=cu+14
         if cu<1 then 
             if offset>0 then
                 offset=offset-1
@@ -2561,6 +2678,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 color 0,0
                 draw string (3*_fw1,3*_fh1+a*_fh2),space(35),,font2,custom,@_col
                 if cu=a then
+                    textbox(mdesc(a+offset),30,3,25,15,1)
                     color 15,5
                 else
                     color 11,0
@@ -2919,7 +3037,7 @@ function artifact(c as short,awayteam as _monster) as short
     
     if c=14 then
         dprint "It's a powerful ancient bomb!"
-        placeitem(makeitem(301),0,0,0,-1)
+        placeitem(makeitem(301),0,0,0,0,-1)
         artflag(14)=0
     endif
     

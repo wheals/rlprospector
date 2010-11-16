@@ -372,6 +372,8 @@ function loadconfig() as short
             line input #f,text
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
+                if instr(text,"_tix")>0 then _tix=numfromstr(text)
+                if instr(text,"_tiy")>0 then _tiy=numfromstr(text)
                 if instr(text,"tilefont")>0 then _FoHi1=numfromstr(text)
                 if instr(text,"textfont")>0 then _FoHi2=numfromstr(text)
                 if instr(text,"lines")>0 then _lines=numfromstr(text)
@@ -506,6 +508,7 @@ end function
 function configuration() as short
     dim text as string
     dim onoff(1) as string
+    dim offon(1) as string
     dim warn(2) as string
     dim res as string
     dim as short c,d,f
@@ -516,9 +519,11 @@ function configuration() as short
     warn(0)="On  "
     warn(1)="Off "
     warn(2)="High"
+    offon(0)=" Off"
+    offon(1)=" On "
     screenshot(1)
     do
-        if _customfonts=0 then
+        if _customfonts=1 then
             res="tiles:"&_fohi1 &" text:"& _fohi2 &" lines:"&_lines
         else
             res="classic"
@@ -666,7 +671,7 @@ function configuration() as short
         endif
         
         if c=16 then
-            d=menu("Resolution/Tiles/Text/Lines/Classic look "& onoff(_customfonts)&"(overrides if on)/Exit")
+            d=menu("Resolution/Tiles/Text/Lines/Classic look: "& onoff(_customfonts)&" (overrides if on)/Exit")
             if d=1 then 
                 dprint "Set graphic font height:(8-28)"
                 _fohi1=Getnumber(8,28,_fohi1)
@@ -732,10 +737,18 @@ function configuration() as short
         endif
     loop until c=21
     screenshot(2)
+    saveconfig(oldtiles)
+    return 0
+end function
+
+function saveconfig(oldtiles as short) as short
+    dim f as short
     f=freefile
     open "config.txt" for output as #f
     print #f,"# 0 is on, 1 is off"
     print #f,""
+    print #f,"_tix:"&_tix
+    print #f,"_tiy:"&_tiy
     print #f,"tilefont:"&_FoHi1
     print #f,"textfont:"&_FoHi2
     print #f,"lines:"&_lines
@@ -762,8 +775,7 @@ function configuration() as short
     close #f
     return 0
 end function
-
-
+    
 
 function getfilename() as string
     dim filename as string

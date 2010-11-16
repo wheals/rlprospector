@@ -852,6 +852,21 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             
         endif
     endif
+    
+    
+    if e.lang=34 then
+        if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "He says 'Welcome to our station!'"
+            if a=2 then dprint "He says 'Feels good to stretch your legs a little, doesn't it?'"
+            if a=3 then dprint "He says 'Remember to visit the bar!'"
+            if a=4 then dprint "He says 'We cater to transport ships mainly. They come by here quite often'"
+            if a=5 then dprint "He says 'I make some money flying in fuel from a nearby gas giant'"
+            if a=6 then dprint "He says 'I hope you enjoy your stay here.'"
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
     return 0
 end function
 
@@ -917,6 +932,7 @@ function talk_culture(c as short) as short
     t(5,5)="Our dead are returned to the circle of life: there is a special profession who cuts them into tiny pieces and feeds them to scavenging animals."
     t(5,6)="We used to set our dead adrift at sea, later we used space. Since the discovery of the wormhole at " &map(nwh).c.x &":"&map(nwh).c.y &" that is where their last journey starts."
     
+    t(6,0)="Our expeditions have found a city of the ancients at "& map(sysfrommap(specialplanet(3))).c.x &":"& map(sysfrommap(specialplanet(3))).c.y &". No ship that has landed there has so far returned"
     t(6,1)="Our expeditions have found a city of the ancients at "& map(sysfrommap(specialplanet(3))).c.x &":"& map(sysfrommap(specialplanet(3))).c.y &". No ship that has landed there has so far returned"
     t(6,2)="We have found a friendly race of highly intelligent centipedes at "& map(sysfrommap(specialplanet(16))).c.x &":"& map(sysfrommap(specialplanet(16))).c.y &"."
     t(6,3)="We have found a living planet at "& map(sysfrommap(specialplanet(27))).c.x &":"& map(sysfrommap(specialplanet(27))).c.y &" It is very dangerous, especially if you land there."
@@ -1427,7 +1443,11 @@ endif
 if rnd_range(1,6)<3 then
     if rnd_range(1,6)<3 then
         roll=rnd_range(1,3)
-        text=text &" It has " & roll &" "&tails(rnd_range(1,5))&"s."
+        if roll>1 then
+            text=text &" It has " & roll &" "&tails(rnd_range(1,5))&"s."
+        else
+            text=text &" It has a "&tails(rnd_range(1,5))&"."
+        endif
         enemy.weapon=enemy.weapon+1
     else
         roll=rnd_range(1,5)

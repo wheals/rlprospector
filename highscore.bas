@@ -456,7 +456,7 @@ function getdeath() as string
     if player.dead=14 then death="Died of asphyxication while exploring too far"
     if player.dead=15 then death="Lost his ship while exploring a planet"
     if player.dead=16 then death="Got fried extra crispy while bathing in lava"
-    if player.dead=17 then death="Dived into a sun on a doomed planet"
+    if player.dead=17 then death="Dove into a sun on a doomed planet"
     if player.dead=19 then death="Underestimated the dangers of asteroid mining"
     if player.dead=20 then death="Got gobbled up by a space monster"
     if player.dead=21 then death="Got destroyed by an alien scoutship"

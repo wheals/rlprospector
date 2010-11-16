@@ -2081,6 +2081,18 @@ tiles(286).locked=0
 tiles(286).hides=2
 tiles(286).gives=49
 
+tiles(287).tile=asc("O")
+tiles(287).col=220
+tiles(287).bgcol=7
+tiles(287).desc="Admins Office"
+tiles(287).shootable=1
+tiles(287).hp=30
+tiles(287).turnsinto=287
+tiles(287).seetru=1
+tiles(287).firetru=1
+tiles(287).locked=0
+tiles(287).hides=2
+tiles(287).gives=50
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

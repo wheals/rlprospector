@@ -131,12 +131,12 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     if distance(mines_p(e),defender.c)<senbat*senac then f=f+1
                 next
                 if defender.c.x=0 or defender.c.y=0 or defender.c.x=60 or defender.c.y=20 then f=-1
-                if f<>0 then dprint key_fi &" to fire weapons, ESC to skip fire, "&key_dr &" to drop mines, "&key_ru & " to run and flee."
+                if f<>0 then dprint key_fi &" to fire weapons, "&key_dr &" to drop mines, "&key_sc &" to scan enemy ships, "&key_ru & " to run and flee."
                     
-                color 11,0
-                draw string(62*_fw1,5*_fh2), "Engine :"&player.engine &" ("&speed(0) &" MP)",,Font2,custom,@_col
+                'color 11,0
+                'draw string(62*_fw1,5*_fh2), "Engine :"&player.engine &" ("&speed(0) &" MP)",,Font2,custom,@_col
     
-                key=keyin("1234678"&key_ac &key_sh &key_ru &key_esc &key_dr &key_fi &key_sh &key_ru &key_togglemanjets &key_cheat)
+                key=keyin("1234678"&key_ac &key_sh &key_sc &key_ru &key_esc &key_dr &key_fi &key_sh &key_ru &key_togglemanjets &key_cheat)
                 if key=key_ac then
                     if senac=2 then nexsen=1
                     if senac=1 then nexsen=2
@@ -182,6 +182,26 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 endif
                 
                 if f<>0 and defender.hull>0 then
+                    if key=key_sc then
+                        t=com_gettarget(defender,w,attacker(),lastenemy,senac,t,e_track_p(),e_track_v(),e_last,mines_p(),mines_v(),mines_last)
+                        if t>0 then
+                            if attacker(t).c.x>30 then 
+                                x=attacker(t).c.x-21
+                            else
+                                x=attacker(t).c.x+1
+                            endif
+                            if attacker(t).c.y>10 then
+                                y=attacker(t).c.y-5
+                            else
+                                y=attacker(t).c.y+1
+                            endif
+                            if x<1 then x=1
+                            if y<1 then y=1
+                            textbox(com_shipbox(attacker(t),distance(defender.c,attacker(t).c)),x,y,20,15,1)
+                            lastaction(0)=lastaction(0)+1
+                            no_key=keyin
+                        endif
+                    endif
                     if key=key_fi then
                         w=com_getweapon()
                         if w>0 then
@@ -252,7 +272,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     endif
                     
                     for c=1 to e_last
-                        if defender.c.x=e_track_p(c).x and defender.c.y=e_track_p(c).y then 
+                        if defender.c.x=e_track_p(c).x and defender.c.y=e_track_p(c).y and e_track_v(c)>0 then 
                             defender.shield=defender.shield-e_track_v(c)
                             text="The "&defender.desig &" ran into a plasma stream! "
                             if defender.shield<0 and defender.shieldmax>0 then text=text &"Shields penetrated! "
@@ -452,6 +472,10 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     for a=1 to 15
         atts.mem(a)=attacker(a)
     next    
+    for a=1 to 5
+        defender.weapons(a).reloading=0
+        defender.weapons(a).heat=0
+    next
     return defender
 end function
 
@@ -555,6 +579,7 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     for c=1 to last
         if c<=lastenemy then
             b=list_e(c)
+            if distance(attacker(b).c,defender.c)<=senbat1*senac then attacker(b).questflag(11)=1
             if _tiles=0 then
                 if distance(attacker(b).c,defender.c)<senbat*senac then
                     denemy=denemy+1
@@ -617,8 +642,8 @@ function com_getweapon() as short
     do
         display_ship_weapons(m)
         key=keyin(key_esc & key_enter &key_up &key_lt &key_dn &key_rt &"+-123456789")
-        if keyplus(key) or key="8" then m-=1
-        if keyminus(key) or key="2" then m+=1
+        if keyplus(key) then m+=1
+        if keyminus(key) then m-=1
         if m>lastslot then m=1
         if m<1 then m=lastslot
     loop until key=key_esc or key=key_enter
@@ -707,7 +732,8 @@ end function
 
 function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as short, range as short,senac as short) as _ship
     dim del as _weap
-    dim as short roll,a,ROF,dambonus,tohitbonus
+    dim wp(255) as _cords
+    dim as short roll,a,ROF,dambonus,tohitbonus,i,l,c
     ROF=w.ROF
     for a=1 to 25
         if attacker.weapons(a).made=91 then dambonus+=1
@@ -730,11 +756,37 @@ function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as
                 if range<=w.range then roll=roll+2
                 if roll>11 then
                     if w.ammomax=0 then
+                        c=185
+                    else
+                        c=7
+                    endif
+                    l=line_in_points(target.c,attacker.c,wp())
+                    for i=1 to l-1
+                        if c=7 then draw string(wp(i-1).x*_fw1,wp(i-1).y*_fh1), " ",,Font1,custom,@_col
+                        sleep 25
+                        color c,0
+                        draw string(wp(i).x*_fw1,wp(i).y*_fh1), "*",,Font1,custom,@_col
+                    next
+                    if w.ammomax=0 then
                         target=com_hit(target,w,dambonus,range, senac)
+                        c=185
                     else
                         target=com_hit(target,w,0,range, senac)
+                        c=7
                     endif
                 else
+                    l=line_in_points(movepoint(target.c,5),attacker.c,wp())
+                    if w.ammomax=0 then
+                        c=185
+                    else
+                        c=7
+                    endif
+                    for i=1 to l-1
+                        if c=7 then draw string(wp(i-1).x*_fw1,wp(i-1).y*_fh1), " ",,Font1,custom,@_col
+                        sleep 25
+                        color c,0
+                        draw string(wp(i).x*_fw1,wp(i).y*_fh1), "*",,Font1,custom,@_col
+                    next
                     if w.p>0 then
                         dprint w.desig &" fired, and misses!"
                     else
@@ -869,6 +921,7 @@ end function
 function com_regshields(s as _ship) as short
     dim a as short
     dim shieldreg as short
+    shieldreg=1
     for a=1 to 25
         if s.weapons(a).made=90 then shieldreg=2
     next
@@ -889,7 +942,7 @@ function com_sinkheat(s as _ship,manjets as short) as short
         sink=sink-s.manjets*(manjets+1)
     endif
     if sink>0 and s.shield<s.shieldmax then
-        sink-=5
+        sink-=3
     endif
     do
         heat=0
@@ -1189,6 +1242,55 @@ function com_wstring(w as _weap, range as short) as string
     if range<=w.range*3 then text=" is at long range for "&w.desig
     if range<=w.range*2 then text=" is at medium range for "&w.desig    
     if range<=w.range then text=" is at optimum range for "&w.desig
+    return text
+end function
+
+function com_shipbox(s as _ship,di as short) as string
+    dim text as string
+    dim as short a,heat
+    '' Storing in questflag array if things already have been IDed
+    if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(11)=1 then 
+        text="|" & s.desig &"||"
+        s.questflag(11)=1
+    else
+        text="| ???? ||"
+    endif
+    if s.shield>player.sensors then
+        text=text &"Shield:"&s.shield
+    else
+        if s.shield>0 then
+            text=text &"Shield:"&s.shield
+        else
+            text=text &"No shield |"
+        endif
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(0)=1 then 
+            text=text &"Hull: "&s.hull &" | "
+            s.questflag(0)=1
+        else
+            text=text &"Hull: ?? | "
+        endif    
+        for a=1 to 10
+            if s.weapons(a).desig<>"" then
+                if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science/2 or s.questflag(a)=1 then
+                    text=text & s.weapons(a).desig &" | "
+                    heat=heat+s.weapons(a).heat 
+                    s.questflag(a)=1
+                else 
+                    text=text &" Weapon: ?? |"
+                endif
+            endif
+        next
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(12)=1 then
+            s.questflag(12)=1
+            text=text &"Engine: "&s.engine &" |"
+        endif
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science then
+            text=text &"Heat: "& int(heat/10) 
+        else
+            text=text &"Heat: ??"
+        endif
+        text=text &" | | "
+    endif
     return text
 end function
 

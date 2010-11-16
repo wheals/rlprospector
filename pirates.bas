@@ -208,8 +208,12 @@ function collidefleets() as short
                             next
                             if a<3 or b<3 then 'Station attacked
                                 if fleet(loser).mem(1).hull<=0 and loser<3 then
-                                    basis(loser).c.x=-1
-                                    basis(loser).c.y=-1
+                                    if player.turn>1000 then
+                                        basis(loser).c.x=-1
+                                        basis(loser).c.y=-1
+                                    else
+                                        fleet(loser).mem(1).hull=120
+                                    endif
                                 else
                                     if a>3 then
                                         basis(b).lastattacked=fleet(a).ty
@@ -1398,7 +1402,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=4
     endif
         
-    if a=14 then
+    if a=14 or a=88 then
         enemy.faction=1 'Citizen
         enemy.ti_no=1024
         enemy.sdesc="citizen"
@@ -1422,6 +1426,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
+        if a=88 then enemy.lang=34
     endif
     
     if a=15 then
@@ -1961,7 +1966,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(1,3)
         enemy.weapon=rnd_range(1,3)
-        enemy.tile=64
+        enemy.tile=Asc("H")
         enemy.sprite=287
         enemy.col=53
         enemy.move=.6
@@ -3664,6 +3669,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=1
         enemy.armor=2
         enemy.move=.9
+    endif
+    
+    '88=Station inhabitant
+    
+    if a=89 then
+        
     endif
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1

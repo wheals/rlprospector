@@ -140,10 +140,7 @@ function make_spacemap() as short
             portal(a).col=7
             portal(a).ti_no=3001
             print ".";
-            do
-                portal(a).from.s=getrandomsystem
-                portal(a).from.m=getrandomplanet(portal(a).from.s)
-            loop until is_special(portal(a).from.m)=0
+            portal(a).from.m=get_nonspecialplanet()
             if portal(a).from.m<=0 then
                 b=rnd_range(1,9)
                 if portal(a).from.s=-1 then
@@ -224,6 +221,7 @@ function make_spacemap() as short
     make_clouds()
     
     a=sysfrommap(specialplanet(20))
+    print a
     c=999
     for b=0 to laststar
         if b<>a then
@@ -236,7 +234,7 @@ function make_spacemap() as short
     
     a=sysfrommap(specialplanet(26))
     swap map(a).c,map(d).c
-    
+    print "loading bones"
     loadbones
     
 '    for a=0 to lastspecial
@@ -362,9 +360,10 @@ function make_spacemap() as short
     planets(drifting(1).m).depth=1
     planets(drifting(1).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
     deletemonsters(drifting(1).m)
-    planets(drifting(1).m).mon_template(0)=makemonster(39,drifting(1).m)
+    planets(drifting(1).m).mon_template(0)=makemonster(88,drifting(1).m)
     planets(drifting(1).m).mon_noamin(0)=2
     planets(drifting(1).m).mon_noamax(0)=6
+    planetmap(19,10,drifting(1).m)=-287
     
     do
         a=rnd_range(firststationw,lastwaypoint)
@@ -375,9 +374,10 @@ function make_spacemap() as short
     planets(drifting(2).m).depth=1
     deletemonsters(drifting(2).m)
     planets(drifting(2).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
-    planets(drifting(2).m).mon_template(0)=makemonster(39,drifting(2).m)
+    planets(drifting(2).m).mon_template(0)=makemonster(88,drifting(2).m)
     planets(drifting(2).m).mon_noamin(0)=3
     planets(drifting(2).m).mon_noamax(0)=6
+    planetmap(19,10,drifting(2).m)=-287
     
     do
         a=rnd_range(firststationw,lastwaypoint)
@@ -388,9 +388,10 @@ function make_spacemap() as short
     planets(drifting(3).m).depth=1
     deletemonsters(drifting(3).m)
     planets(drifting(3).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
-    planets(drifting(3).m).mon_template(0)=makemonster(39,drifting(3).m)
+    planets(drifting(3).m).mon_template(0)=makemonster(88,drifting(3).m)
     planets(drifting(3).m).mon_noamin(0)=3
     planets(drifting(3).m).mon_noamax(0)=6
+    planetmap(19,10,drifting(3).m)=-287
     
     drifting(4).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
     drifting(4).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
@@ -463,6 +464,15 @@ function make_spacemap() as short
     fleet(2).mem(1)=makeship(33)
     fleet(2).ty=1
     lastfleet=3
+    
+    if _clearmap=1 then
+        for a=1 to laststar+wormhole+1
+            map(a).discovered=0
+            for b=1 to 9
+                if map(a).planets(b)>0 then planets(map(a).planets(b)).visited=0
+            next
+        next
+    endif
     
     print
     color 11,0
@@ -2935,7 +2945,70 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                 planetmap(p.x,p.y,a)=-245
             next
         endif
-            
+        
+'        'Castle : Belongs to adaptmap
+'        if rnd_range(1,100)<300 then
+'            p=rnd_point
+'            if p.x>55 then p.x=55
+'            if p.y>15 then p.y=15
+'            p2.x=p.x+4
+'            p2.y=p.y+4
+'            if p2.x-p.x>10 then 
+'                if rnd_range(1,100)<50 then
+'                    p.x=p2.x-5
+'                else
+'                    p2.x=p.x+5
+'                endif
+'            endif
+'            if p2.y-p.y>10 then 
+'                if rnd_range(1,100)<50 then
+'                    p.y=p2.y-5
+'                else
+'                    p2.y=p.y+5
+'                endif
+'            endif
+'            dprint "Making vault from "&p.x &":"&p.y &" to "&p2.x &":"& p2.y
+'            for x=p.x to p2.x
+'                for y=p.y to p2.y
+'                    planetmap(x,y,a)=-4
+'                    if x=p.x or y=p.y or x=p2.x or y=p2.y then planetmap(x,y,a)=-49
+'                next
+'            next
+'            planetmap(p.x-1,p.y,a)=-50
+'            planetmap(p.x,p.y-1,a)=-50
+'            planetmap(p.x-1,p.y-1,a)=-50
+'            
+'            planetmap(p2.x+1,p.y,a)=-50
+'            planetmap(p2.x,p.y-1,a)=-50
+'            planetmap(p2.x+1,p.y-1,a)=-50
+'            
+'            planetmap(p.x-1,p2.y,a)=-50
+'            planetmap(p.x,p2.y+1,a)=-50
+'            planetmap(p.x-1,p2.y+1,a)=-50
+'            
+'            planetmap(p2.x+1,p2.y,a)=-50
+'            planetmap(p2.x,p2.y+1,a)=-50
+'            planetmap(p2.x+1,p2.y+1,a)=-50
+'            
+'            select case rnd_range(1,4)
+'            case 1
+'                planetmap(p.x,rnd_range(p.y+1,p2.y-1),a)=-157
+'            case 2
+'                planetmap(p2.x,rnd_range(p.y+1,p2.y-1),a)=-157
+'            case 3
+'                planetmap(rnd_range(p.x+1,p2.x-1),p.y,a)=-157
+'            case 4
+'                planetmap(rnd_range(p.x+1,p2.x-1),p2.y,a)=-157
+'            end select
+'            planets(a).vault.x=p.x
+'            planets(a).vault.y=p.y
+'            planets(a).vault.w=p2.x-p.x
+'            planets(a).vault.h=p2.y-p.y
+'            planets(a).vault.wd(5)=2
+'            planets(a).vault.wd(6)=-12
+'            planets(a).mon_template(12)=makemonster(1,a)
+'        endif
+'        
         if rnd_range(1,100)<3 then
             p=rnd_point
             do
@@ -2943,6 +3016,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                 p=movepoint(p,5)
             loop until rnd_range(1,100)<77
         endif
+        
         'radioactive crater   
         if rnd_range(1,200)<1+disnbase(player.c)/10 then
             p1=rnd_point
@@ -4169,28 +4243,48 @@ function makespecialplanet(a as short) as short
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
+        if p4.x<0 then p4.x=0
+        if p4.y<0 then p4.y=0
+        if p4.y>20 then p4.y=20
+        if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-261
     
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
+        if p4.x<0 then p4.x=0
+        if p4.y<0 then p4.y=0
+        if p4.y>20 then p4.y=20
+        if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-262
 
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
+        if p4.x<0 then p4.x=0
+        if p4.y<0 then p4.y=0
+        if p4.y>20 then p4.y=20
+        if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-261
         
         
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
+        if p4.x<0 then p4.x=0
+        if p4.y<0 then p4.y=0
+        if p4.y>20 then p4.y=20
+        if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-271
         
         
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
+        if p4.x<0 then p4.x=0
+        if p4.y<0 then p4.y=0
+        if p4.y>20 then p4.y=20
+        if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-270
         
         
@@ -6485,9 +6579,9 @@ function makecivilisation(slot as short,m as short) as short
     civ(slot).item(0).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,civ(slot).aggr)+rnd_range(0,civ(slot).tech)-2)/10'damage
     civ(slot).item(0).v2=(rnd_range(1,3)+rnd_range(1,3)+civ(slot).aggr+civ(slot).tech-2)'range
     civ(slot).item(0).v3=(rnd_range(0,3)+rnd_range(0,civ(slot).aggr)+rnd_range(0,civ(slot).tech)-5)'tohit
-    if civ(slot).item(0).v1<0 then civ(slot).item(0).v1=.1
-    if civ(slot).item(0).v2<0 then civ(slot).item(0).v2=1
-    if civ(slot).item(0).v3<0 then civ(slot).item(0).v3=1
+    if civ(slot).item(0).v1<=0 then civ(slot).item(0).v1=.1
+    if civ(slot).item(0).v2<=0 then civ(slot).item(0).v2=1
+    if civ(slot).item(0).v3<=0 then civ(slot).item(0).v3=1
     civ(slot).item(0).price=(civ(slot).item(0).v1*10+civ(slot).item(0).v2+civ(slot).item(0).v3)*75
     civ(slot).item(0).col=civ(slot).spec.col
     civ(slot).item(0).icon="-"
@@ -6499,8 +6593,8 @@ function makecivilisation(slot as short,m as short) as short
     civ(slot).item(1).id=202+slot*2
     civ(slot).item(1).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-2)/10'damage
     civ(slot).item(1).v3=(rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-5)'tohit
-    if civ(slot).item(1).v1<0 then civ(slot).item(1).v1=.1
-    if civ(slot).item(1).v3<0 then civ(slot).item(1).v3=1
+    if civ(slot).item(1).v1<=0 then civ(slot).item(1).v1=.1
+    if civ(slot).item(1).v3<=0 then civ(slot).item(1).v3=1
     civ(slot).item(1).price=(civ(slot).item(1).v1*10+civ(slot).item(1).v3)*50
     civ(slot).item(1).col=civ(slot).spec.col
     civ(slot).item(1).icon="("
@@ -7402,7 +7496,6 @@ sub planet_event(slot as short)
         gc.m=lastplanet
         
         
-        addportal(gc1,gc,0,ASC("#"),"A mineshaft.",14)
         makecavemap(gc,8,-1,0,0)
         planets(lastplanet)=planets(slot)
         planets(lastplanet).grav=1.4
@@ -7415,7 +7508,10 @@ sub planet_event(slot as short)
                 if planetmap(x,y,lastplanet)=-4 and rnd_range(0,100)<66 then planetmap(x,y,lastplanet)=-47
             next
         next
-
+        gc=rnd_point(lastplanet,0)
+        gc.m=lastplanet
+        addportal(gc1,gc,0,ASC("#"),"A mineshaft.",14)
+        
     endif
     
     if t=3 then
@@ -8122,6 +8218,26 @@ function is_special(m as short) as short
     next
     return 0
 end function    
+
+function get_nonspecialplanet() as short
+    dim pot(1024) as short
+    dim as short a,b,last
+    for a=0 to laststar
+        for b=1 to 9
+            if map(a).planets(b)>0 and is_special(map(a).planets(b))=0 then
+                if planetmap(0,0,map(a).planets(b))=0 then
+                    last+=1
+                    pot(last)=map(a).planets(b)
+                endif
+            endif
+        next
+    next
+    if last>0 then
+        return pot(rnd_range(1,last))
+    else 
+        return 0
+    end if
+end function
 
 function fillmap(map() as short,tile as short) as short
     dim x as short
