@@ -707,6 +707,40 @@ type _pfcords
     i as byte
 end type
 
+type _sym_matrix
+    xm as integer=15
+    item(15*15) as integer
+    declare function get_ind(x as integer,y as integer) as integer
+    declare function set_val(x as integer,y as integer, v as integer) as integer
+    declare function get_val(x as integer,y as integer) as integer
+end type
+
+function _sym_matrix.get_ind(x as integer, y as integer) as integer
+    dim i as integer
+    with this
+    if x>xm then x=xm
+    if y>xm then y=xm
+    if x<1 then x=1
+    if y<1 then y=1
+    if x>y then swap x,y
+    i=x+y*(y-1)/2
+    end with
+    return i
+end function
+
+function _sym_matrix.set_val(x as integer,y as integer,v as integer) as integer
+    dim i as integer
+    i=this.get_ind(x,y)
+    this.item(i)=v
+    return 0
+end function
+
+function _sym_matrix.get_val(x as integer,y as integer) as integer
+    dim i as integer
+    i=this.get_ind(x,y)
+    return this.item(i)
+end function
+
 'type MODE
 '  As Integer mode_num      '/* Current mode number */
 '  As Byte Ptr ptr page      '/* Pages memory */
