@@ -19,6 +19,7 @@
 #include once "exploreplanet.bas"
 #include once "texts.bas"
 #include once "crew.bas"
+#include once "kbinput.bas"
 on error goto errormessage
 
 cls
@@ -454,7 +455,7 @@ if fileexists("data/ships.csv") then
         loop until mid(text,b,1)=";"
         c=c+1
         b=1
-    loop until eof(f)
+    loop until eof(f) or c>20
     close #f
     shiptypes(17)="alien vessel"
     shiptypes(18)="ancient alien scoutship. It's hull covered in tiny impact craters"
@@ -644,8 +645,8 @@ do
     draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration     ",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit              ",,FONT2,custom,@_col
-    key=keyin("123456")
-    
+    key=keyin("1234567")
+    if key="7" then ship_design
     if key="2" then
         c=0
         chdir "savegames"

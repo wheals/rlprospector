@@ -98,6 +98,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         nexsen=senac
         'movement
         movementcost(0)=defender.engine+2-cint(defender.h_maxhull\15)+defender.manjets*(1+manjetson)
+        if movementcost(0)<1 then movementcost(0)=1
         lastaction(0)-=1
         speed(0)=speed(0)+defender.engine+2-cint(defender.h_maxhull\15)+defender.manjets
         if speed(0)<1 then speed(0)=1

@@ -1284,6 +1284,18 @@ function shipyard(pir as short=1) as short
             last=last+1
         next
     endif
+    for b=20 to 24
+        s=gethullspecs(b)
+        if s.h_desig<>"" then
+            a+=1
+            st(a)=b
+            pr(a)=s.h_price
+            ds(a)=s.h_desig
+            men=men &s.h_desig &" - "&s.h_price &"Cr./"
+            des=des &makehullbox(b) &"/"
+        endif
+    next
+    
     men=men &"Exit"
     des=des &"/"
     do 
@@ -1306,6 +1318,111 @@ function shipyard(pir as short=1) as short
         endif
     loop until c>last
     cls
+    return 0
+end function
+
+function ship_design() as short
+    dim as short ptval,pts,a,b,cur,f
+    dim as string component(10),key
+    dim price(10) as short
+    dim value(10) as short
+    dim incr(10) as short
+    dim h as _ship
+    component(1)="Hull "
+    price(1)=150
+    incr(1)=1
+    component(2)="Shield "
+    price(2)=100
+    incr(2)=1
+    component(3)="Engine "
+    price(3)=50
+    incr(3)=1
+    component(4)="Sensors "
+    price(4)=50
+    incr(4)=1
+    component(5)="Cargo "
+    price(5)=200
+    incr(5)=1
+    component(6)="Crew "
+    value(6)=5
+    price(6)=100
+    incr(6)=1
+    component(7)="Weaponslots "
+    price(7)=300
+    incr(7)=1
+    component(8)="Fuel "
+    price(8)=10
+    incr(8)=5
+    a=menu("Choose shiptype/Small Ship/Medium Ship/Big Ship/Huge Ship")
+    if a<5 then
+        if a=1 then ptval=400
+        if a=2 then ptval=550
+        if a=3 then ptval=700
+        if a=4 then ptval=850
+        pts=ptval
+        a=1
+        do
+            price(0)=0
+            for a=1 to 8
+                price(0)+=price(a)*value(a)
+                if cur=a then
+                    color 15,5
+                else
+                    color 11,0
+                endif
+                draw string(2*_FW2,(3+a)*_FH2),space(25),,FONT2,Custom,@_col
+                draw string (3*_FW2,(3+a)*_FH2),component(a)&"("&value(a)&"):"&price(a) &"Cr.",,FONT2,CUSTOM,@_COL
+            next
+            color 15,0
+            draw string(2*_FW2,2*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,3*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,3*_FH2),"Points("&ptval &"): "&pts,,FONT2,Custom,@_col
+            draw string(2*_FW2,12*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,12*_FH2),"Price: "&price(0),,FONT2,Custom,@_col
+            
+            key=keyin(key_north &key_south &"+-"&key_west &key_east)
+            if key=key_north then cur=cur-1
+            if key=key_south then cur=cur+1
+            if cur<1 then cur=8
+            if cur>8 then cur=1
+            if key=key_east or key="+" then 
+                if pts>=price(cur)*incr(cur)/10 then
+                    pts=pts-price(cur)*incr(cur)/10
+                    value(cur)+=incr(cur)
+                endif
+            endif
+            if key=key_west or key="-" then 
+                if (cur<>6 and value(cur)>0) or (cur=6 and value(cur)>5) then
+                    pts=pts+price(cur)*incr(cur)/10
+                    value(cur)-=incr(cur)
+                endif
+            endif
+        loop until ptval=0 or key=key_esc
+        if askyn("Do you want to keep this ship design?(y/n)") then
+            h.h_maxhull=value(1)
+            h.h_maxengine=value(3)
+            h.h_maxshield=value(2)
+            h.h_maxsensors=value(4)
+            h.h_maxcargo=value(5)
+            h.h_maxcrew=value(6)
+            h.h_maxweaponslot=value(7)
+            h.h_maxfuel=value(8)
+            h.h_price=price(0)
+            draw string(2*_FW2,12*_FH2),"Design Name: ",,FONT2,Custom,@_col
+            draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
+            h.h_desig =gettext(2,13,24,"")
+            draw string(2*_FW2,12*_FH2),"Design Short:",,FONT2,Custom,@_col
+            draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
+            h.h_sdesc =gettext(2,13,4,"")
+            f=freefile
+            open "data/ships.csv" for append as #f
+            print #f,""
+            print #f,h.h_desig &";"& h.h_price &";"& h.h_maxhull &";"& h.h_maxshield &";"& h.h_maxengine &";"& h.h_maxsensors &";"& h.h_maxcargo &";"& h.h_maxcrew &";"& h.h_maxweaponslot &";"& h.h_maxfuel &";"& h.h_sdesc &";"
+            close #f
+            dprint "Ship design saved"
+        endif
+    endif
     return 0
 end function
 

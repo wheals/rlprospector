@@ -1,3 +1,148 @@
+function alerts(awayteam as _monster,walking as short) as short
+    dim a as short
+    static wg as short
+    static wj as short
+    if awayteam.oxygen=awayteam.oxymax then wg=0
+    if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.move=2 then wj=0
+    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
+        dprint ("Reporting oxygen tanks half empty",14)
+        wg=1
+        for a=1 to wg
+            if _sound=0 or _sound=2 then    
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))                
+            endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+    endif
+    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
+        dprint ("Oxygen low.",14)
+        wg=2
+        for a=1 to wg
+            if _sound=0 or _sound=2 then
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))   
+                sleep 350
+            endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
+    endif
+    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
+        dprint ("Switching to oxygen reserve!",12)
+        wg=3
+        for a=1 to wg
+            if _sound=0 or _sound=2 then 
+                FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
+                sleep 350
+            endif
+        next
+        walking=0
+        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
+    endif
+    if awayteam.jpfuel<awayteam.jpfuelmax then
+        if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
+            wj=1
+            for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next  
+            walking=0  
+            dprint ("Jetpack fuel low",14)
+        endif
+        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
+            wj=2
+            for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next   
+            walking=0 
+            dprint ("Jetpack fuel very low",14)
+        endif
+        
+        if awayteam.jpfuel<5 and wj=2 then 
+            wj=3
+        for a=1 to wj
+                if _sound=0 or _sound=2 then    
+                    sleep 350
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                endif
+            next    
+            dprint ("Switching to jetpack fuel reserve",12)
+            walking=0
+        endif
+    else
+        wj=0
+    endif
+    return walking
+end function
+
+
+function low_morale_message() as short
+    dim as short a,total,average,crewmembers,who,dead
+    for a=2 to 128
+        if crew(a).hp>0 then
+            total+=10+crew(a).morale+addtalent(1,4,10)
+            crewmembers+=1
+        else
+            dead=a
+        endif
+    next
+    average=total/crewmembers
+    who=rnd_range(2,crewmembers)
+    select case average
+        case is<10
+            select case rnd_range(1,6)
+                case is=1
+                    dprint crew(who).n &" thinks aloud about 'retiring the captain by plasma rifle'"
+                case is=2
+                    dprint "Somebody has painted a message on an airlock:'Crew to captain: Home is this way.'"    
+                case is=3
+                    dprint crew(who).n &" throws his food in your direction."
+                case is=4
+                    dprint "You overhear a group of crewmen talking about mutiny"
+                case is=5
+                case is=6
+            end select
+        case 11 to 20
+            select case rnd_range(1,6)
+                case is=1
+                    dprint "A fight breaks out about the quality of the food."
+                case is=2
+                    dprint "You hear "& crew(who).n &" mutter 'Why don't you do it yourself, my captain?' before following your order."    
+                case is=3
+                    dprint "Your speech on tardiness on duty is met with little interest."
+                case is=4
+                    dprint "You learn that the crew has renamed the ship, and it is ... colorfull"
+                case is=5
+                    dprint crew(who).n &" states that he will quit the next time you dock, and that everybody who still has a full set of marbles should join him."
+                case is=6
+                    dprint crew(who).n &" greets you with 'What suicide mission will it be today?'" 
+            end select
+        case 21 to 30
+            select case rnd_range(1,6)
+                case is=1
+                    dprint crew(who).n &" tells you that there is a rather mean joke going around about you."
+                case is=2
+                    dprint crew(who).n &" asks if he can get a raise."
+                case is=3
+                    dprint crew(who).n &" reassures you that everybody is 100% behind your decions, no matter what some may say."
+                case is=4
+                    dprint crew(who).n &" reminds you that everybody makes mistakes, at least some of the time"
+                case is=5
+                    if dead<>0 then dprint crew(who).n &" is certain that the death of "&crew(dead).n &" was unavoidable."
+                case is=6
+                    dprint crew(who).n &" is certain that the pay he receives will be better as soon as the ships ventures are a little more successfull."
+            end select
+    end select
+    return 0
+end function
 
 function moneytext() as string
     dim text as string

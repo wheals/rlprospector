@@ -335,8 +335,9 @@ function make_spacemap() as short
     if findcompany(4)=0 then specialplanet(43)=32767
     
     ' The probesp
-    
+    print "Making drifters";
     for a=1 to lastdrifting
+        print ".";
         lastplanet=lastplanet+1
         drifting(a).x=rnd_range(0,sm_x)
         drifting(a).y=rnd_range(0,sm_y)
@@ -353,7 +354,7 @@ function make_spacemap() as short
         if drifting(a).s<=22 then makedrifter(drifting(a))
         drifting(a).p=show_all
     next
-    
+    print
     drifting(1).x=targetlist(firstwaypoint).x
     drifting(1).y=targetlist(firstwaypoint).y
     planets(drifting(1).m).atmos=5

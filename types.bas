@@ -1216,6 +1216,7 @@ declare function rerollshops() as short
 declare function hiring(st as short, byref hiringpool as short, hp as short) as short
 declare function shipupgrades(st as short) as short
 declare function shipyard(pir as short=1) as short
+declare function ship_design() as short
 declare function repairhull() as short
 declare function refuel() as short
 declare function casino(staked as short=0, st as short=0) as short
@@ -1313,6 +1314,7 @@ declare function rndsentence(aggr as short, intel as short) as string
 declare function showquests() as short
 declare function planetbounty() as short
 
+declare function low_morale_message() as short
 declare function es_part1() as string
 declare function Crewblock() as string
 declare function shipstatsblock() as string
