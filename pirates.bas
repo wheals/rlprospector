@@ -84,11 +84,14 @@ function playerfightfleet(f as short) as short
         for a=1 to 128
             if crew(a).hpmax>0 then player.deadredshirts+=1
         next
-        if fleet(f).ty=2 then
-            player.dead=5
-        else 
-            player.dead=13
-        endif
+        if fleet(f).ty=2 then player.dead=5
+        if fleet(f).ty=4 then player.dead=5
+        if fleet(f).ty=1 then player.dead=13
+        if fleet(f).ty=3 then player.dead=13
+        if fleet(f).ty=5 then player.dead=31
+        if fleet(f).ty=6 then player.dead=32
+        if fleet(f).ty=7 then player.dead=33
+        
     endif
     fleet(f).ty=0
     return 0

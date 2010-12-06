@@ -1,120 +1,6 @@
-function buytitle() as short
-    dim as short a,b
-    dim as integer price
-    dim as string title
-    dim sameorbetter as byte
-    a=menu("Buy title /Lord - 1000 Cr./Baron - 5000 Cr./Viscount - 10.000 Cr./Count 25.000 Cr./Marquees - 50.000 Cr./Duke - 100.000 Cr./Exit")
-    if a>0 and a<7 then
-        if a=1 then
-            title="Lord"
-            price=1000
-        endif
-        if a=2 then
-            title="Baron"
-            price=5000
-        endif
-        if a=3 then
-            title="Viscount"
-            price=10000
-        endif    
-        if a=4 then
-            title="Count"
-            price=25000
-        endif
-        if a=5 then
-            title="Marquese"
-            price=50000
-        endif
-        if a=6 then
-            title="Duke"
-            price=100000
-        endif
-        for b=1 to 6
-            if retirementassets(b+8)=1 and a<b then sameorbetter=1
-        next
-        if retirementassets(a+8)=0 and sameorbetter=0 then
-            if paystuff(price) then
-                retirementassets(a+8)=1
-            endif
-        else
-            dprint "You already have a better title."
-        endif
-    endif
-    
-    return 0
-end function
-
-
-
-function retirement() as short
-    dim as short a,b
-    dim price(9) as integer
-    dim asset(9) as string
-    dim desc(9) as string
-    dim as string mtext,htext
-    asset(1)="Muds store franchise"
-    desc(1)="A permit to operate a store under the well known 'Mud's' brand name. The opportunity to make a living by buying at insanely low prices, at negligable risk!"
-    price(1)=500
-    asset(2)="life insurance"
-    desc(2)="A small rent to be paid until your death, from your 60th birthday onwards."
-    price(2)=1000
-    asset(3)="country manor"
-    desc(3)="A nice estate in the country on a civilized World. Perfect to spend the autumn years of life."
-    price(3)= 2500
-    asset(4)="small asteroid"
-    desc(4)="A small asteroid in a colonized star system. Several rooms with lifesupport already carved out."
-    price(4)=5000
-    asset(5)="hollowed asteroid base"
-    desc(5)="A small asteroid, hollowed out, with a small self sufficient ecosystem. Enough room in the shell to house a small towns population."
-    price(5)=50000
-    asset(6)="big terraformed asteroid"
-    desc(6)="A large asteroid, big enough to hold a thin atmosphere, terraformed, self sufficient, and yet uninhabited."
-    price(6)=100000
-    asset(7)="small planet"
-    desc(7)="A small, arid planet. Thin oxygen atmosphere. Further terraforming possible"
-    price(7)= 250000
-    asset(8)="planet"
-    desc(8)="A medium sized planet with an oxygen atmosphere. It's habitable, if further terraforming would be a good investment"
-    price(8)=500000
-    asset(9)="Earthlike planet"
-    desc(9)="A planet with an oxygen atmosphere, oceans and continents. Lifeforms are present, but nothing dangerous."
-    price(9)=1000000
-    mtext="Assets/"
-    htext="/"
-    for a=1 to 9
-        mtext=mtext &asset(a) &space(26-len(asset(a)))&price(a)& "Cr./"
-        htext=htext &desc(a) &"/"
-    next
-    mtext=mtext &"back"
-    htext=htext &"/"
-    do
-        a=menu("Retirement/ retire now/ buy assets/back")
-        if a=1 then
-            if askyn("Do you really want to retire now? (y/n)") then
-                if askyn("Are you sure? (y/n)") then 
-                    player.dead=98
-                endif
-            endif
-        endif
-        if a=2 then
-            do
-                b=menu(mtext,htext)
-                
-                if b>0 and b<10 then
-                    if retirementassets(b-1)=0 or b=2 or b=1 then
-                        if paystuff(price(b)) then
-                            dprint "You buy a "&asset(b)
-                            if retirementassets(b-1)<255 then retirementassets(b-1)+=1
-                        endif
-                    else
-                        dprint "You already have that"
-                    endif
-                endif
-            loop until b=-1 or b=10
-        endif
-    loop until player.dead<>0 or a=3
-    return 0
-end function
+'
+' Calculate and display Highscore and post-mortem
+'
 
 function mercper() as short
     dim as single per
@@ -152,14 +38,9 @@ end function
 
 
 sub postmortem
-    dim a as short
-    dim b as short
-    dim c as short
-    dim f as short
-    dim ll as short
-    dim exps as short
-    dim expp as short
-    dim tp as short
+    dim as byte localdebug=1
+    dim as short a,b,c,f
+    dim as short ll,tp,exps,expp
     dim st as string
     dim per(3) as double
     dim discovered(lastspecial) as short
@@ -180,7 +61,7 @@ sub postmortem
     _tiles=1
     'count ioncanons
     for a=0 to 5
-        if player.weapons(a).desig="Disintegrator" then b=b+1
+        if player.weapons(a).made=66 then b=b+1
     next
     if b>0 then 
         artflag(4)=b
@@ -202,12 +83,18 @@ sub postmortem
     draw string (10,10), st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",,titlefont,custom,@_col
     color 11,0
     a=cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
-    b=cint((textbox(explorationtext,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
-    c=cint((textbox(listartifacts,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
+    b=cint((textbox(explorationtext ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
+    c=cint((textbox(listartifacts ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
     if c>b then
-        textbox(missiontype,_screenx/(_fw1*2)-15,a+c,30,15)
+        textbox(missiontype,_screenx/(_fw1*2)-15,c+1,30,15)
     else
-        textbox(missiontype,_screenx/(_fw1*2)-15,a+b,30,15)
+        textbox(missiontype,_screenx/(_fw1*2)-15,b+1,30,15)
+    endif
+    if localdebug=1 then
+        f=freefile
+        open "screnstats.txt" for output as #f
+        print #f,a;" ";b;" ";c;" ";_screenx/(_fw1*2)-15
+        close #f
     endif
     'sleep 800,1
     if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then
@@ -469,8 +356,9 @@ function getdeath() as string
     if player.dead=28 then death="Underestimated the risks of surgical body augmentation"
     if player.dead=29 then death="Got caught in a huge explosion"
     if player.dead=30 then death="Lost while exploring an anomaly"
-    if player.dead=31 then death="Died in battle with the "&civ(0).n 
-    if player.dead=32 then death="Died in battle with the "&civ(1).n
+    if player.dead=31 then death="Destroyed battling an ancient alien ship"
+    if player.dead=32 then death="Died in battle with the "&civ(0).n 
+    if player.dead=33 then death="Died in battle with the "&civ(1).n
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

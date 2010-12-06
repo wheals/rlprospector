@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.14b"
+const __VERSION__="0.1.15"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -42,7 +42,7 @@ const _debug_bones=0
 const make_vault=0
 const addpyramids=0
 const com_log=0
-const startingmoney=50000
+const startingmoney=500
 const _spawnoff=0
 const show_moral=0
 const makemoodlog=0
@@ -707,39 +707,83 @@ type _pfcords
     i as byte
 end type
 
-type _sym_matrix
-    xm as integer=15
-    item(15*15) as integer
-    declare function get_ind(x as integer,y as integer) as integer
-    declare function set_val(x as integer,y as integer, v as integer) as integer
-    declare function get_val(x as integer,y as integer) as integer
-end type
 
-function _sym_matrix.get_ind(x as integer, y as integer) as integer
-    dim i as integer
-    with this
-    if x>xm then x=xm
-    if y>xm then y=xm
-    if x<1 then x=1
-    if y<1 then y=1
-    if x>y then swap x,y
-    i=x+y*(y-1)/2
-    end with
-    return i
-end function
+Type vector
+        x As Integer
+        y As Integer
+        declare Constructor(x as Integer, y as Integer)
+End Type
 
-function _sym_matrix.set_val(x as integer,y as integer,v as integer) as integer
-    dim i as integer
-    i=this.get_ind(x,y)
-    this.item(i)=v
-    return 0
-end function
+Constructor vector (x as Integer, y as Integer)
+        this.x = x
+        this.y = y
+End Constructor
 
-function _sym_matrix.get_val(x as integer,y as integer) as integer
-    dim i as integer
-    i=this.get_ind(x,y)
-    return this.item(i)
-end function
+Type _sym_matrix
+       
+        xm As Integer
+        vmax as integer
+        vmin as integer
+        item As Integer Ptr
+       
+        Declare Function get_ind(x As Integer,y As Integer) As Integer
+        Declare Function set_val(x As Integer,y As Integer, v As Integer) As Integer
+        Declare Function get_val(x As Integer,y As Integer) As Integer
+        Declare Property Val(xy As vector) As Integer
+        Declare Property Val(xy As vector,v As Integer)
+
+        Declare Constructor (ByVal size As Integer)
+        Declare Destructor ()
+End Type
+
+Constructor _sym_matrix (ByVal size As Integer)
+        xm = size
+        item = New Integer[size * size]
+End Constructor
+
+Destructor _sym_matrix
+        Delete[] item
+End Destructor
+
+Function _sym_matrix.get_ind(x As Integer, y As Integer) As Integer
+        Dim i As Integer
+        With This
+                x+=1
+                y+=1
+                If x>xm Then x=xm
+                If y>xm Then y=xm
+                If x<1 Then x=1
+                If y<1 Then y=1
+                If x>y Then Swap x,y
+                i=x+y*(y-1)/2
+        End With
+        Return i
+End Function
+
+Function _sym_matrix.set_val(x As Integer,y As Integer,v As Integer) As Integer
+        Dim i As Integer
+        i=this.get_ind(x,y)
+        if v>this.vmax and this.vmax<>0 then v=this.vmax
+        if v<this.vmin then v=this.vmin
+        this.item[i]=v
+        Return 0
+End Function
+
+Function _sym_matrix.get_val(x As Integer,y As Integer) As Integer
+        Dim i As Integer
+        i=this.get_ind(x,y)
+        Return this.item[i]
+End Function
+
+Property _sym_matrix.val(xy As vector) As Integer
+        Return this.get_val(xy.x,xy.y)
+End Property
+
+Property _sym_matrix.val(xy As vector,v As Integer)
+        this.set_val(xy.x,xy.y,v)
+End Property
+
+
 
 'type MODE
 '  As Integer mode_num      '/* Current mode number */
@@ -1216,7 +1260,7 @@ declare function rerollshops() as short
 declare function hiring(st as short, byref hiringpool as short, hp as short) as short
 declare function shipupgrades(st as short) as short
 declare function shipyard(pir as short=1) as short
-declare function ship_design() as short
+declare function ship_design(pir as short) as short
 declare function repairhull() as short
 declare function refuel() as short
 declare function casino(staked as short=0, st as short=0) as short

@@ -7732,6 +7732,9 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
         if show_all=1 then planetmap(p.x,p.y,slot)=-planetmap(p.x,p.y,slot)
         if rnd_range(1,100)<pyr+5 or addpyramids=1 then
             p=movepoint(p,5)
+            from.x=p.x
+            from.y=p.y
+            from.m=slot
             lastplanet=lastplanet+1
             makelabyrinth(lastplanet)
             planets(lastplanet).depth=1
@@ -7827,9 +7830,7 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
             endif
                 
             p=rnd_point(slot,0)
-            from.x=p.x
-            from.y=p.y
-            from.m=slot
+            
             do
                 p=rnd_point(lastplanet,0)
             loop until not (p.x>r.x and p.x<r.x+r.w and p.y>r.y and p.y<r.y+r.h)

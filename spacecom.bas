@@ -945,6 +945,7 @@ function com_sinkheat(s as _ship,manjets as short) as short
     if sink>0 and s.shield<s.shieldmax then
         sink-=3
     endif
+    if sink<=0 then sink=1
     do
         heat=0
         for a=1 to 25

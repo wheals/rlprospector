@@ -146,13 +146,16 @@ function calc_resrev() as short
     static v as integer
     static called as byte
     if called=0 or called mod 10=0 then
+        v=0
         for i=0 to lastitem
             if item(i).ty=15 and item(i).w.s<0 then v=v+item(i).v5
         next
     endif
     if called=10 then called=0
     called+=1
-    if v>reward(1) then reward(1)=v
+    if v>reward(0) then 
+        reward(0)=v
+    endif
     return 0
 end function
 
@@ -2492,58 +2495,6 @@ function removeequip() as short
     return 0
 end function
 
-function listartifacts() as string
-    dim as short a,c
-    dim flagst(16) as string
-    dim as short hd,sd
-    flagst(1)="Fuel System"
-    flagst(2)=" hand disintegrator"
-    flagst(3)="Scanner"
-    flagst(4)=" ship disintegrator"
-    flagst(5)="Bodyarmor"
-    flagst(6)="Engine"
-    flagst(7)="Sensors"
-    flagst(8)=" cryochamber"
-    flagst(9)="Teleportation device"
-    flagst(10)="Air recycler"
-    flagst(11)="Data crystal(s)"
-    flagst(12)="Cloaking device"
-    flagst(13)="Wormhole shield"
-    flagst(16)="Wormhole navigation device"
-    color 15,0
-    flagst(0)=" {15} Alien Artifacts {11}|"
-    for a=0 to 5
-        if player.weapons(a).desig="Disintegrator" then sd+=1
-    next
-    for a=0 to lastitem
-        if item(a).w.s=-1 and item(a).id=97 then hd+=1
-    next
-    for a=1 to 16
-        if artflag(a)>0 then
-            if a=2 or a=4 or a=8 then
-                if a=2 then 
-                    if hd=1 then flagst(0)=flagst(0) & hd & flagst(a)&"|"
-                    if hd>1 then flagst(0)=flagst(0) & hd & flagst(a)&"s|"
-                endif
-                if a=4 then 
-                    if sd=1 then flagst(0)=flagst(0) & sd & flagst(a)&"|"
-                    if sd>1 then flagst(0)=flagst(0) & sd & flagst(a)&"s|"
-                endif
-                if a=8 then 
-                    if player.cryo=1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"|"
-                    if player.cryo>1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"s|"
-                endif
-            else
-                c=c+1
-                flagst(0)=flagst(0) &flagst(a) &"|"
-            endif
-        endif
-    next
-    if c=0 then
-        flagst(0)=flagst(0) &"      {14} None |"
-    endif
-    return flagst(0)    
-end function
 
 function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
     dim as short b,a,set,lastinv
@@ -2637,6 +2588,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 swap mno(b),mno(b+1)
                 swap mls(b),mls(b+1)
                 swap mit(b),mit(b+1)
+                swap mdesc(b),mdesc(b+1)
             endif
         next
     next
@@ -2678,7 +2630,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 color 0,0
                 draw string (3*_fw1,3*_fh1+a*_fh2),space(35),,font2,custom,@_col
                 if cu=a then
-                    textbox(mdesc(a+offset),30,3,25,15,1)
+                    textbox(mdesc(a+offset),40,3,25,15,1)
                     color 15,5
                 else
                     color 11,0
@@ -2699,6 +2651,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if key=key_enter then i=cu+offset
         if key=key_esc then i=-1
         if player.dead<>0 then return -1
+        cls
     loop until i<>0
     if i>0 then i=mit(i)
     screenshot(2)

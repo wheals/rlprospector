@@ -1,3 +1,7 @@
+'
+' File Input/output routines
+'
+
 function loadmap(m as short,slot as short)as short
     dim as short f,b,x,y
     f=freefile

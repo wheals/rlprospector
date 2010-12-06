@@ -1479,7 +1479,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             
         endif
         
-        if player.turn mod 5=0 and rnd_range(1,100)<5 then low_morale_message
+        if player.turn mod 5=0 then low_morale_message
         
         color 11,0
         locate 24,63
@@ -1700,7 +1700,7 @@ sub displayship(show as byte=0)
         color 12,0
     endif
     
-    if player.turn mod 20=0 and rnd_range(1,100)<5 then low_morale_message
+    if player.turn mod 20=0 then low_morale_message
     
     color 11,0
     draw string(62*_fw1,(wl+2)*_fh2),"Credits:"&player.money &"    ",,Font2,custom,@_col

@@ -743,7 +743,7 @@ function addmember(a as short) as short
             crew(slot).talents(29)=1
             crew(slot).paymod=2
         endif  
-        
+        'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
     endif     
@@ -848,34 +848,49 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
             endif
             
             if b=6 then 'Squad leader
-                if maxsecurity>0 then 
-                    if player.money<wage*2 then
+                maxsec=maxsecurity()
+                dprint "No. of squad leaders to hire. (Max: "& minimum(maxsec,fix(player.money/wage))&")"
+                c=getnumber(0,maxsec,0)
+                if maxsec>0 then 
+                    if player.money<wage*2*c then
                         dprint "Not enough money for first wage."
                     else
-                        player.money-=wage*2
-                        hiringpool+=addmember(16)
+                        for d=1 to c
+                            player.money-=wage*2
+                            hiringpool+=addmember(16)
+                        next
                     endif
                 endif
             endif
             
             if b=7 then 'Sniper
-                if maxsecurity>0 then 
-                    if player.money<wage*2 then
+                maxsec=maxsecurity()
+                dprint "No. of snipers to hire. (Max: "& minimum(maxsec,fix(player.money/wage))&")"
+                c=getnumber(0,maxsec,0)
+                if maxsec>0 then 
+                    if player.money<wage*2*c then
                         dprint "Not enough money for first wage."
                     else
-                        player.money-=wage*2
-                        hiringpool+=addmember(17)
+                        for d=1 to c
+                            player.money-=wage*2
+                            hiringpool+=addmember(17)
+                        next
                     endif
                 endif
             endif
             
             if b=8 then 'Paramedic
-                if maxsecurity>0 then 
-                    if player.money<wage*2 then
+                maxsec=maxsecurity()
+                dprint "No. of paramedics to hire. (Max: "& minimum(maxsec,fix(player.money/wage))&")"
+                c=getnumber(0,maxsec,0)
+                if maxsec>0 then 
+                    if player.money<wage*2*c then
                         dprint "Not enough money for first wage."
                     else
-                        player.money-=wage*2
-                        hiringpool+=addmember(18)
+                        for d=1 to c
+                            player.money-=wage*2
+                            hiringpool+=addmember(18)
+                        next
                     endif
                 endif
             endif

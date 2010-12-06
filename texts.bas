@@ -83,12 +83,20 @@ function alerts(awayteam as _monster,walking as short) as short
     return walking
 end function
 
+function makehullbox(t as short) as string
+    dim as _ship s
+    dim as string box
+    s=gethullspecs(t)
+    box=s.h_desc &" | | Hull:"&s.h_maxhull &" | Shield:"&s.h_maxshield &" | Engine:"&s.h_maxengine &" | Sensors:"&s.h_maxsensors 
+    box=box &" | Crew:"&s.h_maxcrew &" | Cargobays:"&s.h_maxcargo &" | Weapon turrets:" &s.h_maxweaponslot &" | Fuelcapacity:"&s.h_maxfuel &" |"
+    return box
+end function
 
 function low_morale_message() as short
     dim as short a,total,average,crewmembers,who,dead
     for a=2 to 128
         if crew(a).hp>0 then
-            total+=10+crew(a).morale+addtalent(1,4,10)
+            total+=crew(a).morale+addtalent(1,4,10)
             crewmembers+=1
         else
             dead=a
@@ -96,9 +104,10 @@ function low_morale_message() as short
     next
     average=total/crewmembers
     who=rnd_range(2,crewmembers)
+    if rnd_range(1,100)>10+average then return 0
     select case average
         case is<10
-            select case rnd_range(1,6)
+            select case rnd_range(1,10)
                 case is=1
                     dprint crew(who).n &" thinks aloud about 'retiring the captain by plasma rifle'"
                 case is=2
@@ -108,10 +117,21 @@ function low_morale_message() as short
                 case is=4
                     dprint "You overhear a group of crewmen talking about mutiny"
                 case is=5
+                    dprint crew(who).n &" has a nervous breakdown."
                 case is=6
+                    dprint crew(who).n &" freaks out, certain that the whole crew is going to die horribly."
+                case is=7
+                    dprint "You catch " &crew(who).n &" staring down the barrel of his gun."
+                case is=8
+                    dprint crew(who).n &" wonders aloud about whether his uniform is strong enough to hang himself with."
+                case is=9
+                    dprint crew(who).n &" rants about how there's no adventure out here, only death and horror."
+                case is=10
+                    dprint crew(who).n &" rants about how you're the worst captain ever, and that you couldn't command your way out of a nutsack."
+
             end select
         case 11 to 20
-            select case rnd_range(1,6)
+            select case rnd_range(1,16)
                 case is=1
                     dprint "A fight breaks out about the quality of the food."
                 case is=2
@@ -124,9 +144,30 @@ function low_morale_message() as short
                     dprint crew(who).n &" states that he will quit the next time you dock, and that everybody who still has a full set of marbles should join him."
                 case is=6
                     dprint crew(who).n &" greets you with 'What suicide mission will it be today?'" 
+                case is=7
+                    dprint "A fight breaks out over the away team equipment."
+                case is=8
+                    dprint "A fight breaks out over the quality of the crew quarters."
+                case is=9
+                    dprint "A fight breaks out over which crew member has made the most mistakes so far."
+                case is=10
+                    dprint "A fight breaks out over who *needs* cybernetic implants."
+                case is=11
+                    dprint "A fight breaks out over who is getting the most pay."
+                case is=12
+                    dprint "A fight breaks out over the color of the ship's paint."
+                case is=13
+                    dprint "You catch " &crew(who).n &" drinking at his post."
+                case is=14
+                    dprint crew(who).n &" wishes aloud that he had better equipment... or a better leader."
+                case is=15
+                    dprint crew(who).n &" wonders aloud about whether any amount of money could be worth *this*."
+                case is=16    
+                    dprint crew(who).n &" obsessively reviews his last will and testament."
+
             end select
         case 21 to 30
-            select case rnd_range(1,6)
+            select case rnd_range(1,9)
                 case is=1
                     dprint crew(who).n &" tells you that there is a rather mean joke going around about you."
                 case is=2
@@ -139,6 +180,12 @@ function low_morale_message() as short
                     if dead<>0 then dprint crew(who).n &" is certain that the death of "&crew(dead).n &" was unavoidable."
                 case is=6
                     dprint crew(who).n &" is certain that the pay he receives will be better as soon as the ships ventures are a little more successfull."
+                case is=7
+                    dprint crew(who).n &" mutters something about how this kind of thing was a lot more fun as a holodeck simulation."
+                case is=8
+                    dprint crew(who).n &" seems a little skittish... more so than when he first signed on."
+                case is=9
+                    dprint crew(who).n &" says 'Hey, buck up. We're not dead yet, right? ...Right?'"
             end select
     end select
     return 0
@@ -150,13 +197,13 @@ function moneytext() as string
     dim per(3) as single
     text=text &" || "
     if player.money-500>0 then
-        text=text &" Made a profit of {10} "&player.money-500 &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &"Made a profit of {10} "&player.money-500 &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500=0 then
-        text=text &" Didn't earn any money in {15} "&player.turn &" {11} turns." 
+        text=text &"Didn't earn any money in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500<0 then
-        text=text &" Made a loss of {12} "&abs(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &"Made a loss of {12} "&abs(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif 
     
     text=text & " | "
@@ -275,12 +322,69 @@ function uniques() as string
         endif
     next
     if platforms>1 then text=text & platforms &" ancient refueling platforms"
-    if platforms=1 then text=text & "A ancient refueling platform"
+    if platforms=1 then text=text & "An ancient refueling platform"
     text=text &"|"
     return text
 end function
 
+
+function listartifacts() as string
+    dim as short a,c
+    dim flagst(16) as string
+    dim as short hd,sd
+    flagst(1)="Fuel System"
+    flagst(2)=" hand disintegrator"
+    flagst(3)="Scanner"
+    flagst(4)=" ship disintegrator"
+    flagst(5)="Bodyarmor"
+    flagst(6)="Engine"
+    flagst(7)="Sensors"
+    flagst(8)=" cryochamber"
+    flagst(9)="Teleportation device"
+    flagst(10)="Air recycler"
+    flagst(11)="Data crystal(s)"
+    flagst(12)="Cloaking device"
+    flagst(13)="Wormhole shield"
+    flagst(16)="Wormhole navigation device"
+    color 15,0
+    for a=0 to 5
+        if player.weapons(a).desig="Disintegrator" then sd+=1
+    next
+    for a=0 to lastitem
+        if item(a).w.s=-1 and item(a).id=97 then hd+=1
+    next
+    for a=1 to 16
+        if artflag(a)>0 then
+            if a=2 or a=4 or a=8 then
+                if a=2 then 
+                    if hd=1 then flagst(0)=flagst(0) & hd & flagst(a)&"|"
+                    if hd>1 then flagst(0)=flagst(0) & hd & flagst(a)&"s|"
+                endif
+                if a=4 then 
+                    if sd=1 then flagst(0)=flagst(0) & sd & flagst(a)&"|"
+                    if sd>1 then flagst(0)=flagst(0) & sd & flagst(a)&"s|"
+                endif
+                if a=8 then 
+                    if player.cryo=1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"|"
+                    if player.cryo>1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"s|"
+                endif
+            else
+                c=c+1
+                flagst(0)=flagst(0) &flagst(a) &"|"
+            endif
+        endif
+    next
+    if c=0 and sd=0 and hd=0 then
+        flagst(0)=flagst(0) &"      {14} None |"
+    endif
     
+    flagst(0)="|{15}Alien Artifacts {11}|"&flagst(0)
+    if sd>1 then flagst(0)=flagst(0) &sd &" Ship Disintegrators|"
+    if sd=1 then flagst(0)=flagst(0) &sd &" Ship Disintegrator|"
+    if hd>1 then flagst(0)=flagst(0) & hd &" portable Disintegrators|"
+    if hd=1 then flagst(0)=flagst(0) & hd &" portable Disintegrator|"
+    return flagst(0)    
+end function
 
 function explorationtext() as string
     dim text as string
@@ -307,7 +411,7 @@ function explorationtext() as string
             if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
         endif
     next
-    text=text &" |   {15} Discoveries {11} |Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (" &explper &" %) |"
+    text="|{15} Discoveries:{11}|Discovered " & exps & " Systems and mapped " & expp & " of " &tp &" Planets. (" &explper &" %) |"
     
     b=0
     for a=0 to 25
@@ -317,7 +421,11 @@ function explorationtext() as string
         text=text & "|No remarkable planets discovered."
     endif
     if b>0 then
-        text=text & "|"& b &" remarkable planets discovered."
+        if b=1 then
+            text=text & "|"& b &" remarkable planet discovered."
+        else
+            text=text & "|"& b &" remarkable planets discovered."
+        endif
     endif
     
     text=text & " |Defeated "
@@ -327,7 +435,7 @@ function explorationtext() as string
     if player.deadredshirts=0 then 
         text=text & " |Set new safety standards for space exploration by losing not a single crewmember."
     else
-        text=text & " |{10} "& player.deadredshirts &" {11} casualties among the crew."
+        text=text & " |{12} "& player.deadredshirts &" {11} casualties among the crew."
     endif
     text=text &" |"
     return text
@@ -666,15 +774,15 @@ function es_part1() as string
     if mpy<120 then t=t &" You lead a modest life, with nothing but a small pension and little assets."
     
     if mpy>=120 and mpy<500 then
-        t=t &" You lead a live of leasure, you rarely if ever need to take on a job to get through a tight spot."
+        t=t &" You lead a life of leasure, you rarely if ever need to take on a job to get through a tight spot."
     endif
     
     if mpy>=500 and mpy<1200 then
-        t=t &" You lead a live of leasure, and only work when you want to."
+        t=t &" You lead a life of leasure, and only work when you want to."
     endif
     
     if mpy>=1200 and mpy<2400 then
-        t=t &" You lead a live of leasure and modest luxury."
+        t=t &" You lead a life of leasure and modest luxury."
     endif
     
     if mpy>=2400 and mpy<4800 then

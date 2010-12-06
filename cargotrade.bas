@@ -69,16 +69,6 @@ function drawroulettetable() as short
     return 0
 end function
 
-
-function makehullbox(t as short) as string
-    dim as _ship s
-    dim as string box
-    s=gethullspecs(t)
-    box=s.h_desc &" | | Hull:"&s.h_maxhull &" | Shield:"&s.h_maxshield &" | Engine:"&s.h_maxengine &" | Sensors:"&s.h_maxsensors 
-    box=box &" | Crew:"&s.h_maxcrew &" | Cargobays:"&s.h_maxcargo &" | Weapon turrets:" &s.h_maxweaponslot &" | Fuelcapacity:"&s.h_maxfuel &" |"
-    return box
-end function
-
 function gethullspecs(t as short) as _ship
     dim as short f,a,b
     dim as string word(11)
@@ -801,7 +791,6 @@ function casino(staked as short=0, st as short=-1) as short
             endif
             if rnd_range(1,100)<66 and player.money>=0 then
                 b=rnd_range(1,29)
-                b=29
                 c=rnd_range(0,2)
                 d=rnd_range(1,5)
                 if faction(0).war(1)>50 or player.tradingmoney/player.money>0.5 then 
@@ -858,7 +847,7 @@ function casino(staked as short=0, st as short=-1) as short
                         text="A merchant captain offers to sell sensor data from his trip form station "&c &" to station "&d &" for " &pr &" Credits."
                     endif
                     ba(0)=10
-                    if askyn(text) then
+                    if askyn(text &"(y/n)") then
                         if paystuff(pr) then
                             dprint "The merchant captain hands you a data crystal."
                             for e=ba(c) to ba(d)
@@ -1237,7 +1226,7 @@ end function
 
 
 function shipyard(pir as short=1) as short
-    dim as short a,b,c,d,e,last
+    dim as short a,b,c,d,e,last,designshop,ex
     dim as string men,des
     dim s as _ship
     dim pr(16) as ushort
@@ -1287,21 +1276,31 @@ function shipyard(pir as short=1) as short
     for b=20 to 24
         s=gethullspecs(b)
         if s.h_desig<>"" then
-            a+=1
+
             st(a)=b
             pr(a)=s.h_price
             ds(a)=s.h_desig
             men=men &s.h_desig &" - "&s.h_price &"Cr./"
             des=des &makehullbox(b) &"/"
+            last+=1
+            a+=1
         endif
     next
+    
+    if pir=1 or pir=3 then
+        men=men & "Design Hull/"
+        designshop=last+1
+        ex=last+2
+    else
+        ex=last+1
+    endif
     
     men=men &"Exit"
     des=des &"/"
     do 
         displayship
         c=menu(men,des)
-        if c<last+1 then
+        if c<last then
             if paystuff(pr(c)) then
                 if st(c)<>player.h_no then
                     if upgradehull(st(c),player)=-1 then
@@ -1316,13 +1315,14 @@ function shipyard(pir as short=1) as short
             endif
             displayship
         endif
-    loop until c>last
+        if c=designshop then ship_design(pir)
+    loop until c=ex or c=-1
     cls
     return 0
 end function
 
-function ship_design() as short
-    dim as short ptval,pts,a,b,cur,f
+function ship_design(pir as short) as short
+    dim as short ptval,pts,a,b,cur,f,maxweapon
     dim as string component(10),key
     dim price(10) as short
     dim value(10) as short
@@ -1353,12 +1353,17 @@ function ship_design() as short
     component(8)="Fuel "
     price(8)=10
     incr(8)=5
-    a=menu("Choose shiptype/Small Ship/Medium Ship/Big Ship/Huge Ship")
-    if a<5 then
-        if a=1 then ptval=400
-        if a=2 then ptval=550
-        if a=3 then ptval=700
-        if a=4 then ptval=850
+    if pir=3 then
+        a=menu("Choose shiptype/Small Ship/Medium Ship/Big Ship/Huge Ship/Exit")
+    else
+        a=menu("Choose shiptype/Small Ship/Medium Ship/Exit")
+    endif
+    if ((pir=3 and a<5) or (pir=1 and a<3)) and a>0 then
+        maxweapon=a+2
+        if a=1 then ptval=300
+        if a=2 then ptval=450
+        if a=3 then ptval=600
+        if a=4 then ptval=750
         pts=ptval
         a=1
         do
@@ -1387,9 +1392,11 @@ function ship_design() as short
             if cur<1 then cur=8
             if cur>8 then cur=1
             if key=key_east or key="+" then 
-                if pts>=price(cur)*incr(cur)/10 then
-                    pts=pts-price(cur)*incr(cur)/10
-                    value(cur)+=incr(cur)
+                if cur<>7 or value(cur)<maxweapon then
+                    if pts>=price(cur)*incr(cur)/10 then
+                        pts=pts-price(cur)*incr(cur)/10
+                        value(cur)+=incr(cur)
+                    endif
                 endif
             endif
             if key=key_west or key="-" then 
@@ -1417,8 +1424,7 @@ function ship_design() as short
             h.h_sdesc =gettext(2,13,4,"")
             f=freefile
             open "data/ships.csv" for append as #f
-            print #f,""
-            print #f,h.h_desig &";"& h.h_price &";"& h.h_maxhull &";"& h.h_maxshield &";"& h.h_maxengine &";"& h.h_maxsensors &";"& h.h_maxcargo &";"& h.h_maxcrew &";"& h.h_maxweaponslot &";"& h.h_maxfuel &";"& h.h_sdesc &";"
+            print #f,h.h_desig &";"& h.h_price &";"& h.h_maxhull &";"& h.h_maxshield &";"& h.h_maxengine &";"& h.h_maxsensors &";"& h.h_maxcargo &";"& h.h_maxcrew &";"& h.h_maxweaponslot &";"& h.h_maxfuel &";"& h.h_sdesc &";" & h.h_desig &";"
             close #f
             dprint "Ship design saved"
         endif
@@ -2846,7 +2852,7 @@ function rerollshops() as short
         shopitem(a,21)=makeitem(32)
         a+=1
     endif
-    if rnd_range(1,100)<15 then    
+    if rnd_range(1,100)<25 then    
         shopitem(a,21)=makeitem(33)
         a+=1
     endif
@@ -2859,7 +2865,7 @@ function rerollshops() as short
         shopitem(a,21)=makeitem(57)
         a+=1
     endif
-    if rnd_range(1,100)<15 then    
+    if rnd_range(1,100)<25 then    
         shopitem(a,21)=makeitem(58)
         a+=1
     endif
@@ -2879,7 +2885,7 @@ function rerollshops() as short
         shopitem(a,21)=makeitem(63)
         a+=1
     endif
-    if rnd_range(1,100)<15 then    
+    if rnd_range(1,100)<20 then    
         shopitem(a,21)=makeitem(64)
         a+=1
     endif
@@ -2891,8 +2897,16 @@ function rerollshops() as short
         shopitem(a,21)=makeitem(68)
         a+=1
     endif
-    if rnd_range(1,100)<15 then    
+    if rnd_range(1,100)<20 then    
         shopitem(a,21)=makeitem(69)
+        a+=1
+    endif
+    if rnd_range(1,100)<45 then    
+        shopitem(a,21)=makeitem(82)
+        a+=1
+    endif
+    if rnd_range(1,100)<45 then    
+        shopitem(a,21)=makeitem(83)
         a+=1
     endif
     for b=0 to 5

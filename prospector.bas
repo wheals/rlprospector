@@ -4,6 +4,7 @@
 #include once "ext/graphics/font.bi"
 #include once "types.bas"
 #include once "tiles.bas"
+#include once "retirement.bas"
 #include once "fmod.bi"
 #include once "math.bas" 
 #include once "pirates.bas"
@@ -446,16 +447,15 @@ if fileexists("data/ships.csv") then
     open "data/ships.csv" for input as #f
     b=1
     c=0
-    do
+    for c=0 to 16
         line input #f,text
         shiptypes(c)=""
         do
             shiptypes(c)=shiptypes(c)&mid(text,b,1)
             b=b+1
         loop until mid(text,b,1)=";"
-        c=c+1
         b=1
-    loop until eof(f) or c>20
+    next
     close #f
     shiptypes(17)="alien vessel"
     shiptypes(18)="ancient alien scoutship. It's hull covered in tiny impact craters"
@@ -645,8 +645,8 @@ do
     draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration     ",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit              ",,FONT2,custom,@_col
-    key=keyin("1234567")
-    if key="7" then ship_design
+    key=keyin("123456")
+    'if key="7" then ship_design(1)
     if key="2" then
         c=0
         chdir "savegames"
@@ -852,6 +852,9 @@ if player.dead>0 then
     if player.dead=28 then text="The last thing you remember is the doctor giving you an injection. Your corpse will be disposed of."
     if player.dead=29 then text="A huge wall of light and fire appears on the horizon. Within the blink of an eye it rushes over you, dispersing your ashes in the wind."
     if player.dead=30 then text="High gravity shakes your ship. Suddenly an energy discharge out of nowhere evaporates your ship!"
+    if player.dead=31 then text="Hardly damaged the unknown vessel continues it's way across the stars, ignoring the burning wreckage of your ship."
+    if player.dead=32 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
+    if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
     if player.dead=98 then 
         endstory=es_part1
         textbox (endstory,2,2,_screenx/_fw2-5)

@@ -189,7 +189,7 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
         endif
         if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
             a=findbest(50,-1)
-            if kit>0 then 
+            if a>0 then 
                 kit=item(a).v1
                 destroyitem(a)
             else
@@ -273,7 +273,12 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
                     if enemy(a).hpmax<0 then enemy(a).hpmax=0
                     if enemy(a).slot>=0 then reward(1)=reward(1)+(10+kit+skill+addtalent(4,14,1)+enemy(a).biomod*enemy(a).hpmax)/planets(slot).mon_disected(enemy(a).slot)
                     enemy(a).hpmax=0
-                    b=1                    
+                    b=1            
+                    if kit>0 and rnd_range(1,6)+rnd_range(1,6)++maximum(player.doctor/2,player.science)<9 then
+                        kit=findbest(48,-1)
+                        dprint "The autopsy kit is empty"
+                        destroyitem(kit)
+                    endif
                 else
                     dprint "No science officer or doctor in the team."
                 endif
@@ -316,6 +321,11 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
                 endif
                 if tmap(awayteam.c.x,awayteam.c.y).disease>0 and rnd_range(1,6)+rnd_range(1,6)+maximum(player.doctor,player.science/2)>tmap(awayteam.c.x,awayteam.c.y).disease/2+7 then dprint "The plants here seem to be a host to dangerous "&disease(tmap(awayteam.c.x,awayteam.c.y).disease).cause &"."
                 planets(slot).plantsfound=planets(slot).plantsfound+1
+                if kit>0 and rnd_range(1,6)+rnd_range(1,6)++maximum(player.doctor/2,player.science)<9 then
+                    kit=findbest(49,-1)
+                    dprint "The botany kit is empty"
+                    destroyitem(kit)
+                endif
             endif
             tmap(awayteam.c.x,awayteam.c.y).vege=0
         else
@@ -1339,7 +1349,7 @@ function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as by
     dim as short lsp,x,y,slot
     slot=player.map
     if planets(slot).depth=0 then
-        dawn=dawn+planets(slot).rot
+        dawn=dawn+planets(slot).rot/5
         if dawn>60 then dawn=dawn-60
         dawn2=dawn+30
         if dawn2>60 then dawn2=dawn2-60
@@ -1995,7 +2005,7 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
                 dprint "We don't have a satellite in orbit"
             else
                 if instr(text,"LIFE")>0 then
-                    
+                    ep_heatmap(awayteam,enemy(),lastenemy,lavapoint(),5)
                 else
                     a=rnd_range(0,lastlocalitem)
                     if item(li(a)).ty=15 and item(li(a)).w.p=0 and item(li(a)).w.s=0 then
@@ -2011,12 +2021,17 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
             dprint "We are at " &ship.x &":" &ship.y
         endif
         if instr(text,"LAUNC")>0 or instr(text,"START")>0 then
-            if askyn("Are you certain? you want to launch on remote and leave you behind?") then 
-                if planets(slot).depth=0 then 
-                    player.dead=4
-                else
-                    dprint "Good luck then."
-                    ship.m=0
+            if (slot=specialplanet(2) and specialflag(2)<2) or (slot=specialplanet(27) and specialflag(27)=0) then
+                if slot=specialplanet(2) then dprint "We can't start untill we disabled the automatic defense system."
+                if slot=specialplanet(27) then dprint "Can't get her up from this surface. She is stuck."
+            else
+                if askyn("Are you certain? you want to launch on remote and leave you behind? (y/n)") then 
+                    if planets(slot).depth=0 then 
+                        player.dead=4
+                    else
+                        dprint "Good luck then."
+                        ship.m=0
+                    endif
                 endif
             endif
         endif
