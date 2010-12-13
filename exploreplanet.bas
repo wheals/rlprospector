@@ -1411,6 +1411,8 @@ function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as sh
                         alienbomb(awayteam,li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
                         if dam>0 then dprint damawayteam(awayteam,dam)
                         if awayteam.hp<=0 then player.dead=29
+                        li(a)=li(lastlocalitem)
+                        lastlocalitem-=1
                     endif
                 endif
             endif
@@ -2203,6 +2205,7 @@ function ep_helmet(awayteam as _monster) as short
                 'Opening Helmets
                 if planets(slot).atmos>1 and planets(slot).atmos<8 then
                     awayteam.helmet=0
+                    awayteam.oxygen=awayteam.oxymax
                     dprint "Opening helmets"
                 else
                     dprint "We can't open our helmets here"
@@ -2385,7 +2388,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     endif
     
     if no_key=key_wait then
-        dprint "Choose target"
+        dprint "Choose target" &range
         p=awayteam.c
         a=0
         do 
@@ -2397,21 +2400,21 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
             endif
             p1=p
             no_key=cursor(p,slot)
-            if distance(p,awayteam.c)<b then p=p1
+            if distance(p,awayteam.c)>range then p=p1
             if no_key=key_te or ucase(no_key)=" " or multikey(SC_ENTER) then a=1
             if no_key=key_quit or multikey(SC_ESCAPE) then a=-1    
         loop until a<>0
-        autofire_target=p1
+        autofire_target=p
         
         if a>0 then
             if distance(awayteam.c,autofire_target)<=range then
                 awayteam.lastaction+=1              
-                pathblock(awayteam.c,autofire_target,slot,3,scol)
-                lp=line_in_points(awayteam.c,autofire_target,wp())
-                for b=1 to lp-1
+                lp=line_in_points(autofire_target,awayteam.c,wp())
+                for b=1 to lp
                     color scol,0
-                    if vismask(wp(b).x,wp(b).y)>0 then draw string(wp(b).x*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
-                    b=ep_fireeffect(wp(b),slot,b,lp-1,enemy(),lastenemy,awayteam,mapmask())
+                    if vismask(wp(b).x,wp(b).y)>0 and b<lp then draw string(wp(b).x*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
+                    b=ep_fireeffect(wp(b),slot,b,lp,enemy(),lastenemy,awayteam,mapmask())
+                    sleep 15
                 next
             else
                 dprint "Target out of range.",14
@@ -2423,7 +2426,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     
     if no_key=key_layfire then
         for a=1 to lastenemy
-            if vismask(enemy(a).c.x,enemy(a).c.y)>0 and enemy(a).hp>0 and enemy(a).aggr=0 and awayteam.sight>cint(distance(awayteam.c,enemy(a).c)) and distance(awayteam.c,enemy(a).c)<=range then
+            if vismask(enemy(a).c.x,enemy(a).c.y)>0 and enemy(a).hp>0 and enemy(a).aggr=0 and distance(awayteam.c,enemy(a).c)<=range then
                 if pathblock(awayteam.c,enemy(a).c,slot,1) then
                     enlist(shortlist)=a
                     shortlist+=1
@@ -2432,17 +2435,17 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
         next
         if shortlist>0 then
             awayteam.lastaction+=1
-            first=0
+            first=1
             last=fix(awayteam.hpmax/shortlist)
             if last<1 then last=1
             for a=0 to shortlist-1
-                lp=line_in_points(awayteam.c,enemy(enlist(a)).c,wp())
-                pathblock(awayteam.c,enemy(enlist(a)).c,slot,3,scol,0)                
-                for b=1 to lp-1
+                dprint "from "&first &" to "& last
+                lp=line_in_points(enemy(enlist(a)).c,awayteam.c,wp())
+                for b=1 to lp
                     color scol,0
-                    if vismask(wp(b).x,wp(b).y)>0 then draw string(wp(b).x*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
+                    if vismask(wp(b).x,wp(b).y)>0 and b<lp then draw string(wp(b).x*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
                     fired(wp(b).x,wp(b).y)=1
-                    b=ep_fireeffect(wp(b),slot,b,lp-1,enemy(),lastenemy,awayteam,mapmask())
+                    b=ep_fireeffect(wp(b),slot,b,lp-1,enemy(),lastenemy,awayteam,mapmask(),first,last)
                 next
                 first=first+last+1
             next
@@ -2465,7 +2468,7 @@ function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short,en
     endif
     for d=1 to lastenemy
         if enemy(d).c.x=p2.x and enemy(d).c.y=p2.y and enemy(d).hp>0 then 
-            enemy(d)=hitmonster(enemy(d),awayteam,mapmask())
+            enemy(d)=hitmonster(enemy(d),awayteam,mapmask(),first,first+last)
             'e=1
         endif
     next   
@@ -2713,12 +2716,11 @@ function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as sho
 end function
    
 
-function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
+function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
     dim as short a,b,c,d,e,r,sf,slot
     dim towed as _ship 
     dim as string text
-    dim as _cords p,p1
-    dim vismask() as byte
+    dim as _cords p,p1,p2
     awayteam.lastaction+=1
     slot=player.map
     if tmap(awayteam.c.x,awayteam.c.y).gives=1 then
@@ -3341,6 +3343,128 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 endif
                 if key="b" then
                     shop(7,1.5,"Mudds Incredible Bargains")
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=167 then
+                if askyn("A working security camera terminal. Do you want to try to use it?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>7 then
+                        p1=awayteam.c
+                        awayteam.c=rnd_point(slot,0)
+                        dprint "You manage to access a camera at "&awayteam.c.x &":" &awayteam.c.y &"."
+                        do 
+                            makevismask(vismask(),awayteam,slot)
+                            displayplanetmap(slot)
+                            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
+                            displayawayteam(awayteam, slot, lastenemy, 0, ship,0)
+                            no_key=keyin
+                            p2=movepoint(awayteam.c,getdirection(no_key))
+                            if tmap(p2.x,p2.y).walktru=0 then awayteam.c=p2
+                        loop until no_key=key_esc or rnd_range(1,6)+rnd_range(1,6)+player.science<10
+                        awayteam.c=p1
+                    else
+                        dprint "You do not get it to work properly."
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science<11 then
+                            dprint "Actually you manged to break it completely."
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+                        endif
+                    endif
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=168 then
+                if askyn("A switched off security robot. Do you want to try and reprogram it and turn it on again?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>10 then
+                        dprint "You manage!"
+                        if maxsecurity>0 then
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=80
+                            addmember(13)
+                        else
+                            dprint "But you don't have enough room on your ship for the robot"
+                        endif
+                    else
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science>10 then
+                            'Failure
+                            dprint "This robot is beyond repair"
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+            
+                        else
+                            'Catastrophic Failure
+                            dprint "You manage to switch it on but not to reporgram it!"
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=80
+                            lastenemy+=1
+                            enemy(lastenemy)=setmonster(makemonster(9,slot),slot,spawnmask(),lsp,vismask(),awayteam.c.x,awayteam.c.y)
+                        endif
+                    endif
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=169 then
+                if askyn("A working security terminal. Do you want to try to use it?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                            dprint "You manage to shut down the traps on this level."
+                            for x=0 to 60
+                                for y=0 to 20
+                                    if tmap(x,y).tohit<>0 then tmap(x,y).tohit=0
+                                next
+                            next
+                        else
+                            dprint "You manage to shut down some of the traps on this level."
+                            for x=0 to 60
+                                for y=0 to 20
+                                    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 and tmap(x,y).tohit<>0 then tmap(x,y).tohit=0
+                                next
+                            next
+                        endif
+                    else
+                        dprint "You do not get it to work properly."
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science<11 then
+                            dprint "Actually you manged to break it completely."
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+                        endif
+                    endif
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=170 then
+                if askyn("A working security terminal. Do you want to try to use it?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                        dprint "You manage to reveal hidden doors on this level."
+                        for x=0 to 60
+                            for y=0 to 20
+                                if tmap(x,y).turnsoninspect=54 then 
+                                    planetmap(x,y,slot)=tmap(x,y).turnsoninspect
+                                    tmap(x,y)=tiles(tmap(x,y).turnsoninspect)
+                                endif
+                            next
+                        next
+                    else
+                        dprint "You do not get it to work properly."
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science<11 then
+                            dprint "Actually you manged to break it completely."
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+                        endif
+                    endif
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=171 then
+                if askyn("A working security terminal. Do you want to try to use it?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                        dprint "You get it to display a map of this complex."
+                        for x=0 to 60
+                            for y=0 to 20
+                                if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=planetmap(x,y,slot)*-1
+                            next
+                        next
+                    else
+                        dprint "You do not get it to work properly."
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science<11 then
+                            dprint "Actually you manged to break it completely."
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+                        endif
+                    endif
                 endif
             endif
             

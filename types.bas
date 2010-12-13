@@ -2,13 +2,13 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.15"
+const __VERSION__="0.1.15a"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
-Const make_files=0 'outputs statistics to txt files
+Const make_files=0'outputs statistics to txt files
 Const show_all=0
 const show_items=0 'shows entire maps
 const alien_scanner=0
@@ -59,7 +59,7 @@ const sm_x=75
 const sm_y=35
 const max_maps=2047
 const _clearmap=1
-
+const add_tile_each_map=0
 dim shared as byte _tix=16
 dim shared as byte _tiy=24
 dim shared _debugflag(1) as byte
@@ -1147,7 +1147,7 @@ declare function findartifact(awayteam as _monster,v5 as short) as short
     
 declare function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
 declare function earthquake(t as _tile,dam as short)as _tile
-declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
+declare function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
 declare function numfromstr(t as string) as short
 
 'planets

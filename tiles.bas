@@ -2094,6 +2094,51 @@ tiles(287).locked=0
 tiles(287).hides=2
 tiles(287).gives=50
 
+tiles(288).tile=asc("C")
+tiles(288).col=15
+tiles(288).desc="security camera terminal"
+tiles(288).turnsinto=288
+tiles(288).gives=167
+
+
+tiles(289).tile=176
+tiles(289).col=137
+tiles(289).bgcol=137
+tiles(289).desc="steel wall"
+tiles(289).seetru=2
+tiles(289).seetru=2
+tiles(289).walktru=5
+tiles(289).firetru=1
+tiles(289).failt="The wall is too hard"
+tiles(289).turntext="You discovere a well hidden secret passage!"
+tiles(289).turnsoninspect=54
+
+tiles(290).tile=asc("R")
+tiles(290).col=15
+tiles(290).desc="A switched off robot"
+tiles(290).turnsinto=290
+tiles(290).gives=168
+
+tiles(291).tile=asc("C")
+tiles(291).col=15
+tiles(291).desc="security terminal"
+tiles(291).turnsinto=291
+tiles(291).gives=169
+
+tiles(292).tile=asc("C")
+tiles(292).col=15
+tiles(292).desc="security terminal"
+tiles(292).turnsinto=292
+tiles(292).gives=170
+
+tiles(293).tile=asc("C")
+tiles(293).col=15
+tiles(293).desc="security terminal"
+tiles(293).turnsinto=293
+tiles(293).gives=171
+
+
+
 tiles(401).tile=ASC("#")
 tiles(401).col=210
 tiles(401).bgcol=230

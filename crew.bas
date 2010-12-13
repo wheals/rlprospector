@@ -234,11 +234,11 @@ end function
 
 function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as short ex,b,t,last,armeff,reequip,roll
-    dim target(128) as short
-    dim stored(128) as short
-    dim injured(13) as short
-    dim killed(13) as short
+    dim as integer ex,b,t,last,last2,armeff,reequip,roll,cc
+    dim target(128) as integer
+    dim stored(128) as integer
+    dim injured(13) as integer
+    dim killed(13) as integer
     dim desc(13) as string
     desc(1)="Captain"
     desc(2)="Pilot"
@@ -260,7 +260,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     for b=1 to 128
-        if crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0 then
+        if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) or b=1 then
             last+=1
             target(last)=b
             stored(last)=crew(b).hp
@@ -274,7 +274,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         dam=1
     endif
     if last>128 then last=128
+    cc=0
     do
+        cc+=1
         t=rnd_range(1,last)
         if crew(target(t)).hp>0 then
             if ap=2 then
@@ -296,10 +298,8 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             endif
         endif
         ex=1
-        for b=1 to last
-            if crew(target(b)).hp>0 then ex=0
-        next 
-    loop until dam<=0 or ex=1
+        last=0
+    loop until dam<=0 or ex=1 or cc>99999
     for b=1 to last
         if stored(b)>crew(target(b)).hp then
             if crew(target(b)).hp<=0 then
@@ -753,13 +753,21 @@ end function
 function hiring(st as short,byref hiringpool as short,hp as short) as short
     dim as short b,c,d,e,officers,maxsec,neodog,robots,w
     dim as short f,g
-    dim as string text
+    dim as string text,help
     text="Hiring/ Pilot/ Gunner/ Science Officer/ Ships Doctor/ Security/ Squad Leader/ Sniper/ Paramedic/"
+    help="Nil/Responsible for steering your ship/Fires your weapons and coordinates security team attacks/Operates sensors and collects biodata/Heals injuries and sickness/Your basic grunt/Coordinates the attacks of up to 5 security team members/An excellent marksman/Not worth much in combat, but assists the ships doctor"
     if basis(st).repname="Omega Bioengineering" and player.questflag(1)=3 then neodog=1
     if basis(st).repname="Smith Heavy Industries" and player.questflag(9)=3 then robots=1
-    if neodog=1 then text=text & " Neodog/ Neoape/"
-    if robots=1 then text=text & " Robot/"
+    if neodog=1 then 
+        text=text & " Neodog/ Neoape/"
+        help=help &"/A genetically engeniered lifeform with the basis of a dog/A genetically engeniered lifeform with the basis of a ape"
+    endif
+    if robots=1 then 
+        text=text & " Robot/"
+        help=help &"/Smith Heavy Industries managed to replicate the old ones robots. They aren't as tough as the originals, but formidable killing machines nonetheless"
+    endif
     text=text & " Set Wage/Exit"
+    help=help & " /Set base wage for your crew"
     cls        
         do
             officers=1
@@ -769,7 +777,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
             if player.doctor>0 then officers=officers+1
         
             displayship()
-            b=menu(text)
+            b=menu(text,help)
                 
             d=rnd_range(1,100)
             c=5

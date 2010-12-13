@@ -57,6 +57,7 @@ end function
 
 function dplanet(p as _planet,orbit as short,scanned as short) as short
     dim a as short
+    dim as single plife
     dim text as string
     draw_border(0)
       
@@ -83,8 +84,12 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     else
         draw string(62*_fw1,16*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
+    for a=0 to p.life
+        if rnd_range(1,6)+rnd_range(1,6)+player.science>7 then plife=plife+((p.life+1)*3)/100
+    next
+    if plife>1 then plife=1
     draw string(62*_fw1,18*_fh2),"Lifeforms:",,font2,custom,@_col
-    draw string(62*_fw1,19*_fh2),p.life*10 &" % probability",,font2,custom,@_col
+    draw string(62*_fw1,19*_fh2),plife*100 &" % probability",,font2,custom,@_col
     return 0
 end function
 
@@ -1088,8 +1093,9 @@ sub dtile(x as short,y as short, tiles as _tile,bg as short=0)
 end sub
 
 sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
-    dim as short a,b,bg,x,y
+    dim as short a,b,bg,x,y,localdebug
     dim as string bl,br
+    localdebug=0
     if _onbar=0 or forcebar=1 then
         y=21
         x=28
@@ -1105,6 +1111,16 @@ sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
     endif
     drawsysmap(x*_fw1,y*_fh1,in,hi,bl,br)
     color 11,0
+    if localdebug=1 then
+        bl=""
+        for a=1 to 9
+            bl=bl &map(in).planets(a)&" "
+            if map(in).planets(a)>0 then
+                bl=bl &"ms:"&planets(map(in).planets(a)).mapstat
+            endif
+        next
+        dprint bl &":"& hi
+    endif
 end sub
 
 function drawsysmap(x as short, y as short, in as short, hi as short=0,bl as string,br as string) as short
@@ -1138,6 +1154,7 @@ function drawsysmap(x as short, y as short, in as short, hi as short=0,bl as str
             endif
             if isasteroidfield(map(in).planets(a))=0 and isgasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then 
                 t="o"
+                if planets(map(in).planets(a)).atmos=0 then planets(map(in).planets(a)).atmos=1
                 if planets(map(in).planets(a)).mapstat=0 then color 7,bg  
                 if planets(map(in).planets(a)).mapstat=1 then  
                     if planets(map(in).planets(a)).atmos=1 then color 15,bg      

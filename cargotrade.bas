@@ -1385,27 +1385,36 @@ function ship_design(pir as short) as short
             draw string(2*_FW2,12*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,12*_FH2),"Price: "&price(0),,FONT2,Custom,@_col
+            if cur=a then
+                color 15,5
+            else
+                color 11,0
+            endif
+            draw string(2*_FW2,14*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,13*_FH2),"Exit",,FONT2,Custom,@_col
             
             key=keyin(key_north &key_south &"+-"&key_west &key_east)
             if key=key_north then cur=cur-1
             if key=key_south then cur=cur+1
-            if cur<1 then cur=8
-            if cur>8 then cur=1
-            if key=key_east or key="+" then 
-                if cur<>7 or value(cur)<maxweapon then
-                    if pts>=price(cur)*incr(cur)/10 then
-                        pts=pts-price(cur)*incr(cur)/10
-                        value(cur)+=incr(cur)
+            if cur<1 then cur=9
+            if cur>9 then cur=1
+            if cur<9 then
+                if key=key_east or key="+" then 
+                    if cur<>7 or value(cur)<maxweapon then
+                        if pts>=price(cur)*incr(cur)/10 then
+                            pts=pts-price(cur)*incr(cur)/10
+                            value(cur)+=incr(cur)
+                        endif
+                    endif
+                endif
+                if key=key_west or key="-" then 
+                    if (cur<>6 and value(cur)>0) or (cur=6 and value(cur)>5) then
+                        pts=pts+price(cur)*incr(cur)/10
+                        value(cur)-=incr(cur)
                     endif
                 endif
             endif
-            if key=key_west or key="-" then 
-                if (cur<>6 and value(cur)>0) or (cur=6 and value(cur)>5) then
-                    pts=pts+price(cur)*incr(cur)/10
-                    value(cur)-=incr(cur)
-                endif
-            endif
-        loop until ptval=0 or key=key_esc
+        loop until ptval=0 or key=key_esc or (cur=9 and key=key_enter)
         if askyn("Do you want to keep this ship design?(y/n)") then
             h.h_maxhull=value(1)
             h.h_maxengine=value(3)

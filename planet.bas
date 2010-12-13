@@ -795,29 +795,33 @@ end sub
 
 
 sub makefinalmap(m as short)
-    dim as _cords p
-    dim as short f,x,y,c
+    dim as _cords p,p2
+    dim as short f,x,y,c,l
     planets(m).darkness=5
     planets(m).teleport=1
     f=freefile
     open "data/lstlvl.dat" for binary as #f
     for y=0 to 20
         for x=0 to 60
-            get #f,,planetmap(x,y,m)
+            get #f,,l
+            planetmap(x,y,m)=l
             if planetmap(x,y,m)=-80 and rnd_range(1,100)<20 then planetmap(x,y,m)=-81
             if planetmap(x,y,m)=-54 and rnd_range(1,100)<80 then planetmap(x,y,m)=-55
         next
     next
     close #f
-    
-    p=rnd_point(m,0)
+    p.x=31
+    p.y=2
+    do
+        p=rnd_point(m,0)
+    loop until distance(p,p2)>15
     planetmap(p.x,p.y,m)=-127
     for y=0 to 20
         for x=0 to 60
              if show_all=1 then planetmap(x,y,m)=planetmap(x,y,m)*-1
         next
     next
-    planets(m).depth=1
+    planets(m).depth=10
     planets(m).mon_template(0)=makemonster(19,m)
     planets(m).Mon_noamax(0)=28
     planets(m).mon_noamin(0)=22
@@ -1055,9 +1059,11 @@ sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
     dim map2(60,20) as short
     dim sp(255) as _cords
     dim as short roomsize
+    dim p as _cords
     dim p1 as _cords
     dim p2 as _cords
     dim  as integer counter,bigc
+    dim as short varchance
     slot=enter.m
 
     if show_all=1 then dprint "Made complex at "&slot
@@ -1070,8 +1076,26 @@ sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
     planets(slot).atmos=3    
     planets(slot).grav=.8
     planets(slot).mon_template(0)=makemonster(9,slot)
-    planets(slot).mon_noamin(0)=16
-    planets(slot).mon_noamax(0)=26+planets(slot).depth
+    planets(slot).mon_noamin(0)=8
+    planets(slot).mon_noamax(0)=16+planets(slot).depth
+    planets(slot).mon_template(1)=makemonster(90,slot)
+    planets(slot).mon_noamin(1)=16
+    planets(slot).mon_noamax(1)=26+planets(slot).depth
+    if rnd_range(1,100)<15+planets(slot).depth*3 then
+        planets(slot).mon_template(2)=makemonster(56,slot)
+        planets(slot).mon_noamin(2)=1
+        planets(slot).mon_noamax(2)=2+planets(slot).depth
+    endif
+    if rnd_range(1,100)<25+planets(slot).depth*5 then
+        planets(slot).mon_template(3)=makemonster(19,slot)
+        planets(slot).mon_noamin(3)=0
+        planets(slot).mon_noamax(3)=1+planets(slot).depth
+    endif
+    if rnd_range(1,100)<15+planets(slot).depth*5 then
+        planets(slot).mon_template(4)=makemonster(91,slot)
+        planets(slot).mon_noamin(4)=1
+        planets(slot).mon_noamax(4)=2+planets(slot).depth
+    endif
 do   
     last=0
     for a=0 to 255
@@ -1179,9 +1203,9 @@ do
                     c=c+1
                 loop until p1.x>2 and p1.y>1 and p1.x<58 and p1.y<19 and r(a).wd(b)=0
                 if c<=52 and b>0 then
-                if rnd_range(1,100)<33 then map2(p1.x,p1.y)=3
-                b=digger(p1,map2(),b)
-                if rnd_range(1,100)<33 then map2(p1.x,p1.y)=3
+                    if rnd_range(1,100)<33 then map2(p1.x,p1.y)=3
+                    b=digger(p1,map2(),b)
+                    if rnd_range(1,100)<33 then map2(p1.x,p1.y)=3
                 endif
             loop until b<=0 or c>52
         endif    
@@ -1204,10 +1228,14 @@ do
             if map2(x,y)=11 then planetmap(x,y,slot)=-80 'Floor
             if map2(x,y)=13 then planetmap(x,y,slot)=-80 'Wall
             if map2(x,y)=14 then 
-                if rnd_range(1,100)<88 then
-                    planetmap(x,y,slot)=-55 'Door
+                if rnd_range(1,100)>planets(slot).depth*10 then
+                    if rnd_range(1,100)<88 then
+                        planetmap(x,y,slot)=-55 'Door
+                    else
+                        planetmap(x,y,slot)=-54
+                    endif
                 else
-                    planetmap(x,y,slot)=-54
+                    planetmap(x,y,slot)=-289 'secretdoor
                 endif
             endif
             if map2(x,y)=15 then planetmap(x,y,slot)=-81 'Trap
@@ -1272,11 +1300,75 @@ do
         planetmap(portal(a).from.x,portal(a).from.y,slot)=0
     endif
     
+    for a=0 to planets(slot).depth*5
+        do
+            p=rnd_point(slot,0)
+        loop until (abs(planetmap(p.x,p.y-1,slot))=52 and abs(planetmap(p.x,p.y+1,slot))=52) or (abs(planetmap(p.x-1,p.y,slot))=52 and abs(planetmap(p.x+1,p.y,slot))=52) 
+        planetmap(p.x,p.y,slot)=-289
+    next
+    planetmap(enter.x,enter.y,slot)=-80
+    
+    varchance=0
+    
     if rnd_range(1,100)<planets(slot).depth*2 then
         planets(slot).vault=r(rnd_range(0,last))
         planets(slot).vault.wd(5)=1
+        varchance-=5
     endif
-    planetmap(enter.x,enter.y,slot)=-80
+    varchance+=5
+    if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-288
+        varchance-=5
+    endif
+    varchance+=5
+    if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-288
+        varchance-=5
+    endif
+    varchance+=5
+    if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-291
+        varchance-=5
+    endif
+    varchance+=5
+    
+    if rnd_range(1,100)<5+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-293
+        varchance-=4
+    endif
+    varchance+=5
+    if rnd_range(1,100)<25+planets(slot).depth*2+varchance then
+        for b=0 to rnd_range(1,planets(slot).depth)
+            p=rnd_point(slot,0)
+            if abs(planetmap(p.x,p.y,slot))=80 then planetmap(p.x,p.y,slot)=-225
+        next
+        varchance-=5
+    endif
+varchance+=5
+    if rnd_range(1,100)<25+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        if abs(planetmap(p.x,p.y,slot))=80 then planetmap(p.x,p.y,slot)=-292
+        varchance-=5
+    endif
+    varchance+=5
+    if rnd_range(1,100)<25+planets(slot).depth*2+varchance then
+        for b=0 to rnd_range(1,planets(slot).depth)
+            p=rnd_point(slot,0)
+            if abs(planetmap(p.x,p.y,slot))=80 then planetmap(p.x,p.y,slot)=-290
+        next
+        varchance-=5
+    endif
+    varchance+=5
+    if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-231
+        planets(slot).atmos=1
+        planets(slot).grav=1
+    endif
 end sub
 
 sub makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
@@ -3123,7 +3215,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         endif
     next
     
-    if rnd_range(1,100)<(planets(a).life+1)*5 then
+    if rnd_range(1,100)<(planets(a).life+1)*3 then
         planets(a).mon_noamin(11)=1
         planets(a).mon_noamax(11)=1
         planets(a).mon_template(11)=makemonster(2,a)
@@ -3167,7 +3259,10 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     for b=0 to planets(a).minerals+planets(a).life
         if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
     next b
-    
+    if add_tile_each_map<>0 then
+        p=rnd_point
+        planetmap(p.x,p.y,a)=add_tile_each_map
+    endif
     if isgardenworld(a) then planets(a).flavortext="This place is lovely."
 end sub
 
@@ -3655,7 +3750,7 @@ function makespecialplanet(a as short) as short
         gc1.x=rnd_range(2,58)
         gc1.y=rnd_range(2,18)
         gc1.m=lastplanet
-        makecomplex(gc1,0)
+        makecomplex(gc1,1)
         
         addportal(gc,gc1,0,asc("#"),"A building still in good condition",15)
         p1=rnd_point(lastplanet,0)
@@ -5173,11 +5268,12 @@ function makespecialplanet(a as short) as short
             lastplanet+=1
             p2=rnd_point(lastplanet,0)
             p2.m=lastplanet
+            planets(lastplanet).depth=b+1
             makecomplex(p2,lastplanet,1)
             if b<6 then addportal(p1,p2,0,asc("o"),"A shaft",14)
         next    
         lastplanet+=1
-        p2.x=30
+        p2.x=32
         p2.y=2
         p2.m=lastplanet
         addportal(p1,p2,0,asc("o"),"A very deep shaft",14)

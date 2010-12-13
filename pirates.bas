@@ -22,11 +22,11 @@ function meetfleet(f as short)as short
         question(1,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
         if fleet(f).ty>5 then
             if civ(0).contact=0 then
-                question(0,6)=civfleetdescription(fleet(f)) &", hailing us."
-                question(1,6)=civfleetdescription(fleet(f)) &",on an attack vector. Shall we engage?(y/n)"
+                question(0,fleet(f).ty)=civfleetdescription(fleet(f)) &", hailing us."
+                question(1,fleet(f).ty)=civfleetdescription(fleet(f)) &",on an attack vector. Shall we engage?(y/n)"
             else
-                question(0,6)="A "&civ(0).n &" fleet, hailing us."
-                question(1,6)="A "&civ(0).n &" fleet on an attack vector. Shall we engage?(y/n)"
+                question(0,fleet(f).ty)="A "&civ(0).n &" fleet, hailing us."
+                question(1,fleet(f).ty)="A "&civ(0).n &" fleet on an attack vector. Shall we engage?(y/n)"
             endif
         endif
         dialog=fleet(f).ty
@@ -2876,14 +2876,14 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.swhat="shoots a disintegrator beam "
         enemy.scol=12
         enemy.respawns=0
-        enemy.armor=1
+        enemy.armor=6
         enemy.lang=-3
         enemy.sight=5
         enemy.atcost=rnd_range(6,8)/10
         for l=1 to 3+planets(a).depth
             enemy.hp=enemy.hp+rnd_range(1,5)
         next
-        enemy.hp=15+enemy.hp+planets(a).depth
+        enemy.hp=150+enemy.hp+planets(a).depth
         
         enemy.weapon=rnd_range(1,6)
         if enemy.weapon<0 then enemy.weapon=0
@@ -3679,6 +3679,71 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     if a=89 then
         
     endif
+    
+    if a=90 then
+        enemy.sdesc="Repair Bot"
+        enemy.ldesc="a 30 cm metal sphere. Several arms extrude from it. They end in multipurpose tools. It uses those for movement as well as manipulation."
+        enemy.dhurt="damaged"
+        enemy.dkill="destroyed"
+        enemy.cmmod=1
+        enemy.move=3
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.range=1.5
+        enemy.atcost=.2
+        enemy.hasoxy=1
+        enemy.tile=Asc("R")
+        enemy.sprite=286
+        enemy.hpmax=24
+        enemy.hp=24
+        enemy.weapon=1
+        enemy.stuff(1)=0
+        enemy.col=23
+        enemy.aggr=1
+        enemy.faction=5
+    endif
+    
+    if a=91 then 'Bladebot
+        enemy.stunres=1
+        enemy.ti_no=1069
+        enemy.faction=5
+        enemy.hasoxy=1
+        enemy.sdesc="battle robot"
+        enemy.ldesc="a metal ball, about 2m in diameter, sensor array to the right, weapons array to the left."     
+        enemy.dhurt="damaged"
+        enemy.dkill="destroyed"
+        enemy.swhat="shoots a disintegrator beam "
+        enemy.scol=12
+        enemy.respawns=0
+        enemy.armor=16
+        enemy.lang=-3
+        enemy.sight=9
+        enemy.atcost=.3
+        enemy.range=5
+        enemy.weapon=10
+        if enemy.weapon<0 then enemy.weapon=0
+        enemy.range=4
+        if enemy.range<1.5 then enemy.range=1.5
+        enemy.hpmax=enemy.hp
+        enemy.biomod=0
+        enemy.aggr=0
+        enemy.move=0.7
+        enemy.tile=ASC("R")
+        enemy.col=12
+        enemy.sprite=278
+        enemy.hp=230+rnd_range(1,5)+rnd_range(1,5)+rnd_range(1,3)+planets(map).depth
+        for l=1 to 5
+            enemy.hp=enemy.hp+rnd_range(1,5)
+        next
+        enemy.weapon=10
+        enemy.atcost=1.2
+        enemy.tile=ASC("R")
+        enemy.armor=8
+        enemy.hpmax=enemy.hp
+        enemy.faction=5
+    endif
+
+    
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     

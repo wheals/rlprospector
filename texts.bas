@@ -822,16 +822,27 @@ end function
 
 function es_living(byref pmoney as single) as string
     dim as string t
-    if retirementassets(8)>0 then 
-        t=t &""
+    if retirementassets(9)>0 then 
+        t=t &" |You finally settle down on your very own planet!"
         if pmoney<100 then t=t &" You have to sell some ground to Settlers make ends meet."
         if pmoney>500 then t=t &" Soon you build a nice house on it."
         if pmoney>1000 then t=t &" You are able to equip it with every luxury you could ever dream of."
         if pmoney>1200 then t=t &" You also can hire servants for whatever task you do not want to do yourself."
+        if pmoney>10000 then t=t &" |There is even enough money to terraform one of it's moons, providing a nice place for weekend vacations."
+        return t
+    endif
+    
+    if retirementassets(8)>0 then 
+        t=t &" |You finally settle down on your very own planet! It's a bit barren, but it's yours!"
+        if pmoney<100 then t=t &" You have to sell some ground to Settlers make ends meet."
+        if pmoney>500 then t=t &" Soon you build a nice house on it."
+        if pmoney>1000 then t=t &" You are able to equip it with every luxury you could ever dream of."
+        if pmoney>1200 then t=t &" You also can hire servants for whatever task you do not want to do yourself."
+        if pmoney>=2500 then t=t &" The place gets a lot nicer after some minor terraforming!"
         return t
     endif
     if retirementassets(7)>0 then
-        t=t &" |You finally settle down on your very own planet!"
+        t=t &" |You finally settle down on your very own - well, dessert, but still - planet!"
         if pmoney<100 then t=t &" You have to sell some ground to Settlers make ends meet."
         if pmoney>500 then t=t &" Soon you build a nice house on it."
         if pmoney>1000 then t=t &" You are able to equip it with every luxury you could ever dream of."

@@ -317,7 +317,10 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     x1=a.c.x
     y1=a.c.y
     if m>0 then
-        if findbest(42,-1)>0 then grr=1
+        i=findbest(42,-1)
+        if i>0 then 
+            grr=item(i).v1
+        endif
         illu=10-a.dark
         if a.light>illu then illu=a.light
         if a.sight>illu then a.sight=illu
@@ -334,7 +337,6 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             vismask(x,y)=-1
         next
     next
-    
     for x=a.c.x-12 to a.c.x+12 step 1
         for y=a.c.y-12 to a.c.y+12 step 1
             if y>=0 and x>=0 and y<=my and x<=mx then
@@ -354,7 +356,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
                             p.y=y1
                             if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
                                 if m>0 then
-                                    if tmap(x1,y1).seetru>=grr+1 then mask=0
+                                    if tmap(x1,y1).seetru>0 or (tmap(x1,y1).seetru>0 and tmap(x1,y1).dr>grr) then mask=0
                                 else
                                     If abs(spacemap(x1,y1))>1 Then mask=0
                                 endif

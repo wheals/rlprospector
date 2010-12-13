@@ -1474,11 +1474,24 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desig="Ground penetrating radar"
         i.desigp="Ground penetrating radars"
         i.ldesc="A modified portable sensor set. Enables the user to see through walls"
-        i.v1=1
+        
+        i.v1=2
+        if rnd_range(1,100)<10 then
+            
+            if rnd_range(1,100)<60 then
+                i.v1=3
+                i.desigp="Good ground penetrating radar"
+                i.desigp="Good ground penetrating radars"
+            else
+                i.v1=4
+                i.desigp="Great ground penetrating radar"
+                i.desigp="Great ground penetrating radars"
+            endif
+        endif
         i.icon=":"
         i.col=7
         i.res=80
-        i.price=350
+        i.price=350+100*i.v1
     endif
     
     if a=78 then 
@@ -2603,6 +2616,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 cu=1
             else 
                 cu=li
+                offset=li-15
             endif
         endif
         if cu>15 and li>15 then 

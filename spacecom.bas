@@ -2,6 +2,7 @@
 function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _ship
     dim attacker(16) as _ship
     dim targets(15) as _ship
+    dim direction(15) as byte
     dim speed(15) as short
     dim tick(15) as single
     dim tickr(15) as single
@@ -324,19 +325,39 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             for b=1 to lastenemy 'enemymovement
                 if lastaction(b)<=0 and attacker(b).hull>0 then
                     if attacker(b).shiptype=0 then                    
-                        if distance(defender.c,attacker(b).c)>attacker(b).sensors then
-                            attacker(b).target.x=rnd_range(0,60)
-                            attacker(b).target.y=rnd_range(0,20)
-                        else
+                        if distance(defender.c,attacker(b).c)<attacker(b).sensors+defender.sensors*(senac-1) then
                             attacker(b).target.x=player.c.x
                             attacker(b).target.y=player.c.y
+                        else
+                            attacker(b).target.x=-1
+                            attacker(b).target.y=-1
                         endif
                     endif
                     if attacker(b).shiptype=1 then
                         attacker(b).target.x=0
                         attacker(b).target.y=attacker(b).c.y
                     endif
-                    attacker(b).di=nearest(attacker(b).target,attacker(b).c)
+                    if attacker(b).target.x=-1 and attacker(b).target.y=-1 then
+                        if attacker(b).di=0 then
+                            attacker(b).di=rnd_range(1,8)
+                            if attacker(b).di=5 then attacker(b).di=9
+                        endif
+                        if rnd_range(1,100)<33 then 
+                            if rnd_range(1,100)<50 then
+                                attacker(b).di-=1
+                            else
+                                attacker(b).di+=1
+                            endif
+                            if attacker(b).di<1 then attacker(b).di=9
+                            if attacker(b).di>9 then attacker(b).di=1
+                        endif
+                        if attacker(b).c.x=0 and attacker(b).di=7 or attacker(b).di=4 or attacker(b).di=1 then attacker(b).di=6   
+                        if attacker(b).c.x=60 and attacker(b).di=9 or attacker(b).di=6 or attacker(b).di=3 then attacker(b).di=4   
+                        if attacker(b).c.y=0 and attacker(b).di=7 or attacker(b).di=8 or attacker(b).di=9 then attacker(b).di=2   
+                        if attacker(b).c.y=20 and attacker(b).di=1 or attacker(b).di=2 or attacker(b).di=3 then attacker(b).di=8   
+                    else
+                        attacker(b).di=nearest(attacker(b).target,attacker(b).c)
+                    endif
                     old=attacker(b).c
                     attacker(b).c=movepoint(attacker(b).c,attacker(b).di)
                     e_last=e_last+1
@@ -400,7 +421,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             next
             
             
-        if localturn mod 2=0 then
+        if localturn mod 4=0 then
             for b=1 to e_last
                 e_track_v(b)=e_track_v(b)-1
             next

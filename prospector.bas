@@ -273,6 +273,7 @@ specialplanettext(27,1)="The Planetmonster is dead."
 specialplanettext(28,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
 specialplanettext(29,0)="This is the most boring piece of rock I ever saw. Just a featureless plain of stone."
 specialplanettext(30,0)="I don't know why, but this planet has a temperate climate now. There are signs of life and a huge structure on the western hemishpere."
+specialplanettext(30,1)="I don't know why, but this planet has a temperate climate now. There are signs of life and a huge structure on the western hemishpere."
 specialplanettext(31,0)="There is a perfectly spherical large asteroid here. 2km diameter it shows no signs of any impact craters and readings indicate a very high metal content"
 specialplanettext(32,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures."
 specialplanettext(33,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures. There are ships on the surface"
@@ -2313,7 +2314,7 @@ function explore_space() as short
         open "fleets.txt" for append as #f
         print #f,player.turn
         for a=1 to lastfleet
-            print #f,debug_printfleet(fleet(a))
+            print #f,a;" ";fleet(a).ty;" ";debug_printfleet(fleet(a))
         next
         close #f
     endif
@@ -2433,6 +2434,10 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if abs(planetmap(x,y,slot))=2 then watermap(x,y)=50
             localtemp(x,y)=planets(slot).temp-abs(10-y)*5+10
             if show_all=1 and planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-planetmap(x,y,slot)
+            if abs(planetmap(x,y,slot))>512 then
+                dprint "ERROR: Tile #"&planetmap(x,y,slot)&"out ofbounds"
+                planetmap(x,y,slot)=512
+            endif
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
             if abs(planetmap(x,y,slot))=267 then tmap(x,y).desc="A cage. Inside is "&makemonster(1,slot).ldesc
             mapmask(x,y)=0
@@ -2470,6 +2475,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     
     if planets(slot).atmos>1 and planets(slot).atmos<8 then 
         awayteam.helmet=0
+        awayteam.oxygen=awayteam.oxymax
     else
         awayteam.helmet=1
     endif
@@ -2847,33 +2853,6 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     '
     ' EXPLORE PLANET
     '
-    'testing:
-    if make_files=1 then 
-        x=freefile
-        open "critters.txt" for append as #x
-        print #x,lastenemy
-        for a=1 to lastenemy
-            print #x,enemy(a).hp &","&enemy(a).move &"," &enemy(a).weapon
-        next
-        close x
-        
-        x=freefile
-        open "items.txt" for append as #x
-        print #x,lastitem
-        for a=1 to lastitem
-            print #x,item(a).desig &" "&item(a).w.m &" "&item(a).w.s &" "&item(a).w.p
-        next
-        print #x,"-"
-        close x
-    endif
-    if show_critters=1 then
-        dprint "used 1d" &diesize &" to generate "&lastenemy &" Critters"
-    endif
-    
-    if _debug=1 then
-        print lastenemy
-        no_key=keyin
-    endif
     
     dawn=rnd_range(1,60)
     do
@@ -2970,7 +2949,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         if ship_landing>0 then ep_landship(ship_landing, nextlanding, ship, nextmap, vismask(), enemy(),lastenemy)
         
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
-            ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,spawnmask(),lsp,key,walking,ship)
+            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,walking,ship)
             equip_awayteam(player,awayteam,slot)
             cls
             if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
@@ -3146,6 +3125,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 p1.x=item(li(a)).w.x
                 p1.y=item(li(a)).w.y
                 alienbomb(awayteam,li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
+                li(a)=li(lastlocalitem)
+                lastlocalitem-=1
             endif
         endif
     next
@@ -3587,30 +3568,23 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
         if crs.x>1 then crs.x=0
         if crs.y<1 then crs.y=5
         if crs.y>5 then crs.y=1
-        if crs.x=0 and crs.y>player.h_maxweaponslot then
-            if getdirection(key)=2 then 
-                crs.y=1
-            else
-                crs.y=player.h_maxweaponslot
-            endif
-        endif
+        if crs.x=0 and crs.y>player.h_maxweaponslot+1 then crs.y=1
+        if crs.x=1 and crs.y>s1.h_maxweaponslot+1 then crs.y=1
         if key=key_enter then
             if crs.x=0 then 
                 h1=crs
-                crs.x=1
                 if crs.y<1 then crs.y=5
                 if crs.y>5 then crs.y=1
                 if crs.y>s2.h_maxweaponslot then crs.y=s2.h_maxweaponslot
             endif
             if crs.x=1 then 
                 h2=crs
-                crs.y=0
                 if crs.y<1 then crs.y=5
                 if crs.y>5 then crs.y=1
                 if crs.y>s1.h_maxweaponslot then crs.y=s1.h_maxweaponslot
             endif
         endif
-        if key="x" then 
+        if key="x" and h1.y<>0 and h2.y<>0 then 
             swap weapons(h1.x,h1.y),weapons(h2.x,h2.y)
         endif
     loop until key=key_esc
