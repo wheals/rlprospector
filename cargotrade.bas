@@ -781,9 +781,9 @@ function casino(staked as short=0, st as short=-1) as short
             if player.money<0 then                 
                 player.money=player.money+1
                 dprint "you can't even afford a drink."
-                if rnd_range(1,100)<20 then 
+                if rnd_range(1,100)<20 and player.money>=-4 then 
                     dprint "The barkeep has pity and hands you 5 credits to bet at the roulette table."
-                    player.money=5
+                    player.money+=5
                 endif
             else
                 dprint "you have a drink."

@@ -7766,7 +7766,7 @@ sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
     endif
 end sub
 
-sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
+function adaptmap(slot as short,enemy()as _monster,byref lastenemy as short) as short
     dim as short in,start,cur,a,b,c,pyr,hou,i,ti,x,y,vt
     dim houses(2) as short
     dim r as _rect
@@ -7826,7 +7826,35 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
     if (rnd_range(1,100)<pyr+7 and pyr>0) or addpyramids=1 then         
         planetmap(p.x,p.y,slot)=-150
         if show_all=1 then planetmap(p.x,p.y,slot)=-planetmap(p.x,p.y,slot)
-        if rnd_range(1,100)<pyr+5 or addpyramids=1 then
+        if rnd_range(1,100)<pyr+5 or addpyramids=1 then addpyramid(p,slot)
+    endif
+
+    for b=0 to lastitem
+        if item(b).w.m=slot and item(b).w.s>0 and slot<>specialplanet(9) then
+            if item(b).ty=99 then
+                planetmap(item(b).w.x,item(b).w.y,slot)=-149
+                if rnd_range(1,100)>50 then 
+                    planetmap(item(b).w.x,item(b).w.y,slot)=-148
+                    p.x=item(b).w.x
+                    p.y=item(b).w.y
+                    for c=0 to rnd_range(1,3)
+                        p=movepoint(p,5)
+                        planetmap(item(b).w.x,item(b).w.y,slot)=-148
+                    next
+                    if rnd_range(1,100)>50 then planetmap(item(b).w.x,item(b).w.y,slot)=-100
+                    
+                endif
+            endif
+        endif
+    next
+    
+    return 0
+end function
+
+function addpyramid(p as _cords, slot as short) as short
+    dim as _cords from,dest
+    dim as short i,vt
+    dim as _rect r
             p=movepoint(p,5)
             from.x=p.x
             from.y=p.y
@@ -7937,30 +7965,9 @@ sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
             addportal(from,dest,1,asc("^"),"A pyramid with an entry.",14)
             addportal(dest,from,1,asc("o"),"The exit.",7)
             
-        endif
-    endif
+    return 0
+end function
 
-    for b=0 to lastitem
-        if item(b).w.m=slot and item(b).w.s>0 and slot<>specialplanet(9) then
-            if item(b).ty=99 then
-                planetmap(item(b).w.x,item(b).w.y,slot)=-149
-                if rnd_range(1,100)>50 then 
-                    planetmap(item(b).w.x,item(b).w.y,slot)=-148
-                    p.x=item(b).w.x
-                    p.y=item(b).w.y
-                    for c=0 to rnd_range(1,3)
-                        p=movepoint(p,5)
-                        planetmap(item(b).w.x,item(b).w.y,slot)=-148
-                    next
-                    if rnd_range(1,100)>50 then planetmap(item(b).w.x,item(b).w.y,slot)=-100
-                    
-                endif
-            endif
-        endif
-    next
-    
-    
-end sub
 
 sub togglingfilter(slot as short, high as short=1, low as short=2)        
 dim as short x,y,ti1,ti2

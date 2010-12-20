@@ -339,7 +339,7 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
             else
                 p=awayteam.c
             endif
-            if tmap(p.x,p.y).turnsoninspect<>0  and rnd_range(1,6)+rnd_range(1,6)+player.science>8 then
+            if tmap(p.x,p.y).turnsoninspect<>0  and rnd_range(1,6)+rnd_range(1,6)+player.science>8+tmap(p.x,p.y).turnroll then
                 awayteam.lastaction+=2
                 b=1
                 if tmap(p.x,p.y).turntext<>"" then dprint tmap(p.x,p.y).turntext

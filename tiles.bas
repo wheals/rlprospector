@@ -2110,8 +2110,9 @@ tiles(289).seetru=2
 tiles(289).walktru=5
 tiles(289).firetru=1
 tiles(289).failt="The wall is too hard"
-tiles(289).turntext="You discovere a well hidden secret passage!"
+tiles(289).turntext="You discover a well hidden secret passage!"
 tiles(289).turnsoninspect=54
+tiles(289).turnroll=5
 
 tiles(290).tile=asc("R")
 tiles(290).col=15

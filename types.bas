@@ -601,6 +601,7 @@ type _tile
     vege as byte
     disease as byte
     turnsoninspect as short
+    turnroll as byte
     turntext as string*512
     causeaeon as byte
     aetype as byte
@@ -1174,7 +1175,9 @@ declare sub makecraters(a as short, o as short)
 declare sub makemossworld(a as short,o as short)
 declare sub makeislands(a as short, o as short)
 declare sub makeoceanworld(a as short,o as short)
-declare sub adaptmap(slot as short,enemy()as _monster,byref lastenemy as short)
+declare function adaptmap(slot as short,enemy()as _monster,byref lastenemy as short) as short
+declare function addpyramid(p as _cords,slot as short) as short
+
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
 declare sub planet_event(slot as short)
 declare function makewhplanet() as short
