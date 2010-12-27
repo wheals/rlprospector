@@ -646,8 +646,9 @@ do
     draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration     ",,FONT2,custom,@_col
     draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit              ",,FONT2,custom,@_col
-    key=keyin("123456")
+    key=keyin("1234567")
     'if key="7" then ship_design(1)
+    if key="7" then keybindings
     if key="2" then
         c=0
         chdir "savegames"
@@ -758,7 +759,6 @@ if key="1" then
             fleet(a).c=basis(rnd_range(0,2)).c
         next
     endif
-    'placeitem(makeitem(301),0,0,0,0,-1)
     if start_teleport=1 then artflag(9)=1
     cls
     color 11,0
@@ -2595,16 +2595,17 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             endif
         endif
         
-        b=(planets(slot).vault.h-2)*((planets(slot).vault.w-2))
+        for c=0 to 8
+        b=(planets(slot).vault(c).h-2)*((planets(slot).vault(c).w-2))
         if b>4 then
-            if planets(slot).vault.wd(16)=99 then specialflag(15)=1
-            if planets(slot).vault.wd(5)=1 then
+            if planets(slot).vault(c).wd(16)=99 then specialflag(15)=1
+            if planets(slot).vault(c).wd(5)=1 then
                 if b>9 then
                     lastenemy=lastenemy-rnd_range(1,6)
                     if lastenemy<1 then lastenemy=1
                     a=lastenemy+1
-                    for x=planets(slot).vault.x+1 to planets(slot).vault.x+planets(slot).vault.w-1
-                        for y=planets(slot).vault.y+1 to planets(slot).vault.y+planets(slot).vault.h-1
+                    for x=planets(slot).vault(c).x+1 to planets(slot).vault(c).x+planets(slot).vault(c).w-1
+                        for y=planets(slot).vault(c).y+1 to planets(slot).vault(c).y+planets(slot).vault(c).h-1
                             if a>255 then a=255
                             enemy(a)=makemonster(9,slot)
                             enemy(a)=setmonster(enemy(a),slot,spawnmask(),lsp,vismask(),x,y,a,1)
@@ -2616,41 +2617,41 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 endif
             endif
             
-            if planets(slot).vault.wd(5)=2 and planets(slot).vault.wd(6)<>0 then
+            if planets(slot).vault(c).wd(5)=2 and planets(slot).vault(c).wd(6)<>0 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
-                c=lastenemy
+                d=lastenemy
                 lastenemy=lastenemy+b
-                for d=c to lastenemy
+                for e=c to lastenemy
                     text=text &d
                     do
-                        x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
-                        y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
+                        x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
+                        y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
-                    if planets(slot).vault.wd(6)>0 then 
-                        enemy(d)=makemonster(planets(slot).vault.wd(6),slot)
-                        enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
+                    if planets(slot).vault(c).wd(6)>0 then 
+                        enemy(e)=makemonster(planets(slot).vault(c).wd(6),slot)
+                        enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
                     else
-                        enemy(d)=setmonster(planets(slot).mon_template(-planets(slot).vault.wd(6)),slot,spawnmask(),lsp,vismask(),x,y,d)
+                        enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,vismask(),x,y,d)
                     endif
                 next
             endif
             
-            if planets(slot).vault.wd(5)=3 then
+            if planets(slot).vault(c).wd(5)=3 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
-                c=lastenemy
+                d=lastenemy
                 lastenemy=lastenemy+b
-                for d=c to lastenemy
+                for e=c to lastenemy
                     do
-                        x=rnd_range(planets(slot).vault.x,planets(slot).vault.x+planets(slot).vault.w)
-                        y=rnd_range(planets(slot).vault.y,planets(slot).vault.y+planets(slot).vault.h)
+                        x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
+                        y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
-                    enemy(d)=makemonster(59,slot)
-                    enemy(d)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d,1)
+                    enemy(e)=makemonster(59,slot)
+                    enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d,1)
                 next
             endif
-            planets(slot).vault=del_rec
-    endif
-    
+            planets(slot).vault(c)=del_rec
+        endif
+        next
     for a=1 to _NoPB
         if slot=pirateplanet(a) then
             c=5+rnd_range(1,6)
@@ -2661,7 +2662,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             lastenemy=lastenemy+c
         endif
     next
-    endif
+
+endif
     
     moverover(slot)
     'if planets(slot).colony<>0 then growcolony(slot)
@@ -3342,26 +3344,33 @@ end function
 
 function grenade(from as _cords,map as short) as _cords
     dim as _cords target,ntarget
-    dim as single dx,dy,x,y
+    dim as single dx,dy,x,y,launcher
     dim as short a,ex,r,t
     dim as string key
     dim p as _cords
+    
+    dim as short local_debug=0 
+    
     target.x=from.x
     target.y=from.y
+    ntarget=from
     x=from.x
     y=from.y
     p=from
     ntarget=from
-    if findbest(17,-1)>0 then
+    launcher=findbest(17,-2)
+    if local_debug=1 then dprint ""&launcher
+    if launcher>0 then
         dprint "Choose target"
         do 
+            ntarget=target
             key=cursor(ntarget,map)
-            if distance(ntarget,from)<5 then
+            if distance(ntarget,from)<5+item(launcher).v1-planets(map).grav then
                 target.x=ntarget.x
                 target.y=ntarget.y
             endif
-            if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=1
-            if key=key_quit or multikey(SC_ESCAPE) then ex=-1    
+            if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=-1
+            if key=key_quit or multikey(SC_ESCAPE) then ex=1    
         loop until ex<>0
         r=distance(from,target)
         dx=(target.x-from.x)/r
@@ -3424,6 +3433,7 @@ function grenade(from as _cords,map as short) as _cords
         target.x=x
         target.y=y
     endif
+    if local_debug=1 then dprint ""&target.x &":"& target.y
     return target    
 end function
 
@@ -3697,6 +3707,7 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
     dim b as short
     dim noa as short
     dim col as short
+    dim as short local_debug
     if attacker.stuff(1)=1 and attacker.stuff(2)=1 then mname="flying "
     mname=mname & attacker.sdesc    
     text="the"
@@ -3716,14 +3727,13 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
     for a=1 to noa
         if rnd_range(1,6)+rnd_range(1,6)-defender.armor\(6*(defender.hp+1))+attacker.weapon>6 then b=b+1+attacker.weapon
     next
-    if b>attacker.weapon+5 then b=attacker.weapon+5 'max damage    
+    if b>attacker.weapon+5+noa/2 then b=attacker.weapon+5+noa/2 'max damage    
     if defender.made=0 then 
         if b>0 then
             text=text & damawayteam(defender,b,,attacker.disease)
             col=12
         else
             text=text & " no casualties."
-            col=10
             col=10
         endif
         if defender.hp<=0 then player.killedby=attacker.sdesc
@@ -3732,6 +3742,7 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
         defender.hp=defender.hp-b 'Monster attacks monster
         if defender.hp<defender.hpmax*0.3 and rnd_range(1,6)+rnd_range(1,6)<defender.intel+defender.diet then defender.aggr=2
     endif
+    if local_debug=1 then dprint "DEBUG MESSAGE dam:"& b
     return defender
 end function
 
@@ -3809,9 +3820,6 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         player.alienkills=player.alienkills+1
         if defender.allied>0 then factionadd(0,defender.allied,rnd_range(1,4)*rnd_range(1,4))
         if defender.enemy>0 then factionadd(0,defender.enemy,-1*(rnd_range(1,4)*rnd_range(1,4)))
-        locate defender.c.y+1,defender.c.x+1
-        color 4,12
-        print "%"
         if defender.slot>0 then planets(slot).mon_killed(defender.slot)+=1
     else
         if defender.hp=1 and b>0 and defender.aggr<>2 then 

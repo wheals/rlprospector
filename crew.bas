@@ -46,6 +46,7 @@ function cureawayteam(where as short) as short
     if cured>0 then gainxp(5)
     return 0
 end function
+
 function maxsecurity() as short
     dim as short b,total
     total=player.h_maxcrew+player.crewpod+player.cryo-5
@@ -235,6 +236,7 @@ end function
 function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
     dim text as string
     dim as integer ex,b,t,last,last2,armeff,reequip,roll,cc
+    dim as short local_debug=0
     dim target(128) as integer
     dim stored(128) as integer
     dim injured(13) as integer
@@ -257,13 +259,16 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
     'ap=4 Ignores Armor, Robots immune
+    
+    if local_debug=1 then text=text & "in:"&dam
+    
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     for b=1 to 128
         if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) or b=1 then
             last+=1
             target(last)=b
-            stored(last)=crew(b).hp
+            stored(b)=crew(b).hp
         endif
     next
     if dam>a.armor/(2*last) then
@@ -288,8 +293,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 dam=0
             endif
             if ap=0 or ap=1 or ap=4 then
-                roll=rnd_range(1,20)
-                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=4 or ap=1 then
+                roll=rnd_range(1,25)
+                if local_debug=1 then text=text &":" &roll &":"&a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1)
+                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=4 or ap=1 or roll=25 then
                     if not(crew(target(t)).typ=13 and ap=4) then crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
                 else
@@ -297,11 +303,18 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 endif
             endif
         endif
-        ex=1
         last=0
-    loop until dam<=0 or ex=1 or cc>99999
-    for b=1 to last
+        for b=1 to 128
+            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) or b=1 then
+                last+=1
+                target(last)=b
+            endif
+        next
+    loop until dam<=0 or ex=1 or cc>9999
+    dam=0
+    for b=1 to 128
         if stored(b)>crew(target(b)).hp then
+            dam=dam+stored(b)-crew(target(b)).hp
             if crew(target(b)).hp<=0 then
                 killed(crew(target(b)).typ)+=1
                 reequip=1
@@ -310,7 +323,6 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             endif
         endif
     next
-    
     if armeff>0 then text=text &armeff &" prevented by armor. "
     
     for b=1 to 13
@@ -339,6 +351,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     if killed(4)>0 then player.science=captainskill
     if killed(5)>0 then player.doctor=captainskill
     if reequip=1 then equip_awayteam(player,a,player.map)
+    if local_debug=1 then text=text & " Out:"&dam
     return trim(text)
 end function
 

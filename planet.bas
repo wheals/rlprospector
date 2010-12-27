@@ -810,8 +810,8 @@ sub makefinalmap(m as short)
         next
     next
     close #f
-    p.x=31
-    p.y=2
+    p2.x=31
+    p2.y=2
     do
         p=rnd_point(m,0)
     loop until distance(p,p2)>15
@@ -825,6 +825,15 @@ sub makefinalmap(m as short)
     planets(m).mon_template(0)=makemonster(19,m)
     planets(m).Mon_noamax(0)=28
     planets(m).mon_noamin(0)=22
+    planets(m).mon_template(1)=makemonster(56,m)
+    planets(m).Mon_noamax(1)=12
+    planets(m).mon_noamin(1)=10
+    planets(m).mon_template(2)=makemonster(55,m)
+    planets(m).Mon_noamax(2)=12
+    planets(m).mon_noamin(2)=10
+    planets(m).mon_template(3)=makemonster(91,m)
+    planets(m).Mon_noamax(3)=12
+    planets(m).mon_noamin(3)=10
     planets(m).grav=0.5
     planets(m).atmos=3
 end sub
@@ -1069,7 +1078,7 @@ sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
     if show_all=1 then dprint "Made complex at "&slot
     if planets(slot).depth=0 then planets(slot).depth=1
     planets(slot).darkness=5
-    planets(slot).vault=r(0)
+    planets(slot).vault(0)=r(0)
     planets(slot).teleport=1
     
     planets(slot).temp=25
@@ -1311,8 +1320,8 @@ do
     varchance=0
     
     if rnd_range(1,100)<planets(slot).depth*2 then
-        planets(slot).vault=r(rnd_range(0,last))
-        planets(slot).vault.wd(5)=1
+        planets(slot).vault(0)=r(rnd_range(0,last))
+        planets(slot).vault(0).wd(5)=1
         varchance-=5
     endif
     varchance+=5
@@ -2400,7 +2409,7 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
         
     if planets(slot).depth=0 then planets(slot).depth=1
     planets(slot).darkness=5
-    planets(slot).vault=r
+    planets(slot).vault(0)=r
     
                      
     for a=0 to rnd_range(1,6)+rnd_range(1,6)+gascloud
@@ -2523,7 +2532,7 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
             for a=0 to 20+tumod
                 if distance(seedps(a),sp)<distance(ep,sp) then ep=seedps(a)
             next
-            makevault(r,slot,ep,rnd_range(1,6))   
+            makevault(r,slot,ep,rnd_range(1,6),0)   
         endif
     endif
 
@@ -4520,7 +4529,7 @@ function makespecialplanet(a as short) as short
         r.h=rnd_range(4,5)
         p1.x=gc.x
         p1.y=gc.y
-        makevault(r,gc.m,p1,99)
+        makevault(r,gc.m,p1,99,0)
     endif 
     
     if specialplanet(16)=a then
@@ -6121,11 +6130,11 @@ function makespecialplanet(a as short) as short
                 next
             next
             if b=0 then    
-            planets(lastplanet).vault.x=p.x
-            planets(lastplanet).vault.y=p.y
-            planets(lastplanet).vault.w=x1
-            planets(lastplanet).vault.h=y1
-            planets(lastplanet).vault.wd(5)=3
+            planets(lastplanet).vault(0).x=p.x
+            planets(lastplanet).vault(0).y=p.y
+            planets(lastplanet).vault(0).w=x1
+            planets(lastplanet).vault(0).h=y1
+            planets(lastplanet).vault(0).wd(5)=3
             endif
         next
         planetmap(p.x+x1/2,p.y+y1/2,lastplanet)=257
@@ -7320,7 +7329,7 @@ function findsmartest(start as short, iq as short, enemy() as _monster, lastenem
     return -1
 end function
 
-function makevault(r as _rect,slot as short,nsp as _cords, typ as short) as short
+function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as short) as short
     dim as short x,y,a,b,c,d,nodo,best,bx,by
     dim p(31) as _cords
     dim wmap(r.w,r.h) as short
@@ -7449,7 +7458,7 @@ function makevault(r as _rect,slot as short,nsp as _cords, typ as short) as shor
         r.wd(6)=3
     endif
     
-    planets(slot).vault=r
+    planets(slot).vault(ind)=r
     return 0
 end function
   
@@ -7693,18 +7702,17 @@ sub planet_event(slot as short)
         
         lastportal=lastportal+1
         lastplanet=lastplanet+1
+        makeroots(lastplanet)
+        
         portal(lastportal).desig="An opening between the roots. "
         portal(lastportal).tile=asc("o")
         portal(lastportal).col=4
-        portal(lastportal).from.m=a
-        portal(lastportal).from.x=rnd_range(0,60)
-        portal(lastportal).from.y=rnd_range(0,20)
+        portal(lastportal).from=rnd_point(0,slot)
+        portal(lastportal).from.m=slot
+        portal(lastportal).dest=rnd_point(0,lastplanet)
         portal(lastportal).dest.m=lastplanet
-        portal(lastportal).dest.x=rnd_range(1,59)
-        portal(lastportal).dest.y=rnd_range(1,19)
         portal(lastportal).discovered=show_portals
         
-        makeroots(lastplanet)
         planets(slot).mon_template(0)=makemonster(4,slot)
         planets(slot).mon_noamin(0)=15
         planets(slot).mon_noamax(0)=25
@@ -7931,19 +7939,19 @@ function addpyramid(p as _cords, slot as short) as short
                     next
                 endif
                 if vt=3 or vt=5 then
-                    planets(lastplanet).vault=r
-                    planets(lastplanet).vault.wd(5)=2
-                    planets(lastplanet).vault.wd(6)=rnd_range(66,68)
+                    planets(lastplanet).vault(0)=r
+                    planets(lastplanet).vault(0).wd(5)=2
+                    planets(lastplanet).vault(0).wd(6)=rnd_range(66,68)
                 endif
                 if vt=4 then
-                    planets(lastplanet).vault=r
-                    planets(lastplanet).vault.wd(5)=2
-                    planets(lastplanet).vault.wd(6)=rnd_range(16,18)
+                    planets(lastplanet).vault(0)=r
+                    planets(lastplanet).vault(0).wd(5)=2
+                    planets(lastplanet).vault(0).wd(6)=rnd_range(16,18)
                 endif
                 if vt=6 then
-                    planets(lastplanet).vault=r
-                    planets(lastplanet).vault.wd(5)=2
-                    planets(lastplanet).vault.wd(6)=rnd_range(16,18)
+                    planets(lastplanet).vault(0)=r
+                    planets(lastplanet).vault(0).wd(5)=2
+                    planets(lastplanet).vault(0).wd(6)=rnd_range(16,18)
                     for x=r.x to r.x+r.w
                         for y=r.y to r.y+r.h
                             if x=r.x+1 or x=r.x+r.w-1 or y=r.y+1 or y=r.y+r.h-1 then planetmap(x,y,lastplanet)=-225

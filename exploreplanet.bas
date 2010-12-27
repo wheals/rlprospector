@@ -2841,7 +2841,7 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
     
     if tmap(awayteam.c.x,awayteam.c.y).gives=26 then              
         dprint "A Weapons and Equipment store"
-        if slot<>pirateplanet(0) or faction(0).war(1)<=0 then
+        if slot<>pirateplanet(0) or faction(0).war(2)<=0 then
             do
                 cls
                 displayship

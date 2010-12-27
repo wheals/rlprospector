@@ -1,6 +1,29 @@
 '
 ' File Input/output routines
 '
+function keybindings() as short
+    dim as short f,a,b,x,y
+    dim as string keys(99),expl(99),text
+    f=freefile
+    open "keybindings.txt" for input as #f
+    while not eof(f)
+        line input #f,text
+        if instr(text,"#")=0 and len(text)>0 then                            
+            a+=1
+            keys(a)=right(text,1)
+            expl(a)=left(text,len(text)-2)
+        endif
+    wend
+    for x=1 to 3
+        for y=1 to 20
+            b+=1
+            draw string ((x-1)*20*_fw2,y*_fh2),expl(b) &":"&keys(b),,FONT2,custom,@_col
+        next
+    next
+    sleep
+    return 0
+end function
+
 
 function loadmap(m as short,slot as short)as short
     dim as short f,b,x,y

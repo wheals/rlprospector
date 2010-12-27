@@ -1031,9 +1031,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp="grenade launchers"
         i.icon="]"
         i.col=7
+        i.v1=2
         i.price=500
         i.ldesc="A device to increase the range and improve the aim of grenades."
         i.res=55
+        if rnd_range(1,100)<10 then
+            if rnd_range(1,100)<50 then
+                i.v1=1
+                i.price=400
+                i.desig="weak grenade launcher"
+            else
+                i.v1=3
+                i.price=800
+                i.desig="powerful grenade launcher"
+            endif
+        endif
     endif
     
     if a=49 then

@@ -2,7 +2,7 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.15a"
+const __VERSION__="0.1.15b"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -483,7 +483,7 @@ type _planet
     mon_seen(16) as byte
     colony as byte
     colonystats(14) as byte
-    vault as _rect
+    vault(8) as _rect
     discovered as short
     visited as integer
     mapped as integer
@@ -874,7 +874,7 @@ dim shared map(laststar+wormhole+1) as _stars
 dim shared basis(12) as _station
 dim shared companystats(4) as _company
 dim shared companyname(4) as string
-dim shared shares(2047) as _share
+dim shared shares(2048) as _share
 dim shared lastshare as short
 dim shared spacemap(sm_x,sm_y) as short
 dim shared combatmap(60,20) as byte
@@ -1046,6 +1046,8 @@ declare function isgardenworld(m as short) as short
 
 declare function showwormholemap() as short
 
+declare function keybindings() as short
+
 declare sub shipstatus(heading as short=0)
 declare sub show_stars(bg as short=0,byref walking as short)
 declare sub displaystar(a as short)
@@ -1183,7 +1185,7 @@ declare sub planet_event(slot as short)
 declare function makewhplanet() as short
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
 declare function makesettlement(p as _cords,slot as short, typ as short) as short
-declare function makevault(r as _rect,slot as short,nsp as _cords, typ as short) as short
+declare function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as short) as short
 declare function rndwallpoint(r as _rect, w as byte) as _cords
 declare function rndwall(r as _rect) as short
 declare function digger(byval p as _cords,map() as short,d as byte,ti as short=2,stopti as short=0) as short

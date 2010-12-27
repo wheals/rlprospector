@@ -938,7 +938,7 @@ function repairhull() as short
     next
     displayship
     if player.hull<player.h_maxhull+player.addhull then
-        dprint "you can add up to " & player.h_maxhull+player.addhull-player.hull &" Hull points (100 Cr per point, max " &int(player.money/100) &")"
+        dprint "you can add up to " & player.h_maxhull+player.addhull-player.hull &" Hull points (100 Cr per point, max " &minimum(player.h_maxhull+player.addhull-player.hull,int(player.money/100)) &")"
         b=getnumber(0,player.h_maxhull+player.addhull-player.hull,player.hull)
         if b>0 then
             if b+player.hull>player.h_maxhull+player.addhull then b=player.h_maxhull-player.hull
@@ -1974,7 +1974,7 @@ function buyshares(comp as short,n as short) as short
     if lastshare+n>2048 then n=2048-lastshare
     if n>0 and companystats(comp).shares>0 then
         for a=1 to n
-            if lastshare<2048 and companystats(comp).shares>0 then
+            if lastshare<2048+n and companystats(comp).shares>0 then
                 lastshare=lastshare+1
                 shares(lastshare).company=comp
                 shares(lastshare).bought=player.turn
@@ -2000,7 +2000,7 @@ function sellshares(comp as short,n as short) as short
             n=n-1
         endif
     next
-    
+    if a>2048 then a=2048
     do
         if shares(a).company=-1 and lastshare>=0 then
             shares(a)=shares(lastshare)
