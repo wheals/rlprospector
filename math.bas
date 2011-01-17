@@ -1,5 +1,15 @@
 declare function fixstarmap() as short
 
+function find_high(list() as short,last as short) as short
+    dim as short i,m,r
+    for i=1 to last
+        if list(i)>m then
+            r=i
+            m=list(i)
+        endif
+    next
+    return r
+end function
 
 function sub0(a as single,b as single) as single
     dim c as single

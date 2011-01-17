@@ -2,6 +2,83 @@
 ' Calculate and display Highscore and post-mortem
 '
 
+function death_message() as short
+    dim as string text
+    dim as short b,a
+    text=""
+    
+    if not fileexists(player.desig &".bmp") then screenshot(3)
+    cls
+    background(rnd_range(1,_last_title_pic)&".bmp")
+    color 12,0
+    if player.fuel<=0 then player.dead=1
+    if player.dead=1 then text="You ran out of fuel. Slowly your life support fails while you wait for your end beneath the eternal stars"
+    if player.dead=2 then text= "The station impounds your ship for outstanding depts. You start a new career as cook at the stations bistro"
+    if player.dead=3 then text= "Your awayteam was obliterated. your Bones are being picked clean by alien scavengers under a strange sun"
+    if player.dead=4 then text= "After a few months stranded on an alien world you decide to stop sending distress signals, and try to start a colony with your crew. All works really well untill one day that really big animal shows up..."
+    if player.dead=5 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by pirates"
+    if player.dead=6 then text="Farewell Captain!"
+    if player.dead=7 then text= "You didn't think the pirates base would be the size of a city, much less a whole planet. The last thing you see is the muzzle of a pirate gaussgun pointed at you."
+    'if player.dead=8 then text= "You think you can see a malicious grin beneath the leaves as the prehensile vines snap your neck"
+    if player.dead=9 then text= "Apollo convinces you with bare fists and lightningbolts that he in fact is a god"
+    if player.dead=10 then text= "The robots defending the city are old, but still very well armed and armored. Their long gone masters would have been pleased to learn how easily they repelled the intruders."
+    if player.dead=11 then text= "The Sandworm swallows the last of your awayteam with one gulp"
+    if player.dead=12 then text= "Too late you realize that your ship was already too damaged to further explore the gascloud. A quick run for the edge wasnt quick enough" 
+    if player.dead=13 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the merchants escort ships"
+    if player.dead=14 then text= "You run out of oxygen on an airless world. Your death comes quick"
+    if player.dead=15 then text= "With horror you watch as the ground cracks open beneath the " &player.desig &" and your ship disappears in a sea of molten lava"
+    if player.dead=16 then text= "Trying to cross the lava field proved to be too much for your crew"
+    if player.dead=17 then text= "The world around you dissolves into an orgy of flying rock, bright light and fire. Then all is black."
+    if player.dead=18 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed while trying to "&space(41)&"ignore the station commanders wishes"
+    if player.dead=19 then text="Your pilot crashes the ship into the asteroid. You feel very alone as you drift in your spacesuit among the debris, hoping for someone to pick up your weak distress signal."
+    if player.dead=20 then text="When the monster destroys your ship your only hope is to leave the wreck in your spacesuit. With dread you watch it gobble up the debris while totally ignoring the people it just doomed to freezing among the asteroids."    
+    if player.dead=21 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an ancient alien ship"
+    if player.dead=22 then text="A creaking hull shows that your pilot underestimated the pressure and gravity of this gas giant. Heat rises as you fall deeper and deeper into the atmosphere with ground to hit below. Your ship gets crushed. You are long dead when it eventually gets torn apart by winds and evaporated by the rising heat."
+    if player.dead=23 then text="The creatures living here tore your ship to pieces. The winds will do the same with you floating through the storms of the gas giant like a leaf in a hurricane."
+    if player.dead=24 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the" &space(41)& "strange forces inside the wormhole"
+    if player.dead=25 then text="The inhabitants of the ship overpower you. Now two ships will drift through the void till the end of time."
+    if player.dead=26 then text="The weapons of the Anne Bonny fire one last time before your proud ship gets turned into a cloud of hot gas."
+    if player.dead=27 then text="Within seconds the refueling platform and your ship are high above you. Jetpacks won't suffice to fight against the gas giants gravity. You plunge into your fiery death."
+    if player.dead=28 then text="The last thing you remember is the doctor giving you an injection. Your corpse will be disposed of."
+    if player.dead=29 then text="A huge wall of light and fire appears on the horizon. Within the blink of an eye it rushes over you, dispersing your ashes in the wind."
+    if player.dead=30 then text="High gravity shakes your ship. Suddenly an energy discharge out of nowhere evaporates your ship!"
+    if player.dead=31 then text="Hardly damaged the unknown vessel continues it's way across the stars, ignoring the burning wreckage of your ship."
+    if player.dead=32 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
+    if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
+    if player.dead=98 then 
+        endstory=es_part1
+        textbox (endstory,2,2,_screenx/_fw2-5)
+    endif
+    if player.dead=99 then text="Till next time!"
+    if text<>"" then
+        color 11,0
+        #ifdef _windows
+        gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
+        #endif
+        b=0
+        while len(text)>40
+            a=40
+            do 
+                a=a-1
+            loop until mid(text,a,1)=" "        
+            draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),left(text,a),,TITLEFONT,custom,@_tcol
+            text=mid(text,a,(len(text)-a+1))
+            b=b+1
+        wend
+        draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),text,,TITLEFONT,custom,@_tcol
+    endif
+    
+    no_key=""
+    no_key=keyin
+    if player.dead<99 then 
+        if askyn("Do you want to see the last messages again?(y/n)") then messages
+        highsc()
+    endif
+
+    return 0
+end function
+
+
 function mercper() as short
     dim as single per
     if player.tradingmoney>0 and player.money>0 then per=100*(player.tradingmoney/player.money)
@@ -79,7 +156,9 @@ sub postmortem
     cls
     locate 1,20 
     color 15,0 
+    #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
+    #endif
     draw string (10,10), st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",,titlefont,custom,@_col
     color 11,0
     a=cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
@@ -223,7 +302,9 @@ sub highsc()
         draw string (xo,a),space(80),,font2,custom,@_col
     next
     color 15,0
+    #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
+    #endif
     draw string (2*_fw2+xo,yo/2),"10 MOST SUCCESSFUL MISSIONS",,Titlefont,custom,@_col
     
     for a=1 to 10

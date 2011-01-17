@@ -164,72 +164,68 @@ function infect(a as short,dis as short) as short
     if roll<maximum(3,dis) and crew(a).hp>0 and crew(a).hpmax>0 then
         crew(a).disease=dis
         crew(a).duration=disease(dis).duration
+        crew(a).incubation=disease(dis).incubation
+        crew(a).onship=1
         if dis>player.disease then player.disease=dis
-        dprint "A crew member was infected with "&disease(dis).desig &"!",12
     endif
     return 0
 end function
 
 function diseaserun(onship as short) as short
-    dim as short a,dam,total,affected,dis,dead,distotal
+    dim as short a,b,dam,total,affected,dis,distotal
     dim text as string
     for a=2 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and crew(a).disease>0 then
-            if crew(a).duration>0 then 
-                if crew(a).duration=disease(crew(a).disease).duration then dprint "A crewmember gets sick.",14
-                crew(a).duration-=1
-                if crew(a).duration=0 then crew(a).disease=0
-                if crew(a).duration>0 then
-                    dam=rnd_range(0,abs(disease(crew(a).disease).dam))
-                    if dam>0 then
-                        crew(a).hp=crew(a).hp-dam
-                        if crew(a).hp<=0 then 
-                            crew(a).hp=0
-                            crew(a).disease=0
-                            dead+=1
+            if crew(a).incubation>0 then 
+                dprint a &":"&crew(a).incubation
+                crew(a).incubation-=1
+                if crew(a).incubation=0 then dprint crew(a).n &" "& disease(crew(a).disease).desig &".",14
+            else
+                if crew(a).duration>0 then 
+                    crew(a).duration-=1 
+                    if rnd_range(1,100)<disease(crew(a).disease).contagio then
+                        b=rnd_crewmember
+                        if crew(a).onship=crew(b).onship or (crew(a).onship=1 and crew(b).onship=1) then 
+                            crew(b).disease=crew(a).disease
+                            crew(b).duration=disease(crew(a).disease).duration
+                            crew(b).incubation=disease(crew(a).disease).incubation
                         endif
-                        total=total+dam
-                        affected+=1
                     endif
-                endif
-                if crew(a).duration=0 then
-                    if rnd_range(1,100)<disease(crew(a).disease).fatality then
-                        if crew(a).onship=onship then dprint "A crewmember dies of disease.",12
-                        crew(a)=crew(0)
+                    if crew(a).duration=0 then
                         crew(a).disease=0
-                    else
-                        if crew(a).onship=onship then dprint " A crewmember recovers.",10
-                        crew(a).disease=0
+                        if rnd_range(1,100)+player.doctor*5<disease(crew(a).disease).fatality then
+                            if crew(a).onship=onship and a=2 then 
+                                dprint "Your pilot dies from disease.",12
+                                player.pilot=captainskill
+                            endif
+                            if crew(a).onship=onship and a=3 then 
+                                dprint "Your gunner dies from disease.",12
+                                player.gunner=captainskill
+                            endif
+                            if crew(a).onship=onship and a=4 then 
+                                dprint "Your science offcier dies from disease.",12
+                                player.science=captainskill
+                            endif
+                            if crew(a).onship=onship and a=5 then
+                                dprint "Your doctor dies from disease.",12
+                                player.doctor=captainskill
+                            endif
+                            if crew(a).onship=onship and a>5 then dprint crew(a).n &" dies from disease.",12
+                            crew(a)=crew(0)
+                            crew(a).disease=0
+                            
+                        else
+                            if crew(a).onship=onship then dprint crew(a).n &" recovers.",10
+                            crew(a).onship=crew(a).oldonship
+                            crew(a).disease=0
+                        endif
                     endif
                 endif
             endif
         endif
-        if a=2 and crew(a).hp<=0 and player.pilot>0 then 
-            player.pilot=captainskill
-            dead-=1
-            dprint " Your pilot dies of disease!",12
-        endif
-        if a=3 and crew(a).hp<=0 and player.gunner>0 then 
-            player.gunner=captainskill
-            dead-=1
-            dprint " Your gunner dies of disease!",12
-        endif
-        if a=4 and crew(a).hp<=0 and player.science>0 then 
-            player.science=captainskill
-            dead-=1
-            dprint " Your science officer dies of disease!",12
-        endif
-        if a=5 and crew(a).hp<=0 and player.doctor>0 then 
-            player.doctor=captainskill
-            dprint " Your doctor dies of disease!",12
-        endif
         if crew(a).disease>dis then dis=crew(a).disease
     next
     player.disease=dis
-    if total=1 then dprint " A crewmember suffer "& total &" damage from disease.",14
-    if total>1 then dprint affected &" crewmembers suffer "& total &" damage from disease.",14
-    if dead=1 then dprint " A crewmember dies from disease.",12
-    if dead>1 then dprint dead &" crewmembers die from disease.",12
     return 0
 end function
 
@@ -545,6 +541,14 @@ function rnd_crewmember(onship as short=0) as short
     return pot(rnd_range(1,p))
 end function
 
+function get_freecrewslot() as short
+    dim as short b,slot
+    for b=128 to 6 step -1
+        if crew(b).hp<=0 then slot=b
+    next
+    return slot
+end function
+
 function addmember(a as short) as short
     dim as short slot,b,f,c,cc
     dim _del as _crewmember
@@ -563,9 +567,7 @@ function addmember(a as short) as short
     loop until eof(f) or ln(0)>=199 or ln(1)>=199
     close #f
     'find empty slot
-    for b=128 to 6 step -1
-        if crew(b).hp<=0 then slot=b
-    next
+    slot=get_freecrewslot
     if a<6 then slot=a
     if slot>0 then
         
@@ -737,7 +739,6 @@ function addmember(a as short) as short
             crew(slot).paymod=2
         endif  
         
-        
         if a=17 then 'green
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
@@ -747,7 +748,6 @@ function addmember(a as short) as short
             crew(slot).paymod=2
         endif  
         
-        
         if a=18 then 'green
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
@@ -756,6 +756,7 @@ function addmember(a as short) as short
             crew(slot).talents(29)=1
             crew(slot).paymod=2
         endif  
+        
         'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
@@ -993,6 +994,7 @@ function showteam(from as short, r as short=0,text as string="") as short
     dim n as string
     dim skills as string
     dim augments as string
+    dim message as string
     for b=1 to 128
         if crew(b).hpmax>0 then last+=1
     next
@@ -1003,24 +1005,31 @@ function showteam(from as short, r as short=0,text as string="") as short
     cls
     do
         color 11,0
+        screenset 0,1
+        cls
+        message=""
         if no_key=key_enter then
             if r=0 then
                 if from=0 then
                     if p>1 then
-                        if crew(p).onship=0 then 
-                            crew(p).onship=1
+                        if crew(p).disease=0 then
+                            if crew(p).onship=0 then 
+                                crew(p).onship=1
+                            else
+                                crew(p).onship=0
+                            endif
                         else
-                            crew(p).onship=0
+                            draw string (10,_screeny-_fh2*2), "Is sick and must stay on board.",,font2,custom,@_col
                         endif
                     else
                         locate 22,1
                         color 14,0
-                        draw string (10,_screeny-_fh2), "The captain must stay in the awayteam.",,font2,custom,@_col
+                        draw string (10,_screeny-_fh2*2), "The captain must stay in the awayteam.",,font2,custom,@_col
                     endif
                 else
                     locate 22,1
                     color 14,0
-                    draw string (10,_screeny-_fh2), "You need to be at the ship to reassign.",,font2,custom,@_col
+                    draw string (10,_screeny-_fh2*2), "You need to be at the ship to reassign.",,font2,custom,@_col
                 endif
             endif
             if r=1 then return p
@@ -1059,9 +1068,8 @@ function showteam(from as short, r as short=0,text as string="") as short
         
         endif
         
-        screenset 0,1
-        cls
         y=0
+        b=1
         for b=1 to lines
             if b=p+offset then
                 bg=5
@@ -1147,7 +1155,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                     draw string (13*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
                     color 15,bg
                     draw string (15*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
-                    if crew(b-offset).onship=1 and crew(b-offset).hp>0 then
+                    if (crew(b-offset).onship=1 or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
                         color 14,bg
                         draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
@@ -1227,7 +1235,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                     if crew(b-offset).disease>0 then
                         color 14,bg
                         y+=1
-                        draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).desig),,font2,custom,@_col
+                        draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).ldesc),,font2,custom,@_col
                     endif
                     'print space(70-pos)
                     
@@ -1244,8 +1252,8 @@ function showteam(from as short, r as short=0,text as string="") as short
             if from <>0 then draw string (10,_screeny-_fh2), key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
         endif
         if r=1 then draw string (10,_screeny-_fh2), "installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
-        flip
-        screenset 1,1
+        'flip
+        screenset 0,1
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
@@ -1262,10 +1270,6 @@ function showteam(from as short, r as short=0,text as string="") as short
         if p>last then p=last
         if p+offset>lines then offset=lines-p
         if p+offset<1 then offset=1-p
-        
-        
-        
-       
     loop until no_key=key_esc or no_key=" "
     cls
     return 0

@@ -1,6 +1,6 @@
 
 function ep_atship(awayteam as _monster,ship as _cords,walking as short) as short
-    dim as short slot
+    dim as short slot,a
     slot=player.map
     if awayteam.c.y=ship.y and awayteam.c.x=ship.x and slot=player.landed.m then 
         dprint "You are at the ship. Press "&key_la &" to launch."
@@ -10,6 +10,12 @@ function ep_atship(awayteam as _monster,ship as _cords,walking as short) as shor
             dprint "Refilling Jetpacks",10
             awayteam.jpfuel=awayteam.jpfuelmax
         endif
+        for a=1 to 128
+            if crew(a).disease>0 then
+                crew(a).oldonship=crew(a).onship
+                crew(a).onship=1
+            endif
+        next
         alerts(awayteam, walking)
         return 0
     else 
@@ -47,12 +53,16 @@ function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _
                 else
                     dprint "You start without incident"
                     nextmap.m=-1
+                    #ifdef _windows
                     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
+                    #endif
                 endif                    
             endif
         else
             nextmap.m=-1
+            #ifdef _windows
             if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
+            #endif
         endif
     endif
     return 0
@@ -527,7 +537,7 @@ end function
  
 
 function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
-    dim as short a,b,x,y,slot
+    dim as short a,b,x,y,slot,fg,bg
     dim as _cords p,p1,p2
     slot=player.map
     if disease(awayteam.disease).bli>0 then 
@@ -640,25 +650,29 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 if item(li(a)).discovered=0 then walking=0
                 item(li(a)).discovered=1
                 if tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).walktru>0 and item(li(a)).bgcol=0 then
-                    color item(li(a)).col,tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
+                    bg=tiles(abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
                 else
-                    color item(li(a)).col,item(li(a)).bgcol
+                    if item(li(a)).bgcol>=0 then bg=item(li(a)).bgcol
                 endif
-                    
-                locate item(li(a)).w.y+1,item(li(a)).w.x+1
+                if item(li(a)).col>0 then
+                    fg=item(li(a)).col
+                else
+                    fg=rnd_range(abs(item(li(a)).col),abs(item(li(a)).bgcol))
+                endif
+                color fg,bg
                 if _tiles=0 then
                     put (item(li(a)).w.x*_tix,item(li(a)).w.y*_tiy),gtiles(gt_no(item(li(a)).ti_no)),trans
                 else
                     if _transitems=1 then
                         draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_col
                     else
-                        if item(li(a)).bgcol=0 then
+                        if item(li(a)).bgcol<=0 then
                             color 241,0
                             draw string(p.x*_fw1-1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                             draw string(p.x*_fw1+1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                             draw string(p.x*_fw1,P.y*_fh1+1), item(li(a)).icon,,font1,custom,@_tcol
                             draw string(p.x*_fw1,P.y*_fh1-1), item(li(a)).icon,,font1,custom,@_tcol
-                            color item(li(a)).col,item(li(a)).bgcol
+                            color fg,bg
                             draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                         else
                             draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_col
@@ -1463,6 +1477,8 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
     dim moa as byte 'monster attack
     dim as _cords p1,p2
     dim as single tb,dam
+    dim as string text
+    dim as byte debug=0
     slot=player.map
     deadcounter=0
     if makemoodlog=1 then
@@ -1708,14 +1724,13 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
             if distance(enemy(a).c,awayteam.c)<enemy(a).sight-awayteam.invis/2 then enemy(a).target=awayteam.c                            
         endif    
         if distance(enemy(a).c,awayteam.c)<enemy(a).range and enemy(a).hp>0 then
-            if enemy(a).sleeping=0 and (enemy(a).move=-1 or m(a)>0) then
+            if debug=1 then text=text &"sl:"&enemy(a).sleeping &"move"&enemy(a).move &"m:"&m(a)
+            if enemy(a).sleeping<=0 and (enemy(a).move=-1 or m(a)>0) then
                 if enemy(a).invis=2 then
                     dprint "A clever "&enemy(a).sdesc &" has been hiding here, waiting for prey!",14
                     enemy(a).invis=0
                 endif
                 walking=0
-                
-                color enemy(a).col,0
                 
                 if enemy(a).invis=0 then 
                     if _tiles=0 then
@@ -1731,6 +1746,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                         walking=0
                         pathblock(enemy(a).c,awayteam.c,slot,,enemy(a).scol)
                         awayteam=monsterhit(enemy(a),awayteam)
+                        if debug=1 then text=text &""&a
                         m(a)=m(a)-enemy(a).atcost
                     endif
                 endif
@@ -1807,6 +1823,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
             endif    
        next
     next
+    if debug=1 then dprint "Attacked this turn:"&text
     return deadcounter
 end function
 
@@ -1936,8 +1953,9 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
                     next
                 next
                 sleep 100+distance(awayteam.c,shipfire(sf2).where)*6
+                #ifdef _windows
                 if (_sound=0 or _sound=2) and planets(slot).atmos>1 then FSOUND_PlaySound(FSOUND_FREE, sound(4))
-                
+                #endif
             endif
             if shipfire(sf2).what>10 then 
                 player.weapons(shipfire(sf2).what)=makeweapon(0)
@@ -2588,7 +2606,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
                             else
                                 draw string (enemy(a).c.x*_fw1,enemy(a).c.y*_fh1), "%",,Font1,custom,@_col
                             endif
-                            text=text & mondis(enemy(a))
+                            text=text & mondis(enemy(a)) 
                             if _debug=1 then text=text &"("&a &" of "&lastenemy &")"
                         endif
                         exit for 'there won't be more than one monster on one tile
@@ -3344,6 +3362,11 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                 if key="b" then
                     shop(7,1.5,"Mudds Incredible Bargains")
                 endif
+            endif
+            
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=67 then
+                buysitems("We buy all pieces of art you may 'find'.","Do you think you have anything to sell?",23,.5)
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=167 then

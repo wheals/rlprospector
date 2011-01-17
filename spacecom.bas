@@ -470,7 +470,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                 endif
             endif
         next
+        #ifdef _windows
         FSOUND_Update
+        #endif
     loop until victory<>0
     
     if attacker(16).desig="" and col=10 then atts.con(1)=-1
@@ -763,9 +765,11 @@ function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as
         if attacker.weapons(a).made=93 then tohitbonus+=1
         if attacker.weapons(a).made=94 then tohitbonus+=2
     next
+    #ifdef _windows
     if w.ammomax>0 and w.ROF>0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser         
     if w.ammomax>0 and w.ROF=0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery          
     if w.ammomax=0 and (_sound=0 or _sound=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile                                           
+    #endif
     do
         if w.ammomax>0 then w.ammo=w.ammo-1 
         if w.ammo>0 or w.ammomax=0 then

@@ -957,7 +957,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if g=6 then enemy.intel=enemy.intel+1
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
-        if rnd_range(1,100)<25-enemy.intel then enemy.disease=rnd_range(1,15)
+        if rnd_range(1,100)<15-enemy.intel*2 then enemy.disease=rnd_range(1,15)
         enemy.ti_no=g+1001
         enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
             
@@ -1937,6 +1937,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.move=1.8
         enemy.hp=enemy.hpmax
+        enemy.faction=9
     endif
 
     if a=32 then
@@ -2391,7 +2392,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.move=.1
         enemy.respawns=1
         enemy.biomod=4
-        enemy.faction=1
+        enemy.faction=9
     endif
         
     if a=46 then 'Defense bots
@@ -2478,7 +2479,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=0
         enemy.col=9
         enemy.aggr=1
-        enemy.faction=1
+        enemy.faction=9
         enemy.respawns=0
     endif
     
@@ -3025,7 +3026,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(0)=9
             enemy.itemch(0)=33
         endif
-        enemy.faction=1
+        enemy.faction=9
     endif
     
     if a=60 then 'Floater
@@ -3490,7 +3491,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hasoxy=1
         enemy.tile=asc("j")
         enemy.col=208
-        enemy.faction=1
+        enemy.faction=9
         enemy.sdesc="blob"
         enemy.ldesc="A huge pale amorphous mass wobbles towards you trying to engulf you. It's skin is covered in a highly corrosive substance"
     endif

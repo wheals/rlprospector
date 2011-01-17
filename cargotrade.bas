@@ -515,7 +515,7 @@ function company(st as short,byref questroll as short) as short
         next
         if q=-1 and basis(st).repname="Eridiani Explorations" then
             if complete>1 then dprint "Eridiani explorations pays "&complete*50 &" Cr. for the complete maps of "&complete &"planets"
-            if complete=1 then dprint "Eridiani explorations pays "&complete*50 &" Cr. for the complete maps of a planet"
+            if complete=1 then dprint "Eridiani explorations pays "&complete*50 &" Cr. for the complete map of a planet"
             player.money=player.money+complete*50
         endif
         
@@ -596,7 +596,7 @@ function company(st as short,byref questroll as short) as short
 end function
 
 function casino(staked as short=0, st as short=-1) as short
-    dim as short a,b,c,d,e,f,pr,bet,num,fi,col,times,mbet,gpld,asst,x,y,z
+    dim as short a,b,c,d,e,f,pr,bet,num,fi,col,times,mbet,gpld,asst,x,y,z,t,price,bonus,passenger
     dim ba(3) as short
     dim as uinteger mwon,mlos
     dim as integer result
@@ -640,6 +640,12 @@ function casino(staked as short=0, st as short=-1) as short
     coltable(34)=12
     coltable(35)=15
     coltable(36)=12
+    if st=-1 then 'More passengers outside of stations
+        passenger=-30
+    else
+        passenger=0
+    endif
+        
     screenset 1,1
     do
         drawroulettetable()
@@ -789,6 +795,34 @@ function casino(staked as short=0, st as short=-1) as short
                 dprint "you have a drink."
                 changemoral(1,0)
             endif
+            if rnd_range(1,100)<25-passenger then 'Passenger
+                b=rnd_range(0,2)
+                passenger+=5
+                if b<>st then
+                    t=player.turn+(rnd_range(10,15)/10)*distance(player.c,basis(b).c)
+                    price=distance(player.c,basis(b).c)*rnd_range(1,2)
+                    bonus=rnd_range(1,15)
+                    if askyn("A passenger needs to get to space station "& b+1 &" by turn "& t &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every turn you arrive there earlier. Do you want to take him with you?(y/n)") then
+                        if maxsecurity>0 then
+                            c=get_freecrewslot
+                            crew(c).n="Passenger for S-"& b+1
+                            crew(c).icon="p"
+                            crew(c).equips=1
+                            crew(c).hpmax=1
+                            crew(c).hp=1
+                            crew(c).typ=7
+                            crew(c).target=b+1
+                            crew(c).time=t
+                            crew(c).price=price
+                            crew(c).bonus=bonus
+                            crew(c).onship=1
+                            crew(c).morale=150
+                        else
+                            dprint "You don't have room to take him with you."
+                        endif
+                    endif
+                endif
+            endif
             if rnd_range(1,100)<66 and player.money>=0 then
                 b=rnd_range(1,29)
                 c=rnd_range(0,2)
@@ -900,6 +934,26 @@ function casino(staked as short=0, st as short=-1) as short
     if result>30000 then result=30000
     return mwon-mlos
 end function
+
+function checkpassenger(st as short) as short
+    dim as short b,t,price
+    dim as _crewmember cr
+    for b=6 to 128
+        if crew(b).target=st+1 then
+            t=crew(b).time-player.turn
+            price=crew(b).price+crew(b).bonus*t
+            if price<0 then price=10
+            if t>0 then dprint "Your passenger is very happy that he arrived early."
+            if t<0 then dprint "Your passenger isnt happy at all that he arrived too late."
+            player.money=player.money+price
+            player.tradingmoney=player.tradingmoney+price
+            dprint "He pays you "&price &" credits."
+            crew(b)=cr
+        endif
+    next
+    return 0
+end function
+
 
 function refuel() as short
     dim as short c,b

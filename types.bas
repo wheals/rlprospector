@@ -18,12 +18,12 @@ Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0 
 const show_allitems=0 
 const easy_fights=0
-const show_eventp=0
+const show_eventp=1
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=0
+const rev_map=1
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -39,6 +39,7 @@ const laststar=90
 const lastspecial=46
 const _debug=0
 const _debug_bones=0
+const _test_disease=1
 const make_vault=0
 const addpyramids=0
 const com_log=0
@@ -116,6 +117,7 @@ dim shared as string*1 key_quests="Q"
 dim shared as string*1 key_tow="t"
 
 dim shared as string*1 key_la="l"
+dim shared as string*1 key_tala="k"
 dim shared as string*1 key_sc="s"
 dim shared as string*1 key_do="d"
 dim shared as string*1 key_save="s"
@@ -126,6 +128,7 @@ dim shared as string*1 key_report="R"
 dim shared as string*1 key_rename="r"
 dim shared as string*1 key_dock="d"
 dim shared as string*1 key_comment="c"
+dim shared as string*1 key_probe="p"
 
 dim shared as string*1 key_i="i"
 dim shared as string*1 key_ex="x"
@@ -170,6 +173,7 @@ dim shared as string*1 key_pagedown="ö"
 dim shared as byte com_cheat=0
 dim shared as string*1 no_key
 dim shared as string*1 key_mfile="ä"
+dim shared as string*1 key_filter="f"
 dim shared uid as uinteger
 
 
@@ -618,12 +622,13 @@ type _disease
     desig as string
     ldesc as string
     cause as string
+    incubation as ubyte
     duration as ubyte
     fatality as ubyte
+    contagio as ubyte
     causeknown as byte
     cureknown as byte
     att as byte
-    dam as byte
     hal as byte
     bli as byte
     nac as byte
@@ -642,6 +647,7 @@ type _crewmember
     incubation as ubyte
     duration as ubyte
     onship as byte
+    oldonship as byte
     jp as byte
     equips as byte
     weap as single
@@ -655,6 +661,10 @@ type _crewmember
     augment(16) as byte
     xp as short
     morale as short
+    target as short
+    time as short
+    bonus as short
+    price as short
 end type
 
 type _share
@@ -950,6 +960,9 @@ dim shared spectralshrt(9) as string
 dim shared tacdes(5) as string
 dim shared shop_order(2) as short
 
+dim shared lastprobe as short
+dim shared probe(100) as _cords 'm=Item,
+
 dim shared as FB.IMAGE ptr TITLEFONT
 dim shared as any ptr FONT1,FONT2
 dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
@@ -959,7 +972,10 @@ dim shared endstory as string
 ' SUB DECLARATION
 
 ' prospector .bas
+declare function startnewgame() as short
+declare function fromsavegame(key as string) as string
 declare function wormhole_ani(target as _cords) as short
+declare function targetlanding(mapslot as short,test as short=0) as short
 declare function landing(mapslot as short,lx as short=0,ly as short=0, test as short=0) as short
 declare function scanning() as short
 declare function rescue() as short
@@ -969,7 +985,8 @@ declare function driftingship(a as short) as short
 declare function moverover(pl as short) as short
 declare function rnd_crewmember(onship as short=0) as short
 declare function alerts(awayteam as _monster,walking as short) as short
-
+declare function launch_probe() as short
+declare function move_probes() as short
 declare function retirement() as short
 
 declare function ep_portal(awayteam as _monster,byref walking as short) as _cords
@@ -1005,6 +1022,7 @@ declare Function fuzzyMatch( Byref correct As String, Byref match As String ) As
 declare function place_shop_order(sh as short) as short
 declare Function lev_minimum( a As Integer, b As Integer, c As Integer ) As Integer
 
+declare function titlemenu() as short
 
 declare function teleport(awaytam as _cords, map as short) as _cords
 declare function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() as _tile) as _monster
@@ -1023,6 +1041,9 @@ declare function clear_gamestate() as short
 declare function planetflags_toship(m as short) as _ship
 
 ' fileIO.bas
+declare function checkfilestructure() as short
+declare function loadsounds() as short
+declare function loadfonts() as short
 declare function saveconfig(oldtiles as short) as short
 declare function loadconfig() as short
 declare function background(fn as string) as short
@@ -1032,6 +1053,7 @@ declare function getbonesfile() as string
 declare function configuration() as short
 declare function loadmap(m as short,slot as short) as short
 declare function texttofile(text as string) as string
+declare function loadkeyset() as short
 
 ' prosIO.bas
 declare function draw_border(xoffset as short) as short
@@ -1072,6 +1094,7 @@ declare function vistest(a as _monster,m as short,mx as short,my as short,x as s
 declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship) as _ship
 declare function maxsecurity() as short
+declare function get_freecrewslot() as short
 declare function addmember(a as short) as short
 declare function cureawayteam(where as short) as short
 declare function healawayteam(byref a as _monster,heal as short) as short
@@ -1166,6 +1189,7 @@ declare sub makelabyrinth(slot as short)
 declare sub invisiblelabyrinth(tmap() as _tile,xoff as short ,yoff as short, _x as short=10, _y as short=10)
 declare sub makeroots(slot as short)
 declare sub makeplanetmap(a as short,orbit as short, spect as short)
+declare function modsurface(a as short,o as short) as short
 declare sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, froti as short,blocked as short=1)
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
 declare function makespecialplanet(a as short) as short
@@ -1179,6 +1203,12 @@ declare sub makeislands(a as short, o as short)
 declare sub makeoceanworld(a as short,o as short)
 declare function adaptmap(slot as short,enemy()as _monster,byref lastenemy as short) as short
 declare function addpyramid(p as _cords,slot as short) as short
+declare function floodfill4(map() as short,x as short,y as short) as short
+declare function add_door(map() as short) as short
+declare function add_door2(map() as short) as short
+declare function remove_doors(map() as short) as short
+declare function addcastle(dest as _cords,slot as short) as short
+
 
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
 declare sub planet_event(slot as short)
@@ -1191,7 +1221,7 @@ declare function rndwall(r as _rect) as short
 declare function digger(byval p as _cords,map() as short,d as byte,ti as short=2,stopti as short=0) as short
 declare function flood_fill(x as short,y as short,map()as short, flag as short=0) as short
 declare function flood_fill2(x as short,y as short, xm as short, ym as short, map() as byte) as short
-declare function findsmartest(start as short, iq as short, enemy() as _monster, lastenemy as short) as short
+declare function findsmartest(slot as short) as short
 declare function makeroad(byval s as _cords,byval e as _cords, a as short) as short
 declare function addportal(from as _cords, dest as _cords, twoway as short, tile as short,desig as string, col as short) as short
 declare function deleteportal(f as short=0, d as short=0) as short
@@ -1249,6 +1279,7 @@ declare function score() as integer
 declare function getdeath() as string
 
 'cargotrade
+declare function checkpassenger(st as short) as short
 declare function pirateupgrade() as short
 declare function customize_item() as short 
 declare function findcompany(c as short) as short
@@ -1297,6 +1328,8 @@ declare function getitemlist(inv() as _items, invn()as short, ty as short=0) as 
 declare function sickbay(st as short=0) as short
 
 'Items
+declare function checkitemfilter(t as short,f as short) as short
+declare function itemfilter() as short
 declare function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
 declare function removeequip() as short
 declare function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
@@ -1319,6 +1352,7 @@ declare function better_item(i1 as _items,i2 as _items) as short
 declare function listartifacts() as string
 
 'math
+declare function find_high(list() as short,last as short) as short
 declare function countdeadofficers(max as short) as short
 declare function nearestbase(c as _cords) as short
 declare function sub0(a as single,b as single) as single
@@ -1376,7 +1410,9 @@ declare function sellassetts () as string
 declare function es_title(byref pmoney as single) as string
 declare function es_living(byref pmoney as single) as string
 
+#IFDEF _WINDOWS
 using ext
+#ENDIF
 
 declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
 

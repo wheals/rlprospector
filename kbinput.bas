@@ -8,7 +8,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
     dim as short a,b,i,tog1,tog2,tog3,tog4,ctr,f,it
     if walking<>0 then sleep 50
     flip
-    
+    if _test_disease=1 and allowed<>"" then allowed="#"&allowed
     do 
      do        
       If (ScreenEvent(@evkey)) Then
@@ -50,9 +50,23 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
         
         
         if key<>"" then walking=0 
+        if _test_disease=1 and key="#" then
+            a=getnumber(0,255,0)
+            b=Getnumber(0,255,0)
+            crew(a).disease=b
+            crew(a).duration=disease(b).duration
+            crew(a).incubation=disease(b).incubation
+            if b>player.disease then player.disease=b
+            dprint a &":" & b
+            a=0
+            b=0
+            key=""
+        endif
         if blocked=0 then
-            if key=key_manual then 
-                manual
+            if key=key_manual then
+                a=menu("Help/Manual/Keybindings/Exit","",2,2)
+                if a=1 then manual
+                if a=2 then keybindings
                 return ""
             endif
             if key=key_screenshot then 
@@ -216,6 +230,72 @@ function gettext(x as short, y as short, ml as short, text as string) as string
     wend
     return text
 end function
+
+function getnumber(a as short,b as short, e as short) as short
+    dim key as string
+    dim buffer as string
+    dim c as short
+    dim d as short
+    dim i as short
+    dim p as _cords
+    if _altnumber=0 then
+        p=locEOL
+        c=numfromstr((gettext(p.x,p.y,46,"")))
+        if c>b then c=b
+        if c<a then c=e
+        return c
+    else
+        
+        color 11,1
+        for i=1 to 61
+            draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
+        next
+        color 11,11
+        draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
+        c=a
+        if e>0 then c=e
+        do 
+            color 11,1
+            
+            draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
+            color 5,11
+            
+            draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
+            print "-"
+    
+            if c<10 then 
+                color 1,11
+                print "0" &c
+                draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
+            else
+                color 1,11
+                draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
+            endif
+            
+            locate 22,32
+            color 5,11        
+            draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
+            
+            color 11,1
+            draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
+            key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
+            if keyplus(key) then c=c+1
+            if keyminus(key) then c=c-1
+            if key=key_enter then d=1
+            if key=key_esc then d=2
+            buffer=buffer+key
+            if len(buffer)>2 then buffer=""
+            if val(buffer)<>0 or buffer="0" then c=val(buffer)
+            
+            if c>b then c=b
+            if c<a then c=a
+            
+        loop until d=1 or d=2
+        if d=2 then c=-1
+        color 11,0
+    endif
+    return c
+end function    
 
 function keyplus(key as string) as short
     dim r as short

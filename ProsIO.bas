@@ -44,6 +44,7 @@ function hpdisplay(a as _monster) as short
                 if crew(c).hp>0  then
                     color 14,0
                     if crew(c).hp=crew(c).hpmax then color 10,0
+                    if crew(c).disease>0 then color 192,0
                     draw string(62*_fw1+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col       
                 else
                     color 12,0
@@ -157,7 +158,7 @@ function draw_border(xoffset as short) as short
     dim as short fh1,fw1,fw2,a
     if _tiles=0 then
         fh1=16
-        Fw1=gfx.font.gettextwidth(FONT1,"W")
+        fw1=8
         fw2=_fw2
     else
         fh1=_fh1
@@ -363,7 +364,7 @@ sub show_stars(bg as short=0,byref walking as short)
             color 7,0
             if drifting(x).s=20 then color 15,0
             if (a>0 and vismask(p.x,p.y)=1 and distance(player.c,p)<player.sensors) or drifting(x).p>0 then
-                if p.x+1-player.osx>0 and p.x+1-player.osx<61 and p.y+1-player.osy>0 and p.y+1-player.osy<21 then 
+                if p.x+1-player.osx>=0 and p.x+1-player.osx<=61 and p.y+1-player.osy>=0 and p.y+1-player.osy<=21 then 
                     if _tiles=0 then
                         put ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),gtiles(87),pset
                     else
@@ -424,7 +425,14 @@ sub show_stars(bg as short=0,byref walking as short)
             displaystar(a)
         endif
     next
-    
+    for a=1 to lastprobe
+        x=probe(a).x-player.osx
+        y=probe(a).y-player.osy
+        if x>=0 and y>=0 and x<=60 and y<=20 then
+            color _shipcolor,0
+            draw string (x*_fw1,y*_fh1),"s",,Font1,custom,@_col
+        endif
+    next
     for a=0 to 2
         if basis(a).discovered>0 then displaystation(a)
     next
@@ -1511,7 +1519,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
 end sub
 
 sub shipstatus(heading as short=0)
-    dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset,mjs
+    dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset,mjs,filter
     dim as short a,b,c,lastinv,set,tlen,cx,cy
     dim as string text,key
     dim inv(256) as _items
@@ -1595,17 +1603,29 @@ sub shipstatus(heading as short=0)
     color 11,0
     if heading=0 then  
         do
-            for a=0 to _lines-c                
-                color 0,0
-                draw string (50*_fw1,(3+c+a)*_fh2) ,space(30),,font2,custom,@_col
-                color 11,0
-                
-                if invn(a+offset)>1 then
-                    draw string (50*_fw1,(3+c+a)*_fh2) , invn(a+offset)&" "&left(inv(a+offset).desigp,27),,font2,custom,@_col
-                else
-                    if invn(a+offset)=1 then draw string (50*_fw1,(3+c+a)*_fh2) , invn(a+offset)&" "&left(inv(a+offset).desig,27),,font2,custom,@_col
+            color 15,0
+            draw string (55*_fw1,(2+c)*_fh2) ,"Equipment("&lastinv & "):",,font2,custom,@_col
+            color 11,0
+            'for a=0 to _lines-c     
+            a=0
+            b=0
+            do 
+                b+=1
+                'dprint checkitemfilter(inv(b+offset).ty,filter) &":"&inv(b+offset).ty
+                if checkitemfilter(inv(b+offset).ty,filter)=1 then
+                    a+=1
+                    color 0,0
+                    draw string (50*_fw1,(3+c+a)*_fh2) ,space(30),,font2,custom,@_col
+                    color 11,0
+                    if invn(b+offset)>1 then
+                        draw string (50*_fw1,(3+c+a)*_fh2) , invn(b+offset)&" "&left(inv(b+offset).desigp,27),,font2,custom,@_col
+                    else
+                        if invn(b+offset)=1 then draw string (50*_fw1,(3+c+a)*_fh2) , invn(b+offset)&" "&left(inv(b+offset).desig,27),,font2,custom,@_col
+                    endif
                 endif
-            next
+                'dprint _lines-c &":"&a &":"& b &":" &lastinv
+            loop until a>=_lines-c or b>=lastinv 
+            
             draw string (79*_fw1,_lines*_fh2) , " ",,font2,custom,@_col
             if lastinv>_lines-c and offset+(_lines-c)<=lastinv then                    
                 color 14,0
@@ -1616,9 +1636,10 @@ sub shipstatus(heading as short=0)
                 color 14,0
                 draw string (79*_fw1,(2+c)*_fh2), chr(24),,font2,custom,@_col
             endif
-            key=keyin(,,1)
+            key=keyin(key_filter &"q",,1)
             if keyminus(key) then offset=offset-1
             if keyplus(key) then offset=offset+1
+            if key=key_filter then filter=itemfilter
             if offset<0 then offset=0
             if offset>33 then offset=33
             loop until key=key_esc or key=" "
@@ -1633,7 +1654,10 @@ sub displayship(show as byte=0)
     dim t as string
     dim as string p,g,s,d,carg
     dim as byte fw1,fh1
+    fw1=11
+    #ifdef _windows
     Fw1=gfx.font.gettextwidth(FONT1,"W")
+    #endif
     Fh1=22
     
     if player.fuel=player.fuelmax then wg=0
@@ -1696,7 +1720,9 @@ sub displayship(show as byte=0)
             wg=1 
             dprint "Fuel low",14
             if _sound=0 or _sound=2 then 
-                 FSOUND_PlaySound(FSOUND_FREE, sound(2))                                       
+                #ifdef _windows
+                FSOUND_PlaySound(FSOUND_FREE, sound(2))                                       
+                #endif
             endif    
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
         endif
@@ -1709,7 +1735,9 @@ sub displayship(show as byte=0)
             wg=2
             dprint "Fuel very low",12
             if _sound=0 or _sound=2 then 
-                 FSOUND_PlaySound(FSOUND_FREE, sound(2))
+                #ifdef _windows
+                FSOUND_PlaySound(FSOUND_FREE, sound(2))
+                #endif
             endif
             if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
  
@@ -2150,71 +2178,6 @@ function getsystem(player as _ship) as short
     return b
 end function
 
-function getnumber(a as short,b as short, e as short) as short
-    dim key as string
-    dim buffer as string
-    dim c as short
-    dim d as short
-    dim i as short
-    dim p as _cords
-    if _altnumber=0 then
-        p=locEOL
-        c=numfromstr((gettext(p.x,p.y,46,"")))
-        if c>b then c=b
-        if c<a then c=e
-        return c
-    else
-        
-        color 11,1
-        for i=1 to 61
-            draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
-        next
-        color 11,11
-        draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
-        c=a
-        if e>0 then c=e
-        do 
-            color 11,1
-            
-            draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
-            color 5,11
-            
-            draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
-            print "-"
-    
-            if c<10 then 
-                color 1,11
-                print "0" &c
-                draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
-            else
-                color 1,11
-                draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
-            endif
-            
-            locate 22,32
-            color 5,11        
-            draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
-            
-            color 11,1
-            draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
-            key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
-            if keyplus(key) then c=c+1
-            if keyminus(key) then c=c-1
-            if key=key_enter then d=1
-            if key=key_esc then d=2
-            buffer=buffer+key
-            if len(buffer)>2 then buffer=""
-            if val(buffer)<>0 or buffer="0" then c=val(buffer)
-            
-            if c>b then c=b
-            if c<a then c=a
-            
-        loop until d=1 or d=2
-        if d=2 then c=-1
-        color 11,0
-    endif
-    return c
-end function    
 
 function getclass(a as short=0) as string
     dim cl as string

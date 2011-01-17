@@ -1,26 +1,153 @@
 '
 ' File Input/output routines
 '
+function checkfilestructure() as short    
+    if chdir("savegames")=-1 then
+        mkdir("savegames")
+    else
+        chdir("..")
+    endif
+    
+    if chdir("bones")=-1 then
+        mkdir("bones")
+    else
+        chdir("..")
+    endif
+    
+    if not fileexists("savegames/empty.sav") then
+        player.desig="empty"
+        savegame()
+    endif
+    return 0
+end function
+
+
+function loadsounds() as short
+    #ifdef _windows
+    fsound_init(48000,11,0)
+    print FSOUND_geterror();
+    IF _Volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
+    IF _Volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
+    IF _Volume = 2 THEN FSOUND_SetSFXMasterVolume(128)
+    IF _Volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
+    IF _Volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
+    sound(1)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_1.wav", 0, 0, 0)
+    sound(2)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_2.wav", 0, 0, 0)
+    sound(3)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_1.wav", 0, 0, 0)
+    sound(4)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_2.wav", 0, 0, 0)
+    sound(5)= FSOUND_Sample_Load(FSOUND_FREE, "data/wormhole.wav", 0, 0, 0)
+    sound(7)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_4.wav", 0, 0, 0)
+    sound(8)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_3.wav", 0, 0, 0)
+    sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_5.wav", 0, 0, 0)
+    sound(10)= FSOUND_Sample_Load(FSOUND_FREE, "data/start.wav", 0, 0, 0)
+    sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "data/land.wav", 0, 0, 0)
+    #endif
+    return 0
+end function
+
 function keybindings() as short
-    dim as short f,a,b,x,y
-    dim as string keys(99),expl(99),text
+    dim as short f,a,b,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg
+    dim as _cords cc
+    dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),text,newkey
     f=freefile
     open "keybindings.txt" for input as #f
     while not eof(f)
+        ls+=1
         line input #f,text
         if instr(text,"#")=0 and len(text)>0 then                            
             a+=1
+            lk+=1
             keys(a)=right(text,1)
-            expl(a)=left(text,len(text)-2)
+            nkeys(a)=keys(a)
+            varn(a)=left(text,len(text)-2)
+            expl(a)=right(varn(a),len(varn(a))-4)
+            expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
+        else
+            lastcom+=1
+            coml(lastcom)=text
+            cl(lastcom)=ls
         endif
     wend
-    for x=1 to 3
-        for y=1 to 20
-            b+=1
-            draw string ((x-1)*20*_fw2,y*_fh2),expl(b) &":"&keys(b),,FONT2,custom,@_col
+    close #f
+    do
+        for a=1 to lk
+            colflag(a)=0
         next
+        for a=1 to lk
+            for b=1 to lk
+                if a<>b and nkeys(a)=nkeys(b) then 
+                    colflag(a)=1
+                    colflag(b)=1
+                endif
+            next
+        next
+        b=0
+        color 11,0
+        cls
+        if cc.x<1 then cc.x=1
+        if cc.y<1 then cc.y=1
+        if cc.x>3 then cc.x=3
+        if cc.y>20 then cc.x=20
+        c=(cc.x-1)*20+cc.y
+        color 15,0
+        draw string (10*_fw2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
+        for x=1 to 3
+            for y=1 to 20
+                b+=1
+                if c=b then 
+                    fg=15
+                    bg=5
+                else
+                    fg=11
+                    bg=0
+                endif
+                if colflag(b)=1 then fg=14
+                color fg,bg
+                draw string ((x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
+                draw string ((x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
+            next
+        next
+                
+        no_key=keyin
+        cc=movepoint(cc,getdirection(no_key))
+        if no_key=key_enter and keys(c)<>"" then
+            newkey=gettext((cc.x-1)*25+len(expl(c)),cc.y,1,nkeys(c))
+            if newkey<>"" and newkey<>nkeys(c) then
+                nkeys(c)=newkey
+            endif
+        endif
+    loop until no_key=key_esc
+    
+    for a=1 to lk
+        if keys(a)<>nkeys(a) then 
+            changed=1
+            print "Key "&a &" is different"
+        endif
     next
-    sleep
+    
+    if changed=1 then
+        if askyn("Do you want to save changes(y/n)?") then
+            
+            f=freefile
+            open "keybindings.txt" for output as #f
+            lastcom=1
+            b=1
+            print "Saving Keyset ";
+            for a=1 to ls
+                if cl(lastcom)=a then
+                    print #f,coml(lastcom)
+                    lastcom+=1
+                else
+                    print #f,varn(b)&" "&nkeys(b)
+                    b+=1
+                endif
+                print ".";
+            next
+            print
+            close #f
+            loadkeyset
+        endif
+    endif
     return 0
 end function
 
@@ -40,6 +167,91 @@ function loadmap(m as short,slot as short)as short
     close #f
     return 0
 end function
+
+function count_savegames() as short
+    dim as short c
+    dim as string text
+    chdir "savegames"
+    text=dir$("*.sav")
+    while text<>""      
+        text=dir$()
+        c=c+1
+    wend
+    chdir ".."
+    cls
+    return c
+end function
+
+
+function loadfonts() as short
+    dim as short a
+    screen 12
+    if _lines<25 then _lines=25
+    if _tiles=0 then 
+        _fohi2=10
+        _fohi1=26
+    endif
+    if _fohi1=9 then _fohi1=10
+    if _fohi1=11 then _fohi1=12
+    if _fohi1=13 then _fohi1=14
+    if _fohi1=15 then _fohi1=16
+    if _fohi1=17 then _fohi1=18
+    if _fohi1=19 then _fohi1=20
+    if _fohi1=21 then _fohi1=22
+    if _fohi1=23 then _fohi1=24
+    if _fohi1=25 then _fohi1=26
+    if _fohi2=9 then _fohi2=10
+    if _fohi2=11 then _fohi2=12
+    if _fohi2=13 then _fohi2=14
+    if _fohi2=15 then _fohi2=16
+    if _fohi2=17 then _fohi2=18
+    if _fohi2=19 then _fohi2=20
+    if _fohi2=21 then _fohi2=22
+    if _fohi2=23 then _fohi2=24
+    if _fohi2=25 then _fohi2=26
+    if _fohi1<8 or _fohi1>24 then _fohi1=12
+    if _fohi2<8 or _fohi2>24 then _fohi2=12
+    if _fohi2>_fohi1 then _fohi2=_fohi1
+    'Extern fb_mode Alias "fb_mode" As Uinteger Ptr
+    Print "Loading Fonts"
+    if _customfonts=1 then
+        print "loading font 1"
+        font1=load_font(""&_fohi1,_FH1)
+        print "loading font 2"
+        font2=load_font(""&_fohi2,_FH2)
+    else 
+        Font1 = ImageCreate((254-1) * 8, 17)
+        dim as ubyte ptr p
+        ImageInfo( Font1, , , , , p )
+        p[0] = 0
+        p[1] = 1
+        p[2] = 254
+        
+        For a = 1 To 254
+            p[3 + a - 1] = 8
+            Draw String Font1, ((a - 1) * 8, 1), Chr(a), 1
+        Next 
+        font2=font1
+        _fh1=16
+        _fh2=16
+    endif
+    _FW1=_FH1/2
+    _FW2=_FH2/2
+    #ifdef _windows
+    _FW1=gfx.font.gettextwidth(FONT1,"W")
+    _FW2=gfx.font.gettextwidth(FONT2,"W")
+    #endif
+    if _tiles=0 then
+        _Fw1=_tix
+        _Fh1=_tiy
+    endif
+    if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
+    _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
+    _screenx=60*_fw1+25*_fw2
+    screenres _screenx,_screeny,8,2,GFX_WINDOWED
+    return 0
+end function
+
 
 function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr      
     Dim as ubyte ptr img
@@ -243,7 +455,7 @@ function background(fn as string) as short
     fn="graphics/"&fn
     '' open BMP file
     filenum = FreeFile()
-    If Open( fn For Binary Access Read As #filenum ) <> 0 Then Return NULL
+    If Open( fn For Binary Access Read As #filenum ) <> 0 Then Return 0
 
         '' retrieve BMP dimensions
         Get #filenum, 19, bmpwidth
@@ -253,7 +465,7 @@ function background(fn as string) as short
     '' create image with BMP dimensions
     img = ImageCreate( bmpwidth, Abs(bmpheight) )
 
-    If img = NULL Then Return NULL
+    If img = 0 Then Return 0
     'dst=imagecreate(_screenx,_screeny)
     '' load BMP file into image buffer
     BLoad( fn, img )
@@ -329,6 +541,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_save")>0 then key_save=right(text,1)
                 if instr(lctext,"key_quit")>0 then key_quit=right(text,1)
                 if instr(lctext,"key_tactics")>0 then key_tactics=right(text,1)
+                if instr(lctext,"key_filter")>0 then key_filter=right(text,1)
                 if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
                 if instr(lctext,"key_logbook")>0 then key_comment=right(text,1)
                 if instr(lctext,"key_equipment")>0 then key_equipment=right(text,1)
@@ -339,6 +552,8 @@ function loadkeyset() as short
                 if instr(lctext,"key_scanning")>0 then key_sc=right(text,1)
                 if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
                 if instr(lctext,"key_rename")>0 then key_rename=right(text,1)
+                if instr(lctext,"key_targetlanding")>0 then key_tala=right(text,1)
+                if instr(lctext,"key_launchprobe")>0 then key_probe=right(text,1)
 
                 if instr(lctext,"key_pickup")>0 then key_pickup=right(text,1)
                 if instr(lctext,"key_dropitem")>0 then key_drop=right(text,1)
@@ -690,11 +905,13 @@ function configuration() as short
         if c=15 then
             dprint "Select volume (0-4)"
             _volume=getnumber(0,4,_volume)                        
+            #ifdef _windows
             IF _volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
             IF _volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
             IF _volume = 2 THEN FSOUND_SetSFXMasterVolume(128)
             IF _volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
             IF _volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
+            #endif
         endif
         
         if c=16 then
@@ -917,8 +1134,10 @@ function loadbones() as short
         endif
         get #f,,d
         for c=lastitem+1 to lastitem+1+d
-            get #f,,item(c)
-            item(c).w.m=m
+            if c>0 and c<=25000 then
+                get #f,,item(c)
+                item(c).w.m=m
+            endif
         next
         lastitem=lastitem+1+d
         close #f
@@ -1024,6 +1243,13 @@ function savegame() as short
         put #f,,basis(a)
         print ".";
     next
+
+    put #f,,lastprobe
+    if lastprobe>0 then
+        for a=1 to lastprobe
+            put #f,,probe(a)
+        next
+    endif
     
     for a=1 to 4
         put #f,,companystats(a)
@@ -1230,6 +1456,12 @@ function loadgame(filename as string) as short
             print ".";
         next
         
+        get #f,,lastprobe
+        if lastprobe>0 then
+            for a=1 to lastprobe
+                get #f,,probe(a)
+            next
+        endif
         
         for a=1 to 4
             get #f,,companystats(a)

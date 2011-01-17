@@ -1,11 +1,15 @@
-
-#include once "fbgfx.bi" 
+#DEFINE _WINDOWS 
 #include once "file.bi"
+#IFDEF _WINDOWS
+#include once "fbgfx.bi" 
 #include once "ext/graphics/font.bi"
+#ENDIF
 #include once "types.bas"
 #include once "tiles.bas"
 #include once "retirement.bas"
+#IFDEF _WINDOWS
 #include once "fmod.bi"
+#ENDIF
 #include once "math.bas" 
 #include once "pirates.bas"
 #include once "planet.bas" 
@@ -21,7 +25,10 @@
 #include once "texts.bas"
 #include once "crew.bas"
 #include once "kbinput.bas"
+#include once "globals.bas"
 on error goto errormessage
+
+
 
 cls
 ' Load 
@@ -29,600 +36,67 @@ cls
 print
 print "Prospector "&__VERSION__
 print
+
+checkfilestructure
 loadconfig
-if _lines<25 then _lines=25
-screen 12
-if _tiles=0 then 
-    _fohi2=10
-    _fohi1=26
-endif
-if _fohi1=9 then _fohi1=10
-if _fohi1=11 then _fohi1=12
-if _fohi1=13 then _fohi1=14
-if _fohi1=15 then _fohi1=16
-if _fohi1=17 then _fohi1=18
-if _fohi1=19 then _fohi1=20
-if _fohi1=21 then _fohi1=22
-if _fohi1=23 then _fohi1=24
-if _fohi1=25 then _fohi1=26
-if _fohi2=9 then _fohi2=10
-if _fohi2=11 then _fohi2=12
-if _fohi2=13 then _fohi2=14
-if _fohi2=15 then _fohi2=16
-if _fohi2=17 then _fohi2=18
-if _fohi2=19 then _fohi2=20
-if _fohi2=21 then _fohi2=22
-if _fohi2=23 then _fohi2=24
-if _fohi2=25 then _fohi2=26
-if _fohi1<8 or _fohi1>24 then _fohi1=12
-if _fohi2<8 or _fohi2>24 then _fohi2=12
-if _fohi2>_fohi1 then _fohi2=_fohi1
-'Extern fb_mode Alias "fb_mode" As Uinteger Ptr
-
-if _customfonts=1 then
-    print "loading font 1"
-    font1=load_font(""&_fohi1,_FH1)
-    print "loading font 2"
-    font2=load_font(""&_fohi2,_FH2)
-else 
-    Font1 = ImageCreate((254-1) * 8, 17)
-    dim as ubyte ptr p
-    ImageInfo( Font1, , , , , p )
-    p[0] = 0
-    p[1] = 1
-    p[2] = 254
-    
-    For a = 1 To 254
-        p[3 + a - 1] = 8
-        Draw String Font1, ((a - 1) * 8, 1), Chr(a), 1
-    Next 
-    font2=font1
-    _fh1=16
-    _fh2=16
-endif
-    
-_FW1=gfx.font.gettextwidth(FONT1,"W")
-_FW2=gfx.font.gettextwidth(FONT2,"W")
-if _tiles=0 then
-    _Fw1=_tix
-    _Fh1=_tiy
-endif
-if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
-_textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
-_screenx=60*_fw1+25*_fw2
-for a=0 to 255
-    dtextcol(a)=11
-next
-for a=0 to fix((22*_fh1)/_fh2)
-    displaytext(a)=""&a
-next
-gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
-
-screenres _screenx,_screeny,8,2,GFX_WINDOWED
-
-'dprint "now i need a really long run on sentence, and it also shouldnt repeat too soon, so i can tell where the problems, if any, start. Also I remember i already did this once, and maybe this time i should just comment it out. In case this makes it into the source code: this is to test the dprint command! Also hi there! Should be long enough now."
-text=""
-'for a=1 to 255
-'    text=text &" ."
-'    dprint text
-'    dprint ""&len(text)
-'next
-
-bload "tiles.bmp"
-
-for a=1 to 512
-    tiles(a).no=a
-    tiles(a).ti_no=100+a
-next
-
-for a=1 to max_maps
-    planets(a)=planets(0)
-    planets(a).grav=1
-next
-d=0
-a=1
+loadfonts
 if _tiles=0 then load_tiles 
 cls
-
-if chdir("savegames")=-1 then
-    mkdir("savegames")
-else
-    chdir("..")
-endif
-
-if chdir("bones")=-1 then
-    mkdir("bones")
-else
-    chdir("..")
-endif
-
-wage=10
-
-if not fileexists("savegames/empty.sav") then
-    player.desig="empty"
-    savegame()
-endif
-print
 loadkeyset
-print
-fsound_init(48000,11,0)
-print FSOUND_geterror();
-IF _Volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
-IF _Volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
-IF _Volume = 2 THEN FSOUND_SetSFXMasterVolume(128)
-IF _Volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
-IF _Volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
-sound(1)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_1.wav", 0, 0, 0)
-sound(2)= FSOUND_Sample_Load(FSOUND_FREE, "data/alarm_2.wav", 0, 0, 0)
-sound(3)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_1.wav", 0, 0, 0)
-sound(4)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_2.wav", 0, 0, 0)
-sound(5)= FSOUND_Sample_Load(FSOUND_FREE, "data/wormhole.wav", 0, 0, 0)
-sound(7)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_4.wav", 0, 0, 0)
-sound(8)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_3.wav", 0, 0, 0)
-sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_5.wav", 0, 0, 0)
-sound(10)= FSOUND_Sample_Load(FSOUND_FREE, "data/start.wav", 0, 0, 0)
-sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "data/land.wav", 0, 0, 0)
-
-'
+loadsounds
 do
-    
-'
-' Variables
-'
-
-for a=0 to 4
-    companystats(a).capital=1000
-    companystats(a).profit=0
-    companystats(a).rate=0
-    companystats(a).shares=100
-next
-
-awayteamcomp(0)=1
-awayteamcomp(1)=1
-awayteamcomp(2)=1
-awayteamcomp(3)=1
-awayteamcomp(4)=1
-
-'fightmatrix(1,2)=1
-'fightmatrix(1,4)=1
-'fightmatrix(2,1)=1
-'fightmatrix(2,3)=1
-'fightmatrix(3,2)=1
-'fightmatrix(3,4)=1
-'fightmatrix(4,1)=1
-'fightmatrix(4,3)=1
-'fightmatrix(5,1)=1
-'fightmatrix(5,2)=1
-'fightmatrix(5,3)=1
-'fightmatrix(5,4)=1
-'fightmatrix(1,5)=1
-'fightmatrix(2,5)=1
-'fightmatrix(3,5)=1
-'fightmatrix(4,5)=1
-
-tacdes(1)="reckless"
-tacdes(2)="agressive"
-tacdes(3)="neutral"
-tacdes(4)="cautious"
-tacdes(5)="defensive"
-
-talent_desig(1)="Competent"
-talent_desig(2)="Haggler"
-talent_desig(3)="Confident"
-talent_desig(4)="Charming"
-talent_desig(5)="Gambler"
-talent_desig(6)="Merchant"
-
-talent_desig(7)="Evasion" 
-talent_desig(8)="High grav training"
-talent_desig(9)="Asteroid miner"
-
-talent_desig(10)="Tactics expert"
-talent_desig(11)="Leadership"
-talent_desig(12)="Ships weapons expert"
-talent_desig(13)="Improvise mines"
-
-talent_desig(14)="Linguist"
-talent_desig(15)="Biologist"
-talent_desig(16)="Sensor expert"
-
-talent_desig(17)="Disease expert"
-talent_desig(18)="First aid expert"
-talent_desig(19)="Field medic"
-
-talent_desig(20)="Tough"
-talent_desig(21)="Defensive"
-talent_desig(22)="Close combat expert"
-talent_desig(23)="Sharp shooter"
-talent_desig(24)="Fast"
-talent_desig(25)="Strong"
-talent_desig(26)="Aim"
-
-talent_desig(27)="Squad Leader"
-talent_desig(28)="Sniper"
-talent_desig(29)="Paramedic"
-
-
-specialplanettext(1,0)="I got some strange sensor readings here sir. cant make any sense of it"
-specialplanettext(1,1)="The readings are gone. must have been that temple."
-specialplanettext(2,0)="There is a ruin of an anient city here, but i get no signs of life. Some high energy readings though."
-specialplanettext(2,1)="With the planetary defense systems disabled it is safe to land here."
-specialplanettext(3,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
-specialplanettext(4,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
-specialplanettext(5,0)="Readings indicate almost no water, and extremly high winds. Also very strong readings for lifeforms"
-specialplanettext(6,0)="The atmosphere of this planet is very peculiar. It only lets light in the UV range to the surface"
-specialplanettext(8,0)="Extremly high winds and severe lightning storms on this planet"
-specialplanettext(10,0)="There is a settlement on this planet. Humans."
-specialplanettext(10,1)="The colony sends us greetings."
-specialplanettext(11,0)="There is a ship here sending a distress signal."
-specialplanettext(11,1)="They are still sending a distress signal"
-specialplanettext(12,0)="This is a sight you get once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone."
-specialplanettext(13,0)="There is a modified emergency beacon on this planet. It broadcasts this message: 'Visit Murchesons Ditch, best Entertainment this side of the coal sack nebula'"
-specialplanettext(14,0)="A human settlement dominates this planet. There is a big shipyard too."
-specialplanettext(15,0)="I am getting a high concentration of valuable ore here, but it seems to be underground. i can not pinpoint it."
-specialplanettext(15,1)="Nothing special about this  world."
-specialplanettext(16,0)="Mild climate, dense vegetation, atmosphere composition almost exactly like earth, gravity slightly lower. Shall we call this planet 'eden'?"
-specialplanettext(17,0)="There are signs of civilization on this planet. Technology seems to be similiar to mid 20th century earth. There are lots of factories with higly toxic emissions. The planet also seems to start suffering from a runaway greenhouse effect."
-specialplanettext(18,0)="There are several big building complexes on this planet. I also get the signatures of advanced energy sources."
-specialplanettext(19,0)="There are buildings on this planet and a big sensor array. Advanced technology, propably FTL capable." 
-specialplanettext(20,0)="There is a human colony on this planet."
-specialplanettext(20,1)="There is a human colony on this planet. Also some signs of beginning construction since we were last here."
-specialplanettext(26,0)="No water, but the mountains on this planet are high rising spires of crystal and quartz. This place is lifeless, but beautiful!"
-specialplanettext(27,0)="This small planet has no atmosphere. A huge and unusually deep crater dominates its surface."
-specialplanettext(27,1)="The Planetmonster is dead."
-specialplanettext(28,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
-specialplanettext(29,0)="This is the most boring piece of rock I ever saw. Just a featureless plain of stone."
-specialplanettext(30,0)="I don't know why, but this planet has a temperate climate now. There are signs of life and a huge structure on the western hemishpere."
-specialplanettext(30,1)="I don't know why, but this planet has a temperate climate now. There are signs of life and a huge structure on the western hemishpere."
-specialplanettext(31,0)="There is a perfectly spherical large asteroid here. 2km diameter it shows no signs of any impact craters and readings indicate a very high metal content"
-specialplanettext(32,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures."
-specialplanettext(33,0)="There is a huge asteroid here. It has a very low mass though. I am also getting faint energy signatures. There are ships on the surface"
-specialplanettext(34,0)="I am getting very, very high radiaton readings for this planet. Landing here might be dangerous."
-specialplanettext(35,0)="This planets surface is covered completely in liquid."
-specialplanettext(37,0)="There is a huge lutetium deposit here."
-specialplanettext(39,0)="A beautiful world with a mild climate. Huge areas of cultivated land are visible, even from orbit, along with some small buildings."
-specialplanettext(40,0)="A beautiful world with a mild climate. There is one big artificial structure."
-specialplanettext(41,0)="There is a big asteroid with a landing pad and some buildings here."
-atmdes(1)="No"
-
-atmdes(2)="remnants of an"
-atmdes(3)="thin"
-atmdes(4)="earthlike"
-atmdes(5)="dense"
-atmdes(6)="very dense"
-
-atmdes(7)="remnants of an exotic"
-atmdes(8)="thin, exotic"
-atmdes(9)="exotic"
-atmdes(10)="dense, exotic"
-atmdes(11)="very dense, exotic"
-
-atmdes(12)="remnants of a corrosive"
-atmdes(13)="thin, corrosive"
-atmdes(14)="corrosive"
-atmdes(15)="dense, corrosive"
-atmdes(16)="very dense, corrosive"
-
-bestaltdir(1,0)=4
-bestaltdir(1,1)=2
-
-bestaltdir(2,0)=1
-bestaltdir(2,1)=3
-
-bestaltdir(3,0)=6
-bestaltdir(3,1)=2
-
-bestaltdir(4,0)=7
-bestaltdir(4,1)=1
-
-bestaltdir(6,0)=9
-bestaltdir(6,1)=3
-
-bestaltdir(7,0)=8
-bestaltdir(7,1)=4
-
-bestaltdir(8,0)=7
-bestaltdir(8,1)=9
-
-bestaltdir(9,0)=8
-bestaltdir(9,1)=6
-
-
-spectraltype(1)=12
-spectraltype(2)=192
-spectraltype(3)=14
-spectraltype(4)=15
-spectraltype(5)=10
-spectraltype(6)=137
-spectraltype(7)=9
-spectraltype(8)=0
-spectraltype(9)=11
-
-
-spectralname(1)="red sun (spectral class M)"
-spectralshrt(1)="M"
-spectralname(2)="orange sun (spectral class K)"
-spectralshrt(2)="K"
-spectralname(3)="yellow sun (spectral class G)"
-spectralshrt(3)="G"
-spectralname(4)="white sun (spectral class F)"
-spectralshrt(4)="F"
-spectralname(5)="green sun (spectral class A)"
-spectralshrt(5)="A"
-spectralname(6)="white giant (spectral class N)"
-spectralshrt(6)="N"
-spectralname(7)="blue giant (spectral class O)"
-spectralshrt(7)="O"
-spectralname(8)="a rogue planet"
-spectralshrt(8)="r"
-spectralname(9)="a wormhole"
-spectralshrt(9)="w"
-
-basis(0)=makecorp(0)
-basis(0).c.x=35
-basis(0).c.y=20
-basis(0).discovered=1
-
-basis(1)=makecorp(0)
-basis(1).c.x=10
-basis(1).c.y=30
-basis(1).discovered=1
-
-basis(2)=makecorp(0)
-basis(2).c.x=60
-basis(2).c.y=10
-basis(2).discovered=1
-
-basis(3)=makecorp(0)
-basis(3).c.x=-1
-basis(3).c.y=-1
-basis(3).discovered=0
-
-baseprice(1)=50
-baseprice(2)=100
-baseprice(3)=250
-baseprice(4)=500
-baseprice(5)=1000
-baseprice(6)=500
-baseprice(7)=500
-baseprice(8)=500
-
-companyname(1)="Eridiani Explorations"
-companyname(2)="Smith Heavy Industries"
-companyname(3)="Triax Traders"
-companyname(4)="Omega Bionegineering"
-
-for a=1 to 5
-    avgprice(a)=baseprice(a)
-next
-
-for a=0 to 12
-    basis(a).inv(1).n="Food"
-    basis(a).inv(1).v=rnd_range(1,6)+4
-    basis(a).inv(1).p=baseprice(1)
-    
-    basis(a).inv(2).n="Basic Goods"
-    basis(a).inv(2).v=rnd_range(1,7)+3
-    basis(a).inv(2).p=baseprice(2)
-    
-    basis(a).inv(3).n="Tech Goods"
-    basis(a).inv(3).v=rnd_range(1,8)+2
-    basis(a).inv(3).p=baseprice(3)
-    
-    basis(a).inv(4).n="Luxury Goods"
-    basis(a).inv(4).v=rnd_range(1,8)+1
-    basis(a).inv(4).p=baseprice(4)
-    
-    basis(a).inv(5).n="Weapons"
-    basis(a).inv(5).v=rnd_range(1,8)
-    basis(a).inv(5).p=baseprice(5)
-    
-    basis(a).inv(6).n="Narcotics"
-    basis(a).inv(6).p=baseprice(6)
-    if  basis(a).company=4 then
-        basis(a).inv(6).v=rnd_range(1,8)
-    else
-        basis(a).inv(6).v=0
+    setglobals
+    do
+        titlemenu
+        key=keyin("1234567")
+        if key="1" then
+            if count_savegames()>8 then
+                key=""
+                dprint "Too many Savegames, choose one to overwrite",14
+                text=getfilename()
+                if text<>"" then
+                    if askyn("Are you sure you want to delete "&text &"(y/n)") then
+                        kill("savegames\"&text)
+                        key="1"
+                    endif
+                endif     
+            endif
+        endif
+        if key="2" then key=fromsavegame(key)
+        if key="3" then highsc()
+        if key="4" then manual
+        if key="5" then configuration
+        if key="6" then keybindings
+    loop until key="1" or key="2" or key="7" 
+    cls
+    if key="1" then startnewgame
+        
+    if key="1" or key="2" and player.dead=0 then
+        key=""
+        show_stars(1,0)
+        displayship(1)
+        explore_space
     endif
     
-    basis(a).inv(7).n="Hightech "
-    basis(a).inv(7).p=baseprice(7)
-    if  basis(a).company=2 then
-        basis(a).inv(7).v=rnd_range(1,8)
-    else
-        basis(a).inv(7).v=0
-    endif
+    if key="7" then end
     
-    basis(a).inv(8).n="Computers"
-    basis(a).inv(8).p=baseprice(8)
-    if  basis(a).company=1 then
-        basis(a).inv(8).v=rnd_range(1,8)
-    else
-        basis(a).inv(8).v=0
+    if player.dead>0 then death_message()
+    
+    color 15,0
+    if _restart=0 then 
+        loadgame("empty.sav")
+        clear_gamestate
     endif
-next
+loop until _restart=1
+#ifdef _windows
+fSOUND_close
+#endif
+end
 
-
-if fileexists("data/ships.csv") then
-    f=freefile
-    open "data/ships.csv" for input as #f
-    b=1
-    c=0
-    for c=0 to 16
-        line input #f,text
-        shiptypes(c)=""
-        do
-            shiptypes(c)=shiptypes(c)&mid(text,b,1)
-            b=b+1
-        loop until mid(text,b,1)=";"
-        b=1
-    next
-    close #f
-    shiptypes(17)="alien vessel"
-    shiptypes(18)="ancient alien scoutship. It's hull covered in tiny impact craters"
-    shiptypes(19)="primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
-    shiptypes(20)="a small space station"
-else
-    color 14,0
-    print "ships.csv not found. Can't start game"
-    sleep
-    end
-endif
-
-disease(1).no=1
-disease(1).desig="light cough"
-disease(1).ldesc="a light cough caused by airborne bacteria"
-disease(1).duration=3
-disease(1).cause="bacteria"
-disease(1).fatality=5
-disease(1).att=-1
-
-disease(2).no=2
-disease(2).desig="heavy cough"
-disease(2).ldesc="a heavy cough caused by airborne virii"
-disease(2).duration=4
-disease(2).cause="viri"
-disease(2).fatality=5
-disease(2).att=-1
-disease(2).oxy=1
-
-disease(3).no=3
-disease(3).desig="fever and light cough"
-disease(3).ldesc="a light cough and fever caused by airborne bacteria"
-disease(3).duration=5
-disease(3).cause="bacteria"
-disease(3).fatality=8
-disease(3).att=-1
-disease(3).dam=-1
-disease(3).oxy=1
-
-
-disease(4).no=4
-disease(4).desig="heavy fever and light cough"
-disease(4).ldesc="a heavy cough and fever caused by airborne bacteria"
-disease(4).duration=6
-disease(4).cause="bacteria"
-disease(4).fatality=12
-disease(4).att=-1
-disease(4).dam=-2
-disease(4).oxy=2
-
-disease(5).no=5
-disease(5).desig="fever and shivering"
-disease(5).ldesc="a light fever and shivering caused by virii"
-disease(5).duration=15
-disease(5).cause="viri"
-disease(5).fatality=15
-disease(5).att=-2
-disease(5).dam=-2
-disease(5).oxy=2
-
-disease(6).no=6
-disease(6).desig="shivering and boils"
-disease(6).ldesc="shivering and boils caused by parasitic lifeforms"
-disease(6).duration=15
-disease(6).cause="microscopic parasitic lifeforms"
-disease(6).fatality=25
-disease(6).att=-3
-disease(6).dam=-2
-disease(6).oxy=3
-
-disease(7).no=7
-disease(7).desig="muscle cramps"
-disease(7).ldesc="shivering and muscle cramps caused by virii"
-disease(7).duration=15
-disease(7).cause="viri"
-disease(7).fatality=25
-disease(7).att=-4
-disease(7).dam=-2
-disease(7).oxy=4
-
-disease(8).no=8
-disease(8).desig="vomiting and coughing of blood"
-disease(8).ldesc="vomiting and coughing of blood caused by bacteria"
-disease(8).duration=15
-disease(8).cause="bacteria"
-disease(8).fatality=25
-disease(8).att=-5
-disease(8).dam=-2
-
-disease(9).no=9
-disease(9).desig="blindness"
-disease(9).ldesc="blindness, caused by bacteria attacking the optic nerve"
-disease(9).duration=15
-disease(9).cause="bacteria"
-disease(9).fatality=5
-disease(9).bli=55
-
-disease(10).no=10
-disease(10).desig="fever and suicidal thoughts"
-disease(10).ldesc="a strong fever, shivering and boils caused by a parasitic lifeform attacking the brain."
-disease(10).duration=15
-disease(10).cause="mircroscopic parasitic lifeforms"
-disease(10).fatality=5
-disease(10).att=-6
-disease(10).dam=-1
-
-disease(11).no=11
-disease(11).desig="balance impairment"
-disease(11).ldesc="a strong fever and balance impairment caused by virii infecting the inner ear"
-disease(11).duration=15
-disease(11).cause="viri"
-disease(11).fatality=5
-disease(11).att=-7
-disease(11).dam=-1
-
-disease(12).no=12
-disease(12).desig="rash"
-disease(12).ldesc="a rash caused by bacteria nesting on the patients skin"
-disease(12).duration=25
-disease(12).cause="bacteria"
-disease(12).fatality=5
-disease(12).att=-1
-disease(12).dam=-1
-
-disease(13).no=13
-disease(13).desig="hallucinations"
-disease(13).ldesc="severe hallucinations caused by virii attacking the central nervous system"
-disease(13).duration=25
-disease(13).cause="mircroscopic parasitic lifeforms"
-disease(13).fatality=5
-disease(13).hal=25
-
-disease(14).no=14
-disease(14).desig="narcolepsy"
-disease(14).ldesc="a virus triggers the sleep center of the victims brain."
-disease(14).duration=255
-disease(14).cause="viri"
-disease(14).fatality=45
-disease(14).nac=45
-
-disease(15).no=15
-disease(15).desig="bleeding from eye sockets and mouth."
-disease(15).ldesc="bleeding from eye sockets, mouth, nose, ears and fingernails caused by very agressive fast breeding bacteria, consuming the patients tissue."
-disease(15).duration=3
-disease(15).cause="agressive bacteria"
-disease(15).fatality=65
-disease(15).att=-3
-disease(15).dam=-3
-disease(15).bli=10
-
-disease(16).no=16
-disease(16).desig="radiation sickness"
-disease(16).ldesc="coughing, loosing of hair, caused by damage to the cells through radiation"
-disease(16).duration=255
-disease(16).cause="radiation"
-disease(16).fatality=35
-disease(16).att=-8
-disease(16).dam=-3
-
-disease(17).no=17
-disease(17).desig="zombie disease"
-disease(17).duration=15
-disease(17).fatality=85
-
-do
+function titlemenu() as short
+    #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
+    #endif
     background(rnd_range(1,_last_title_pic)&".bmp")
     
     
@@ -639,77 +113,20 @@ do
     color 101,0
     draw string(_screenx/30,_screeny/8),"PROSPECTOR",,TITLEFONT,custom,@_tcol
     color 15,0
-    draw string(_screenx-22*_FW2,_screeny-9*_FH2),__VERSION__ ,,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-8*_FH2),"1) start new game    ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-7*_FH2),"2) load saved game   ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-6*_FH2),"3) display highscore ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-5*_FH2),"4) read documentation",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-4*_FH2),"5) configuration     ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-3*_FH2),"6) exit              ",,FONT2,custom,@_col
-    key=keyin("1234567")
-    'if key="7" then ship_design(1)
-    if key="7" then keybindings
-    if key="2" then
-        c=0
-        chdir "savegames"
-        text=dir$("*.sav")
-        while text<>""      
-            
-            text=dir$()
-            c=c+1
-        wend
-        chdir ".."
-        cls
-        if c=0 then 
-            dprint "No Saved Games"
-            no_key=keyin
-            key=""
-        else
-    
-        loadgame(getfilename())
-        if player.desig="" then key=""
-            player.dead=0
-            if savefrom(0).map>0 then            
-                landing(0)
-            endif
-        endif
-        cls
-    endif
-    if key="3" then 
-        player.desig=""
-        highsc()
-    endif
-    if key="4" then manual
-    if key="5" then configuration
-    if key="1" then
-        c=0
-        chdir "savegames"
-        text=dir$("*.sav")
-        while text<>""      
-            
-            text=dir$()
-            c=c+1
-        wend
-        chdir ".."
-        cls
-        
-        if c>8 then
-            key=""
-            dprint "Too many Savegames, choose one to overwrite",14
-            text=getfilename()
-            if text<>"" then
-                if askyn("Are you sure you want to delete "&text &"(y/n)") then
-                    kill("savegames\"&text)
-                    key="1"
-                endif
-            endif     
-            
-        endif
-    endif
-    
-loop until key="1" or key="6" or key="2"
-cls
-if key="1" then
+    draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__ ,,FONT2,custom,@_tcol
+    draw string(_screenx-22*_FW2,_screeny-9*_FH2),"1) start new game    ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-8*_FH2),"2) load saved game   ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-7*_FH2),"3) display highscore ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-6*_FH2),"4) read documentation",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-5*_FH2),"5) configuration     ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-4*_FH2),"6) view/change keys  ",,FONT2,custom,@_col
+    draw string(_screenx-22*_FW2,_screeny-3*_FH2),"7) exit              ",,FONT2,custom,@_col
+    return 0
+end function
+
+function startnewgame() as short
+    dim as string text
+    dim as short a,b,c
     make_spacemap()
     background(rnd_range(1,_last_title_pic)&".bmp")
     text="/"&makehullbox(1) &"/"&makehullbox(2) &"/"&makehullbox(3) &"/"&makehullbox(4) &"/"&makehullbox(6)
@@ -724,6 +141,20 @@ if key="1" then
     c=b
     if b=5 then c=6
     upgradehull(c,player)
+    if b=1 then
+        placeitem(makeitem(100),0,0,0,0,-1)
+        placeitem(makeitem(100),0,0,0,0,-1)
+        placeitem(makeitem(100),0,0,0,0,-1)
+    endif
+    if b=2 then 
+        placeitem(makeitem(103),0,0,0,0,-1)
+    endif
+    if b=3 then
+        player.cargo(1).x=11
+        player.cargo(2).x=rnd_range(1,3)
+        player.cargo(1).y=nearestbase(player.c)
+        player.cargo(2).y=rnd_range(1,5)*player.cargo(2).x
+    endif
     if b=4 then
         player.security=5
         for c=6 to 10
@@ -737,6 +168,7 @@ if key="1" then
             placeitem(makeitem(rnd_range(3,lstcomit)),0,0,0,0,-1)
         endif
     next
+
     if rnd_range(1,100)<51 then
         player.weapons(1)=makeweapon(rnd_range(6,7))
     else
@@ -779,20 +211,6 @@ if key="1" then
         faction(0).war(4)=0
         faction(0).war(5)=100
     endif
-    player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
-    if player.desig="" then player.desig=randomname()
-    a=freefile
-    text="savegames\"&player.desig &".sav"
-    if open (text for input as a)=0 then
-        close a
-        do
-            draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
-            draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
-            player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
-            if player.desig="" then player.desig=randomname()
-            text="savegames\"&player.desig &".sav"    
-        loop until fileexists(text)=0    
-    endif
     faction(1).war(2)=100
     faction(1).war(4)=100
     faction(2).war(1)=100
@@ -801,100 +219,72 @@ if key="1" then
     faction(3).war(4)=100
     faction(4).war(1)=100
     faction(4).war(3)=100
-    cls
-endif
-if key="6" then end
-
-if key="1" or key="2" and player.dead=0 then
-    if key="2" then show_stars(1,0)  
-    key=""
-    bload "tiles.bmp"
-    cls
-    show_stars(1,0)
-    displayship(1)
-    explore_space
-endif
-
-if player.dead>0 then
-    text=""
-    
-    if not fileexists(player.desig &".bmp") then screenshot(3)
-    cls
-    background(rnd_range(1,_last_title_pic)&".bmp")
-    color 12,0
-    if player.fuel<=0 then player.dead=1
-    if player.dead=1 then text="You ran out of fuel. Slowly your life support fails while you wait for your end beneath the eternal stars"
-    if player.dead=2 then text= "The station impounds your ship for outstanding depts. You start a new career as cook at the stations bistro"
-    if player.dead=3 then text= "Your awayteam was obliterated. your Bones are being picked clean by alien scavengers under a strange sun"
-    if player.dead=4 then text= "After a few months stranded on an alien world you decide to stop sending distress signals, and try to start a colony with your crew. All works really well untill one day that really big animal shows up..."
-    if player.dead=5 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by pirates"
-    if player.dead=6 then text="Farewell Captain!"
-    if player.dead=7 then text= "You didn't think the pirates base would be the size of a city, much less a whole planet. The last thing you see is the muzzle of a pirate gaussgun pointed at you."
-    'if player.dead=8 then text= "You think you can see a malicious grin beneath the leaves as the prehensile vines snap your neck"
-    if player.dead=9 then text= "Apollo convinces you with bare fists and lightningbolts that he in fact is a god"
-    if player.dead=10 then text= "The robots defending the city are old, but still very well armed and armored. Their long gone masters would have been pleased to learn how easily they repelled the intruders."
-    if player.dead=11 then text= "The Sandworm swallows the last of your awayteam with one gulp"
-    if player.dead=12 then text= "Too late you realize that your ship was already too damaged to further explore the gascloud. A quick run for the edge wasnt quick enough" 
-    if player.dead=13 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the merchants escort ships"
-    if player.dead=14 then text= "You run out of oxygen on an airless world. Your death comes quick"
-    if player.dead=15 then text= "With horror you watch as the ground cracks open beneath the " &player.desig &" and your ship disappears in a sea of molten lava"
-    if player.dead=16 then text= "Trying to cross the lava field proved to be too much for your crew"
-    if player.dead=17 then text= "The world around you dissolves into an orgy of flying rock, bright light and fire. Then all is black."
-    if player.dead=18 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed while trying to "&space(41)&"ignore the station commanders wishes"
-    if player.dead=19 then text="Your pilot crashes the ship into the asteroid. You feel very alone as you drift in your spacesuit among the debris, hoping for someone to pick up your weak distress signal."
-    if player.dead=20 then text="When the monster destroys your ship your only hope is to leave the wreck in your spacesuit. With dread you watch it gobble up the debris while totally ignoring the people it just doomed to freezing among the asteroids."    
-    if player.dead=21 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an ancient alien ship"
-    if player.dead=22 then text="A creaking hull shows that your pilot underestimated the pressure and gravity of this gas giant. Heat rises as you fall deeper and deeper into the atmosphere with ground to hit below. Your ship gets crushed. You are long dead when it eventually gets torn apart by winds and evaporated by the rising heat."
-    if player.dead=23 then text="The creatures living here tore your ship to pieces. The winds will do the same with you floating through the storms of the gas giant like a leaf in a hurricane."
-    if player.dead=24 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the" &space(41)& "strange forces inside the wormhole"
-    if player.dead=25 then text="The inhabitants of the ship overpower you. Now two ships will drift through the void till the end of time."
-    if player.dead=26 then text="The weapons of the Anne Bonny fire one last time before your proud ship gets turned into a cloud of hot gas."
-    if player.dead=27 then text="Within seconds the refueling platform and your ship are high above you. Jetpacks won't suffice to fight against the gas giants gravity. You plunge into your fiery death."
-    if player.dead=28 then text="The last thing you remember is the doctor giving you an injection. Your corpse will be disposed of."
-    if player.dead=29 then text="A huge wall of light and fire appears on the horizon. Within the blink of an eye it rushes over you, dispersing your ashes in the wind."
-    if player.dead=30 then text="High gravity shakes your ship. Suddenly an energy discharge out of nowhere evaporates your ship!"
-    if player.dead=31 then text="Hardly damaged the unknown vessel continues it's way across the stars, ignoring the burning wreckage of your ship."
-    if player.dead=32 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
-    if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
-    if player.dead=98 then 
-        endstory=es_part1
-        textbox (endstory,2,2,_screenx/_fw2-5)
+    player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
+    if player.desig="" then player.desig=randomname()
+    a=freefile
+    if open ("savegames\"&player.desig &".sav" for input as a)=0 then
+        close a
+        do
+            draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
+            draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
+            player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
+            if player.desig="" then player.desig=randomname()
+        loop until fileexists("savegames\"&player.desig &".sav")=0    
     endif
-    if player.dead=99 then text="Till next time!"
-    if text<>"" then
-        color 11,0
-        gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
-        b=0
-        while len(text)>40
-            a=40
-            do 
-                a=a-1
-            loop until mid(text,a,1)=" "        
-            draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),left(text,a),,TITLEFONT,custom,@_tcol
-            text=mid(text,a,(len(text)-a+1))
-            b=b+1
-        wend
-        draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),text,,TITLEFONT,custom,@_tcol
+    cls
+    return 0
+end function
+
+function fromsavegame(key as string) as string
+    dim as short c
+    c=count_savegames
+    cls
+    if c=0 then 
+        dprint "No Saved Games"
+        no_key=keyin
+        key=""
+    else
+        loadgame(getfilename())
+        if player.desig="" then key=""
+        player.dead=0
+        if savefrom(0).map>0 then            
+            landing(0)
+        endif
     endif
+    cls
+    return key
+end function
+
+function targetlanding(mapslot as short,test as short=0) as short
+    dim as _cords p
+    dim as string key
+    dim as short c
+    cls
+    screenset 1,1
     
-    no_key=""
-    no_key=keyin
+    dprint "Choose landing site"
+    displayplanetmap(mapslot)
+    displayship
+    p.x=30
+    p.y=10
+    do
+        key=cursor(p,mapslot)
         
-    if player.dead<99 then 
-        if askyn("Do you want to see the last messages again?(y/n)") then messages
-        highsc()
+    loop until key=key_esc or key=key_enter
+    if key=key_enter then
+        do
+            p=movepoint(p,5)
+            c+=1
+            player.fuel-=1
+        loop until c>5 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>3+c+planets(mapslot).grav+planets(mapslot).dens
+        if c<=5 then
+            landing(mapslot,p.x,p.y,c)
+        else
+            dprint "Couldn't land there, landing aborted",14
+        endif
     endif
-endif
-color 15,0
-p1=movepoint(p1,5,0,0) 'show statistics on movepoint
-if _restart=0 then 
-    
-    loadgame("empty.sav")
-    clear_gamestate
-    endif
-loop until _restart=1
-fSOUND_close
-end
+    return 0
+end function
 
 
 function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) as short
@@ -906,7 +296,9 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim nextmap as _cords
     p.x=lx
     p.y=ly
-    if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(11))
+    #ifdef _windows
+    if (_sound=0 or _sound=2) and mapslot>0 then FSOUND_PlaySound(FSOUND_FREE, sound(11))
+    #endif
     for b=0 to laststar
         for c=1 to 9
             if mapslot=map(b).planets(c) then 
@@ -928,8 +320,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             displayplanetmap(mapslot)
             awayteam.hp=0
             for b=1 to 128
-                if crew(b).hpmax>0 and crew(b).disease>0 then crew(b).onship=1
-                if crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0 then 
+                if crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0 and crew(b).disease=0 then 
                     awayteam.hp+=1
                     crew(b).hp=crew(b).hpmax
                 endif
@@ -999,15 +390,17 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 endif
             endif
         endif
+        if isgardenworld(nextmap.m) then changemoral(3,0)
+        awayteam.oxygen=awayteam.oxymax
+        awayteam.jpfuel=awayteam.jpfuelmax
+        
         else
             awayteam=savefrom(0).awayteam
             nextmap=savefrom(0).ship
             nextmap.m=savefrom(0).map
         endif
+        
         if player.dead=0 and awayteam.hp>0 then
-            if isgardenworld(nextmap.m) then changemoral(3,0)
-            awayteam.oxygen=awayteam.oxymax
-            awayteam.jpfuel=awayteam.jpfuelmax
             do
                 equip_awayteam(player,awayteam,slot)
                 nextmap=explore_planet(awayteam,nextmap,slot)
@@ -1195,6 +588,7 @@ function scanning() as short
         no_key=keyin
         cls
         if no_key=key_la then key=key_la
+        if no_key=key_tala then key=key_tala
         if rnd_range(player.pilot,6)+rnd_range(1,6)+player.pilot<8 and player.fuel>30 then
             dprint "your pilot had to correct the orbit.",14
             x=rnd_range(1,4)-player.pilot
@@ -1204,6 +598,7 @@ function scanning() as short
         endif
         endif
         if key=key_la then landing(map(sys).planets(slot))
+        if key=key_tala then targetlanding(map(sys).planets(slot))
     endif
     'show_stars(1,0)
     'displayship
@@ -1626,7 +1021,7 @@ function spacestation(st as short) as _ship
             next
             if d=0 then dprint "Everything seems to be ok.",10
         endif
-        
+        checkpassenger(st)
         for b=2 to 128
             if Crew(b).paymod>0 and crew(b).hpmax>0 and crew(b).hp>0 then
                 a=a+Wage*Crew(b).paymod
@@ -1908,7 +1303,7 @@ function explore_space() as short
     dim as string key,text,allowed
     dim as _cords p1,p2
     do
-    allowed=key_awayteam &key_la &key_do &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
+    allowed=key_awayteam & key_probe &key_la &key_tala &key_do &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
     for a=0 to 2
         if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
             dprint "You are at Spacestation-"& a+1 &". Press "&key_do &" to dock."
@@ -1918,7 +1313,7 @@ function explore_space() as short
     next
     for a=0 to laststar
         if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
-            dPrint "A "&spectralname(map(a).spec)& ". Press "&key_sc &" to scan, "&key_la &" to land."
+            dPrint "A "&spectralname(map(a).spec)& ". Press "&key_sc &" to scan, "&key_la &" to land," &key_tala &" to land at a specific spot."
             if a=piratebase(0) then dprint "Lots of traffic in this system"
             map(a).discovered=2
             displaysystem(a)
@@ -1976,20 +1371,22 @@ function explore_space() as short
         walking=getdirection(key)
     endif
     
+    if key=key_probe then launch_probe
     
-    if key=key_la or key=key_sc then
+    if key=key_la or key=key_tala or key=key_sc then
         pl=-1
         for a=0 to laststar
             if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
         next
         
         if pl>-1 then
-            if key=key_la then 
+            if key=key_la or key=key_tala then 
                 a=getplanet(pl)
                 if a>0 then
                     b=map(pl).planets(a)
                     if isgasgiant(b)=0 and b>0 then
-                        landing(map(pl).planets(a))
+                        if key=key_la then landing(map(pl).planets(a))
+                        if key=key_tala then targetlanding(map(pl).planets(a))
                     else
                         if isgasgiant(b)=0 then
                             dprint"You don't find anything big enough to land on"
@@ -2043,7 +1440,7 @@ function explore_space() as short
                     locate map(pl).c.y+1-player.osy,map(pl).c.x+1-player.osx
                     color 0,11
                     draw string((map(pl).c.x-player.osx)*_fw1,(map(pl).c.y-player.osy)*_fh1), "o",,font1,custom,@_col
-                    if player.c.x-player.osx>=0 and player.c.x-player.osx<=60 and player.c.y-player.osy>=0 and player.c.y-player.osy<=20 then
+                    if player.c.x-player.osx>=0 and player.c.x-player.osx<=60 and player.c.y-player.osy>=0 and .y-player.osy<=20 then
                         color _shipcolor,0
                         draw string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1),"@",,font1,custom,@_col
                     endif
@@ -2064,7 +1461,9 @@ function explore_space() as short
             endif
             map(b).planets(2)=1
             dprint "you travel through the wormhole",10
+            #ifdef _windows
             if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
+            #endif
             player.osx=player.c.x-30
             player.osy=player.c.y-10
             if player.osx<=0 then player.osx=0
@@ -2222,6 +1621,7 @@ function explore_space() as short
     fl=0
     movefleets()
     collidefleets()
+    move_probes()
     for a=3 to lastfleet
         if distance(player.c,fleet(a).c)<1.5 then 
             fl=meetfleet(a)
@@ -2379,6 +1779,7 @@ loop until player.dead>0
 end function
 
 
+
 function explore_planet(awayteam as _monster, from as _cords, orbit as short) as _cords
     dim as single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
      
@@ -2415,6 +1816,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     dim autofire_target as _cords
     dim last_ae as short
     dim del_rec as _rect
+    
+    dim as short debug=1
 'oob suchen
     screenset 1,1
     cls
@@ -2597,7 +2000,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         
         for c=0 to 8
         b=(planets(slot).vault(c).h-2)*((planets(slot).vault(c).w-2))
-        if b>4 then
+        if b>4 or planets(slot).vault(c).wd(5)=4 then
+            if debug=1 then dprint "Making vault at "&planets(slot).vault(c).x &":"& planets(slot).vault(c).y &":"& planets(slot).vault(c).w &":"& planets(slot).vault(c).h 
             if planets(slot).vault(c).wd(16)=99 then specialflag(15)=1
             if planets(slot).vault(c).wd(5)=1 then
                 if b>9 then
@@ -2620,34 +2024,52 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if planets(slot).vault(c).wd(5)=2 and planets(slot).vault(c).wd(6)<>0 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 d=lastenemy
+                if debug=1 then dprint "lastenemy"&lastenemy
                 lastenemy=lastenemy+b
-                for e=c to lastenemy
+                for e=d to lastenemy
                     text=text &d
                     do
                         x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
                         y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
+                    if debug=1 then dprint "Set monster at "&x &":"&y
                     if planets(slot).vault(c).wd(6)>0 then 
                         enemy(e)=makemonster(planets(slot).vault(c).wd(6),slot)
                         enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
                     else
-                        enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,vismask(),x,y,d)
+                        enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,vismask(),x,y,e)
+                        if debug=1 then dprint "Enemy "&e &" is at "&enemy(e).c.x &":"&enemy(e).c.y
                     endif
                 next
+                if debug=1 then dprint "lastenemy"&lastenemy
             endif
             
             if planets(slot).vault(c).wd(5)=3 then
+                if debug=1 then dprint "lastenemy"&lastenemy
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 d=lastenemy
                 lastenemy=lastenemy+b
-                for e=c to lastenemy
+                for e=d to lastenemy
                     do
                         x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
                         y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
+                    if debug=1 then dprint "Set monster at "&x &":"&y
                     enemy(e)=makemonster(59,slot)
-                    enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d,1)
+                    enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,e,1)
                 next
+                if debug=1 then dprint "lastenemy"&lastenemy
+            endif
+            if planets(slot).vault(c).wd(5)=4 then
+                for x=planets(slot).vault(c).x to planets(slot).vault(c).x+planets(slot).vault(c).w
+                    for y=planets(slot).vault(c).y to planets(slot).vault(c).y+planets(slot).vault(c).h
+                        if tmap(x,y).walktru=0 then
+                            lastenemy+=1
+                            enemy(lastenemy)=setmonster(planets(slot).mon_template(abs(planets(slot).vault(c).wd(6))),slot,spawnmask(),lsp,vismask(),x,y,lastenemy)
+                        endif    
+                    next
+                next
+                
             endif
             planets(slot).vault(c)=del_rec
         endif
@@ -3004,7 +2426,6 @@ endif
             if player.dead<>0 then allowed=""
         endif
         if key<>"" then walking=0
-        if disease(awayteam.disease).dam>0 then dprint "Disease:"&damawayteam(awayteam,rnd_range(1,disease(awayteam.disease).dam),1)
         if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
         
         if key=key_ex then ep_examine(awayteam,ship,vismask(),li(),enemy(),lastenemy,lastlocalitem,walking)
@@ -3494,6 +2915,87 @@ function wormhole_ani(target as _cords) as short
     return 0
 end function
 
+function launch_probe() as short
+    dim as short i
+    i=getitem(-1,55)
+    if i>0 then
+        show_stars(1,0)
+        displayship
+        dprint "Which Direction"
+        lastprobe+=1
+        if lastprobe>100 then lastprobe=1
+        probe(lastprobe).x=player.c.x
+        probe(lastprobe).y=player.c.y
+        probe(lastprobe).m=i
+        probe(lastprobe).s=getdirection(keyin())
+        dprint probe(lastprobe).x &":"&probe(lastprobe).y
+        dprint "Probe Launched"
+        item(i).w.s=0
+    endif
+    return 0
+end function
+
+function move_probes() as short
+    dim as short i,x,y,j,navcom,t,d
+    
+    if lastprobe>0 then
+    navcom=findbest(52,-1)
+    for i=1 to lastprobe
+        if probe(i).m>0 then
+
+            for j=laststar+1 to laststar+wormhole
+                if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then 
+                    map(j).discovered=1
+                    if askyn("Do you want to direct the probe into the wormhole?(y/n)") then
+                        if rnd_range(1,6)+rnd_range(1,6)<9 then
+                            t=map(j).planets(1)
+                            d=distance(map(t).c,probe(i))
+                            probe(i).x=map(t).c.x
+                            probe(i).y=map(t).c.y
+                            dprint "The probe traveled " &d &" parsecs to "&map(t).c.x &":"&map(t).c.y &"."
+                            exit for
+                        else
+                            item(probe(i).m).v1=0
+                        endif
+                    endif
+                endif
+            next
+            
+            probe(i)=movepoint(probe(i),probe(i).s,,1)
+            item(probe(i).m).v1-=1
+            for x=probe(i).x-1 to probe(i).x+1
+                for y=probe(i).y-1 to probe(i).y+1
+                    if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                        spacemap(x,y)=abs(spacemap(x,y))
+                        if spacemap(x,y)=0 and navcom>0 then spacemap(x,y)=1
+                        for j=1 to laststar
+                            if map(j).c.x=x and map(j).c.y=y and map(j).spec<8 then map(j).discovered=1
+                            if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then map(j).discovered=1
+                        next
+                    endif
+                next
+            next
+            for j=1 to lastdrifting
+                if drifting(j).x=probe(i).x and drifting(j).y=probe(i).y then drifting(j).p=1
+            next
+            if spacemap(probe(i).x,probe(i).y)>1 then
+                if rnd_range(1,6)+rnd_range(1,6)+item(probe(i).m).v2<10 then
+                    item(probe(i).m).v3-=1
+                endif
+            endif
+        endif
+    next
+        for i=1 to lastprobe
+            if item(probe(i).m).v1<=0 or item(probe(i).m).v2<=0 then
+                dprint "Lost contact with probe at "&probe(i).x &":"&probe(i).y &".",14
+                probe(i)=probe(lastprobe)
+                lastprobe-=1
+            endif
+        next
+    endif
+    return 0
+end function
+
 
 function planetflags_toship(m as short) as _ship
     dim s as _ship
@@ -3759,7 +3261,9 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim slbc as byte
     dim as short slot
     slot=player.map
+    #ifdef _windows
     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
+    #endif
     if defender.stuff(2)=1 then mname="flying "
     mname=mname &defender.sdesc
     if first=-1 or last=-1 then
@@ -3777,7 +3281,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     next
     slbc=1
     for a=first to noa
-        if crew(a).hp>0 and crew(a).onship=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).disease=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             slbc+=1
             if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*3+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner+attacker.secweapthi(a)+SLBonus(slbc)>9 then 
                 b=b+attacker.secweap(a)+addtalent(3,11,.1)+addtalent(a,26,.1)

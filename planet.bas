@@ -318,12 +318,16 @@ function make_spacemap() as short
             b=getrandomplanet(a)
             if b>0 and b<=lastplanet then
                 if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
+                    
                     makeplanetmap(b,rnd_range(1,9),map(a).spec)
                     planet_event(b)
-                    if show_eventp=1 then map(a).discovered=1
+                    map(a).discovered=2
                 endif
             endif
         endif
+    next
+    for a=0 to laststar
+        if map(a).discovered=2 then map(a).discovered=show_eventp
     next
     
     makecivilisation(0,specialplanet(7))
@@ -335,6 +339,7 @@ function make_spacemap() as short
     if findcompany(4)=0 then specialplanet(43)=32767
     
     ' The probesp
+    print
     print "Making drifters";
     for a=1 to lastdrifting
         print ".";
@@ -3149,6 +3154,69 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     
     planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
     
+    modsurface(a,o)
+    
+    for b=0 to planets(a).life
+        if rnd_range(1,100)<(planets(a).life+1)*5 then 
+            planets(a).mon_template(b)=makemonster(1,a)
+            planets(a).mon_noamin(b)=rnd_range(1,planets(a).life)*planets(a).mon_template(b).diet
+            planets(a).mon_noamax(b)=rnd_range(1,planets(a).life)*2*planets(a).mon_template(b).diet
+            if planets(a).mon_noamin(b)>planets(a).mon_noamax(b) then swap planets(a).mon_noamin(b),planets(a).mon_noamax(b)
+        endif
+    next
+    
+    if rnd_range(1,100)<(planets(a).life+1)*3 then
+        planets(a).mon_noamin(11)=1
+        planets(a).mon_noamax(11)=1
+        planets(a).mon_template(11)=makemonster(2,a)
+    endif
+    
+    for b=1 to _NoPB
+        if a=pirateplanet(b) then makeoutpost(a)
+    next
+    b=0
+    for x=0 to 60
+        for y=0 to 20
+            if tiles(abs(planetmap(x,y,a))).walktru=1  or planetmap(x,y,a)=-1 or planetmap(x,y,a)=-20 or planetmap(x,y,a)=-25 or planetmap(x,y,a)=-27 then b=b+1
+        next
+    next
+    planets(a).water=(b/1200)*100
+    planets(a).darkness=3-cint((5-planets(a).orbit)/2)
+    planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
+    if spect=8 then
+        makecraters(a,9)
+        planets(a).darkness=5
+        planets(a).orbit=9
+        planets(a).temp=-270+rnd_range(1,10)/10
+        planets(a).rot=-1
+    endif    
+    if show_all=1 then
+        for x=0 to 60
+            for y=0 to 20
+                planetmap(x,y,a)=-planetmap(x,y,a)
+            next
+        next
+    endif
+    makespecialplanet(a)
+    
+    if is_special(a)=0 and distance(map(sysfrommap(a)).c,civ(0).home)<2*civ(0).tech+2*civ(0).aggr and rnd_range(1,100)<civ(0).aggr*15 then
+        makealiencolony(0,a,rnd_range(2,4))    
+        planets(a).mon_template(1)=civ(0).spec
+        planets(a).mon_noamin(1)=rnd_range(2,4)
+        planets(a).mon_noamax(1)=planets(a).mon_noamin(1)+rnd_range(2,4)
+    endif
+    
+    for b=0 to planets(a).minerals+planets(a).life
+        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
+    next b
+    if add_tile_each_map<>0 then
+        p=rnd_point
+        planetmap(p.x,p.y,a)=add_tile_each_map
+    endif
+    if isgardenworld(a) then planets(a).flavortext="This place is lovely."
+end sub
+
+function modsurface(a as short,o as short) as short
     
     if o>6 and rnd_range(1,100)<35 then
         for x=0 to 60
@@ -3214,66 +3282,9 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             next
         next
     endif
-    
-    for b=0 to planets(a).life
-        if rnd_range(1,100)<(planets(a).life+1)*5 then 
-            planets(a).mon_template(b)=makemonster(1,a)
-            planets(a).mon_noamin(b)=rnd_range(1,planets(a).life)*planets(a).mon_template(b).diet
-            planets(a).mon_noamax(b)=rnd_range(1,planets(a).life)*2*planets(a).mon_template(b).diet
-            if planets(a).mon_noamin(b)>planets(a).mon_noamax(b) then swap planets(a).mon_noamin(b),planets(a).mon_noamax(b)
-        endif
-    next
-    
-    if rnd_range(1,100)<(planets(a).life+1)*3 then
-        planets(a).mon_noamin(11)=1
-        planets(a).mon_noamax(11)=1
-        planets(a).mon_template(11)=makemonster(2,a)
-    endif
-    
-    for b=1 to _NoPB
-        if a=pirateplanet(b) then makeoutpost(a)
-    next
-    b=0
-    for x=0 to 60
-        for y=0 to 20
-            if tiles(abs(planetmap(x,y,a))).walktru=1  or planetmap(x,y,a)=-1 or planetmap(x,y,a)=-20 or planetmap(x,y,a)=-25 or planetmap(x,y,a)=-27 then b=b+1
-        next
-    next
-    planets(a).water=(b/1200)*100
-    planets(a).darkness=3-cint((5-planets(a).orbit)/2)
-    planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
-    if spect=8 then
-        makecraters(a,9)
-        planets(a).darkness=5
-        planets(a).orbit=9
-        planets(a).temp=-270+rnd_range(1,10)/10
-        planets(a).rot=-1
-    endif    
-    if show_all=1 then
-        for x=0 to 60
-            for y=0 to 20
-                planetmap(x,y,a)=-planetmap(x,y,a)
-            next
-        next
-    endif
-    makespecialplanet(a)
-    
-    if is_special(a)=0 and distance(map(sysfrommap(a)).c,civ(0).home)<2*civ(0).tech+2*civ(0).aggr and rnd_range(1,100)<civ(0).aggr*15 then
-        makealiencolony(0,a,rnd_range(2,4))    
-        planets(a).mon_template(1)=civ(0).spec
-        planets(a).mon_noamin(1)=rnd_range(2,4)
-        planets(a).mon_noamax(1)=planets(a).mon_noamin(1)+rnd_range(2,4)
-    endif
-    
-    for b=0 to planets(a).minerals+planets(a).life
-        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
-    next b
-    if add_tile_each_map<>0 then
-        p=rnd_point
-        planetmap(p.x,p.y,a)=add_tile_each_map
-    endif
-    if isgardenworld(a) then planets(a).flavortext="This place is lovely."
-end sub
+    return 0
+end function
+
 
 sub makecraters(a as short, o as short)
     dim as short x,y,d,b,b1,wx,wy,ice
@@ -6296,7 +6307,7 @@ end function
 
 function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as short
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
-    dim as byte retirementshop
+    dim as byte retirementshop,antiques
     dim s as _ship
     dim pods(6,5,1) as short
     dim p as _cords
@@ -6384,6 +6395,10 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
                         else
                             planetmap(x,y,m)=-98
                         endif
+                    endif
+                    if rnd_range(1,100)<33 and antiques=0 then
+                        planetmap(x,y,m)=-294
+                        antiques=1
                     endif
                 endif
             endif
@@ -7319,14 +7334,15 @@ function makeroad(byval s as _cords,byval e as _cords, a as short) as short
 end function
 
 
-function findsmartest(start as short, iq as short, enemy() as _monster, lastenemy as short) as short
-    dim a as short
-    if start<lastenemy then
-        for a=start to lastenemy
-            if enemy(a).intel=iq then return a
-        next
-    endif
-    return -1
+function findsmartest(slot as short) as short
+    dim as short a,in,m
+    for a=0 to 16
+        if planets(slot).mon_template(a).intel>m then
+            in=a
+            m=planets(slot).mon_template(a).intel
+        endif
+    next
+    return in
 end function
 
 function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as short) as short
@@ -7832,9 +7848,16 @@ function adaptmap(slot as short,enemy()as _monster,byref lastenemy as short) as 
        
        
     if (rnd_range(1,100)<pyr+7 and pyr>0) or addpyramids=1 then         
-        planetmap(p.x,p.y,slot)=-150
         if show_all=1 then planetmap(p.x,p.y,slot)=-planetmap(p.x,p.y,slot)
-        if rnd_range(1,100)<pyr+5 or addpyramids=1 then addpyramid(p,slot)
+        if rnd_range(1,100)<pyr+5 or addpyramids=1 then 
+            if rnd_range(1,100)<33 then
+                planetmap(p.x,p.y,slot)=-150
+                addpyramid(p,slot)
+            else
+                planetmap(p.x,p.y,slot)=-4
+                addcastle(p,slot)
+            endif
+        endif
     endif
 
     for b=0 to lastitem
@@ -7973,6 +7996,554 @@ function addpyramid(p as _cords, slot as short) as short
             addportal(from,dest,1,asc("^"),"A pyramid with an entry.",14)
             addportal(dest,from,1,asc("o"),"The exit.",7)
             
+    return 0
+end function
+
+function addcastle(from as _cords,slot as short) as short
+    
+    dim map(60,20) as short
+    dim r(1) as _rect
+    dim vaults(6) as _rect
+    dim as short x,y,a,b,c,c2,x2,xm,ym,x1,y1,sppc(1200),last,lasttrap
+    dim  as _cords p,p2,dest,spp(1200),traps(1200)
+    xm=0
+    ym=0
+    for b=0 to 1+rnd_range(0,10)
+    
+        r(1).x=rnd_range(2,35+xm)
+        r(1).y=rnd_range(2,8+ym)
+        r(1).w=rnd_range(8,20-xm)
+        r(1).h=rnd_range(5,10-ym)
+        if xm<6 and b mod 2=0 then xm+=1
+        if ym<4 and b mod 2=0 then ym+=1
+        if map(r(1).x-1,r(1).y-1)=1 and map(r(1).x-1,r(1).y+r(1).h+1)=1 and map(r(1).x+r(1).w+1,r(1).y-1)=1 and map(r(1).x+r(1).w+1,r(1).y+r(1).h+1)=1 then
+            for x=r(1).x to r(1).x+r(1).w
+                for y=r(1).y to r(1).y+r(1).h
+                    map(x,y)=0
+                next
+            next
+        else
+            for x=r(1).x to r(1).x+r(1).w
+                for y=r(1).y to r(1).y+r(1).h
+                    map(x,y)=1
+                next
+            next
+        endif
+    next
+    
+    if rnd_range(1,100)<20 then
+        c=4
+        x2=rnd_range(15,45)
+        for y=1 to 19
+            map(x2,y)=1
+        next
+        for x=x2-2 to x2+2
+            for y=0 to 3
+                map(x,y)=1
+            next
+            for y=17 to 20
+                map(x,y)=1
+            next
+        next
+    endif
+    a=rnd_range(1,100)        
+    if rnd_range(1,100)<10 or a<60 then
+        c=rnd_range(3,6)
+        for x=0 to c
+            for y=0 to c
+                map(x,y)=1
+            next
+        next
+        vaults(0).x=0
+        vaults(0).y=0
+        vaults(0).h=c
+        vaults(0).w=c
+        vaults(0).wd(5)=4
+        vaults(0).wd(6)=-1
+    endif
+    if rnd_range(1,100)<30 or a<60 then
+        c=rnd_range(3,6)
+        for x=0 to c
+            for y=20-c to 20
+                map(x,y)=1
+            next
+        next
+        vaults(1).x=0
+        vaults(1).y=20-c
+        vaults(1).h=c
+        vaults(1).w=c
+        vaults(1).wd(5)=4
+        vaults(1).wd(6)=-1
+    endif
+    if rnd_range(1,100)<40 or a<60 then
+        c=rnd_range(3,6)
+        for x=60-c to 60
+            for y=20-c to 20
+                map(x,y)=1
+            next
+        next
+        
+        vaults(2).x=60-c
+        vaults(2).y=20-c
+        vaults(2).h=c
+        vaults(2).w=c
+        vaults(2).wd(5)=4
+        vaults(2).wd(6)=-1
+    endif
+    if rnd_range(1,100)<50 or a<60 then
+        c=rnd_range(3,6)
+        for x=60-c to 60
+            for y=0 to c
+                map(x,y)=1
+            next
+        next
+        vaults(3).x=60-c
+        vaults(3).y=0
+        vaults(3).h=c
+        vaults(3).w=c
+        vaults(3).wd(5)=4
+        vaults(3).wd(6)=-1
+    endif
+    
+'    screenset 1,1
+'    for x=0 to 60
+'        for y=0 to 20
+'            locate y+1,x+1
+'            if map(x,y)=1 then print "#";
+'            if map(x,y)=0 then print " ";
+'            if map(x,y)=7 then print "=";
+'        next
+'    next
+'    sleep
+    for x=1 to 59
+        for y=1 to 19
+            if map(x,y)=1 then
+                if map(x-1,y)=0 or map(x+1,y)=0 or map(x,y+1)=0 or map(x,y-1)=0 or map(x-1,y-1)=0 or map(x-1,y+1)=0 or map(x+1,y+1)=0 or map(x+1,y-1)=0 then
+                    map(x,y)=1
+                else
+                    map(x,y)=2
+                endif
+            endif
+        next
+    next
+'
+'    if rnd_range(1,100)<33+addpyramids*100 then
+'        for x=1 to 59
+'            for y=1 to 19
+'                if (x=1 or y=1 or x=59 or y=19) and map(x,y)=0 then map(x,y)=7
+'            next
+'        next
+'    endif
+'
+    for a=0 to rnd_range(5,13)
+        
+        do
+            p.x=rnd_range(2,58)
+            p.y=rnd_range(2,18)
+            b+=1
+        loop until b>5000 or map(p.x,p.y)=2 and map(p.x,p.y-1)=2 and map(p.x,p.y+1)=2 and map(p.x-1,p.y)=2 and map(p.x+1,p.y)=2
+        if b<5000 then
+            p2=p
+            select case rnd_range(1,2)
+            case is<2
+                p=p2
+                do    
+                    map(p.x,p.y)=1
+                    p.x-=1
+                    if p.x=0 or p.x=60 then map(p.x,p.y)=1
+                loop until map(p.x,p.y)=1 or map(p.x+1,p.y-1)=1 or map(p.x+1,p.y+1)=1
+                p=p2
+                do    
+                    map(p.x,p.y)=1
+                    p.x+=1
+                    if p.x=0 or p.x=60 then map(p.x,p.y)=1
+                loop until map(p.x,p.y)=1 or map(p.x-1,p.y-1)=1 or map(p.x-1,p.y+1)=1            
+            case else
+                p=p2
+                do    
+                    map(p.x,p.y)=1
+                    p.y-=1
+                    if p.y=0 or p.y=20 then map(p.x,p.y)=1
+                loop until map(p.x,p.y)=1 or map(p.x-1,p.y+1)=1 or map(p.x+1,p.y+1)=1
+                p=p2
+                do    
+                    map(p.x,p.y)=1
+                    p.y+=1
+                    if p.y=0 or p.y=20 then map(p.x,p.y)=1
+                loop until map(p.x,p.y)=1 or map(p.x-1,p.y-1)=1 or map(p.x+1,p.y-1)=1
+            end select
+        endif
+    next
+
+    for x=1 to 59
+        for y=1 to 19
+            if map(x,y)=2 and map(x+1,y)=1 and map(x,y+1)=1 and map(x+1,y+1)=2 then map(x,y)=1
+            if map(x,y)=1 and map(x+1,y)=2 and map(x,y+1)=2 and map(x+1,y+1)=1 then map(x,y)=2
+        next
+    next
+    for a=0 to 3
+        do
+            p.x=rnd_range(1,59)
+            p.y=rnd_range(1,19)
+        loop until map(p.x,p.y)=1 and ((map(p.x-1,p.y)=0 and map(p.x+1,p.y)=2) or (map(p.x+1,p.y)=0 and map(p.x-1,p.y)=2) or (map(p.x,p.y-1)=0 and map(p.x,p.y+1)=2) or (map(p.x,p.y+1)=0 and map(p.x,p.y-1)=2)) 
+        map(p.x,p.y)=3
+    next
+    b=0
+    p2.x=1
+    p2.y=1
+    do
+        
+        floodfill4(map(),p2.x,p2.y)
+        a=0
+        for x=0 to 60
+            for y=0 to 20
+                if map(x,y)=2 or map(x,y)=0 then a+=1
+            next
+        next
+        
+        if a>0 then
+            add_door(map())
+        endif
+        
+        for x=1 to 59
+            for y=1 to 19
+                if map(x,y)>5 then map(x,y)=map(x,y)-10
+            next
+        next
+            
+            
+    loop until a=0
+
+    remove_doors(map())
+
+
+    for x=0 to 60
+        for y=0 to 20
+            if x=0 or y=0 or x=60 or y=20 then map(x,y)=1
+        next
+    next
+    
+    for a=0 to rnd_range(14,24)
+        add_door2(map())
+    next
+    
+    'Find spawn points+chance
+    last=0
+    
+    vaults(4)=findrect(2,map(),0,40)
+    if addpyramids=1 then dprint "Vault 4 at "&vaults(4).x &":"& vaults(4).y
+    
+    if rnd_range(1,100)<33+addpyramids*100 then
+        if rnd_range(1,100)<33 then
+            vaults(3).wd(5)=4
+            vaults(3).wd(6)=-1
+        else
+            if rnd_range(1,100)< 50 then
+                for x=vaults(4).x to vaults(4).x+vaults(4).w
+                    for y=vaults(4).y to vaults(4).y+vaults(4).h
+                        placeitem(makeitem(94,2,3),x,y,lastplanet)
+                    next
+                next
+            else
+                for x=vaults(4).x to vaults(4).x+vaults(4).w
+                    for y=vaults(4).y to vaults(4).y+vaults(4).h
+                        placeitem(makeitem(96,2,3),x,y,lastplanet)
+                    next
+                next
+            endif
+        endif
+    endif    
+    
+    vaults(5)=findrect(0,map(),0,60)
+    if addpyramids=1 then dprint "garden at "&vaults(5).w &":"& vaults(5).h
+    
+    for x=1 to 59
+        for y=1 to 19
+            if map(x,y)=2 then
+                c=0
+                c2=0
+                for x1=x-1 to x+1
+                    for y1=y-1 to y+1
+                        if map(x1,y1)=1 then c+=1
+                        if map(x1,y1)=3 then c2+=1
+                    next
+                next
+                last+=1
+                if c2=1 and c=7 then
+                    sppc(last)=100
+                else
+                    if map(x-1,y)=2 and map(x+1,y)=2 then c=c-20
+                    if map(x,y-1)=2 and map(x,y+1)=2 then c=c-20
+                    if c2=0 then sppc(last)=c*10
+                endif
+                spp(last).x=x
+                spp(last).y=y
+                if c=6 then
+                    lasttrap+=1
+                    traps(lasttrap).x=x
+                    traps(lasttrap).y=y
+                endif
+            endif
+        next
+    next
+    
+    'Translate to real map
+    lastplanet+=1
+    for a=0 to 25
+        b=rnd_range(3,9)
+        p=rnd_point
+        for x=0 to 60
+            for y=0 to 20
+                p2.x=x
+                p2.y=y
+                if distance(p2,p)<b then 
+                    planetmap(x,y,lastplanet)+=1
+                    if planetmap(x,y,lastplanet)>5 then planetmap(x,y,lastplanet)=0
+                endif
+            next
+        next
+    next
+    sleep
+    for x=0 to 60
+        for y=0 to 20
+            if planetmap(x,y,lastplanet)<2 and planetmap(x,y,lastplanet)>=0 then planetmap(x,y,lastplanet)=-10
+            if planetmap(x,y,lastplanet)=2 and planetmap(x,y,lastplanet)>=0 then planetmap(x,y,lastplanet)=-6
+            if planetmap(x,y,lastplanet)=3 and planetmap(x,y,lastplanet)>=0 then planetmap(x,y,lastplanet)=-5
+            if planetmap(x,y,lastplanet)=4 and planetmap(x,y,lastplanet)>=0 then planetmap(x,y,lastplanet)=-12
+            if planetmap(x,y,lastplanet)>4 and planetmap(x,y,lastplanet)>=0 then planetmap(x,y,lastplanet)=-3
+        next
+    next
+    
+    if rnd_range(1,100)<33+addpyramids*100 then
+        for x=vaults(5).x+1 to vaults(5).x+vaults(5).w-2
+            for y=vaults(5).y+1 to vaults(5).y+vaults(5).h-2
+                planetmap(x,y,lastplanet)=-96
+            next
+        next
+    endif
+    
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=1 then planetmap(x,y,lastplanet)=-51
+            if map(x,y)=2 then planetmap(x,y,lastplanet)=-4
+            if map(x,y)=3 then 
+                if rnd_range(1,100)<33 then
+                    planetmap(x,y,lastplanet)=-151
+                else
+                    if rnd_range(1,100)<50 then
+                        planetmap(x,y,lastplanet)=-156
+                    else
+                        planetmap(x,y,lastplanet)=-157
+                    endif
+                endif
+            endif
+            if map(x,y)=7 then planetmap(x,y,lastplanet)=-2
+        next
+    next
+    
+    'Add stuff & features
+    for a=0 to rnd_range(1,10)+rnd_range(1,10)
+        b=find_high(sppc(),last)
+        if b>0 then
+            for c=0 to rnd_range(1,3)
+                if rnd_range(1,100)<10 then
+                    planetmap(spp(b).x,spp(b).y,lastplanet)=-154
+                else
+                    if rnd_range(1,100)<50 then
+                        placeitem(makeitem(96,2,3),spp(b).x,spp(b).y,lastplanet)
+                    else
+                        placeitem(makeitem(94,2,3),spp(b).x,spp(b).y,lastplanet)
+                    endif
+                endif
+            next
+            spp(b)=spp(last)
+            sppc(b)=sppc(last)
+            last-=1
+        endif
+    next
+    
+    for a=0 to rnd_range(0,5)+rnd_range(0,5)
+        b=rnd_range(1,lasttrap)
+        if b>0 and lasttrap>1 then
+            planetmap(traps(b).x,traps(b).y,lastplanet)=-154
+            traps(b)=traps(lasttrap)
+            lasttrap-=1
+        endif
+    next
+    
+    planets(lastplanet)=planets(slot)
+    modsurface(lastplanet,5)
+    a=findsmartest(lastplanet)
+    deletemonsters(lastplanet)
+    planets(lastplanet).mon_template(0)=planets(slot).mon_template(a)
+    planets(lastplanet).mon_noamin(0)=15
+    planets(lastplanet).mon_noamax(0)=25
+    planets(lastplanet).mon_template(0).faction=7
+    planets(lastplanet).mon_template(1)=planets(slot).mon_template(a)
+    planets(lastplanet).mon_noamin(1)=5
+    planets(lastplanet).mon_noamax(1)=15
+    planets(lastplanet).mon_template(1).hpmax+=rnd_range(5,15)
+    planets(lastplanet).mon_template(1).hp=planets(lastplanet).mon_template(0).hpmax
+    planets(lastplanet).mon_template(1).sdesc=planets(lastplanet).mon_template(1).sdesc &" guard"
+    planets(lastplanet).mon_template(1).weapon+=2
+    planets(lastplanet).mon_template(1).armor+=2
+    planets(lastplanet).mon_template(1).faction=7
+    planets(lastplanet).depth=1
+    planets(lastplanet).mapmod=0
+    planets(lastplanet).grav=.5
+    planets(lastplanet).weat=0
+    planets(lastplanet).vault(0)=vaults(0)
+    planets(lastplanet).vault(1)=vaults(1)
+    planets(lastplanet).vault(2)=vaults(2)
+    planets(lastplanet).vault(3)=vaults(3)
+    if planets(lastplanet).temp>300 then planets(lastplanet).temp=300
+    dest.x=30
+    dest.y=0
+    dest.m=lastplanet
+    if planetmap(30,1,lastplanet)=-51 then dest.x+=1
+    planetmap(dest.x,0,lastplanet)=-4
+    from.m=slot
+    addportal(from,dest,1,asc("O"),"A Fortress.",15)
+    addportal(dest,from,1,asc("o"),"The front gate.",7)
+    if addpyramids=1 then dprint "Fortress at "&from.x &":"&from.y &":"&from.m
+    return 0
+end function
+
+function remove_doors(map() as short) as short
+    dim as short x,y,last,a,c
+    dim as _cords ps(1200)
+    for x=0 to 60
+        for y=0 to 20
+            if map(x,y)=3 then
+                last+=1
+                ps(last).x=x
+                ps(last).y=y
+            endif
+        next
+    next
+    if last>0 then
+        for a=1 to last
+            c=0
+            map(ps(a).x,ps(a).y)=1
+            floodfill4(map(),1,1)
+            for x=0 to 60
+                for y=0 to 20
+                    if map(x,y)=2 or map(x,y)=0 then c+=1
+                    if map(x,y)>9 then map(x,y)=map(x,y)-10
+                next
+            next
+            if c>0 then map(ps(a).x,ps(a).y)=3
+        next
+    endif
+    return 0
+end function
+
+function floodfill4(map() as short,x as short,y as short) as short
+    if x<0 or y<0 or x>60 or y>20 then return 0
+    if map(x,y)<>1 and map(x,y)<5 then
+        map(x,y)=map(x,y)+10
+    else
+        return 0
+    endif
+    floodfill4(map(),x+1,y)
+    floodfill4(map(),x-1,y)
+    floodfill4(map(),x,y+1)
+    floodfill4(map(),x,y-1)
+end function
+
+function add_door2(map() as short) as short
+    dim ps(1200) as _cords
+    dim pc(1200) as short
+    dim as short last,x,y,a,c
+    dim as _cords p
+    for x=1 to 59
+        for y=1 to 19
+            if map(x,y)=1 or map(x,y)=2 then
+                if map(x-1,y)=2 and map(x+1,y)=2 then
+                    if map(x,y+1)=1 and map(x,y-1)=1 then
+                        last+=1
+                        ps(last).x=x
+                        ps(last).y=y
+                    endif
+                endif
+                if map(x,y-1)=2 and map(x,y+1)=2 then
+                    if map(x-1,y)=1 and map(x+1,y)=1 then
+                        last+=1
+                        ps(last).x=x
+                        ps(last).y=y
+                    endif
+                endif
+            endif
+        next
+    next
+    for a=1 to last
+        pc(a)=20
+        x=ps(a).x
+        y=ps(a).y
+        c=0
+        if map(x-1,y-1)=1 then c+=1
+        if map(x+1,y-1)=1 then c+=1
+        if map(x-1,y+1)=1 then c+=1
+        if map(x+1,y+1)=1 then c+=1
+        if c=1 then pc(a)+=10
+        if c=2 then pc(a)+=30
+        if c=3 then pc(a)+=20
+        if c=4 then pc(a)-=10
+    next
+    c=rnd_range(1,last)
+    if rnd_range(1,100)<pc(c) then map(ps(c).x,ps(c).y)=3
+    return 0
+end function
+
+function add_door(map() as short) as short
+    dim ps(1200) as _cords
+    dim as short last,x,y
+    dim as _cords p
+    for x=1 to 59
+        for y=1 to 19
+            p.x=x
+            p.y=y
+            if map(p.x,p.y)=1 and map(p.x-1,p.y)=1 and map(p.x+1,p.y)=1 then
+                if (map(p.x,p.y-1)=2 and map(p.x,p.y+1)>9) or (map(p.x,p.y-1)>9 and map(p.x,p.y+1)=2) then  
+                    last+=1
+                    ps(last)=p
+                endif
+            endif
+            if map(p.x,p.y)=1 and map(p.x,p.y-1)=1 and map(p.x,p.y+1)=1 then
+                if (map(p.x-1,p.y)=2 and map(p.x+1,p.y)>9) or (map(p.x-1,p.y)>9 and map(p.x+1,p.y)=2) then
+                    last+=1
+                    ps(last)=p
+                endif
+            endif
+        next
+    next
+    if last>0 then
+        p=ps(rnd_range(1,last))
+        map(p.x,p.y)=3
+    else
+        for x=1 to 59
+            for y=1 to 19
+                p.x=x
+                p.y=y
+                if map(p.x,p.y)=1 and map(p.x-1,p.y)=1 and map(p.x+1,p.y)=1 then
+                    if map(p.x,p.y-1)<>1 and map(p.x,p.y+1)<>1 then  
+                        last+=1
+                        ps(last)=p
+                    endif
+                endif
+                if map(p.x,p.y)=1 and map(p.x,p.y-1)=1 and map(p.x,p.y+1)=1 then
+                    if (map(p.x-1,p.y)<>1 and map(p.x+1,p.y)<>1) then
+                        last+=1
+                        ps(last)=p
+                    endif
+                endif
+            next
+        next
+        if last>0 then
+            p=ps(rnd_range(1,last))
+            map(p.x,p.y)=3
+        endif    
+    endif
     return 0
 end function
 

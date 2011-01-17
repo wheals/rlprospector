@@ -6,7 +6,11 @@ function rnd_item(t as short) as _items
             t=rnd_range(1,4) 'weapons and armor
         else
             t=-1
-            i=makeitem(rnd_range(36,37))
+            if rnd_range(1,100)<50 then
+                i=makeitem(rnd_range(36,37))
+            else
+                i=makeitem(rnd_range(100,102))
+            endif
         endif
     endif
     if t=21 then 
@@ -54,27 +58,23 @@ function rnd_item(t as short) as _items
     endif
     if t=10 then i=makeitem(rnd_range(50,52))'rovers
     if t=11 then 'all but weapons
-        if rnd_range(1,100)<33 then
-            i=makeitem(rnd_range(1,2))
-        else
-            if rnd_range(1,100)<33 then
+        select case rnd_range(1,100)
+            case 1 to 20
+                i=makeitem(rnd_range(1,2))
+            case 21 to 40
                 i=makeitem(rnd_range(15,33))
-            else
-                if rnd_range(1,100)<50 then
-                    i=makeitem(rnd_range(50,58))
-                else
-                    if rnd_range(1,100)<75 then
-                        i=makeitem(rnd_range(21,30))
-                    else
-                        i=makeitem(rnd_range(70,71))
-                    endif
-                endif
-            endif
-        endif
-        if rnd_range(1,100)<5 then i=makeitem(77)
+            case 41 to 60
+                i=makeitem(rnd_range(50,58))
+            case 61 to 80
+                i=makeitem(rnd_range(21,30))
+            case 80 to 100
+                i=makeitem(rnd_range(70,71))
+            case else
+                i=makeitem(77)
+        end select 
     endif
     if t=12 then 'All but weapons and meds
-        r=rnd_range(1,29)
+        r=rnd_range(1,33)
         if r=1 then i=makeitem(1)
         if r=2 then i=makeitem(2)
         if r=3 then i=makeitem(21)
@@ -104,6 +104,9 @@ function rnd_item(t as short) as _items
         if r=27 then i=makeitem(72)
         if r=28 then i=makeitem(73)
         if r=29 then i=makeitem(77)
+        if r=30 then i=makeitem(100)
+        if r=31 then i=makeitem(101)
+        if r=32 then i=makeitem(102)
     endif
         
     return i
@@ -181,6 +184,62 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     endif
     dprint "ITEM PLACEMENT ERROR!(lastitem="&lastitem &")",14
 end function
+
+function itemfilter() as short
+    dim a as short
+    a=menu("Item type:/Transport/Ranged weapons/Armor/Close combat weapons/Medical supplies/Grenades/Artwork/Resources/Equipment/Ship equipment/All Other/None/Exit","",20,2)
+    if a>11 then a=0
+    if a<0 then a=0
+    return a
+end function
+
+function checkitemfilter(t as short,f as short) as short
+    dim as short r,reverse,r1
+    reverse=11
+    if f=0 then return 1
+    if f<=4 or f=reverse then
+        if t=f or (f=reverse and t<=4) then
+            r=1
+        endif
+    endif
+    if f=5 or f=reverse then
+        if t=11 or t=19 then
+            r=1
+        endif
+    endif
+    if f=6 or f=reverse then
+        if t=7 then
+            r=1
+        endif
+    endif
+    if f=7 or f=reverse then
+        if t=23 then
+            r=1
+        endif
+    endif
+    if f=8 or f=reverse then
+        if t=15 then
+            r=1
+        endif
+    endif
+    if f=11 or f=reverse then
+        if t=51 or t=52 or t=53 or t=21 or t=36 or t=40 or t=41 or t=25 then r=1
+    endif
+    r1=r
+    if f=9 or f=reverse then
+        if t=50 or t=49 or t=48 or t=42 or t=41 or t=27 or t=18 or t=17 or t=16 or t=14 or t=12 or t=10 or t=9 or t=8 or t=5 then r=1
+    endif
+    if f=reverse then
+        if r=0 then
+            r=1
+        else
+            r=0
+        endif
+    endif
+    
+    return r
+end function
+
 
 function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
     dim i as _items
@@ -1051,7 +1110,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=49 then
         i.ti_no=2049
         i.id=49
-        i.ty=19
+        i.ty=28
         i.v1=25
         i.desig="aux jetpack tanks"
         i.desigp="aux jetpack tanks"
@@ -1060,7 +1119,6 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=10
         i.ldesc="Small portable tanks to store auxillary jetpack fuel."
         i.res=65
-        
     endif
     
     
@@ -1645,7 +1703,52 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         endif
     endif
 '   
+'Typ 51-54 taken
 
+    if a=100 then
+        i.ty=55
+        i.desig="MK I Probe"
+        i.desigp="MK I Probes"
+        i.desig="A probe for deep space operation. It has a range of 5 parsecs and 1 HP"
+        i.v1=5 'Range
+        i.v2=1 'Scanning Range
+        i.v3=1 'HPs
+        i.icon="s"
+        i.col=11
+        i.price=100
+    endif
+    if a=101 then
+        i.ty=55
+        i.desig="MK II Probe"
+        i.desigp="MK II Probes"
+        i.desig="A probe for deep space operation. It has a range of 7 parsecs and 2 HP"
+        i.v1=7 'Range
+        i.v2=2 'Scanning Range
+        i.v3=2 'HPs
+        i.icon="s"
+        i.col=11
+        i.price=250
+    endif
+    if a=102 then
+        i.ty=55
+        i.desig="MK III Probe"
+        i.desigp="MK III Probes"
+        i.desig="A probe for deep space operation. It has a range of 10 parsecs and 3 HP"
+        i.v1=10 'Range
+        i.v2=3 'Scanning Range
+        i.v3=3 'HPs
+        i.icon="s"
+        i.col=11
+        i.price=500
+    endif
+    if a=103 then
+        i.desig="ship detection system"
+        i.desigp="ship detection systems"
+        i.price=1500
+        i.id=1001
+        i.ty=51
+        i.v1=1
+    endif
 '   
 
 'if a=81 then
@@ -1973,7 +2076,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.id=99
         i.ty=99
         i.icon="*"
-        i.col=1
+        i.col=-1
+        i.bgcol=-15
         if mod1>0 then 
             i.v5=mod1
         else
@@ -2462,7 +2566,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 endif
             endif
             if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 then
-                b=findbest(19,-1)
+                b=findbest(28,-1)
                 if b>-1 then 
                     item(b).w.s=-2
                     awayteam.jpfuelmax=awayteam.jpfuelmax+50+item(b).v1
@@ -2572,7 +2676,8 @@ function getrnditem(fr as short,ty as short) as short
 end function
 
 function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
-    dim as short i,offset,a,b,c,li,cu,set,k
+    dim as short i,offset,a,b,c,li,cu,set,k,filter,l,c2
+    dim i_fs(11) as string
     dim mls(127) as string
     dim mdesc(127) as string
     dim mno(127) as short
@@ -2580,7 +2685,18 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
     dim lin(20) as string
     dim it(20) as short
     dim as string key,mstr
-    screenshot(1)
+    i_fs(0)="None"
+    i_fs(1)="Transport"
+    i_fs(2)="Ranged Weapons"
+    i_fs(3)="Armor"
+    i_fs(4)="Close combat weapons"
+    i_fs(5)="Medical supplies"
+    i_fs(6)="Grenades"
+    i_fs(7)="Artwork"
+    i_fs(8)="Resources"
+    i_fs(9)="Equipment"
+    i_fs(10)="Space ship equipment"
+    i_fs(11)="All other"
     for a=0 to lastitem
         if (((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or (ty2>0 and item(a).ty=ty2) or ty=999)) then 'fr=999 means 
             set=0
@@ -2627,7 +2743,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 offset=offset-1
                 cu=1
             else 
-                cu=li
+                cu=15
                 offset=li-15
             endif
         endif
@@ -2640,9 +2756,31 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 cu=15
             endif
         endif
-        
+        if filter<>0 then
+            if checkitemfilter(item(mit(cu+offset)).ty,filter)<>1 then
+                if k<>2 and k<>8 then k=2
+                c2=cu+offset
+                do
+                    if k=8 or key=key_pageup then c2-=1
+                    if k=2 or key=key_pagedown then c2+=1
+                loop until checkitemfilter(item(mit(c2)).ty,filter)=1 or c2<1 or c2>li
+                if c2>=1 and c2<=li then
+                    cu=c2-offset
+                    if cu>15 then 
+                        offset=c2-15
+                        cu=15
+                    endif
+                    if cu<1 then 
+                        offset=c2
+                        cu=1
+                    endif
+                else 'No item found, one step back to old position
+                    if k=8 then cu+=1
+                    if k=2 then cu-=1
+                endif
+            endif
+        endif
         Color 15,0
-        locate 3,3
         draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
         if offset<0 then offset=0
         if li>15 and offset>li-cu then offset=li-cu
@@ -2651,28 +2789,50 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
             offset=0
         endif
         if cu<0 then cu=0
-        for a=1 to 15
+        l=1
+        a=1
+        do
             if mls(a+offset)<>"" then
-                color 0,0
-                draw string (3*_fw1,3*_fh1+a*_fh2),space(35),,font2,custom,@_col
-                if cu=a then
-                    textbox(mdesc(a+offset),40,3,25,15,1)
-                    color 15,5
-                else
-                    color 11,0
+                if checkitemfilter(item(mit(a+offset)).ty,filter)=1 then
+                    color 0,0
+                    draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
+                    if cu=a then
+                        textbox(mdesc(a+offset),40,3,25,15,1)
+                        color 15,5
+                    else
+                        color 11,0
+                    endif
+                    draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset),,font2,custom,@_col
+                    if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
+                    l+=1
                 endif
-                draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset),,font2,custom,@_col
-                if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+a*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
+                a+=1
             endif
-        next
+        loop until l>15 or mls(a+offset)=""
         color 15,0
         if li>15 then 
             draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif
-        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit",,font2,custom,@_col
-        key=keyin
+        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit, f to filter items ("&i_fs(filter) &")",,font2,custom,@_col
+        key=keyin(key_filter)
         k=getdirection(key)
-        
+        if key=key_filter then 
+            filter=itemfilter()
+            if filter<>0 then
+                if checkitemfilter(item(mit(cu+offset)).ty,filter)=0 then
+                    for a=1 to li
+                        if checkitemfilter(item(mit(a)).ty,filter)=1 then
+                            cu=a
+                            if cu>15 then
+                                offset=cu-15
+                                cu=15
+                            endif
+                            exit for
+                        endif
+                    next
+                endif
+            endif
+        endif
         if cu>li then cu=li
         if key=key_enter then i=cu+offset
         if key=key_esc then i=-1
@@ -2680,7 +2840,6 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         cls
     loop until i<>0
     if i>0 then i=mit(i)
-    screenshot(2)
     return i
 end function
 

@@ -2138,7 +2138,15 @@ tiles(293).desc="security terminal"
 tiles(293).turnsinto=293
 tiles(293).gives=171
 
-
+tiles(294).tile=35
+tiles(294).desc="Building"
+tiles(294).col=15
+tiles(294).bgcol=7
+tiles(294).seetru=1
+tiles(294).firetru=1
+tiles(294).gives=67
+tiles(294).turnsinto=294
+tiles(294).hides=2
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

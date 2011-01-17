@@ -1,3 +1,4 @@
+
 function alerts(awayteam as _monster,walking as short) as short
     dim a as short
     static wg as short
@@ -9,7 +10,9 @@ function alerts(awayteam as _monster,walking as short) as short
         wg=1
         for a=1 to wg
             if _sound=0 or _sound=2 then    
+                #ifdef _windows
                 FSOUND_PlaySound(FSOUND_FREE, sound(1))                
+                #endif
             endif
         next
         walking=0
@@ -20,8 +23,10 @@ function alerts(awayteam as _monster,walking as short) as short
         wg=2
         for a=1 to wg
             if _sound=0 or _sound=2 then
+                #ifdef _windows
                 FSOUND_PlaySound(FSOUND_FREE, sound(1))   
                 sleep 350
+                #endif
             endif
         next
         walking=0
@@ -32,8 +37,10 @@ function alerts(awayteam as _monster,walking as short) as short
         wg=3
         for a=1 to wg
             if _sound=0 or _sound=2 then 
+                #ifdef _windows
                 FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
                 sleep 350
+                #endif
             endif
         next
         walking=0
@@ -44,8 +51,10 @@ function alerts(awayteam as _monster,walking as short) as short
             wj=1
             for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    sleep 350
+                    #ifdef _windows
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    sleep 350
+                    #endif
                     if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                 endif
             next  
@@ -56,8 +65,10 @@ function alerts(awayteam as _monster,walking as short) as short
             wj=2
             for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    sleep 350
+                    #ifdef _windows
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    sleep 350
+                    #endif
                     if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                 endif
             next   
@@ -69,8 +80,10 @@ function alerts(awayteam as _monster,walking as short) as short
             wj=3
         for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    sleep 350
+                    #ifdef _windows
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    sleep 350
+                    #endif
                     if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
                 endif
             next    
