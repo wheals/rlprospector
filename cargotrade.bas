@@ -817,6 +817,9 @@ function casino(staked as short=0, st as short=-1) as short
                             crew(c).bonus=bonus
                             crew(c).onship=1
                             crew(c).morale=150
+                            if rnd_range(1,100)<5 then
+                                infect(c,rnd_range(1,12))
+                            endif
                         else
                             dprint "You don't have room to take him with you."
                         endif

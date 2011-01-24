@@ -501,6 +501,7 @@ function gen_traderoutes() as short
     dim map(sm_x,sm_y) as byte
     dim as integer x,y,i,offset,a
     dim as integer fp,lp
+    dim as byte debug=0
     lastwaypoint=5
     firstwaypoint=5
     for a=10 to 4068
@@ -636,7 +637,13 @@ function gen_traderoutes() as short
         sleep
         cls
     endif
-    
+    if debug=1 then
+        for a=firstwaypoint to lastwaypoint
+            locate targetlist(a).y+1,targetlist(a).x+1
+            print "*"
+            sleep 50
+        next
+    endif
 '    
 '    targetlist(0)=basis(0).c
 '    targetlist(1).x=rnd_range(0,30)

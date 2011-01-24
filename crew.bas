@@ -165,7 +165,6 @@ function infect(a as short,dis as short) as short
         crew(a).disease=dis
         crew(a).duration=disease(dis).duration
         crew(a).incubation=disease(dis).incubation
-        crew(a).onship=1
         if dis>player.disease then player.disease=dis
     endif
     return 0
@@ -768,6 +767,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
     dim as short b,c,d,e,officers,maxsec,neodog,robots,w
     dim as short f,g
     dim as string text,help
+    screenset 1,1
     text="Hiring/ Pilot/ Gunner/ Science Officer/ Ships Doctor/ Security/ Squad Leader/ Sniper/ Paramedic/"
     help="Nil/Responsible for steering your ship/Fires your weapons and coordinates security team attacks/Operates sensors and collects biodata/Heals injuries and sickness/Your basic grunt/Coordinates the attacks of up to 5 security team members/An excellent marksman/Not worth much in combat, but assists the ships doctor"
     if basis(st).repname="Omega Bioengineering" and player.questflag(1)=3 then neodog=1

@@ -1709,7 +1709,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=55
         i.desig="MK I Probe"
         i.desigp="MK I Probes"
-        i.desig="A probe for deep space operation. It has a range of 5 parsecs and 1 HP"
+        i.ldesc="A probe for deep space operation. It has a range of 5 parsecs and 1 HP"
         i.v1=5 'Range
         i.v2=1 'Scanning Range
         i.v3=1 'HPs
@@ -1721,7 +1721,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=55
         i.desig="MK II Probe"
         i.desigp="MK II Probes"
-        i.desig="A probe for deep space operation. It has a range of 7 parsecs and 2 HP"
+        i.ldesc="A probe for deep space operation. It has a range of 7 parsecs and 2 HP"
         i.v1=7 'Range
         i.v2=2 'Scanning Range
         i.v3=2 'HPs
@@ -1733,7 +1733,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=55
         i.desig="MK III Probe"
         i.desigp="MK III Probes"
-        i.desig="A probe for deep space operation. It has a range of 10 parsecs and 3 HP"
+        i.ldesc="A probe for deep space operation. It has a range of 10 parsecs and 3 HP"
         i.v1=10 'Range
         i.v2=3 'Scanning Range
         i.v3=3 'HPs

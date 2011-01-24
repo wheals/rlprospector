@@ -307,7 +307,7 @@ sub show_stars(bg as short=0,byref walking as short)
                             if abs(spacemap(x,y))=8 then color 53,0
                             draw string (x*_fw1-player.osx*_fw1,y*_fh1-player.osy*_fh1),":",,Font1,custom,@_col
                         endif
-                        if spacemap(x,y)<=-6 then ano_money+=15
+                        if spacemap(x,y)<=-6 then ano_money+=5
                         spacemap(x,y)=abs(spacemap(x,y))
                     else
                         color 1,0

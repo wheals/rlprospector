@@ -539,6 +539,7 @@ end function
 function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
     dim as short a,b,x,y,slot,fg,bg
     dim as _cords p,p1,p2
+    
     slot=player.map
     if disease(awayteam.disease).bli>0 then 
         x=awayteam.c.x

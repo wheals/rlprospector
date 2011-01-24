@@ -351,10 +351,34 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                             if attacker(b).di<1 then attacker(b).di=9
                             if attacker(b).di>9 then attacker(b).di=1
                         endif
-                        if attacker(b).c.x=0 and attacker(b).di=7 or attacker(b).di=4 or attacker(b).di=1 then attacker(b).di=6   
-                        if attacker(b).c.x=60 and attacker(b).di=9 or attacker(b).di=6 or attacker(b).di=3 then attacker(b).di=4   
-                        if attacker(b).c.y=0 and attacker(b).di=7 or attacker(b).di=8 or attacker(b).di=9 then attacker(b).di=2   
-                        if attacker(b).c.y=20 and attacker(b).di=1 or attacker(b).di=2 or attacker(b).di=3 then attacker(b).di=8   
+                        if attacker(b).c.x=0 and (attacker(b).di=7 or attacker(b).di=4 or attacker(b).di=1) then
+                            if rnd_range(1,20)<attacker(b).c.y then
+                                attacker(b).di=9   
+                            else
+                                attacker(b).di=3   
+                            endif
+                        endif
+                        if attacker(b).c.x=60 and (attacker(b).di=9 or attacker(b).di=6 or attacker(b).di=3) then
+                            if rnd_range(1,20)<attacker(b).c.y then
+                                attacker(b).di=7   
+                            else
+                                attacker(b).di=1   
+                            endif
+                        endif   
+                        if attacker(b).c.y=0 and (attacker(b).di=7 or attacker(b).di=8 or attacker(b).di=9) then 
+                            if rnd_range(1,60)<attacker(b).c.x then
+                                attacker(b).di=1   
+                            else
+                                attacker(b).di=3   
+                            endif
+                        endif   
+                        if attacker(b).c.y=20 and (attacker(b).di=1 or attacker(b).di=2 or attacker(b).di=3) then 
+                            if rnd_range(1,60)<attacker(b).c.x then
+                                attacker(b).di=7   
+                            else
+                                attacker(b).di=9   
+                            endif
+                        endif   
                     else
                         attacker(b).di=nearest(attacker(b).target,attacker(b).c)
                     endif

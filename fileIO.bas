@@ -46,27 +46,40 @@ function loadsounds() as short
 end function
 
 function keybindings() as short
-    dim as short f,a,b,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg
-    dim as _cords cc
-    dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),text,newkey
+    dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
+    dim as _cords cc,ncc
+    dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
     f=freefile
     open "keybindings.txt" for input as #f
     while not eof(f)
         ls+=1
-        line input #f,text
-        if instr(text,"#")=0 and len(text)>0 then                            
+        line input #f,text2
+        if instr(text2,"#")=0 and len(text2)>0 then                            
             a+=1
             lk+=1
-            keys(a)=right(text,1)
+            text=text2
+            keys(a)=loadkey(text2)
             nkeys(a)=keys(a)
-            varn(a)=left(text,len(text)-2)
+            varn(a)=left(text,len(text)-len(keys(a))-1)
             expl(a)=right(varn(a),len(varn(a))-4)
             expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
         else
             lastcom+=1
-            coml(lastcom)=text
+            coml(lastcom)=text2
             cl(lastcom)=ls
         endif
+    wend
+    close #f
+    f=freefile
+    open "data\commands.csv" for input as #f
+    a=0
+    cls
+    while not eof(f)
+       line input #f,text2
+
+       a+=1
+       coml(a)=left(text2,instr(text2,";")-1) &" = "
+       comdes(a)=right(text2,len(text2)-instr(text2,";"))
     wend
     close #f
     do
@@ -86,32 +99,93 @@ function keybindings() as short
         cls
         if cc.x<1 then cc.x=1
         if cc.y<1 then cc.y=1
-        if cc.x>3 then cc.x=3
-        if cc.y>20 then cc.x=20
-        c=(cc.x-1)*20+cc.y
+        if cc.x>4 then cc.x=4
+        if cc.y>20 then cc.y=20
+        'c=(cc.x-1)*20+cc.y
+        if c<1 then c=lk
+        if c>lk then c=1
+        
+        if varn(c)="" then cc=ncc
+        screenset 0,1
         color 15,0
-        draw string (10*_fw2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
-        for x=1 to 3
+        draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
+        for x=1 to 4
             for y=1 to 20
+                if x>1 or y>6 then
                 b+=1
                 if c=b then 
                     fg=15
                     bg=5
+                    cc.x=x
+                    cc.y=y
+                    for d=1 to 99
+                        color 15,0
+                        if ucase(trim(varn(b)))=ucase(trim(coml(d))) then draw string (5*_fw2,26*_fh2), comdes(d),,FONT2,custom,@_col
+                    next
                 else
                     fg=11
                     bg=0
                 endif
                 if colflag(b)=1 then fg=14
                 color fg,bg
-                draw string ((x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
-                draw string ((x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
+                
+                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
+                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
+                endif
             next
         next
-                
+        color 11,0
+        draw string (5*_fw2,25*_fh2),"\C=Control Yellow: 2 commands bound to same key.",,FONT2,custom,@_col
+        for b=1 to 8
+            color 11,0
+            if b=1 then
+                draw string (2*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=2 then
+                draw string (4*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=3 then
+                draw string (6*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=4 then
+                draw string (2*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=5 then
+                draw string (6*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=6 then
+                draw string (2*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=7 then
+                draw string (4*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=8 then
+                draw string (6*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+        next
+        color 15,0
+        draw string (3*_fw2,4*_fh2),"\|/",,FONT2,custom,@_col
+        draw string (3*_fw2,5*_fh2),"- -",,FONT2,custom,@_col
+        draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
+        color 11,0
+        draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
+               
         no_key=keyin
-        cc=movepoint(cc,getdirection(no_key))
+        o=c
+        if getdirection(no_key)=8 then c-=1
+        if getdirection(no_key)=2 then c+=1
+        if getdirection(no_key)=4 then c-=20
+        if getdirection(no_key)=6 then c+=20
+        if c<1 then c=lk
+        if c>lk then c=1
+        'c=(cc.x-1)*20+cc.y
+        if varn(c)="" then o=c
+        
         if no_key=key_enter and keys(c)<>"" then
-            newkey=gettext((cc.x-1)*25+len(expl(c)),cc.y,1,nkeys(c))
+            screenset 1,1
+            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
+            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),expl(c),,FONT2,custom,@_col
+            newkey=trim(gettext(((_screenx-75*_fw2)/2)/_fw2+(cc.x-1)*25+len(expl(c)),cc.y+2,3,""))
             if newkey<>"" and newkey<>nkeys(c) then
                 nkeys(c)=newkey
             endif
@@ -121,7 +195,6 @@ function keybindings() as short
     for a=1 to lk
         if keys(a)<>nkeys(a) then 
             changed=1
-            print "Key "&a &" is different"
         endif
     next
     
@@ -132,18 +205,9 @@ function keybindings() as short
             open "keybindings.txt" for output as #f
             lastcom=1
             b=1
-            print "Saving Keyset ";
-            for a=1 to ls
-                if cl(lastcom)=a then
-                    print #f,coml(lastcom)
-                    lastcom+=1
-                else
-                    print #f,varn(b)&" "&nkeys(b)
-                    b+=1
-                endif
-                print ".";
+            for a=1 to lk
+                print #f,varn(a)&" "&nkeys(a)
             next
-            print
             close #f
             loadkeyset
         endif
@@ -520,64 +584,64 @@ function loadkeyset() as short
             text=texts(i)
             if instr(text,"#")=0 and len(text)>0 then                            
                 lctext=lcase(text)
-                if instr(lctext,"key_nw")>0 then key_nw=right(text,1)
-                if instr(lctext,"key_north")>0 then key_north=right(text,1)
-                if instr(lctext,"key_ne")>0 then key_ne=right(text,1)
-                if instr(lctext,"key_west")>0 then key_west=right(text,1)
-                if instr(lctext,"key_east")>0 then key_east=right(text,1)
-                if instr(lctext,"key_sw")>0 then key_sw=right(text,1)
-                if instr(lctext,"key_south")>0 then key_south=right(text,1)
-                if instr(lctext,"key_se")>0 then key_se=right(text,1)
-                if instr(lctext,"key_wait")>0 then key_wait=right(text,1)
-                if instr(lctext,"key_portal")>0 then key_portal=right(text,1)
+                if instr(lctext,"key_nw")>0 then key_nw=loadkey(text)
+                if instr(lctext,"key_north")>0 then key_north=loadkey(text)
+                if instr(lctext,"key_ne")>0 then key_ne=loadkey(text)
+                if instr(lctext,"key_west")>0 then key_west=loadkey(text)
+                if instr(lctext,"key_east")>0 then key_east=loadkey(text)
+                if instr(lctext,"key_sw")>0 then key_sw=loadkey(text)
+                if instr(lctext,"key_south")>0 then key_south=loadkey(text)
+                if instr(lctext,"key_se")>0 then key_se=loadkey(text)
+                if instr(lctext,"key_wait")>0 then key_wait=loadkey(text)
+                if instr(lctext,"key_portal")>0 then key_portal=loadkey(text)
                 
-                if instr(lctext,"key_manual")>0 then key_manual=right(text,1)
-                if instr(lctext,"key_messages")>0 then key_messages=right(text,1)
-                if instr(lctext,"key_screenshot")>0 then key_screenshot=right(text,1)
-                if instr(lctext,"key_configuration")>0 then key_configuration=right(text,1)
-                if instr(lctext,"key_autopickup")>0 then key_autopickup=right(text,1)
-                if instr(lctext,"key_autoinspect")>0 then key_autoinspect=right(text,1)
-                if instr(lctext,"key_shipstatus")>0 then key_shipstatus=right(text,1)
-                if instr(lctext,"key_save")>0 then key_save=right(text,1)
-                if instr(lctext,"key_quit")>0 then key_quit=right(text,1)
-                if instr(lctext,"key_tactics")>0 then key_tactics=right(text,1)
-                if instr(lctext,"key_filter")>0 then key_filter=right(text,1)
-                if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
-                if instr(lctext,"key_logbook")>0 then key_comment=right(text,1)
-                if instr(lctext,"key_equipment")>0 then key_equipment=right(text,1)
-                if instr(lctext,"key_quest")>0 then key_quests=right(text,1)
-                if instr(lctext,"key_tow")>0 then key_tow=right(text,1)
+                if instr(lctext,"key_manual")>0 then key_manual=loadkey(text)
+                if instr(lctext,"key_messages")>0 then key_messages=loadkey(text)
+                if instr(lctext,"key_screenshot")>0 then key_screenshot=loadkey(text)
+                if instr(lctext,"key_configuration")>0 then key_configuration=loadkey(text)
+                if instr(lctext,"key_autopickup")>0 then key_autopickup=loadkey(text)
+                if instr(lctext,"key_autoinspect")>0 then key_autoinspect=loadkey(text)
+                if instr(lctext,"key_shipstatus")>0 then key_shipstatus=loadkey(text)
+                if instr(lctext,"key_save")>0 then key_save=loadkey(text)
+                if instr(lctext,"key_quit")>0 then key_quit=loadkey(text)
+                if instr(lctext,"key_tactics")>0 then key_tactics=loadkey(text)
+                if instr(lctext,"key_filter")>0 then key_filter=loadkey(text)
+                if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
+                if instr(lctext,"key_logbook")>0 then key_comment=loadkey(text)
+                if instr(lctext,"key_equipment")>0 then key_equipment=loadkey(text)
+                if instr(lctext,"key_quest")>0 then key_quests=loadkey(text)
+                if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
                 
-                if instr(lctext,"key_landing")>0 then key_la=right(text,1)
-                if instr(lctext,"key_scanning")>0 then key_sc=right(text,1)
-                if instr(lctext,"key_comment")>0 then key_comment=right(text,1)
-                if instr(lctext,"key_rename")>0 then key_rename=right(text,1)
-                if instr(lctext,"key_targetlanding")>0 then key_tala=right(text,1)
-                if instr(lctext,"key_launchprobe")>0 then key_probe=right(text,1)
+                if instr(lctext,"key_landing")>0 then key_la=loadkey(text)
+                if instr(lctext,"key_scanning")>0 then key_sc=loadkey(text)
+                if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
+                if instr(lctext,"key_rename")>0 then key_rename=loadkey(text)
+                if instr(lctext,"key_targetlanding")>0 then key_tala=loadkey(text)
+                if instr(lctext,"key_launchprobe")>0 then key_probe=loadkey(text)
 
-                if instr(lctext,"key_pickup")>0 then key_pickup=right(text,1)
-                if instr(lctext,"key_dropitem")>0 then key_drop=right(text,1)
-                if instr(lctext,"key_inspect")>0 then key_i=right(text,1)
-                if instr(lctext,"key_examine")>0 then key_ex=right(text,1)
-                if instr(lctext,"key_radio")>0 then key_ra=right(text,1)
-                if instr(lctext,"key_teleport")>0 then key_te=right(text,1)
-                if instr(lctext,"key_jump")>0 then key_ju=right(text,1)
-                if instr(lctext,"key_communicate")>0 then key_co=right(text,1)
-                if instr(lctext,"key_offer")>0 then key_of=right(text,1)
-                if instr(lctext,"key_grenade")>0 then key_gr=right(text,1)
-                if instr(lctext,"key_fire")>0 then key_fi=right(text,1)
-                if instr(lctext,"key_autofire")>0 then key_autofire=right(text,1)
-                if instr(lctext,"key_walk")>0 then key_walk=right(text,1)
-                if instr(lctext,"key_heal")>0 then key_he=right(text,1)
-                if instr(lctext,"key_oxygen")>0 then key_oxy=right(text,1)
-                if instr(lctext,"key_close")>0 then key_close=right(text,1)
+                if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
+                if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
+                if instr(lctext,"key_inspect")>0 then key_i=loadkey(text)
+                if instr(lctext,"key_examine")>0 then key_ex=loadkey(text)
+                if instr(lctext,"key_radio")>0 then key_ra=loadkey(text)
+                if instr(lctext,"key_teleport")>0 then key_te=loadkey(text)
+                if instr(lctext,"key_jump")>0 then key_ju=loadkey(text)
+                if instr(lctext,"key_communicate")>0 then key_co=loadkey(text)
+                if instr(lctext,"key_offer")>0 then key_of=loadkey(text)
+                if instr(lctext,"key_grenade")>0 then key_gr=loadkey(text)
+                if instr(lctext,"key_fire")>0 then key_fi=loadkey(text)
+                if instr(lctext,"key_autofire")>0 then key_autofire=loadkey(text)
+                if instr(lctext,"key_walk")>0 then key_walk=loadkey(text)
+                if instr(lctext,"key_heal")>0 then key_he=loadkey(text)
+                if instr(lctext,"key_oxygen")>0 then key_oxy=loadkey(text)
+                if instr(lctext,"key_close")>0 then key_close=loadkey(text)
                 
-                if instr(lctext,"key_dropshield")>0 then key_sh=right(text,1)
-                if instr(lctext,"key_activatesensors")>0 then key_ac=right(text,1)
-                if instr(lctext,"key_run")>0 then key_ru=right(text,1)
-                if instr(lctext,"key_dropmine")>0 then key_dr=right(text,1)
-                if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=right(text,1)
-                if instr(lctext,"key_yes")>0 then key_yes=right(text,1)
+                if instr(lctext,"key_dropshield")>0 then key_sh=loadkey(text)
+                if instr(lctext,"key_activatesensors")>0 then key_ac=loadkey(text)
+                if instr(lctext,"key_run")>0 then key_ru=loadkey(text)
+                if instr(lctext,"key_dropmine")>0 then key_dr=loadkey(text)
+                if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=loadkey(text)
+                if instr(lctext,"key_yes")>0 then key_yes=loadkey(text)
 
             endif
         next
@@ -591,10 +655,20 @@ function loadkeyset() as short
     return 0
 end function
 
+function loadkey(byval t2 as string) as string
+    dim as short l,i,s
+    dim as string t
+    t=t2
+    l=len(t)
+    s=instr(t,"=")
+    t=right(t,l-s-1)
+    return trim(t)
+end function
+
 function numfromstr(t as string) as short
     dim as short a
     dim as string t2
-    for a=1 to len(t)
+    for a=1 to len(t) 
         if val(mid(t,a,1))<>0 or (mid(t,a,1))="0" then t2=t2 &mid(t,a,1)
     next
     return val(t2)

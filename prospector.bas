@@ -43,6 +43,7 @@ loadfonts
 if _tiles=0 then load_tiles 
 cls
 loadkeyset
+print "Loading sounds:";
 loadsounds
 do
     setglobals
@@ -1012,7 +1013,7 @@ function spacestation(st as short) as _ship
                     if player.cargo(b).y>0 then
                         dprint "You are informed that there is an import embargo on "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" and that the cargo will be confiscated.",12
                     else
-                        dprint basis(st).inv(player.cargo(b).x-1).n &" gets confiscated because it lacks proper documentation.",12
+                        dprint "Your cargo of "& basis(st).inv(player.cargo(b).x-1).n &" gets confiscated because it lacks proper documentation.",12
                     endif
                     player.cargo(b).x=1
                     player.cargo(b).y=0
@@ -1783,7 +1784,7 @@ end function
 function explore_planet(awayteam as _monster, from as _cords, orbit as short) as _cords
     dim as single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
      
-    dim as short slot,r,walking,deadcounter,ship_landing,loadmonsters
+    dim as short slot,r,walking,deadcounter,ship_landing,loadmonsters,allroll(7)
     dim as single dawn,dawn2
     dim as string key,dkey,allowed,text,help
     dim dam as single
@@ -1904,8 +1905,9 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                     enemy(c)=setmonster(planets(slot).mon_template(a),slot,spawnmask(),lsp,vismask(),,,c,1)
                     enemy(c).slot=a
                     if enemy(c).faction=0 then enemy(c).faction=8+a
-                    if enemy(c).faction<8 then 
-                        if faction(0).war(enemy(c).faction)>=rnd_range(1,100) then 
+                    if enemy(c).faction<8 then
+                        if allroll(enemy(c).faction)=0 then allroll(enemy(c).faction)=rnd_range(1,100)
+                        if faction(0).war(enemy(c).faction)>=allroll(enemy(c).faction) then 
                             enemy(c).aggr=0
                         else
                             enemy(c).aggr=1
@@ -2966,8 +2968,10 @@ function move_probes() as short
             for x=probe(i).x-1 to probe(i).x+1
                 for y=probe(i).y-1 to probe(i).y+1
                     if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
-                        spacemap(x,y)=abs(spacemap(x,y))
-                        if spacemap(x,y)=0 and navcom>0 then spacemap(x,y)=1
+                        if abs(spacemap(x,y))<6 then
+                            spacemap(x,y)=abs(spacemap(x,y))
+                            if spacemap(x,y)=0 and navcom>0 then spacemap(x,y)=1
+                        endif
                         for j=1 to laststar
                             if map(j).c.x=x and map(j).c.y=y and map(j).spec<8 then map(j).discovered=1
                             if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then map(j).discovered=1
@@ -2975,6 +2979,10 @@ function move_probes() as short
                     endif
                 next
             next
+            if abs(spacemap(probe(i).x,probe(i).y))>=6 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>9 then
+                spacemap(x,y)=abs(spacemap(x,y))
+            endif
+
             for j=1 to lastdrifting
                 if drifting(j).x=probe(i).x and drifting(j).y=probe(i).y then drifting(j).p=1
             next

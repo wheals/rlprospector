@@ -2,7 +2,10 @@
 ' debugging flags 0=off 1 =on
 '
 
-const __VERSION__="0.1.15b"
+using FB
+randomize timer
+
+const __VERSION__="0.1.16"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -18,12 +21,12 @@ Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0 
 const show_allitems=0 
 const easy_fights=0
-const show_eventp=1
+const show_eventp=0
 const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=1
+const rev_map=0
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -39,7 +42,7 @@ const laststar=90
 const lastspecial=46
 const _debug=0
 const _debug_bones=0
-const _test_disease=1
+const _test_disease=0
 const make_vault=0
 const addpyramids=0
 const com_log=0
@@ -103,82 +106,82 @@ dim shared as byte _transitems=0
 dim shared as byte captainskill=-5
 dim shared as byte wage=10
 
-dim shared as string*1 key_manual="?"
-dim shared as string*1 key_messages="m"
-dim shared as string*1 key_screenshot="*"
-dim shared as string*1 key_configuration="="
-dim shared as string*1 key_autoinspect="I"
-dim shared as string*1 key_autopickup="P"
-dim shared as string*1 key_shipstatus="@"
-dim shared as string*1 key_equipment="E"
-dim shared as string*1 key_tactics="T"
-dim shared as string*1 key_awayteam="A"
-dim shared as string*1 key_quests="Q"
-dim shared as string*1 key_tow="t"
-
-dim shared as string*1 key_la="l"
-dim shared as string*1 key_tala="k"
-dim shared as string*1 key_sc="s"
-dim shared as string*1 key_do="d"
-dim shared as string*1 key_save="s"
-dim shared as string*1 key_quit="q"
-dim shared as string*1 key_D="D"
-dim shared as string*1 key_G="G"
-dim shared as string*1 key_report="R"
-dim shared as string*1 key_rename="r"
-dim shared as string*1 key_dock="d"
-dim shared as string*1 key_comment="c"
-dim shared as string*1 key_probe="p"
-
-dim shared as string*1 key_i="i"
-dim shared as string*1 key_ex="x"
-dim shared as string*1 key_ra="r"
-dim shared as string*1 key_te="t"
-dim shared as string*1 key_ju="j"
-dim shared as string*1 key_co="c"
-dim shared as string*1 key_of="o"
-dim shared as string*1 key_gr="g"
-dim shared as string*1 key_fi="f"
-dim shared as string*1 key_autofire="F"
-dim shared as string*1 key_he="h"
-dim shared as string*1 key_walk="w"
-dim shared as string*1 key_pickup=","
-dim shared as string*1 key_drop="d"
-dim shared as string*1 key_oxy="O"
-dim shared as string*1 key_close="C"
-
-dim shared as string*1 key_sh="s"
-dim shared as string*1 key_ac="a"
-dim shared as string*1 key_ru="r"
-dim shared as string*1 key_dr="d"
-
-dim shared as string*1 key_nw="7"
-dim shared as string*1 key_north="8"
-dim shared as string*1 key_ne="9"
-dim shared as string*1 key_west="4"
-dim shared as string*1 key_east="6"
-dim shared as string*1 key_sw="1"
-dim shared as string*1 key_south="2"
-dim shared as string*1 key_se="3"
-dim shared as string*1 key_wait="5"
-dim shared as string*1 key_layfire="0"
-dim shared as string*1 key_portal="<"
-dim shared as string*1 key_logbook="L"
-dim shared as string*1 key_yes="y"
-dim shared as string*1 key_wormholemap="W"
-dim shared as string*1 key_togglemanjets="M"
-dim shared as string*1 key_cheat="ü"
-dim shared as string*1 key_pageup="ä"
-dim shared as string*1 key_pagedown="ö"
 dim shared as byte com_cheat=0
-dim shared as string*1 no_key
-dim shared as string*1 key_mfile="ä"
-dim shared as string*1 key_filter="f"
+
+
+dim shared as string*3 key_manual="?"
+dim shared as string*3 key_messages="m"
+dim shared as string*3 key_screenshot="*"
+dim shared as string*3 key_configuration="="
+dim shared as string*3 key_autoinspect="I"
+dim shared as string*3 key_autopickup="P"
+dim shared as string*3 key_shipstatus="@"
+dim shared as string*3 key_equipment="E"
+dim shared as string*3 key_tactics="T"
+dim shared as string*3 key_awayteam="A"
+dim shared as string*3 key_quests="Q"
+dim shared as string*3 key_tow="t"
+
+dim shared as string*3 key_la="l"
+dim shared as string*3 key_tala="k"
+dim shared as string*3 key_sc="s"
+dim shared as string*3 key_do="d"
+dim shared as string*3 key_save="s"
+dim shared as string*3 key_quit="q"
+dim shared as string*3 key_D="D"
+dim shared as string*3 key_G="G"
+dim shared as string*3 key_report="R"
+dim shared as string*3 key_rename="r"
+dim shared as string*3 key_dock="d"
+dim shared as string*3 key_comment="c"
+dim shared as string*3 key_probe="p"
+
+dim shared as string*3 key_i="i"
+dim shared as string*3 key_ex="x"
+dim shared as string*3 key_ra="r"
+dim shared as string*3 key_te="t"
+dim shared as string*3 key_ju="j"
+dim shared as string*3 key_co="c"
+dim shared as string*3 key_of="o"
+dim shared as string*3 key_gr="g"
+dim shared as string*3 key_fi="f"
+dim shared as string*3 key_autofire="F"
+dim shared as string*3 key_he="h"
+dim shared as string*3 key_walk="w"
+dim shared as string*3 key_pickup=","
+dim shared as string*3 key_drop="d"
+dim shared as string*3 key_oxy="O"
+dim shared as string*3 key_close="C"
+
+dim shared as string*3 key_sh="s"
+dim shared as string*3 key_ac="a"
+dim shared as string*3 key_ru="r"
+dim shared as string*3 key_dr="d"
+
+dim shared as string*3 key_nw="7"
+dim shared as string*3 key_north="8"
+dim shared as string*3 key_ne="9"
+dim shared as string*3 key_west="4"
+dim shared as string*3 key_east="6"
+dim shared as string*3 key_sw="3"
+dim shared as string*3 key_south="2"
+dim shared as string*3 key_se="3"
+dim shared as string*3 key_wait="5"
+dim shared as string*3 key_layfire="0"
+dim shared as string*3 key_portal="<"
+dim shared as string*3 key_logbook="L"
+dim shared as string*3 key_yes="y"
+dim shared as string*3 key_wormholemap="W"
+dim shared as string*3 key_togglemanjets="M"
+dim shared as string*3 key_cheat="ü"
+dim shared as string*3 key_pageup="ä"
+dim shared as string*3 key_pagedown="ö"
+dim shared as string*3 no_key
+dim shared as string*3 key_mfile="ä"
+dim shared as string*3 key_filter="f"
 dim shared uid as uinteger
 
 
-using FB
-randomize timer
 
 type _cords
     s as short '
@@ -1041,6 +1044,7 @@ declare function clear_gamestate() as short
 declare function planetflags_toship(m as short) as _ship
 
 ' fileIO.bas
+declare function loadkey(byval t as string) as string
 declare function checkfilestructure() as short
 declare function loadsounds() as short
 declare function loadfonts() as short
