@@ -1,6 +1,7 @@
 function rnd_item(t as short) as _items
     dim i as _items
     dim r as short
+    dim items(25) as short
     if t=20 then 
         if rnd_range(1,100)<88 then
             t=rnd_range(1,4) 'weapons and armor
@@ -108,7 +109,48 @@ function rnd_item(t as short) as _items
         if r=31 then i=makeitem(101)
         if r=32 then i=makeitem(102)
     endif
-        
+    if t=21 then 'specialty shop exploration gear
+        r=rnd_range(1,23)
+        if r=1 then i=makeitem(49)
+        if r=2 then i=makeitem(50)
+        if r=3 then i=makeitem(51)
+        if r=4 then i=makeitem(52)
+        if r=5 then i=makeitem(53)
+        if r=6 then i=makeitem(54)
+        if r=7 then i=makeitem(55)
+        if r=8 then i=makeitem(75)
+        if r=9 then i=makeitem(76)
+        if r=10 then i=makeitem(77)
+        if r=11 then i=makeitem(78)
+        if r=12 then i=makeitem(79)
+        if r=13 then i=makeitem(80)
+        if r=14 then i=makeitem(83)
+        if r=15 then i=makeitem(84)
+        if r=16 then i=makeitem(85)
+        if r=17 then i=makeitem(86)
+        if r=18 then i=makeitem(100)
+        if r=19 then i=makeitem(101)
+        if r=20 then i=makeitem(102)
+        if r=21 then i=makeitem(103)
+        if r=22 then i=makeitem(22)
+        if r=23 then i=makeitem(23)
+    endif
+      
+    if t=23 then 'Weapons
+        select case rnd_range(1,100)
+            case is<33 
+                i=makeitem(rnd_range(3,20))
+            case is>90 
+                if rnd_range(1,100)<50 then
+                    i=makeitem(rnd_range(24,25))
+                else
+                    i=makeitem(rnd_range(59,61))
+                endif
+            case else
+                i=makeitem(rnd_range(40,48))
+        end select
+    endif
+    
     return i
 end function
 
@@ -552,7 +594,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=2
         i.bgcol=0
-        i.v1=12
+        i.v1=11
         i.price=1300
         i.res=65
     endif    
@@ -567,7 +609,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=6
         i.bgcol=0
-        i.v1=15
+        i.v1=13
         i.price=1575
         i.res=45
     endif
@@ -1611,7 +1653,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=81 then
-        i.ti_no=2111
+        i.ti_no=2113
         i.id=81
         i.ty=47
         i.desig="Id Tag"
@@ -1625,7 +1667,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
     
     if a=82 then
-        i.ti_no=2112
+        i.ti_no=2114
         i.ty=48
         i.desig="Autopsy kit"
         i.desigp="Autopsy kits"
@@ -1651,7 +1693,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     endif
 
     if a=83 then
-        i.ti_no=2112
+        i.ti_no=2115
         i.ty=49
         i.desig="Botany kit"
         i.desigp="Botany kits"
@@ -1678,7 +1720,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     
     if a=84 then
-        i.ti_no=2112
+        i.ti_no=2116
         i.ty=50
         i.desig="Ship repair kit"
         i.desigp="Ship repair kits"
@@ -1702,10 +1744,40 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
             endif
         endif
     endif
+    
+    if a=85 then
+        i.ti_no=2117
+        i.ty=56
+        i.desig="MK I Gas mining probe"
+        i.desig="MK I Gas mining probes"
+        i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to 10 tons of fuel"
+        i.v1=10 'Range
+        i.v2=2 'Piloting Bonus
+        i.v3=1 'HPs
+        i.icon="s"
+        i.col=12
+        i.price=100
+    
+    endif
+    
+    if a=86 then
+        i.ti_no=2117
+        i.ty=56
+        i.desig="MK II Gas mining probe"
+        i.desig="MK II Gas mining probes"
+        i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to 25 tons of fuel"
+        i.v1=25 'Range
+        i.v2=0 'Piloting Bonus
+        i.v3=1 'HPs
+        i.icon="s"
+        i.col=12
+        i.price=200
+    endif
 '   
 'Typ 51-54 taken
 
     if a=100 then
+        i.ti_no=2117
         i.ty=55
         i.desig="MK I Probe"
         i.desigp="MK I Probes"
@@ -1713,11 +1785,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=5 'Range
         i.v2=1 'Scanning Range
         i.v3=1 'HPs
+        i.v4=0 'HPs
         i.icon="s"
         i.col=11
         i.price=100
     endif
     if a=101 then
+        i.ti_no=2118
         i.ty=55
         i.desig="MK II Probe"
         i.desigp="MK II Probes"
@@ -1725,11 +1799,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=7 'Range
         i.v2=2 'Scanning Range
         i.v3=2 'HPs
+        i.v4=1 'HPs
         i.icon="s"
         i.col=11
         i.price=250
     endif
     if a=102 then
+        i.ti_no=2119
         i.ty=55
         i.desig="MK III Probe"
         i.desigp="MK III Probes"
@@ -1737,11 +1813,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=10 'Range
         i.v2=3 'Scanning Range
         i.v3=3 'HPs
+        i.v4=2 'HPs
         i.icon="s"
         i.col=11
         i.price=500
     endif
     if a=103 then
+        i.ti_no=2120
         i.desig="ship detection system"
         i.desigp="ship detection systems"
         i.price=1500
@@ -2425,11 +2503,11 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     next
     for a=1 to 128
         if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
-        crew(a).jp=1
-        awayteam.jpfueluse+=1
-        jpacks-=1
+            crew(a).jp=1
+            awayteam.jpfueluse+=1
+            jpacks-=1
         else
-        crew(a).jp=0
+            crew(a).jp=0
         endif
     next
     hovers=0
@@ -2448,7 +2526,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
         crew(a).weap=0
         crew(a).armo=0
         crew(a).blad=0
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips<>1 then
             if crew(a).pref_ccweap>0 then
                 c=0
                 for b=0 to lastitem
@@ -2513,9 +2591,19 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
         'find best ranged weapon
         'give to redshirt
 
-        if crew(a).hp>0 and crew(a).onship=0 then 
-            if crew(a).augment(7)=0 then cantswim+=1
-            if crew(a).augment(8)=0 then cantfly+=1
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then 
+            if crew(a).augment(7)=0 then
+                cantswim+=1
+            else
+                hovers+=1
+            endif
+            
+            if crew(a).augment(8)=0 then 
+                cantfly+=1
+            else
+                jpacks+=1
+                awayteam.jpfueluse+=1
+            endif
             if crew(a).equips=0 then
                 b=findbest(2,-1)        
                 if b>-1 and crew(a).weap=0 then
@@ -2565,7 +2653,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                     awayteam.oxymax=awayteam.oxymax+200
                 endif
             endif
-            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 then
+            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 or crew(a).augment(8)=1 then
                 b=findbest(28,-1)
                 if b>-1 then 
                     item(b).w.s=-2
@@ -2612,6 +2700,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
+    dprint "awayteammove:"&awayteam.move
     'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
     return 0
 end function
@@ -2797,7 +2886,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                     color 0,0
                     draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
                     if cu=a then
-                        textbox(mdesc(a+offset),40,3,25,15,1)
+                        textbox(mdesc(a+offset),3+35*_fw2/_fw1,3,25,15,1)
                         color 15,5
                     else
                         color 11,0
@@ -2813,7 +2902,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if li>15 then 
             draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif
-        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit, f to filter items ("&i_fs(filter) &")",,font2,custom,@_col
+        draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit, " &key_filter & " to filter items ("&i_fs(filter) &")",,font2,custom,@_col
         key=keyin(key_filter)
         k=getdirection(key)
         if key=key_filter then 
@@ -2896,6 +2985,31 @@ function findworst(t as short,p as short=0, m as short=0) as short
                 endif
             endif
         endif
+    next
+    return r
+end function
+
+function lowest_by_id(id as short) as short
+    dim as short i,best
+    dim as single v,cur
+    best=-1
+    v=9
+    for i=1 to lastitem
+        if item(i).w.s<0 and item(i).id=id then
+            cur=item(i).v1+item(i).v2+item(i).v3
+            if cur<v then 
+                best=i
+                v=cur
+            endif
+        endif
+    next
+    return best
+end function
+
+function count_by_id(id as short) as short
+    dim as short i,r
+    for i=1 to lastitem
+        if item(i).w.s<0 and item(i).id=id then r+=1
     next
     return r
 end function
@@ -3078,7 +3192,7 @@ function findartifact(awayteam as _monster,v5 as short) as short
                 artifact(c,awayteam)
             else
                 dprint "He cant figure out what it is."
-                reward(4)=reward(4)+(rnd_range(1,3)+rnd_range(1,3))*1000
+                reward(4)=reward(4)+1
             endif
             return 0
 end function

@@ -1500,6 +1500,9 @@ tiles(190).hp=80
 tiles(190).succt="You feel a searing pain as shoot into the pulsating crystal. You hear a voice in your head screaming 'PUT DOWN YOUR WEAPONS AND OBEY!'"
 tiles(190).failt="Your fire fails to damage the crystal. You feel an uncomfortable tingling."
 tiles(190).turnsinto=192
+tiles(190).spawnson=5
+tiles(190).spawnswhat=31
+tiles(190).spawnsmax=10
 tiles(190).hides=2
 
 tiles(191)=tiles(190)
@@ -1574,7 +1577,7 @@ tiles(201).shootable=1
 tiles(201).dr=4
 tiles(201).hp=25
 tiles(201).succt="You damage the wall"
-tiles(201).failt="The walls are to strong for you to seriously damage"
+tiles(201).failt="The walls are too strong for you to seriously damage"
 tiles(201).desc="wall"
 tiles(201).turnsinto=202
 
@@ -1609,6 +1612,7 @@ tiles(205).hp=15
 tiles(205).succt="You damage the door"
 tiles(205).failt="The doors are too strong for you to seriously damage"
 tiles(205).onopen=204
+tiles(205).turnsinto=202
 
 tiles(206).tile=asc("E")
 tiles(206).col=7
@@ -1829,7 +1833,7 @@ tiles(243).shootable=1
 tiles(243).dr=5
 tiles(243).hp=45
 tiles(243).succt="You damage the wall"
-tiles(243).failt="The walls are to strong for you to seriously damage"
+tiles(243).failt="The walls are too strong for you to seriously damage"
 tiles(243).desc="wall"
 tiles(243).turnsinto=202
 
@@ -1849,7 +1853,7 @@ tiles(244).turnsinto=47
 
 tiles(245).tile=147
 tiles(245).col=12
-tiles(245).desc="Vulcano"
+tiles(245).desc="Volcano"
 tiles(245).tohit=20
 tiles(245).dam=1
 tiles(245).hitt="You get hit with flying rocks and magma!"
@@ -2020,7 +2024,7 @@ tiles(264).dr=2
 tiles(264).hp=225
 tiles(264).succt="It is slightly dented now"
 tiles(264).failt="Your handwapons arent powerful enough to damage a spaceship"
-tiles(264).killt="That will teach those pirates a lesson!"
+tiles(264).killt="That will teach those megacorps a lesson!"
 tiles(264).hides=2
 
 tiles(265).tile=asc("A") 'Arena
@@ -2147,6 +2151,36 @@ tiles(294).firetru=1
 tiles(294).gives=67
 tiles(294).turnsinto=294
 tiles(294).hides=2
+
+
+tiles(295).tile=147
+tiles(295).col=137
+tiles(295).desc="geyser"
+tiles(295).tohit=30
+tiles(295).dam=1
+tiles(295).hitt="You get sprayed with boiling water!"
+tiles(295).causeaeon=16
+tiles(295).aetype=3
+tiles(295).spawnson=15
+tiles(295).spawnswhat=96
+
+
+tiles(296).tile=84 'Eris temple
+tiles(296).col=14
+tiles(296).bgcol=6
+tiles(296).desc="A greek temple"
+tiles(296).seetru=1
+tiles(296).walktru=0
+tiles(296).firetru=1
+tiles(296).shootable=1
+tiles(296).turnsinto=57
+tiles(296).gives=68
+tiles(296).dr=2
+tiles(296).hp=100
+tiles(296).succt="You damage the structure"
+tiles(296).failt="The Temple withstands your fire"
+tiles(296).killt="You destroy the temple. There is some very advanced machinery in the rubble."
+tiles(296).hides=2
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

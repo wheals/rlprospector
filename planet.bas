@@ -11,800 +11,6 @@ function deletemonsters(a as short) as short
     return 0
 end function
 
-function make_spacemap() as short
-    dim as short a,b,c,d,e,astcou,gascou
-    dim as _cords p1,p2,p3
-    dim as _stars del
-    
-    color 11,0
-    print
-    Print "Generating sector"
-    color 7,0
-    
-    rerollshops
-    'generate starmap
-    
-    c=0
-    for a=0 to laststar
-        map(a)=del
-        print ".";
-        map(a).c.x=rnd_range(0,sm_x)
-        map(a).c.y=rnd_range(0,sm_y)
-        if rnd_range(1,100)<36 then
-            map(a).spec=rnd_range(2,4)
-        else
-            map(a).spec=rnd_range(1,7)
-        endif
-        map(a).ti_no=map(a).spec+68
-        if rnd_range(1,100)<91 then
-            for b=1 to 9
-                map(a).planets(b)=rnd_range(1,24)-((map(a).spec-3)^2+rnd_range(1,12))
-                if map(a).planets(b)>0 then                    
-                    if rnd_range(1,100)<77 then
-                        c=c+1
-                        map(a).planets(b)=c
-                    else
-                        if rnd_range(1,100)<64 then
-                            map(a).planets(b)=-rnd_range(1,6)
-                            astcou=astcou+1
-                        else
-                            if rnd_range(1,100)<45+b*5 then
-                                if b<7 then
-                                    map(a).planets(b)=-20001
-                                else
-                                    map(a).planets(b)=-20002
-                                endif
-                                if b=1 then map(a).planets(b)=-20003
-                                gascou=gascou+1
-                            endif
-                        endif
-                    endif
-                else
-                    map(a).planets(b)=0
-                endif
-            next
-        else
-            c=c+1
-            map(a).spec=8
-            map(a).ti_no=76
-            map(a).planets(1)=c
-        endif
-    next
-    for a=laststar+1 to laststar+wormhole-1 step 2
-        map(a).c.x=rnd_range(0,sm_x)
-        map(a).c.y=rnd_range(0,sm_y)
-        map(a).spec=9
-        map(a).ti_no=77
-        map(a).planets(1)=a+1
-        map(a).discovered=maximum(show_all,show_wormholes)
-        map(a+1).planets(1)=a
-        map(a+1).c.x=rnd_range(0,sm_x)
-        map(a+1).c.y=rnd_range(0,sm_y)
-        map(a+1).spec=9
-        map(a+1).ti_no=77
-        map(a+1).discovered=maximum(show_all,show_wormholes)
-        
-    next
-    lastplanet=c
-    lastportal=22
-    
-    for a=0 to lastspecial
-        do
-            b=getrandomsystem()
-            print ".";
-        loop until  map(b).spec<8 
-        c=getrandomplanet(b)
-        if c=-1 then 
-            c=rnd_range(1,9)
-            map(b).planets(c)=lastplanet+1
-            lastplanet=lastplanet+1
-            c=lastplanet
-        endif
-        map(b).discovered=2
-        if a=12 then
-            if map(b).planets(1)<=0 then 
-                map(b).planets(1)=lastplanet+1
-                lastplanet=lastplanet+1
-            endif
-            specialplanet(a)=map(b).planets(1)
-        else        
-            specialplanet(a)=c
-        endif
-        if a=18 then
-            map(b).planets(3)=lastplanet+1
-            specialplanet(18)=lastplanet+1
-            map(b).planets(9)=lastplanet+2
-            specialplanet(19)=lastplanet+2
-            lastplanet=lastplanet+2
-            a=19
-        endif
-            
-        print ".";
-        if specialplanet(a)<0 then
-            color 12,0
-            print a;" ";b;" ";c
-            print lastplanet
-            no_key=keyin
-            color 15,0
-        endif
-    next
-    
-    specialplanet(30)=lastplanet+1
-    lastplanet=lastplanet+1
-    
-    
-    for a=0 to lastportal
-         
-            portal(a).desig="A natural tunnel. "
-            portal(a).tile=111
-            portal(a).col=7
-            portal(a).ti_no=3001
-            print ".";
-            portal(a).from.m=get_nonspecialplanet()
-            if portal(a).from.m<=0 then
-                b=rnd_range(1,9)
-                if portal(a).from.s=-1 then
-                    do
-                        portal(a).from.s=rnd_range(0,laststar)
-                    loop until map(portal(a).from.s).discovered<>2
-                endif
-                if map(portal(a).from.s).planets(b)<=0 then
-                    'makenewplanet
-                    lastplanet=lastplanet+1
-                    map(portal(a).from.s).planets(b)=lastplanet
-                    'print portal(a).from.s &":" & map(portal(a).from.s).planets(b)
-                else
-                    portal(a).from.m=map(portal(a).from.s).planets(b)
-                endif                
-            endif
-            'portal(a).from.m=map(portal(a).from.s).planets(portal(a).from.p)
-            portal(a).from.x=rnd_range(1,59)
-            portal(a).from.y=rnd_range(1,19)
-            portal(a).dest.m=lastplanet+1
-            portal(a).dest.s=portal(a).from.s
-            portal(a).dest.x=rnd_range(1,59)
-            portal(a).dest.y=rnd_range(1,19)
-            portal(a).discovered=show_portals
-            portal(a).dimod=2-rnd_range(1,4)
-            portal(a).tumod=4-rnd_range(1,8)
-            map(portal(a).from.s).discovered=-3
-            lastplanet=lastplanet+1
-            print ".";
-    next
-    
-    for a=0 to _NoPB
-        lastplanet=lastplanet+1
-        pirateplanet(a)=lastplanet
-        piratebase(a)=getrandomsystem
-        if piratebase(a)=-1 then piratebase(a)=rnd_range(0,laststar)
-        map(piratebase(a)).discovered=show_pirates
-        map(piratebase(a)).planets(rnd_range(1,9))=pirateplanet(a)
-        print ".";
-    next
-    
-    'print pirateplanet
-    'sleep
-    print
-    print "distributing ";
-    for a=0 to laststar
-        map(a).discovered=show_all
-        pwa(a)=map(a).c
-        print ".";
-    next
-    for a=laststar+1 to laststar+wormhole
-        map(a).discovered=show_wormholes
-        pwa(a)=map(a).c
-    next
-    a=distributepoints(pwa(),pwa(),laststar+wormhole)
-    for a=0 to laststar+wormhole
-        map(a).c=pwa(a)
-        print ".";
-    next
-    do
-        c=c+1
-        b=0
-        for a=0 to _nopb
-           if _minsafe=0 and disnbase(map(piratebase(a)).c)<4 then 
-               d=getrandomsystem(0)
-               swap map(piratebase(a)),map(d)
-               piratebase(a)=d
-           endif
-           if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
-               d=getrandomsystem(0)
-               swap map(piratebase(a)),map(d)
-               piratebase(a)=d
-           endif
-           b=b+disnbase(map(piratebase(a)).c)
-        next
-    loop until b>24 or c>255
-    
-    make_clouds()
-    
-    a=sysfrommap(specialplanet(20))
-    print a
-    c=999
-    for b=0 to laststar
-        if b<>a then
-            if cint(distance(map(a).c,map(b).c))<c then
-                c=cint(distance(map(a).c,map(b).c))
-                d=b
-            endif
-        endif
-    next
-    
-    a=sysfrommap(specialplanet(26))
-    swap map(a).c,map(d).c
-    print "loading bones"
-    loadbones
-    
-'    for a=0 to lastspecial
-'        print ".";
-'        b=sysfrommap(specialplanet(a))
-'        for c=1 to 9
-'            if map(b).planets(c)=specialplanet(a) then d=c
-'        next
-'        makeplanetmap(specialplanet(a),c,map(b).spec)
-'    next
-    
-    for a=0 to laststar
-        if map(a).discovered=2 then 
-            map(a).discovered=show_specials
-        endif
-        if map(a).discovered=-3 then map(a).discovered=show_portals
-        if abs(spacemap(map(a).c.x,map(a).c.y))>1 then
-            map(a).spec=map(a).spec+abs(spacemap(map(a).c.x,map(a).c.y))/2
-            if map(a).spec>7 then map(a).spec=7
-        endif
-        if map(a).discovered=4 then map(a).discovered=_debug_bones
-        if _debug_bones=1 then player.c=map(a).c
-        scount(map(a).spec)+=1
-        'map(a).discovered=1
-    next
-    if show_specials<>0 then
-        for a=0 to laststar
-            for b=1 to 9
-                if map(a).planets(b)=show_specials then map(a).discovered=1
-            next
-        next
-    endif
-    print
-    for e=0 to 2
-    print "Moving Base ";e    
-    if abs(spacemap(basis(e).c.x,basis(e).c.y))<>1 then
-        p2.x=0
-        p2.y=0
-        p1.x=basis(e).c.x
-        p1.y=basis(e).c.y        
-        c=1000
-        for x=0 to sm_x
-            for y=0 to sm_y
-                if abs(spacemap(x,y))<2 then
-                    p2.x=x
-                    p2.y=y
-                    b=0
-                    for a=1 to 9
-                        if a<>5 then
-                            p3=movepoint(p2,a)
-                            if abs(spacemap(p3.x,p3.y))<2 then b=b+1
-                        endif
-                    next
-                    if b>3 and distance(p2,p1)<c then
-                        basis(e).c=p2
-                        c=distance(p2,p1)
-                    endif
-                endif
-            next
-        next
-        
-    endif
-    player.c=basis(e).c
-    next
-    
-    print "checking for starmap errors: ";
-    fixstarmap()
-
-    color 7,0
-    print "generating traderoutes"
-    gen_traderoutes()
-    
-    
-    color 7,0
-    print
-    print "Pregenerating planets ";
-    for c=0 to 5
-        print ".";
-        a=getrandomsystem(0)
-        if a>0 then
-            b=getrandomplanet(a)
-            if b>0 and b<=lastplanet then
-                if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
-                    
-                    makeplanetmap(b,rnd_range(1,9),map(a).spec)
-                    planet_event(b)
-                    map(a).discovered=2
-                endif
-            endif
-        endif
-    next
-    for a=0 to laststar
-        if map(a).discovered=2 then map(a).discovered=show_eventp
-    next
-    
-    makecivilisation(0,specialplanet(7))
-    makecivilisation(1,specialplanet(46))
-    
-    if findcompany(1)=0 then specialplanet(40)=32767
-    if findcompany(2)=0 then specialplanet(41)=32767
-    if findcompany(3)=0 then specialplanet(42)=32767
-    if findcompany(4)=0 then specialplanet(43)=32767
-    
-    ' The probesp
-    print
-    print "Making drifters";
-    for a=1 to lastdrifting
-        print ".";
-        lastplanet=lastplanet+1
-        drifting(a).x=rnd_range(0,sm_x)
-        drifting(a).y=rnd_range(0,sm_y)
-        drifting(a).s=rnd_range(1,a)
-        if drifting(a).s>16 then drifting(a).s=rnd_range(1,12)
-        if all_drifters_are>0 then drifting(a).s=all_drifters_are
-        drifting(a).m=lastplanet
-        if a=1 then drifting(a).s=20
-        if a=2 then drifting(a).s=20
-        if a=3 then drifting(a).s=20
-        if a=4 then drifting(a).s=17
-        if a=5 then drifting(a).s=18 
-        if a=6 then drifting(a).s=19 
-        if drifting(a).s<=22 then makedrifter(drifting(a))
-        drifting(a).p=show_all
-    next
-    print
-    drifting(1).x=targetlist(firstwaypoint).x
-    drifting(1).y=targetlist(firstwaypoint).y
-    planets(drifting(1).m).atmos=5
-    planets(drifting(1).m).depth=1
-    planets(drifting(1).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
-    deletemonsters(drifting(1).m)
-    planets(drifting(1).m).mon_template(0)=makemonster(88,drifting(1).m)
-    planets(drifting(1).m).mon_noamin(0)=2
-    planets(drifting(1).m).mon_noamax(0)=6
-    planetmap(19,10,drifting(1).m)=-287
-    
-    do
-        a=rnd_range(firststationw,lastwaypoint)
-    loop until targetlist(a).x>=20 and targetlist(a).x<=25
-    drifting(2).x=targetlist(a).x
-    drifting(2).y=targetlist(a).y
-    planets(drifting(2).m).atmos=5
-    planets(drifting(2).m).depth=1
-    deletemonsters(drifting(2).m)
-    planets(drifting(2).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
-    planets(drifting(2).m).mon_template(0)=makemonster(88,drifting(2).m)
-    planets(drifting(2).m).mon_noamin(0)=3
-    planets(drifting(2).m).mon_noamax(0)=6
-    planetmap(19,10,drifting(2).m)=-287
-    
-    do
-        a=rnd_range(firststationw,lastwaypoint)
-    loop until targetlist(a).x>=45 and targetlist(a).x<=50
-    drifting(3).x=targetlist(a).x
-    drifting(3).y=targetlist(a).y
-    planets(drifting(3).m).atmos=5
-    planets(drifting(3).m).depth=1
-    deletemonsters(drifting(3).m)
-    planets(drifting(3).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
-    planets(drifting(3).m).mon_template(0)=makemonster(88,drifting(3).m)
-    planets(drifting(3).m).mon_noamin(0)=3
-    planets(drifting(3).m).mon_noamax(0)=6
-    planetmap(19,10,drifting(3).m)=-287
-    
-    drifting(4).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
-    drifting(4).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
-    if drifting(4).x<0 then drifting(lastdrifting).x=0
-    if drifting(4).y<0 then drifting(lastdrifting).y=0
-    if drifting(4).x>sm_x then drifting(lastdrifting).x=sm_x
-    if drifting(4).y>sm_y then drifting(lastdrifting).y=sm_y
-    planets(drifting(4).m).flavortext="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
-    planets(drifting(4).m).atmos=4
-    planets(drifting(4).m).depth=1
-    deletemonsters(drifting(4).m)
-    planets(drifting(4).m).mon_template(0)=makemonster(37,drifting(4).m)
-    planets(drifting(4).m).mon_noamin(0)=16
-    planets(drifting(4).m).mon_noamax(0)=26
-    
-    planets(drifting(5).m).flavortext="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
-    planets(drifting(5).m).darkness=5
-    planets(drifting(5).m).atmos=1
-    planets(drifting(5).m).depth=1
-    deletemonsters(drifting(5).m)
-    planets(drifting(5).m).mon_template(0)=makemonster(9,drifting(5).m)
-    planets(drifting(5).m).mon_noamin(0)=16
-    planets(drifting(5).m).mon_noamax(0)=26
-    planets(drifting(5).m).flags(6)=66
-    planets(drifting(5).m).flags(7)=66
-    planets(drifting(5).m).flags(4)=6
-    
-    planets(drifting(6).m).flavortext="You dock at the ancient space probe."
-    planets(drifting(6).m).darkness=5
-    deletemonsters(drifting(6).m)
-    planets(drifting(6).m).atmos=1
-    planets(drifting(6).m).depth=1
-    
-    if map(sysfrommap(specialplanet(17))).c.x>=sm_x-4 then map(sysfrommap(specialplanet(17))).c.x-=4
-    if map(sysfrommap(specialplanet(17))).c.y>=sm_y-4 then map(sysfrommap(specialplanet(17))).c.y-=4
-    drifting(6).x=map(sysfrommap(specialplanet(17))).c.x+rnd_range(1,3)
-    drifting(6).y=map(sysfrommap(specialplanet(17))).c.y+rnd_range(1,3)
-    
-    
-    do
-        for c=0 to 2    
-            d=0
-            for a=0 to lastdrifting
-                for b=0 to 2
-                    if drifting(a).x=basis(b).c.x and drifting(a).y=basis(b).c.y then
-                        d=d+1
-                        drifting(a).x=rnd_range(0,sm_x)
-                        drifting(a).y=rnd_range(0,sm_y)
-                    endif
-                next
-            next
-        next
-    loop until d=0
-    
-    for a=0 to 15
-        p1=rnd_point(drifting(5).m,0)
-        planetmap(p1.x,p1.y,drifting(5).m)=-81
-    next
-    for a=0 to 15
-        p1=rnd_point(drifting(5).m,0)
-        planetmap(p1.x,p1.y,drifting(5).m)=-158
-    next
-    
-    if show_specials>0 then map(sysfrommap(specialplanet(show_specials))).discovered=1
-    
-    fleet(0).mem(1)=makeship(33)
-    fleet(0).ty=1
-    fleet(1).mem(1)=makeship(33)
-    fleet(1).ty=1
-    fleet(2).mem(1)=makeship(33)
-    fleet(2).ty=1
-    lastfleet=3
-    
-    if _clearmap=1 then
-        for a=1 to laststar+wormhole+1
-            map(a).discovered=0
-            for b=1 to 9
-                if map(a).planets(b)>0 then planets(map(a).planets(b)).visited=0
-            next
-        next
-    endif
-    
-    print
-    color 11,0
-    print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
-    color 15,0
-    print "Star distribution:"
-    for a=1 to 8
-        print spectralname(a);":";scount(a)
-    next
-    print "Asteroid belts:";astcou
-    print "Gas giants:";gascou
-    sleep 1250
-    return 0
-end function
-
-function gen_traderoutes() as short
-    dim as _pfcords start,goal,wpl(40680)
-    dim as _cords p
-    dim t as short
-    dim map(sm_x,sm_y) as byte
-    dim as integer x,y,i,offset,a
-    dim as integer fp,lp
-    dim as byte debug=0
-    lastwaypoint=5
-    firstwaypoint=5
-    for a=10 to 4068
-        targetlist(a).x=0
-        targetlist(a).y=0
-    next
-    for x=0 to sm_x
-        for y=0 to sm_y
-            p.x=x
-            p.y=y
-            if abs(spacemap(x,y))>=2 then map(x,y)=2
-            if abs(spacemap(x,y))>=5 then map(x,y)=2
-            'if abs(spacemap(x-1,y))>=2 then map(x,y)=1
-            'if abs(spacemap(x,y-1))>=2 then map(x,y)=1
-            'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
-            'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
-            'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
-            'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
-            if map(x,y)>0 and show_NPCs=1 then
-                locate y+1,x+1
-                print "#"
-            endif
-        next
-    next
-    map(basis(0).c.x,basis(0).c.y)=0
-    map(basis(1).c.x,basis(1).c.y)=0
-    map(basis(2).c.x,basis(2).c.y)=0
-    start.x=targetlist(0).x
-    start.y=targetlist(0).y
-
-    goal.x=basis(0).c.x
-    goal.y=basis(0).c.y
-    lp=gen_waypoints(wpl(),goal,start,map())
-    offset=11
-    for i=0 to lp
-        targetlist(i+offset).x=wpl(i).x
-        targetlist(i+offset).y=wpl(i).y
-        wpl(i).i=0
-        wpl(i).c=0
-        wpl(i).x=0
-        wpl(i).y=0
-    next
-    
-    lastwaypoint=lp+offset
-    print offset;"-";lastwaypoint
-    offset=lastwaypoint+1
-    firststationw=lastwaypoint
-    for a=1 to 2
-        start.x=basis(a-1).c.x
-        start.y=basis(a-1).c.y
-        goal.x=basis(a).c.x
-        goal.y=basis(a).c.y
-        lp=gen_waypoints(wpl(),goal,start,map())
-        for i=0 to lp
-            targetlist(i+offset).x=wpl(i).x
-            targetlist(i+offset).y=wpl(i).y
-            wpl(i).i=0
-            wpl(i).c=0
-            wpl(i).x=0
-            wpl(i).y=0
-        next
-        print offset;"-";lastwaypoint+lp
-        lastwaypoint=lastwaypoint+lp+1
-        offset=lastwaypoint
-    next
-    
-    start.x=basis(2).c.x
-    start.y=basis(2).c.y
-    goal.x=basis(0).c.x
-    goal.y=basis(0).c.y
-    lp=gen_waypoints(wpl(),goal,start,map())
-    for i=0 to lp
-        targetlist(i+offset).x=wpl(i).x
-        targetlist(i+offset).y=wpl(i).y
-    next
-    offset=offset+lp+1
-    print offset;"-";lastwaypoint+lp
-    lastwaypoint=lastwaypoint+lp
-    firstwaypoint=11
-    if targetlist(firstwaypoint).x>1 and targetlist(firstwaypoint).y>1 then
-        if spacemap(targetlist(firstwaypoint).x,0)=0 or spacemap(targetlist(firstwaypoint).x,0)=1 then
-            targetlist(firstwaypoint).y=0
-        else
-            targetlist(firstwaypoint).x=0
-        endif
-    endif
-    lastwaypoint-=1
-    print firstwaypoint &"-"&lastwaypoint
-    if show_NPCs=5 then
-        for x=0 to sm_x
-            for y=0 to sm_y
-                if spacemap(x,y)<>0 and spacemap(x,y)<>1 then 
-                    map(x,y)=2
-                    if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 then map(x,y)=1
-                
-                else
-                    map(x,y)=0
-                endif
-                locate y+1,x+1
-                if map(x,y)=1 then
-                    color 15,0
-                    print "#";
-                endif
-                if map(x,y)=2 then
-                    color 15,0
-                    print ":";
-                endif
-                
-                if map(x,y)=0 then
-                    color 1,0
-                    print ".";
-                endif
-            next
-        next
-        color 10,0
-        x=firstwaypoint
-        do
-            color 10,0
-            x+=1
-            if x>lastwaypoint then x=firststationw
-            for y=0 to 2
-                if basis(y).c.x=targetlist(x).x and basis(y).c.y=targetlist(x).y then t=y
-            next
-            locate targetlist(x).y+1,targetlist(x).x+1
-            if t=0 then print "0";
-            if t=1 then print "1";
-            if t=2 then print "2";
-            sleep 66
-            color 1,0
-            locate targetlist(x).y+1,targetlist(x).x+1
-            print "."
-        loop until inkey<>""
-        sleep
-        cls
-    endif
-    if debug=1 then
-        for a=firstwaypoint to lastwaypoint
-            locate targetlist(a).y+1,targetlist(a).x+1
-            print "*"
-            sleep 50
-        next
-    endif
-'    
-'    targetlist(0)=basis(0).c
-'    targetlist(1).x=rnd_range(0,30)
-'    targetlist(1).y=rnd_range(15,20)
-'    targetlist(2)=basis(1).c
-'    
-'    targetlist(3).x=rnd_range(0,60)
-'    targetlist(3).y=rnd_range(1,20)
-'    
-'    targetlist(4).x=rnd_range(30,59)
-'    targetlist(4).y=rnd_range(15,20)
-'    targetlist(5)=basis(2).c
-'    targetlist(6).x=rnd_range(0,60)
-'    targetlist(6).y=rnd_range(0,20)
-    return 0
-end function
-
-
-sub make_clouds()
-    dim wmap(sm_x,sm_y)as ubyte
-    dim as short x,y,bx,by,highest,count,a,b,c,r
-    dim as single attempt
-    dim as _cords p1,p2,p3,p4
-    print
-    print "Creating clouds";
-    do
-        print ".";
-        for x=0 to sm_x
-            for y=0 to sm_y
-                wmap(x,y)=0
-                spacemap(x,y)=0
-            next
-        next
-        highest=0
-        do
-            count=0
-            bx=rnd_range(3,7)
-            p1.x=rnd_range(bx,sm_x-bx)
-            p1.y=rnd_range(by,sm_y-by)
-            r=rnd_range(1,100)
-            if r<=20 then p1.y=sm_y
-            if r<=15 then p1.x=sm_x
-            if r<=10 then p1.y=0
-            if r<=5 then p1.x=0
-            for x=0 to sm_x
-                for y=0 to sm_y
-                    p2.x=x
-                    p2.y=y
-                    if distance(p1,p2)<bx then wmap(x,y)=wmap(x,y)+rnd_range(1,6)
-                    if wmap(x,y)>highest then highest=wmap(x,y)
-                    if wmap(x,y)>=8 then count+=1
-                next
-            next
-        loop until count>=sm_x*sm_y*(0.20-attempt)
-        for x=0 to sm_x
-            for y=0 to sm_y
-                if wmap(x,y)=8 or wmap(x,y)=9  then spacemap(x,y)=-2                    
-                if wmap(x,y)=10 or wmap(x,y)=11  then spacemap(x,y)=-3                    
-                if wmap(x,y)=12 or wmap(x,y)=13  then spacemap(x,y)=-4                    
-                if wmap(x,y)>13 then spacemap(x,y)=-5                    
-                if abs(spacemap(x,y))>2 then count+=1
-            next
-        next
-    
-    if rnd_range(1,100)<33 then
-        p1.x=rnd_range(1,sm_x)
-        p1.y=rnd_range(1,sm_y)
-    else
-        p1=map(rnd_range(laststar+1,laststar+wormhole)).c
-    endif
-    
-    
-    for a=0 to 25 'Space - Time Anomalies
-        do
-            if rnd_range(1,100)<33 then
-                if rnd_range(1,100)<33 then
-                    p1.x=rnd_range(1,sm_x)
-                    p1.y=rnd_range(1,sm_y)
-                else
-                    p1=map(rnd_range(laststar+1,laststar+wormhole)).c
-                endif
-            endif
-            if spacemap(p1.x,p1.y)=-6 or spacemap(p1.x,p1.y)=-7 or spacemap(p1.x,p1.y)=-8 then
-                p1.x=rnd_range(1,sm_x)
-                p1.y=rnd_range(1,sm_y)
-            endif
-        loop until not((p1.x=10 and p1.y=30) or (p1.x=60 and p1.y=10) or (p1.x=35 and p1.y=20))
-        c=-6
-        if rnd_range(1,100)<33 then c=-7
-        if rnd_range(1,100)<33 then c=-8
-        if rnd_range(1,100)<66 then c=-(8+rnd_range(1,9))
-        for b=1 to 9
-            if rnd_range(1,100)>66 then
-                p2=p1
-                do
-                    if rnd_range(1,100)<66 then
-                        p2=movepoint(p2,b,,1)
-                    else
-                        p2=movepoint(p2,5,,1)
-                    endif
-                    spacemap(p2.x,p2.y)=c                    
-                loop until rnd_range(1,100)>66 or (p2.x=10 and p2.y=30) or (p2.x=60 and p2.y=10) or (p2.x=35 and p2.y=20)
-            endif
-        next
-    next
-        attempt=attempt+.01
-        if attempt>0.1 then attempt=0.1
-        flood_fill(35,20,spacemap(),1)
-    loop until spacemap(10,30)=255 and spacemap(60,10)=255
-    do
-        x=rnd_range(0,sm_x)
-        y=rnd_range(0,sm_y)
-        if spacemap(x,0)=255 then
-            targetlist(0).x=x
-            targetlist(0).y=0
-        endif
-        
-        if spacemap(x,sm_y)=255 then
-            targetlist(0).x=x
-            targetlist(0).y=sm_y
-        endif
-        
-        if spacemap(0,y)=255 then
-            targetlist(0).x=0
-            targetlist(0).y=y
-        endif
-        
-        if spacemap(sm_x,y)=255 then
-            targetlist(0).x=sm_x
-            targetlist(0).y=y
-        endif
-    loop until targetlist(0).x=0 xor targetlist(0).y=0
-    
-    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
-        p1=map(piratebase(0)).c
-        do
-            spacemap(p1.x,p1.y)=255
-            p1=movepoint(p1,5)
-            print ".";
-        loop until spacemap(p1.x,p1.y)=255
-        
-    endif
-    
-    for x=0 to sm_x
-        for y=0 to sm_y
-            if spacemap(x,y)=255 then spacemap(x,y)=0
-        next
-    next
-    
-    if show_all=1 then
-        for x=0 to sm_x
-            for y=0 to sm_y
-                if spacemap(x,y)=0  then spacemap(x,y)=1                    
-                if abs(spacemap(x,y))>1  then spacemap(x,y)=abs(spacemap(x,y))
-            next
-        next    
-    endif
-    'print highest;lowest
-    'sleep
-end sub
-
 
 sub makefinalmap(m as short)
     dim as _cords p,p2
@@ -1306,6 +512,7 @@ do
         a=lastportal
         portal(a).desig="A shaft. "
         portal(a).tile=111
+        portal(a).ti_no=3003
         portal(a).col=14
         portal(a).from.s=enter.s
         portal(a).from.m=enter.m
@@ -1324,6 +531,10 @@ do
     for a=0 to planets(slot).depth*5
         do
             p=rnd_point(slot,0)
+            if p.x=0 then p.x=1
+            if p.x=60 then p.x=59
+            if p.y=0 then p.y=1
+            if p.y=20 then p.y=19
         loop until (abs(planetmap(p.x,p.y-1,slot))=52 and abs(planetmap(p.x,p.y+1,slot))=52) or (abs(planetmap(p.x-1,p.y,slot))=52 and abs(planetmap(p.x+1,p.y,slot))=52) 
         planetmap(p.x,p.y,slot)=-289
     next
@@ -2449,6 +1660,7 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
         a=lastportal
         portal(a).desig="A natural tunnel. "
         portal(a).tile=111
+        portal(a).ti_no=3003
         portal(a).col=7
         portal(a).from.s=enter.s
         portal(a).from.m=enter.m
@@ -2460,7 +1672,16 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
         portal(a).dest.y=rnd_range(1,19)
         portal(a).discovered=show_portals
         map(portal(a).from.s).discovered=3
-        planetmap(portal(a).from.x,portal(a).from.y,slot)=0
+        for b=0 to lastportal
+            if portal(a).dest.m=portal(b).from.m then
+                if portal(a).dest.x=portal(b).from.x and portal(a).from.y=portal(b).from.y then
+                    portal(a).from.x=rnd_range(1,59)
+                    portal(a).from.y=rnd_range(1,19)
+                endif
+            endif
+        next
+        
+        planetmap(portal(a).from.x,portal(a).from.y,slot)=-4
     endif
     
     do
@@ -2878,7 +2099,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next b
     
     endif
-    if planettype>=88 then 
+    if planettype>=80 and planettype<95 then 
         makeislands(a,o)'islands
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
@@ -2889,6 +2110,14 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
         next b
     
+    endif
+    if planettype>=95 and o>6 then
+        makegeyseroasis(a)
+        for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
+            d=0
+            p=rnd_point
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+        next b
     endif
     makeice(o,a)    
     planets(a).temp=((100-planets(a).water/1.5-planets(a).atmos*3)/100) 'dampened by atmos & water
@@ -3166,8 +2395,8 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     for b=0 to planets(a).life
         if rnd_range(1,100)<(planets(a).life+1)*5 then 
             planets(a).mon_template(b)=makemonster(1,a)
-            planets(a).mon_noamin(b)=rnd_range(1,planets(a).life)*planets(a).mon_template(b).diet
-            planets(a).mon_noamax(b)=rnd_range(1,planets(a).life)*2*planets(a).mon_template(b).diet
+            planets(a).mon_noamin(b)=cint((rnd_range(1,planets(a).life)*planets(a).mon_template(b).diet)/2)
+            planets(a).mon_noamax(b)=cint((rnd_range(1,planets(a).life)*2*planets(a).mon_template(b).diet)/2)
             if planets(a).mon_noamin(b)>planets(a).mon_noamax(b) then swap planets(a).mon_noamin(b),planets(a).mon_noamax(b)
         endif
     next
@@ -3207,7 +2436,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     makespecialplanet(a)
     
     if is_special(a)=0 and distance(map(sysfrommap(a)).c,civ(0).home)<2*civ(0).tech+2*civ(0).aggr and rnd_range(1,100)<civ(0).aggr*15 then
-        makealiencolony(0,a,rnd_range(2,4))    
+        make_aliencolony(0,a,rnd_range(2,4))    
         planets(a).mon_template(1)=civ(0).spec
         planets(a).mon_noamin(1)=rnd_range(2,4)
         planets(a).mon_noamax(1)=planets(a).mon_noamin(1)+rnd_range(2,4)
@@ -3673,6 +2902,79 @@ sub makecanyons(a as short, o as short)
     if rnd_range(1,100)<50 then makeice(a,o)
 end sub
 
+function makegeyseroasis(slot as short) as short
+    ' Makes a planet map covered in ice and mountains with geysers surrounded by greenlands
+    dim as short x,y,r,oasis,mountains,i,x1,y1
+    dim as short camap(60,20)
+    dim as _cords p,p2
+    for x=0 to 60
+        for y=0 to 20
+            planetmap(x,y,slot)=-14
+        next
+    next
+    mountains=rnd_range(4,10)
+    for i=0 to mountains
+        p=rnd_point
+        do
+            p=movepoint(p,5)
+            planetmap(p.x,p.y,slot)=-8
+        loop until rnd_range(1,100)<10
+    next
+    oasis=rnd_range(4,10)
+    for i=0 to oasis
+        p=rnd_point
+        r=rnd_range(3,5)
+        for x=0 to 60
+            for y=0 to 20
+                p2.x=x
+                p2.y=y
+                if distance(p2,p)=r then planetmap(x,y,slot)=-12
+                if distance(p2,p)<r then
+                    planetmap(x,y,slot)=-11
+                    if rnd_range(1,100)<20 then
+                        if rnd_range(1,100)<60 then
+                            if rnd_range(1,100)<60 then
+                                planetmap(x,y,slot)=-5
+                            else
+                                planetmap(x,y,slot)=-146
+                            endif
+                        else
+                            planetmap(x,y,slot)=-6
+                        endif
+                    endif
+                endif
+            next
+        next
+        planetmap(p.x,p.y,slot)=-28
+    next
+    for x=0 to 60
+        for y=0 to 20
+            for x1=x-1 to x+1
+                for y1=y-1 to y+1
+                    if x1>=0 and y1>=0 and x1<=60 and y1<=20 then
+                        if planetmap(x1,y1,slot)=-14 then camap(x,y)+=1
+                        if planetmap(x1,y1,slot)=-8 then camap(x,y)+=1
+                    endif
+                next
+            next
+        next
+    next
+    for x=0 to 60
+        for y=0 to 20
+            if planetmap(x,y,slot)=-14 then
+                if rnd_range(1,100)>88 then 
+                    planetmap(x,y,slot)=-145
+                else
+                    if rnd_range(1,100)<camap(x,y) then planetmap(x,y,slot)=-158
+                endif
+            endif
+        next
+    next
+    
+    return 0
+end function
+
+
 function makewhplanet() as short
     dim as short a,b,c,x,y
     dim as _cords p
@@ -3777,7 +3079,7 @@ function makespecialplanet(a as short) as short
         gc1.x=rnd_range(2,58)
         gc1.y=rnd_range(2,18)
         gc1.m=lastplanet
-        makecomplex(gc1,1)
+        makecomplex(gc1,1,1)
         
         addportal(gc,gc1,0,asc("#"),"A building still in good condition",15)
         p1=rnd_point(lastplanet,0)
@@ -3931,7 +3233,7 @@ function makespecialplanet(a as short) as short
     endif
     
     
-    if a=specialplanet(5) or a=specialplanet(12) then 
+    if a=specialplanet(5) then 
         deletemonsters(a)'dune and sandworms
         for x=0 to 60
             for y=0 to 20
@@ -3977,12 +3279,6 @@ function makespecialplanet(a as short) as short
             planets(a).mon_template(0)=makemonster(11,a)
             planets(a).mon_noamax(0)=15
             planets(a).mon_noamin(0)=8
-        endif
-        if specialplanet(12)=a then 'dying world
-            for b=0 to rnd_range(1,8)+rnd_range(1,5)+rnd_range(1,3)
-                placeitem(makeitem(96,4,4),rnd_range(0,60),rnd_range(0,20),a)
-            next
-        
         endif
     endif
     
@@ -4280,15 +3576,7 @@ function makespecialplanet(a as short) as short
     endif
     
     if specialplanet(12)=a then
-        for b=0 to rnd_range(0,15)+15
-            placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),a)
-        next
-        deletemonsters(a)
-        planets(a).water=0
-        planets(a).atmos=1
-        planets(a).grav=3
-        planets(a).temp=4326+rnd_range(1,100)
-        planets(a).death=10+rnd_range(1,4)
+        planetmap(30,10,a)=296
     endif
     
     if a=specialplanet(13) then 'Entertainment world
@@ -5768,6 +5056,7 @@ function makespecialplanet(a as short) as short
             lastportal+=1
             portal(lastportal).desig="A hole in the ground. "
             portal(lastportal).tile=asc("o")
+            portal(lastportal).ti_no=3001
             portal(lastportal).col=4
             portal(lastportal).from.m=a
             portal(lastportal).from.x=rnd_range(0,60)
@@ -6314,7 +5603,7 @@ end function
 
 function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as short
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg
-    dim as byte retirementshop,antiques
+    dim as byte retirementshop,antiques,oneway
     dim s as _ship
     dim pods(6,5,1) as short
     dim p as _cords
@@ -6332,6 +5621,14 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
         from.m=d.m
         d.m=m
     endif
+    d.g_tile.x=rnd_range(1,8)
+    if d.g_tile.x>=5 then d.g_tile.x+=1
+    d.g_tile.y=d.s
+    if d.s=19 then d.g_tile.y=49
+    if d.s=18 then d.g_tile.y=17
+    if d.s=17 then d.g_tile.y=48 'Generation Ship
+    if d.s=20 then d.g_tile.y=47 'Small station
+    
     loadmap(d.s,lastplanet)  
     planets(m).flags(1)=d.s
     d.start.x=d.x
@@ -6346,7 +5643,7 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
         next
     next
     close #f
-    s=gethullspecs(d.s)
+    s=gethullspecs(d.s,"data/ships.csv")
     if bg=0 then
         addweap=s.h_maxweaponslot*10
         addcarg=s.h_maxcargo*10
@@ -6608,17 +5905,20 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
         endif
     else
         'On planets surface
+        oneway=0
         for x=0 to 60
             for y=0 to 20
                 if abs(planetmap(x,y,m))=203 then 'Add portals from airlocks to planet surfaces
                     dest.x=x
                     dest.y=y
                     dest.m=lastplanet
-                    addportal(from,dest,0,asc("@"),"abandoned ship",11)
-                    exit for, for
+                    addportal(dest,from,1,asc("@"),"airlock",11)
+                    
                 endif
             next
         next
+        addportal(from,dest,1,asc("@"),"abandoned ship",11)
+                    
         for x=0 to 60
             for y=0 to 20
                 if broken=1 and abs(planetmap(x,y,m))=220 then planetmap(x,y,m)=-202
@@ -6626,6 +5926,8 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
         next
         if d.s=18 and broken=0 then planetmap(30,20,m)=-220
         m=dest.m
+        planets(m).atmos=planets(from.m).atmos
+        planets(m).grav=planets(from.m).grav
     endif
     planets(m).flags(0)=0
     planets(m).flags(1)=d.s
@@ -6636,503 +5938,6 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
     return 0
 end function
 
-function makecivilisation(slot as short,m as short) as short
-    dim  as _cords p,p1,p2,p3,p4,p5
-    dim as short x,y,a,b
-'    n as string
-'    ship as _ship
-'    spec as _monster
-'    aggr as byte
-'    inte as byte
-'    tech as byte
-'    phil as byte
-    
-    specialflag(7)=0
-    specialflag(46)=0
-    civ(slot).n=alienname(3)
-    civ(slot).popu=rnd_range(1,4)+rnd_range(1,4)+rnd_range(1,4)
-    civ(slot).aggr=rnd_range(1,3) '1=submissive 2=neutral 3=agressive
-    civ(slot).inte=rnd_range(1,3) '1=Science 2=Trade 3=conquest
-    civ(slot).tech=rnd_range(1,3) 
-    civ(slot).phil=rnd_range(1,3)'1=individualists 2=organized 3=collectivists
-    if rnd_range(1,100)<50 then
-        civ(slot).prefweap=0
-    else
-        civ(slot).prefweap=5
-    endif
-    civ(slot).spec=makemonster(1,m,1)
-    civ(slot).spec.sdesc=civ(slot).n
-    civ(slot).spec.ldesc="A " &civ(slot).n &". " &civ(slot).spec.ldesc
-    civ(slot).spec.hpmax=civ(slot).spec.hpmax+rnd_range(1,civ(slot).tech)+rnd_range(1,civ(slot).aggr)
-    civ(slot).spec.hp=civ(slot).spec.hpmax
-    civ(slot).spec.armor=rnd_range(1,civ(slot).tech)
-    civ(slot).spec.lang=32+slot
-    civ(slot).spec.col=rnd_range(8,15)
-    civ(slot).spec.aggr=1
-    civ(slot).spec.faction=1+slot
-    civ(slot).spec.allied=6+slot
-    civ(slot).spec.hasoxy=1
-    civ(slot).spec.cmmod=10-civ(slot).aggr
-    civ(slot).spec.items(1)=201+slot*2
-    civ(slot).spec.itemch(1)=35+civ(slot).aggr*10
-    civ(slot).spec.items(2)=202+slot*2
-    civ(slot).spec.itemch(2)=35+civ(slot).aggr*10
-    civ(slot).spec.items(3)=-21
-    civ(slot).spec.itemch(3)=88
-    civ(slot).spec.items(3)=96
-    civ(slot).spec.itemch(3)=25
-    civ(slot).spec.items(4)=96
-    civ(slot).spec.itemch(4)=77
-    civ(slot).spec.items(5)=96
-    civ(slot).spec.itemch(5)=66
-    civ(slot).spec.swhat=" fires an exotic weapon"
-    civ(slot).spec.scol=rnd_range(1,6)
-    civ(slot).home=map(sysfrommap(m)).c
-    for a=0 to 7
-        faction(slot+6).war(a)=civ(slot).aggr*10 'Other Civ
-    next
-    makeplanetmap(m,3,3)
-    deletemonsters(m)
-    planets(m).mon_template(0)=civ(slot).spec
-    planets(m).mon_noamin(0)=10
-    planets(m).mon_noamax(0)=20
-    makealiencolony(slot,m,civ(slot).popu)
-    planetmap(rnd_range(1,60),rnd_range(1,20),m)=276+slot
-    planetmap(rnd_range(1,60),rnd_range(1,20),m)=278+slot
-
-    civ(slot).item(0).desig=civ(slot).n &" gun"
-    civ(slot).item(0).desigp=civ(slot).n &" guns"
-    civ(slot).item(0).ty=2
-    civ(slot).item(0).id=201+slot*2
-    civ(slot).item(0).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,civ(slot).aggr)+rnd_range(0,civ(slot).tech)-2)/10'damage
-    civ(slot).item(0).v2=(rnd_range(1,3)+rnd_range(1,3)+civ(slot).aggr+civ(slot).tech-2)'range
-    civ(slot).item(0).v3=(rnd_range(0,3)+rnd_range(0,civ(slot).aggr)+rnd_range(0,civ(slot).tech)-5)'tohit
-    if civ(slot).item(0).v1<=0 then civ(slot).item(0).v1=.1
-    if civ(slot).item(0).v2<=0 then civ(slot).item(0).v2=1
-    if civ(slot).item(0).v3<=0 then civ(slot).item(0).v3=1
-    civ(slot).item(0).price=(civ(slot).item(0).v1*10+civ(slot).item(0).v2+civ(slot).item(0).v3)*75
-    civ(slot).item(0).col=civ(slot).spec.col
-    civ(slot).item(0).icon="-"
-    civ(slot).item(0).ldesc="A gun used by the "&civ(slot).n &"  | | Accuracy: "&civ(slot).item(0).v3 &" | Damage: "&civ(slot).item(0).v1 &" | Range:"&civ(slot).item(0).v2
-    
-    civ(slot).item(1).desig=civ(slot).n &" blade"
-    civ(slot).item(1).desigp=civ(slot).n &" blades"
-    civ(slot).item(1).ty=4
-    civ(slot).item(1).id=202+slot*2
-    civ(slot).item(1).v1=(rnd_range(0,3)+rnd_range(0,3)+rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-2)/10'damage
-    civ(slot).item(1).v3=(rnd_range(0,3)+civ(slot).aggr+civ(slot).tech-5)'tohit
-    if civ(slot).item(1).v1<=0 then civ(slot).item(1).v1=.1
-    if civ(slot).item(1).v3<=0 then civ(slot).item(1).v3=1
-    civ(slot).item(1).price=(civ(slot).item(1).v1*10+civ(slot).item(1).v3)*50
-    civ(slot).item(1).col=civ(slot).spec.col
-    civ(slot).item(1).icon="("
-    civ(slot).item(1).ldesc="A close combat weapon used by the "&civ(slot).n &"  | | Accuracy: "&civ(slot).item(1).v3 &" | Damage: "&civ(slot).item(1).v1 
-    
-    makealienship(slot,0)
-    makealienship(slot,1)
-    
-    for a=0 to 6
-        if rnd_range(1,100)<66 then
-            civ(slot).culture(a)=rnd_range(1,5+civ(slot).aggr+civ(slot).phil)
-            if civ(slot).culture(a)>6 then civ(slot).culture(a)=6
-        endif
-    next
-        
-    tiles(272+slot).no=272+slot
-    tiles(272+slot).tile=64 
-    tiles(272+slot).col=civ(slot).spec.col
-    tiles(272+slot).bgcol=0
-    tiles(272+slot).desc="A "&civ(slot).n &" spaceship."
-    tiles(272+slot).seetru=1
-    tiles(272+slot).hides=2
-    
-    if rnd_range(1,100)<55 then
-        tiles(274+slot).tile=asc("#") 
-        tiles(274+slot).col=17
-    else
-        tiles(274+slot).tile=asc("O") 
-        tiles(274+slot).col=137
-    endif
-    tiles(274+slot).bgcol=0
-    tiles(274+slot).desc="A "&civ(slot).n &" building."
-    tiles(274+slot).seetru=1
-    tiles(274+slot).hides=2
-    
-    tiles(276+slot).tile=tiles(274+slot).tile
-    tiles(276+slot).col=tiles(274+slot).col+2
-    tiles(276+slot).seetru=1
-    tiles(276+slot).gives=301+slot
-    tiles(276+slot).hides=2
-    tiles(276+slot).turnsinto=276+slot
-    
-    tiles(278+slot).tile=tiles(274+slot).tile
-    tiles(278+slot).col=tiles(274+slot).col+3
-    tiles(278+slot).seetru=1
-    tiles(278+slot).gives=311+slot
-    tiles(278+slot).hides=2
-    tiles(278+slot).turnsinto=278+slot
-    
-    tiles(280+slot).tile=tiles(274+slot).tile
-    tiles(280+slot).col=tiles(274+slot).col+3
-    tiles(280+slot).seetru=1
-    tiles(280+slot).gives=321+slot
-    tiles(280+slot).hides=2
-    tiles(280+slot).turnsinto=280+slot
-    
-    tiles(282)=tiles(280)
-    tiles(282).gives=330
-    tiles(282).turnsinto=282
-    
-    
-    tiles(283+slot).tile=64 
-    tiles(283+slot).col=civ(slot).spec.col
-    tiles(283+slot).bgcol=0
-    tiles(283+slot).desc="An alien scoutship"
-    tiles(283+slot).seetru=1
-    tiles(283+slot).walktru=0
-    tiles(283+slot).firetru=1
-    tiles(283+slot).shootable=1
-    tiles(283+slot).locked=3
-    tiles(283+slot).spawnson=100
-    tiles(283+slot).spawnswhat=81+slot
-    tiles(283+slot).spawnsmax=1
-    tiles(283+slot).spawnblock=1
-    tiles(283+slot).turnsinto=62
-    tiles(283+slot).dr=2
-    tiles(283+slot).hp=25
-    tiles(283+slot).succt="It is slightly dented now"
-    tiles(283+slot).failt="Your handwapons arent powerful enough to damage a spaceship"
-    tiles(283+slot).killt="That will teach them a lesson!"
-    tiles(283+slot).hides=2
-    
-    if slot=0 then
-        if civ(slot).phil=1 then specialplanettext(7,0)="A planet with many small, modern structures dotting the landscape"
-        if civ(slot).phil=2 then specialplanettext(7,0)="A planet with several medium to large cities distributed on the surface"
-        if civ(slot).phil=3 then specialplanettext(7,0)="A planet with a huge, dominating megacity"
-        specialplanettext(7,1)="The homeworld of the "&civ(slot).n
-        if civ(slot).culture(4)=5 then 
-            specialplanettext(7,0)=specialplanettext(7,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
-            specialplanettext(7,1)=specialplanettext(7,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
-        endif
-    endif
-    if slot=1 then
-        if civ(slot).phil=1 then specialplanettext(46,0)="A planet with many small, modern structures dotting the landscape"
-        if civ(slot).phil=2 then specialplanettext(46,0)="A planet with several medium to large cities distributed on the surface"
-        if civ(slot).phil=3 then specialplanettext(46,0)="A planet with a huge, dominating megacity"
-        specialplanettext(46,1)="The homeworld of the "&civ(slot).n
-        if civ(slot).culture(4)=5 then 
-            specialplanettext(46,0)=specialplanettext(46,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
-            specialplanettext(46,1)=specialplanettext(46,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
-        endif
-    endif
-    if civ(slot).culture(3)=5 then 'Tamed robots
-        planets(m).mon_template(2)=makemonster(8,m)
-        planets(m).mon_template(2).faction=1+slot
-        planets(m).mon_template(2).cmmod=6
-        planets(m).mon_noamin(2)=3
-        planets(m).mon_noamax(2)=8
-    endif
-    if civ(slot).culture(4)=2 then
-        lastplanet+=1
-        p1=rnd_point
-        p1.m=lastplanet
-        makecavemap(p1,rnd_range(1,4),rnd_range(1,4),0,0)
-        p2=rnd_point
-        p2.m=m
-        addportal(p1,p2,0,asc("o"),"A natural tunnel",7)
-        planets(lastplanet)=planets(m)
-        planets(lastplanet).life=planets(lastplanet).life+5
-        planets(lastplanet).depth=1
-        planets(lastplanet).weat=0
-        for b=0 to planets(a).life
-            planets(lastplanet).mon_noamin(b)=0
-            planets(lastplanet).mon_noamax(b)=0
-            if rnd_range(1,100)<100-b*10 then 
-                planets(lastplanet).mon_template(b)=makemonster(1,lastplanet)
-                planets(lastplanet).mon_noamin(b)=rnd_range(1,planets(lastplanet).life)*planets(lastplanet).mon_template(b).diet
-                planets(lastplanet).mon_noamax(b)=rnd_range(1,planets(lastplanet).life)*2*planets(lastplanet).mon_template(b).diet
-                if planets(lastplanet).mon_noamin(b)>planets(lastplanet).mon_noamax(b) then swap planets(lastplanet).mon_noamin(b),planets(lastplanet).mon_noamax(b)
-            endif
-        next
-        p1=rnd_point
-        placeitem(makeitem(205,slot),p1.x,p1.y,lastplanet)
-        placeitem(makeitem(201+slot*2),p1.x,p1.y,lastplanet)
-        placeitem(makeitem(202+slot*2),p1.x,p1.y,lastplanet)
-    endif
-    if civ(slot).culture(4)=4 then 'slave population
-        planets(m).mon_template(2)=makemonster(1,m,1)
-        planets(m).mon_template(2).faction=1+slot
-        planets(m).mon_template(2).lang=34
-        planets(m).mon_template(2).cmmod=6
-        planets(m).mon_noamin(2)=5
-        planets(m).mon_noamax(2)=10
-    endif
-    if civ(slot).culture(4)=5 then 'Space lift
-        lastplanet+=1
-        p1.x=30
-        p1.y=5
-        p2.x=30
-        p2.y=15
-        p3.x=5
-        p3.y=10
-        p4.x=55
-        p4.y=10
-        for x=0 to 60
-            for y=0 to 20
-                p.x=x
-                p.y=y
-                planetmap(x,y,lastplanet)=-200
-                if distance(p,p1)<=9 then planetmap(x,y,lastplanet)=-68
-                if distance(p,p2)<=9 then planetmap(x,y,lastplanet)=-68
-                if distance(p,p3)<=9 then planetmap(x,y,lastplanet)=-68
-                if distance(p,p4)<=9 then planetmap(x,y,lastplanet)=-68
-                if distance(p,p1)<=7 then planetmap(x,y,lastplanet)=-201
-                if distance(p,p2)<=7 then planetmap(x,y,lastplanet)=-201
-                if distance(p,p3)<=7 then planetmap(x,y,lastplanet)=-201
-                if distance(p,p4)<=7 then planetmap(x,y,lastplanet)=-201
-                if distance(p,p1)<5 then planetmap(x,y,lastplanet)=-202
-                if distance(p,p2)<5 then planetmap(x,y,lastplanet)=-202
-                if distance(p,p3)<5 then planetmap(x,y,lastplanet)=-202
-                if distance(p,p4)<5 then planetmap(x,y,lastplanet)=-202
-            next
-        next
-        for x=0 to 60
-            for y=0 to 20
-                if y=9 and x>5 and x<55 then planetmap(x,y,lastplanet)=-202
-                if y=10 and x>5 and x<55 then planetmap(x,y,lastplanet)=-202
-                if y=11 and x>5 and x<55 then planetmap(x,y,lastplanet)=-202
-                if x>5 and x<55 and (y=8 or y=12) then
-                    if planetmap(x,y,lastplanet)=-200 or planetmap(x,y,lastplanet)=-68 then 
-                        if y=8 then planetmap(x,y-1,lastplanet)=-68
-                        if y=12 then planetmap(x,y+1,lastplanet)=-68
-                        planetmap(x,y,lastplanet)=-201
-                    endif
-                endif
-            next
-        next
-        planets(lastplanet)=planets(m)
-        planets(lastplanet).grav=planets(lastplanet).grav/5
-        planets(lastplanet).depth=1
-        planets(lastplanet).weat=0
-        p.x=30
-        p.y=10
-        p.m=lastplanet
-        p2.x=30
-        p2.y=10
-        p2.m=m
-        addportal(p,p2,0,asc("o"),"A space lift",14)
-        for a=0 to 5
-            p=rnd_point(lastplanet,0)
-            planetmap(p.x,p.y,lastplanet)=-267
-        next
-        p=rnd_point(lastplanet,0)
-        planetmap(p.x,p.y,lastplanet)=-282
-        p=rnd_point(lastplanet,0)
-        planetmap(p.x,p.y,lastplanet)=-266
-        p=rnd_point(lastplanet,0)
-        planetmap(p.x,p.y,lastplanet)=-280-slot 'Shop
-        p=rnd_point(lastplanet,0)
-        planetmap(p.x,p.y,lastplanet)=-280-slot 'Shop
-    
-    endif 
-    
-    'shop21+slot= alienshop
-    shopitem(1,22+slot)=civ(slot).item(0)
-    shopitem(2,22+slot)=civ(slot).item(1)
-    b=2
-    for a=0 to civ(slot).tech*2+civ(slot).inte
-       b+=1
-       shopitem(b,22+slot)=(rnd_item(5))
-    next
-    return 0
-end function
-
-function makealiencolony(slot as short,map as short, popu as short) as short
-    dim as short a,x,y,xw,yw,sh
-    dim as _cords p,p2,ps(20)
-    if civ(slot).phil=1 then
-        for a=0 to popu*10
-            p=rnd_point
-            planetmap(p.x,p.y,map)=-274-slot
-        next
-        for a=0 to popu*3
-            p=rnd_point
-            planetmap(p.x,p.y,map)=-68
-            if rnd_range(1,100)<civ(slot).tech*10 then planetmap(p.x,p.y,map)=-272-slot
-        next
-    endif
-    if civ(slot).phil=2 then
-        for a=0 to popu*10
-            if a<=20 then ps(a)=rnd_point
-        next
-        for a=0 to popu*10-1 step 2 
-            if a<=19 then makeroad(ps(a),ps(a+1),map)
-        next
-        for a=0 to popu*10
-            if a<=20 then 
-                p=ps(a)
-            else
-                p=rnd_point
-            endif
-            if p.x<1 then p.x=1
-            if p.x>59 then p.x=59
-            if p.y<1 then p.y=1
-            if p.y>19 then p.y=19
-            planetmap(p.x,p.y,map)=-274-slot
-            planetmap(p.x,p.y-1,map)=-274-slot
-            planetmap(p.x,p.y+1,map)=-274-slot
-            planetmap(p.x+1,p.y,map)=-274-slot
-            planetmap(p.x-1,p.y,map)=-274-slot
-        next
-        for a=1 to rnd_range(1,3)
-            p=rnd_point
-            xw=rnd_range(2,4)
-            yw=rnd_range(2,4)
-            for x=p.x to p.x+xw
-                for y=p.y to p.y+yw
-                    if x>=0 and x<=60 and y>=0 and y<=20 then
-                        planetmap(x,y,map)=-68
-                        if rnd_range(1,100)<civ(slot).tech*10 then planetmap(x,y,map)=-272-slot
-                    endif
-                next
-            next
-        next
-    endif
-    if civ(slot).phil=3 then
-        p=rnd_point
-        for x=p.x-10 to p.x+10
-            for y=p.y-10 to p.y+10
-                if x>=0 and x<=60 and y>=0 and y<=20 then
-                    p2.x=x
-                    p2.y=y
-                    if distance(p2,p)<popu+2 then planetmap(x,y,map)=-68
-                    if rnd_range(1,100)<civ(slot).tech*10 then planetmap(p.x,p.y,map)=-272-slot
-                    if distance(p2,p)<popu then planetmap(x,y,map)=-274-slot
-                endif
-            next
-        next
-        planetmap(p.x,p.y,map)=-68
-    endif
-    if civ(slot).inte=2 then
-        sh=3
-    else
-        sh=1
-    endif
-    for a=0 to sh
-        if rnd_range(1,100)<(popu+sh)*5 then
-            p=rnd_point(map,0)
-            planetmap(p.x,p.y,map)=-280-slot
-        endif
-    next
-    return 0
-end function
-
-
-function makealienship(slot as short,t as short) as short
-    dim as short c,wc,cc,roll
-    dim chance(3) as short '3 chance for weapon 2 chance for cargo 1 chance for sensors
-    if civ(slot).inte=1 then
-        chance(1)=20
-    else
-        chance(1)=10
-    endif
-    
-    if civ(slot).inte=2 then
-        chance(2)=20
-    else
-        chance(2)=10
-    endif
-    
-    if civ(slot).inte=3 then
-        chance(3)=30
-    else
-        chance(3)=10
-    endif
-    
-    
-    civ(slot).ship(t).hull=5+rnd_range(1,civ(slot).tech)*5*(t+1)-rnd_range(1,civ(slot).phil)*3*(t+1)
-    if civ(slot).ship(t).hull<1 then civ(slot).ship(t).hull=1
-    civ(slot).ship(t).shieldmax=rnd_range(1,civ(slot).tech)-2
-    if civ(slot).ship(t).shieldmax<0 then civ(slot).ship(t).shieldmax=0
-    civ(slot).ship(t).shield=civ(slot).ship(t).shieldmax
-    civ(slot).ship(t).sensors=rnd_range(1,civ(slot).tech)
-    civ(slot).ship(t).col=civ(slot).spec.col
-    civ(slot).ship(t).engine=1
-    civ(slot).ship(t).pilot=3
-    civ(slot).ship(t).gunner=3
-    wc=2
-    cc=1
-    civ(slot).ship(t).weapons(1)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
-    for c=0 to civ(slot).ship(t).hull step 5
-        if rnd_range(1,100)<75 then
-            civ(slot).ship(t).engine+=1
-        else
-            civ(slot).ship(t).engine-=1
-        endif
-        if rnd_range(1,100)<50 then
-            civ(slot).ship(t).pilot+=1
-        else
-            civ(slot).ship(t).pilot-=1
-        endif
-        if rnd_range(1,100)<50 then
-            civ(slot).ship(t).gunner+=1
-        else
-            civ(slot).ship(t).gunner-=1
-        endif
-            
-        roll=rnd_range(1,100)
-        select case roll
-        case 0 to chance(1)
-            civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
-            wc+=1
-        case chance(1)+1 to chance(1)+chance(2)
-            civ(slot).ship(t).cargo(cc).x=1
-            cc+=1
-        case chance(1)+chance(2)+1 to chance(1)+chance(2)+chance(3)
-            civ(slot).ship(t).sensors+=1
-        case else
-            if civ(slot).inte=1 then
-                civ(slot).ship(t).sensors+=1
-            endif
-            if civ(slot).inte=2 then
-                civ(slot).ship(t).cargo(cc).x=1
-                cc+=1
-            endif
-            if civ(slot).inte=3 then
-                civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
-                wc+=1
-            endif
-        end select
-        
-    
-    next
-    civ(slot).ship(t).c.x=rnd_range(1,60)
-    civ(slot).ship(t).c.y=rnd_range(1,20)
-    if civ(slot).ship(t).engine<1 then civ(slot).ship(t).engine=1
-    if civ(slot).ship(t).gunner<1 then civ(slot).ship(t).gunner=1
-    if civ(slot).ship(t).pilot<1 then civ(slot).ship(t).pilot=1
-    civ(slot).ship(t).h_maxweaponslot=wc-1
-    civ(slot).ship(t).h_maxhull=civ(slot).ship(t).hull
-    if t=0 then civ(slot).ship(t).icon=left(civ(slot).n,1)
-    if t=1 then civ(slot).ship(t).icon=lcase(left(civ(slot).n,1))
-    if civ(slot).inte=1 then
-        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" explorer"
-        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" scout"
-    endif
-    if civ(slot).inte=2 then 
-        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" merchantman"
-        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" transporter"
-    endif
-    if civ(slot).inte=3 then 
-        if t=0 then civ(slot).ship(t).desig=civ(slot).n &" warship"
-        if t=1 then civ(slot).ship(t).desig=civ(slot).n &" fighter"
-    endif
-    civ(0).ship(0).ti_no=45
-    civ(0).ship(1).ti_no=46
-    civ(1).ship(0).ti_no=47
-    civ(1).ship(1).ti_no=48
-    return 0
-end function
 
 
 function makeice(o as short,a as short) as short
@@ -7171,7 +5976,7 @@ function makeice(o as short,a as short) as short
 end function
 
 function addportal(from as _cords, dest as _cords, oneway as short, tile as short,desig as string, col as short) as short
-    dim e as short
+    dim as short e,a
     if from.x<0 then 
         dprint "error. tried to create portal at from.x="&from.x
         dest.x=0
@@ -7194,15 +5999,15 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
         dest.x=0
     endif
     if dest.y<0 then 
-        dprint "error. tried to create portal at from.y="&dest.y
+        dprint "error. tried to create portal at dest.y="&dest.y
         dest.y=0
     endif
     if dest.x>60 then
-        dprint "error. tried to create portal at from.x="&dest.x 
+        dprint "error. tried to create portal at dest.x="&dest.x 
         dest.x=60
     endif
     if dest.y>20 then 
-        dprint "error. tried to create portal at from.y="&dest.y
+        dprint "error. tried to create portal at Dest.y="&dest.y
         dest.y=20
     endif
     lastportal=lastportal+1
@@ -7213,11 +6018,24 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
     portal(lastportal).col=col
     portal(lastportal).desig=desig
     portal(lastportal).discovered=show_all
-    if tile=asc("o") then portal(lastportal).ti_no=3001
+    portal(lastportal).ti_no=3001
     if tile=asc("#") and col=14 then portal(lastportal).ti_no=3002
     if tile=asc("o") and col=14 then portal(lastportal).ti_no=3003
     if tile=asc(">") then portal(lastportal).ti_no=3004
-    if tile=asc("^") then portal(lastportal).ti_no=3005
+    if tile=asc("^") then portal(lastportal).ti_no=250
+    if tile=asc("@") then portal(lastportal).ti_no=3007
+    if tile=asc("o") and col=7 and portal(lastportal).oneway=1 then portal(lastportal).ti_no=257
+    if tile=asc("O") then portal(lastportal).ti_no=3006
+    'dprint chr(tile)&":"&portal(lastportal).ti_no
+'    for e=0 to lastportal-1
+'        for f=0 to lastportal-1
+'            if f<>e then
+'                if portal(e).from.x=portal(f).from.x and portal(e).from.y=portal(f).from.y and portal(e).from.m=portal(f).from.m then movepoint(portal(e).from,5)
+'                if portal(e).dest.x=portal(f).from.x and portal(e).dest.y=portal(f).from.y and portal(e).dest.m=portal(f).from.m then movepoint(portal(e).from,5)
+'                if portal(e).dest.x=portal(f).dest.x and portal(e).dest.y=portal(f).dest.y and portal(e).dest.m=portal(f).dest.m then movepoint(portal(e).from,5)
+'            endif
+'        next
+'    next
     return 0
 end function
 
@@ -7569,17 +6387,124 @@ sub makemudsshop(slot as short, x1 as short, y1 as short)
 
 end sub
 
+function station_event(m as short) as short
+    dim p as _cords
+    dim as short c
+    planets(m).flavortext="Something is going on here today."
+    select case rnd_range(1,100)
+    case is<35 'Good stuff
+        select case rnd_range(1,100)
+            case 0 to 25
+                planets(m).mon_template(2)=makemonster(98,m)
+                planets(m).mon_noamin(2)=1
+                planets(m).mon_noamax(2)=1
+            case 26 to 50
+                planets(m).flags(26)=7
+                planetmap(39,1,m)=-268
+                planetmap(38,1,m)=-267
+                planetmap(40,1,m)=-267
+                planetmap(40,2,m)=-267
+                planetmap(38,2,m)=-267
+            case 51 to 75
+                planetmap(46,17,m)=-215
+                planetmap(44,18,m)=-216
+                planets(m).flags(26)=8
+                planets(m).flags(12)=rnd_range(2,6)
+                planets(m).flags(13)=rnd_range(2,6)
+            case else
+                planets(m).flags(26)=9 'Fuel shortage
+                planets(m).flags(27)=0 
+        end select
+    case is>55 'Bad Stuff
+        select case rnd_range(1,100)
+            case 0 to 25
+                planets(m).flags(26)=1 'Standard Critter loose
+                planets(m).mon_template(2)=makemonster(1,m)
+                planets(m).mon_noamin(2)=1
+                planets(m).mon_noamax(2)=1
+            case 26 to 50
+                planets(m).flags(26)=4 'Crawling Shrooms loose
+                planets(m).mon_template(2)=makemonster(34,m)
+                planets(m).mon_noamin(2)=1
+                planets(m).mon_noamax(2)=1
+            case 51 to 75
+                planets(m).flags(26)=5 'Pirate band attacking
+                planets(m).mon_template(2)=makemonster(3,m)
+                planets(m).mon_noamin(2)=1
+                planets(m).mon_noamax(2)=3
+                p=rnd_point(m,,203)
+                planetmap(p.x,p.y,m)=-67
+            case else
+                planets(m).flags(26)=6 'Leak
+                p=rnd_point(m,,243)
+                planetmap(p.x,p.y,m)=-4
+                planets(m).atmos=1
+        end select
+    case else 'Neutral Stuff
+        c=rnd_range(0,1)
+        planets(m).flags(26)=10
+        planets(m).mon_template(2)=civ(c).spec
+        planets(m).mon_noamin(2)=1
+        planets(m).mon_noamax(2)=3
+        p=rnd_point(m,,203)
+        planetmap(p.x,p.y,m)=272+c
+    end select
+    'CLEAN UP ROUTINE!!!!
+    return 0
+end function
+
+function clean_station_event() as short
+    dim as short a,m,x,y
+    for a=1 to 3
+        m=drifting(a).m
+        planets(m).mon_noamin(2)=0
+        planets(m).mon_noamax(2)=0
+        if planets(m).flags(26)<>9 then 
+            planets(m).flags(26)=0
+            planets(m).flags(27)=0
+            planets(m).atmos=5
+            planets(m).flavortext="A cheerful sign welcomes you to the station"
+        endif
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,m)=268 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-268 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=267 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-267 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=215 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-215 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=216 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-216 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=67 then planetmap(x,y,m)=203
+                if planetmap(x,y,m)=-67 then planetmap(x,y,m)=-203
+                if planetmap(x,y,m)=4 then planetmap(x,y,m)=243
+                if planetmap(x,y,m)=-4 then planetmap(x,y,m)=-243 
+            next
+        next
+    next
+    return 0
+end function
+
+
 sub planet_event(slot as short)
-    dim as _cords p1
+    dim as _cords p1,from,dest
     dim as _cords gc1,gc
-    dim as short x,y,a,b,t1,t2,t
-    static generated(8) as short
-    t1=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
-    t2=rnd_range(0,6)+disnbase(map(sysfrommap(slot)).c)/10
-    if t1<1 then t1=1
-    if t2<1 then t2=1
-    if t1>8 then t1=8
-    if t2>8 then t2=8
+    dim as short x,y,a,b,t1,t2,t,maxt,debug
+    static generated(11) as short
+    debug=0
+    if orbitfrommap(slot)<>1 then
+        maxt=10
+    else
+        maxt=11
+    endif
+    do
+        t1=rnd_range(0,maxt)+disnbase(map(sysfrommap(slot)).c)/10
+        t2=rnd_range(0,maxt)+disnbase(map(sysfrommap(slot)).c)/10
+        if t1<1 then t1=1
+        if t2<1 then t2=1
+        if t1>maxt then t1=maxt
+        if t2>maxt then t2=maxt
+    loop until t1<>t2
     if generated(t1)>generated(t2) then t=t2
     if generated(t1)<generated(t2) then t=t1
     if generated(t1)=generated(t2) then 
@@ -7589,10 +6514,13 @@ sub planet_event(slot as short)
             t=t2
         endif
     endif
-    generated(t)+=1
     
     if t<1 then t=1
-    if t>8 then t=8
+    if t>maxt then t=maxt
+    if debug<>0 then t=debug
+    generated(t)+=1
+    't=4
+    
     if t=1 or t=2 then 'Mining Colony in Distress Flag 22 
         p1.x=rnd_range(0,50)
         p1.y=rnd_range(0,15)
@@ -7650,7 +6578,7 @@ sub planet_event(slot as short)
     if t=4 then 'Smith & Pirates fighting over an ancient factory Flag 23
         for a=0 to rnd_range(2,5)
             p1=rnd_point()
-            planetmap(p1.x,p1.y,slot)=246
+            planetmap(p1.x,p1.y,slot)=264
         next
         for a=0 to rnd_range(2,5)
             p1=rnd_point()
@@ -7659,24 +6587,20 @@ sub planet_event(slot as short)
         planets(slot).flags(23)=1
         
         planets(slot).mon_template(0)=makemonster(3,slot)
-        planets(slot).mon_template(0).faction=1
         planets(slot).mon_noamax(0)=rnd_Range(2,12)+6
         planets(slot).mon_noamin(0)=rnd_Range(2,12)
         
         planets(slot).mon_template(1)=makemonster(50,slot)
-        planets(slot).mon_template(1).faction=1
         planets(slot).mon_noamax(1)=rnd_Range(0,2)+3
         planets(slot).mon_noamin(1)=rnd_Range(1,2)
         
         planets(slot).mon_template(2)=makemonster(71,slot)
-        planets(slot).mon_template(2).faction=2
         planets(slot).mon_template(2).cmmod=5
         planets(slot).mon_template(2).lang=29
         planets(slot).mon_noamax(2)=rnd_Range(2,12)+6
         planets(slot).mon_noamin(2)=rnd_Range(2,12)
         
         planets(slot).mon_template(3)=makemonster(72,slot)
-        planets(slot).mon_template(3).faction=2
         planets(slot).mon_template(3).cmmod=5
         planets(slot).mon_template(3).lang=29
         planets(slot).mon_noamax(3)=rnd_Range(0,2)+3
@@ -7698,6 +6622,7 @@ sub planet_event(slot as short)
     if t=5 or t=6 then
         deletemonsters(slot)
         planets(slot).flags(24)=1
+        planets(slot).atmos=5
         for x=0 to 60
             for y=0 to 20
                 planetmap(x,y,slot)=-4
@@ -7730,12 +6655,13 @@ sub planet_event(slot as short)
         portal(lastportal).desig="An opening between the roots. "
         portal(lastportal).tile=asc("o")
         portal(lastportal).col=4
+        portal(lastportal).ti_no=3003
         portal(lastportal).from=rnd_point(0,slot)
         portal(lastportal).from.m=slot
         portal(lastportal).dest=rnd_point(0,lastplanet)
         portal(lastportal).dest.m=lastplanet
         portal(lastportal).discovered=show_portals
-        
+        if debug<>0 then portal(lastportal).discovered=1
         planets(slot).mon_template(0)=makemonster(4,slot)
         planets(slot).mon_noamin(0)=15
         planets(slot).mon_noamax(0)=25
@@ -7745,7 +6671,7 @@ sub planet_event(slot as short)
         for b=0 to rnd_range(0,6)+disnbase(player.c)\4
             placeitem(makeitem(96,planets(lastplanet).depth+disnbase(player.c)\5,planets(lastplanet).depth+disnbase(player.c)\6),rnd_range(0,60),rnd_range(0,20),lastplanet)
         next b
-    
+        
     endif
     if t=7 or t=8 then
         makemossworld(slot,5)
@@ -7753,6 +6679,89 @@ sub planet_event(slot as short)
         planets(slot).flags(25)=1
     endif
     
+    if t=9 then 'Squid underwater cave world
+        makeoceanworld(slot,3)
+        lastplanet+=1
+        makeroots(lastplanet)
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,lastplanet))=152 then planetmap(x,y,lastplanet)=-48
+                if abs(planetmap(x,y,lastplanet))=3 then planetmap(x,y,lastplanet)=-1
+                if abs(planetmap(x,y,lastplanet))=59 then planetmap(x,y,lastplanet)=-97
+                if abs(planetmap(x,y,lastplanet))=146 then planetmap(x,y,lastplanet)=-165
+            next
+        next
+        deletemonsters(slot)
+        planets(slot).mon_template(0)=makemonster(92,slot)
+        planets(slot).mon_noamin(0)=rnd_Range(2,12)
+        planets(slot).mon_noamax(0)=planets(slot).mon_noamin(0)+6
+        
+        planets(slot).mon_template(1)=makemonster(93,slot)
+        planets(slot).mon_noamin(1)=rnd_Range(2,12)
+        planets(slot).mon_noamax(1)=planets(slot).mon_noamin(0)+6
+        
+        planets(slot).mon_template(2)=makemonster(95,slot)
+        planets(slot).mon_noamin(2)=rnd_Range(2,12)
+        planets(slot).mon_noamax(2)=planets(slot).mon_noamin(0)+6
+        
+        
+        planets(slot).temp=30
+        for b=1 to 5
+            from=rnd_point(slot,1)
+            from.m=slot
+            dest=rnd_point(lastplanet,1)
+            dest.m=lastplanet
+            addportal(from,dest,1,asc("o"),"An underwater cave",9)
+            addportal(Dest,from,1,asc("o"),"A tunnel to the surface",9)
+        next
+        planets(slot).flags(26)=1
+        planets(slot).atmos=6
+        planets(lastplanet).atmos=1
+        planets(lastplanet).depth=5
+        planets(lastplanet).mon_template(0)=makemonster(92,slot)
+        planets(lastplanet).mon_noamin(0)=rnd_Range(2,12)
+        planets(lastplanet).mon_noamax(0)=planets(slot).mon_noamin(0)+6
+        
+        planets(lastplanet).mon_template(1)=makemonster(93,slot)
+        planets(lastplanet).mon_noamin(1)=rnd_Range(2,12)
+        planets(lastplanet).mon_noamax(1)=planets(lastplanet).mon_noamin(1)+6
+        
+        planets(lastplanet).mon_template(2)=makemonster(94,slot)
+        planets(lastplanet).mon_noamin(2)=rnd_Range(2,4)
+        planets(lastplanet).mon_noamax(2)=planets(slot).mon_noamin(2)+2
+        for b=0 to 20+rnd_range(0,6)+disnbase(player.c)\4
+            gc=rnd_point(lastplanet,0)
+            placeitem(makeitem(96,planets(lastplanet).depth+disnbase(player.c)\5,planets(lastplanet).depth+disnbase(player.c)\6),gc.x,gc.y,lastplanet)
+        next b
+    endif
+    if t=10 then 'Living geysers
+        makegeyseroasis(slot)
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,slot))=28 then planetmap(x,y,slot)=-295
+            next
+        next
+        
+        planets(slot).mon_template(0)=makemonster(97,slot)
+        planets(slot).mon_noamin(0)=rnd_Range(2,12)
+        planets(slot).mon_noamax(0)=planets(slot).mon_noamin(0)+6
+    endif
+    
+    if t=11 then
+        deletemonsters(slot)
+        planets(slot).flags(27)=1
+        planets(slot).water=0
+        planets(slot).atmos=1
+        planets(slot).grav=3
+        planets(slot).temp=4326+rnd_range(1,100)
+        planets(slot).death=10+rnd_range(0,6)+rnd_range(0,6)
+        for b=0 to rnd_range(1,8)+rnd_range(1,5)+rnd_range(1,3)
+            placeitem(makeitem(96,4,4),rnd_range(0,60),rnd_range(0,20),slot)
+        next
+        for b=0 to rnd_range(0,15)+15
+            placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),slot)
+        next
+    endif
 end sub
 
 sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
@@ -8896,7 +7905,7 @@ end function
 
 function is_drifter(m as short) as short
     dim a as short
-    for a=0 to lastdrifting
+    for a=1 to lastdrifting
         if m=drifting(a).m then return -1
     next
     return 0
@@ -8910,18 +7919,20 @@ function is_special(m as short) as short
     return 0
 end function    
 
-function get_nonspecialplanet() as short
+function get_nonspecialplanet(disc as short=0) as short
     dim pot(1024) as short
     dim as short a,b,last
     for a=0 to laststar
-        for b=1 to 9
-            if map(a).planets(b)>0 and is_special(map(a).planets(b))=0 then
-                if planetmap(0,0,map(a).planets(b))=0 then
-                    last+=1
-                    pot(last)=map(a).planets(b)
+        if map(a).discovered=0 or disc=0 then
+            for b=1 to 9
+                if map(a).planets(b)>0 and is_special(map(a).planets(b))=0 then
+                    if planetmap(0,0,map(a).planets(b))=0 then
+                        last+=1
+                        pot(last)=map(a).planets(b)
+                    endif
                 endif
-            endif
-        next
+            next
+        endif
     next
     if last>0 then
         return pot(rnd_range(1,last))

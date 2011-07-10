@@ -33,7 +33,7 @@ function cureawayteam(where as short) as short
         if crew(a).hpmax>0 and crew(a).hp>0 and (crew(a).onship=where or where=1) then
             if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor+addtalent(5,17,1)>5+crew(a).disease/2 then
                 crew(a).disease=0
-                crew(a).onship=0
+                crew(a).onship=crew(a).oldonship
                 cured+=1
             endif
             if crew(a).disease>0 then sick+=1
@@ -163,6 +163,7 @@ function infect(a as short,dis as short) as short
     roll=rnd_range(1,6)+rnd_range(1,6)+player.doctor
     if roll<maximum(3,dis) and crew(a).hp>0 and crew(a).hpmax>0 then
         crew(a).disease=dis
+        crew(a).oldonship=crew(a).onship
         crew(a).duration=disease(dis).duration
         crew(a).incubation=disease(dis).incubation
         if dis>player.disease then player.disease=dis
@@ -184,8 +185,9 @@ function diseaserun(onship as short) as short
                     crew(a).duration-=1 
                     if rnd_range(1,100)<disease(crew(a).disease).contagio then
                         b=rnd_crewmember
-                        if crew(a).onship=crew(b).onship or (crew(a).onship=1 and crew(b).onship=1) then 
+                        if crew(a).onship=crew(b).onship then 
                             crew(b).disease=crew(a).disease
+                            crew(b).oldonship=crew(b).onship
                             crew(b).duration=disease(crew(a).disease).duration
                             crew(b).incubation=disease(crew(a).disease).incubation
                         endif
@@ -234,9 +236,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     dim as short local_debug=0
     dim target(128) as integer
     dim stored(128) as integer
-    dim injured(13) as integer
-    dim killed(13) as integer
-    dim desc(13) as string
+    dim injured(16) as integer
+    dim killed(16) as integer
+    dim desc(16) as string
     desc(1)="Captain"
     desc(2)="Pilot"
     desc(3)="Gunner"
@@ -250,6 +252,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     desc(11)="Neodog"
     desc(12)="Neoape"
     desc(13)="Robot"
+    desc(14)="Squad Leader"
+    desc(15)="Sniper"
+    desc(16)="Paramedic"
     'ap=1 Ignores Armor
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
@@ -260,7 +265,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     for b=1 to 128
-        if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) or b=1 then
+        if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
             last+=1
             target(last)=b
             stored(b)=crew(b).hp
@@ -300,7 +305,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
         last=0
         for b=1 to 128
-            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) or b=1 then
+            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
                 last+=1
                 target(last)=b
             endif
@@ -308,19 +313,20 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     loop until dam<=0 or ex=1 or cc>9999
     dam=0
     for b=1 to 128
-        if stored(b)>crew(target(b)).hp then
-            dam=dam+stored(b)-crew(target(b)).hp
-            if crew(target(b)).hp<=0 then
-                killed(crew(target(b)).typ)+=1
-                reequip=1
-            else
-                injured(crew(target(b)).typ)+=1
+        if crew(b).onship=0 and crew(b).hpmax>0 then
+            if stored(b)>crew(b).hp then
+                if crew(b).hp<=0 then
+                    killed(crew(b).typ)+=1
+                    reequip=1
+                else
+                    injured(crew(b).typ)+=1
+                endif
             endif
         endif
     next
     if armeff>0 then text=text &armeff &" prevented by armor. "
     
-    for b=1 to 13
+    for b=1 to 16
         if injured(b)>0 then
             if injured(b)>1 then
                 text=text &injured(b) &" "&desc(b)&"s injured. "
@@ -329,7 +335,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             endif
         endif
     next
-    for b=1 to 13
+    for b=1 to 16
         player.deadredshirts=player.deadredshirts+killed(b)
         if killed(b)>0 then
             if killed(b)>1 then
@@ -341,6 +347,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     hpdisplay(a)
+    sleep 50
     if killed(2)>0 then player.pilot=captainskill
     if killed(3)>0 then player.gunner=captainskill
     if killed(4)>0 then player.science=captainskill
@@ -410,15 +417,15 @@ function levelup(p as _ship) as _ship
     dim secret as short
     dim target as short
     dim _del as _crewmember
-    
+    dim rolls(128) as short
     dim lev(128) as byte
     for a=1 to 128
+        if _showrolls=1 then crew(a).xp+=10
         if crew(a).hp>0  then
             roll=rnd_range(1,crew(a).xp)
             if roll+crew(a).augment(10)*2>5+crew(a).hp^2 and crew(a).xp>0 then
                 lev(a)+=1
-            'else
-             '   dprint "Rolled "&roll &", needed "&5+crew(a).hp^2,14,14
+                rolls(a)=crew(a).augment(10)*2+roll
             endif
             if a>1 then
                 if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
@@ -462,6 +469,8 @@ function levelup(p as _ship) as _ship
         if rnd_range(1,100)<crew(2).xp*3 then text=text &gaintalent(2)
         crew(2).xp=0
     endif
+    if _showrolls=1 then text=text &"Pilot Rolled "&rolls(2) &", needed"& 5+crew(2).hp^2
+    
     if p.gunner>0 and p.gunner<=5 and lev(3)=1 then
         p.gunner+=1
         crew(3).hpmax+=1
@@ -469,6 +478,7 @@ function levelup(p as _ship) as _ship
         if rnd_range(1,100)<crew(3).xp*3 then text=text &gaintalent(3)
         crew(3).xp=0
     endif
+    if _showrolls=1 then text=text &"Gunner rolled "&rolls(3) &", needed"& 5+crew(3).hp^2
     if p.science>0 and p.science<=5 and lev(4)=1 then
         p.science+=1
         crew(4).hpmax+=1
@@ -476,6 +486,7 @@ function levelup(p as _ship) as _ship
         if rnd_range(1,100)<crew(4).xp*3 then text=text &gaintalent(4)
         crew(4).xp=0
     endif
+    if _showrolls=1 then text=text &"Science Officer Rolled "&rolls(4) &", needed"& 5+crew(4).hp^2
     if p.doctor>0 and p.doctor<=5 and lev(5)=1 then
         p.doctor+=1
         crew(5).hpmax+=1
@@ -483,7 +494,10 @@ function levelup(p as _ship) as _ship
         if rnd_range(1,100)<crew(5).xp*3 then text=text &gaintalent(5)
         crew(5).xp=0
     endif
+    if _showrolls=1 then text=text &"Doctor rolled "&rolls(5) &", needed"& 5+crew(5).hp^2
     for a=6 to 128
+        if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
+    
         if crew(a).hp>0 and lev(a)=1 and crew(a).typ>=6 and crew(a).typ<=7 then
             crew(a).hpmax+=1
             crew(a).typ+=1
@@ -750,7 +764,7 @@ function addmember(a as short) as short
         if a=18 then 'green
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
-            crew(slot).icon="P"
+            crew(slot).icon="M"
             crew(slot).typ=6
             crew(slot).talents(29)=1
             crew(slot).paymod=2
@@ -806,7 +820,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
             if c<=0 then c=2
             if b<5 and hiringpool>0 then
                 if b=1 then
-                    if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*Wage &" (Current:"&player.pilot &") hire? (y/n)") then
+                    if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*Wage &" (Current skill:"&player.pilot &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
                             player.pilot=c
@@ -817,7 +831,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     endif
                 endif
                 if b=2 then
-                    if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*Wage & " (Current:"&player.gunner &") hire? (y/n)") then
+                    if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*Wage & " (Current skill:"&player.gunner &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
                             player.gunner=c
@@ -828,7 +842,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     endif
                 endif
                 if b=3 then
-                    if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current:"&player.science &") hire? (y/n)") then
+                    if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.science &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
                             player.science=c
@@ -839,7 +853,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     endif
                 endif
                 if b=4 then
-                    if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current:"&player.doctor &") hire? (y/n)") then
+                    if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.doctor &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
                             player.doctor=c
@@ -995,13 +1009,17 @@ function showteam(from as short, r as short=0,text as string="") as short
     dim skills as string
     dim augments as string
     dim message as string
+    dim onoff(2) as string
+    onoff(0)="On "
+    onoff(1)=" - "
+    onoff(2)="Off"
     for b=1 to 128
         if crew(b).hpmax>0 then last+=1
     next
     if p=0 then p=1
     no_key=""
     equip_awayteam(player,dummy,0)
-    lines=fix((_screeny-_fh2)/(_fh2*4))
+    lines=fix((_screeny)/(_fh2*4))
     cls
     do
         color 11,0
@@ -1034,6 +1052,17 @@ function showteam(from as short, r as short=0,text as string="") as short
             endif
             if r=1 then return p
                 
+        endif
+        
+        
+        if no_key="e" then
+            select case crew(p).equips
+                case 0
+                    crew(p).equips=2
+                case 2
+                    crew(p).equips=0
+            end select
+            equip_awayteam(player,dummy,0)
         endif
         
         if no_key="a" and r=1 then return -1'Install augment in all
@@ -1076,7 +1105,7 @@ function showteam(from as short, r as short=0,text as string="") as short
             else
                 bg=0
             endif
-            if b-offset>0 then  
+            if b-offset>0 and b-offset<=128 then  
                 if crew(b-offset).hpmax>0 then
                     skills=""
                     augments=""
@@ -1173,6 +1202,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                     else
                         draw string (55*_fw2,y*_fh2), " XP: -",,font2,custom,@_col
                     endif
+                    draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
                     'print space(70-pos)
                     color 15,bg
                     
@@ -1248,8 +1278,8 @@ function showteam(from as short, r as short=0,text as string="") as short
         color 11,0
         locate 25,1
         if r=0 then 
-            if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
-            if from <>0 then draw string (10,_screeny-_fh2), key_rename &" rename a member, s set Item c clear, esc exit",,font2,custom,@_col
+            if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, e toggle autoequip, esc exit",,font2,custom,@_col
+            if from <>0 then draw string (10,_screeny-_fh2), key_rename &" rename a member, s set Item, c clear, e toggle autoequip, esc exit",,font2,custom,@_col
         endif
         if r=1 then draw string (10,_screeny-_fh2), "installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         'flip
@@ -1258,6 +1288,7 @@ function showteam(from as short, r as short=0,text as string="") as short
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
         if no_key=key_rename then
+            screenset 1,1
             if p<6 then
                 n=gettext(16,(p-1+offset)*3,16,n)
             else

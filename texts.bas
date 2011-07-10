@@ -96,11 +96,13 @@ function alerts(awayteam as _monster,walking as short) as short
     return walking
 end function
 
-function makehullbox(t as short) as string
+function makehullbox(t as short,file as string) as string
     dim as _ship s
     dim as string box
-    s=gethullspecs(t)
-    box=s.h_desc &" | | Hull:"&s.h_maxhull &" | Shield:"&s.h_maxshield &" | Engine:"&s.h_maxengine &" | Sensors:"&s.h_maxsensors 
+    s=gethullspecs(t,file)
+    box=s.h_desig & "||"
+    if len(s.h_desc)>1 then box=box &s.h_desc 
+    box=box &" | | Hull Max.:"&s.h_maxhull &" | Shield Max.:"&s.h_maxshield &" | Engine Max.:"&s.h_maxengine &" | Sensors Max.:"&s.h_maxsensors 
     box=box &" | Crew:"&s.h_maxcrew &" | Cargobays:"&s.h_maxcargo &" | Weapon turrets:" &s.h_maxweaponslot &" | Fuelcapacity:"&s.h_maxfuel &" |"
     return box
 end function
@@ -258,7 +260,11 @@ function moneytext() as string
     endif
     
     text=text & " | "
-        
+    for a=0 to 9
+        b+=combon(a).rank
+    next
+    if b>0 then text=text &" Made "& b*100 &" Cr. in company bonuses. |"
+    text=text &"|"
     if player.money-500>0 then
         'if faction(0).war(1)<=0 then text=text & "Made all money with honest hard work"
         'if player.merchant_agr>0 and player.pirate_agr<50 then text = text & "Found piracy not to be worth the hassle"
@@ -284,7 +290,7 @@ function uniques() as string
     descr(9)="An alien base still in good condition"
     descr(10)="An independent colony"
     descr(11)="A casino trying to cheat"
-    descr(12)="A dying world"
+    descr(12)="The prison of an ancient entity"
     descr(13)="Murchesons Ditch"
     descr(14)="The blackmarket"
     descr(15)="A pirate gunrunner operation" 
@@ -302,7 +308,7 @@ function uniques() as string
     descr(32)="An asteroid base"
     descr(33)="Another asteroid base"
     descr(34)="A world devastated by war"
-    descr(35)="A world of peaceful cephalopods"
+    descr(35)="A world populated by peaceful cephalopods"
     descr(36)="A tribe of small green people in trouble"
     descr(37)="An invisible labyrinth"
     descr(39)="A very fertile world plagued by burrowing monsters"
@@ -391,7 +397,7 @@ function listartifacts() as string
         flagst(0)=flagst(0) &"      {14} None |"
     endif
     
-    flagst(0)="|{15}Alien Artifacts {11}|"&flagst(0)
+    flagst(0)="{15}Alien Artifacts {11}|"&flagst(0)
     if sd>1 then flagst(0)=flagst(0) &sd &" Ship Disintegrators|"
     if sd=1 then flagst(0)=flagst(0) &sd &" Ship Disintegrator|"
     if hd>1 then flagst(0)=flagst(0) & hd &" portable Disintegrators|"
@@ -642,7 +648,7 @@ function es_part1() as string
                     t = t &" Your exprience in planet exploration soon shows, and you survive long enough to make enough money for a ticket back home."
                     player.money=player.money+500
                 else
-                    t=t &" After several expeditions you finally find yourself wer most redshirts end up. On the wrong end of a hungry alien"
+                    t=t &" After several expeditions you finally find yourself were most redshirts end up. On the wrong end of a hungry alien"
                     return t
                 endif
             endif

@@ -1,6 +1,66 @@
 '
 ' File Input/output routines
 '
+function count_lines(file as string) as short
+    dim as short f,n
+    dim dummy as string
+    f=freefile
+    open file for input as #f
+    do 
+        line input #f,dummy
+        if len(dummy)>0 then n+=1
+    loop until eof(f)
+    close #f
+    return n
+end function
+
+function delete_custom(pir as short) as short
+    dim s as _ship
+    dim as short n,f,c,last,i,flag
+    dim as string lines(22),men,des
+    do
+        last=0
+        n=count_lines("data/customs.csv")-1
+        f=freefile
+        open "data/customs.csv" for input as #f
+        for i=0 to n
+            line input #f,lines(i)
+        next
+        close #f
+        men="Delete Ship Design/"
+        des="/"
+        for i=1 to n
+            s=gethullspecs(i,"data/customs.csv")
+            men=men & s.h_desig & "/"
+            des=des &makehullbox(i,"data/customs.csv") &"/"
+            last=last+1
+        next
+        last+=1
+        men=men &"Exit"
+        c=menu(men,des)
+        if c>0 and c<last then
+            if askyn("do you really want to delete this ship design? (y/n)") then
+                lines(c)=lines(n)
+                lines(n)=""
+                n-=1
+                open "data/customs.csv" for output as #f
+                for i=0 to n
+                    print #f,lines(i)
+                next
+                close #f
+            endif
+        endif
+        for i=0 to n
+            dprint lines(i) & last
+        next
+    loop until c=last or c=-1
+    if flag=1 then
+    endif
+    return 0
+end function
+
+    
+
 function checkfilestructure() as short    
     if chdir("savegames")=-1 then
         mkdir("savegames")
@@ -24,6 +84,7 @@ end function
 
 function loadsounds() as short
     #ifdef _windows
+    print "Loading sounds:";
     fsound_init(48000,11,0)
     print FSOUND_geterror();
     IF _Volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
@@ -54,7 +115,7 @@ function keybindings() as short
     while not eof(f)
         ls+=1
         line input #f,text2
-        if instr(text2,"#")=0 and len(text2)>0 then                            
+        if left(text2,1)<>"#" and len(text2)>0 then                            
             a+=1
             lk+=1
             text=text2
@@ -248,8 +309,12 @@ end function
 
 
 function loadfonts() as short
-    dim as short a
-    screen 12
+    dim as short a,debug,f
+    debug=0
+    if debug=1 then
+        f=freefile
+        open "fontlog.txt" for append as #f
+    endif
     if _lines<25 then _lines=25
     if _tiles=0 then 
         _fohi2=10
@@ -277,12 +342,27 @@ function loadfonts() as short
     if _fohi2<8 or _fohi2>24 then _fohi2=12
     if _fohi2>_fohi1 then _fohi2=_fohi1
     'Extern fb_mode Alias "fb_mode" As Uinteger Ptr
+    _FH1=_fohi1
+    _FH2=_fohi2
+    _FW1=_FH1/2+2
+    _FW2=_FH2/2+2
+    if _tiles=0 then
+        _Fw1=_tix
+        _Fh1=_tiy
+    endif
+    if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
+    _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
+    _screenx=_mwx*_fw1+25*_fw2
+    screenres _screenx,_screeny,8,2,GFX_WINDOWED
+    if debug=1 then print #f,"Made screen"
     Print "Loading Fonts"
     if _customfonts=1 then
         print "loading font 1"
         font1=load_font(""&_fohi1,_FH1)
+        if debug=1 then print #f,"Loaded Font 1"
         print "loading font 2"
         font2=load_font(""&_fohi2,_FH2)
+        if debug=1 then print #f,"Loaded Font 2"
     else 
         Font1 = ImageCreate((254-1) * 8, 17)
         dim as ubyte ptr p
@@ -299,8 +379,9 @@ function loadfonts() as short
         _fh1=16
         _fh2=16
     endif
-    _FW1=_FH1/2
-    _FW2=_FH2/2
+    
+    _FW1=_FH1/2+2
+    _FW2=_FH2/2+2
     #ifdef _windows
     _FW1=gfx.font.gettextwidth(FONT1,"W")
     _FW2=gfx.font.gettextwidth(FONT2,"W")
@@ -308,11 +389,16 @@ function loadfonts() as short
     if _tiles=0 then
         _Fw1=_tix
         _Fh1=_tiy
-    endif
+    endif    
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
-    _screenx=60*_fw1+25*_fw2
+    _screenx=_mwx*_fw1+25*_fw2
     screenres _screenx,_screeny,8,2,GFX_WINDOWED
+    
+    if debug=1 then 
+        print #f,"reset screen size"
+        close #f
+    endif
     return 0
 end function
 
@@ -352,11 +438,12 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
 end function
 
 function load_tiles() as short
-    dim as short x,y,a,n,sx,sy 
+    dim as short x,y,a,n,sx,sy,showtiles
+    showtiles=0
     for a=0 to 4096
         gt_no(a)=2048
     next
-    
+    cls
     bload "graphics/ships.bmp"
     for y=0 to 24*16 step 24
         sx=1
@@ -366,8 +453,9 @@ function load_tiles() as short
             get (x,y)-(x+23,y+23),stiles(sx,sy)
             sx+=1
         next
+        draw string (24*9,y),""&sy
     next
-    
+    cls
     bload "graphics/ships2.bmp"
     for y=0 to 24*16 step 24
         sx=1
@@ -377,10 +465,26 @@ function load_tiles() as short
             get (x,y)-(x+23,y+23),stiles(sx,sy)
             sx+=1
         next
+        draw string (24*9,y),""&sy
     next
+    
+    cls
+    bload "graphics/ships3.bmp"
+    for y=0 to 24*16 step 24
+        sx=1
+        sy+=1
+        for x=0 to 24*8 step 24
+            stiles(sx,sy)=imagecreate(24,24)
+            get (x,y)-(x+23,y+23),stiles(sx,sy)
+            sx+=1
+        next
+        draw string (24*10,y),""&sy
+    next
+    
     
     a=1
     n=1
+    cls
     bload "graphics/space.bmp"
     for y=0 to _tiy*6 step _tiy
         for x=0 to _tix*15 step _tix
@@ -391,7 +495,28 @@ function load_tiles() as short
             n+=1
         next
     next
+    n=75
+    cls
+    bload "graphics/weapons.bmp"
+    y=0
+    for x=0 to _tix*2 step _tix
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1 
+        n+=1
+    next
+    y=_tiy
+    for x=0 to _tix*8 step _tix
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1 
+        n+=1
+    next
+    
     n=101
+    cls
     bload "graphics/land.bmp"
     for y=0 to _tiy*15 step _tiy
         for x=0 to _tix*19 step _tix
@@ -402,7 +527,23 @@ function load_tiles() as short
             n+=1 
         next
     next
+    n=800
+    cls
+    bload "graphics/critters2.bmp"
+    for y=0 to _tiy*10 step _tiy
+        for x=0 to _tix*12 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1 
+            n+=1 
+        next
+        draw string (x,y),""&n-1
+    next
+    if showtiles=1 then sleep
+    
     n=1000
+    cls
     bload "graphics/critters.bmp"
     for y=0 to _tiy*4 step _tiy
         for x=0 to _tix*19 step _tix
@@ -414,6 +555,7 @@ function load_tiles() as short
         next
     next
     n=2001
+    cls
     bload "graphics/items.bmp"
     for y=0 to _tiy*5 step _tiy
         for x=0 to _tix*19 step _tix
@@ -426,9 +568,10 @@ function load_tiles() as short
     next
     
     n=3001
+    cls
     bload "graphics/portals.bmp"
     y=0
-    for x=0 to _tix*4 step _tix
+    for x=0 to _tix*8 step _tix
         gtiles(a)=imagecreate(_tix,_tiy)
         get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
         gt_no(n)=a
@@ -582,7 +725,7 @@ function loadkeyset() as short
         for i=1 to b
             print ".";
             text=texts(i)
-            if instr(text,"#")=0 and len(text)>0 then                            
+            if left(text,1)<>"#" and len(text)>0 then                            
                 lctext=lcase(text)
                 if instr(lctext,"key_nw")>0 then key_nw=loadkey(text)
                 if instr(lctext,"key_north")>0 then key_north=loadkey(text)
@@ -607,7 +750,8 @@ function loadkeyset() as short
                 if instr(lctext,"key_tactics")>0 then key_tactics=loadkey(text)
                 if instr(lctext,"key_filter")>0 then key_filter=loadkey(text)
                 if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
-                if instr(lctext,"key_logbook")>0 then key_comment=loadkey(text)
+                if instr(lctext,"key_awayteam")>0 then key_awayteam=loadkey(text)
+                if instr(lctext,"key_logbook")>0 then key_logbook=loadkey(text)
                 if instr(lctext,"key_equipment")>0 then key_equipment=loadkey(text)
                 if instr(lctext,"key_quest")>0 then key_quests=loadkey(text)
                 if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
@@ -618,7 +762,8 @@ function loadkeyset() as short
                 if instr(lctext,"key_rename")>0 then key_rename=loadkey(text)
                 if instr(lctext,"key_targetlanding")>0 then key_tala=loadkey(text)
                 if instr(lctext,"key_launchprobe")>0 then key_probe=loadkey(text)
-
+                if instr(lctext,"key_togglehpdisplay")>0 then key_togglehpdisplay=loadkey(text)
+                
                 if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
                 if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
                 if instr(lctext,"key_inspect")>0 then key_i=loadkey(text)
@@ -642,6 +787,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_dropmine")>0 then key_dr=loadkey(text)
                 if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=loadkey(text)
                 if instr(lctext,"key_yes")>0 then key_yes=loadkey(text)
+                if instr(lctext,"key_extendedkey")>0 then key_extended=loadkey(text)
 
             endif
         next
@@ -675,6 +821,62 @@ function numfromstr(t as string) as short
 end function
 
 
+function load_dialog(fn as string, n() as _dialognode) as short
+    dim as short f,i,j,g,node,answer
+    dim l(1028) as string
+    dim w(9) as string
+    f=freefile
+    open fn for input as #f
+    while not eof(f)
+        i+=1
+        line input #f,l(i)
+    wend
+    close #f
+    for j=1 to i
+        for g=0 to 9
+            w(g)=""
+        next
+        g=string_towords(w(),l(j),";")
+        if w(0)<>"" then 
+            node=val(w(0))
+            n(node).no=node
+            n(node).statement=w(1)
+            n(node).effekt=w(3)
+            n(node).param(1)=val(w(4))
+            n(node).param(2)=val(w(5))
+            n(node).param(3)=val(w(6))
+            n(node).param(4)=val(w(7))
+            n(node).param(5)=val(w(8))
+            answer=0
+        else
+            answer+=1
+            n(node).option(answer).answer=w(1)
+            n(node).option(answer).no=val(w(2))
+        endif
+    next
+    return node
+end function
+
+function string_towords(word() as string, s as string, break as string, punct as short=0) as short
+    dim as short i,a,debug
+    debug=0
+    for a=1 to len(s)
+        if mid(s,a,1)=break then
+            if debug=1 then dprint word(i)
+            i+=1
+        else
+            if punct=1 and (mid(s,a,1)="." or mid(s,a,1)=",") then
+                i+=1
+                word(i)=word(i)&mid(s,a,1)
+            else
+                word(i)=word(i)&mid(s,a,1)
+            endif
+        endif
+    next
+    return i
+end function
+
+
 function loadconfig() as short
     dim f as short
     dim text as string
@@ -690,6 +892,7 @@ function loadconfig() as short
                 text=lcase(text)
                 if instr(text,"_tix")>0 then _tix=numfromstr(text)
                 if instr(text,"_tiy")>0 then _tiy=numfromstr(text)
+                if instr(text,"gtmwx")>0 then gt_mwx=numfromstr(text)
                 if instr(text,"tilefont")>0 then _FoHi1=numfromstr(text)
                 if instr(text,"textfont")>0 then _FoHi2=numfromstr(text)
                 if instr(text,"lines")>0 then _lines=numfromstr(text)
@@ -788,10 +991,15 @@ function loadconfig() as short
             endif                
         loop until eof(f)
         close #f
-        return 0
     else
         dprint "No Config.txt. Using default configuration"
     endif
+    if _tiles=0 then
+        _mwx=gt_mwx
+    else
+        _mwx=60
+    endif
+    return 0
 end function
 
 function texttofile(text as string) as string
@@ -864,6 +1072,7 @@ function configuration() as short
         text=text &"/ Starmap on bar: "& onoff(_onbar)
         text=text &"/ Alternative Numberinput: "& onoff(_altnumber)
         text=text &"/ Transparent Items: "& onoff(_transitems)
+        text=text &"/ Main window width(tile mode): "& gt_mwx
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -993,12 +1202,10 @@ function configuration() as short
             if d=1 then 
                 dprint "Set graphic font height:(8-28)"
                 _fohi1=Getnumber(8,28,_fohi1)
-                _customfonts=0
             endif
             if d=2 then 
                 dprint "Set text font height:(8-28)"
                 _fohi2=Getnumber(8,28,_fohi2)
-                _customfonts=0
             endif
             if d=3 then 
                 dprint "Number of display lines:"
@@ -1053,7 +1260,12 @@ function configuration() as short
                 _transitems=1
             end select
         endif
-    loop until c=21
+        if c=21 then
+            gt_mwx=getnumber(20,60,30)
+            dprint "Will be changed next time you start prospector."
+        endif
+    loop until c=22
+    
     screenshot(2)
     saveconfig(oldtiles)
     return 0
@@ -1067,6 +1279,7 @@ function saveconfig(oldtiles as short) as short
     print #f,""
     print #f,"_tix:"&_tix
     print #f,"_tiy:"&_tiy
+    print #f,"gtmwx:"&gt_mwx
     print #f,"tilefont:"&_FoHi1
     print #f,"textfont:"&_FoHi2
     print #f,"lines:"&_lines
@@ -1121,7 +1334,7 @@ function getfilename() as string
         a=dir()
     wend    
     text=text &"/Exit"
-    c=menu(text,,45,10)
+    c=menu(text,,_mwx-15,10)
     filename=n(c-1)
     return filename    
 end function
@@ -1284,6 +1497,10 @@ function savegame() as short
         put #f,,faction(a)
     next
     
+    for a=0 to 9
+        put #f,,combon(a)
+    next
+    
     put #f,,captainskill
     put #f,,wage
     
@@ -1359,7 +1576,7 @@ function savegame() as short
     next
     
     put #f,,lastdrifting
-    for a=0 to lastdrifting
+    for a=1 to lastdrifting
         put #f,,drifting(a)
         print ".";
     next
@@ -1495,7 +1712,11 @@ function loadgame(filename as string) as short
         for a=0 to 7
             get #f,,faction(a)
         next
-        
+    
+        for a=0 to 9
+            get #f,,combon(a)
+        next        
+
         get #f,,captainskill
         get #f,,wage
         for a=0 to 16
@@ -1573,7 +1794,7 @@ function loadgame(filename as string) as short
         next
             
         get #f,,lastdrifting
-        for a=0 to lastdrifting
+        for a=1 to lastdrifting
             get #f,,drifting(a)
             print ".";
         next

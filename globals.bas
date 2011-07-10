@@ -63,7 +63,7 @@ function setglobals() as short
     talent_desig(29)="Paramedic"
     
     
-    specialplanettext(1,0)="I got some strange sensor readings here sir. cant make any sense of it"
+    specialplanettext(1,0)="I got some strange sensor readings here sir. can't make any sense of it."
     specialplanettext(1,1)="The readings are gone. must have been that temple."
     specialplanettext(2,0)="There is a ruin of an anient city here, but i get no signs of life. Some high energy readings though."
     specialplanettext(2,1)="With the planetary defense systems disabled it is safe to land here."
@@ -76,7 +76,8 @@ function setglobals() as short
     specialplanettext(10,1)="The colony sends us greetings."
     specialplanettext(11,0)="There is a ship here sending a distress signal."
     specialplanettext(11,1)="They are still sending a distress signal"
-    specialplanettext(12,0)="This is a sight you get once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone."
+    specialplanettext(12,0)="I got some very strange sensor readings here sir. can't make any sense of it. They seem to come from a structure at the equator."
+    specialplanettext(12,1)="The readings are gone. must have been that temple."
     specialplanettext(13,0)="There is a modified emergency beacon on this planet. It broadcasts this message: 'Visit Murchesons Ditch, best Entertainment this side of the coal sack nebula'"
     specialplanettext(14,0)="A human settlement dominates this planet. There is a big shipyard too."
     specialplanettext(15,0)="I am getting a high concentration of valuable ore here, but it seems to be underground. i can not pinpoint it."
@@ -198,6 +199,16 @@ function setglobals() as short
     basis(3).c.y=-1
     basis(3).discovered=0
     
+    combon(0).base=10 'Planets Landed on
+    combon(1).base=5 'Aliens scanned
+    combon(2).base=10 'Minerals turned in
+    combon(3).base=5 'Only sells to Smith
+    combon(4).base=5 'Only sells to Erdidani
+    combon(5).base=5 'Only sells to Triax
+    combon(6).base=5 'Only sells to omega
+    combon(7).base=100 'Turns survived
+    combon(8).base=5 'Pirate Ships destroyed
+    
     baseprice(1)=50
     baseprice(2)=100
     baseprice(3)=250
@@ -281,7 +292,7 @@ function setglobals() as short
         shiptypes(17)="alien vessel"
         shiptypes(18)="ancient alien scoutship. It's hull covered in tiny impact craters"
         shiptypes(19)="primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
-        shiptypes(20)="a small space station"
+        shiptypes(20)="small space station"
     else
         color 14,0
         print "ships.csv not found. Can't start game"
@@ -464,5 +475,8 @@ function setglobals() as short
     for a=0 to fix((22*_fh1)/_fh2)
         displaytext(a)=""&a
     next
+    
+    player.desig=""
+    
     return 0
 end function

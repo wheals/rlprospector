@@ -4,7 +4,7 @@
 
 function death_message() as short
     dim as string text
-    dim as short b,a
+    dim as short b,a,wx,tx
     text=""
     
     if not fileexists(player.desig &".bmp") then screenshot(3)
@@ -56,16 +56,18 @@ function death_message() as short
         gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
         #endif
         b=0
-        while len(text)>40
+        tx=_screenx/_fw1-10
+        while len(text)>tx
             a=40
             do 
                 a=a-1
             loop until mid(text,a,1)=" "        
-            draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),left(text,a),,TITLEFONT,custom,@_tcol
+            draw string (5*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),left(text,a),,TITLEFONT,custom,@_tcol
             text=mid(text,a,(len(text)-a+1))
             b=b+1
         wend
-        draw string (_screenx/2-25*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),text,,TITLEFONT,custom,@_tcol
+        draw string (5*_fw1,(_lines*_fh1)/2-(4*_fh1)+b*(_screeny/15)),text,,TITLEFONT,custom,@_tcol
+        
     endif
     
     no_key=""
@@ -115,7 +117,7 @@ end function
 
 
 sub postmortem
-    dim as byte localdebug=1
+    dim as byte localdebug=0
     dim as short a,b,c,f
     dim as short ll,tp,exps,expp
     dim st as string
@@ -161,9 +163,9 @@ sub postmortem
     #endif
     draw string (10,10), st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",,titlefont,custom,@_col
     color 11,0
-    a=cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
-    b=cint((textbox(explorationtext ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
-    c=cint((textbox(listartifacts ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
+    a=1+cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
+    b=1+cint((textbox(explorationtext ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
+    c=1+cint((textbox(listartifacts ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
     if c>b then
         textbox(missiontype,_screenx/(_fw1*2)-15,c+1,30,15)
     else
@@ -403,7 +405,7 @@ function getdeath() as string
         endif
         
         if player.dead=25 then
-            for a=0 to lastdrifting
+            for a=1 to lastdrifting
                 if player.landed.s=drifting(a).m then st=drifting(a).s
             next
             death="Captain got killed by a"&player.killedby &" on a "&shiptypes(st)

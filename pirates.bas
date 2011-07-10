@@ -4,8 +4,13 @@ function meetfleet(f as short)as short
     dim as short aggr,roll,frd,des,dialog,q,a,total,cloak,x,y
     dim question(1,7) as string
     if findbest(25,-1)>0 then cloak=5
+    if fleet(f).ty=10 then 
+        eris_does
+        lastturncalled=player.turn
+        return 0
+    endif
     if player.turn>lastturncalled+2 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
-            
+        if fleet(f).ty=2 or fleet(f).ty=4 then player.lastpirate=player.c    
         question(0,1)="A Merchant Convoy hails us. Attack anyway? (y/n)"
         question(1,1)="A Merchant Concoy. Their Escorts are on intercept course! Stay and fight? (y/n)"
         
@@ -20,7 +25,7 @@ function meetfleet(f as short)as short
         
         question(0,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
         question(1,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
-        if fleet(f).ty>5 then
+        if fleet(f).ty>5 and fleet(f).ty<8 then
             if civ(0).contact=0 then
                 question(0,fleet(f).ty)=civfleetdescription(fleet(f)) &", hailing us."
                 question(1,fleet(f).ty)=civfleetdescription(fleet(f)) &",on an attack vector. Shall we engage?(y/n)"
@@ -157,76 +162,81 @@ function collidefleets() as short
         for b=a to lastfleet
             if b<>a then
                 if distance(fleet(a).c,fleet(b).c)<2 and fleet(a).ty>0 and fleet(b).ty>0 then
-                    c=c+1
-                    if fleet(a).ty<>fleet(b).ty then
-                        roll1=0
-                        roll2=0
-                        if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
-                        if fleet(a).ty<fleet(b).ty then swap fleet(a),fleet(b) 'Higher number on a, gets rid of half of the permutations
-                        if faction(fleet(a).ty).alli<>fleet(b).ty and faction(fleet(b).ty).alli<>fleet(a).ty then
-                            roll1=rnd_range(1,10)+faction(fleet(a).ty).war(fleet(b).ty)
-                            roll2=rnd_range(1,10)+faction(fleet(b).ty).war(fleet(a).ty)
-                            if fleet(a).ty=5 then roll1=100
-                            if fleet(b).ty=5 then roll2=100
-                            if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
-                            if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
-                            if roll1>10 or roll2>10 then factionadd(fleet(a).ty,fleet(b).ty,10)
-                        endif
-                        if show_npcs=3 then dprint roll1 &":"& roll2
-                        if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
-                            if show_npcs=1 then dprint "they battle"
-                            for d=1 to 5
-                                basis(10).inv(d).v=0
-                                basis(10).inv(d).p=0
-                            next
-                            fleet(a)=unload_f(fleet(a),10)'
-                            fleet(b)=unload_f(fleet(b),10)'
-                            if ((fleet(a).ty=1 and fleet(b).ty=2) or (fleet(a).ty=2 and fleet(b).ty=1)) and a>2 and b>2 then 
-                                patrolmod=patrolmod+1
-                                if rnd_range(1,100)<10 and lastdrifting<128 then
-                                    lastdrifting+=1                                    
-                                    lastplanet+=1
-                                    drifting(lastdrifting).x=fleet(a).c.x
-                                    drifting(lastdrifting).y=fleet(a).c.y
-                                    drifting(lastdrifting).s=rnd_range(1,16)
-                                    drifting(lastdrifting).m=lastplanet
-                                    makedrifter(drifting(lastdrifting))
-                                    planets(lastplanet).darkness=0
-                                    planets(lastplanet).depth=1
-                                    planets(lastplanet).atmos=4
-                                    planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
-                                    planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
-                                    planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-                                endif
+                    if fleet(a).ty=10 or fleet(b).ty=10 then
+                        if fleet(a).ty=10 and b>2 then fleet(b).ty=0
+                        if fleet(b).ty=10 and a>2 then fleet(a).ty=0
+                    else
+                        c=c+1
+                        if fleet(a).ty<>fleet(b).ty then
+                            roll1=0
+                            roll2=0
+                            if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
+                            if fleet(a).ty<fleet(b).ty then swap fleet(a),fleet(b) 'Higher number on a, gets rid of half of the permutations
+                            if faction(fleet(a).ty).alli<>fleet(b).ty and faction(fleet(b).ty).alli<>fleet(a).ty then
+                                roll1=rnd_range(1,10)+faction(fleet(a).ty).war(fleet(b).ty)
+                                roll2=rnd_range(1,10)+faction(fleet(b).ty).war(fleet(a).ty)
+                                if fleet(a).ty=5 then roll1=100
+                                if fleet(b).ty=5 then roll2=100
+                                if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
+                                if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
+                                if roll1>10 or roll2>10 then factionadd(fleet(a).ty,fleet(b).ty,10)
                             endif
-                            if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
-
-                            victor=fleetbattle(fleet(a),fleet(b),a,b)
-                            if victor=b then loser=a
-                            if victor=a then loser=b
-                            fleet(victor)=load_f(fleet(victor),10)
-                            for d=1 to 5
-                                basis(10).inv(d).v=0
-                                basis(10).inv(d).p=0
-                            next
-                            if a<3 or b<3 then 'Station attacked
-                                if fleet(loser).mem(1).hull<=0 and loser<3 then
-                                    if player.turn>1000 then
-                                        basis(loser).c.x=-1
-                                        basis(loser).c.y=-1
-                                    else
-                                        fleet(loser).mem(1).hull=120
-                                    endif
-                                else
-                                    if a>3 then
-                                        basis(b).lastattacked=fleet(a).ty
-                                    else
-                                        basis(a).lastattacked=fleet(b).ty
+                            if show_npcs=3 then dprint roll1 &":"& roll2
+                            if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
+                                if show_npcs=1 then dprint "they battle"
+                                for d=1 to 5
+                                    basis(10).inv(d).v=0
+                                    basis(10).inv(d).p=0
+                                next
+                                fleet(a)=unload_f(fleet(a),10)'
+                                fleet(b)=unload_f(fleet(b),10)'
+                                if ((fleet(a).ty=1 and fleet(b).ty=2) or (fleet(a).ty=2 and fleet(b).ty=1)) and a>2 and b>2 then 
+                                    patrolmod=patrolmod+1
+                                    if rnd_range(1,100)<10 and lastdrifting<128 then
+                                        lastdrifting+=1                                    
+                                        lastplanet+=1
+                                        drifting(lastdrifting).x=fleet(a).c.x
+                                        drifting(lastdrifting).y=fleet(a).c.y
+                                        drifting(lastdrifting).s=rnd_range(1,16)
+                                        drifting(lastdrifting).m=lastplanet
+                                        makedrifter(drifting(lastdrifting))
+                                        planets(lastplanet).darkness=0
+                                        planets(lastplanet).depth=1
+                                        planets(lastplanet).atmos=4
+                                        planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
+                                        planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
+                                        planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
                                     endif
                                 endif
+                                if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
+    
+                                victor=fleetbattle(fleet(a),fleet(b),a,b)
+                                if victor=b then loser=a
+                                if victor=a then loser=b
+                                fleet(victor)=load_f(fleet(victor),10)
+                                for d=1 to 5
+                                    basis(10).inv(d).v=0
+                                    basis(10).inv(d).p=0
+                                next
+                                if a<3 or b<3 then 'Station attacked
+                                    if fleet(loser).mem(1).hull<=0 and loser<3 then
+                                        if player.turn>1000 then
+                                            basis(loser).c.x=-1
+                                            basis(loser).c.y=-1
+                                        else
+                                            fleet(loser).mem(1).hull=120
+                                        endif
+                                    else
+                                        if a>3 then
+                                            basis(b).lastattacked=fleet(a).ty
+                                        else
+                                            basis(a).lastattacked=fleet(b).ty
+                                        endif
+                                    endif
+                                endif
+                                fleet(loser).ty=0
+                                
                             endif
-                            fleet(loser).ty=0
-                            
                         endif
                     endif
                 else
@@ -344,10 +354,16 @@ function movefleets() as short
             direction=5
         endif
         fleet(a).c=movepoint(fleet(a).c,direction,,1)
-        
+        if fleet(a).ty=10 then
+            if spacemap(fleet(a).c.x,fleet(a).c.y)<0 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
+            if spacemap(fleet(a).c.x,fleet(a).c.y)>1 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
+            if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
+                eris_finds_apollo
+            endif
+        endif
         'Check if reached target 
         if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
-            if fleet(a).ty>5 then
+            if fleet(a).ty>5 and fleet(a).ty<8 then
                 if civ(fleet(a).ty-6).inte=2 then
                     merctrade(fleet(a))
                 endif
@@ -374,7 +390,7 @@ function movefleets() as short
                     basis(s).lastsightingturn=player.turn
                 endif
             endif
-            if fleet(a).ty>5 then
+            if fleet(a).ty>5 and fleet(a).ty<8 then
                 if distance(fleet(a).c,basis(s).c)<fleet(a).mem(1).sensors then 
                     civ(fleet(a).ty-6).knownstations(s)=1
                     if show_npcs then dprint civ(fleet(a).ty-6).n &"has discovered station "&s+1
@@ -820,6 +836,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     static ti(11) as string
     static ch(11) as short
     static ad(11) as single
+    dim as string prefix
     
     if a=0 then
         if _debug=1 then dprint "ERROR: Making monster 0",14
@@ -827,7 +844,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     enemy.made=a
-    
+    enemy.dhurt="hurt"
+    enemy.dkill="dies"
+        
     ti(0)="avian"
     ti(1)="arachnid"
     ti(2)="insect"
@@ -958,7 +977,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if g=9 or a=24 then enemy.stuff(1)=1
         if g=10 then enemy.move=enemy.move-0.3
         if rnd_range(1,100)<15-enemy.intel*2 then enemy.disease=rnd_range(1,15)
-        enemy.ti_no=g+1001
         enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
             
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
@@ -981,15 +999,42 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         endif
         
         if enemy.weapon>2 then enemy.col=12
-        if enemy.hp>5 then 
+        if enemy.hp>9 then 
             enemy.tile=asc(ucase(chr(enemy.tile)))
             enemy.hpmax=enemy.hpmax+rnd_range(1,2)
             enemy.hp=enemy.hpmax
         else
             enemy.tile=asc(lcase(chr(enemy.tile)))
+            if enemy.ti_no<>0 and enemy.ti_no<1000 then enemy.ti_no+=1
+        endif
+        if enemy.ti_no<1000 and forcearms<>0 then
+            if enemy.ti_no>=930 and enemy.ti_no<942 then enemy.ti_no=942
+            if enemy.ti_no>=917 and enemy.ti_no<929 then enemy.ti_no=929
+            if enemy.ti_no>=904 and enemy.ti_no<916 then enemy.ti_no=916
+            if enemy.ti_no>=891 and enemy.ti_no<903 then enemy.ti_no=903
+            if enemy.ti_no>=879 and enemy.ti_no<890 then enemy.ti_no=890
+            if enemy.ti_no>=864 and enemy.ti_no<878 then enemy.ti_no=878
+            if enemy.ti_no>=852 and enemy.ti_no<864 then enemy.ti_no=864
+            if enemy.ti_no>=839 and enemy.ti_no<851 then enemy.ti_no=851
+            if enemy.ti_no>=826 and enemy.ti_no<838 then enemy.ti_no=838
+            if enemy.ti_no>=813 and enemy.ti_no<825 then enemy.ti_no=825
+            if enemy.ti_no>=800 and enemy.ti_no<812 then enemy.ti_no=812
         endif
         enemy.sdesc=enemy.sdesc
         'enemy.invis=2
+        if enemy.hpmax>20 then prefix="giant"
+        if enemy.hpmax>10 and enemy.hpmax<21 then prefix= "huge"
+        if enemy.hpmax>10 then prefix=""
+        if enemy.weapon>0 then 
+            if prefix="" then
+                prefix=prefix &"vicious"
+            else 
+                prefix=prefix &" ,vicious"
+            endif
+        endif
+        if prefix<>"" then prefix=prefix &" "
+        enemy.sdesc=prefix &enemy.sdesc
+        if enemy.ti_no=0 then enemy.ti_no=g+1001
         
     endif
     
@@ -1032,7 +1077,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             if rnd_range(1,100)<33 then
             enemy.hasoxy=1
             select case planets(map).temp
-                   case is>200
+            case is>200
+                    enemy.ti_no=1051
                     enemy.armor=2
                     enemy.col=12
                     enemy.tile=asc("W")
@@ -1044,6 +1090,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                     enemy.swhat="spits molten rock"
                     enemy.ldesc="A huge worm. It's biochemistry silicon based, wich allows it to live in extremely high heat. It's body is made of rock, and molten sulfur is used as blood."
                    case is<-150
+                    enemy.ti_no=1052
                     enemy.armor=2
                     enemy.col=11
                     enemy.tile=asc("W")
@@ -1054,6 +1101,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                     enemy.ldesc="A huge worm. It's biochemistry is ammonia based, allowing it to survive in very low temperatures. It slithers leaving an ammonia track."
                    
                    case else
+                    enemy.ti_no=1053
                     
                     enemy.armor=2
                     enemy.col=4
@@ -1071,6 +1119,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
                 enemy.biomod=2.2
             endif
             If planets(map).depth>0 then
+                enemy.ti_no=1054
                 enemy.stuff(5)=1
                 enemy.track=4
                 enemy.weapon=5
@@ -1883,6 +1932,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.move=1.8
         enemy.hp=enemy.hpmax
+        enemy.faction=5
     endif
     
     
@@ -1937,7 +1987,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.move=1.8
         enemy.hp=enemy.hpmax
-        enemy.faction=9
+        enemy.faction=5
     endif
 
     if a=32 then
@@ -3026,7 +3076,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.items(0)=9
             enemy.itemch(0)=33
         endif
-        enemy.faction=9
+        enemy.faction=5
     endif
     
     if a=60 then 'Floater
@@ -3090,7 +3140,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=1
         enemy.hasoxy=1            
         enemy.sdesc="cloudshark"
-        enemy.ldesc="A large tube shaped creatures with wide maws and sharp teeth!"
+        enemy.ldesc="A large tube shaped creature with wide maws and sharp teeth!"
         enemy.hp=rnd_range(1,20)+rnd_range(1,20)+10
         enemy.armor=1
         enemy.weapon=1
@@ -3188,6 +3238,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.itemch(0)=33
         endif
         enemy.hp=enemy.hpmax
+        enemy.faction=5
     endif
     
     '66,67,68,69: Tomb critters
@@ -3263,7 +3314,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         next
         enemy.hpmax=enemy.hp
         enemy.cmmod=3
-        enemy.lang=24
+        enemy.lang=26
         enemy.aggr=1
         enemy.armor=2
         enemy.move=.9
@@ -3573,7 +3624,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.lang=-31
     endif
     
-    
     if a=85 then 'Citizen
         enemy.ti_no=1090
         enemy.sdesc="citizen"
@@ -3676,12 +3726,10 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     '88=Station inhabitant
-    
-    if a=89 then
-        
-    endif
+    '89=
     
     if a=90 then
+        enemy.ti_no=1094
         enemy.sdesc="Repair Bot"
         enemy.ldesc="a 30 cm metal sphere. Several arms extrude from it. They end in multipurpose tools. It uses those for movement as well as manipulation."
         enemy.dhurt="damaged"
@@ -3723,7 +3771,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.range=5
         enemy.weapon=10
         if enemy.weapon<0 then enemy.weapon=0
-        enemy.range=4
         if enemy.range<1.5 then enemy.range=1.5
         enemy.hpmax=enemy.hp
         enemy.biomod=0
@@ -3744,6 +3791,208 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.faction=5
     endif
 
+    if a=92 then
+        enemy.ti_no=1095
+        enemy.tile=asc("q")
+        enemy.col=9
+        enemy.sdesc="large squid"
+        enemy.ldesc="A large squid-like creature with a 3m long body, 3 3m long tentacles and 3 shorter tentacles, only about 30cm long. They don't seem to have any eyes, but the short tentacles are covered in fine hair enabling them to sense vibrations."
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.hp=rnd_range(1,5)+5
+        enemy.hpmax=enemy.hp
+        enemy.aggr=0
+        enemy.move=1.1
+        enemy.atcost=.3
+        enemy.weapon=1
+        enemy.range=2
+        enemy.sight=2
+        enemy.faction=9
+        enemy.biomod=1
+        enemy.stuff(1)=1
+        enemy.hasoxy=1
+    endif
+    
+    if a=93 then
+        enemy.ti_no=1096
+        enemy.tile=asc("Q")
+        enemy.col=9
+        enemy.sdesc="Huge squid"
+        enemy.ldesc="A large squid-like creature with a 5m long body, 3 5m long tentacles and 3 shorter tentacles, only about 30cm long. They don't seem to have any eyes, but the short tentacles are covered in fine hair enabling them to sense vibrations. It's body is covered in very thick scales."
+        enemy.hp=rnd_range(1,5)+25
+        enemy.hpmax=enemy.hp
+        enemy.aggr=0
+        enemy.move=1.1
+        enemy.atcost=.3
+        enemy.weapon=1
+        enemy.armor=3
+        enemy.range=2
+        enemy.sight=4
+        enemy.faction=9
+        enemy.biomod=1.5
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.stuff(1)=1
+        enemy.hasoxy=1
+    endif
+    
+    if a=94 then
+        enemy.ti_no=1097
+        enemy.tile=asc("Q")
+        enemy.col=119
+        enemy.sdesc="Giant squid"
+        enemy.ldesc="A large squid-like creature with a 7m long body, 3 7m long tentacles and 3 shorter tentacles, only about 1m long. They don't seem to have any eyes, but the short tentacles are covered in fine hair enabling them to sense vibrations. It's body is covered in very thick scales. The tips of its tentacles are glowing with static electricity."
+        enemy.hp=rnd_range(1,5)+55
+        enemy.hpmax=enemy.hp
+        enemy.aggr=0
+        enemy.move=1.1
+        enemy.atcost=.3
+        enemy.weapon=1
+        enemy.armor=5
+        enemy.range=3.4
+        enemy.sight=5
+        enemy.scol=101
+        enemy.swhat="shoots lightning"
+        enemy.faction=9
+        enemy.biomod=2
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.stuff(1)=1
+        enemy.hasoxy=1
+    endif
+    
+    if a=95 then
+        enemy.ti_no=1098
+        enemy.tile=asc("F")
+        enemy.col=14
+        enemy.sdesc="swarm of fish"
+        enemy.ldesc="A large swarm of different kind of fish, forming some form of symbiotic relationship."
+        enemy.hp=30
+        enemy.hpmax=enemy.hp
+        enemy.faction=10
+        enemy.aggr=2
+        enemy.move=1.3
+        enemy.sight=3
+        enemy.biomod=1
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.stuff(1)=1
+        enemy.hasoxy=1
+    endif
+    
+    if a=96 then
+        enemy.ti_no=1099
+        enemy.tile=asc("~")
+        enemy.col=15
+        enemy.sdesc="dense cloud"
+        enemy.ldesc="This cloud is obviously a lifeform capable of intelligent action. It is actually composed of tiny animals, similiar to a plankton swarm"
+        enemy.hp=5
+        enemy.hpmax=enemy.hp
+        
+        enemy.atcost=.9
+        enemy.weapon=1
+        enemy.armor=0
+        enemy.range=1.4
+        enemy.sight=2
+        enemy.intel=rnd_range(1,8)
+        
+        enemy.faction=10
+        enemy.aggr=1
+        enemy.move=.3
+        enemy.sight=3
+        enemy.biomod=4
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.stuff(2)=1
+    endif
+    
+    
+    if a=97 then
+        enemy.ti_no=1099
+        enemy.tile=asc("~")
+        enemy.col=7
+        enemy.sdesc="huge dense cloud"
+        enemy.ldesc="This cloud is obviously a lifeform capable of intelligent action. It is actually composed of tiny animals, similiar to a plankton swarm"
+        enemy.hp=15+rnd_range(1,10)
+        enemy.hpmax=enemy.hp
+        enemy.intel=rnd_range(1,8)
+        enemy.atcost=.9
+        enemy.weapon=1
+        enemy.armor=0
+        enemy.range=2.4
+        enemy.sight=3
+        
+        enemy.swhat="shoots lightning"
+        enemy.scol=101
+        
+        enemy.faction=10
+        enemy.aggr=1
+        enemy.move=.3
+        enemy.sight=3
+        enemy.biomod=10
+        enemy.dhurt="hurt"
+        enemy.dkill="killed"
+        enemy.stuff(2)=1
+    endif
+    
+    if a=98 then 'Citizen
+        enemy.ti_no=1090
+        enemy.sdesc="prospector"
+        enemy.ldesc="a rich prospector"
+        enemy.lang=35
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.cmmod=7
+        enemy.armor=7
+        enemy.move=0.8
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.range=3.5
+        enemy.allied=2
+        enemy.enemy=1
+        enemy.atcost=rnd_range(6,12)/10
+        enemy.hasoxy=1
+        enemy.tile=Asc("H")
+        enemy.sprite=286
+        enemy.hpmax=7
+        enemy.hp=7
+        enemy.swhat="shoots a disintegrator"
+        enemy.scol=12
+        enemy.stuff(1)=0
+        enemy.col=23
+        enemy.aggr=1
+        enemy.faction=1
+        enemy.items(1)=97
+        enemy.itemch(1)=115
+        enemy.items(2)=98
+        enemy.itemch(2)=115
+        
+    endif
+    
+    if a=99 then 'Citizen
+        enemy.ti_no=1086
+        enemy.faction=1
+        enemy.intel=5 'Should make them not ally with the guards
+        enemy.sdesc="scientist"
+        enemy.ldesc="a busy looking scientist"
+        enemy.lang=36
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.cmmod=7
+        enemy.move=0.8
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.range=1.5
+        enemy.atcost=rnd_range(6,12)/10
+        enemy.hasoxy=1
+        enemy.tile=Asc("H")
+        enemy.sprite=286
+        enemy.hpmax=1
+        enemy.hp=1
+        enemy.stuff(1)=0
+        enemy.col=39
+        enemy.aggr=1
+    endif
     
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
@@ -4440,7 +4689,7 @@ dim as short c,b
         p.ecm=0
         p.desig="Spacestation"
         p.icon="S"
-        p.ti_no=44
+        p.ti_no=46
         p.col=15
         p.weapons(1)=makeweapon(7)
         p.weapons(2)=makeweapon(7)

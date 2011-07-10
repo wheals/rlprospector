@@ -1,4 +1,57 @@
+function pay_bonuses(st as short) as short
+    dim as integer a,tarval,debug,c
+    dim as single factor
+    debug=0
+    for a=0 to 3
+        if reward(a)>0 then c=1
+    next
+    if ano_money>0 then c=1
+    if debug=1 then dprint c &":"& basis(st).company+2
+    combon(2).value+=reward(2)
+    if c=1 then combon(basis(st).company+2).value+=1
+    combon(7).value=player.turn
+    for a=0 to 8
+        if a<3 or a>6 then
+            tarval=combon(a).base*(combon(a).rank+1)^2
+            if debug=1 then dprint tarval &":"& combon(a).value
+            if combon(a).value>=tarval and combon(c).rank<6 then
+                combon(a).rank+=1
+                factor=(combon(a).rank^2/2)*100
+                If a=0 then dprint "For exploring "&combon(a).value &" planets you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                If a=1 then dprint "For recording biodata of "&combon(a).value &" aliens you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                If a=2 then dprint "For delivering "&combon(a).value &"Cr. worth of resources you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                If a=7 then dprint "For continued business over "&combon(a).value &" time units you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                If a=8 then dprint "For destroying "&combon(a).value &" pirate ships you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                combon(a).value=0
+                player.money+=int(combon(a).rank*factor)
+            endif
+        endif
+    next
+    for a=3 to 6
+        tarval=combon(a).base*(combon(a).rank+1)^2
+        if debug=1 then dprint tarval &":"& combon(a).value
+    next
+    
+    if combon(3).value>1 and combon(4).value=0 and combon(5).value=0 and combon(6).value=0 then c=3
+    if combon(3).value=0 and combon(4).value>1 and combon(5).value=0 and combon(6).value=0 then c=4
+    if combon(3).value=0 and combon(4).value=0 and combon(5).value>1 and combon(6).value=0 then c=5
+    if combon(3).value=0 and combon(4).value=0 and combon(5).value=0 and combon(6).value>1 then c=6
+    if c>0 then
+        if c=basis(st).company+2 then
+            tarval=combon(c).base*(combon(c).rank+1)^2
+            if combon(c).value>=tarval and combon(c).rank<6 then
+                 combon(c).rank+=1
+                 factor=(combon(a).rank^2/2)*100
+                 dprint "For exclusively selling to " & companyname(basis(st).company) & " you receive a bonus of "& int(combon(c).rank*100) & "Cr.",15
+                 player.money+=int(combon(c).rank*factor)
+           endif
+        endif
+    endif
 
+    return 0
+end function
+
+    
 function drawroulettetable() as short
     dim as short x,y,z
     dim coltable(36) as short
@@ -69,13 +122,13 @@ function drawroulettetable() as short
     return 0
 end function
 
-function gethullspecs(t as short) as _ship
+function gethullspecs(t as short,file as string) as _ship
     dim as short f,a,b
     dim as string word(11)
     dim as string l
     dim as _ship n
     f=freefile
-    open "data/ships.csv" for input as #f
+    open file for input as #f
     line input #f,l
     for a=1 to t
         line input #f,l
@@ -83,7 +136,7 @@ function gethullspecs(t as short) as _ship
     close #f
     for a=1 to len(l)
         if mid(l,a,1)=";" then
-            b=b+1
+            if b<11 then b+=1
         else
             word(b)=word(b)&mid(l,a,1)
         endif
@@ -104,14 +157,14 @@ function gethullspecs(t as short) as _ship
     return n
 end function
 
-function upgradehull(t as short,byref s as _ship) as short
+function upgradehull(t as short,byref s as _ship,forced as short=0) as short
     dim as short f,flg,a,b,cargobays,weapons,tfrom,tto,m
     dim n as _ship
     dim d as _crewmember
     dim as string ques
     dim as string word(10)
     dim as string text
-    n=gethullspecs(t)
+    n=gethullspecs(t,"data/ships.csv")
     for a=1 to 10
         if s.cargo(a).x>0 then cargobays=cargobays+1
         if s.weapons(a).desig<>"" then weapons=weapons+1
@@ -126,7 +179,10 @@ function upgradehull(t as short,byref s as _ship) as short
     if s.h_maxcrew>n.h_maxcrew then ques=ques &"The new ship will have less space for crewmen. "
     if s.h_maxweaponslot>n.h_maxweaponslot then ques=ques &"The new ship will have fewer weapon turrets. "
     if s.h_maxfuel>n.h_maxfuel then ques=ques &"The new ship will have a lower fuel capacity than your current one."
-    
+    if forced=1 then
+        ques=""
+        flg=-1
+    endif
     if ques<>"" then
         dprint ques,14 
         if askyn("Do you really want to transfer to the new hull?") then 
@@ -139,6 +195,8 @@ function upgradehull(t as short,byref s as _ship) as short
     endif
     if flg=-1 then
         s.ti_no=n.h_no
+        if s.ti_no=18 then s.ti_no=17 'ASCS is one step lower
+        if s.ti_no>18 then s.ti_no=9
         s.h_no=n.h_no
         s.h_desig=n.h_desig
         s.h_sdesc=n.h_sdesc
@@ -208,7 +266,8 @@ function findcompany(c as short) as short
 end function
 
 function company(st as short,byref questroll as short) as short
-    dim as short b,c,q,m,complete
+    dim as short b,c,q,complete
+    dim m as integer
     dim as single a
     dim as string s,k
     dim towed as _ship
@@ -463,7 +522,7 @@ function company(st as short,byref questroll as short) as short
     
     if player.towed<>0 then
         if player.towed>0 then
-            towed=gethullspecs(drifting(player.towed).s)
+            towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
             a=towed.h_price
             if planets(drifting(player.towed).m).genozide<>1 then a=a/2
             a=a/2
@@ -527,7 +586,10 @@ function company(st as short,byref questroll as short) as short
             k=keyin
         endif
     endif
-    if reward(1)>1 then
+    
+    pay_bonuses(st)
+    
+    if reward(1)>0 then
         if _autosell=1 then q=askyn("do you want to sell bio data? (y/n)")
         if q=-1 then
             dprint "you transfer data on alien lifeforms worth "& cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2))) &" credits."
@@ -539,7 +601,7 @@ function company(st as short,byref questroll as short) as short
             k=keyin
         endif
     endif
-    if reward(2)>1 then
+    if reward(2)>0 then
         if _autosell=1 then q=askyn("do you want to sell resources? (y/n)")
         if q=-1 then
             dprint "you transfer resources for "& cint(reward(2)*basis(st).resmod*(1+0.1*crew(1).talents(2))) &" credits."
@@ -549,7 +611,7 @@ function company(st as short,byref questroll as short) as short
             k=keyin
         endif
     endif
-    if reward(3)>1 then
+    if reward(3)>0 then
         if _autosell=1 then q=askyn("do you want to collect your bounty for destroyed pirate ships? (y/n)")
         if q=-1 then
             dprint "You recieve "&cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2))) &" credits as bounty for destroyed pirate ships."
@@ -567,11 +629,16 @@ function company(st as short,byref questroll as short) as short
             ano_money=0
         endif
     endif
-    if reward(4)>1 then
+    if reward(4)>0 then
         if _autosell=1 then q=askyn("do you want to sell your artifacts? (y/n)")
         if q=-1 then
-            dprint basis(st).repname &" pays " &reward(4) &" credits for the alien curiosity"
-            player.money=player.money+reward(4)
+            m=0
+            for a=1 to reward(4) 
+                m+=(rnd_range(1,3)+rnd_range(1,3))*1000
+            next
+            if m<0 then m=2147483647
+            dprint basis(st).repname &" pays " &m &" credits for the alien curiosity"
+            player.money=player.money+m
             reward(4)=0
             no_key=keyin
         endif
@@ -958,19 +1025,23 @@ function checkpassenger(st as short) as short
 end function
 
 
-function refuel() as short
+function refuel(price as short=1) as short
     dim as short c,b
     c=player.money
     if player.money>0 and player.fuel<player.fuelmax+player.fuelpod then
         do
             player.fuel=player.fuel+1
-            player.money=player.money-1
+            player.money=player.money-price
             if player.fuel>player.fuelmax+player.fuelpod then 
                 player.fuel=player.fuelmax+player.fuelpod
-                player.money=player.money+1
+                player.money=player.money+price
             endif
-        loop until player.fuel=player.fuelmax+player.fuelpod or player.money=0
-        for b=0 to 5
+            if player.money<0 then
+                player.fuel-=1
+                player.money+=price
+            endif
+        loop until player.fuel=player.fuelmax+player.fuelpod or player.money<price
+        for b=0 to 10
             if player.weapons(b).desig<>"" then
                 if player.weapons(b).ammomax>0 then
                     if player.money>=player.weapons(b).ammomax-player.weapons(b).ammo then
@@ -1174,10 +1245,11 @@ function sickbay(st as short=0) as short
                 if askyn("Treatment will cost "&price &" Cr. Do you want the treatment to begin?") then
                     if price<=player.money then
                         player.money=player.money-price
-                        for b=1 to 128
+                        for b=0 to 128
                             if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
                                 cured+=1
                                 crew(b).disease=0
+                                crew(b).onship=crew(b).oldonship
                             endif
                         next
                         dprint cured &" crewmembers were cured."
@@ -1216,7 +1288,13 @@ function sickbay(st as short=0) as short
                         screenset 1,1
                         if c<>0 then
                             do
-
+                                if c=1 and b=19 then 'No Loyalty Chip for Captain 
+                                    if c2=0 then 
+                                        c=2
+                                    else
+                                        c=0
+                                    endif
+                                endif
                                 if crew(c).typ<=9 and b>0 and c>0 then
                                     if crew(c).augment(augf(b))<augv(b) then
                                         if player.money>=augp(b) and crew(c).hp>0 then
@@ -1286,63 +1364,63 @@ function shipyard(pir as short=1) as short
     dim as short a,b,c,d,e,last,designshop,ex
     dim as string men,des
     dim s as _ship
-    dim pr(16) as ushort
-    dim ds(16) as string
-    dim st(16) as short
+    dim pr(20) as ushort
+    dim ds(20) as string
+    dim st(20) as short
     men="New Hull/"
     des="Nil/"
     a=1
     'Pir =2 even numbers only = Fighters/troop carriers
     if pir=1 then
         for b=pir to 12
-            s=gethullspecs(b)
+            s=gethullspecs(b,"data/ships.csv")
             st(a)=b
             pr(a)=s.h_price
             ds(a)=s.h_desig
             a+=1
             men=men & s.h_desig & " - " &s.h_price &"Cr./"
-            des=des &makehullbox(b) &"/"
+            des=des &makehullbox(b,"data/ships.csv") &"/"
             last=last+1
         next
     endif
     
     if pir=2 then
         for b=pir to 16 step pir            
-            s=gethullspecs(b)
+            s=gethullspecs(b,"data/ships.csv")
             st(a)=b
             pr(a)=s.h_price
             ds(a)=s.h_desig
             a+=1
             men=men & s.h_desig & " - " &s.h_price &"Cr./"
-            des=des &makehullbox(b) &"/"
+            des=des &makehullbox(b,"data/ships.csv") &"/"
             last=last+1
         next
     endif
     if pir=3 then
         for b=13 to 16
-            s=gethullspecs(b)
+            s=gethullspecs(b,"data/ships.csv")
             st(a)=b
             pr(a)=s.h_price
             ds(a)=s.h_desig
             men=men & s.h_desig & " - " &s.h_price &"Cr./"
-            des=des &makehullbox(b) &"/"
+            des=des &makehullbox(b,"data/ships.csv") &"/"
             a+=1
             last=last+1
         next
     endif
-    for b=20 to 24
-        s=gethullspecs(b)
-        if s.h_desig<>"" then
-
-            st(a)=b
-            pr(a)=s.h_price
-            ds(a)=s.h_desig
-            men=men &s.h_desig &" - "&s.h_price &"Cr./"
-            des=des &makehullbox(b) &"/"
-            last+=1
-            a+=1
-        endif
-    next
+'    for b=20 to 24
+'        s=gethullspecs(b,"data/customs.csv")
+'        if s.h_desig<>"" and a<=20 then
+'
+'            st(a)=b
+'            pr(a)=s.h_price
+'            ds(a)=s.h_desig
+'            men=men &s.h_desig &" - "&s.h_price &"Cr./"
+'            des=des &makehullbox(b) &"/"
+'            last+=1
+'            a+=1
+'        endif
+'    next
     
     if pir=1 or pir=3 then
         men=men & "Design Hull/"
@@ -1357,7 +1435,7 @@ function shipyard(pir as short=1) as short
     do 
         displayship
         c=menu(men,des)
-        if c<last then
+        if c<=last then
             if paystuff(pr(c)) then
                 if st(c)<>player.h_no then
                     if upgradehull(st(c),player)=-1 then
@@ -1372,19 +1450,24 @@ function shipyard(pir as short=1) as short
             endif
             displayship
         endif
-        if c=designshop then ship_design(pir)
+        if c=designshop then custom_ships(pir)
     loop until c=ex or c=-1
     cls
     return 0
 end function
 
 function ship_design(pir as short) as short
-    dim as short ptval,pts,a,b,cur,f,maxweapon
+    dim as short ptval,pts,a,b,cur,f,maxweapon,st
     dim as string component(10),key
     dim price(10) as short
     dim value(10) as short
     dim incr(10) as short
     dim h as _ship
+    if count_lines("data/custom.csv")>20 then 
+        dprint "Too many designs in custom.csv. You need to delete one before you can add new ones"
+        return 0
+    endif
+    
     component(1)="Hull "
     price(1)=150
     incr(1)=1
@@ -1417,6 +1500,7 @@ function ship_design(pir as short) as short
     endif
     if ((pir=3 and a<5) or (pir=1 and a<3)) and a>0 then
         maxweapon=a+2
+        st=a
         if a=1 then ptval=300
         if a=2 then ptval=450
         if a=3 then ptval=600
@@ -1447,7 +1531,7 @@ function ship_design(pir as short) as short
             else
                 color 11,0
             endif
-            draw string(2*_FW2,14*_FH2),space(25),,FONT2,Custom,@_col
+            draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,13*_FH2),"Exit",,FONT2,Custom,@_col
             
             key=keyin(key_north &key_south &"+-"&key_west &key_east)
@@ -1456,8 +1540,9 @@ function ship_design(pir as short) as short
             if cur<1 then cur=9
             if cur>9 then cur=1
             if cur<9 then
+                
                 if key=key_east or key="+" then 
-                    if cur<>7 or value(cur)<maxweapon then
+                    if (cur<>7 or value(cur)<maxweapon) or (cur=5 and value(cur)<11) then
                         if pts>=price(cur)*incr(cur)/10 then
                             pts=pts-price(cur)*incr(cur)/10
                             value(cur)+=incr(cur)
@@ -1473,6 +1558,7 @@ function ship_design(pir as short) as short
             endif
         loop until ptval=0 or key=key_esc or (cur=9 and key=key_enter)
         if askyn("Do you want to keep this ship design?(y/n)") then
+            h.h_no=count_lines("data/customs.csv")+21
             h.h_maxhull=value(1)
             h.h_maxengine=value(3)
             h.h_maxshield=value(2)
@@ -1482,6 +1568,7 @@ function ship_design(pir as short) as short
             h.h_maxweaponslot=value(7)
             h.h_maxfuel=value(8)
             h.h_price=price(0)
+            h.h_desc=""&st
             draw string(2*_FW2,12*_FH2),"Design Name: ",,FONT2,Custom,@_col
             draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             h.h_desig =gettext(2,13,24,"")
@@ -1489,12 +1576,66 @@ function ship_design(pir as short) as short
             draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             h.h_sdesc =gettext(2,13,4,"")
             f=freefile
-            open "data/ships.csv" for append as #f
-            print #f,h.h_desig &";"& h.h_price &";"& h.h_maxhull &";"& h.h_maxshield &";"& h.h_maxengine &";"& h.h_maxsensors &";"& h.h_maxcargo &";"& h.h_maxcrew &";"& h.h_maxweaponslot &";"& h.h_maxfuel &";"& h.h_sdesc &";" & h.h_desig &";"
+            open "data/customs.csv" for append as #f
+            print #f,h.h_desig &";"& h.h_price &";"& h.h_maxhull &";"& h.h_maxshield &";"& h.h_maxengine &";"& h.h_maxsensors &";"& h.h_maxcargo &";"& h.h_maxcrew &";"& h.h_maxweaponslot &";"& h.h_maxfuel &";"& h.h_sdesc &";" & h.h_desc
             close #f
             dprint "Ship design saved"
         endif
     endif
+    cls
+    return 0
+end function
+
+function custom_ships(pir as short) as short
+    dim as string men,des,dummy
+    dim as short i,c,ex,f,nos,a,last,v
+    dim pr(20) as ushort
+    dim ds(20) as string
+    dim st(20) as short
+    dim as _ship s
+    do
+        nos=count_lines("data/customs.csv")-1
+        men="Custom hulls/Build custom hull/delete custom hull/"
+        des="Nil///"
+        a=3
+        last=3
+        if nos>0 then
+            for i=1 to nos
+                s=gethullspecs(i,"data/customs.csv")
+                v=val(s.h_desc)
+                if pir=3 or v<3 then
+                    s.h_desc=s.h_desig
+                    st(a)=s.h_no
+                    pr(a)=s.h_price
+                    ds(a)=s.h_desig
+                    a+=1
+                    men=men & s.h_desig & " - " &s.h_price &"Cr./"
+                    des=des &makehullbox(i,"data/customs.csv") &"/"
+                    last=last+1
+                endif
+            next
+        endif
+        men=men &"Exit"
+        c=menu(men,des)
+        if c=1 then ship_design(pir)
+        if c=2 then delete_custom(pir)
+        if c>2 and c<last then
+            if paystuff(pr(c)) then
+                if st(c)<>player.h_no then
+                    if upgradehull(st(c),player)=-1 then
+                        dprint "you buy a "&ds(c)&" hull"
+                    else
+                        player.money=player.money+pr(c)
+                    endif             
+                else
+                    dprint "You already have that hull."
+                    player.money=player.money+pr(c)
+                endif
+            endif
+            displayship
+        endif
+
+    loop until c=-1 or c=last
     return 0
 end function
 
@@ -1783,8 +1924,9 @@ function pirateupgrade() as short
 end function
 
 function customize_item() as short
-    dim as short a,b,i,price,c
+    dim as short a,b,i,j,price,c,nr
     dim as string t
+    dim as byte debug=0
     do
         cls
         displayship()
@@ -1794,18 +1936,28 @@ function customize_item() as short
         if a=1 then
             i=getitem(,2,,4)
             if i>0 then
-                price=(item(i).v3+1)*(item(i).v3+1)*100
+                nr=count_by_id(item(i).id)
+                if nr>1 then 
+                    dprint "How many?(1-"&nr &")"
+                    nr=getnumber(0,nr,0)
+                endif
+                if debug=1 then dprint ""&nr
+                price=(item(i).v3+1)*(item(i).v3+1)*100*nr
                 if askyn("That will cost "&price &" Cr.(y/n)") then
                     if paystuff(price) then 
-                        item(i).v3+=1
-                        for c=1 to len(item(i).ldesc)
-                            if mid(item(i).ldesc,c,1)<>"|" then
-                                t=t &mid(item(i).ldesc,c,1)
-                            else
-                                exit for
-                            endif
+                        for j=1 to nr
+                            i=lowest_by_id(item(i).id)
+                    
+                            item(i).v3+=1
+                            for c=1 to len(item(i).ldesc)
+                                if mid(item(i).ldesc,c,1)<>"|" then
+                                    t=t &mid(item(i).ldesc,c,1)
+                                else
+                                    exit for
+                                endif
+                            next
+                            item(i).ldesc=t &  "  | | Accuracy: "&item(i).v3 &" | Damage: "&item(i).v1 &" | Range:"&item(i).v2
                         next
-                        item(i).ldesc=t &  "  | | Accuracy: "&item(i).v3 &" | Damage: "&item(i).v1 &" | Range:"&item(i).v2
                     endif
                 endif
             endif
@@ -1813,11 +1965,13 @@ function customize_item() as short
         if a=2 or a=3 then
             i=getitem(,3)
             if i>0 then
+                i=lowest_by_id(item(i).id)
                 if a=2 then price=100
                 if a=3 then price=250
                 if item(i).v2>0 then 
                     dprint "That suit is already camoflaged."
                 else
+                    price=price*nr
                     if askyn("that will cost "&price &" Cr.(y/n)") then
                         if paystuff(price) then
                             if a=2 then 
@@ -2145,7 +2299,7 @@ end function
 function unload_s(s as _ship,st as short) as _ship    
     dim as short a,b,c,d,e,f,t
     
-    for a=1 to 10
+    for a=1 to 25
         if s.cargo(a).x>1 then
             if st<=2 then companystats(basis(st).company).profit+=1
             t=s.cargo(a).x-1 'type of cargo
@@ -2159,7 +2313,7 @@ end function
 
 function load_s(s as _ship, good as short, st as short) as short
     dim as short bay,result,a
-    for a=1 to 10
+    for a=1 to 25
         if s.cargo(a).x=1 and bay=0 then bay=a
     next
     if bay=0 then result=-1
@@ -2227,7 +2381,7 @@ end function
 '    return merc
 'end function
 '
-sub trading(st as short)
+function trading(st as short) as short
     dim a as short
     screenset 1,1
     if st<3 then
@@ -2252,9 +2406,10 @@ sub trading(st as short)
         loop until a=3
     endif
     cls
-end sub
+    return 0
+end function
 
-sub buygoods(st as short) 
+function buygoods(st as short) as short
     dim a as short
     dim c as short
     dim m as short
@@ -2297,9 +2452,10 @@ sub buygoods(st as short)
         endif
     endif
     displayship
-end sub
+    return 0
+end function
 
-sub sellgoods(st as short) 
+function sellgoods(st as short) as short
     dim text as string
     dim a as short
     dim b as short
@@ -2311,7 +2467,7 @@ sub sellgoods(st as short)
         text=cargobay(st)
         b=0
         em=0
-        for a=1 to 10
+        for a=1 to 25
             if player.cargo(a).x>=1 then b=b+1
             if player.cargo(a).x>1 then em=em+1
         next
@@ -2322,7 +2478,7 @@ sub sellgoods(st as short)
         if em>0 then
             c=menu(text,,2,14)
             if c>0 and c<=b then
-                if player.cargo(c).x>1 and player.cargo(c).x<10 then
+                if player.cargo(c).x>1 and player.cargo(c).x<25 then
                     m=getinvbytype(player.cargo(c).x-1) ' wie viele insgesamt
                     if player.cargo(c).x<10 then
                         if st<>10 then dprint "how many tons of "& basis(st).inv(player.cargo(c).x-1).n &" do you want to sell?"
@@ -2346,7 +2502,8 @@ sub sellgoods(st as short)
         endif
     loop until c>b or em=0
     displayship
-end sub
+    return 0
+end function
 
 function displaywares(st as short) as short
     dim a as short
@@ -2359,7 +2516,7 @@ function displaywares(st as short) as short
     draw string (2*_fw1+25*_fw2,2*_fh1+_fh2),"Sell",,font2,custom,@_col
     for a=1 to 8
         color 11,0
-        draw string(2*_fw1+0*_fw2,3*_fh1+a*_fh2),basis(st).inv(a).n,,font2,custom,@_col
+        draw string(2*_fw1+3*_fw2,3*_fh1+a*_fh2),basis(st).inv(a).n,,font2,custom,@_col
         t=""
         if basis(st).inv(a).p<1000 then t=t &" "
         if basis(st).inv(a).p<100 then t=t &" "
@@ -2544,7 +2701,7 @@ function removeinvbytype( t as short, am as short) as short
     dim a as short
     dim b as short
     t=t+1
-    for a=1 to 10
+    for a=1 to 25
         if player.cargo(a).x=t and am>0 then
             player.cargo(a).x=1
             am=am-1
@@ -2553,7 +2710,7 @@ function removeinvbytype( t as short, am as short) as short
     return am
 end function
 
-sub recalcshipsbays()
+function recalcshipsbays() as short
     dim soll as short
     dim haben as short
     dim as short a,b,c
@@ -2575,13 +2732,13 @@ sub recalcshipsbays()
         if player.weapons(a).desig="Fuel Tank" then player.fuelpod=player.fuelpod+50
         if trim(player.weapons(a).desig)="Crew Quarters" then player.crewpod=player.crewpod+10
     next
-    for a=1 to 10
+    for a=1 to 25
         if player.cargo(a).x>0 then haben=haben+1
     next
     if soll>haben then
         dif=soll-haben
         do
-        for a=1 to 10
+        for a=1 to 25
             if player.cargo(a).x=0 and dif>0 then
                 player.cargo(a).x=1
                 dif=dif-1
@@ -2592,7 +2749,7 @@ sub recalcshipsbays()
     if haben>soll then
         dif=haben-soll
         for b=1 to 5
-            for a=1 to 10
+            for a=1 to 25
                 if player.cargo(a).x=b and dif>0 then
                     player.cargo(a).x=0 
                     dif=dif-1
@@ -2617,8 +2774,8 @@ sub recalcshipsbays()
         if player.weapons(a).made=87 then player.addhull=player.addhull+5
     next
     if player.hull>player.h_maxhull+player.addhull then player.hull=player.h_maxhull+player.addhull
-    
-end sub
+    return 0
+end function
 
 function paystuff(price as integer) as integer
     dim r as short
@@ -2858,7 +3015,7 @@ Return min
 End Function
 
 function rerollshops() as short
-    dim as short a,b,i,c,sh,flag,roll
+    dim as short a,b,i,c,sh,flag,roll,spec
     dim it as _items 
     for a=0 to 20
         for b=0 to 21
@@ -2868,14 +3025,23 @@ function rerollshops() as short
     
     for i=0 to 19
         a=0
+        spec=rnd_range(1,4)
         do
             flag=0
             it=makeitem(0)
             if i<=3 then 'Station Shops
-                if a<10 then
+                if a<5 then
                     it=rnd_item(20)
                 else
-                    it=rnd_item(12)
+                    if spec=1 then it=rnd_item(21)
+                    if spec=2 or spec=3 then 
+                        if a<10 then 
+                            it=rnd_item(20)
+                        else
+                            it=rnd_item(12)
+                        endif
+                    endif
+                    if spec=4 then it=rnd_item(23)
                 endif
             endif
             if i=4 then 'Colony I
@@ -3044,7 +3210,7 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
                         if item(a).ty<>26 then
                             price=cint(item(a).price*per)
                         else
-                            price=cint(item(a).v1*50*per)
+                            price=cint(item(a).v1*25*per)
                         endif
                         if _autosell=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "& price &" Cr.?(y/n)")             
                         if b=-1 then    

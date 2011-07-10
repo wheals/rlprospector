@@ -11,118 +11,72 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
     if walking<>0 then sleep 50
     flip
     if _test_disease=1 and allowed<>"" then allowed="#"&allowed
+    if player.dead>0 and allowed<>"" then allowed=allowed &" "
     do 
         control=""
         do        
             If (ScreenEvent(@evkey)) Then
-                control=""
+'                
+'if evkey.ascii=0 and evkey.scancode=23 or evkey.ascii=asc(key_extended) then
+'                    if evkey.type=EVENT_KEY_PRESS or evkey.type=EVENT_KEY_REPEAT THEN
+'                        if evkey.scancode=23 then control="\C"
+'                        if evkey.ascii=asc(key_extended) then control=key_extended
+'                    else
+'                        control=""
+'                    endif
+'                endif
                 Select Case evkey.type
+                    case EVENT_MOUSE_MOVE
+                        mouse.x=evkey.x
+                        mouse.y=evkey.y
+                        mouse.s=1
                     Case EVENT_KEY_PRESS
                         if debug =1 then
                             locate 1,1
                             print evkey.scancode &":"& evkey.ascii
                         endif
-                        if evkey.scancode<>sc_control then
-                            select case evkey.scancode
-                            case sc_down
-                                key = key_south
-                            case sc_up
-                                key = key_north
-                            case sc_left
-                                key = key_west
-                            case sc_right
-                                key = key_east
-                            case sc_home
-                                key = key_nw
-                            case sc_pageup
-                                key = key_ne
-                            case sc_end
-                                key = key_sw
-                            case sc_pagedown
-                                key = key_se
-                            case sc_escape
-                                key=key_esc
-                            case sc_enter
-                                key=key_enter
-                            case sc_pageup
-                                key=key_pageup
-                            case sc_pagedown
-                                key=key_pagedown
-                            'case sc_control
-                            '    control="\C"
-                            case else
-                                key = chr(evkey.ascii)
-                            end select
-                        else
-                            control="\C"
-                            do
-                                sleep 1
-                            loop until ScreenEvent(@evkey)
-                            select case evkey.scancode
-                            case sc_A
-                                key="a"
-                            case sc_b
-                                key="b"
-                            case sc_c
-                                key="c"
-                            case sc_d
-                                key="d"
-                            case sc_e
-                                key="e"
-                            case sc_f
-                                key="f"
-                            case sc_g
-                                key="g"
-                            case sc_h
-                                key="h"
-                            case sc_i
-                                key="i"
-                            case sc_h
-                                key="h"
-                            case sc_j
-                                key="j"
-                            case sc_k
-                                key="k"
-                            case sc_l
-                                key="l"
-                            case sc_m
-                                key="m"
-                            case sc_n
-                                key="n"
-                            case sc_o
-                                key="o"
-                            case sc_p
-                                key="p"
-                            case sc_q
-                                key="q"
-                            case sc_r
-                                key="r"
-                            case sc_s
-                                key="s"
-                            case sc_u
-                                key="u"
-                            case sc_v
-                                key="v"
-                            case sc_w
-                                key="w"
-                            case sc_x
-                                key="x"
-                            case sc_y
-                                key="y"
-                            case sc_z
-                                key="z"
-                            end select
-                            if key="" then control=""
-                        endif
+                        select case evkey.scancode
+                        case sc_down
+                            key = key_south
+                        case sc_up
+                            key = key_north
+                        case sc_left
+                            key = key_west
+                        case sc_right
+                            key = key_east
+                        case sc_home
+                            key = key_nw
+                        case sc_pageup
+                            key = key_ne
+                        case sc_end
+                            key = key_sw
+                        case sc_pagedown
+                            key = key_se
+                        case sc_escape
+                            key=key_esc
+                        case sc_enter
+                            key=key_enter
+                        case sc_pageup
+                            key=key_pageup
+                        case sc_pagedown
+                            key=key_pagedown
+                        'case sc_control
+                        '    control="\C"
+                        case else
+                            if evkey.ascii<=26 then
+                                key="\C"&chr(evkey.ascii+96)
+                            else
+                                if len(chr(evkey.ascii))>0 then key = chr(evkey.ascii)
+                            endif
+                        end select
+                    
                     end select
                 endif            
-                if evkey.type=13 then key=key_quit
+                'if evkey.type=13 then key=key_quit
             sleep 1
-        loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run=1
-        key=control & key
+        loop until key<>"" or walking<>0 or mouse.s=1 or (allowed="" and player.dead<>0) or just_run=1
         if debug=1 then
-            locate 3,1
-            print key
+            dprint mouse.x &":"&mouse.y
         endif
             
         if key<>"" then walking=0 
@@ -167,7 +121,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 return ""
             endif
             if key=key_logbook then
-                logbook
+                logbook(walking)
                 return ""
             endif
 
@@ -180,10 +134,6 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
 
             if key=key_quests then
                 showquests
-                return ""
-            endif
-            if key=key_wormholemap then
-                showwormholemap
                 return ""
             endif
             if key="ü" then dprint faction(0).war(2) &""
@@ -209,9 +159,20 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                     dprint "Autopickup On"                
             end select
             key=""     
-        endif                
+        endif       
+        if key=key_togglehpdisplay then
+            select case _HPdisplay
+                case is =0
+                    _HPdisplay=1
+                    dprint "Hp display now displays icons"
+                case is =1
+                    _HPdisplay=0
+                    dprint "Hp display now displays HPs"
+            end select
+        
+        endif
         if key=key_quit then 
-            if askyn("do you really want to quit? (y/n)") then player.dead=6
+            if askyn("Do you really want to quit? (y/n)") then player.dead=6
         endif
         if key="$" and dbshow_factionstatus=1 then
             
@@ -222,8 +183,6 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 next
                 dprint text
             next
-            
-        
         endif
         if key=key_mfile then
             f=freefile
@@ -311,6 +270,8 @@ function getnumber(a as short,b as short, e as short) as short
     dim d as short
     dim i as short
     dim p as _cords
+    screenset 1,1
+    dprint ""
     if _altnumber=0 then
         p=locEOL
         c=numfromstr((gettext(p.x,p.y,46,"")))
@@ -382,6 +343,23 @@ function keyminus(key as string) as short
     return r
 end function
 
+function getdirection(key as string) as short
+    dim d as short
+    if key=key_south then return 2
+    if key=key_north then return 8
+    if key=key_east then return 6
+    if key=key_west then return 4
+    if key=key_nw then return 7
+    if key=key_ne then return 9
+    if key=key_se then return 3
+    if key=key_sw then return 1
+    if key=key_up then return 8
+    if key=key_dn then return 2
+    if key=key_rt then return 6
+    if key=key_lt then return 4
+    return 0
+end function
+
 function askyn(q as string,col as short=11) as short
     dim a as short
     dim key as string*1
@@ -419,7 +397,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     dim lastspace as short
     dim tlen as short
     dim longest as short
-    
+    dim as short ofx
     text=te
     help=he
     b=len(text)
@@ -463,7 +441,9 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     for a=0 to c
         lines(a)=lines(a)&space(longest-len(lines(a)))
     next
-    hw=58-2-longest
+    hw=_mwx*_fw1-((4+longest)*_fw2)
+    hw=hw/_fw2
+    ofx=x+4+(longest*_fw2/_fw1)
     e=0
     do        
         locate y,x
@@ -472,7 +452,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         
         for a=1 to c
             if loca=a then 
-                if hfl=1 and loca<c then blen=textbox(helps(a),x+longest+2,2,hw,15,1)
+                if hfl=1 and loca<c then blen=textbox(helps(a),ofx,2,hw,15,1)
                 color 15,5
             else
                 color 11,0
@@ -485,7 +465,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if hfl=1 then 
             for a=1 to blen
                 color 0,0
-                draw string((longest+x+2)*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
+                draw string(ofx*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
             next
         endif
         if getdirection(key)=8 then loca=loca-1

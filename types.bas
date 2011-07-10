@@ -5,7 +5,7 @@
 using FB
 randomize timer
 
-const __VERSION__="0.1.16"
+const __VERSION__="0.2.2a"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -62,9 +62,10 @@ const lastflag=20
 const sm_x=75
 const sm_y=35
 const max_maps=2047
-const _clearmap=1
+const _clearmap=0
+const _testspacecombat=0
 const add_tile_each_map=0
-dim shared as byte _tix=16
+dim shared as byte _tix=24
 dim shared as byte _tiy=24
 dim shared _debugflag(1) as byte
 
@@ -78,13 +79,14 @@ dim shared as ushort _screeny=0
 dim shared as byte _teamcolor=15
 dim shared as byte _shipcolor=14
 dim shared as byte _chosebest=1
-dim shared as byte _showspacemap=0
+dim shared as byte _showspacemap=1
 dim shared as byte _sound=1
 dim shared as byte _diagonals=1
 dim shared as byte _savescreenshots=1
 dim shared as byte _startrandom=0
 dim shared as byte _autosave=1
 dim shared as byte _autopickup=1
+dim shared as byte _hpdisplay=1
 dim shared as byte _autosell=0
 dim shared as byte _minsafe=1
 dim shared as byte _anykeyno=1
@@ -102,7 +104,10 @@ dim shared as byte _onbar=1
 dim shared as byte _altnumber=1
 dim shared as byte _customfonts=1 
 dim shared as byte _transitems=0
-
+dim shared as byte _narrowscreen=0
+dim shared as byte _mwx=30
+dim shared as byte gt_mwx=30
+dim shared as byte _showrolls=0
 dim shared as byte captainskill=-5
 dim shared as byte wage=10
 
@@ -125,7 +130,6 @@ dim shared as string*3 key_tow="t"
 dim shared as string*3 key_la="l"
 dim shared as string*3 key_tala="k"
 dim shared as string*3 key_sc="s"
-dim shared as string*3 key_do="d"
 dim shared as string*3 key_save="s"
 dim shared as string*3 key_quit="q"
 dim shared as string*3 key_D="D"
@@ -170,6 +174,7 @@ dim shared as string*3 key_wait="5"
 dim shared as string*3 key_layfire="0"
 dim shared as string*3 key_portal="<"
 dim shared as string*3 key_logbook="L"
+dim shared as string*3 key_togglehpdisplay="#h"
 dim shared as string*3 key_yes="y"
 dim shared as string*3 key_wormholemap="W"
 dim shared as string*3 key_togglemanjets="M"
@@ -179,9 +184,8 @@ dim shared as string*3 key_pagedown="ö"
 dim shared as string*3 no_key
 dim shared as string*3 key_mfile="ä"
 dim shared as string*3 key_filter="f"
+dim shared as string*3 key_extended="#"
 dim shared uid as uinteger
-
-
 
 type _cords
     s as short '
@@ -209,6 +213,7 @@ type _driftingship
     m as short
     x as short
     y as short
+    g_tile as _cords
     start as _cords
 end type
 
@@ -310,6 +315,7 @@ type _ship
     map as short
     osx as short
     osy as short
+    lastpirate as _cords
     landed as _cords
     turn as integer
     money as integer
@@ -358,7 +364,7 @@ type _ship
     target as _cords
     ECM as byte
     stuff(5) as single
-    cargo(10) as _cords
+    cargo(25) as _cords
     piratekills as uinteger
     tradingmoney as integer
     lastvisit as _visit
@@ -379,6 +385,7 @@ end type
 type _monster
     made as ubyte
     slot as byte
+    no as ubyte
     hpmax as single
     hp as single
     hpreg as single
@@ -406,7 +413,8 @@ type _monster
     faction as short
     allied as short
     enemy as short
-    aggr as byte#
+    aggr as byte
+    killedby as byte
     
     desc as string*127
     sdesc as string*64
@@ -473,6 +481,7 @@ type _planet
     grav as single
     temp as single
     life as short
+    highestlife as single
     minerals as short
     weat as single
     depth as single
@@ -683,12 +692,31 @@ type _company
     shares as short
 end type
 
+type _company_bonus
+    base as uinteger
+    value as uinteger
+    rank as uinteger
+end type
+
 type _shipfire
     what as short
     when as short
     where as _cords
     tile as string*1
     stun as byte
+end type
+
+type _dialogoption
+    no as ushort
+    answer as string
+end type
+
+type _dialognode
+    no as ushort
+    statement as string
+    effekt as string
+    param(5) as short
+    option(16) as _dialogoption
 end type
 
 type _civilisation
@@ -859,6 +887,10 @@ End Property
 '7 mapsincredits
 '8 Pirate outpost
 
+dim shared mouse as _cords
+dim shared apwaypoints(1024) as _cords
+dim shared lastapwp as short
+dim shared currapwp as short
 
 dim shared talent_desig(29) as string
 dim shared evkey as EVENT
@@ -900,13 +932,13 @@ for a=0 to max_maps
 next
 dim shared item(25000) as _items
 dim shared lastitem as integer
-dim shared _last_title_pic as byte=10
+dim shared _last_title_pic as byte=11
 dim shared shopitem(20,23) as _items
 dim shared makew(20,5) as byte
 
 dim shared tiles(512) as _tile
 dim shared gtiles(2048) as any ptr
-dim shared stiles(9,34) as any ptr
+dim shared stiles(9,64) as any ptr
 dim shared gt_no(4096) as integer
 dim shared scr as any ptr
 
@@ -972,6 +1004,8 @@ dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
 
 dim shared endstory as string
 
+dim shared combon(9) as _company_bonus
+
 ' SUB DECLARATION
 
 ' prospector .bas
@@ -992,9 +1026,16 @@ declare function launch_probe() as short
 declare function move_probes() as short
 declare function retirement() as short
 
+
+declare function show_dotmap(x1 as short, y1 as short) as short
+declare function show_minimap(xx as short,yy as short) as short
+declare function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as _Cords ,last as short) as short
+
+declare function calcosx(x as short) as short
+
 declare function ep_portal(awayteam as _monster,byref walking as short) as _cords
 declare function ep_pickupitem(key as string, awayteam as _monster,byref lastlocalitem as short,li() as short) as short
-declare function ep_shipfire(shipfire() as _shipfire,vismask() as byte, enemy() as _monster,byref lastenemy as short, byref awayteam as _monster) as short
+declare function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monster,byref lastenemy as short, byref awayteam as _monster) as short
 declare function ep_checkmove(byref awayteam as _monster,byref old as _cords,key as string,byref walking as short) as short
 declare function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() as short,enemy() as _monster,lastenemy as short,lastlocalitem as short, byref walking as short) as short
 declare function ep_helmet(awayteam as _monster) as short
@@ -1044,6 +1085,8 @@ declare function clear_gamestate() as short
 declare function planetflags_toship(m as short) as _ship
 
 ' fileIO.bas
+declare function count_lines(file as string) as short
+declare function delete_custom(pir as short) as short
 declare function loadkey(byval t as string) as string
 declare function checkfilestructure() as short
 declare function loadsounds() as short
@@ -1058,6 +1101,7 @@ declare function configuration() as short
 declare function loadmap(m as short,slot as short) as short
 declare function texttofile(text as string) as string
 declare function loadkeyset() as short
+declare function load_dialog(fn as string, n() as _dialognode) as short
 
 ' prosIO.bas
 declare function draw_border(xoffset as short) as short
@@ -1070,14 +1114,14 @@ declare function removemember(n as short, f as short) as short
 declare function changemoral(value as short, where as short) as short
 declare function isgardenworld(m as short) as short
 
-declare function showwormholemap() as short
+declare function show_wormholemap(j as short=0) as short
 
 declare function keybindings() as short
 
 declare sub shipstatus(heading as short=0)
 declare sub show_stars(bg as short=0,byref walking as short)
 declare sub displaystar(a as short)
-declare sub displayplanetmap(a as short)
+declare function displayplanetmap(a as short,xos as short) as short
 declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
 declare function display_ship_weapons(m as short=0) as short
@@ -1094,7 +1138,8 @@ declare function infect(a as short, dis as short) as short
 declare function diseaserun(a as short) as short
 declare function settactics() as short
 declare function makevismask(vismask()as byte,byval a as _monster,m as short) as short
-declare function vistest(a as _monster,m as short,mx as short,my as short,x as short,y as short, vismask() as byte) as short
+declare function vis_test(a as _cords,p as _cords,test as short) as short
+
 declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship) as _ship
 declare function maxsecurity() as short
@@ -1106,8 +1151,8 @@ declare function damawayteam(byref a as _monster,dam as short,ap as short=0,dis 
 declare function dplanet(p as _planet,orbit as short, scanned as short) as short
 declare function dprint(text as string, col as short=11) as short
 declare function scrollup(b as short) as short
-declare function blink(byval p as _cords) as short
-declare function cursor(target as _cords,map as short) as string
+declare function blink(byval p as _cords, osx as short) as short
+declare function cursor(target as _cords,map as short, osx as short) as string
 declare function menu(text as string,help as string="", x as short=2, y as short=2,blocked as short=0,markesc as short=0) as short
 declare function move_ship(key as string,byref walking as short) as _ship
 
@@ -1116,6 +1161,7 @@ declare function getsystem(player as _ship) as short
 declare function getrandomsystem(unique as short=1) as short
 declare function getrandomplanet(s as short) as short
 declare function sysfrommap(a as short)as short
+declare function orbitfrommap(a as short) as short
 
 declare function askyn(q as string,col as short=11) as short
 declare function randomname() as string
@@ -1139,10 +1185,10 @@ declare function loadgame(filename as string) as short
 declare function copytile (byval a as short) as _tile
 declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr     
 declare function load_tiles() as short
-declare function makealienship(slot as short, t as short) as short
+declare function make_alienship(slot as short, t as short) as short
 declare function makecivfleet(slot as short) as _fleet
 declare function civfleetdescription(f as _fleet) as string
-
+declare function string_towords(word() as string, s as string, break as string, punct as short=0) as short
 declare function com_display(defender as _ship, attacker() as _ship, lastenemy as short, marked as short, senac as short,e_track_p() as _cords,e_track_v()as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_gettarget(defender as _ship, wn as short, attacker() as _ship,lastenemy as short,senac as short,marked as short,e_track_p() as _cords,e_track_v() as short,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
 declare function com_getweapon() as short
@@ -1164,14 +1210,15 @@ declare function com_shipbox(s as _ship, di as short) as string
 declare function chr850(c as short) as string
 declare function keyin(allowed as string ="", byref walking as short=0,blocked as short=0)as string
 declare function screenshot(a as short) as short
-declare function logbook() as short
+declare function logbook(byref walking as short) as short
+declare function auto_pilot(start as _cords, ende as _cords, diff as short,byref walking as short) as short
 declare function bioreport(slot as short) as short
 declare function messages() as short
 declare function storescreen(as short) as short
 declare function alienname(flag as short) as string
 declare function communicate(awayteam as _monster, e as _monster, mapslot as short,li() as short,lastlocalitem as short,monslot as short) as short
 declare function artifact(c as short,awayteam as _monster) as short
-declare function getshipweapon() as short
+'declare function getshipweapon() as short
 declare function getmonster(enemy() as _monster, byref lastenemy as short) as short
 declare function findartifact(awayteam as _monster,v5 as short) as short
     
@@ -1180,9 +1227,19 @@ declare function earthquake(t as _tile,dam as short)as _tile
 declare function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
 declare function numfromstr(t as string) as short
 
-'planets
+'Star Map generation
 declare function make_spacemap() as short
-declare sub make_clouds()
+declare function make_clouds() as short
+declare function add_drifters() as short
+declare function add_special_planets() as short
+declare function add_easy_planets(start as _cords) as short
+declare function add_stars() as short
+declare function add_wormholes() as short
+declare function add_event_planets() as short
+declare function add_caves() as short
+declare function add_piratebase() as short
+declare function distribute_stars() as short
+
 declare sub makefinalmap(m as short)
 declare sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
 declare sub makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
@@ -1198,9 +1255,10 @@ declare sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as
 declare sub togglingfilter(slot as short, high as short=1, low as short=2)  
 declare function makespecialplanet(a as short) as short
 declare function makedrifter(d as _driftingship,bg as short=0,broken as short=0) as short
-declare function makecivilisation(slot as short, m as short) as short
+declare function make_civilisation(slot as short, m as short) as short
 declare function makeice(a as short, o as short) as short
 declare sub makecanyons(a as short, o as short)
+declare function makegeyseroasis(slot as short) as short
 declare sub makecraters(a as short, o as short)
 declare sub makemossworld(a as short,o as short)
 declare sub makeislands(a as short, o as short)
@@ -1216,6 +1274,7 @@ declare function addcastle(dest as _cords,slot as short) as short
 
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
 declare sub planet_event(slot as short)
+declare function station_event(m as short) as short
 declare function makewhplanet() as short
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
 declare function makesettlement(p as _cords,slot as short, typ as short) as short
@@ -1236,8 +1295,9 @@ declare function checkbord(x as short,y as short, map() as short) as short
 declare function playerfightfleet(f as short) as short
 declare function is_drifter(m as short) as short
 declare function is_special(m as short) as short
-declare function get_nonspecialplanet() as short
+declare function get_nonspecialplanet(disc as short=0) as short
 declare function gen_traderoutes() as short
+declare function clean_station_event() as short
 
 'pirates
 
@@ -1267,7 +1327,7 @@ declare function getship(f as _fleet) as short
 declare function makequestfleet(a as short) as _fleet
 declare function makealienfleet() as _fleet
 declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
-declare function makealiencolony(slot as short,map as short, popu as short) as short
+declare function make_aliencolony(slot as short,map as short, popu as short) as short
 
 
 
@@ -1283,6 +1343,7 @@ declare function score() as integer
 declare function getdeath() as string
 
 'cargotrade
+declare function pay_bonuses(st as short) as short
 declare function checkpassenger(st as short) as short
 declare function pirateupgrade() as short
 declare function customize_item() as short 
@@ -1301,12 +1362,13 @@ declare function hiring(st as short, byref hiringpool as short, hp as short) as 
 declare function shipupgrades(st as short) as short
 declare function shipyard(pir as short=1) as short
 declare function ship_design(pir as short) as short
+declare function custom_ships(pir as short) as short
 declare function repairhull() as short
-declare function refuel() as short
+declare function refuel(price as short=1) as short
 declare function casino(staked as short=0, st as short=0) as short
-declare function upgradehull(t as short,byref s as _ship) as short
-declare function gethullspecs(t as short) as _ship
-declare function makehullbox(t as short) as string
+declare function upgradehull(t as short,byref s as _ship, forced as short=0) as short
+declare function gethullspecs(t as short,file as string) as _ship
+declare function makehullbox(t as short, file as string) as string
 declare function company(st as short,byref questroll as short) as short
 declare function merctrade(byref f as _fleet) as short
 
@@ -1314,10 +1376,10 @@ declare function unload_f(f as _fleet, st as short) as _fleet
 declare function unload_s(s as _ship, st as short) as _ship
 declare function load_f(f as _fleet, st as short) as _fleet
 declare function load_s(s as _ship,goods as short, st as short) as short
-declare sub trading(st as short) 
-declare sub buygoods(st as short)
-declare sub sellgoods(st as short)
-declare sub recalcshipsbays()
+declare function trading(st as short) as short
+declare function buygoods(st as short) as short
+declare function sellgoods(st as short) as short
+declare function recalcshipsbays() as short
 declare function stockmarket(st as short) as short
 declare function displaywares(st as short) as short
 declare function changeprices(st as short,etime as short) as short
@@ -1336,6 +1398,7 @@ declare function checkitemfilter(t as short,f as short) as short
 declare function itemfilter() as short
 declare function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
 declare function removeequip() as short
+declare function lowest_by_id(id as short) as short
 declare function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
 declare function modify_item(i as _items) as _items
@@ -1348,7 +1411,7 @@ declare function textbox(text as string,x as short,y as short,w as short, fg as 
 declare function destroyitem(b as short) as short
 declare function destroy_all_items_at(ty as short, wh as short) as short
 declare function calc_resrev() as short
-
+declare function count_by_id(id as short) as short
 declare function findworst(t as short,p as short=0, m as short=0) as short
 declare function rnd_item(t as short) as _items
 declare function getrnditem(fr as short,ty as short) as short
@@ -1372,10 +1435,10 @@ declare function content(r as _rect,tile as short,map()as short) as integer
 declare function distance(first as _cords, last as _cords) as single
 declare Function rnd_range (first As short, last As short) As short
 declare function movepoint(byval c as _cords, a as short, eo as short=0,showstats as short=0) as _cords
-declare function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=0) as short
+declare function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=100,rollover as byte=0) as short
 declare function line_in_points(b as _cords,c as _cords,p() as _cords) as short
 
-declare function nearest(c as _cords,b as _cords) as single
+declare function nearest(byval c as _cords, byval b as _cords,rollover as byte=0) as single
 declare function farthest(c as _cords,b as _cords) as single
 declare function distributepoints(result() as _cords, ps() as _cords, last as short) as single
 declare function getany(possible() as short)as short
@@ -1388,18 +1451,27 @@ declare function add_p(queue() as _pfcords,p as _pfcords) as short
 declare function check(queue() as _pfcords, p as _pfcords) as short
 declare function nearlowest(p as _pfcords,queue() as _pfcords) as _pfcords
 declare function gen_waypoints(queue() as _pfcords,start as _pfcords,goal as _pfcords,map() as byte) as short
-
+declare function space_radio() as short
 'quest
-declare function dodialog(no as short) as short
+
+declare function find_passage_quest(m as short, start as _cords, goal as _cords) as short
+declare function Find_Passage(m as short, start as _cords, goal as _cords) as short
+declare function adapt_nodetext(t as string, e as _monster,fl as short) as string
+declare function dodialog(no as short,e as _monster, fl as short) as short
+declare function node_menu(no as short,node() as _dialognode, e as _monster, fl as short) as short
+declare function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short) as short
 declare function plantname(ti as _tile) as string
 declare function randomcritterdescription(enemy as _monster, spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
 declare function givequest(st as short, byref questroll as short) as short
 declare function checkquestcargo(player as _ship, st as short) as _ship
 declare function getunusedplanet() as short
 declare function dirdesc(start as _cords,goal as _cords) as string
-declare function rndsentence(aggr as short, intel as short) as string
+declare function rndsentence(e as _monster) as short
 declare function showquests() as short
 declare function planetbounty() as short
+declare function eris_does() as short
+declare function eris_doesnt_like_your_ship() as short
+declare function eris_finds_apollo() as short
 
 declare function low_morale_message() as short
 declare function es_part1() as string

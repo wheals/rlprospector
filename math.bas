@@ -18,10 +18,25 @@ function sub0(a as single,b as single) as single
     return c
 end function
 
+function calcosx(x as short) as short 'Caculates Ofset X for windows less than 60 tiles wide
+    dim osx as short
+    if _mwx=60 then return 0
+    osx=x-_mwx/2
+    if osx<0 then osx=0
+    if osx>=60-_mwx then osx=60-_mwx
+    if _mwx=60 then osx=0
+    return osx
+end function
+
 function fixstarmap() as short
     dim p(2048) as short
     dim sp(lastspecial) as short
-    dim as short a,b,c,fixed,fsp,pis,newfix,cc
+    dim as string l
+    dim as short a,b,c,fixed,fsp,pis,newfix,cc,spfix, debug,f
+    debug=1
+    if debug=1 then
+    endif
+        
     do
         cc+=1
         newfix=0
@@ -45,6 +60,7 @@ function fixstarmap() as short
                         lastplanet=lastplanet+1
                         fixed=fixed+1
                         map(a).planets(b)=lastplanet
+                        p(lastplanet)+=1
                     endif
                     for c=0 to lastspecial
                         if specialplanet(c)=map(a).planets(b) and specialplanet(c)>0 then sp(c)=sp(c)+1
@@ -55,6 +71,7 @@ function fixstarmap() as short
                 fixed+=1
                 newfix+=1
                 lastplanet+=1
+                p(lastplanet)+=1
                 map(a).planets(1)=lastplanet
             endif
         next
@@ -64,19 +81,31 @@ function fixstarmap() as short
             fsp=fsp+1
         endif
     next
+    for c=0 to lastspecial
+        if specialplanet(c)>0 and specialplanet(c)<max_maps then
+            if planetmap(0,0,specialplanet(c))<>0 then spfix+=1
+            planetmap(0,0,specialplanet(c))=0
+        endif
+    next
     if fsp>1 then 
         color 14,0
         print fsp &"specials missing. ";
     endif
+    if spfix>0 then
+        color 14,0
+        print spfix &" specials fixed"
+    endif
+    for a=0 to laststar
+        map(a).ti_no=map(a).spec+68
+    next
     if fixed>0 then
         color 14,0
         print fixed &" fixed in "&cc &" loops."
-        color 14,0
     else
         color 10,0
         print "All Ok"
-        color 14,0
     endif
+    color 7,0
     return 0
 end function
 
@@ -100,6 +129,9 @@ function disnbase(c as _cords) as single
     r=65
     for a=0 to 2
         if distance(c,basis(a).c)<r then r=distance(c,basis(a).c)
+    next
+    for a=1 to 3
+        if distance(c,fleet(a).c)*2<r then r=distance(c,fleet(a).c)*2
     next
     return r
 end function
@@ -316,6 +348,12 @@ function movepoint(byval c as _cords, a as short, eo as short=0, border as short
         if c.x<0 or c.x>x then c=p
         if c.y<0 or c.y>y then c=p
     endif
+    if eo=3 then
+        if c.y<0 then c.y=0
+        if c.y>y then c.y=y
+        if c.x<0 then c.x=x
+        if c.x>x then c.x=0
+    endif
     return c
 end function
 
@@ -323,7 +361,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
     dim as short illu
     dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
     dim as byte mask
-    dim as _cords p
+    dim as _cords p,pts(128)
     x1=a.c.x
     y1=a.c.y
     if m>0 then
@@ -347,127 +385,134 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             vismask(x,y)=-1
         next
     next
-    for x=a.c.x-12 to a.c.x+12 step 1
-        for y=a.c.y-12 to a.c.y+12 step 1
-            if y>=0 and x>=0 and y<=my and x<=mx then
-                if vismask(x,y)=-1 then
-                    mask=1
-                    p.x=x
-                    p.y=y
-                    x2=x
-                    y2=y
-                    x1=a.c.x
-                    y1=a.c.y
-                    if distance(p,a.c)<=a.sight then
-                        d=abs(x1-x2)
-                        if abs(y1-y2)>d then d=abs(y1-y2)
-                        for i=0 to d*2
-                            p.x=x1
-                            p.y=y1
-                            if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
-                                if m>0 then
-                                    if tmap(x1,y1).seetru>0 or (tmap(x1,y1).seetru>0 and tmap(x1,y1).dr>grr) then mask=0
-                                else
-                                    If abs(spacemap(x1,y1))>1 Then mask=0
-                                endif
+    for x=a.c.x-12 to a.c.x+12 
+        for y=a.c.y-12 to a.c.y+12 
+            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 then
+                mask=1
+                p.x=x
+                p.y=y
+                d=line_in_points(p,a.c,pts())
+                for i=1 to d
+                    if distance(a.c,pts(i))<=a.sight then
+                        if m>0 then
+                            if pts(i).x>60 then pts(i).x-=61
+                            if pts(i).x<0 then pts(i).x+=61
+                            if pts(i).y>=0 and pts(i).y<=20 then
+                                vismask(pts(i).x,pts(i).y)=mask
+                                if tmap(pts(i).x,pts(i).y).seetru>0 or (tmap(pts(i).x,pts(i).y).seetru>0 and tmap(pts(i).x,pts(i).y).dr>grr) then mask=0    
                             endif
-                            x1=x1+(x2-x1)*i/(d*2)
-                            y1=y1+(y2-y1)*i/(d*2)
-                        next
-                        vismask(x,y)=mask
+                        else
+                            if pts(i).x>=0 and pts(i).x<=mx and pts(i).y>=0 and pts(i).y<=my then
+                                vismask(pts(i).x,pts(i).y)=mask
+                                if spacemap(pts(i).x,pts(i).y)>1 then mask=0
+                            endif
+                        endif
                     endif
-                endif
+                next
+                
             endif
-        next
-    next
-
-    for x2=a.c.x-1 to a.c.x+1
-        for y2=a.c.y-1 to a.c.y+1
-            if x2>=0 and y2>=0 and x2<=mx and y2<=my then vismask(x2,y2)=1
-        next
-    next
-    
-    for x=0 to a.c.x
-        for y=0 to a.c.y
-            vistest(a,m,mx,my,x,y,vismask())
-        next
-    next
-    
-    
-    for x=mx to a.c.x step -1
-        for y=0 to a.c.y
-            vistest(a,m,mx,my,x,y,vismask())
-        next
-    next
-    
-    for x=0 to a.c.x 
-        for y=my to a.c.y step -1
-            vistest(a,m,mx,my,x,y,vismask())
-        next
-    next
-    
-    for x=mx to a.c.x step -1
-        for y=my to a.c.y step -1
-            vistest(a,m,mx,my,x,y,vismask())
         next
     next
             
-    flood_fill2(a.c.x,a.c.y,mx,my,vismask())
-    for x=0 to mx
-        for y=0 to my
-            if vismask(x,y)=1 then vismask(x,y)=0
-            if vismask(x,y)=2 then vismask(x,y)=1
-        next
-    next
+'            if (y>=0 and x>=0 and y<=my and x<=mx) or m>0 then
+'                p.x=x
+'                p.y=y
+'                if p.x<0 then p.x=60-x
+'                if p.x>60 then p.x=x-60
+'                if vismask(p.x,p.y)=-1 then
+'                    mask=1
+'                    x2=x
+'                    y2=y
+'                    x1=a.c.x
+'                    y1=a.c.y
+'                    if distance(p,a.c)<=a.sight then
+'                        d=abs(x1-x2)
+'                        if abs(y1-y2)>d then d=abs(y1-y2)
+'                        for i=0 to d*2
+'                            p.x=x1
+'                            p.y=y1
+'                            if x1>=0 and x1<=mx and y1>=0 and y1<=my and (x1<>a.c.x or y1<>a.c.y) then
+'                                if m>0 then
+'                                    if tmap(x1,y1).seetru>0 or (tmap(x1,y1).seetru>0 and tmap(x1,y1).dr>grr) then mask=0
+'                                else
+'                                    If abs(spacemap(x1,y1))>1 Then mask=0
+'                                endif
+'                            endif
+'                            x1=x1+(x2-x1)*i/(d*2)
+'                            y1=y1+(y2-y1)*i/(d*2)
+'                        next
+'                        vismask(x,y)=mask
+'                    endif
+'                endif
+'            endif
+'        next
+'    next
+'
+'    for x2=a.c.x-1 to a.c.x+1
+'        for y2=a.c.y-1 to a.c.y+1
+'            if x2>=0 and y2>=0 and x2<=mx and y2<=my then vismask(x2,y2)=1
+'        next
+'    next
+'    
+'    for x=0 to a.c.x
+'        for y=0 to a.c.y
+'            vistest(a,m,mx,my,x,y,vismask())
+'        next
+'    next
+'    
+'    
+'    for x=mx to a.c.x step -1
+'        for y=0 to a.c.y
+'            vistest(a,m,mx,my,x,y,vismask())
+'        next
+'    next
+'    
+'    for x=0 to a.c.x 
+'        for y=my to a.c.y step -1
+'            vistest(a,m,mx,my,x,y,vismask())
+'        next
+'    next
+'    
+'    for x=mx to a.c.x step -1
+'        for y=my to a.c.y step -1
+'            vistest(a,m,mx,my,x,y,vismask())
+'        next
+'    next
+'            
+'    flood_fill2(a.c.x,a.c.y,mx,my,vismask())
+'    for x=0 to mx
+'        for y=0 to my
+'            if vismask(x,y)=1 then vismask(x,y)=0
+'            if vismask(x,y)=2 then vismask(x,y)=1
+'        next
+'    next
     return 0
 end function
 
-function vistest(a as _monster,m as short,mx as short,my as short,x as short,y as short, vismask() as byte) as short
-    dim p as _cords
-    if vismask(x,y)=-1 then vismask(x,y)=0
-    if vismask(x,y)=1 then
-        if m>0 then
-            if tmap(x,y).seetru=0 then
-                if x>0 then
-                    p.x=x-1
-                    p.y=y
-                    if vismask(x-1,y)=0 and a.c.x>x and distance(a.c,p)<=a.sight then vismask(x-1,y)=1
-                endif
-                if x<mx then
-                    p.x=x+1
-                    p.y=y
-                    if vismask(x+1,y)=0 and a.c.x<x and distance(a.c,p)<=a.sight then vismask(x+1,y)=1
-                endif
-                if y>0 then
-                    p.x=x
-                    p.y=y-1
-                    if vismask(x,y-1)=0 and a.c.y>y and distance(a.c,p)<=a.sight then vismask(x,y-1)=1
-                endif
-                if y<my then
-                    p.x=x
-                    p.y=y+1
-                    if vismask(x,y+1)=0 and a.c.y<y and distance(a.c,p)<=a.sight then vismask(x,y+1)=1
-                endif
-            endif
-        else
-            if spacemap(x,y)<=1 then
-                if x>0 then
-                    if vismask(x-1,y)=0 and abs(spacemap(x-1,y))>1 and a.c.x>=x then vismask(x-1,y)=1
-                endif
-                if x<mx then
-                    if vismask(x+1,y)=0 and abs(spacemap(x+1,y))>1 and a.c.x<=x then vismask(x+1,y)=1
-                endif
-                if y>0 then
-                    if vismask(x,y-1)=0 and abs(spacemap(x,y-1))>1 and a.c.y>=y then vismask(x,y-1)=1
-                endif
-                if y<my then
-                    if vismask(x,y+1)=0 and abs(spacemap(x,y+1))>1 and a.c.y<=y then vismask(x,y+1)=1
-                endif
-            endif
-        
+function vis_test(a as _cords,p as _cords,test as short) as short
+    dim as short x1,x2
+    x1=a.x-_mwx/2
+    x2=a.x+_mwx/2
+    if test=0 then 'Surface, can Wrap
+        if x1<0 or x2>60 then 'Wraps
+            if x1<0 then x1+=61
+            if x2>60 then x2-=61
+            'dprint "X1:"&x1 &"X2:"& x2 &":"& p.x
+            if p.x>=x1 then return -1
+            'dprint "not p.x>=x1" &p.x &":"&x1
+            if p.x<=x2 then return -1
+            'dprint "not p.x<=x2"&p.x &":"&x2
+            return 0
+        else 'Doesn't Wrap
+            if p.x>=x1 and p.x<=x2 then return -1
+            return 0
         endif
+    else 'Below Surface, doesn't wrap
+        if x1<0 then x1=0
+        if x2>60 then x2=60
+        if p.x>=x1 and p.x<=x2 then return -1
+        return 0
     endif
-    return 0
 end function
 
 
@@ -483,7 +528,7 @@ function nextpoint(byval start as _cords, byval target as _cords) as _cords
 end function
 
 
-function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=100) as short
+function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=100,rollover as byte=0) as short
     dim as single px,py
     dim deltax as single
     dim deltay as single
@@ -491,15 +536,26 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     dim l as single
     dim  as short result
     dim text as string
-    dim as short co,i
+    dim as short co,i,osx
     Dim As Integer d, dinc1, dinc2
     Dim As Integer x, xinc1, xinc2
     Dim As Integer y, yinc1, yinc2
-    
+    dim debug as short
+    debug=0
+    osx=b.x-_mwx/2
+    if osx<0 then osx=0
+    if osx>=60-_mwx then osx=60-_mwx
+    if abs(c.x-b.x)>30 then
+        if c.x>b.x then
+            b.x+=61
+        else
+            c.x+=61
+        endif
+    endif
     deltax = Abs(c.x - b.x)
     deltay = Abs(c.y - b.y)
     If deltax >= deltay Then
-        numtiles = deltax + 1
+        numtiles = deltax 
         d = (2 * deltay) - deltax
         dinc1 = deltay Shl 1
         dinc2 = (deltay - deltax) Shl 1
@@ -508,7 +564,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
         yinc1 = 0
         yinc2 = 1
     Else
-        numtiles = deltay + 1
+        numtiles = deltay 
         d = (2 * deltax) - deltay
         dinc1 = deltax Shl 1
         dinc2 = (deltax - deltay) Shl 1
@@ -542,46 +598,51 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
           x = x + xinc2
           y = y + yinc2
         End If
-    
-            if blocktype=1 or blocktype=3 or blocktype=4 then 'check for firetru
-               if x<0 then x=0
-               if x>60 then x=60
-               if y<0 then y=0
-               if y>20 then y=20
-               if tmap(x,y).firetru=1  then 
-                    if not (x=b.x and y=b.y) then
-                        result=0
-                        if blocktype=3 or blocktype=4 then
-                           b.x=x
-                           b.y=y
-                           return 0
-                        endif
+        if rollover=0 then
+            if x<0 then x=0
+            if x>60 then x=60
+        else
+            if x>60 then x-=61
+            if x<0 then x+=61
+        endif
+        
+        if y<0 then y=0
+        if y>20 then y=20
+        if blocktype=1 or blocktype=3 or blocktype=4 then 'check for firetru
+           if tmap(x,y).firetru=1  then 
+                if not (x=b.x and y=b.y) then
+                    result=0
+                    if blocktype=3 or blocktype=4 then
+                       b.x=x
+                       b.y=y
+                       return 0
                     endif
                 endif
-                if col>0 then 
+            endif
+            if col>0 then 
+                if _tiles=0 then
+                    draw string(x-osx*_fw1,y*_fh1),"*",,font1,custom,@_col
+                else
                     color col,0
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
-                    sleep delay
                 endif
-                if blocktype=4 then
-                    locate y+1,x+1
-                    print "*"
-                endif
+                sleep delay
             endif
-            if blocktype=2 then
-                if x<0 then x=0
-                if x>60 then x=60
-                if y<0 then y=0
-                if y>20 then y=20
-                if combatmap(x,y)=7 or combatmap(x,y)=8 then
-                    combatmap(x,y)=0
-                    return 0
-                endif
-                if col>0 and co<l then 
-                    draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
-                endif
+            if blocktype=4 then
+                locate y+1,x+1
+                print "*"
             endif
-        next
+        endif
+        if blocktype=2 then
+            if combatmap(x,y)=7 or combatmap(x,y)=8 then
+                combatmap(x,y)=0
+                return 0
+            endif
+            if col>0 and co<l then 
+                draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
+            endif
+        endif
+    next
 
     if blocktype=2 then sleep delay
     return result
@@ -656,9 +717,12 @@ function line_in_points(b as _cords,c as _cords,p() as _cords) as short
 end function
 
 
-function nearest(c as _cords, b as _cords) as single
+function nearest(byval c as _cords, byval b as _cords,rollover as byte=0) as single
     ' Moves B towards C, or C away from B
     dim direction as short
+    if rollover=1 then
+        if abs(c.x-b.x)>30 then swap c,b
+    endif
     if c.x>b.x and c.y>b.y then direction=3
     if c.x>b.x and c.y=b.y then direction=6
     if c.x>b.x and c.y<b.y then direction=9
@@ -669,6 +733,7 @@ function nearest(c as _cords, b as _cords) as single
     if c.x<b.x and c.y=b.y then direction=4
     if c.x<b.x and c.y<b.y then direction=7
     if c.x<b.x and c.y>b.y then direction=1
+            
     return direction
 end function
 
@@ -706,8 +771,10 @@ end function
 
 function rnd_point(m as short=-1,w as short=-1,t as short=0)as _cords
     dim p(1281) as _cords
-    dim as short last,x,y,a
-    if m>-1 and w>-1 then
+    dim as short last,x,y,a,debug
+    debug=0
+    'if debug=1 then dprint "M:"&m &"W:"&w &"T:"&t
+    if m>0 and w>=0 then
         for x=0 to 60
             for y=0 to 20
                 if tiles(abs(planetmap(x,y,m))).walktru=w then
@@ -719,17 +786,23 @@ function rnd_point(m as short=-1,w as short=-1,t as short=0)as _cords
         next
         if a>0 then return p(rnd_range(0,a-1))
     endif
-    if m>0 and t>0 then
+    if m>0 and t>0 and w=0 then
+        if debug=1 then dprint "Looking for tile "&t
         for x=0 to 60
             for y=0 to 20
-                if tiles(abs(planetmap(x,y,m))).walktru=t then
+                if abs(planetmap(x,y,m))=t then
                     p(a).x=x
                     p(a).y=y
                     a=a+1
                 endif
             next
         next
-        if a>0 then return p(rnd_range(0,a-1))
+        if a=0 and debug=1 then dprint "No tiles found"
+        if a>0 then 
+            a=rnd_range(0,a-1)
+            if debug=1 then dprint "Point returned was "&p(a).x &":"&p(a).y
+            return p(a)
+        endif
     endif
     
     p(0).x=rnd_range(0,60)

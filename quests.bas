@@ -67,27 +67,106 @@ function alienname(flag as short) as string
     return n
 end function 
 
-function dodialog(no as short) as short
-    dim text as string
-    dim flags(128) as byte
-    dim p as short
-    if no=1 then
-        
-        dprint "SUBJUGATE OR BE DESTROYED."
-        do
-            text=ucase(gettext(pos,csrlin-1,46," "))
-            if instr(text,"HELLO")>0 or instr(text,"WHO")>0 or instr(text,"YOU")>0 then dprint "WE ARE THE INTELLIGENCE INHABITING THIS WORLD" 
-            if instr(text,"PURPOSE")>0 or instr(text,"DOING")>0 then dprint "WE SEEK TO EXPAND OUR SPHERE OF INFLUENCE TO INCREASE OUR CHANCE OF SURVIVAL."
-            if instr(text,"LEADER")>0 then dprint "WE ARE WHAT YOU WOULD CALL THE LEADER OF OUR SOCIETY"
-            if instr(text,"HYBRID")>0 then dprint "YOUR PHYSICAL FORMS ARE WEAK BUT VERY ADAPTIVE. WE CAN COMBINE FORMING A STRONGER LIFEFORM WITH A HIGHER CHANCE OF SURVIVAL"
-            if instr(text,"ANCIENTS")>0 or instr(text,"RUINS") or instr(text,"ALIENS") then dprint "OUR ANCESTORS REPORTED CONTACT WITH ANOTHER CIVILIZATION BEFORE. BUT THEY DISSAPEARED. THEY WERE WEAK"
-            if instr(text,"WEAK")>0 then dprint "WE HAVE NO WEAKNESS. JOIN TO SHARE OUR STRENGTH"
-        loop until text="" or text="BYE"
-
-    endif
-        
+function dodialog(no as short,e as _monster, fl as short) as short
+    dim node(64) as _dialognode
+    dim as short last
+    last=load_dialog("data/dialog" &no & ".csv",node())
+    no=1
+    do
+        no=node_menu(no,node(),e,fl)
+    loop until no=0
     return 0
 end function
+
+function node_menu(no as short,node() as _dialognode,e as _monster, fl as short) as short
+    dim text as string
+    dim as short a,c,flag
+
+    dprint adapt_nodetext(node(no).statement,e,fl),11
+    if node(no).effekt<>"" then dialog_effekt(node(no).effekt,node(no).param(),e,fl)
+    text="You say"
+    for a=1 to 16
+        if node(no).option(a).answer<>"" then 
+            text=text &"/"& adapt_nodetext(node(no).option(a).answer,e,fl)
+            flag+=1
+        endif
+    next
+    if flag>0 then
+        do
+            c=menu(text,,0,20-flag)
+        loop until c>-1
+        dprint adapt_nodetext(node(no).option(c).answer,e,fl),15
+        return node(no).option(c).no
+    else
+        return 0
+    endif
+end function
+
+function adapt_nodetext(t as string, e as _monster,fl as short) as string
+    dim word(128) as string
+    dim r as string
+    dim as short l,i
+    l=string_towords(word(),t," ",1)
+    for i=0 to l
+        if word(i)="<FLEET>" then word(i)=""&abs(fl)
+        if word(i)="<PLAYER>" then word(i)="captain "&crew(1).n &" of the "&player.desig
+        if word(i)="<COORDS>" then 
+            if fl>0 then 
+                word(i)=fleet(fl).c.x &":"& fleet(fl).c.y
+            else
+                word(i)=drifting(abs(fl)).x &":"& drifting(abs(fl)).y
+            endif
+        endif
+        r=r &word(i)
+        if len(word(i+1))>1 or ucase(word(i+1))="A" or ucase(word(i+1))="I" then r=r &" "
+        
+    next
+    return r
+end function
+
+function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short) as short
+    dim as short f,a
+    dim as _items it
+    if effekt="CHANGEMOOD" then e.aggr=p(0)
+    if effekt="BUYFUEL" then
+        if askyn("Do you want to buy fuel for "&p(0) &" Cr. (y/n)") then
+            dprint "How much fuel do you want to buy"
+            f=getnumber(0,player.fuelmax-player.fuel,0)
+            if f*p(0)>player.money then f=fix(player.money/p(0))
+            if f+player.fuel>player.fuelmax then f=player.fuelmax-player.fuel
+            player.fuel=player.fuel+f
+        endif
+    endif
+    if effekt="SETTARGET" then
+        fleet(fl).t=lastwaypoint+1
+        if p(0)=2 then
+            dprint "X Coordinate:"
+            targetlist(fleet(fl).t).x=getnumber(0,sm_x,0)
+            dprint "Y Coordinate:"
+            targetlist(fleet(fl).t).y=getnumber(0,sm_y,0)
+        else
+            targetlist(fleet(fl).t).x=player.lastpirate.x
+            targetlist(fleet(fl).t).y=player.lastpirate.y
+        endif
+    endif
+    if effekt="SELL" then
+        if p(0)=1 then
+            a=getitem
+            if a>0 then
+                if item(a).ty=2 or item(a).ty=7 or item(a).ty=4 then
+                    item(a).w.p=e.no
+                    item(a).w.s=0
+                    it=makeitem(96,-1,-3)
+                    placeitem(it,0,0,0,0,-1)
+                    reward(2)=reward(2)+it.v5
+                    dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
+                endif
+            endif
+        endif
+    endif
+    return 0
+end function
+
 
 function dirdesc(f as _cords,t as _cords) as string
     dim d as string
@@ -132,7 +211,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     if e.lang=1 then
         select case e.intel
         case is>4
-            if e.aggr=0 then dprint rndsentence(e.aggr,e.intel)
+            if e.aggr=0 then rndsentence(e)
             if e.aggr=1 then
                 if findbest(23,1)<>-1 and rnd_range(1,6)+rnd_range(1,6)<2*e.intel then
                     if item(findbest(23,-1)).v1=3 then 
@@ -144,7 +223,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                     endif
                 endif
                 if rnd_range(1,100)>(e.intel-addtalent(4,14,1))*6 then
-                    dprint rndsentence(e.aggr,e.intel)
+                    rndsentence(e)
                 else
                     select case rnd_range(1,100)
                     case is<22
@@ -238,7 +317,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             endif
             if e.aggr=2 then 
                 if rnd_range(1,100)>e.intel*9 then 
-                    dprint rndsentence(e.aggr,e.intel)
+                    rndsentence(e)
                 else
                     dprint "It says 'take this, and let me live!"
                     e.aggr=1
@@ -289,7 +368,11 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         dprint "The Robot says 'Annihilate alien invaders!'"
     endif
     if e.lang=4 then
-        dprint "Apollo thunders 'Worship me!'"
+        if (e.aggr=0 or e.aggr=2) and rnd_range(1,100)<50 then
+            dprint "Apollo thunders 'Worship me!'"
+        else
+            dodialog(2,e,0)
+        endif
     endif
     if e.lang=5 then
         if e.aggr=0 then dprint "'Surrender or be destroyed!'"
@@ -298,25 +381,17 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     endif
     if e.lang=6 then
         if e.aggr=0 then dprint "It says: 'Die red-helmet-friend!"
-        if e.aggr=1 then dprint "It says: 'Will you help us destroy the red-helmets too? we can give you metals for weapons too, just like we did with the others of your kind!" 
+        if e.aggr=1 then dodialog(6,e,0)
         if e.aggr=2 then dprint "It says: 'I surrender!" 
     endif
     if e.lang=7 then
         if e.aggr=0 then dprint "It says: 'Die blue-helmet-friend!"
-        if e.aggr=1 then dprint "It says: 'Will you help us destroy the blue-helmets too? we can give you metals for weapons too, just like we did with the others of your kind!"
+        if e.aggr=1 then dodialog(7,e,0)
         if e.aggr=2 then dprint "It says: 'I surrender!"
     endif 
     if e.lang=8 then
         if e.aggr=0 or e.aggr=2 then dprint "It says: 'We haven't harmed you yet you wish to destroy us?'"
-        if e.aggr=1 then
-            a=rnd_range(1,6)
-            if a=1 then dprint "It says 'My people have abandoned the ways of technology long ago.'"
-            if a=2 then dprint "It says 'Since i was hatched my planet has circled the sun 326 times' Thats about 600 years."
-            if a=3 then dprint "It says 'I hope you find the exploration of this planet interesting.'"
-            if a=4 then dprint "It says 'Do you wish to discuss the teachings of gzrollazasd?'"
-            if a=5 then dprint "It says 'My, you look remarkably similiar to the visitors we had 1300 cycles ago. you both share the same lack of limbs.'"
-            if a=6 then dprint "It says 'We have a secret, but i can't tell you since if i did it wouldn't be a secret anymore.'"
-        endif
+        if e.aggr=1 then dodialog(8,e,0)
     endif
     if e.lang=9 then
         if e.aggr=0 then dprint "They snarl and growl."
@@ -453,7 +528,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             endif
             endif
             if planets(mapslot).flags(0)=1 then
-                dprint "The crewmember is busy starting the ship up again. 'Thank you so much for saving our lifes!'"
+                dprint "The crewmember is busy starting the ship up again. 'Thank you so much for saving our lives!'"
             endif
         endif
     endif 
@@ -688,13 +763,13 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     if e.lang=29 then
         if e.aggr=0 then dprint "ARRRRRRRGHHHHHHHH!"
         if e.aggr=1 then
-            a=rnd_range(1,6)
-            if a=1 then dprint "He says 'We are fighting pirates over the control of some ancient ruins. Do you want to help'"
-            if a=2 then dprint "He says ''"
-            if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
-            if a=4 then dprint "He says 'This can't be legal! Forcing us to live like this!'"
-            if a=5 then dprint "He says 'I know, i made a mistake, but I don't think they can treat us like this!'."
-            if a=6 then dprint "He says 'Don't owe SHI money, or you'll end up here too!'"
+            a=1
+            if a=1 then dprint "He says 'We are fighting pirates over the control of some ancient ruins. Do you want to help?'"
+            'if a=2 then dprint "He says ''"
+            'if a=3 then dprint "He says 'The food is bad, the work is worse, and sometimes the guards take out their frustration on us.'"
+            'if a=4 then dprint "He says 'This can't be legal! Forcing us to live like this!'"
+            'if a=5 then dprint "He says 'I know, i made a mistake, but I don't think they can treat us like this!'."
+            'if a=6 then dprint "He says 'Don't owe SHI money, or you'll end up here too!'"
         endif
         if e.aggr=2 then dprint "I surrender!"
     endif
@@ -716,13 +791,13 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     if e.lang=31 then
         if e.aggr=0 then dprint "It signals with its feelers that it wants to eat you."
         if e.aggr=1 then
-            a=rnd_range(1,6)
+            a=rnd_range(1,4)
             if a=1 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
             if a=2 then dprint "It signals with its feelers you are the first who is trying to talk to it."
             if a=3 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
             if a=4 then 
                 if player.questflag(25)=0 then
-                    if askyn("Do you want to try and negotiate peace between the burrowers and the settlers?") then
+                    if askyn("Do you want to try and negotiate peace between the burrowers and the settlers? (y/n)") then
                         player.questflag(25)=1
                         dprint "It signals it's terms with its feelers: No underground construction, and humans have to ask the mothers if they want to build a new farm."
                     endif
@@ -730,8 +805,6 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                     dprint "It signals with its feelers cooperating with the bipeds is working out ok."
                 endif
             endif
-            if a=5 then dprint "It signals with its feelers that it's a mother, and has ordered her children to repel the invading bipeds."
-            if a=6 then dprint "It signals with its feelers that it doesn't like eating bipeds, they taste funny."
         endif
         if e.aggr=2 then dprint "It signals with its feelers that it would rather go away."
     endif
@@ -744,6 +817,8 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             c=1
             o=0
         endif
+        if e.aggr=0 then dprint "Your invasion will not be successful"
+        if e.aggr=2 then dprint "Please let us live in peace!"
         civ(c).contact=1
         if e.aggr=1 then
             b=findbest(23,-1,,205)
@@ -775,11 +850,11 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                             if civ(c).aggr=3 then dprint "It says 'Since the ancients passed on we, the "&civ(0).n &", have been dominant in this part of space.'"
                         endif
                     endif
-                    if a=3 then dprint "It says 'We, the "&civ(c).n &" have invented FTL travel "&civ(c).tech*100 &" cycles ago. How long have you known the secret?"
+                    if a=3 then dprint "It says 'We, the "&civ(c).n &", have invented FTL travel "&civ(c).tech*100 &" cycles ago. How long have you known the secret?"
                     if a=4 then
                         if civ(c).phil=1 then dprint "It says 'I believe strongly in the right of the individual. How about you?"
-                        if civ(c).phil=2 then dprint "It says 'We, the "&civ(c).n &" strive for a balance between common good and individual freedom. How about your species?"
-                        if civ(c).phil=3 then dprint "It says 'We, the "&civ(c).n &" think the foremost reason for existence is for the species to survive and prosper. How about your species?"
+                        if civ(c).phil=2 then dprint "It says 'We, the "&civ(c).n &", strive for a balance between common good and individual freedom. How about your species?"
+                        if civ(c).phil=3 then dprint "It says 'We, the "&civ(c).n &", think the foremost reason for existence is for the species to survive and prosper. How about your species?"
                     endif
                     if a=5 then 
                         if civ(c).inte=1 then dprint "It says' A new space faring species! I hope you brought many scientific secrets!"
@@ -867,6 +942,44 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         endif
         if e.aggr=2 then dprint "I surrender!"
     endif
+    
+    if e.lang=35 then
+        if e.aggr=0 then dprint "To think that I went through all this just to have to fight this rabble."
+        if e.aggr=1 then
+            if rnd_range(1,100)<10 then
+                dprint "Hey, I was once just like you, and now I am off to retire! Good luck out there! Here, have a few credits if you ever get into a rough spot."
+                player.money+=rnd_range(10,100)
+            else
+                a=rnd_range(1,6)
+                if a=1 then dprint "He pats your back, saying he is sure that you will make it too."
+                if a=2 then dprint "He pats your back, advises you to be carefull when dealing with aliens."
+                if a=3 then dprint "He pats your back, saying you should stay out of trouble."
+                if a>=4 then
+                    b=specialplanet(rnd_range(0,lastspecial))
+                    dprint "He tells you that there is an interesting world at " &map(sysfrommap(b)).c.x &":"& map(sysfrommap(b)).c.y & "."
+                endif
+            endif
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
+    
+    if e.lang=36 then
+        if e.aggr=0 then dprint "Not going to deal with you!"
+        if e.aggr=1 then
+            if askyn("I have some information on nearby star systems to sell. Do you want to buy it for 50 Cr.?(y/n)") then
+                    if player.money>=50 then
+                        player.money-=50
+                    dprint "He hands you a data crystal"
+                    for a=0 to laststar
+                        if map(a).discovered=-1 then map(a).discovered=1
+                    next
+                else
+                    dprint "Come back when you have the cash"
+                endif
+            endif
+        endif
+        if e.aggr=2 then dprint "I surrender!"
+    endif
     return 0
 end function
 
@@ -916,7 +1029,7 @@ function talk_culture(c as short) as short
     t(3,5)="On our homeworld there was an ancient robot factory. Most religious rituals have evolved around it."
     t(3,6)="Our species evolved from a primitive form that migrated between two different habitats. Our religions are mainly about 'finding ones way', propably for that reason. Many of us still have 2 houses, in different parts of the planet, and live in each for half a year. Poor people try to do it too, by swapping homes."
     
-    t(4,0)="Much like you we try only to interfere with free markets if they fail at allocatig goods efficiently"
+    t(4,0)="Much like you we try only to interfere with free markets if they fail at allocating goods efficiently"
     t(4,1)="You could call our economic system industrial feudalism: The power of individuals is measured in their wealth. There is no authority regulating them."
     t(4,2)="There is a legend about a leader of our people. He perished 2000 years ago, taking the symbol of his power with him."
     t(4,3)="We had a very agressive colonisation phase in our past. Some laws still survive from that day, concerning the conquest of undiscovered land. It has led to many of us trying to make independent expeditions to the stars. Discovering a planet means you own it."
@@ -1023,6 +1136,260 @@ function foreignpolicy(c as short, i as byte) as short
     return 0
 end function
 
+function eris_does() as short
+    dim as short roll,roll2,a,noa,b
+    dim en as _fleet
+    dim weap as _weap
+    dim awayteam as _monster
+    if rnd_range(1,100)<33 then
+        if planets(specialplanet(1)).visited<>0 then
+            if askyn("Eris asks: 'Do you know where apollo is?' Do you want to tell her (y/n)") then
+                for a=3 to lastfleet
+                    if fleet(a).ty=10 then
+                        fleet(a).t=4068
+                        b=sysfrommap(specialplanet(1))
+                        targetlist(4068).x=map(b).c.x
+                        targetlist(4068).y=map(b).c.y
+                    endif
+                next
+                return 0
+            endif
+            roll=rnd_range(1,66)
+            select case roll
+                case roll<=33
+                    dprint "Eris decides to punish you for your insolence"
+                case roll>=66 
+                    dprint "Eris decides to show you how she could reward you for the information"
+                case else
+                    dprint "Eris doesn't seem to care"
+            end select
+            
+        else
+            roll=rnd_range(1,100)
+        endif
+        select case roll
+        case roll<=33 'Eris does bad stuff
+            select case rnd_range(1,100)
+                case 0 to 10
+                    select case rnd_range(1,100)
+                    case 0 to 33
+                        dprint "Eris looks at your engine",15
+                        if player.engine>1 then player.engine-=1
+                    case 34 to 66
+                        dprint "Eris looks at your sensors",15
+                        if player.engine>0 then player.sensors-=1
+                    case else
+                        dprint "Eris looks at your shields",15
+                        if player.shield>0 then player.shield-=1
+                    end select
+                case 11 to 20
+                    dprint "Eris examines your hull",15
+                    if player.hull>0 then player.hull-=1
+                    player.h_maxhull-=1
+                case 21 to 30
+                    a=rnd_crewmember
+                    for b=1 to 12
+                        crew(a).augment(b)=0
+                    next
+                    dprint  "Eris looks at "&crew(a).n &" 'Oh you are ugly!'",15
+                case 31 to 40
+                    roll2=rnd_range(1,6)
+                    dprint "Eris yells 'Fight for my amusement'",15
+                    no_key=keyin
+                    noa=1
+                    if roll2=4 then noa=rnd_range(1,6)+rnd_range(1,6)
+                    if roll2=5 then noa=rnd_range(1,3)
+                    if roll2=6 then noa=rnd_range(1,2)
+                    for a=1 to noa
+                        en.ty=9
+                        en.mem(a)=makeship(23+roll)
+                    next
+                    player=spacecombat(player,en,rnd_range(1,11))
+                case 41 to 50
+                    dprint "Eris shows you that you have a fuel leak",15
+                    player.fuel-=rnd_range(1,100)
+                    if player.fuel<15 then player.fuel=15
+                case 51 to 60
+                    dprint "Eris informs you that it is not nice to point guns at people",15
+                    player.weapons(1)=weap
+                case 61 to 70
+                    dprint "Eris asks 'Have you got some change?",15
+                    player.money-=rnd_range(10,1000)
+                    if player.money<0 then player.money=0
+                case 71 to 80
+                    dprint "Eris takes a stroll through the cargo hold.",15
+                    for a=1 to 5
+                        if player.cargo(a).x>1 then player.cargo(a).x=1
+                    next
+                case 81 to 90
+                    dprint "Eris thinks your ship is too big",15
+                    upgradehull(rnd_range(1,4),player,1)
+                case 91 to 100
+                    dprint "Eris says 'You are buff!",15
+                    a=rnd_crewmember
+                    crew(a).hp-=1
+                    crew(a).hpmax-=1
+            end select
+        case roll>=66 'Eris does good stuff
+            select case rnd_range(1,100)
+                case 0 to 10
+                    select case rnd_range(1,100)
+                    case 0 to 33
+                        dprint "Eris looks at your engine",15
+                        if player.engine<6 then player.engine+=1
+                    case 34 to 66
+                        dprint "Eris looks at your sensors",15
+                        if player.engine<6 then player.sensors+=1
+                    case else
+                        dprint "Eris looks at your shields",15
+                        if player.shield<6 then player.shield+=1
+                    end select
+                case 11 to 20
+                    dprint "Eris examines your hull",15
+                    player.hull+=5
+                    player.h_maxhull+=5
+                case 21 to 30
+                    dprint "Eris takes a look at your cargo hold",15
+                    player.h_maxcargo+=1
+                    player.cargo(player.h_maxcargo).x=1
+                case 31 to 40
+                    a=rnd_crewmember
+                    dprint "Eris looks at "&crew(a).n &" 'my, my are you fragile!",15
+                    crew(a).hp+=1
+                    crew(a).hpmax+=1
+                case 41 to 50
+                    dprint "Eris looks at "&crew(a).n &" and starts laughing",15
+                    a=rnd_crewmember
+                    dprint gaintalent(a)
+                case 51 to 60
+                    dprint "Eris looks at "&crew(a).n &" and starts laughing",15
+                    a=rnd_crewmember
+                    gainxp(a)
+                case 61 to 70
+                    dprint "Eris says 'Are you sure you have enough fuel to get home?",15
+                    player.fuel+=200
+                case 71 to 80
+                    dprint "I found this, can you use it?",15
+                    findartifact(awayteam,0)
+                case 81 to 90
+                    dprint "Eris is worried that you might need money",15
+                    player.money+=rnd_range(1,1000)
+                case 91 to 100
+                    dprint "Eris takes a stroll through the cargo hold.",15
+                    for a=1 to 5
+                        if player.cargo(a).x=1 then player.cargo(a).x=rnd_range(2,6)
+                    next
+            end select
+        case else 'Just does stuff
+            select case rnd_range(1,100)
+                case 0 to 10
+                    dprint "Eris says: 'I don't want to deal with you right now, why don't you just go over there?",15
+                    select case rnd_range(1,100)
+                    case 0 to 66
+                        player.c=movepoint(player.c,5)
+                    case 67 to 90
+                        player.c=map(rnd_range(1,wormhole+laststar)).c
+                    case else
+                        player.c.x=rnd_range(0,sm_x)
+                        player.c.y=rnd_range(0,sm_y)
+                    end select
+                case 11 to 20
+                    dprint "Eris says: 'You have very interesting diplomatic relations.",15
+                    faction(0).war(rnd_range(1,5))+=10-rnd_range(1,20)
+                case 21 to 30
+                    dprint "Eris asks: 'Where is Apollo?",15
+                case 31 to 40
+                    dprint "Eris takes a stroll through the cargo hold.",15
+                    for a=1 to 5
+                        if player.cargo(a).x>1 then player.cargo(a).x=rnd_range(1,5)
+                    next
+                case 41 to 50
+                    dprint "Is that your space station, there?",15
+                    basis(rnd_range(0,2)).c.x=rnd_range(0,sm_x)
+                    basis(rnd_range(0,2)).c.y=rnd_range(0,sm_y)
+                case 51 to 60
+                    dprint "Eris screws around with time",15
+                    player.turn=player.turn+5-rnd_range(1,10)
+                case 61 to 70
+                    dprint "Eris snaps with her fingers",15
+                    drifting(rnd_range(1,lastdrifting)).x=player.c.x
+                    drifting(rnd_range(1,lastdrifting)).y=player.c.y
+                case 71 to 80
+                    dprint "Eris seems bored",15
+                case 81 to 90
+                    dprint "Eris is looking at the stars",15
+                    map(rnd_range(0,laststar)).c=rnd_point
+                    map(rnd_range(0,laststar)).c=rnd_point
+                case 91 to 100
+                    eris_doesnt_like_your_ship
+            end select
+        end select
+    else
+        dprint "Eris doesn't seem to be interested in you.",15
+        if rnd_range(1,100)<66 then
+            select case rnd_range(1,100)
+            case 0 to 66
+                player.c=movepoint(player.c,5)
+            case 67 to 90
+                player.c=map(rnd_range(1,wormhole+laststar)).c
+            case else
+                player.c.x=rnd_range(0,sm_x)
+                player.c.y=rnd_range(0,sm_y)
+            end select
+        endif
+    endif
+    return 0
+end function
+
+function eris_doesnt_like_your_ship() as short
+    dim as short tier,roll,tierchance(4),newtier,n,a
+    tier=cint(player.h_no/4)
+    for a=1 to 4
+        tierchance(a)=90-(a-tier)^2*15
+        if tierchance(a)<0 then tierchance(a)=0
+        tierchance(0)+=tierchance(a)
+    next
+    roll=rnd_range(0,tierchance(0))
+    select case roll
+    case 0 to tierchance(1)
+        newtier=0
+    case tierchance(1)+1 to tierchance(2)
+        newtier=1
+    case tierchance(2)+1 to tierchance(3)
+        newtier=2
+    case tierchance(3)+1 to tierchance(4)
+        newtier=3
+    case else
+        dprint "Eris likes your ship"
+        return 0
+    end select
+    n=rnd_range(1,4)+newtier*4
+    if n=player.h_no then
+        dprint "Eris likes your ship"
+    else
+        dprint "Eris doesn't like your ship"
+        upgradehull(n,player,1)
+    endif
+    return 0
+end function
+
+function eris_finds_apollo() as short
+    dim as short x,y,a
+    for x=0 to 60
+        for y=0 to 20
+            if abs(planetmap(x,y,specialplanet(1)))=56 then planetmap(x,y,specialplanet(1))=57
+        next
+    next
+    specialflag(1)=1
+    for a=3 to lastfleet
+        if fleet(a).ty=10 then 
+            fleet(a)=fleet(lastfleet)
+            lastfleet-=1
+        endif
+    next
+    return 0
+end function
+
 
 function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
     dim as short a
@@ -1113,32 +1480,34 @@ end function
 
 
   
-function rndsentence(aggr as short, intel as short) as string
-    
+function rndsentence(e as _monster) as short
+    dim as short aggr,intel
     dim s as string
     dim r as short
+    aggr=e.aggr
+    intel=e.intel
     if aggr=0 then
     r=rnd_range(1,8)
-        if r=1 then s="It says: 'Die monster from another world!'"
-        if r=2 then s="It says: 'You look tasty!'"
-        if r=3 then s="It says: 'The metal gods of old demand your death!'"
-        if r=4 then s="It says: 'Intruder! Flee or be destroyed'"
-        if r=5 then s="It says: 'Your magic is powerfull but my arms are strong!'"
-        if r=6 then s="It says: 'The time for talking is over!'"
-        if r=7 then s="It says: 'I am going to kill you!'"
-        if r=8 then s="It says: 'Resistance is useless!'"
+        if r=1 then dprint "It says: 'Die monster from another world!'"
+        if r=2 then dprint "It says: 'You look tasty!'"
+        if r=3 then dprint "It says: 'The metal gods of old demand your death!'"
+        if r=4 then dprint "It says: 'Intruder! Flee or be destroyed'"
+        if r=5 then dprint "It says: 'Your magic is powerfull but my arms are strong!'"
+        if r=6 then dprint "It says: 'The time for talking is over!'"
+        if r=7 then dprint "It says: 'I am going to kill you!'"
+        if r=8 then dprint "It says: 'Resistance is useless!'"
     endif
     if aggr=1 then
     r=rnd_range(1,11)
-        if r=1 then s="It says: 'Your fur is funny!'"
-        if r=2 then s="It says: 'You are not from around, are you?'"
-        if r=3 then s="It says: 'Do you have a gift for me?'"
-        if r=4 then s="It says: 'I always wondered if there were other beings out there.'"
-        if r=5 then s="It says: 'You can't be from another world! Faster than light travel is impossible!'"
-        if r=6 then s="It says: 'I haven't seen a creature like you before!'"
-        if r=7 then s="It says: 'Are you here for the festival?'"
-        if r=8 then s="It says: 'You can have my food if you want.'"
-        if r=9 then s="It says: 'I always wondered if there were other beings like us up there.'"
+        if r=1 then dodialog(902,e,0)
+        if r=2 then dprint "It says: 'You are not from around, are you?'"
+        if r=3 then dprint "It says: 'Do you have a gift for me?'"
+        if r=4 then dprint "It says: 'I always wondered if there were other beings out there.'"
+        if r=5 then dprint "It says: 'You can't be from another world! Faster than light travel is impossible!'"
+        if r=6 then dprint "It says: 'I haven't seen a creature like you before!'"
+        if r=7 then dprint "It says: 'Are you here for the festival?'"
+        if r=8 then dprint "It says: 'You can have my food if you want.'"
+        if r=9 then dprint "It says: 'I always wondered if there were other beings like us up there.'"
         if r=10 then 
             if askyn("It says: 'I pay you 5000 zrongs if you tell me all your technological secrets.' Do you agree? (y/n)") then
                 placeitem(makeitem(88),0,0,0,0,-1)
@@ -1154,21 +1523,22 @@ function rndsentence(aggr as short, intel as short) as string
                 else 
                     s=s &" fail to teach it anything because you just can't find the terms it would understand."
                 endif
+                dprint s
             endif
         endif
-        if r=11 then s="It says: 'Are you one of the metal gods who have returned?'"
+        if r=11 then dodialog(901,e,0)
     endif
     if aggr=2 then
     r=rnd_range(1,7)
-        if r=1 then s="It says: 'Help! Help! It's an alien invasion!'"
-        if r=2 then s="It says: 'Don't kill me!'"
-        if r=3 then s="It says: 'Don't point those things at me!'"
-        if r=4 then s="It says: 'Don't eat me!'"
-        if r=5 then s="It says: 'I surrender!'"
-        if r=6 then s="It says: 'Have mercy!'"
-        if r=7 then s="It says: 'Gods! Save me from the evil aliens!'"
+        if r=1 then dprint "It says: 'Help! Help! It's an alien invasion!'"
+        if r=2 then dprint "It says: 'Don't kill me!'"
+        if r=3 then dprint "It says: 'Don't point those things at me!'"
+        if r=4 then dprint "It says: 'Don't eat me!'"
+        if r=5 then dprint "It says: 'I surrender!'"
+        if r=6 then dprint "It says: 'Have mercy!'"
+        if r=7 then dprint "It says: 'Gods! Save me from the evil aliens!'"
     endif
-    return s
+    return 0
 end function
 
 function getunusedplanet() as short
@@ -1264,7 +1634,7 @@ end function
 function randomcritterdescription(enemy as _monster, spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
 
 dim as string text
-dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(6),wings(4),horns(4),tails(5)
+dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(7),wings(4),horns(4),tails(5)
 dim as short a,w1,w2
 dim as string species(12)
 dim as short limbsbyspec(12),eyesbyspec(12)
@@ -1371,7 +1741,8 @@ skin(2)=" scales"
 skin(3)=" leathery skin"
 skin(4)=" an exoskeleton"
 skin(5)=" a chitin shell"
-skin(6)=" scales"
+skin(6)=" feathers"
+skin(7)=" scales"
 
 wings(4)=" Skin flaps"
 wings(3)=" leather wings"
@@ -1420,7 +1791,7 @@ else
     text=text & " and no legs"
 endif
 
-armor=rnd_range(1,5)+w2
+armor=rnd_range(1,6)+w2
 text=text &". Its whole body is covered in"&skin(armor)&"."
 if armor=1 then enemy.col=rnd_range(204,209)
 if armor=2 then 
@@ -1439,7 +1810,11 @@ if armor=6 then
     enemy.col=rnd_range(74,77)
     enemy.armor+=2
 endif
-    
+
+if armor>6 then armor=6
+enemy.ti_no=800+13*(spec-1)
+enemy.ti_no+=(armor-1)*2
+
 if rnd_range(1,6)<3 then
     if rnd_range(1,6)<3 then
         roll=rnd_range(1,3)
@@ -1698,6 +2073,41 @@ function givequest(st as short, byref questroll as short) as short
 return questroll
 end function
 
+function find_passage_quest(m as short, start as _cords, goal as _cords) as short
+    if find_passage(m,start,goal)>0 then
+        dprint "Thank you for finding the passage. Here is your reward."
+    else
+    
+    endif
+    return 0
+end function
+
+function Find_Passage(m as short, start as _cords, goal as _cords) as short
+    dim p(61*21) as _cords
+    dim map(60,20) as short
+    dim as short i,j,l,x,y,r
+    for x=0 to 60
+        for y=0 to 20
+            if planetmap(x,y,m)>0 then
+                if tiles(planetmap(x,y,m)).walktru>0 then map(x,y)=255 
+            else
+                map(x,y)=255
+            endif
+        next
+    next
+    l=a_star(p(),start,goal,map(),60,20,1)
+    r=-1
+    for i=0 to i
+        if planetmap(p(i).x,p(i).y,m)<0 then 
+            r=0
+        else
+            if tiles(planetmap(p(i).x,p(i).y,m)).walktru<>0 then r=0
+        endif
+    next
+    if r=-1 then r=i
+    return r
+end function
+
 function planetbounty() as short
     dim p as _cords
     
@@ -1869,8 +2279,14 @@ end function
             
 
 function checkquestcargo(player as _ship, st as short) as _ship
-    dim as short a,b
-    for a=1 to 10
+    dim as short a,b,undeliverable,where
+    for a=1 to 25
+        if player.cargo(a).x=10 or player.cargo(a).x=11 then 
+            if basis(player.cargo(a).y).c.x=-1 then 
+                undeliverable+=1
+                where=player.cargo(a).y
+            endif
+        endif
         if player.cargo(a).x=10 and player.cargo(a).y=st then
             player.cargo(a).x=1
             player.cargo(a).y=0
@@ -1892,7 +2308,17 @@ function checkquestcargo(player as _ship, st as short) as _ship
         player.towed=0
         player.questflag(8)=0
     endif
-    
+    if undeliverable>0 then
+        if askyn("The Station commander offers to buy your cargo for station "& where & " for 10 Cr per ton(y/n)") then
+            for a=1 to 25
+                if (player.cargo(a).x=10 or player.cargo(a).x=11) and player.cargo(a).y=where then
+                    player.cargo(a).x=1
+                    player.cargo(a).y=0
+                    player.money=player.money+10
+                endif
+            next
+        endif
+    endif
     if b>0 then dprint "You deliver "& b &" tons of cargo for triax traders and get payed "& b*200 &" credits.",10
     return player
 end function
