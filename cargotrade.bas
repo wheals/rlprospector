@@ -716,7 +716,7 @@ function casino(staked as short=0, st as short=-1) as short
     screenset 1,1
     do
         drawroulettetable()
-        a=menu("Casino:/Play Roulette/Have a drink/Leave")
+        a=menu("Casino:/Play Roulette/Play Slot Machine/Have a drink/Leave")
         if a=1 then
         do 
             locate 14,25
@@ -848,7 +848,8 @@ function casino(staked as short=0, st as short=-1) as short
             endif
             loop until b=6
         endif
-        if a=2 then
+        if a=2 then play_slot_machine
+        if a=3 then
             drawroulettetable()
             player.money=player.money-1
             if player.money<0 then                 
@@ -998,12 +999,94 @@ function casino(staked as short=0, st as short=-1) as short
         endif
         displayship
         drawroulettetable()
-    loop until a=3
+    loop until a=4
     cls
     result =mwon-mlos
     if result>30000 then result=30000
     return mwon-mlos
 end function
+
+function play_slot_machine() as short
+    dim as short bet,win,a,b,c,d,debug
+    debug=0
+    do
+        cls
+        displayship
+        dprint "How much do you want to bet(0-100)"
+        if debug=0 then
+            bet=getnumber(0,100,0)
+        else 
+            bet=100
+        endif
+        if bet>player.money then bet=0
+        if bet>0 then
+            player.money=player.money-bet
+            a=rnd_range(1,9)
+            b=rnd_range(1,9)
+            c=rnd_range(1,9)
+            for d=1 to 10+rnd_range(1,6)+rnd_range(1,6)
+                if rnd_range(1,100)>33 then a+=1
+                if rnd_range(1,100)>33 then b+=1
+                if rnd_range(1,100)>33 then c+=1
+                
+                if a>9 then a=1
+                if b>9 then b=1
+                if c>9 then c=1
+                if _tiles=0 then
+                    put (45*_fw2+1*_tix,10*_tiy),gtiles(a+68),pset
+                    put (45*_fw2+2*_tix,10*_tiy),gtiles(b+68),pset
+                    put (45*_fw2+3*_tix,10*_tiy),gtiles(c+68),pset
+                else
+                    if a<8 then
+                        color spectraltype(a),0
+                        draw string (45*_fw2+1*_fh1,10*_fw1),"*",,font1,custom,@_col
+                    else
+                        if a=8 then color 7,0
+                        if a=9 then color 179,0
+                        draw string (45*_fw2+1*_fh1,10*_fw1),"o",,font1,custom,@_col
+                    endif
+                    
+                    
+                    if b<8 then
+                        color spectraltype(b),0
+                        draw string (45*_fw2+2*_fh1,10*_fw1),"*",,font1,custom,@_col
+                    else
+                        if b=8 then color 7,0
+                        if b=9 then color 179,0
+                        draw string (45*_fw2+2*_fh1,10*_fw1),"o",,font1,custom,@_col
+                    endif
+                    
+                    
+                    if c<8 then
+                        color spectraltype(c),0
+                        draw string (45*_fw2+3*_fh1,10*_fw1),"*",,font1,custom,@_col
+                    else
+                        if c=8 then color 7,0
+                        if c=9 then color 179,0
+                        draw string (45*_fw2+3*_fh1,10*_fw1),"o",,font1,custom,@_col
+                    endif
+                    
+                endif
+                sleep 50+d*10
+            next
+            win=0
+            if a=b and b=c then win=(a)*2+1
+            if (a=b or b=c or a=c) and win=0 then win=1
+            if (a=9 or b=9 or c=9) then win=win+1
+            
+            if win=0 then
+                dprint "You loose "& bet &" Cr."
+            else
+                player.money+=bet*win
+                dprint "You win "& bet*win &" Cr."
+            endif
+            if debug=0 then sleep
+        endif
+    loop until bet=0
+    
+    return 0
+end function
+
 
 function checkpassenger(st as short) as short
     dim as short b,t,price

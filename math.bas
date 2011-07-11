@@ -33,9 +33,6 @@ function fixstarmap() as short
     dim sp(lastspecial) as short
     dim as string l
     dim as short a,b,c,fixed,fsp,pis,newfix,cc,spfix, debug,f
-    debug=1
-    if debug=1 then
-    endif
         
     do
         cc+=1

@@ -30,7 +30,7 @@
 #include once "globals.bas"
 on error goto errormessage  
 
-
+ 
 cls
 ' Load 
 print
@@ -2945,7 +2945,8 @@ function grenade(from as _cords,map as short) as _cords
     
     target.x=from.x
     target.y=from.y
-    ntarget=from
+    ntarget.x=from.x
+    ntarget.y=from.y
     x=from.x
     y=from.y
     p=from

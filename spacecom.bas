@@ -556,7 +556,7 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     dim list_e(128) as short
     dim last as short
     dim debug as byte
-    debug=1
+    debug=0
     
     for a=1 to lastenemy
             last+=1
@@ -573,6 +573,7 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
     osx=defender.c.x-_mwx/2
     if osx<0 then osx=0
     if osx>_mwx then osx=60-_mwx
+    if _mwx=60 then osx=0
     senbat=defender.sensors+2
     senbat1=defender.sensors+1
     senbat2=defender.sensors

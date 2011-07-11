@@ -1020,6 +1020,7 @@ function showteam(from as short, r as short=0,text as string="") as short
     no_key=""
     equip_awayteam(player,dummy,0)
     lines=fix((_screeny)/(_fh2*4))
+    lines-=1
     cls
     do
         color 11,0

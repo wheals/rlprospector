@@ -2665,7 +2665,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
     dim as string key,text
     dim as short a,deadcounter,slot,osx
     dim debug as short
-    debug=1
+    debug=0
     slot=player.map
     p2.x=awayteam.c.x
     p2.y=awayteam.c.y

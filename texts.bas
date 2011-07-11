@@ -202,6 +202,28 @@ function low_morale_message() as short
                 case is=9
                     dprint crew(who).n &" says 'Hey, buck up. We're not dead yet, right? ...Right?'"
             end select
+        case 100 to 110
+            if rnd_range(1,100)<10 then
+                select case rnd_range(1,3)
+                    case is=1
+                        dprint crew(who).n &" starts whisteling."
+                    case is=2
+                        dprint crew(who).n &" tells everybody about the special paintshop he plans to get for his spacesuit."
+                    case is=3
+                        dprint crew(who).n &" thinks this will be one of the more profitable hauls."
+                end select
+            endif
+        case is>111
+            if rnd_range(1,100)<10 then
+            select case rnd_range(1,3)
+                case is=1
+                    dprint crew(who).n &" thinks this expedition is going great so far."
+                case is=2
+                    dprint crew(who).n &" tells a funny joke."
+                case is=3
+                    dprint crew(who).n &" thinks you are the best captain ever!"
+            end select
+            endif
     end select
     return 0
 end function

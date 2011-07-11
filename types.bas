@@ -1366,6 +1366,8 @@ declare function custom_ships(pir as short) as short
 declare function repairhull() as short
 declare function refuel(price as short=1) as short
 declare function casino(staked as short=0, st as short=0) as short
+declare function play_slot_machine() as short
+
 declare function upgradehull(t as short,byref s as _ship, forced as short=0) as short
 declare function gethullspecs(t as short,file as string) as _ship
 declare function makehullbox(t as short, file as string) as string

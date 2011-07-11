@@ -2700,7 +2700,6 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
-    dprint "awayteammove:"&awayteam.move
     'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
     return 0
 end function
