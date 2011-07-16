@@ -11,9 +11,13 @@ function ep_atship(awayteam as _monster,ship as _cords,walking as short) as shor
             awayteam.jpfuel=awayteam.jpfuelmax
         endif
         for a=1 to 128
-            if crew(a).disease>0 then
+            if crew(a).disease>0 and crew(a).onship=0 then
                 crew(a).oldonship=crew(a).onship
                 crew(a).onship=1
+            endif
+            if crew(a).disease=0 and crew(a).onship=0 then
+                crew(a).onship=crew(a).oldonship
+                crew(a).oldonship=0
             endif
         next
         alerts(awayteam, walking)
@@ -505,8 +509,9 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
             if a>0 then
                 if rnd_range(1,100)>item(a).res then
                     item(a).res=item(a).res-25
-                    dprint "Your "&item(a).desig &" corrodes.",14
-                    if item(a).res<0 then
+                    if item(a).res>=0 then
+                        dprint "Your "&item(a).desig &" starts to corrode.",14
+                    else
                         dprint "Your "&item(a).desig &" corrodes and is no longer usable.",14
                         destroyitem(a)
                         equip_awayteam(player,awayteam,slot)
@@ -1598,7 +1603,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc & " eats of the dead "&enemy(b).sdesc &"."
                                 endif
                             else
-                                if rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel and enemy(b).killedby=0 then
+                                if rnd_range(1,6)+rnd_range(1,6)<5+enemy(a).intel and enemy(b).killedby=0 then
                                     enemy(a).aggr=0
                                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc & " gets angry looking at the dead "&enemy(b).sdesc &"."
                                 endif
@@ -2669,12 +2674,6 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
     slot=player.map
     p2.x=awayteam.c.x
     p2.y=awayteam.c.y
-    if debug=1 then print mouse.s
-    if mouse.s=1 then
-        p2.x=mouse.x/_tix
-        p2.y=mouse.y/_tiy
-        if debug=1 then dprint p2.x &":"&p2.y
-    endif
     do
         ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)               
         osx=awayteam.c.x-_mwx/2
@@ -2700,14 +2699,18 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
             endif
         endif
         p3=p2
-        if mouse.s=0 then key=cursor(p2,slot,osx)
-        if p3.x<>p2.x or p3.y<>p2.y or mouse.s=1 then
-            
+        key=cursor(p2,slot,osx)
+        if p3.x<>p2.x or p3.y<>p2.y then
+            if p2.x<0 then p2.x=0
+            if p2.y<0 then p2.y=0
+            if p2.x>60 then p2.x=60
+            if p2.y>20 then p2.y=20
             if distance(p2,awayteam.c)<=awayteam.sight and vismask(p2.x,p2.y)>0 then
                 text=tmap(p2.x,p2.y).desc &". "
                 for a=0 to lastportal
                     if p2.x=portal(a).from.x and p2.y=portal(a).from.y and slot=portal(a).from.m then text=text & portal(a).desig &". "
                     if p2.x=portal(a).dest.x and p2.y=portal(a).dest.y and slot=portal(a).dest.m and portal(a).oneway=0 then text= text &portal(a).desig &". "
+                    if debug=9 and p2.x=portal(a).from.x and p2.y=portal(a).from.y and slot=portal(a).from.m then text=text &a &":"&portal(a).from.m &"dest:"& portal(a).dest.m &":"& portal(a).dest.x &":"& portal(a).dest.y &"oneway:"&portal(a).oneway
                 next
                                 
                 for a=1 to lastlocalitem
@@ -2748,8 +2751,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
             if text<>"" then dprint text
             text=""
         endif
-    loop until key=key_enter or key=key_esc or ucase(key)="Q" or mouse.s=1
-    mouse.s=0
+    loop until key=key_enter or key=key_esc or ucase(key)="Q" 
     return 0
 end function
 

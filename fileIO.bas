@@ -132,7 +132,7 @@ function keybindings() as short
     wend
     close #f
     f=freefile
-    open "data\commands.csv" for input as #f
+    open "data/commands.csv" for input as #f
     a=0
     cls
     while not eof(f)
@@ -1073,6 +1073,7 @@ function configuration() as short
         text=text &"/ Alternative Numberinput: "& onoff(_altnumber)
         text=text &"/ Transparent Items: "& onoff(_transitems)
         text=text &"/ Main window width(tile mode): "& gt_mwx
+        text=text &"/ Savescumming: "& onoff(_savescumming)
         text=text &"/Exit"
         c=menu(text,,,,1)
         if c=1 then
@@ -1264,7 +1265,16 @@ function configuration() as short
             gt_mwx=getnumber(20,60,30)
             dprint "Will be changed next time you start prospector."
         endif
-    loop until c=22
+        if c=22 then
+            
+            select case _savescumming
+            case is=1
+                _savescumming=0
+            case is=0
+                _savescumming=1
+            end select
+        endif
+    loop until c=23
     
     screenshot(2)
     saveconfig(oldtiles)
@@ -1303,6 +1313,7 @@ function saveconfig(oldtiles as short) as short
     print #f,"onbar:"&_onbar
     print #f,"classic:"&_customfonts
     print #f,"transitem:"&_transitems
+    print #f,"savescumming:"&_savescumming
     close #f
     return 0
 end function
@@ -1659,6 +1670,14 @@ function savegame() as short
         put #f,,coms(a)
         print ".";
     next
+    
+    for c=0 to 6
+        for a=0 to 12
+            for b=0 to 8
+                put #f,,goods_prices(b,a,c)
+            next
+        next
+    next
     close f
     
     color 14,0
@@ -1680,6 +1699,8 @@ function loadgame(filename as string) as short
     dim dat as string*36
     dim names as string*36
     dim p as _planet
+    dim debug as byte
+    debug=0
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -1872,13 +1893,31 @@ function loadgame(filename as string) as short
             get #f,,coms(a)
             print ".";
         next
+            
+        for c=0 to 6
+            for a=0 to 12
+                for b=0 to 8
+                    get #f,,goods_prices(b,a,c)
+                next
+            next
+        next
+        
         close f
-        if fname<>"savegames\empty.sav" then kill(fname)
+        if fname<>"savegames/empty.sav" and _savescumming=1 then kill(fname)
         player.lastvisit.s=-1
     else 
         player.desig=filename
     endif
     cls
+    if debug=1 then
+        f=freefile
+        open "portals.csv" for output as #f
+        for a=0 to lastportal
+            print #f,portal(a).from.x &";"&portal(a).from.y &";"&portal(a).from.m &";"& portal(a).dest.x &";"&portal(a).dest.y &";"&portal(a).dest.m
+        next
+        close #f
+        
+    endif
     return 0
     
 end function

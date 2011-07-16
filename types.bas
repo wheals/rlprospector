@@ -5,7 +5,7 @@
 using FB
 randomize timer
 
-const __VERSION__="0.2.2a"
+const __VERSION__="0.2.2b"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -76,6 +76,7 @@ dim shared as short countpatrol,makepat
 
 dim shared as ushort _screenx=800
 dim shared as ushort _screeny=0
+dim shared as byte _savescumming=1
 dim shared as byte _teamcolor=15
 dim shared as byte _shipcolor=14
 dim shared as byte _chosebest=1
@@ -566,6 +567,8 @@ type _station
     lastattacked as short
 end type
 
+dim shared goods_prices(8,12,6) as single
+
 type _comment
     c as _cords
     t as string*32
@@ -887,7 +890,6 @@ End Property
 '7 mapsincredits
 '8 Pirate outpost
 
-dim shared mouse as _cords
 dim shared apwaypoints(1024) as _cords
 dim shared lastapwp as short
 dim shared currapwp as short
@@ -1367,6 +1369,7 @@ declare function repairhull() as short
 declare function refuel(price as short=1) as short
 declare function casino(staked as short=0, st as short=0) as short
 declare function play_slot_machine() as short
+declare function showprices(st as short) as short
 
 declare function upgradehull(t as short,byref s as _ship, forced as short=0) as short
 declare function gethullspecs(t as short,file as string) as _ship

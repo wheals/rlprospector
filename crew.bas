@@ -34,6 +34,7 @@ function cureawayteam(where as short) as short
             if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor+addtalent(5,17,1)>5+crew(a).disease/2 then
                 crew(a).disease=0
                 crew(a).onship=crew(a).oldonship
+                crew(a).oldonship=0
                 cured+=1
             endif
             if crew(a).disease>0 then sick+=1
@@ -568,7 +569,7 @@ function addmember(a as short) as short
     dim as string n(200,1)
     dim as short ln(1)
     f=freefile
-    open "data\crewnames.txt" for input as #f
+    open "data/crewnames.txt" for input as #f
     do
         ln(cc)+=1
         line input #f,n(ln(cc),cc)
@@ -1010,6 +1011,8 @@ function showteam(from as short, r as short=0,text as string="") as short
     dim augments as string
     dim message as string
     dim onoff(2) as string
+    dim debug as byte
+    debug=0
     onoff(0)="On "
     onoff(1)=" - "
     onoff(2)="Off"
@@ -1193,6 +1196,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                         color 10,bg
                         draw string (34*_fw2,y*_fh2) ," Awayteam ",,font2,custom,@_col
                     endif
+                    if debug=1 then draw string (40*_fw2,y*_fh2),""&crew(b-offset).oldonship,,font2,custom,@_col
                     if crew(b-offset).hp<=0 then
                         color 12,bg
                         draw string (34*_fw2,y*_fh2) ," Dead ",,font2,custom,@_col

@@ -135,7 +135,7 @@ sub postmortem
     dim invn(255) as short
     dim text as string
     dim as short set,lastinv    
-    kill("savegames\"&player.desig &".sav")
+    if _savescumming=1 then kill("savegames/"&player.desig &".sav")
     old_g=_tiles
     _tiles=1
     'count ioncanons

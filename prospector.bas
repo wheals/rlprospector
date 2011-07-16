@@ -56,7 +56,7 @@ do
                 text=getfilename()
                 if text<>"" then
                     if askyn("Are you sure you want to delete "&text &"(y/n)") then
-                        kill("savegames\"&text)
+                        kill("savegames/"&text)
                         key="1"
                     endif
                 endif     
@@ -119,9 +119,7 @@ fSOUND_close
 end
 
 function titlemenu() as short
-    #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
-    #endif
     background(rnd_range(1,_last_title_pic)&".bmp")
     
     
@@ -256,14 +254,14 @@ function startnewgame() as short
     player.desig=gettext((5*_fw1+44*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
     if player.desig="" then player.desig=randomname()
     a=freefile
-    if open ("savegames\"&player.desig &".sav" for input as a)=0 then
+    if open ("savegames/"&player.desig &".sav" for input as a)=0 then
         close a
         do
             draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
             draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
             player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
             if player.desig="" then player.desig=randomname()
-        loop until fileexists("savegames\"&player.desig &".sav")=0    
+        loop until fileexists("savegames/"&player.desig &".sav")=0    
     endif
     cls
     return 0
@@ -1705,6 +1703,9 @@ function explore_space() as short
         lastfleet=lastfleet+1
         if lastfleet>255 then lastfleet=3
         fleet(lastfleet)=makefleet(fleet(lastfleet))
+        for a=0 to 2
+            changeprices(a,10)
+        next
     endif
     
     if frac(player.turn/25)=0 then 
@@ -2575,7 +2576,6 @@ endif
         else
             if player.dead<>0 then allowed=""
         endif
-        if mouse.s=1  then ep_examine(awayteam,ship,vismask(),li(),enemy(),lastenemy,lastlocalitem,walking)
         
         if key<>"" then walking=0
         if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
@@ -3572,6 +3572,7 @@ function clear_gamestate() as short
     dim d_item as _items
     dim d_share as _share
     dim d_company as _company
+    dim d_portal as _transfer
     player=d_ship
     
     for a=0 to 128
@@ -3683,6 +3684,10 @@ function clear_gamestate() as short
         basis(a).inv(5).n="Weapons"
         basis(a).inv(5).v=rnd_range(1,8)
         basis(a).inv(5).p=2500
+    next
+    
+    for a=0 to 255
+        portal(a)=d_portal
     next
     
     

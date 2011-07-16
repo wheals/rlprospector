@@ -206,9 +206,9 @@ function low_morale_message() as short
             if rnd_range(1,100)<10 then
                 select case rnd_range(1,3)
                     case is=1
-                        dprint crew(who).n &" starts whisteling."
+                        dprint crew(who).n &" starts whistling."
                     case is=2
-                        dprint crew(who).n &" tells everybody about the special paintshop he plans to get for his spacesuit."
+                        dprint crew(who).n &" tells everybody about the special paintjob he plans to get for his spacesuit."
                     case is=3
                         dprint crew(who).n &" thinks this will be one of the more profitable hauls."
                 end select

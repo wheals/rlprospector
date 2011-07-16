@@ -26,10 +26,6 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
 '                    endif
 '                endif
                 Select Case evkey.type
-                    case EVENT_MOUSE_MOVE
-                        mouse.x=evkey.x
-                        mouse.y=evkey.y
-                        mouse.s=1
                     Case EVENT_KEY_PRESS
                         if debug =1 then
                             locate 1,1
@@ -72,12 +68,9 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                     
                     end select
                 endif            
-                'if evkey.type=13 then key=key_quit
+                if evkey.type=13 then key=key_quit
             sleep 1
-        loop until key<>"" or walking<>0 or mouse.s=1 or (allowed="" and player.dead<>0) or just_run=1
-        if debug=1 then
-            dprint mouse.x &":"&mouse.y
-        endif
+        loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run=1
             
         if key<>"" then walking=0 
         if _test_disease=1 and key="#" then

@@ -729,14 +729,15 @@ function casino(staked as short=0, st as short=-1) as short
                     dprint "which number?"
                     fi=getnumber(1,36,18)
                 endif
-                dprint "how much?"
                 if player.money>50+staked*50 then 
                     mbet=50+staked*50
                 else
                     mbet=player.money
                 endif
+                dprint "how much? (0-"& mbet &")"
                 bet=getnumber(0,mbet,0)
                 player.money=player.money-bet
+                displayship()
                 if bet>0 then
                     changemoral(bet/3,0)
                     locate 14,25
@@ -1075,7 +1076,7 @@ function play_slot_machine() as short
             if (a=9 or b=9 or c=9) then win=win+1
             
             if win=0 then
-                dprint "You loose "& bet &" Cr."
+                dprint "You lose "& bet &" Cr."
             else
                 player.money+=bet*win
                 dprint "You win "& bet*win &" Cr."
@@ -1546,7 +1547,7 @@ function ship_design(pir as short) as short
     dim value(10) as short
     dim incr(10) as short
     dim h as _ship
-    if count_lines("data/custom.csv")>20 then 
+    if count_lines("data/customs.csv")>20 then 
         dprint "Too many designs in custom.csv. You need to delete one before you can add new ones"
         return 0
     endif
@@ -2472,11 +2473,12 @@ function trading(st as short) as short
             cls
             displayship()
             displaywares(st)
-            a=menu(" /Buy/Sell/Stock Market/Exit",,2,14)
+            a=menu(" /Buy/Sell/Price development/Stock Market/Exit",,2,14)
             if a=1 then buygoods(st)
             if a=2 then sellgoods(st)
-            if a=3 then stockmarket(st)
-        loop until a=4
+            if a=3 then showprices(st)
+            if a=4 then stockmarket(st)
+        loop until a=5
     else
         do
             cls
@@ -2491,6 +2493,37 @@ function trading(st as short) as short
     cls
     return 0
 end function
+
+function showprices(st as short) as short
+    cls
+    dim as short a,b,highest
+    color 11,0
+    for a=0 to 8
+        color a+8,0
+        if a=0 then 
+            color 11,0
+            draw string (0,a*_fh2),"Turn :",,font2,custom,@_col
+        else
+            draw string (0,a*_fh2),basis(st).inv(a).n &":",,font2,custom,@_col
+        endif
+        for b=0 to 11
+            draw string ((b*5)*_fw2+15*_fw2,a*_fh2),""&goods_prices(a,b,st),,font2,custom,@_col
+        next
+        if goods_prices(a,b,st)>highest then goods_prices(a,b,st)=highest
+    next
+    for a=1 to 8
+        for b=0 to 10
+            color a+8,0
+            line (b*(5*_fw2)+15*_fw2,(highest-goods_prices(a,b,st))/20+20*_fh2+a)-((b+1)*(5*_fw2)+15*_fw2,(highest-goods_prices(a,b+1,st))/20+20*_fh2+a)
+        next
+        draw string (0,(highest-goods_prices(a,0,st))/21+20*_fh2+a*2),basis(st).inv(a).n &":",,font2,custom,@_tcol
+        
+    next
+    
+    no_key=keyin
+    return 0
+end function
+
 
 function buygoods(st as short) as short
     dim a as short
@@ -2650,6 +2683,7 @@ end function
 function changeprices(st as short,etime as short) as short
     dim a as short
     dim b as short
+    dim c as short
     dim supply as short
     dim demand as short
     dim change as short
@@ -2711,7 +2745,15 @@ function changeprices(st as short,etime as short) as short
             basis(st).inv(a).p=baseprice(a)*3
         endif
     next
+    for c=12 to 1 step -1
+        goods_prices(0,c,st)=goods_prices(0,c-1,st)
+    next
+    goods_prices(0,c,st)=player.turn
     for b=1 to 8
+        for c=12 to 1 step -1
+            goods_prices(b,c,st)=goods_prices(b,c-1,st)
+        next
+        goods_prices(b,0,st)=basis(st).inv(b).p
         avgprice(b)=0
         for a=0 to 4
             if a<>3 then
@@ -3020,7 +3062,7 @@ dim as single dis
 Dim As Integer Ptr d
 dim as short  f
     f=freefile
-    open "data\dictionary.txt" for input as #f
+    open "data/dictionary.txt" for input as #f
     while not eof(f)
         line input #f,dic
         if ucase(trim(t))=ucase(trim(dic)) then t=""
