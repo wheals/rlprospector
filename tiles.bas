@@ -993,6 +993,10 @@ tiles(107).desc="primitive factory"
 tiles(107).causeaeon=22
 tiles(107).aetype=5
 tiles(107).hides=2
+tiles(107).hp=25
+tiles(107).dr=1
+tiles(107).hitt="you start to shoot up the factory"
+tiles(107).turnsinto=4
 
 tiles(108).tile=asc("#")
 tiles(108).col=130
@@ -2181,6 +2185,21 @@ tiles(296).succt="You damage the structure"
 tiles(296).failt="The Temple withstands your fire"
 tiles(296).killt="You destroy the temple. There is some very advanced machinery in the rubble."
 tiles(296).hides=2
+
+
+tiles(297).tile=asc("#")
+tiles(297).col=15
+tiles(297).desc="primitive factory"
+tiles(297).hp=25
+tiles(297).dr=1
+tiles(297).hitt="you start to shoot up the factory"
+tiles(297).turnsinto=4
+
+tiles(298).tile=asc("C")
+tiles(298).col=15
+tiles(298).desc="security terminal"
+tiles(298).turnsinto=298
+tiles(298).gives=172
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

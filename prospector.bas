@@ -8,6 +8,7 @@
 #ENDIF
 #include once "types.bas"
 #include once "tiles.bas"
+#include once "credits.bas"
 #include once "retirement.bas"  
 #include once "math.bas" 
 #include once "astar.bas"
@@ -79,9 +80,9 @@ do
 '            next
 '            close #f
             'dodialog(1,dummy,0)
-            for b=1 to 10000
-                make_clouds()
-                gen_traderoutes()
+            for b=1 to 1000
+                make_spacemap
+                clear_gamestate
             next
         endif
         if key="9" then
@@ -170,6 +171,7 @@ function startnewgame() as short
     c=b
     if b=5 then c=6
     upgradehull(c,player)
+    
     if b=1 then
         placeitem(makeitem(100),0,0,0,0,-1)
         placeitem(makeitem(100),0,0,0,0,-1)
@@ -1719,7 +1721,7 @@ function explore_space() as short
         if show_npcs=3 then dprint ""&fleet(lastfleet).ty
     endif
     
-    if frac(player.turn/50)=0 and player.turn>750 and player.questflag(3)=0 then 
+    if frac(player.turn/100)=0 and player.turn>5000 and player.questflag(3)=0 then 
         lastfleet=lastfleet+1
         if lastfleet>255 then lastfleet=3
         fleet(lastfleet)=makealienfleet
@@ -2221,14 +2223,15 @@ endif
     
     planets(slot).visited=player.turn    
     if planets(slot).flags(27)=1 then planets(slot).flags(27)=2
-    if slot=specialplanet(0) and player.towed=1 then
+    
+    if slot=specialplanet(0) and player.towed=4 then
         dprint "The alien generation ship lands next to yours and the insects start exploring and setting up their colony immediately."
         p=movepoint(ship,5)
         'questflag(0)=1
         player.towed=0
         planetmap(p.x,p.y,slot)=269
         tmap(p.x,p.y)=tiles(269)
-        drifting(1).x=-1 'Move drifting off the map (Can't delete it, since then another ship could get generated there and would trigger the event
+        drifting(4).x=-1 'Move drifting off the map (Can't delete it, since then another ship could get generated there and would trigger the event
         planets(slot).mon_template(1)=makemonster(80,slot)
         planets(slot).mon_noamin(1)=10
         planets(slot).mon_noamax(1)=14
@@ -2785,6 +2788,16 @@ endif
                 if planetmap(x,y,slot)=60 then planetmap(x,y,slot)=4
             next
         next
+    endif
+    
+    if specialplanet(17)=slot then
+        a=1
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,slot))=107 then a=0
+            next
+        next
+        specialflag(17)=a
     endif
     
     if slot=pirateplanet(0) and planets(slot).genozide=1 then

@@ -7,8 +7,9 @@ function logbook(byref walking as short) as short
     dim lobc(255) as short 'lobc is bg color
     dim lobp(255) as _cords 'lobc is bg color
     static as short curs
-    dim as short x,y,a,b,p,m,lx,ly,dlx,diff,i,last,ll
+    dim as short x,y,a,b,p,m,lx,ly,dlx,diff,i,last,ll,debug
     dim as string key,lobk1,lobk2
+    debug=0
     ll=fix(20*_fh1/_fh2)
     last=lb_listmake(lobk(),lobn(),lobc(),lobp())
     for a=1 to last       'tests all lobn for special planets, system comments and planets comments for coloring bg
@@ -76,6 +77,7 @@ function logbook(byref walking as short) as short
         
         
         if lobn(curs)>=0 then
+            if debug=1 and key="t" then player.c=lobp(curs)
             show_minimap(lobp(curs).x,lobp(curs).y)
             show_dotmap(lobp(curs).x,lobp(curs).y)
             if lobn(curs)>laststar then show_wormholemap(lobn(curs))
@@ -168,7 +170,7 @@ function logbook(byref walking as short) as short
                 
         endif
         flip
-        key=keyin("123456789 " &key_sc &key_esc &key_enter &key_comment &key_walk &key_filter,walking)
+        key=keyin("123456789 " &key_sc &key_esc &key_enter &key_comment &key_walk &key_filter &"t",walking)
         a=getdirection(key)
         if a=5 then key=key_enter 
         
@@ -488,7 +490,8 @@ end function
 
 function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as _cords) as short
     dim last as short
-    dim as short i,a,f,j
+    dim as short i,a,b,f,j
+    
     for a=0 to 255
         lobn(a)=-1
     next
@@ -499,7 +502,11 @@ function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as
             lobk(i)=trim(map(a).desig)
             if map(a).comment<>"" then lobk(i)=lobk(i) &" (c)"
             lobn(i)=a
+            lobc(i)=0
             lobp(i)=map(a).c
+            for b=1 to 9
+                if is_special(map(a).planets(b)) then lobc(i)=6
+            next
         endif
     next
     last=i

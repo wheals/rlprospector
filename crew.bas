@@ -1000,6 +1000,232 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
     return 0
 end function
 
+function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
+    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
+    dim as single oxytanks,oxy
+    dim as short cantswim,cantfly,invisibility
+    dim as byte debug=0
+    cmove=awayteam.move
+    awayteam.jpfueluse=0
+    awayteam.stuff(1)=0
+    awayteam.armor=0
+    awayteam.guns_to=0
+    awayteam.blades_to=0
+    awayteam.light=0
+    awayteam.jpfueluse=0
+    awayteam.jpfuelmax=0
+    for a=1 to lastitem
+        if item(a).w.s=-2 then item(a).w.s=-1
+    next
+    for a=1 to lastitem
+        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
+        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
+    next
+    for a=1 to 128
+        if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
+            crew(a).jp=1
+            awayteam.jpfueluse+=1
+            jpacks-=1
+        else
+            crew(a).jp=0
+        endif
+    next
+    hovers=0
+    jpacks=0
+    
+    for a=1 to lastitem
+        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
+        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
+        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
+    next
+    infra=2
+    awayteam.invis=6
+    awayteam.oxymax=0
+    awayteam.oxydep=0
+    for a=1 to 128
+        crew(a).weap=0
+        crew(a).armo=0
+        crew(a).blad=0
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips<>1 then
+            if crew(a).pref_ccweap>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_ccweap then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secweapc(a)=item(c).v1
+                    awayteam.blades_to=awayteam.blades_to+item(c).v1
+                    crew(a).blad=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+            if crew(a).pref_lrweap>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_lrweap then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secweap(a)=item(c).v1
+                    awayteam.secweapran(a)=item(c).v2
+                    awayteam.secweapthi(a)=item(c).v3
+                    awayteam.guns_to=awayteam.guns_to+item(c).v1
+                    crew(a).weap=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+            if crew(a).pref_armor>0 then
+                c=0
+                for b=0 to lastitem
+                    if item(b).uid=crew(a).pref_armor then
+                        c=b
+                        exit for
+                    endif
+                next
+                if c>0 then
+                    awayteam.secarmo(a)=item(c).v1
+                    invisibility=0
+                    if item(c).v2>crew(a).augment(9) then 
+                        invisibility=item(c).v2
+                    else
+                        invisibility=crew(a).augment(9)
+                    endif    
+                    if awayteam.invis<invisibility then awayteam.invis=invisibility
+                    awayteam.armor=awayteam.armor+item(c).v1
+                    crew(a).armo=c
+                    item(c).w.s=-2
+                    'dprint crew(a).n &" grabs his "&item(c).desig
+                endif
+            endif
+        endif
+    next
+    
+    for a=1 to 128
+        'find best ranged weapon
+        'give to redshirt
+
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then 
+            if crew(a).augment(7)=0 then
+                cantswim+=1
+            else
+                hovers+=1
+            endif
+            
+            if crew(a).augment(8)=0 then 
+                cantfly+=1
+            else
+                jpacks+=1
+                awayteam.jpfueluse+=1
+            endif
+            if crew(a).equips=0 then
+                b=findbest(2,-1)        
+                if b>-1 and crew(a).weap=0 then
+                    'dprint "Equipping "&item(b).desig & b
+                    awayteam.secweap(a)=item(b).v1
+                    awayteam.secweapran(a)=item(b).v2
+                    awayteam.secweapthi(a)=item(b).v3
+                    awayteam.guns_to=awayteam.guns_to+item(b).v1
+                    crew(a).weap=b
+                    item(b).w.s=-2
+                endif
+                'find best armor        
+                b=findbest(3,-1)
+                'give to redshirt
+                if b>-1 and crew(a).armo=0 then
+                    awayteam.secarmo(a)=item(b).v1
+                    invisibility=0
+                    if item(b).v2>crew(a).augment(9) then 
+                        invisibility=item(b).v2
+                    else
+                        invisibility=crew(a).augment(9)
+                    endif    
+                    if awayteam.invis<invisibility then awayteam.invis=invisibility
+                    awayteam.armor=awayteam.armor+item(b).v1
+                    crew(a).armo=b
+                    item(b).w.s=-2
+                else
+                    awayteam.invis=0
+                endif
+            endif
+            oxy=.75
+            b=findbest(17,-1)
+            if b>-1 then
+                item(b).w.s=-2
+                oxy=oxy-item(b).v1
+            endif
+            if crew(a).augment(3)>1 then oxy=oxy-.3
+            if oxy<0 then oxy=.1
+            if crew(a).typ=13 then oxy=0
+            awayteam.oxydep=awayteam.oxydep+oxy
+            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
+                b=findbest(14,-1)
+                if b>-1 then 
+                    item(b).w.s=-2
+                    awayteam.oxymax=awayteam.oxymax+200+item(b).v1
+                else
+                    awayteam.oxymax=awayteam.oxymax+200
+                endif
+            endif
+            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 or crew(a).augment(8)=1 then
+                b=findbest(28,-1)
+                if b>-1 then 
+                    item(b).w.s=-2
+                    awayteam.jpfuelmax=awayteam.jpfuelmax+50+item(b).v1
+                else
+                    awayteam.jpfuelmax=awayteam.jpfuelmax+50
+                endif
+            endif
+        endif
+    next
+    
+    for a=128 to 1 step -1
+        b=findbest(4,-1)
+        'give to redshirt
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 and crew(a).blad=0 then
+            if b>-1 then
+                'dprint "Equipping "&item(b).desig & b
+                awayteam.secweapc(a)=item(b).v1
+                awayteam.blades_to=awayteam.blades_to+item(b).v1
+                crew(a).blad=b
+                item(b).w.s=-2
+            endif
+        endif
+    next
+    'dprint ""&awayteam.move
+    'count teleportation devices
+    awayteam.move=0
+    if awayteam.move<4 and cantswim<=hovers then awayteam.move=1
+    if awayteam.move<4 and cantfly<=jpacks then awayteam.move=awayteam.move+2
+    if artflag(9)>0 then awayteam.move=4
+    
+    awayteam.nohp=hovers
+    awayteam.nojp=jpacks
+    if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
+    if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
+    if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
+    if findbest(46,-1)>-1 then awayteam.invis=7
+    awayteam.sight=3
+    awayteam.light=0
+    if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
+    if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
+    if awayteam.oxymax<200 then awayteam.oxymax=200
+    if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
+    if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
+    awayteam.oxydep=awayteam.oxydep*planets(m).grav
+    awayteam.oxydep=awayteam.oxydep*awayteam.helmet
+    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
+    if debug=2 then dprint awayteam.invis &":"&findbest(46,-1)
+    return 0
+end function
+
 
 function showteam(from as short, r as short=0,text as string="") as short
     dim as short b,bg,last,a,sit,cl,y,lines,xw

@@ -540,8 +540,10 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     dim debug as short
     debug=0
     osx=b.x-_mwx/2
-    if osx<0 then osx=0
-    if osx>=60-_mwx then osx=60-_mwx
+    if rollover=0 then
+        if osx<0 then osx=0
+        if osx>=60-_mwx then osx=60-_mwx
+    endif
     if abs(c.x-b.x)>30 then
         if c.x>b.x then
             b.x+=61

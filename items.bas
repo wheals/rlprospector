@@ -127,11 +127,11 @@ function rnd_item(t as short) as _items
         if r=14 then i=makeitem(83)
         if r=15 then i=makeitem(84)
         if r=16 then i=makeitem(85)
-        if r=17 then i=makeitem(86)
         if r=18 then i=makeitem(100)
         if r=19 then i=makeitem(101)
         if r=20 then i=makeitem(102)
         if r=21 then i=makeitem(103)
+        if r=17 then i=makeitem(104)
         if r=22 then i=makeitem(22)
         if r=23 then i=makeitem(23)
     endif
@@ -142,7 +142,11 @@ function rnd_item(t as short) as _items
                 i=makeitem(rnd_range(3,20))
             case is>90 
                 if rnd_range(1,100)<50 then
-                    i=makeitem(rnd_range(24,25))
+                    if rnd_range(1,100)<66 then
+                        i=makeitem(rnd_range(106,107))
+                    else
+                        i=makeitem(rnd_range(24,25))
+                    endif
                 else
                     i=makeitem(rnd_range(59,61))
                 endif
@@ -713,9 +717,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp="grenades"
         i.ldesc="small self propelled devices with explosive warheads"
         i.icon="'"
-        i.v1=1
+        i.v1=2
         i.col=7
-        i.price=25
+        i.price=50
         i.res=10
     endif 
     
@@ -727,9 +731,9 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp="fusion grenades"
         i.ldesc="small self propelled devices with small matter-antimatter warheads"        
         i.icon="'"
-        i.v1=2
+        i.v1=4
         i.col=9
-        i.price=80
+        i.price=160
         i.res=11
     endif
     
@@ -1745,7 +1749,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         endif
     endif
     
-    if a=85 then
+    if a=104 then
         i.ti_no=2117
         i.ty=56
         i.desig="MK I Gas mining probe"
@@ -1760,7 +1764,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     endif
     
-    if a=86 then
+    if a=105 then
         i.ti_no=2117
         i.ty=56
         i.desig="MK II Gas mining probe"
@@ -1772,6 +1776,35 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="s"
         i.col=12
         i.price=200
+    endif
+    
+    
+    if a=106 then
+        i.ti_no=2024
+        i.id=24
+        i.ty=7
+        i.desig="small grenade"
+        i.desigp="small grenades"
+        i.ldesc="small self propelled devices with explosive warheads"
+        i.icon="'"
+        i.v1=1
+        i.col=7
+        i.price=25
+        i.res=10
+    endif 
+    
+    if a=107 then
+        i.ti_no=2025
+        i.id=25
+        i.ty=7
+        i.desig="small fusion grenade"
+        i.desigp="small fusion grenades"
+        i.ldesc="small self propelled devices with small matter-antimatter warheads"        
+        i.icon="'"
+        i.v1=3
+        i.col=9
+        i.price=80
+        i.res=11
     endif
 '   
 'Typ 51-54 taken
@@ -2480,229 +2513,6 @@ function modify_item(i as _items) as _items
 end function
 
 
-function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
-    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
-    dim as single oxytanks,oxy
-    dim as short cantswim,cantfly,invisibility
-    cmove=awayteam.move
-    awayteam.jpfueluse=0
-    awayteam.stuff(1)=0
-    awayteam.armor=0
-    awayteam.guns_to=0
-    awayteam.blades_to=0
-    awayteam.light=0
-    awayteam.jpfueluse=0
-    awayteam.jpfuelmax=0
-    for a=1 to lastitem
-        if item(a).w.s=-2 then item(a).w.s=-1
-    next
-    for a=1 to lastitem
-        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
-        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
-    next
-    for a=1 to 128
-        if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
-            crew(a).jp=1
-            awayteam.jpfueluse+=1
-            jpacks-=1
-        else
-            crew(a).jp=0
-        endif
-    next
-    hovers=0
-    jpacks=0
-    
-    for a=1 to lastitem
-        if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
-        if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
-    next
-    infra=2
-    awayteam.invis=6
-    awayteam.oxymax=0
-    awayteam.oxydep=0
-    for a=1 to 128
-        crew(a).weap=0
-        crew(a).armo=0
-        crew(a).blad=0
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips<>1 then
-            if crew(a).pref_ccweap>0 then
-                c=0
-                for b=0 to lastitem
-                    if item(b).uid=crew(a).pref_ccweap then
-                        c=b
-                        exit for
-                    endif
-                next
-                if c>0 then
-                    awayteam.secweapc(a)=item(c).v1
-                    awayteam.blades_to=awayteam.blades_to+item(c).v1
-                    crew(a).blad=c
-                    item(c).w.s=-2
-                    'dprint crew(a).n &" grabs his "&item(c).desig
-                endif
-            endif
-            if crew(a).pref_lrweap>0 then
-                c=0
-                for b=0 to lastitem
-                    if item(b).uid=crew(a).pref_lrweap then
-                        c=b
-                        exit for
-                    endif
-                next
-                if c>0 then
-                    awayteam.secweap(a)=item(c).v1
-                    awayteam.secweapran(a)=item(c).v2
-                    awayteam.secweapthi(a)=item(c).v3
-                    awayteam.guns_to=awayteam.guns_to+item(c).v1
-                    crew(a).weap=c
-                    item(c).w.s=-2
-                    'dprint crew(a).n &" grabs his "&item(c).desig
-                endif
-            endif
-            if crew(a).pref_armor>0 then
-                c=0
-                for b=0 to lastitem
-                    if item(b).uid=crew(a).pref_armor then
-                        c=b
-                        exit for
-                    endif
-                next
-                if c>0 then
-                    awayteam.secarmo(a)=item(c).v1
-                    invisibility=0
-                    if item(c).v2>crew(a).augment(9) then 
-                        invisibility=item(c).v2
-                    else
-                        invisibility=crew(a).augment(9)
-                    endif    
-                    if awayteam.invis>invisibility then awayteam.invis=invisibility
-                    awayteam.armor=awayteam.armor+item(c).v1
-                    crew(a).armo=c
-                    item(c).w.s=-2
-                    'dprint crew(a).n &" grabs his "&item(c).desig
-                endif
-            endif
-        endif
-    next
-    
-    for a=1 to 128
-        'find best ranged weapon
-        'give to redshirt
-
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then 
-            if crew(a).augment(7)=0 then
-                cantswim+=1
-            else
-                hovers+=1
-            endif
-            
-            if crew(a).augment(8)=0 then 
-                cantfly+=1
-            else
-                jpacks+=1
-                awayteam.jpfueluse+=1
-            endif
-            if crew(a).equips=0 then
-                b=findbest(2,-1)        
-                if b>-1 and crew(a).weap=0 then
-                    'dprint "Equipping "&item(b).desig & b
-                    awayteam.secweap(a)=item(b).v1
-                    awayteam.secweapran(a)=item(b).v2
-                    awayteam.secweapthi(a)=item(b).v3
-                    awayteam.guns_to=awayteam.guns_to+item(b).v1
-                    crew(a).weap=b
-                    item(b).w.s=-2
-                endif
-                'find best armor        
-                b=findbest(3,-1)
-                'give to redshirt
-                if b>-1 and crew(a).armo=0 then
-                    awayteam.secarmo(a)=item(b).v1
-                    invisibility=0
-                    if item(b).v2>crew(a).augment(9) then 
-                        invisibility=item(c).v2
-                    else
-                        invisibility=crew(a).augment(9)
-                    endif    
-                    if awayteam.invis>invisibility then awayteam.invis=invisibility
-                    awayteam.armor=awayteam.armor+item(b).v1
-                    crew(a).armo=b
-                    item(b).w.s=-2
-                else
-                    awayteam.invis=0
-                endif
-            endif
-            oxy=.75
-            b=findbest(17,-1)
-            if b>-1 then
-                item(b).w.s=-2
-                oxy=oxy-item(b).v1
-            endif
-            if crew(a).augment(3)>1 then oxy=oxy-.3
-            if oxy<0 then oxy=.1
-            if crew(a).typ=13 then oxy=0
-            awayteam.oxydep=awayteam.oxydep+oxy
-            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
-                b=findbest(14,-1)
-                if b>-1 then 
-                    item(b).w.s=-2
-                    awayteam.oxymax=awayteam.oxymax+200+item(b).v1
-                else
-                    awayteam.oxymax=awayteam.oxymax+200
-                endif
-            endif
-            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 or crew(a).augment(8)=1 then
-                b=findbest(28,-1)
-                if b>-1 then 
-                    item(b).w.s=-2
-                    awayteam.jpfuelmax=awayteam.jpfuelmax+50+item(b).v1
-                else
-                    awayteam.jpfuelmax=awayteam.jpfuelmax+50
-                endif
-            endif
-        endif
-    next
-    
-    for a=128 to 1 step -1
-        b=findbest(4,-1)
-        'give to redshirt
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 and crew(a).blad=0 then
-            if b>-1 then
-                'dprint "Equipping "&item(b).desig & b
-                awayteam.secweapc(a)=item(b).v1
-                awayteam.blades_to=awayteam.blades_to+item(b).v1
-                crew(a).blad=b
-                item(b).w.s=-2
-            endif
-        endif
-    next
-    'dprint ""&awayteam.move
-    'count teleportation devices
-    awayteam.move=0
-    if awayteam.move<4 and cantswim<=hovers then awayteam.move=1
-    if awayteam.move<4 and cantfly<=jpacks then awayteam.move=awayteam.move+2
-    if artflag(9)>0 then awayteam.move=4
-    
-    awayteam.nohp=hovers
-    awayteam.nojp=jpacks
-    if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
-    if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
-    if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
-    if findbest(46,-1)>-1 then awayteam.invis=7
-    awayteam.sight=3
-    awayteam.light=0
-    if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
-    if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
-    if awayteam.oxymax<200 then awayteam.oxymax=200
-    if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
-    if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
-    awayteam.oxydep=awayteam.oxydep*planets(m).grav
-    awayteam.oxydep=awayteam.oxydep*awayteam.helmet
-    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
-    return 0
-end function
 
 function removeequip() as short
     dim a as short
@@ -2789,7 +2599,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if (((fr=999 and item(a).w.s<0) or item(a).w.s=fr) and (item(a).ty=ty or (ty2>0 and item(a).ty=ty2) or ty=999)) then 'fr=999 means 
             set=0
             for c=0 to li
-                if item(a).desig=mls(c) then
+                if item(a).desig=item(mit(c)).desig and item(a).v1=item(mit(c)).v1 and item(a).v2=item(mit(c)).v2 and item(a).v3=item(mit(c)).v3 then
                     set=1
                     mno(c)=mno(c)+1
                 endif
@@ -2811,16 +2621,26 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
     if li=0 then return -1
     if li=1 and (fr=999 or ty=999) and forceselect=0 then return mit(1)
     cu=1
-    for a=1 to li
+    a=0
+    do
+        a+=1
+        set=0
         for b=1 to li-1
             if item(mit(b)).ty>item(mit(b+1)).ty or (item(mit(b)).ty=item(mit(b+1)).ty and better_item(item(mit(b)),item(mit(b+1)))=1) then
                 swap mno(b),mno(b+1)
                 swap mls(b),mls(b+1)
                 swap mit(b),mit(b+1)
                 swap mdesc(b),mdesc(b+1)
+                set=1
             endif
         next
+    loop until set=0 or a>lastitem
+    for a=1 to li
+        if item(mit(a)).ty=2 then mls(a)=mls(a) &"[A:"&item(mit(a)).v3 &" D:"&item(mit(a)).v1 &" R:"&item(mit(a)).v2 &"]"
+        if item(mit(a)).ty=4 then mls(a)=mls(a) &"[A:"&item(mit(a)).v3 &" D:"&item(mit(a)).v1  &"]"
+        if item(mit(a)).ty=3 then mls(a)=mls(a) &"[PV:"&item(mit(a)).v1 &"]"
     next
+    
     do
         if k=8 then cu=cu-1
         if k=2 then cu=cu+1
@@ -2885,7 +2705,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                     color 0,0
                     draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
                     if cu=a then
-                        textbox(mdesc(a+offset),3+35*_fw2/_fw1,3,25,15,1)
+                        textbox(mdesc(a+offset),3+40*_fw2/_fw1,3,25,15,1)
                         color 15,5
                     else
                         color 11,0
@@ -3005,10 +2825,10 @@ function lowest_by_id(id as short) as short
     return best
 end function
 
-function count_by_id(id as short) as short
-    dim as short i,r
-    for i=1 to lastitem
-        if item(i).w.s<0 and item(i).id=id then r+=1
+function count_items(i as _items) as short
+    dim as short j,r
+    for j=1 to lastitem
+        if item(j).w.s<0 and item(j).id=i.id and item(j).v1=i.v1 and item(j).v2=i.v2 and item(j).v3=i.v3 then r+=1
     next
     return r
 end function
@@ -3294,8 +3114,7 @@ function artifact(c as short,awayteam as _monster) as short
     
     if c=15 then
         dprint "It's a portable cloaking device!"
-        placeitem(makeitem(302),0,0,0,-1)
-        artflag(15)=0
+        placeitem(makeitem(302),0,0,0,0,-1)
     endif
     
     if c=16 then

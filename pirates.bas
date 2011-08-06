@@ -1044,7 +1044,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         g=rnd_range(0,4)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
-        enemy.ti_no=g+1001
         
         enemy.sprite=261+g
         'Fighting Stats
@@ -1066,6 +1065,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         
         enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
         
+        enemy.ti_no=g+750
         enemy.atcost=rnd_range(6,8)/10
         if enemy.move<=0.9 then enemy.move=0.9
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then 
@@ -1484,7 +1484,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=15 then
-        enemy.ti_no=1025
+        enemy.ti_no=1026
         enemy.faction=1 'Enemy Awayteam
         enemy.made=15
         enemy.sdesc="awayteam"

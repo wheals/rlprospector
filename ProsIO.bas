@@ -654,6 +654,8 @@ sub displaystar(a as short)
     endif
     if _tiles=0 then
         put (x*_tix,y*_tiy),gtiles(map(a).ti_no),trans
+        color 11,0
+        if bg=233 then draw string (x*_tix,y*_tiy),"s",,font2,custom,@_tcol
         if debug=1 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),""&map(a).discovered,,Font1,custom,@_col
         if debug=5 then draw string (x*_tix+_tix,y*_tiy),""&map(a).ti_no &":"&map(a).spec,,Font1,custom,@_col
     else        
@@ -1155,7 +1157,7 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
         endif
         color 11,0
         draw string((_mwx+2)*_fw1,25*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,24*_fh2),"Credits:" &player.money,,Font2,custom,@_col
+        draw string((_mwx+2)*_fw1,24*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
         if debug=1 then draw string((_mwx+2)*_fw1,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
 end sub
 
@@ -1392,7 +1394,7 @@ sub displayship(show as byte=0)
     if player.turn mod 20=0 then low_morale_message
     
     color 11,0
-    draw string((_mwx+2)*_fw1,(wl+2)*_fh2),"Credits:"&player.money &"    ",,Font2,custom,@_col
+    draw string((_mwx+2)*_fw1,(wl+2)*_fh2),"Credits:"&Credits(player.money) &"    ",,Font2,custom,@_col
     draw string((_mwx+2)*_fw1,(wl+3)*_fh2),"Turns:"&player.turn,,Font2,custom,@_col
     color 15,0
     draw string((_mwx+2)*_fw1,wl*_fh2), "Cargo",,font2,custom,@_col

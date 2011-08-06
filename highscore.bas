@@ -284,7 +284,7 @@ sub highsc()
         endif
         if rank<11 then
             highscore(rank).points=s
-            highscore(rank).desig=player.desig &", "& ltrim(player.h_desig) &", " &player.money &" Cr."            
+            highscore(rank).desig=player.desig &", "& ltrim(player.h_desig) &", " &credits(player.money) &" Cr."            
             highscore(rank).death=getdeath
         endif
     else

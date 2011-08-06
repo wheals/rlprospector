@@ -542,7 +542,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=3 then dprint "It says: 'We hope conditions for a colony are favourable at our destination.'"
             if a=4 then dprint "It says: '12 breeders have died since we left home.'"
             if a=5 then dprint "It says: 'I am proud to be one of the few of our species to go on this great adventure! though i will not see the end of it.'"
-            if a=6 or a=7 then dprint "It says: 'The system we want to colonize is at "&map(sysfrommap(specialplanet(0))).c.x &":"&map(sysfrommap(specialplanet(0))).c.x &"'"
+            if a=6 or a=7 then dprint "It says: 'The system we want to colonize is at "&map(sysfrommap(specialplanet(0))).c.x &":"&map(sysfrommap(specialplanet(0))).c.y &"'"
         endif
     endif    
     

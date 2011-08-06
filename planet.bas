@@ -550,6 +550,12 @@ do
     varchance+=5
     if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
         p=rnd_point(slot,0)
+        planetmap(p.x,p.y,slot)=-298
+        varchance-=5
+    endif
+    varchance+=5
+    if rnd_range(1,100)<15+planets(slot).depth*2+varchance then
+        p=rnd_point(slot,0)
         planetmap(p.x,p.y,slot)=-288
         varchance-=5
     endif
@@ -580,7 +586,7 @@ do
         next
         varchance-=5
     endif
-varchance+=5
+    varchance+=5
     if rnd_range(1,100)<25+planets(slot).depth*2+varchance then
         p=rnd_point(slot,0)
         if abs(planetmap(p.x,p.y,slot))=80 then planetmap(p.x,p.y,slot)=-292
@@ -1877,6 +1883,12 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
         next
         
     endif
+    
+    if rnd_range(1,100)<planets(slot).depth then
+        p1=rnd_point(slot,0)
+        planetmap(p1.x,p1.y,slot)=-298
+    endif
+    
     planetmap(0,0,slot)=-51
     if show_all=1 then
         for x=0 to 60
@@ -3877,6 +3889,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=a
         portal(lastportal).from.x=p2.x
@@ -3895,6 +3908,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="Am ascending tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=c+1
         p=rnd_point(c+1,0)
@@ -3911,6 +3925,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A stair going upwards. "
         portal(lastportal).tile=asc("<")
+        portal(lastportal).ti_no=3004
         portal(lastportal).col=7
         portal(lastportal).from.m=c+2
         p=rnd_point(c+2,0)
@@ -3928,6 +3943,7 @@ function makespecialplanet(a as short) as short
         swap portal(lastportal).from,portal(lastportal).dest
         portal(lastportal).desig="A stair leading down."
         portal(lastportal).tile=asc(">")
+        portal(lastportal).ti_no=3004
         portal(lastportal).col=7
     
         for b=0 to 30
@@ -3965,6 +3981,7 @@ function makespecialplanet(a as short) as short
     
     if specialplanet(17)=a then
         planets(a).water=66
+        planets(a).atmos=6
         makeislands(a,4)
         
         deletemonsters(a)
@@ -4136,6 +4153,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=a
         portal(lastportal).from.x=rnd_range(0,60)
@@ -4166,6 +4184,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=lastplanet
         portal(lastportal).from.x=rnd_range(0,60)
@@ -4250,6 +4269,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=a
         portal(lastportal).from.x=rnd_range(0,60)
@@ -4294,6 +4314,7 @@ function makespecialplanet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=lastplanet
         portal(lastportal).from.x=rnd_range(0,60)

@@ -2,6 +2,15 @@ function make_spacemap() as short
     dim as short a,b,c,d,e,astcou,gascou
     dim as _cords p1,p2,p3
     dim showclouds as byte
+    dim as short  debug,x,y
+    debug=0
+    for a=0 to max_maps
+        for x=0 to 60
+            for y=0 to 20
+                planetmap(x,y,a)=0
+            next
+        next
+    next
     showclouds=0
     color 11,0
     print
@@ -118,6 +127,16 @@ function make_spacemap() as short
     next
     print "Asteroid belts:";astcou
     print "Gas giants:";gascou
+    if debug=1 then
+    for a=0 to lastspecial
+        print ".";
+        if specialplanet(a)>0 and specialplanet(a)<max_maps then
+            makespecialplanet(a)
+            map(sysfrommap(specialplanet(a))).discovered=2
+            map(sysfrommap(specialplanet(a))).desig=""&a
+        endif
+    next
+    endif
     sleep 1250
     return 0
 end function

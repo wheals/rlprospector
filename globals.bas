@@ -84,6 +84,7 @@ function setglobals() as short
     specialplanettext(15,1)="Nothing special about this  world."
     specialplanettext(16,0)="Mild climate, dense vegetation, atmosphere composition almost exactly like earth, gravity slightly lower. Shall we call this planet 'eden'?"
     specialplanettext(17,0)="There are signs of civilization on this planet. Technology seems to be similiar to mid 20th century earth. There are lots of factories with higly toxic emissions. The planet also seems to start suffering from a runaway greenhouse effect."
+    specialplanettext(17,1)="It will still take several decades before the climate on this planet normalizes again."
     specialplanettext(18,0)="There are several big building complexes on this planet. I also get the signatures of advanced energy sources."
     specialplanettext(19,0)="There are buildings on this planet and a big sensor array. Advanced technology, propably FTL capable." 
     specialplanettext(20,0)="There is a human colony on this planet."
@@ -201,7 +202,7 @@ function setglobals() as short
     
     combon(0).base=10 'Planets Landed on
     combon(1).base=5 'Aliens scanned
-    combon(2).base=10 'Minerals turned in
+    combon(2).base=150 'Minerals turned in
     combon(3).base=5 'Only sells to Smith
     combon(4).base=5 'Only sells to Erdidani
     combon(5).base=5 'Only sells to Triax

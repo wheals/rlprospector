@@ -213,6 +213,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         endif
                     endif
                     if key=key_fi then
+                        do 
                         w=com_getweapon()
                         if w>0 then
                             if defender.weapons(w).ammomax>0 and defender.weapons(w).ammo<=0 then dprint defender.weapons(w).desig &" is out of ammunition.",14
@@ -222,7 +223,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 if t>0 and t<100 then 
                                     if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(w).col)=-1 then
                                         attacker(t)=com_fire(attacker(t),defender,defender.weapons(w),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
-                                        lastaction(0)=lastaction(0)+1
+                                        'lastaction(0)=lastaction(0)+1
                                         defender.weapons(w).reloading=defender.weapons(w).reload
                                         if attacker(t).hull<=0 then
                                             dprint "Target destroyed",10
@@ -241,6 +242,9 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                         endif    
                         player=defender
                         displayship(0)
+                        key=no_key
+                        loop until no_key<>key_fi
+                        
                     endif
                     if key=key_ru then victory=com_flee(defender,attacker(),lastenemy)
                     if victory=1 then 

@@ -14,6 +14,41 @@ function count_lines(file as string) as short
     return n
 end function
 
+function gethullspecs(t as short,file as string) as _ship
+    dim as short f,a,b
+    dim as string word(11)
+    dim as string l
+    dim as _ship n
+    f=freefile
+    open file for input as #f
+    line input #f,l
+    for a=1 to t
+        line input #f,l
+    next
+    close #f
+    for a=1 to len(l)
+        if mid(l,a,1)=";" then
+            if b<11 then b+=1
+        else
+            word(b)=word(b)&mid(l,a,1)
+        endif
+    next
+    n.h_no=t
+    n.h_desig=word(0)
+    n.h_price=val(word(1))
+    n.h_maxhull=val(word(2))
+    n.h_maxshield=val(word(3))
+    n.h_maxengine=val(word(4))
+    n.h_maxsensors=val(word(5))
+    n.h_maxcargo=val(word(6))
+    n.h_maxcrew=val(word(7))
+    n.h_maxweaponslot=val(word(8))
+    n.h_maxfuel=val(word(9))    
+    n.h_sdesc=word(10)
+    n.h_desc=word(11)
+    return n
+end function
+
 function delete_custom(pir as short) as short
     dim s as _ship
     dim as short n,f,c,last,i,flag
@@ -50,9 +85,6 @@ function delete_custom(pir as short) as short
                 close #f
             endif
         endif
-        for i=0 to n
-            dprint lines(i) & last
-        next
     loop until c=last or c=-1
     if flag=1 then
     endif
@@ -527,6 +559,20 @@ function load_tiles() as short
             n+=1 
         next
     next
+    
+    n=750
+    cls
+    bload "graphics/critters3.bmp"
+    for y=0 to _tiy*10 step _tiy
+        x=0
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1 
+        n+=1 
+    next
+    
+    
     n=800
     cls
     bload "graphics/critters2.bmp"
@@ -987,6 +1033,12 @@ function loadconfig() as short
                     if instr(text,"0")>0 or instr(text,"on") then _transitems=0
                     if instr(text,"1")>0 or instr(text,"of") then _transitems=1
                 endif
+                
+                if instr(text,"savescumming")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then _savescumming=0
+                    if instr(text,"1")>0 or instr(text,"of") then _savescumming=1
+                endif
+                
                 
             endif                
         loop until eof(f)
@@ -1671,7 +1723,7 @@ function savegame() as short
         print ".";
     next
     
-    for c=0 to 6
+    for c=0 to 12
         for a=0 to 12
             for b=0 to 8
                 put #f,,goods_prices(b,a,c)
@@ -1698,6 +1750,7 @@ function loadgame(filename as string) as short
     dim f as integer
     dim dat as string*36
     dim names as string*36
+    dim text as string
     dim p as _planet
     dim debug as byte
     debug=0
@@ -1894,7 +1947,7 @@ function loadgame(filename as string) as short
             print ".";
         next
             
-        for c=0 to 6
+        for c=0 to 12
             for a=0 to 12
                 for b=0 to 8
                     get #f,,goods_prices(b,a,c)
@@ -1918,6 +1971,23 @@ function loadgame(filename as string) as short
         close #f
         
     endif
+    
+    if debug=10 then
+        f=freefile
+        open "factions.csv" for output as #f
+        for a=0 to 5
+            text=""
+            for b=0 to 5
+                text=text &faction(a).war(b) &";"
+            next
+            print #f,text
+        next
+        close #f
+        
+    endif
+    
+    
+    
     return 0
     
 end function

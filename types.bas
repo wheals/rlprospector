@@ -5,7 +5,7 @@
 using FB
 randomize timer
 
-const __VERSION__="0.2.2b"
+const __VERSION__="0.2.2c"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -511,7 +511,7 @@ type _planet
     comment as string*60
     mapstat as byte
 end type
-
+'Flag 28=techgoods delivered to star creatures
 type _ae
     c as _cords
     rad as byte
@@ -567,7 +567,7 @@ type _station
     lastattacked as short
 end type
 
-dim shared goods_prices(8,12,6) as single
+dim shared goods_prices(8,12,12) as single
 
 type _comment
     c as _cords
@@ -1416,7 +1416,7 @@ declare function textbox(text as string,x as short,y as short,w as short, fg as 
 declare function destroyitem(b as short) as short
 declare function destroy_all_items_at(ty as short, wh as short) as short
 declare function calc_resrev() as short
-declare function count_by_id(id as short) as short
+declare function count_items(i as _items) as short
 declare function findworst(t as short,p as short=0, m as short=0) as short
 declare function rnd_item(t as short) as _items
 declare function getrnditem(fr as short,ty as short) as short

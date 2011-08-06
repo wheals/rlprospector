@@ -3,7 +3,7 @@ function buytitle() as short
     dim as integer price
     dim as string title
     dim sameorbetter as byte
-    a=menu("Buy title /Lord - 1000 Cr./Baron - 5000 Cr./Viscount - 10.000 Cr./Count 25.000 Cr./Marquees - 50.000 Cr./Duke - 100.000 Cr./Exit")
+    a=menu("Buy title /Lord - 1,000 Cr./Baron - 5,000 Cr./Viscount - 10,000 Cr./Count 25,000 Cr./Marquees - 50,000 Cr./Duke - 100,000 Cr./Exit")
     if a>0 and a<7 then
         if a=1 then
             title="Lord"
@@ -82,7 +82,7 @@ function retirement() as short
     mtext="Assets/"
     htext="/"
     for a=1 to 9
-        mtext=mtext &asset(a) &space(26-len(asset(a)))&price(a)& "Cr./"
+        mtext=mtext &asset(a) &space(26-len(asset(a)&credits(price(a))))& "Cr./"
         htext=htext &desc(a) &"/"
     next
     mtext=mtext &"back"

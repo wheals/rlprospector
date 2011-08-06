@@ -1,4 +1,3 @@
-
 function alerts(awayteam as _monster,walking as short) as short
     dim a as short
     static wg as short
@@ -202,19 +201,21 @@ function low_morale_message() as short
                 case is=9
                     dprint crew(who).n &" says 'Hey, buck up. We're not dead yet, right? ...Right?'"
             end select
-        case 100 to 110
-            if rnd_range(1,100)<10 then
-                select case rnd_range(1,3)
+        case 110 to 120
+            if rnd_range(1,100)<5 then
+                select case rnd_range(1,4)
                     case is=1
                         dprint crew(who).n &" starts whistling."
                     case is=2
                         dprint crew(who).n &" tells everybody about the special paintjob he plans to get for his spacesuit."
                     case is=3
                         dprint crew(who).n &" thinks this will be one of the more profitable hauls."
+                    case is=4
+                        dprint crew(who).n &" bores everyone to tears by explaining in depth how he will invest enough to get a retirement pension out of his (great) wage."
                 end select
             endif
-        case is>111
-            if rnd_range(1,100)<10 then
+        case is>120
+            if rnd_range(1,100)<5 then
             select case rnd_range(1,3)
                 case is=1
                     dprint crew(who).n &" thinks this expedition is going great so far."
@@ -222,6 +223,8 @@ function low_morale_message() as short
                     dprint crew(who).n &" tells a funny joke."
                 case is=3
                     dprint crew(who).n &" thinks you are the best captain ever!"
+                case is=4
+                    dprint crew(who).n &" explains that he never earned as much money as here."
             end select
             endif
     end select
@@ -234,25 +237,25 @@ function moneytext() as string
     dim per(3) as single
     text=text &" || "
     if player.money-500>0 then
-        text=text &"Made a profit of {10} "&player.money-500 &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &"Made a profit of {10} "&credits(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500=0 then
         text=text &"Didn't earn any money in {15} "&player.turn &" {11} turns." 
     endif
     if player.money-500<0 then
-        text=text &"Made a loss of {12} "&abs(player.money-500) &" {11} credits in {15} "&player.turn &" {11} turns." 
+        text=text &"Made a loss of {12} "&credits(abs(player.money-500)) &" {11} credits in {15} "&player.turn &" {11} turns." 
     endif 
     
     text=text & " | "
     
     if player.tradingmoney<0 then
-        text =text & "Made a loss of {12}" &abs(player.tradingmoney) &" {11} Credits while attempting to be a merchant"
+        text =text & "Made a loss of {12}" &credits(abs(player.tradingmoney)) &" {11} Credits while attempting to be a merchant"
     endif
     if player.tradingmoney=0 then
         text = text & "Didnt try to be a merchant"
     endif
     if player.tradingmoney>0 then
-        text = text & "Earned {10} " &player.tradingmoney &" {11} Credits in trading goods. (" &mercper &" %)"
+        text = text & "Earned {10} " &credits(player.tradingmoney) &" {11} Credits in trading goods. (" &mercper &" %)"
     endif
 
     text=text & " | "
@@ -260,7 +263,7 @@ function moneytext() as string
     if player.piratekills>0 then
         if player.piratekills>0 and player.money>0 then per(2)=100*(player.piratekills/player.money)
         if per(2)>100 then per(2)=100
-        text=text &" {10}"& player.piratekills & " {11} Credits were from bountys for destroyed pirate ships (" &per(2) &")"
+        text=text &" {10}"& credits(player.piratekills) & " {11} Credits were from bountys for destroyed pirate ships (" &per(2) &")"
     else
         text=Text & "No Pirate ships were destroyed"
     endif
@@ -285,7 +288,7 @@ function moneytext() as string
     for a=0 to 9
         b+=combon(a).rank
     next
-    if b>0 then text=text &" Made "& b*100 &" Cr. in company bonuses. |"
+    if b>0 then text=text &" Made "& credits(b*100) &" Cr. in company bonuses. |"
     text=text &"|"
     if player.money-500>0 then
         'if faction(0).war(1)<=0 then text=text & "Made all money with honest hard work"
@@ -639,9 +642,9 @@ function es_part1() as string
     dim pmoney as single
     select case player.money
         case is<=0
-            t="You retire with a debt of "&player.money &" Cr."
+            t="You retire with a debt of "&credits(player.money) &" Cr."
         case else
-            t="You retire with "&player.money &" Cr. to your name."
+            t="You retire with "&credits(player.money) &" Cr. to your name."
     end select
     t = t &" Your ship doesn't have the range to get back to civilization, you need to book a passage on a long range transport ship for that.|"
     if player.money<500 then

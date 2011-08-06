@@ -162,7 +162,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                     _HPdisplay=0
                     dprint "Hp display now displays HPs"
             end select
-        
+            key=""
         endif
         if key=key_quit then 
             if askyn("Do you really want to quit? (y/n)") then player.dead=6
@@ -468,6 +468,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if key=key_enter then e=loca
         if key=key_awayteam then 
             showteam(0)
+            key=""
         endif
         for a=0 to c
             if key=lcase(shrt(a)) then loca=a

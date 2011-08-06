@@ -1,3 +1,25 @@
+#ifndef _cords
+type _cords
+    x as short
+    y as short
+end type
+
+declare Function rnd_range (first As short, last As short) As short
+declare function distance(first as _cords, last as _cords) as single
+
+function distance(first as _cords, last as _cords) as single
+    dim dis as single
+    dis=(first.x-last.x)*(first.x-last.x)
+    dis=dis+(first.y-last.y)*(first.y-last.y)
+    dis=sqr(dis)
+    return dis
+end function
+
+Function rnd_range (first As short, last As short) As short
+        return cint(Rnd * (last - first) + first)
+End Function
+#endif
+
 type _node
     opclo as byte
     g as single

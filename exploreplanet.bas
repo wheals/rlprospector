@@ -143,6 +143,8 @@ function ep_dropitem(awayteam as _monster, li() as short,byref lastlocalitem as 
                 item(c).v1=100
             endif
             reward(2)=reward(2)-item(c).v5
+            combon(2).value-=item(c).v5
+    
             lastlocalitem=lastlocalitem+1
             li(lastlocalitem)=c
             endif
@@ -362,6 +364,25 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
                 tmap(p.x,p.y)=tiles(tmap(p.x,p.y).turnsoninspect)
             endif
         next
+    endif
+    if b=0 then
+        if planetmap(awayteam.c.x,awayteam.c.y,slot)=107 then
+            b=1
+            if askyn("You could propably enhance some of the processes in this factory, to dimnish pollution. (y/n)") then
+                awayteam.lastaction+=10
+                if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                    planets(slot).flags(28)+=1
+                    if planets(slot).flags(28)>=5 then
+                        dprint "You manage to reduce the emissions of this factory to sustainable levels.",10
+                        planets(slot).flags(28)-=5
+                        tmap(awayteam.c.x,awayteam.c.y)=tiles(297)
+                        planetmap(awayteam.c.x,awayteam.c.y,slot)=297
+                    endif
+                else
+                    dprint "You do not succeed",14
+                endif
+            endif
+        endif
     endif
     if b=0 and _autoinspect=1 then 
         dprint "Nothing of interest here."
@@ -863,6 +884,8 @@ function ep_pickupitem(key as string,awayteam as _monster, byref lastlocalitem a
                         text=text &" You pick up the "&item(li(a)).desig &". " 
                     endif
                     reward(2)=reward(2)+item(li(a)).v5
+                    combon(2).value+=item(li(a)).v5
+    
                     item(li(a)).w.s=-1
                 endif
                 if item(li(a)).ty=18 then 
@@ -875,6 +898,8 @@ function ep_pickupitem(key as string,awayteam as _monster, byref lastlocalitem a
                 if item(li(a)).ty=27 then 
                     text=text &" You gather the resources from the mining robot ("&fix(item(li(a)).v1) &"). "
                     reward(2)=reward(2)+item(li(a)).v1
+                    combon(2).value+=item(li(a)).v1
+    
                     item(li(a)).v1=0
                 endif
                 'awayteam.lastaction+=1
@@ -1927,10 +1952,10 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
                     next
                 endif
                 r=player.weapons(shipfire(sf2).what).dam/2
-                dam=0
+                dam=1
                 if r<1 then r=1
                 for a=1 to player.weapons(shipfire(sf2).what).dam
-                    dam=dam+rnd_range(1,6)
+                    dam=dam+rnd_range(0,2)
                 next
                 do
                     ani+=1
@@ -2987,18 +3012,34 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
     if tmap(awayteam.c.x,awayteam.c.y).gives=19 then
         dprint "This is where the leaders of the planet meet. They express interest in high tech goods, and are willing to offer some automated gadgets they have been building." 
         dprint "They are actually very sophisticated! The technology of these creatures is behind that of humanity in term of energy generation mainly, but everything else they seem to be equal or even surpassing."
-        if askyn ("Do you want to trade your tech goods for luxury goods?(y/n)") then
-            b=0
-            for a=0 to 9
-                if player.cargo(a).x=4 then
-                    player.cargo(a).x=5
-                    player.cargo(a).y=0
-                    b=b+1
+        if rnd_range(1,100)>planets(slot).flags(28) then
+            if askyn ("Do you want to trade your tech goods for luxury goods?(y/n)") then
+                b=0
+                for a=0 to 9
+                    if player.cargo(a).x=4 then
+                        player.cargo(a).x=5
+                        player.cargo(a).y=0
+                        b=b+1
+                    endif
+                next
+                if b=0 then dprint "You don't have any high tech goods to trade"
+                if b>0 then dprint "You trade "& b &" tons of high tech goods for luxury goods."
+                planets(slot).flags(28)+=b
+                if planets(slot).flags(28)>=5 then
+                
+                    p.x=-1
+                    p=rnd_point(slot,107)
+                    if p.x>0 then
+                        planets(slot).flags(28)-=5
+                        planetmap(p.x,p.y,slot)=297
+                        tmap(p.x,p.y)=tiles(297)
+                    else
+                        dprint "The leaders tell you that they managed to upgrade all factories on their planet"
+                        specialflag(17)=1
+                    endif
                 endif
-            next
-            if b=0 then dprint "You don't have any high tech goods to trade"
-            if b>0 then dprint "You trade "& b &" tons of high tech goods for luxury goods."
-            no_key=keyin
+                no_key=keyin
+            endif
         endif
     endif
     
@@ -3608,7 +3649,11 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                             dprint "You manage to shut down the traps on this level."
                             for x=0 to 60
                                 for y=0 to 20
-                                    if tmap(x,y).tohit<>0 then tmap(x,y).tohit=0
+                                    if tmap(x,y).tohit<>0 then 
+                                        tmap(x,y).tohit=0
+                                        tmap(x,y).dam=0
+                                        tmap(x,y).hitt=""
+                                    endif
                                 next
                             next
                         else
@@ -3663,6 +3708,26 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                     else
                         dprint "You do not get it to work properly."
                         if rnd_range(1,6)+rnd_range(1,6)+player.science<11 then
+                            dprint "Actually you manged to break it completely."
+                            tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
+                        endif
+                    endif
+                endif
+            endif
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=172 then
+                if askyn("A working computer terminal. Do you want to try to use it?(y/n)") then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then
+                        dprint "It's a database on the technology of the ancient aliens."
+                        if reward(4)>0 then
+                            reward(4)-=1
+                            findartifact(awayteam,0)
+                        else
+                            dprint "Unfortunately you do not have any technology of the ancient aliens."
+                        endif
+                    else
+                        dprint "You do not get it to work properly."
+                        if rnd_range(1,6)+rnd_range(1,6)+player.science<13 then
                             dprint "Actually you manged to break it completely."
                             tmap(awayteam.c.x,awayteam.c.y).turnsinto=84
                         endif
