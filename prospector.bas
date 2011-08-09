@@ -68,31 +68,28 @@ do
         if key="4" then manual
         if key="5" then configuration
         if key="6" then keybindings
-        if key="8" then 
-'            dim i as _items
-'            f=freefile
-'            open "items.csv" for output as #f
-'            for a=0 to 302
-'                i=makeitem(a)
-'                if i.ldesc<>"" or i.desig<>"" then
-'                    print #f,i.ti_no-2000 &";" &i.desig &";" &i.ldesc
-'                endif
+'        if key="8" then 
+''            dim i as _items
+''            f=freefile
+''            open "items.csv" for output as #f
+''            for a=0 to 302
+''                i=makeitem(a)
+''                if i.ldesc<>"" or i.desig<>"" then
+''                    print #f,i.ti_no-2000 &";" &i.desig &";" &i.ldesc
+''                endif
+''            next
+''            close #f
+'            'dodialog(1,dummy,0)
+'            for b=1 to 1000
+'                make_spacemap
+'                clear_gamestate
 '            next
-'            close #f
-            'dodialog(1,dummy,0)
-            for b=1 to 1000
-                make_spacemap
-                clear_gamestate
-            next
-        endif
-        if key="9" then
-            a=getnumber(0,10000,0)
-            for b=1 to 9
-                put(b*32,0),stiles(b,a),pset
-            next
-            'put(30,0),gtiles(gt_no(a)),pset
-            sleep
-        endif
+'        endif
+'        if key="9" then
+'            a=getnumber(0,10000,0)
+'            put(30,0),gtiles(gt_no(a)),pset
+'            sleep
+'        endif
     loop until key="1" or key="2" or key="7" 
     cls
     if key="1" then startnewgame

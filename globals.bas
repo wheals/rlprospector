@@ -274,6 +274,9 @@ function setglobals() as short
         endif
     next
     
+    for a=0 to 1024
+        portal(a).ti_no=3001
+    next
     
     if fileexists("data/ships.csv") then
         f=freefile

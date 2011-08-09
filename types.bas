@@ -972,7 +972,7 @@ dim shared empty_fleet as _fleet
 empty_fleet.del=1
 
 dim shared coms(255) as _comment
-dim shared portal(255) as _transfer
+dim shared portal(1024) as _transfer
 dim shared lastportal as short
 dim shared lastplanet as short
 dim shared lastcom as short

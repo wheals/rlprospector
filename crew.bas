@@ -454,7 +454,7 @@ function levelup(p as _ship) as _ship
         endif
     next
     if secret>1 then text=text &" " & secret &" of your security personal retired."
-    if text<>"" then dprint text,10
+    if text<>"" then dprint text,14
     text=""
     if lev(1)=1 then
         if rnd_range(1,100)<crew(1).xp*4 then

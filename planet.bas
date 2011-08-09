@@ -6045,7 +6045,7 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
     if tile=asc(">") then portal(lastportal).ti_no=3004
     if tile=asc("^") then portal(lastportal).ti_no=250
     if tile=asc("@") then portal(lastportal).ti_no=3007
-    if tile=asc("o") and col=7 and portal(lastportal).oneway=1 then portal(lastportal).ti_no=257
+    if tile=asc("o") and col=7 then portal(lastportal).ti_no=3004
     if tile=asc("O") then portal(lastportal).ti_no=3006
     'dprint chr(tile)&":"&portal(lastportal).ti_no
 '    for e=0 to lastportal-1

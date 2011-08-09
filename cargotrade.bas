@@ -1319,12 +1319,13 @@ function sickbay(st as short=0) as short
         endif
         if a=2 then
             'if player.disease>0 then price=price+10*player.disease
+            price=0
             for b=1 to 128
                 if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
-                    price=price+10*crew(b).disease-st*3
+                    price=price+5*crew(b).disease-st*3
                 endif
             next
-            if player.disease>0 then price=price+10*player.disease
+            if player.disease>0 then price=price+5*player.disease
             if price>0 then
                 if askyn("Treatment will cost "&price &" Cr. Do you want the treatment to begin?") then
                     if price<=player.money then
