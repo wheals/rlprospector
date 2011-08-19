@@ -24,7 +24,6 @@ function calcosx(x as short) as short 'Caculates Ofset X for windows less than 6
     osx=x-_mwx/2
     if osx<0 then osx=0
     if osx>=60-_mwx then osx=60-_mwx
-    if _mwx=60 then osx=0
     return osx
 end function
 

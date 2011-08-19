@@ -1368,8 +1368,8 @@ function make_alienship(slot as short,t as short) as short
     civ(slot).ship(t).sensors=rnd_range(1,civ(slot).tech)
     civ(slot).ship(t).col=civ(slot).spec.col
     civ(slot).ship(t).engine=1
-    civ(slot).ship(t).pilot=3
-    civ(slot).ship(t).gunner=3
+    civ(slot).ship(t).pipilot=3
+    civ(slot).ship(t).pigunner=3
     civ(slot).ship(t).ti_no=35+slot
     wc=2
     cc=1
@@ -1381,14 +1381,14 @@ function make_alienship(slot as short,t as short) as short
             civ(slot).ship(t).engine-=1
         endif
         if rnd_range(1,100)<50 then
-            civ(slot).ship(t).pilot+=1
+            civ(slot).ship(t).pipilot+=1
         else
-            civ(slot).ship(t).pilot-=1
+            civ(slot).ship(t).pipilot-=1
         endif
         if rnd_range(1,100)<50 then
-            civ(slot).ship(t).gunner+=1
+            civ(slot).ship(t).pigunner+=1
         else
-            civ(slot).ship(t).gunner-=1
+            civ(slot).ship(t).pigunner-=1
         endif
             
         roll=rnd_range(1,100)
@@ -1420,8 +1420,8 @@ function make_alienship(slot as short,t as short) as short
     civ(slot).ship(t).c.x=rnd_range(1,60)
     civ(slot).ship(t).c.y=rnd_range(1,20)
     if civ(slot).ship(t).engine<1 then civ(slot).ship(t).engine=1
-    if civ(slot).ship(t).gunner<1 then civ(slot).ship(t).gunner=1
-    if civ(slot).ship(t).pilot<1 then civ(slot).ship(t).pilot=1
+    if civ(slot).ship(t).pigunner<1 then civ(slot).ship(t).pigunner=1
+    if civ(slot).ship(t).pipilot<1 then civ(slot).ship(t).pipilot=1
     civ(slot).ship(t).h_maxweaponslot=wc-1
     civ(slot).ship(t).h_maxhull=civ(slot).ship(t).hull
     if t=0 then civ(slot).ship(t).icon=left(civ(slot).n,1)

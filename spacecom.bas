@@ -222,7 +222,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                                 if t>0 then lastaction(0)+=5
                                 if t>0 and t<100 then 
                                     if pathblock(defender.c,attacker(t).c,0,2,defender.weapons(w).col)=-1 then
-                                        attacker(t)=com_fire(attacker(t),defender,defender.weapons(w),defender.gunner+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
+                                        attacker(t)=com_fire(attacker(t),defender,defender.weapons(w),defender.gunner(0)+addtalent(3,12,1),distance(defender.c,attacker(t).c),senac)
                                         'lastaction(0)=lastaction(0)+1
                                         defender.weapons(w).reloading=defender.weapons(w).reload
                                         if attacker(t).hull<=0 then
@@ -265,7 +265,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     if e_last>128 then e_last=1
                     e_track_p(e_last)=movepoint(defender.c,10-getdirection(key))
                     e_track_v(e_last)=defender.engine+2
-                    if combatmap(defender.c.x,defender.c.y)>0 and rnd_Range(1,6)+rnd_range(1,6)+player.pilot<combatmap(defender.c.x,defender.c.y)*2 then
+                    if combatmap(defender.c.x,defender.c.y)>0 and rnd_Range(1,6)+rnd_range(1,6)+player.pilot(0)<combatmap(defender.c.x,defender.c.y)*2 then
                         defender.shield=defender.shield-1
                         if defender.shield<0 then
                             defender.hull=defender.hull+defender.shield
@@ -314,14 +314,14 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
                     'in sensor range
                     for b=0 to 25
                         if attacker(a).weapons(b).desig<>"" then
-                            if attacker(a).weapons(b).heat<attacker(a).gunner then
+                            if attacker(a).weapons(b).heat<attacker(a).gunner(0) then
                                 'waffe forhanden
                                 if distance(attacker(a).c,defender.c)<attacker(a).weapons(b).range*3 then
                                     'in reichweite
                                     if attacker(a).weapons(b).ammo>0 or attacker(a).weapons(b).ammomax=0 then
                                         'muni vorhanden
                                         if pathblock(attacker(a).c,defender.c,0,2,attacker(a).weapons(b).col)=-1 then
-                                            defender=com_fire(defender,attacker(a),attacker(a).weapons(b),attacker(a).gunner,distance(attacker(a).c,defender.c),senac)
+                                            defender=com_fire(defender,attacker(a),attacker(a).weapons(b),attacker(a).gunner(0),distance(attacker(a).c,defender.c),senac)
                                             lastaction(a)+=attacker(a).weapons(b).reload
                                             player=defender
                                             displayship(0)
@@ -434,7 +434,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
             for a=1 to e_last
                 if e_track_v(a)>0 then
                     for b=1 to lastenemy
-                        if attacker(b).c.x=e_track_p(a).x and attacker(b).c.y=e_track_p(a).y and rnd_range(1,6)+rnd_range(1,6)+attacker(b).pilot<11 then 
+                        if attacker(b).c.x=e_track_p(a).x and attacker(b).c.y=e_track_p(a).y and rnd_range(1,6)+rnd_range(1,6)+attacker(b).pilot(0)<11 then 
                             attacker(b).shield=attacker(b).shield-e_track_v(a)
                             text=attacker(b).desig &" ran into plasma stream! "
                             if attacker(b).shield<0 and attacker(b).shieldmax>0 then text=text &"Shields penetrated! "
@@ -498,7 +498,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
         for a=1 to lastenemy
             if attacker(a).shiptype=1 then
                 if attacker(a).c.x=attacker(a).target.x and attacker(a).c.y=attacker(a).target.y then
-                    if rnd_range(1,6)+rnd_range(1,6)+attacker(a).pilot>6+defender.pilot then
+                    if rnd_range(1,6)+rnd_range(1,6)+attacker(a).pilot(0)>6+defender.pilot(0) then
                         dprint "The Merchant got away!",10
                         fleet(255).mem(a)=attacker(a)
                         for b=a to lastenemy
@@ -1292,30 +1292,11 @@ function com_criticalhit(t as _ship, roll as short) as _ship
             if t.desig=player.desig then 
                 
                 if rnd_range(1,6)+rnd_range(1,6)>7 then
-                    b=rnd_range(1,4)
-                    if b=1 and t.pilot>0 then 
-                        crew(2).hp=0
-                        t.pilot=captainskill
-                        text="Pilot "
-                    endif
-                    if b=2 and t.gunner>0 then
-                        crew(3).hp=0
-                        t.gunner=captainskill
-                        text="Gunner "
-                    endif
-                    if b=3 and t.science>0 then
-                        crew(4).hp=0
-                        t.science=captainskill
-                        text="Science Officer "
-                    endif
-                    if b=4 and t.Doctor>0 then 
-                        crew(5).hp=0
-                        t.doctor=captainskill
-                        text="Doctor "
-                    endif
-                    if t.desig=player.desig then 
-                        dprint "An Explosion! Our "&text &"was killed!",12
-                        player.deadredshirts=player.deadredshirts+1
+                    b=rnd_range(2,t.h_maxcrew)
+                    if crew(b).hp>0 then
+                    crew(b).hp=0
+                    dprint "An Explosion! "&crew(b).n &"was killed!",12
+                    player.deadredshirts=player.deadredshirts+1
                     endif
                 endif
             endif
@@ -1326,7 +1307,7 @@ end function
 function com_flee(defender as _ship,attacker() as _ship,lastenemy as short) as short
     dim as short roll,victory 
     if defender.c.x=0 or defender.c.x=60 or defender.c.y=0 or defender.c.y=20 then
-        roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot+addtalent(2,7,1)
+        roll=rnd_range(1,6)+rnd_range(1,6)+defender.pilot(0)+addtalent(2,7,1)
         if findbest(25,-1)>0 then roll=roll+5
         if roll>6+lastenemy or attacker(1).shiptype=2 then
             dprint "you manage to get away",10
@@ -1356,7 +1337,7 @@ function com_shipbox(s as _ship,di as short) as string
     dim text as string
     dim as short a,heat
     '' Storing in questflag array if things already have been IDed
-    if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(11)=1 then 
+    if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science(0) or s.questflag(11)=1 then 
         text="|" & s.desig &"||"
         s.questflag(11)=1
     else
@@ -1370,7 +1351,7 @@ function com_shipbox(s as _ship,di as short) as string
         else
             text=text &"No shield |"
         endif
-        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(0)=1 then 
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science(0) or s.questflag(0)=1 then 
             text=text &"Hull: "&s.hull &" | "
             s.questflag(0)=1
         else
@@ -1378,7 +1359,7 @@ function com_shipbox(s as _ship,di as short) as string
         endif    
         for a=1 to 10
             if s.weapons(a).desig<>"" then
-                if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science/2 or s.questflag(a)=1 then
+                if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science(0)/2 or s.questflag(a)=1 then
                     text=text & s.weapons(a).desig &" | "
                     heat=heat+s.weapons(a).heat 
                     s.questflag(a)=1
@@ -1387,11 +1368,11 @@ function com_shipbox(s as _ship,di as short) as string
                 endif
             endif
         next
-        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science or s.questflag(12)=1 then
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science(0) or s.questflag(12)=1 then
             s.questflag(12)=1
             text=text &"Engine: "&s.engine &" |"
         endif
-        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science then
+        if rnd_range(1,6)+rnd_range(1,6)+di-5<player.sensors+player.science(0) then
             text=text &"Heat: "& int(heat/10) 
         else
             text=text &"Heat: ??"

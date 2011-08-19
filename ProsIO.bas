@@ -91,7 +91,7 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
         draw string((_mwx+2)*_fw1,16*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
     for a=0 to p.life
-        if rnd_range(1,6)+rnd_range(1,6)+player.science>7 then plife=plife+((p.life+1)*3)/100
+        if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 then plife=plife+((p.life+1)*3)/100
     next
     if plife>1 then plife=1
     if plife>p.highestlife then
@@ -157,9 +157,9 @@ function mondis(enemy as _monster) as string
         endif
     endif
     if enemy.stuff(9)=0 then
-    if rnd_range(1,6)+rnd_range(1,6)+player.science>9 then enemy.stuff(10)=1
-    if rnd_range(1,6)+rnd_range(1,6)+player.science>10 then enemy.stuff(11)=1
-    if rnd_range(1,6)+rnd_range(1,6)+player.science>11 then enemy.stuff(12)=1
+    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>9 then enemy.stuff(10)=1
+    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>10 then enemy.stuff(11)=1
+    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>11 then enemy.stuff(12)=1
     enemy.stuff(9)=enemy.stuff(10)+enemy.stuff(11)+enemy.stuff(12)
     endif
     if enemy.stuff(10)=1 then text=text &"(" &enemy.hpmax &"/" &enemy.hp &")"
@@ -203,6 +203,8 @@ sub show_stars(bg as short=0,byref walking as short)
     dim as short debug
     debug=0
     dim vismask(sm_x,sm_y) as byte
+    
+    
     if bg<2 then
         player.osx=player.c.x-_mwx/2
         player.osy=player.c.y-10
@@ -211,6 +213,10 @@ sub show_stars(bg as short=0,byref walking as short)
         if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
         if player.osy>=sm_y-20 then player.osy=sm_y-20
     endif
+    for a=0 to laststar
+        color spectraltype(map(a).spec),0
+        pset(map(a).c.x*_mwx*_tix/75,map(a).c.y*20*_tiy/35)
+    next
     m.sight=player.sensors+5.5
     m.c=player.c
     makevismask(vismask(),m,-1)
@@ -238,10 +244,10 @@ sub show_stars(bg as short=0,byref walking as short)
                         put (x*_fw1+1,y*_fh1+1),gtiles(abs(spacemap(x+player.osx,y+player.osy))+49),pset
                     else                        
                         color rnd_range(48,59),1
-                        if spacemap(x+player.osx,y+player.osy)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
-                        if spacemap(x+player.osx,y+player.osy)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
-                        if spacemap(x+player.osx,y+player.osy)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
-                        if spacemap(x+player.osx,y+player.osy)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
+                        if spacemap(x+player.osx,y+player.osy)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(48,59),1
+                        if spacemap(x+player.osx,y+player.osy)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(96,107),1
+                        if spacemap(x+player.osx,y+player.osy)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(144,155),1
+                        if spacemap(x+player.osx,y+player.osy)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(192,203),1
                         draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif
@@ -300,21 +306,21 @@ sub show_stars(bg as short=0,byref walking as short)
                 if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then 
                     if _tiles=1 then
                         color rnd_range(48,59),1
-                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
-                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
-                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
-                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
+                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(48,59),1
+                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(96,107),1
+                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(144,155),1
+                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(192,203),1
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(177),,Font1,custom,@_col 
                     else                        
                         put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),pset
-                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),pset
-                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(52),pset
-                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(53),pset
-                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(54),pset
+                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),pset
+                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(52),pset
+                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(53),pset
+                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(54),pset
                     endif
                 endif
                 if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=17) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
-                    if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot>8  then 
+                    if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8  then 
                         if _tiles=0 then
                             put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(49+abs(spacemap(x,y))),pset
                         else
@@ -1326,14 +1332,14 @@ sub displayship(show as byte=0)
     if player.hull<2 then color 12,0
     draw string((_mwx+2)*_fw1+3*_fw2,1*_fh2),""&player.hull,,Font2,custom,@_col
     color 11,0
-    p=""&player.pilot
-    g=""&player.gunner
-    s=""&player.science
-    d=""&player.doctor
-    if player.pilot<0 then p="-"
-    if player.gunner<0 then g="-"
-    if player.science<0 then s="-"
-    if player.doctor<0 then d="-"
+    p=""&player.pilot(0)
+    g=""&player.gunner(0)
+    s=""&player.science(0)
+    d=""&player.doctor(0)
+    if player.pilot(0)<0 then p="-"
+    if player.gunner(0)<0 then g="-"
+    if player.science(0)<0 then s="-"
+    if player.doctor(0)<0 then d="-"
     player.security=0
     for a=6 to 128
        if crew(a).hpmax>=1 then player.security+=1
@@ -1488,7 +1494,7 @@ function display_ship_weapons(m as short=0) as short
             endif
             if player.weapons(a).ROF<0 then 
                 player.tractor=1
-                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+player.weapons(a).ROF then
+                if player.towed>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<8+player.weapons(a).ROF then
                     dprint "Your tractor beam breaks down",14
                     player.tractor=0
                     player.towed=0

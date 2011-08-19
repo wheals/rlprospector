@@ -150,7 +150,7 @@ end function
 function startnewgame() as short
     dim as string text
     dim as short a,b,c
-    make_spacemap()
+    make_spacemap() 
     background(rnd_range(1,_last_title_pic)&".bmp")
     text="/"&makehullbox(1,"data/ships.csv") &"/"&makehullbox(2,"data/ships.csv") &"/"&makehullbox(3,"data/ships.csv") &"/"&makehullbox(4,"data/ships.csv") &"/"&makehullbox(6,"data/ships.csv")
     if _startrandom=1 then 
@@ -159,11 +159,11 @@ function startnewgame() as short
         b=rnd_range(1,4)
     endif
     player=makeship(1)
-    addmember(1)
-    addmember(2)
-    addmember(3)
-    addmember(4)
-    addmember(5)
+    addmember(1,0)
+    addmember(2,1)
+    addmember(3,1)
+    addmember(4,1)
+    addmember(5,1)
     if b=6 then b=rnd_range(1,4)
     c=b
     if b=5 then c=6
@@ -189,7 +189,7 @@ function startnewgame() as short
     if b=4 then
         player.security=5
         for c=6 to 10
-            addmember(7)
+            addmember(7,0)
         next
     endif
     for a=1 to 8
@@ -318,7 +318,7 @@ function targetlanding(mapslot as short,test as short=0) as short
             p=movepoint(p,5)
             c+=1
             player.fuel-=1
-        loop until c>5 or rnd_range(1,6)+rnd_range(1,6)+player.pilot>3+c+planets(mapslot).grav+planets(mapslot).dens
+        loop until c>5 or rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>3+c+planets(mapslot).grav+planets(mapslot).dens
         if c<=5 then
             landing(mapslot,p.x,p.y,c)
         else
@@ -396,7 +396,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             endif
             
             if awayteam.stuff(8)=1 then dprint "You deploy your satellite"
-            roll=rnd_range(1,6)+rnd_range(1,6)+landingpad+player.pilot+addtalent(2,8,1)
+            roll=rnd_range(1,6)+rnd_range(1,6)+landingpad+player.pilot(0)+addtalent(2,8,1)
             landinggear=findbest(41,-1)
             if landinggear>0 and landingpad=0 then roll=roll+item(landinggear).v1
             target=2*planets(mapslot).dens+2*planets(mapslot).grav^2
@@ -420,7 +420,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                     player.fuel=player.fuel-2-int(planets(mapslot).grav)
                     if player.hull<=0 then
                         dprint ("A Crash landing. you will never be able to start with that thing again",12)
-                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot>10 then
+                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>10 then
                             dprint ("but your pilot wants to try anyway and succeeds!",12)
                             player.hull=1
                         else
@@ -551,7 +551,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
         show_stars(1,0)
         displayship
         if awayteam.stuff(8)=1 and player.dead=0 then 
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot+player.tractor>6 then
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+player.tractor>6 then
                 dprint "You rendevouz with your satellite and take it back in",10
             else
                 dprint "When trying to rendevouz with your satellite your pilot rams and destroys it.",12
@@ -602,7 +602,7 @@ function scanning() as short
                 target=10+(planets(mapslot).mapped/100*player.sensors)+planets(mapslot).dens 
                 if abs(planetmap(x,y,mapslot))=8 then target=target-1 
                 if abs(planetmap(x,y,mapslot))=7 then target=target-2 
-                roll=rnd_range(1,6)+rnd_range(1,6)+minimum(player.science+1,player.sensors)
+                roll=rnd_range(1,6)+rnd_range(1,6)+minimum(player.science(0)+1,player.sensors)
                 if  roll>target and planetmap(x,y,mapslot)<0 then
                     planetmap(x,y,mapslot)=planetmap(x,y,mapslot)*-1
                     reward(0)=reward(0)+.5
@@ -614,7 +614,7 @@ function scanning() as short
         for b=1 to lastitem
             if item(b).w.m=mapslot and item(b).w.p=0 and item(b).w.s=0 then
                 target=(7+planets(mapslot).dens)*item(a).scanmod 
-                roll=(rnd_range(1,6)+rnd_range(1,6)+addtalent(4,15,1)+minimum(player.science,player.sensors))*item(b).scanmod
+                roll=(rnd_range(1,6)+rnd_range(1,6)+addtalent(4,15,1)+minimum(player.science(0),player.sensors))*item(b).scanmod
                 if roll>target then item(b).discovered=1
             endif
         next
@@ -658,9 +658,9 @@ function scanning() as short
         loop until no_key<>key_east and no_key<>key_west
         if no_key=key_la then key=key_la
         if no_key=key_tala then key=key_tala
-        if rnd_range(player.pilot,6)+rnd_range(1,6)+player.pilot<8 and player.fuel>30 then
+        if rnd_range(player.pilot(0),6)+rnd_range(1,6)+player.pilot(0)<8 and player.fuel>30 then
             dprint "your pilot had to correct the orbit.",14
-            x=rnd_range(1,4)-player.pilot
+            x=rnd_range(1,4)-player.pilot(0)
             if x<1 then x=1
             player.fuel=player.fuel-x
             
@@ -691,14 +691,14 @@ function asteroidmining(slot as short) as short
     roll=rnd_range(1,100)
     slot=slot-rnd_range(1,10)
     player.fuel=player.fuel-1
-    if rnd_range(1,6)+rnd_range(1,6)+player.pilot<9 then player.fuel=player.fuel-rnd_range(1,3)
+    if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<9 then player.fuel=player.fuel-rnd_range(1,3)
     if (slot<-11 and slot>-13) or (slot<-51 and slot>-54)  then
         dprint "you have discovered a dwarf planet among the asteroids!",10
         no_key=keyin
         lastplanet=lastplanet+1
         slot=lastplanet
     else
-        f=rnd_range(1,6)+rnd_range(1,6)+player.tractor*2+minimum(player.science+1,player.sensors+1)+3*addtalent(2,9,2)
+        f=rnd_range(1,6)+rnd_range(1,6)+player.tractor*2+minimum(player.science(0)+1,player.sensors+1)+3*addtalent(2,9,2)
         if f+slot>5 then
             do
                 it=makeitem(96,f+slot+165,-2)
@@ -712,7 +712,7 @@ function asteroidmining(slot as short) as short
                         q=askyn("Pilot: 'If i make a mistake it could be fatal. Shall I really try?'(y/n)")
                     endif
                     if q=-1 then
-                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot+player.tractor*2>6+rnd_range(1,6) then
+                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+player.tractor*2>6+rnd_range(1,6) then
                             q=0
                             placeitem((it),0,0,0,0,-1)
                             reward(2)=reward(2)+it.v5
@@ -780,7 +780,7 @@ function asteroidmining(slot as short) as short
             else
                 if player.dead=0 then
                     dprint "We got very interesting sensor data from that being.",10
-                    reward(1)=reward(1)+rnd_range(10,180)*rnd_range(1,maximum(player.science,player.sensors))
+                    reward(1)=reward(1)+rnd_range(10,180)*rnd_range(1,maximum(player.science(0),player.sensors))
                     player.alienkills=player.alienkills+1
                 else
                     player.dead=0
@@ -827,7 +827,7 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
                 if _warnings=0 and player.hull=1 then
                     if not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) then return 0
                 endif
-                if rnd_range(1,6)+rnd_range(1,6)+player.pilot+addtalent(2,9,1)<=8+mo then
+                if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+addtalent(2,9,1)<=8+mo then
                     dprint "Your Pilot damaged the ship diving into the dense atmosphere",12
                     player.hull=player.hull-rnd_range(1,2)
                     if p=-20003 then player.hull=player.hull-1
@@ -864,7 +864,7 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
                     else
                         if player.dead=0 then
                             dprint "We got very interesting sensor data during this encounter.",10
-                            reward(1)=reward(1)+(roll*3+rnd_range(10,80))*rnd_range(1,maximum(player.science,player.sensors))
+                            reward(1)=reward(1)+(roll*3+rnd_range(10,80))*rnd_range(1,maximum(player.science(0),player.sensors))
                             player.alienkills=player.alienkills+1
                         else
                             player.dead=0
@@ -873,7 +873,7 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
                 endif
             else
                 'using probe
-                if rnd_range(1,6)+rnd_range(1,6)+player.pilot+addtalent(2,9,1)-3+item(probe).v2<=8+mo then probeflag=1
+                if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+addtalent(2,9,1)-3+item(probe).v2<=8+mo then probeflag=1
                 if rnd_range(1,100)<38-orbit*2 then probeflag=1
                 if probeflag=1 then 
                     dprint "We lost contact with the probe."
@@ -1254,10 +1254,10 @@ function spacestation(st as short) as _ship
         if a=9 then retirement()
         if a=10 or a=-1 then
             text=""
-            if player.pilot<0 then text=text &"You dont have a pilot. "
-            if player.gunner<0 then text=text &"You dont have a gunner. "
-            if player.science<0 then text=text &"You dont have a science officer. "
-            if player.doctor<0 then text=text &"You dont have a ships doctor. "
+            if player.pilot(0)<0 then text=text &"You dont have a pilot. "
+            if player.gunner(0)<0 then text=text &"You dont have a gunner. "
+            if player.science(0)<0 then text=text &"You dont have a science officer. "
+            if player.doctor(0)<0 then text=text &"You dont have a ships doctor. "
             if player.fuel<player.fuelmax*0.5 then text=text &"You only have " &player.fuel & " fuel. "
             if player.money<0 then text=text &"You still have debts of "& player.money &" credits to pay. "
             if (text<>"" and player.dead=0) then
@@ -1310,7 +1310,7 @@ function move_ship(key as string,byref walking as short) as _ship
     if player.c.y>sm_y then player.c.y=sm_y
     if player.c.x<>old.x or player.c.y<>old.y then 
         if player.towed<>0 then player.fuel-=1
-        if player.towed<>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot<9 then player.fuel-=1
+        if player.towed<>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<9 then player.fuel-=1
         if spacemap(player.c.x,player.c.y)=-2 then spacemap(player.c.x,player.c.y)=2
         if spacemap(player.c.x,player.c.y)=-3 then spacemap(player.c.x,player.c.y)=3
         if spacemap(player.c.x,player.c.y)=-4 then spacemap(player.c.x,player.c.y)=4
@@ -1323,7 +1323,7 @@ function move_ship(key as string,byref walking as short) as _ship
         endif
         if spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 then        
             player.towed=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>6+spacemap(player.c.x,player.c.y) then
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>6+spacemap(player.c.x,player.c.y) then
                 dprint "You succesfully navigate the gascloud",10
                 player.fuel=player.fuel-rnd_range(1,3)
             else
@@ -1339,7 +1339,7 @@ function move_ship(key as string,byref walking as short) as _ship
         endif
         if spacemap(player.c.x,player.c.y)>=6 and spacemap(player.c.x,player.c.y)<=17 then 
             player.turn=player.turn-rnd_range(1,6)+rnd_range(1,6)
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot>7 then
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>7 then
                 if spacemap(player.c.x,player.c.y)=6 then player.fuel=player.fuel-1
                 if spacemap(player.c.x,player.c.y)=7 then player.fuel=player.fuel-1.5
                 if spacemap(player.c.x,player.c.y)=8 then player.fuel=player.fuel-.3
@@ -1368,9 +1368,9 @@ function move_ship(key as string,byref walking as short) as _ship
                     dprint "Your shields are hit, but hold",10
                 endif
             endif
-            if rnd_range(1,100)+player.pilot<10+spacemap(player.c.x,player.c.y) then 
+            if rnd_range(1,100)+player.pilot(0)<10+spacemap(player.c.x,player.c.y) then 
                 player.c=movepoint(player.c,5,,1)
-                if rnd_range(1,100)+player.pilot<10+spacemap(player.c.x,player.c.y) then 
+                if rnd_range(1,100)+player.pilot(0)<10+spacemap(player.c.x,player.c.y) then 
                     player.c=map(rnd_range(laststar+1,laststar+wormhole)).c
                     dam=rnd_range(1,6)
                     if dam>player.shield then
@@ -1574,7 +1574,7 @@ function explore_space() as short
             if player.osx>=sm_x-60 then player.osx=sm_x-60
             if player.osy>=sm_y-20 then player.osy=sm_y-20
             d=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot<8+int(distance(player.c,map(b).c)/3) and artflag(13)=0 then d=rnd_range(1,3)
+            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<8+int(distance(player.c,map(b).c)/3) and artflag(13)=0 then d=rnd_range(1,3)
             player.hull=player.hull-d
             if player.hull>0 then
                 wormhole_ani(map(b).c)
@@ -1646,7 +1646,7 @@ function explore_space() as short
                         no_key=keyin
                     endif
                     if player.money<0 and player.dead=0 then
-                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot>12 then
+                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>12 then
                             dprint "As you leave the docking bay you get a message from the station commander to return to 'solve some financial issues' first. Your pilot grins and heads for the docking bay doors, exceeding savety limits. The doors slam close right behind your ship. As you speed into space you get a radio message from the commander. He calmly explains that there *will* be a fee for that next time you dock."
                             player.money=player.money-100
                             faction(0).war(2)-=1
@@ -3212,7 +3212,7 @@ function move_probes() as short
                     endif
                 next
             next
-            if abs(spacemap(probe(i).x,probe(i).y))>=6 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>9 then
+            if abs(spacemap(probe(i).x,probe(i).y))>=6 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>9 then
                 spacemap(x,y)=abs(spacemap(x,y))
             endif
 
@@ -3505,7 +3505,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     for a=first to noa
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).disease=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             slbc+=1
-            if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*3+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner+attacker.secweapthi(a)+SLBonus(slbc)>9 then 
+            if distance(defender.c,attacker.c)>1.5 and rnd_range(1,6)+rnd_range(1,6)-player.tactic+crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*3+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner(1)+attacker.secweapthi(a)+SLBonus(slbc)>9 then 
                 b=b+attacker.secweap(a)+addtalent(3,11,.1)+addtalent(a,26,.1)
                 if a>5 then gainxp(a) 
             endif

@@ -2391,7 +2391,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             it.v2=6
             it.col=11
             it.desig="transuranic metals"
-            it.v5=(it.v1+rnd_range(1,player.science+it.v2))*(it.v2*rnd_range(1,10-player.science))
+            it.v5=(it.v1+rnd_range(1,player.science(0)+it.v2))*(it.v2*rnd_range(1,10-player.science(0)))
             placeitem(it,p1.x,p1.y,a)        
         endif
         
@@ -4895,7 +4895,7 @@ function makespecialplanet(a as short) as short
             it.v2=6
             it.col=11
             it.desig="transuranic metals"
-            it.v5=(it.v1+rnd_range(1,player.science+it.v2))*(it.v2*rnd_range(1,10-player.science))            
+            it.v5=(it.v1+rnd_range(1,player.science(0)+it.v2))*(it.v2*rnd_range(1,10-player.science(0)))            
             placeitem(it,p1.x,p1.y,a)
         next
         p1=rnd_point
@@ -4961,7 +4961,7 @@ function makespecialplanet(a as short) as short
         it.col=3
         it.desig="lutetium"
         it.discovered=1
-        it.v5=(it.v1+rnd_range(1,player.science+it.v2))*(it.v2*rnd_range(1,10-player.science))            
+        it.v5=(it.v1+rnd_range(1,player.science(0)+it.v2))*(it.v2*rnd_range(1,10-player.science(0)))            
         placeitem(it,30,10,a)
     endif
     

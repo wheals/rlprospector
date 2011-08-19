@@ -45,7 +45,7 @@ function meetfleet(f as short)as short
         des=askyn(question(q,dialog))
         if des=0 then
             if q=1 then
-                if rnd_range(1,6)+rnd_range(1,6)+player.pilot+cloak>10 then
+                if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+cloak>10 then
                     dprint "you got away"
                 else
                     dprint "they are closing in"
@@ -112,7 +112,7 @@ function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as shor
             if red.mem(i).hull>0 then
                 rscore=rscore+red.mem(i).hull
                 for f=1 to 25
-                    if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner>9 then
+                    if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner(0)>9 then
                         t=getship(blue)
                         if t>0 then
                             blue.mem(t).hull=blue.mem(t).hull-red.mem(i).weapons(f).dam
@@ -124,7 +124,7 @@ function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as shor
             if blue.mem(i).hull>0 then
                 bscore=bscore+red.mem(i).hull
                 for f=1 to 25
-                    if blue.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+blue.mem(i).gunner>9 then
+                    if blue.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+blue.mem(i).gunner(0)>9 then
                         t=getship(red)
                         if t>0 then
                             red.mem(t).hull=red.mem(t).hull-blue.mem(i).weapons(f).dam
@@ -720,7 +720,7 @@ end function
 function bestpilotinfleet(f as _fleet) as short
     dim as short a,r
     for a=1 to 15
-        if f.mem(a).pilot>r then r=f.mem(a).pilot
+        if f.mem(a).pilot(0)>r then r=f.mem(a).pilot(0)
     next
     return r
 end function
@@ -4108,10 +4108,7 @@ dim as short c,b
         p.fuelmax=100
         p.fueluse=1
         p.money=Startingmoney
-        p.pilot=1
-        p.gunner=1
-        p.science=1
-        p.doctor=1
+
         p.engine=1
         p.weapons(1)=makeweapon(1)
         p.lastvisit.s=-1
@@ -4124,8 +4121,8 @@ dim as short c,b
         p.sensors=3
         p.hull=2
         p.ti_no=18
-        p.pilot=1
-        p.gunner=3
+        p.pipilot=1
+        p.pigunner=3
         p.engine=5
         p.desig="Pirate Fighter"
         p.icon="F"
@@ -4143,8 +4140,8 @@ dim as short c,b
         p.sensors=3
         p.hull=10
         p.ti_no=19
-        p.pilot=1
-        p.gunner=4
+        p.pipilot=1
+        p.pigunner=4
         p.engine=4
         p.desig="Pirate Cruiser"
         p.icon="C"
@@ -4168,8 +4165,8 @@ dim as short c,b
         p.ti_no=20
         p.shieldmax=1
         p.shield=1
-        p.pilot=2
-        p.gunner=5
+        p.pipilot=2
+        p.pigunner=5
         p.engine=3
         p.desig="Pirate Destroyer"
         p.icon="D"
@@ -4196,8 +4193,8 @@ dim as short c,b
         p.ti_no=21
         p.shieldmax=2
         p.shield=2
-        p.pilot=1
-        p.gunner=6
+        p.pipilot=1
+        p.pigunner=6
         p.engine=2
         p.desig="Pirate Battleship"
         p.icon="B"
@@ -4227,8 +4224,8 @@ dim as short c,b
             p.shield=0
             
             p.sensors=2
-            p.pilot=1
-            p.gunner=1
+            p.pipilot=1
+            p.pigunner=1
             p.engine=2
         
             for b=1 to 3
@@ -4245,8 +4242,8 @@ dim as short c,b
             p.shield=0
             
             p.sensors=3
-            p.pilot=1
-            p.gunner=1
+            p.pipilot=1
+            p.pigunner=1
             p.engine=3
         
             for b=1 to 4
@@ -4263,8 +4260,8 @@ dim as short c,b
             p.shield=1            
             
             p.sensors=3
-            p.pilot=1
-            p.gunner=2
+            p.pipilot=1
+            p.pigunner=2
             p.engine=3
         
             for b=1 to 5
@@ -4282,8 +4279,8 @@ dim as short c,b
             p.shield=2
             
             p.sensors=4
-            p.pilot=1
-            p.gunner=2
+            p.pipilot=1
+            p.pigunner=2
             p.engine=4
         
             for b=1 to 6
@@ -4316,8 +4313,8 @@ dim as short c,b
         p.hull=2
         p.shieldmax=1
         p.shield=1
-        p.pilot=4
-        p.gunner=3
+        p.pipilot=4
+        p.pigunner=3
         p.engine=2
         p.weapons(3)=makeweapon(7)
         p.weapons(1)=makeweapon(1)
@@ -4340,8 +4337,8 @@ dim as short c,b
         p.hull=30
         p.shieldmax=3
         p.shield=3
-        p.pilot=1
-        p.gunner=7
+        p.pipilot=1
+        p.pigunner=7
         p.engine=3
         p.desig="Anne Bonny"
         p.icon="A"
@@ -4372,8 +4369,8 @@ dim as short c,b
         p.hull=25
         p.shieldmax=2
         p.shield=2
-        p.pilot=1
-        p.gunner=4
+        p.pipilot=1
+        p.pigunner=4
         p.engine=3
         p.desig="Company Battleship"
         p.icon="U"
@@ -4397,8 +4394,8 @@ dim as short c,b
         p.hull=25
         p.shieldmax=3
         p.shield=3
-        p.pilot=1
-        p.gunner=5
+        p.pipilot=1
+        p.pigunner=5
         p.engine=3
         p.desig="Black Corsair"
         p.icon="D"
@@ -4430,8 +4427,8 @@ dim as short c,b
         p.hull=15
         p.shieldmax=4
         p.shield=4
-        p.pilot=4
-        p.gunner=3
+        p.pipilot=4
+        p.pigunner=2
         p.engine=5
         p.desig="Ancient Alien Ship"
         p.icon="8"
@@ -4451,8 +4448,8 @@ dim as short c,b
         p.c.y=rnd_range(0,20)
         p.sensors=3
         p.hull=2
-        p.pilot=1
-        p.gunner=1
+        p.pipilot=1
+        p.pigunner=1
         p.engine=4
         p.desig="Fighter"
         p.icon="F"
@@ -4472,7 +4469,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=3
         p.sensors=3
-        p.gunner=5
+        p.pigunner=5
         p.icon="S"
         p.ti_no=37
         p.desig="crystal spider"
@@ -4489,7 +4486,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=0
         p.sensors=15
-        p.gunner=5
+        p.pigunner=5
         p.icon="Q"
         p.ti_no=38
         p.desig="living sphere"
@@ -4508,7 +4505,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=4
         p.sensors=2
-        p.gunner=2
+        p.pigunner=2
         p.icon=chr(176)
         p.ti_no=39
         p.desig="symbiotic cloud"
@@ -4527,7 +4524,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=5
         p.sensors=3
-        p.gunner=3
+        p.pigunner=3
         p.icon="W"
         p.ti_no=40
         p.desig="hydrogen worm"
@@ -4546,7 +4543,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=5
         p.sensors=4
-        p.gunner=4
+        p.pigunner=4
         p.icon=chr(176)
         p.ti_no=41
         p.desig="living plasma"
@@ -4563,7 +4560,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=3
         p.sensors=3
-        p.gunner=2
+        p.pigunner=2
         p.icon="J"
         p.ti_no=42
         p.desig="starjellyfish"
@@ -4583,7 +4580,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=5
         p.sensors=3
-        p.gunner=2
+        p.pigunner=2
         p.icon="S"
         p.desig="cloudshark"
         p.ti_no=43
@@ -4600,7 +4597,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=2
         p.sensors=3
-        p.gunner=2
+        p.pigunner=2
         p.icon="O"
         p.ti_no=44
         p.desig="Gasbubble"
@@ -4618,7 +4615,7 @@ dim as short c,b
         p.hulltype=-1
         p.engine=2
         p.sensors=3
-        p.gunner=2
+        p.pigunner=2
         p.icon="F"
         p.ti_no=45
         p.desig="Floater"
@@ -4636,8 +4633,8 @@ dim as short c,b
         p.hull=15
         p.shieldmax=2
         p.shield=2
-        p.pilot=1
-        p.gunner=5
+        p.pipilot=1
+        p.pigunner=5
         p.engine=2
         p.desig="Hussar"
         p.icon="C"
@@ -4664,8 +4661,8 @@ dim as short c,b
         p.hull=5
         p.shieldmax=1
         p.shield=1
-        p.pilot=1
-        p.gunner=4
+        p.pipilot=1
+        p.pigunner=4
         p.engine=3
         p.desig="Adder"
         p.icon="F"
@@ -4689,8 +4686,8 @@ dim as short c,b
         p.hull=5
         p.shieldmax=2
         p.shield=2
-        p.pilot=1
-        p.gunner=4
+        p.pipilot=1
+        p.pigunner=4
         p.engine=2
         p.desig="Black Widow"
         p.icon="F"
@@ -4713,7 +4710,7 @@ dim as short c,b
         p.sensors=7
         p.hull=255
         p.shield=8
-        p.gunner=4
+        p.pigunner=4
         p.ecm=0
         p.desig="Spacestation"
         p.icon="S"

@@ -2119,7 +2119,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         if i.v2=14 then i.col=12
         if i.v2=14 then i.ti_no=2099
         
-        i.v5=(i.v1+rnd_range(1,player.science+i.v2))*(rnd_range(1,5+player.science))
+        i.v5=(i.v1+rnd_range(1,player.science(0)+i.v2))*(rnd_range(1,5+player.science(0)))
         i.price=i.v5/10   
         i.res=i.v5*10         
         
@@ -3006,7 +3006,7 @@ function findartifact(awayteam as _monster,v5 as short) as short
                 c=all_resources_are
             endif
             if c<0 or c>16 then c=rnd_range(1,16)
-            if (rnd_range(1,6)+rnd_range(1,6)+player.science>7 and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
+            if (rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
                 artflag(c)=1                
                 artifact(c,awayteam)
             else

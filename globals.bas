@@ -62,6 +62,14 @@ function setglobals() as short
     talent_desig(28)="Sniper"
     talent_desig(29)="Paramedic"
     
+    crew_desig(1)="Captain"
+    crew_desig(2)="Pilot"
+    crew_desig(3)="Gunner"
+    crew_desig(4)="Science"
+    crew_desig(5)="Science"
+    crew_desig(6)="Green"
+    crew_desig(7)="Veteran"
+    crew_desig(8)="Elite"
     
     specialplanettext(1,0)="I got some strange sensor readings here sir. can't make any sense of it."
     specialplanettext(1,1)="The readings are gone. must have been that temple."

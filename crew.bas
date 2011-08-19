@@ -3,7 +3,33 @@ function gainxp(slot as short) as short
     return 0
 end function
 
-
+function bestcrew(skill as short, no as short,onship as short) as short
+    dim as short i,j,result,last
+    dim skillvals(128) as short
+    for i=0 to 128
+        if crew(i).baseskill(skill)>0 and crew(i).hp>0 and (crew(i).onship=0 or onship=0) then
+            j+=1
+            skillvals(j)=crew(i).baseskill(skill)
+        endif
+    next
+    last=j
+    if last=0 then return crew(1).baseskill(skill) 'Captain takes place if nobody else does
+    do
+        j=0
+        for i=1 to last
+            if skillvals(i)<skillvals(i+1) then
+                j=1
+                swap skillvals(i),skillvals(i+1)
+            endif
+        next
+    loop until j=0
+    if no>last then no=last
+    for i=1 to no
+        result=result+skillvals(i)/i
+    next
+    
+    return result
+end function
 
 function cureawayteam(where as short) as short
     dim as short bonus,pack,cured,sick,a
@@ -31,7 +57,7 @@ function cureawayteam(where as short) as short
     
     for a=0 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and (crew(a).onship=where or where=1) then
-            if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor+addtalent(5,17,1)>5+crew(a).disease/2 then
+            if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor(where)+addtalent(5,17,1)>5+crew(a).disease/2 then
                 crew(a).disease=0
                 crew(a).onship=crew(a).oldonship
                 crew(a).oldonship=0
@@ -120,17 +146,17 @@ function healawayteam(byref a as _monster,heal as short) as short
     if fac>0 then
         if item(fac).v1>0 then reg=reg+0.1
     endif
-    if player.doctor>0 and crew(5).onship=0 then
-       doc=doc+player.doctor/25+addtalent(5,17,.1)
+    if player.doctor(1)>0 then
+       doc=doc+player.doctor(1)/25+addtalent(5,17,.1)
     endif
-    if heal>0 then heal=heal+player.doctor+addtalent(5,19,3)
+    if heal>0 then heal=heal+player.doctor(1)+addtalent(5,19,3)
     if reg>=1 then 
         heal=heal+reg
         reg=0
         h=1
     endif
     if doc>=1 then
-        if rnd_range(1,6)+rnd_range(1,6)+player.doctor>10 then
+        if rnd_range(1,6)+rnd_range(1,6)+player.doctor(1)>10 then
             heal=heal+doc
             h=1
         endif
@@ -147,7 +173,7 @@ function healawayteam(byref a as _monster,heal as short) as short
             endif
         next
     loop until heal=0 or ex=0
-    if player.doctor>0 and crew(5).onship=0 and h=2 then
+    if player.doctor(1)>0 and h=2 then
         dprint "The doctor fixes some cuts and bruises"
         gainxp(5)
     endif
@@ -161,7 +187,7 @@ end function
 
 function infect(a as short,dis as short) as short
     dim as short roll
-    roll=rnd_range(1,6)+rnd_range(1,6)+player.doctor
+    roll=rnd_range(1,6)+rnd_range(1,6)+player.doctor(1)
     if roll<maximum(3,dis) and crew(a).hp>0 and crew(a).hpmax>0 then
         crew(a).disease=dis
         crew(a).oldonship=crew(a).onship
@@ -195,24 +221,8 @@ function diseaserun(onship as short) as short
                     endif
                     if crew(a).duration=0 then
                         crew(a).disease=0
-                        if rnd_range(1,100)+player.doctor*5<disease(crew(a).disease).fatality then
-                            if crew(a).onship=onship and a=2 then 
-                                dprint "Your pilot dies from disease.",12
-                                player.pilot=captainskill
-                            endif
-                            if crew(a).onship=onship and a=3 then 
-                                dprint "Your gunner dies from disease.",12
-                                player.gunner=captainskill
-                            endif
-                            if crew(a).onship=onship and a=4 then 
-                                dprint "Your science offcier dies from disease.",12
-                                player.science=captainskill
-                            endif
-                            if crew(a).onship=onship and a=5 then
-                                dprint "Your doctor dies from disease.",12
-                                player.doctor=captainskill
-                            endif
-                            if crew(a).onship=onship and a>5 then dprint crew(a).n &" dies from disease.",12
+                        if rnd_range(1,100)+player.doctor(0)*5<disease(crew(a).disease).fatality then
+                            if crew(a).onship=onship then dprint crew(a).n &" dies from disease.",12
                             crew(a)=crew(0)
                             crew(a).disease=0
                             
@@ -349,10 +359,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     next
     hpdisplay(a)
     sleep 50
-    if killed(2)>0 then player.pilot=captainskill
-    if killed(3)>0 then player.gunner=captainskill
-    if killed(4)>0 then player.science=captainskill
-    if killed(5)>0 then player.doctor=captainskill
+
     if reequip=1 then equip_awayteam(player,a,player.map)
     if local_debug=1 then text=text & " Out:"&dam
     return trim(text)
@@ -411,8 +418,6 @@ end function
 
 function levelup(p as _ship) as _ship
     dim a as short
-    dim vet as short
-    dim elite as short
     dim text as string
     dim roll as short
     dim secret as short
@@ -420,6 +425,8 @@ function levelup(p as _ship) as _ship
     dim _del as _crewmember
     dim rolls(128) as short
     dim lev(128) as byte
+    dim ret(15) as byte
+    dim levt(15) as byte
     for a=1 to 128
         if _showrolls=1 then crew(a).xp+=10
         if crew(a).hp>0  then
@@ -430,100 +437,40 @@ function levelup(p as _ship) as _ship
             endif
             if a>1 then
                 if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
-                    if a=2 then 
-                        text =text &" Pilot "&crew(a).n &" retired."
-                        player.pilot=captainskill
-                    endif
-                    if a=3 then 
-                        text =text &" Gunner "&crew(a).n &" retired."
-                        player.gunner=captainskill
-                    endif
-                    if a=4 then 
-                        text =text &" Science Officer "&crew(a).n &" retired."
-                        player.science=captainskill
-                    endif
-                    if a=5 then 
-                        text =text &" Doctor "&crew(a).n &" retired."
-                        player.doctor=captainskill
-                    endif
-                    if a>5 then secret+=1
+                    ret(crew(a).typ)+=1
                     crew(a)=_del
                     lev(a)=0
                 endif
             endif
         endif
     next
-    if secret>1 then text=text &" " & secret &" of your security personal retired."
-    if text<>"" then dprint text,14
-    text=""
-    if lev(1)=1 then
-        if rnd_range(1,100)<crew(1).xp*4 then
-            'add talent
-            text=text &gaintalent(1)
-            crew(1).xp=0
-        endif
-    endif
-    if p.pilot>0 and p.pilot<=5 and lev(2)=1 then
-        p.pilot+=1
-        crew(2).hpmax+=1
-        text=text &" Your pilot is now skill "&p.pilot &"."
-        if rnd_range(1,100)<crew(2).xp*3 then text=text &gaintalent(2)
-        crew(2).xp=0
-    endif
-    if _showrolls=1 then text=text &"Pilot Rolled "&rolls(2) &", needed"& 5+crew(2).hp^2
     
-    if p.gunner>0 and p.gunner<=5 and lev(3)=1 then
-        p.gunner+=1
-        crew(3).hpmax+=1
-        text=text &" Your gunner is now skill "&p.gunner &"."
-        if rnd_range(1,100)<crew(3).xp*3 then text=text &gaintalent(3)
-        crew(3).xp=0
-    endif
-    if _showrolls=1 then text=text &"Gunner rolled "&rolls(3) &", needed"& 5+crew(3).hp^2
-    if p.science>0 and p.science<=5 and lev(4)=1 then
-        p.science+=1
-        crew(4).hpmax+=1
-        text=text &" Your science officer is now skill "&p.science &"."
-        if rnd_range(1,100)<crew(4).xp*3 then text=text &gaintalent(4)
-        crew(4).xp=0
-    endif
-    if _showrolls=1 then text=text &"Science Officer Rolled "&rolls(4) &", needed"& 5+crew(4).hp^2
-    if p.doctor>0 and p.doctor<=5 and lev(5)=1 then
-        p.doctor+=1
-        crew(5).hpmax+=1
-        text=text &" Your doctor is now skill "&p.doctor &"."
-        if rnd_range(1,100)<crew(5).xp*3 then text=text &gaintalent(5)
-        crew(5).xp=0
-    endif
-    if _showrolls=1 then text=text &"Doctor rolled "&rolls(5) &", needed"& 5+crew(5).hp^2
-    for a=6 to 128
+    for a=1 to 9
+        if ret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" Retired. "
+        if ret(a)>1 then text=text &a &" "&crew_desig(a)&"s Retired. "
+    next
+    
+    for a=1 to 128
         if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
     
-        if crew(a).hp>0 and lev(a)=1 and crew(a).typ>=6 and crew(a).typ<=7 then
-            crew(a).hpmax+=1
-            crew(a).typ+=1
-            if rnd_range(1,100)<crew(a).xp*3 then text=text &gaintalent(a)
-            crew(a).xp=0
-            if crew(a).typ=7 then 
-                vet+=1
-            endif
-            if crew(a).typ=8 then
-                elite+=1
+        if crew(a).hp>0 and lev(a)=1 then
+            
+            levt(crew(a).typ)+=1
+            if crew(a).typ>=6 and crew(a).typ<=7 then
+                crew(a).hpmax+=1
+                crew(a).typ+=1
+                if rnd_range(1,100)<crew(a).xp*3 then text=text &gaintalent(a)
+                crew(a).xp=0
+            else
+                crew(a).hpmax+=1
+                if crew(a).typ>1 then crew(a).baseskill(crew(a).typ-1)+=1
             endif
         endif
     next
-    if vet=1 then
-        for a=6 to 128
-            if lev(a)=1 and crew(a).typ=7 then text=text &crew(a).n &" is now a veteran."
-        next
-    endif
-    if elite=1 then
-        for a=6 to 128
-            if lev(a)=1 and crew(a).typ=8 then text=text &crew(a).n &" is now elite."
-        next
-    endif
-    if vet>1 then text=text &" "&vet &" of your security are now veterans."
-    if elite>1 then text=text &" "&elite &" of your security are now elite."
+    for a=1 to 9
+        if levt(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" got promoted. "
+        if levt(a)>1 then text=text &a &" "&crew_desig(a)&"s got promoted. "
+    next
     if text<>"" then dprint text,10
     displayship()
     return p
@@ -557,17 +504,18 @@ end function
 
 function get_freecrewslot() as short
     dim as short b,slot
-    for b=128 to 6 step -1
-        if crew(b).hp<=0 then slot=b
+    for b=1 to 128  
+        if crew(b).hp<=0 then return b
     next
-    return slot
+    return -1
 end function
 
-function addmember(a as short) as short
-    dim as short slot,b,f,c,cc
+function addmember(a as short,skill as short) as short
+    dim as short slot,b,f,c,cc,debug
     dim _del as _crewmember
     dim as string n(200,1)
     dim as short ln(1)
+    debug=1
     f=freefile
     open "data/crewnames.txt" for input as #f
     do
@@ -582,10 +530,22 @@ function addmember(a as short) as short
     close #f
     'find empty slot
     slot=get_freecrewslot
-    if a<6 then slot=a
+    if slot<0 then
+        if askyn("No room on the ship, do you want to replace someone?(y/n)") then
+            slot=showteam(0,1,"Replace who?")
+        endif
+    endif
+    if debug=1 then dprint ""&slot
     if slot>0 then
         
         crew(slot)=_del
+        crew(slot).baseskill(0)=-5
+        crew(slot).baseskill(1)=-5
+        crew(slot).baseskill(2)=-5
+        crew(slot).baseskill(3)=-5
+        for b=0 to 10
+            crew(slot).story(b)=rnd_range(1,10)
+        next
         if rnd_range(1,100)<80 then
             crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&n((rnd_range(1,ln(0))),0)
         else
@@ -601,35 +561,43 @@ function addmember(a as short) as short
             crew(slot).hp=6
             crew(slot).icon="C"
             crew(slot).typ=1
+            crew(slot).baseskill(0)=captainskill
+            crew(slot).baseskill(1)=captainskill
+            crew(slot).baseskill(2)=captainskill
+            crew(slot).baseskill(3)=captainskill
         endif
         if a=2 then 'Pilot
-            crew(slot).hpmax=player.pilot+1
+            crew(slot).hpmax=skill+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="P"
             crew(slot).typ=2
-            crew(slot).paymod=player.pilot*player.pilot
+            crew(slot).paymod=skill^2
+            crew(slot).baseskill(0)=skill
         endif
         if a=3 then 'Gunner
-            crew(slot).hpmax=player.gunner+1
+            crew(slot).hpmax=skill+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="G"
             crew(slot).typ=3
-            crew(slot).paymod=player.gunner*player.gunner
+            crew(slot).paymod=skill^2
+            crew(slot).baseskill(1)=skill
         endif
         if a=4 then 'SO
-            crew(slot).hpmax=player.science+1
+            crew(slot).hpmax=skill+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="S"
             crew(slot).typ=4
-            crew(slot).paymod=player.science^2
+            crew(slot).paymod=skill^2
+            crew(slot).baseskill(2)=skill
         endif
         
         if a=5 then 'doctor
-            crew(slot).hpmax=player.doctor+1
+            crew(slot).hpmax=skill+1
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="D"
             crew(slot).typ=5
-            crew(slot).paymod=player.doctor^2
+            crew(slot).paymod=skill^2
+            crew(slot).baseskill(3)=skill
         endif
         
         if a=6 then 'green
@@ -721,8 +689,7 @@ function addmember(a as short) as short
         endif
         
         if a=14 then 'SO
-            player.science=3
-            crew(4).hpmax=player.science+1
+            crew(4).hpmax=skill+1
             crew(4).hp=crew(4).hpmax
             crew(4).icon="T"
             crew(4).typ=4
@@ -733,14 +700,14 @@ function addmember(a as short) as short
         endif
         
         if a=15 then
-            player.doctor=6
-            crew(5).typ=5
-            crew(5).icon="D"
-            crew(5).paymod=1
-            crew(5).hpmax=7
-            crew(5).hp=7
-            crew(5).n="Ted Rofes"
-            crew(5).xp=0
+            crew(slot).typ=5
+            crew(slot).icon="D"
+            crew(slot).paymod=1
+            crew(slot).hpmax=7
+            crew(slot).hp=7
+            crew(slot).n="Ted Rofes"
+            crew(slot).xp=0
+            crew(slot).baseskill(3)=6
         endif
         
         
@@ -770,7 +737,7 @@ function addmember(a as short) as short
             crew(slot).talents(29)=1
             crew(slot).paymod=2
         endif  
-        
+        crew(slot).hp=crew(slot).hpmax
         'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
@@ -795,15 +762,15 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
         text=text & " Robot/"
         help=help &"/Smith Heavy Industries managed to replicate the old ones robots. They aren't as tough as the originals, but formidable killing machines nonetheless"
     endif
-    text=text & " Set Wage/Exit"
-    help=help & " /Set base wage for your crew"
+    text=text & " Set Wage/Fire/Train/Exit"
+    help=help & " /Set base wage for your crew/Let a crew member go/Try for another promotion"
     cls        
         do
             officers=1
-            if player.pilot>0 then officers=officers+1
-            if player.gunner>0 then officers=officers+1
-            if player.science>0 then officers=officers+1
-            if player.doctor>0 then officers=officers+1
+            if player.pilot(0)>0 then officers=officers+1
+            if player.gunner(0)>0 then officers=officers+1
+            if player.science(0)>0 then officers=officers+1
+            if player.doctor(0)>0 then officers=officers+1
         
             displayship()
             b=menu(text,help)
@@ -815,50 +782,46 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
             if d<60 then c=2
             if d<40 then c=1
             if c<1 then c=1
-            e=((player.pilot+player.gunner+player.science+player.doctor)/4)+1
+            e=((player.pilot(0)+player.gunner(0)+player.science(0)+player.doctor(0))/4)+1
             if e<=0 then e=2
             if c>e then c=e+rnd_range(0,2)-1
             if c<=0 then c=2
             if b<5 and hiringpool>0 then
                 if b=1 then
-                    if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*Wage &" (Current skill:"&player.pilot &") hire? (y/n)") then
+                    if askyn("Pilot, Skill:" & c &" Wage per mission: "& c*c*Wage &" (Current skill:"&player.pilot(0) &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
-                            player.pilot=c
-                            hiringpool+=addmember(2)
+                            hiringpool+=addmember(2,c)
                         else
                             dprint "Not enough money for first wage."
                         endif
                     endif
                 endif
                 if b=2 then
-                    if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*Wage & " (Current skill:"&player.gunner &") hire? (y/n)") then
+                    if askyn("Gunner, Skill:" & c &" Wage per mission: " & c*c*Wage & " (Current skill:"&player.gunner(0) &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
-                            player.gunner=c
-                            hiringpool+=addmember(3)
+                            hiringpool+=addmember(3,c)
                         else
                             dprint "Not enough money for first wage."
                         endif
                     endif
                 endif
                 if b=3 then
-                    if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.science &") hire? (y/n)") then
+                    if askyn("Science officer, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.science(0) &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
-                            player.science=c
-                            hiringpool+=addmember(4)
+                            hiringpool+=addmember(4,c)
                         else
                            dprint "Not enough money for first wage."
                         endif
                     endif
                 endif
                 if b=4 then
-                    if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.doctor &") hire? (y/n)") then
+                    if askyn("Ships doctor, Skill:" & c &" Wage per mission: " &c*c*Wage &" (Current skill:"&player.doctor(0) &") hire? (y/n)") then
                         if player.money>=c*c*Wage then
                             player.money=player.money-c*c*Wage 
-                            player.doctor=c
-                            hiringpool+=addmember(5)
+                            hiringpool+=addmember(5,c)
                         else
                            dprint "Not enough money for first wage."
                         endif
@@ -877,7 +840,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     dprint "Not enough money for first wage."
                 else
                     for d=1 to c
-                        hiringpool+=addmember(6)
+                        hiringpool+=addmember(6,0)
                     next
                     player.money=player.money-c*Wage
                 endif
@@ -894,7 +857,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     else
                         for d=1 to c
                             player.money-=wage*2
-                            hiringpool+=addmember(16)
+                            hiringpool+=addmember(16,0)
                         next
                     endif
                 endif
@@ -910,7 +873,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     else
                         for d=1 to c
                             player.money-=wage*2
-                            hiringpool+=addmember(17)
+                            hiringpool+=addmember(17,0)
                         next
                     endif
                 endif
@@ -926,7 +889,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     else
                         for d=1 to c
                             player.money-=wage*2
-                            hiringpool+=addmember(18)
+                            hiringpool+=addmember(18,0)
                         next
                     endif
                 endif
@@ -944,7 +907,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                         else
                             dprint "you buy "&c &" Neodogs."
                             for d=1 to c
-                                addmember(11)
+                                addmember(11,0)
                             next
                             player.money=player.money-c*50
                         endif
@@ -961,7 +924,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                         else
                             dprint "you buy "&c &" Neoapes."
                             for d=1 to c
-                                addmember(12)
+                                addmember(12,0)
                             next
                             player.money=player.money-c*75
                         endif
@@ -979,7 +942,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     else
                         dprint "you buy "&c &" Robots."
                         for d=1 to c
-                            addmember(13)
+                            addmember(13,0)
                         next
                         player.money=player.money-c*150
                     endif
@@ -996,7 +959,15 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                 next
                 dprint "Set to " &Wage &"Cr. Your crew now gets a total of "&f &" Cr. in wages"        
             endif
-        loop until (neodog=0 and robots=0 and b=10) or (neodog=1 and b=12) or (robots=1 and b=11)
+            if (neodog=0 and robots=0 and b=10) or (neodog=1 and b=12) or (robots=1 and b=11) then
+                'fire
+            endif
+            if (neodog=0 and robots=0 and b=11) or (neodog=1 and b=13) or (robots=1 and b=12) then
+                'Training
+                
+            endif
+                
+        loop until (neodog=0 and robots=0 and b=12) or (neodog=1 and b=14) or (robots=1 and b=13)
     return 0
 end function
 
@@ -1501,7 +1472,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                     'print space(70-pos)
                     
                     y+=1
-                    
+                    textbox(crew_bio(b-offset),_mwx,1,20)
                     color 11,bg
                 endif
             endif

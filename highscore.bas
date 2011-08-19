@@ -209,9 +209,9 @@ sub postmortem
             if lcase(lines(a))="uniques" then lines(a)=texttofile(uniques)
             if lcase(lines(a))="accomplishments" then
                 lines(a)=""
-                if player.science=6 then print #f,"Found and recruited the best science officer in the sector"    
-                if player.gunner=6 then print #f,"Found and recruited the best gunner in the sector"
-                if player.pilot=6 then print #f,"Found and recruited the best pilot in the sector";
+                if player.science(1)=6 then print #f,"Found and recruited the best science officer in the sector"    
+                if player.gunner(1)=6 then print #f,"Found and recruited the best gunner in the sector"
+                if player.pilot(1)=6 then print #f,"Found and recruited the best pilot in the sector";
                 print #f,""
                 if player.questflag(1)=4 then print #f,"Destroyed the infamous Anne Bonny."
                 if player.questflag(2)=4 then print #f,"Brought the kidnappers to justice."
@@ -354,9 +354,9 @@ function score() as integer
     s=s+player.shieldmax
     s=s+player.money-player.piratekills
     s=s+player.turn
-    s=s+player.pilot*100
-    s=s+player.gunner*100
-    s=s+player.science*100
+    s=s+player.pilot(1)*100
+    s=s+player.gunner(1)*100
+    s=s+player.science(1)*100
     s=s+player.sensors
     s=s+player.engine
     s=s+player.fuel

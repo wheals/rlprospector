@@ -191,7 +191,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     dim as string t
     dim it as _items
     dim p as _cords
-    roll=rnd_range(1,6)+rnd_range(1,6)+player.science+e.intel+addtalent(4,14,2)
+    roll=rnd_range(1,6)+rnd_range(1,6)+player.science(0)+e.intel+addtalent(4,14,2)
     if e.lang<0 then
         if roll>9 then
             dprint "Your established communication with the " & e.sdesc &"."
@@ -200,7 +200,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if e.lang=30 then e.aggr=0
             if e.lang=31 then e.aggr=0
         else
-            if player.science<>captainskill or crew(4).onship=0 then
+            if player.science(0)<>captainskill or crew(4).onship=0 then
                 dprint "Your science officer cant make any sense out of the " &e.sdesc &"s sounds and actions."
                 e.cmmod=e.cmmod-1
             else
@@ -443,7 +443,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                 if maxsecurity>0 then
                     e.hp=0
                     e.hpmax=0
-                    addmember(9)
+                    addmember(9,0)
                 else
                     dprint "You don't have enough room for the insect warrior"
                 endif
@@ -573,7 +573,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
                     if maxsecurity>0 then
                         e.hp=0
                         e.hpmax=0
-                        addmember(10)
+                        addmember(10,0)
                     else
                         dprint "You don't have enough room for the cephalopod"
                     endif
@@ -622,20 +622,9 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=5 then dprint "It says: 'There is a legend that our kind was artificially created as pets for a species that has dissapeared.'"
             if a>=6 then 
                 if askyn("It says: 'I'd love to see other worlds! I would volunteer to serve as a science officer for you.' Do you accept(y/n)") then
-                    if player.science>3 then
-                        if askyn("Your science officer is better than the tree creature. Do you want to take it with you regardless? (y/n)") then
-                            player.science=3
-                            addmember(14)
-                            e.hp=0
-                            e.hpmax=0
-                        endif
-                    else
-                        player.science=3
-                        addmember(14)
-                        dprint ""&crew(4).disease
-                        e.hp=0
-                        e.hpmax=0
-                    endif
+                    addmember(14,0)
+                    e.hp=0
+                    e.hpmax=0
                 else
                     dprint "It seems dissapointed."
                 endif
@@ -660,7 +649,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=9 then dprint "Ted Rofes, the shipsdoctor says 'Staying here was interesting, but I would like to get back on a ship. I am a doctor, not a tourist.'"
             if a>9 then
                 if askyn("Ted Rofes asks if you would let him join your crew 'you seem more reasonable than my old captain' (y/n)") then
-                    addmember(15)
+                    addmember(15,0)
                     e.hp=0
                     e.hpmax=0
                 endif        
@@ -1512,7 +1501,7 @@ function rndsentence(e as _monster) as short
             if askyn("It says: 'I pay you 5000 zrongs if you tell me all your technological secrets.' Do you agree? (y/n)") then
                 placeitem(makeitem(88),0,0,0,0,-1)
                 s="it hands you a bag of local currency while you"
-                if rnd_range(1,6)+rnd_range(1,6)+player.science>10 then
+                if rnd_range(1,6)+rnd_range(1,6)+player.science(0)>10 then
                     r=rnd_range(1,6)
                     if r=1 then s=s &" teach it some basic newtonian physics."
                     if r=2 then s=s &" teach it some basic chemistry."

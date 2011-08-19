@@ -196,9 +196,9 @@ function auto_pilot(start as _cords, ende as _cords, diff as short, byref walkin
     for x=0 to sm_x 
         for y=0 to sm_y
             if spacemap(x,y)>0 then 
-                map(x,y)=spacemap(x,y)*diff
+                map(x,y)=spacemap(x,y)*10*diff
             else
-                map(x,y)=4*diff
+                map(x,y)=400*diff
             endif
             if debug=1 then
                 color map(x,y)
@@ -308,10 +308,10 @@ function show_minimap(xx as short,yy as short) as short
                         put ((x+osx)*_fw1+px,(y+osy)*_fh1),gtiles(abs(spacemap(x,y))+49),pset
                     else                        
                         color rnd_range(48,59),1
-                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(48,59),1
-                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(96,107),1
-                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(144,155),1
-                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot>8 then color rnd_range(192,203),1
+                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(48,59),1
+                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(96,107),1
+                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(144,155),1
+                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(192,203),1
                         draw string ((x+osx)*_fw1+px,(y+osy)*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif

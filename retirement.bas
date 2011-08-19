@@ -82,7 +82,7 @@ function retirement() as short
     mtext="Assets/"
     htext="/"
     for a=1 to 9
-        mtext=mtext &asset(a) &space(26-len(asset(a)&credits(price(a))))& "Cr./"
+        mtext=mtext &asset(a) &space(26-len(asset(a)))&credits(price(a))& "Cr./"
         htext=htext &desc(a) &"/"
     next
     mtext=mtext &"back"

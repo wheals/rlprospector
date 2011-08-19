@@ -325,10 +325,14 @@ type _ship
     ti_no as uinteger
     di as byte
     sensors as short
-    pilot as short
-    gunner as short
-    science as short
-    doctor as short
+    declare function pilot(onship as short) as short
+    declare function gunner(onship as short) as short
+    declare function science(onship as short) as short
+    declare function doctor(onship as short) as short
+    pipilot as short
+    pigunner as short
+    piscience as short
+    pidoctor as short
     security as short
     disease as byte
     engine as short
@@ -680,7 +684,31 @@ type _crewmember
     time as short
     bonus as short
     price as short
+    baseskill(3) as short
+    story(10) as byte
 end type
+declare function bestcrew(skill as short,no as short,onship as short) as short
+
+function _ship.pilot(onship as short) as short
+    if pipilot<>0 then return pipilot
+    return bestcrew(0,1,onship)
+end function
+
+function _ship.gunner(onship as short) as short
+    if pigunner<>0 then return pigunner
+    return bestcrew(1,h_maxweaponslot,onship)
+end function
+
+function _ship.science(onship as short) as short
+    if piscience<>0 then return piscience
+    return bestcrew(2,h_maxsensors,onship)
+end function    
+
+function _ship.doctor(onship as short) as short
+    if pidoctor<>0 then return pidoctor
+    return bestcrew(3,12,onship)
+end function
+
 
 type _share
     company as byte
@@ -1005,7 +1033,7 @@ dim shared as any ptr FONT1,FONT2
 dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
 
 dim shared endstory as string
-
+dim shared crew_desig(15) as string
 dim shared combon(9) as _company_bonus
 
 ' SUB DECLARATION
@@ -1146,7 +1174,7 @@ declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship) as _ship
 declare function maxsecurity() as short
 declare function get_freecrewslot() as short
-declare function addmember(a as short) as short
+declare function addmember(a as short,skill as short) as short
 declare function cureawayteam(where as short) as short
 declare function healawayteam(byref a as _monster,heal as short) as short
 declare function damawayteam(byref a as _monster,dam as short,ap as short=0,dis as short=0) as string
@@ -1458,7 +1486,7 @@ declare function nearlowest(p as _pfcords,queue() as _pfcords) as _pfcords
 declare function gen_waypoints(queue() as _pfcords,start as _pfcords,goal as _pfcords,map() as byte) as short
 declare function space_radio() as short
 'quest
-
+declare function crew_bio(i as short) as string
 declare function find_passage_quest(m as short, start as _cords, goal as _cords) as short
 declare function Find_Passage(m as short, start as _cords, goal as _cords) as short
 declare function adapt_nodetext(t as string, e as _monster,fl as short) as string

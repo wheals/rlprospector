@@ -1,3 +1,55 @@
+function crew_bio(i as short) as string
+    dim t as string
+    select case crew(i).story(0)
+    case is =1
+        t="Was born to rich parents"
+    case is =2
+        t="Was born to well to do parents"
+    case is =3
+        t="Was born to lower class parents"
+    case is =4
+        t="Was born to poor parents"
+    case else
+        t="Was born to middle class parents"
+    end select
+    select case crew(i).story(1)
+    case is=2
+        t=t &" from earth."
+    case is=3
+        t=t &" from an asteroid base."
+    case is=4
+        t=t &" from a space station."
+    case else
+        t=t &" on a colony world."
+    end select
+    t=t &" "&crew(i).n
+    select case crew(i).story(2)
+    case 1 to 3
+        t=t &" got very little education."
+    case 4 to 5
+        t=t &" got a masters degree."
+    case else
+        t=t &" got a decent education."
+    end select
+    select case crew(i).story(3)
+    case 1 to 3
+        t=t &" Always wanted to be a "&crew_desig(crew(i).typ)
+    case else
+        t=t &" First wanted to be a "&crew_desig(rnd_range(1,6))&", but then became a "&crew_desig(crew(i).typ)&"."
+    end select
+    select case crew(i).story(4)
+    case 1 to 3
+        t=t &" Is really happy with the job."
+    case 4 to 6
+        t=t &" Is unhappy with the job."
+    case else
+        t=t &" Likes the job well enough."
+    end select
+    
+    return t
+end function
+
+
 function alerts(awayteam as _monster,walking as short) as short
     dim a as short
     static wg as short
@@ -542,28 +594,28 @@ function Crewblock() as string
     dim t as string
     t="{15}Crew Summary |"
     t=t & "{15} | Pilot   :{11}"
-    if crew(2).hp<=0 then 
+    if player.pilot(0)<=0 then 
         t=t &"{10} -"
     else
-        t=t &player.pilot
+        t=t &player.pilot(0)
     endif
     t=t & "{15} | Gunner  :{11}"
-    if crew(3).hp<=0 then 
+    if player.gunner(0)<=0 then 
         t=t &"{10} -"
     else
-        t=t &player.gunner
+        t=t &player.gunner(0)
     endif
     t=t & "{15} | Science :{11}"
-    if crew(4).hp<=0 then 
+    if player.science(0)<=0 then 
         t=t &"{10} -"
     else
-        t=t &player.science
+        t=t &player.science(0)
     endif
     t=t & "{15} | Doctor  :{11}"
-    if crew(5).hp<=0 then 
+    if player.doctor(0)<=0 then 
         t=t &"{10} -"
     else
-        t=t &player.doctor
+        t=t &player.doctor(0)
     endif
     t = t & "{15} || Total bunks:{11}"&player.h_maxcrew+player.crewpod
     if player.cryo>0 then t=t &"{15} || Cryo Chambers:{11}"&player.cryo
