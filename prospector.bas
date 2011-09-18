@@ -1,7 +1,8 @@
 #DEFINE _WINDOWS 
+#DEFINE _OSX
 '#define FBEXT_NO_EXTERNAL_LIBS -1
 #include once "file.bi"
-#include once "fbgfx.bi" 
+'#include once "fbgfx.bi" 
 #IFDEF _WINDOWS
 #include once "ext/graphics/font.bi"
 #include once "fmod.bi"
@@ -29,6 +30,10 @@
 #include once "space.bas"
 #include once "kbinput.bas"
 #include once "globals.bas"
+#include once "compcolon.bas"
+#macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)
+draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col    
+#endmacro
 on error goto errormessage  
 
  
@@ -122,7 +127,7 @@ function titlemenu() as short
     
     
     color 228,0
-    draw string(_screenx/30+4,_screeny/8+4),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    draw_string(_screenx/30+4,_screeny/8+4,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
     color 227,0
     draw string(_screenx/30+3,_screeny/8+3),"PROSPECTOR",,TITLEFONT,custom,@_tcol
@@ -150,6 +155,7 @@ end function
 function startnewgame() as short
     dim as string text
     dim as short a,b,c
+    dim i as _items
     make_spacemap() 
     background(rnd_range(1,_last_title_pic)&".bmp")
     text="/"&makehullbox(1,"data/ships.csv") &"/"&makehullbox(2,"data/ships.csv") &"/"&makehullbox(3,"data/ships.csv") &"/"&makehullbox(4,"data/ships.csv") &"/"&makehullbox(6,"data/ships.csv")
@@ -173,6 +179,14 @@ function startnewgame() as short
         placeitem(makeitem(100),0,0,0,0,-1)
         placeitem(makeitem(100),0,0,0,0,-1)
         placeitem(makeitem(100),0,0,0,0,-1)
+'        placeitem(makeitem(52),0,0,0,0,-1)
+'        placeitem(makeitem(52),0,0,0,0,-1)
+'        placeitem(makeitem(52),0,0,0,0,-1)
+'        for a=0 to 1000
+'        i=makeitem(96)
+'        placeitem(i,0,0,0,0,-1)
+'        reward(2)+=i.v1
+'        next     
         'player.pilot=3
         'placeitem(makeitem(85),0,0,0,0,-1)
         'placeitem(makeitem(85),0,0,0,0,-1)
@@ -300,25 +314,15 @@ function targetlanding(mapslot as short,test as short=0) as short
     screenset 1,1
     
     dprint "Choose landing site"
-    displayplanetmap(mapslot,osx)
-    displayship
     p.x=30
     p.y=10
-    do
-        cls
-        osx=p.x-_mwx/2
-        if osx<0 then osx=0
-        if osx>60-_mwx then osx=60-_mwx
-        displayplanetmap(mapslot,osx)
-        draw_border(0)
-        key=cursor(p,mapslot,osx)
-    loop until key=key_esc or key=key_enter
+    key=get_planet_cords(p,mapslot)
     if key=key_enter then
         do
             p=movepoint(p,5)
             c+=1
             player.fuel-=1
-        loop until c>5 or rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>3+c+planets(mapslot).grav+planets(mapslot).dens
+        loop until c>5 or (tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).walktru=0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>3+c+planets(mapslot).grav+planets(mapslot).dens)
         if c<=5 then
             landing(mapslot,p.x,p.y,c)
         else
@@ -644,6 +648,8 @@ function scanning() as short
             dprint "Science Officer: 'This is a sight you get to see once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone.'",15
             planets(mapslot).flags(27)=2
         endif
+        if isgardenworld(mapslot) then dprint "This planet is earthlike."
+        if planets(mapslot).colflag(0)>0 then dprint "There is a "& companyname(planets(mapslot).colflag(0)) &" colony on this planet. They are sending greetings."
         osx=30-_mwx/2
         do
             displayplanetmap(mapslot,osx)
@@ -919,46 +925,32 @@ function driftingship(a as short)  as short
     return 0
 end function
 
-function moverover(pl as short)  as short
+function moverover(pl as short,ship as _cords,li()as short,lastlocalitem as short)  as short
     dim as integer a,b,c,i,t,ti,x,y
-    dim as integer carn,herb,mins,oxy,food,energy
+    dim as integer carn,herb,mins,oxy,food,energy,curr,last
     dim as single minebase
-    dim as _cords p1,p2
+    dim as _cords p1,p2,route(1200)
     dim as _cords pp(9)
-    t=(player.turn-planets(pl).visited)*5
+    t=(player.turn-planets(pl).visited)*10
     for a=0 to lastitem
         if item(a).ty=18 and item(a).w.p=0 and item(a).w.s=0 and item(a).w.m=pl then i=a
     next
     if i>0 and t>0 then
         p1.x=item(i).w.x
         p1.y=item(i).w.y
-        for a=0 to t
-            for x=item(i).w.x-item(i).v1-3 to item(i).w.x+item(i).v1+3
-                for y=item(i).w.y-item(i).v1-3 to item(i).w.y+item(i).v1+3
-                    if x>=0 and y>=0 and x<=60 and y<=20 then
-                        p2.x=x
-                        p2.y=y
-                        if distance(p1,p2)<=item(i).v1+1 and planetmap(x,y,pl)<0 then
-                            planetmap(x,y,pl)=planetmap(x,y,pl)*-1
-                            item(i).v6=item(i).v6+0.5*item(i).v3
-                        endif
-                    endif
-                next
-            next
-            'make list
-            c=0
-            for b=1 to 9
-                if b<>5 then
-                    pp(c)=movepoint(p1,b)
-                    ti=abs(planetmap(pp(c).x,pp(c).y,pl))
-                    if tiles(ti).walktru<=item(i).v2 then c=c+1
+        for a=0 to t*item(i).v4
+            curr+=1
+            if curr>last then
+                last=ep_autoexploreroute(route(),p1,item(i).v2,pl,ship,li(),lastlocalitem)
+                curr=1
+            else
+                if last>0 then
+                    item(i).w.x=route(curr).x
+                    item(i).w.y=route(curr).y
                 endif
-            next
-            if c>0 then p1=pp(rnd_range(0,c-1))
-            
+            endif
+            ep_roverreveal(i)
         next
-        item(i).w.x=p1.x
-        item(i).w.y=p1.y
         if rnd_range(1,150)<planets(pl).atmos*2 then item(i).discovered=0
         if rnd_range(1,150)<planets(pl).atmos+2 then 
             item(i)=makeitem(65)
@@ -1300,9 +1292,10 @@ function move_ship(key as string,byref walking as short) as _ship
             dprint "Target reached"
             walking=0
         endif
+        
     endif
     if a<>0 then player.di=a
-    old=player.c
+    old=player.c 
     player.c=movepoint(player.c,a,,1)
     if player.c.x<0 then player.c.x=0
     if player.c.y<0 then player.c.y=0
@@ -1822,6 +1815,13 @@ function explore_space() as short
     
     if player.turn mod 10 =0 then clean_station_event
     
+    if frac(player.turn/500)=0 then 
+        for a=0 to 2
+            colonize_planet(a)
+        next
+        grow_colonies
+    endif
+    
     for a=0 to laststar
         if map(a).planets(1)>0 then
             if planets(map(a).planets(1)).flags(27)=2 then 
@@ -2215,7 +2215,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
 
 endif
     
-    moverover(slot)
+    moverover(slot,ship,li(),lastlocalitem)
     'if planets(slot).colony<>0 then growcolony(slot)
     
     planets(slot).visited=player.turn    
@@ -2401,7 +2401,7 @@ endif
     if awayteam.c.y>20 then awayteam.c.y=20
     displayplanetmap(slot,awayteam.c.x-_mwx/2)
     ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship, nightday(awayteam.c.x))
+    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship, nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
     dprint ""
     '
     ' EXPLORE PLANET
@@ -2434,12 +2434,12 @@ endif
     cls
     displayplanetmap(slot,awayteam.c.x-_mwx/2)
     ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
     flip
     cls
     displayplanetmap(slot,awayteam.c.x-_mwx/2)
     ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+    displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
     flip
     do
         if show_all=1 then
@@ -2466,11 +2466,27 @@ endif
                 displaytext(loceol.y)=displaytext(loceol.y-1) &"."
                 if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                     walking=0
-                    dprint "complete."
+                    dprint "complete."   
                     key=key_i
                 endif
             else
-                awayteam.c=movepoint(awayteam.c,walking)
+                if walking<10 then
+                    awayteam.c=movepoint(awayteam.c,walking)
+                endif
+                if walking=11 then
+                    if currapwp=lastapwp then
+                        'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
+                        lastapwp=ep_autoexplore(awayteam,slot,ship,li(),lastlocalitem)
+                        currapwp=0
+                    endif
+                    if lastapwp>0 then
+                        currapwp+=1
+                        awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
+                    else
+                        walking=0
+                    endif
+
+                endif
             endif
         else
             if rnd_range(1,100)<110+countdeadofficers(awayteam.hpmax) then
@@ -2501,7 +2517,7 @@ endif
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(awayteam,rnd_range(1,awayteam.hp),1),12
             ep_tileeffects(awayteam,areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),vismask())
             ep_shipfire(shipfire(),vismask(),enemy(),lastenemy,awayteam)
-            ep_items(awayteam,li(),lastlocalitem,enemy(),lastenemy,localturn,vismask())
+            ep_items(awayteam,li(),lastlocalitem,enemy(),lastenemy,localturn,vismask(),ship)
             walking=alerts(awayteam,walking)
             for a=1 to lastenemy
                 if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
@@ -2524,15 +2540,15 @@ endif
             cls
             displayplanetmap(slot,awayteam.c.x-_mwx/2)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
             screenset 0,1
             cls
             displayplanetmap(slot,awayteam.c.x-_mwx/2)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
             
             dprint("")
-            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,walking,ship)
+            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,walking,ship,localtemp(awayteam.c.x,awayteam.c.y))
             equip_awayteam(player,awayteam,slot)
             if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
             if awayteam.move=4 then allowed=allowed &key_te
@@ -2556,9 +2572,9 @@ endif
             cls
             displayplanetmap(slot,awayteam.c.x-_mwx/2)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
+            displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
             color 11,0
-            osx=calcosx(awayteam.c.x)
+            osx=calcosx(awayteam.c.x,planets(slot).depth)
             for x=0 to 60
                 if x-osx>=0 and x-osx<=_mwx and nightday(x)=1 then draw string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2),chr(193),,Font2,Custom,@_tcol
                 if x-osx>=0 and x-osx<=_mwx and nightday(x)=2 then draw string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh1/2),chr(193),,Font2,Custom,@_tcol
@@ -2633,8 +2649,18 @@ endif
                 endif
             endif
             if key=key_walk then 
-                dprint "Direction?"
-                walking=getdirection(keyin)  
+                dprint "Direction? (0 for autoexplore)"
+                no_key=keyin
+                walking=getdirection(no_key)  
+                if no_key="0" then 
+                    lastapwp=ep_autoexplore(awayteam,slot,ship,li(),lastlocalitem)
+                    currapwp=0
+                    if lastapwp>-1 then 
+                        walking=11
+                    else
+                        dprint "All explored here."
+                    endif
+                endif
             endif
             if key=key_co or key=key_of then ep_communicateoffer(key,awayteam,enemy(),lastenemy,li(),lastlocalitem)
             if key=key_te and awayteam.move=4 then awayteam.c=teleport(awayteam.c,slot) 
@@ -2854,7 +2880,7 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
     dim as _cords p,p1 
     p1.x=item(c).w.x
     p1.y=item(c).w.y
-    osx=calcosx(awayteam.c.x)
+    osx=calcosx(awayteam.c.x,planets(slot).depth)
                                         
     for e=0 to item(c).v1*6
         
@@ -3708,7 +3734,9 @@ dim as byte attempts
 
 ERRORMESSAGE:
 e=err
-text=__VERSION__ &" Error #"&e &" in "& " "&erl &":" & *ERFN() &" " & *ERMN()
+text=*ERMN()
+text=mid(text,81) 
+text=__VERSION__ &" Error #"&e &" in "& " "&erl &":" & *ERFN() &" " & text
 f=freefile
 open "error.log" for append as #f
 
@@ -3724,7 +3752,7 @@ sleep
 if attempts=0 then
     print "Trying to save game"
     savegame()
-    attempts=2
+    attempts=26
 else
     print "Failed to save game."
 endif

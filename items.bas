@@ -177,16 +177,26 @@ end function
     
 function destroy_all_items_at(ty as short, wh as short) as short
     dim as short i,d,c
+'    do
+'        if item(i).ty=ty and item(i).w.s=wh then
+'            item(i)=item(lastitem)
+'            lastitem-=1
+'            d+=1
+'        else
+'            i+=1
+'        endif
+'        c+=1
+'    loop until i>lastitem or c>lastitem
     do
-        if item(i).ty=ty and item(i).w.s=wh then
+    d=0
+    for i=0 to lastitem
+        if item(i).ty=ty and item(i).w.s=wh then 
             item(i)=item(lastitem)
             lastitem-=1
             d+=1
-        else
-            i+=1
         endif
-        c+=1
-    loop until i>lastitem or c>lastitem
+    next
+    loop until d=0
     return d
 end function
 
@@ -1181,6 +1191,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=2
         i.v2=0
         i.v3=.5
+        i.v4=1 'Speed
         i.vt.x=-1
         i.vt.y=-1
         i.price=600
@@ -1200,6 +1211,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=3
         i.v2=1
         i.v3=.7
+        i.v4=2
         i.vt.x=-1
         i.vt.y=-1
         i.price=1500
@@ -1219,6 +1231,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=4
         i.v2=2
         i.v3=1
+        i.v4=3
         i.vt.x=-1
         i.vt.y=-1
         i.price=3500
@@ -2576,10 +2589,10 @@ end function
 function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
     dim as short i,offset,a,b,c,li,cu,set,k,filter,l,c2
     dim i_fs(11) as string
-    dim mls(127) as string
-    dim mdesc(127) as string
-    dim mno(127) as short
-    dim mit(127) as short
+    dim mls(255) as string
+    dim mdesc(255) as string
+    dim mno(255) as short
+    dim mit(255) as short
     dim lin(20) as string
     dim it(20) as short
     dim as string key,mstr
@@ -2604,7 +2617,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                     mno(c)=mno(c)+1
                 endif
             next
-            if set=0 then
+            if set=0 and b<256 then
                 b=b+1
                 li=li+1
                 mls(b)=item(a).desig
@@ -2994,7 +3007,7 @@ function findartifact(awayteam as _monster,v5 as short) as short
             
             if all_resources_are=0 then
                 if v5=0 then
-                    c=rnd_range(1,16)
+                    c=rnd_range(1,20)
                     if c=2 or c=5 then
                         c=rnd_range(1,10)
                         if c=2 or c=5 then artflag(c)=1
@@ -3005,7 +3018,7 @@ function findartifact(awayteam as _monster,v5 as short) as short
             else
                 c=all_resources_are
             endif
-            if c<0 or c>16 then c=rnd_range(1,16)
+            if c<0 or c>20 then c=rnd_range(1,20)
             if (rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
                 artflag(c)=1                
                 artifact(c,awayteam)
@@ -3121,7 +3134,25 @@ function artifact(c as short,awayteam as _monster) as short
         dprint "It's a device that allows to navigate wormholes!"
     endif
     
+    if c=17 then
+        dprint "It's a sophisticated piloting AI"
+        player.pipilot=7
+    endif
     
+    if c=18 then
+        dprint "It's a sophisticated gunner AI"
+        player.pigunner=7
+    endif
+    
+    if c=19 then
+        dprint "It's a sophisticated science AI"
+        player.piscience=7
+    endif
+    
+    if c=20 then
+        dprint "It's a sophisticated medical AI"
+        player.pidoctor=8
+    endif
     return 0
 end function
 

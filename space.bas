@@ -2,15 +2,6 @@ function make_spacemap() as short
     dim as short a,b,c,d,e,astcou,gascou
     dim as _cords p1,p2,p3
     dim showclouds as byte
-    dim as short  debug,x,y
-    debug=0
-    for a=0 to max_maps
-        for x=0 to 60
-            for y=0 to 20
-                planetmap(x,y,a)=0
-            next
-        next
-    next
     showclouds=0
     color 11,0
     print
@@ -127,16 +118,6 @@ function make_spacemap() as short
     next
     print "Asteroid belts:";astcou
     print "Gas giants:";gascou
-    if debug=1 then
-    for a=0 to lastspecial
-        print ".";
-        if specialplanet(a)>0 and specialplanet(a)<max_maps then
-            makespecialplanet(a)
-            map(sysfrommap(specialplanet(a))).discovered=2
-            map(sysfrommap(specialplanet(a))).desig=""&a
-        endif
-    next
-    endif
     sleep 1250
     return 0
 end function
@@ -398,6 +379,7 @@ function add_drifters() as short
     planets(drifting(1).m).mon_noamin(2)=1
     planets(drifting(1).m).mon_noamax(2)=1
     planetmap(19,10,drifting(1).m)=-287
+    if rnd_range(1,100)<66 then planetmap(39,13,drifting(1).m)=(298+rnd_range(1,4))*-1
     
     do
         a=rnd_range(firststationw,lastwaypoint)
@@ -412,6 +394,7 @@ function add_drifters() as short
     planets(drifting(2).m).mon_noamin(0)=3
     planets(drifting(2).m).mon_noamax(0)=6
     planetmap(19,10,drifting(2).m)=-287
+    if rnd_range(1,100)<33 then planetmap(39,13,drifting(2).m)=(298+rnd_range(1,4))*-1
     
     do
         a=rnd_range(firststationw,lastwaypoint)
@@ -426,6 +409,7 @@ function add_drifters() as short
     planets(drifting(3).m).mon_noamin(0)=3
     planets(drifting(3).m).mon_noamax(0)=6
     planetmap(19,10,drifting(3).m)=-287
+    if rnd_range(1,100)<33 then planetmap(39,13,drifting(2).m)=(298+rnd_range(1,4))*-1
     
     drifting(4).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
     drifting(4).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
@@ -541,7 +525,6 @@ function add_caves() as short
             portal(a).discovered=show_portals
             portal(a).dimod=2-rnd_range(1,4)
             portal(a).tumod=4-rnd_range(1,8)
-            portal(a).oneway=0
             map(sysfrommap(portal(a).from.m)).discovered=5
             lastplanet=lastplanet+1
             print ".";
@@ -555,7 +538,7 @@ function add_caves() as short
         a=freefile
         open "portals.csv" for output as #a
         for b=0 to lastportal
-            print #a,portal(b).from.x;";";portal(b).from.y;";";portal(b).from.m;";";portal(b).dest.x;";";portal(b).dest.y;";";portal(b).dest.m;";";portal(b).oneway
+            print #a,portal(b).from.x;";";portal(b).from.y;";";portal(b).from.m;";";portal(b).dest.x;";";portal(b).dest.y;";";portal(b).dest.m
         next
         close #a
     endif
@@ -669,6 +652,7 @@ function gen_traderoutes() as short
     goal.x=basis(r).c.x
     goal.y=basis(r).c.y
     print "Start:"&start.x &":"&start.y & " Goal:" &goal.x &":"& goal.y
+    sleep
     lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
     offset=11
     if lp>0 then
@@ -803,7 +787,7 @@ function make_clouds() as short
     dim as short x,y,bx,by,highest,count,a,b,c,r
     dim as single attempt
     dim debug as short
-    debug=0
+    debug=1
     dim as _cords p1,p2,p3,p4
     print
     print "Creating clouds";

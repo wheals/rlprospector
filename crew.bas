@@ -515,7 +515,7 @@ function addmember(a as short,skill as short) as short
     dim _del as _crewmember
     dim as string n(200,1)
     dim as short ln(1)
-    debug=1
+    debug=0
     f=freefile
     open "data/crewnames.txt" for input as #f
     do
@@ -961,10 +961,29 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
             endif
             if (neodog=0 and robots=0 and b=10) or (neodog=1 and b=12) or (robots=1 and b=11) then
                 'fire
+                g=showteam(0,1,"Who do you want to dismiss?")
+                if g>1 then 
+                    for f=g to 127
+                        crew(f)=crew(f+1)
+                    next
+                    crew(128)=crew(0)
+                endif
+                    
             endif
             if (neodog=0 and robots=0 and b=11) or (neodog=1 and b=13) or (robots=1 and b=12) then
                 'Training
-                
+                f=0
+                for g=2 to 128
+                    if Crew(g).paymod>0 and crew(g).hpmax>0 and crew(g).hp>0 then f=f+Wage*Crew(g).paymod
+                next
+                f=f/2
+                if askyn("Training will cost "&f &" credits.(y/n)") then
+                    if player.money>=f then
+                        player.money-=f
+                        player=levelup(player)
+                    endif
+                endif
+                        
             endif
                 
         loop until (neodog=0 and robots=0 and b=12) or (neodog=1 and b=14) or (robots=1 and b=13)
@@ -1353,20 +1372,21 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (0,y*_fh2), " " & b-offset & " ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp>0 then
-                        if b-offset>5 then
                             color 10,bg
                             draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
                             color 15,bg
                             if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "Squ.Ld",,font2,custom,@_col
                             if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Sniper",,font2,custom,@_col
                             if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Paramd",,font2,custom,@_col
-                        else
-                            if b-offset=1 then draw string (3*_fw2,y*_fh2), "Captain",,font2,custom,@_col
-                            if b-offset=2 then draw string (3*_fw2,y*_fh2), "Pilot  ",,font2,custom,@_col
-                            if b-offset=3 then draw string (3*_fw2,y*_fh2), "Gunner ",,font2,custom,@_col
-                            if b-offset=4 then draw string (3*_fw2,y*_fh2), "Science",,font2,custom,@_col
-                            if b-offset=5 then draw string (3*_fw2,y*_fh2), "Doctor ",,font2,custom,@_col
-                        endif
+                            if crew(b-offset).typ=1 then draw string (3*_fw2,y*_fh2), "Captain",,font2,custom,@_col
+                            if crew(b-offset).typ=2 then draw string (3*_fw2,y*_fh2), "Pilot  ",,font2,custom,@_col
+                            if crew(b-offset).typ=3 then draw string (3*_fw2,y*_fh2), "Gunner ",,font2,custom,@_col
+                            if crew(b-offset).typ=4 then draw string (3*_fw2,y*_fh2), "Science",,font2,custom,@_col
+                            if crew(b-offset).typ=5 then draw string (3*_fw2,y*_fh2), "Doctor ",,font2,custom,@_col
+                            if crew(b-offset).typ=6 then draw string (3*_fw2,y*_fh2), "Green  ",,font2,custom,@_col
+                            if crew(b-offset).typ=7 then draw string (3*_fw2,y*_fh2), "Veteran",,font2,custom,@_col
+                            if crew(b-offset).typ=8 then draw string (3*_fw2,y*_fh2), "Elite  ",,font2,custom,@_col
+                        
                     else
                         color 12,0
                         draw string (3*_fw2,y*_fh2), "X",,font2,custom,@_col
@@ -1472,7 +1492,6 @@ function showteam(from as short, r as short=0,text as string="") as short
                     'print space(70-pos)
                     
                     y+=1
-                    textbox(crew_bio(b-offset),_mwx,1,20)
                     color 11,bg
                 endif
             endif
@@ -1485,6 +1504,7 @@ function showteam(from as short, r as short=0,text as string="") as short
         endif
         if r=1 then draw string (10,_screeny-_fh2), "installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         'flip
+        textbox(crew_bio(p),_mwx,1,20)
         screenset 0,1
         no_key=keyin(,,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1

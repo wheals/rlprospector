@@ -550,7 +550,7 @@ function load_tiles() as short
     n=101
     cls
     bload "graphics/land.bmp"
-    for y=0 to _tiy*15 step _tiy
+    for y=0 to _tiy*16 step _tiy
         for x=0 to _tix*19 step _tix
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
@@ -1699,7 +1699,7 @@ function savegame() as short
         put #f,,flag(a)
     next
     
-    for a=0 to lastflag
+    for a=0 to 20
         put #f,,artflag(a)
     next
     print ".";
@@ -1923,7 +1923,7 @@ function loadgame(filename as string) as short
             get #f,,flag(a)
         next
         
-        for a=0 to lastflag
+        for a=0 to 20
             get #f,,artflag(a)
         next
         print ".";

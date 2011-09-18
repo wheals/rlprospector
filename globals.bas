@@ -7,7 +7,7 @@ function setglobals() as short
     
     wage=10
     
-    for a=0 to 4
+    for a=0 to 5
         companystats(a).capital=1000
         companystats(a).profit=0
         companystats(a).rate=0

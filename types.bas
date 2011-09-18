@@ -5,7 +5,7 @@
 using FB
 randomize timer
 
-const __VERSION__="0.2.2c"
+const __VERSION__="0.2.3"
 
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0 'special planets already discovered
@@ -26,7 +26,7 @@ const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=0
+const rev_map=1
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -514,6 +514,7 @@ type _planet
     flavortext as string*512
     comment as string*60
     mapstat as byte
+    colflag(16) as byte
 end type
 'Flag 28=techgoods delivered to star creatures
 type _ae
@@ -921,6 +922,7 @@ End Property
 dim shared apwaypoints(1024) as _cords
 dim shared lastapwp as short
 dim shared currapwp as short
+dim shared apdiff as short
 
 dim shared talent_desig(29) as string
 dim shared evkey as EVENT
@@ -947,8 +949,8 @@ dim shared stationroll as short
 dim shared player as _ship
 dim shared map(laststar+wormhole+1) as _stars
 dim shared basis(12) as _station
-dim shared companystats(4) as _company
-dim shared companyname(4) as string
+dim shared companystats(5) as _company
+dim shared companyname(5) as string
 dim shared shares(2048) as _share
 dim shared lastshare as short
 dim shared spacemap(sm_x,sm_y) as short
@@ -1039,6 +1041,7 @@ dim shared combon(9) as _company_bonus
 ' SUB DECLARATION
 
 ' prospector .bas
+declare function get_planet_cords(byref p as _cords,mapslot as short) as string
 declare function startnewgame() as short
 declare function fromsavegame(key as string) as string
 declare function wormhole_ani(target as _cords) as short
@@ -1049,7 +1052,7 @@ declare function rescue() as short
 declare function asteroidmining(slot as short) as short
 declare function gasgiantfueling(t as short,orbit as short,sys as short) as short
 declare function driftingship(a as short) as short
-declare function moverover(pl as short) as short
+declare function moverover(pl as short,ship as _cords,li()as short,lastlocalitem as short) as short
 declare function rnd_crewmember(onship as short=0) as short
 declare function alerts(awayteam as _monster,walking as short) as short
 declare function launch_probe() as short
@@ -1061,8 +1064,10 @@ declare function show_dotmap(x1 as short, y1 as short) as short
 declare function show_minimap(xx as short,yy as short) as short
 declare function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as _Cords ,last as short) as short
 
-declare function calcosx(x as short) as short
+declare function calcosx(x as short,wrap as byte) as short
 
+declare function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short, ship as _cords,li() as short,lastlocalitem as short) as short
+declare function ep_roverreveal(i as integer) as short
 declare function ep_portal(awayteam as _monster,byref walking as short) as _cords
 declare function ep_pickupitem(key as string, awayteam as _monster,byref lastlocalitem as short,li() as short) as short
 declare function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monster,byref lastenemy as short, byref awayteam as _monster) as short
@@ -1075,7 +1080,7 @@ declare function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref
 declare function ep_fire(awayteam as _monster, enemy() as _monster,lastenemy as short,vismask() as byte,mapmask() as byte,byref walking as short,key as string,byref autofire_target as _cords) as short
 declare function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _monster, lastenemy as short,vismask() as byte,mapmask() as byte) as short
 declare function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, vismask() as byte, mapmask() as byte,nightday() as byte, byref walking as short) as short
-declare function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short,vismask()as byte) as short
+declare function ep_items(awayteam as _monster, li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short,vismask()as byte,ship as _cords) as short
 declare function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as byte, byref dawn as single, byref dawn2 as single) as short
 declare function ep_tileeffects(awayteam as _monster,areaeffect() as _ae, byref last_ae as short,lavapoint() as _cords, nightday() as byte, localtemp() as single,vismask() as byte) as short
 declare function ep_landship(byref ship_landing as short,nextlanding as _cords,ship as _cords,nextmap as _cords,vismask() as byte,enemy() as _monster,lastenemy as short) as short
@@ -1095,8 +1100,9 @@ declare function ep_heatmap(awayteam as _monster, enemy() as _monster,lastenemy 
 declare Function fuzzyMatch( Byref correct As String, Byref match As String ) As single
 declare function place_shop_order(sh as short) as short
 declare Function lev_minimum( a As Integer, b As Integer, c As Integer ) As Integer
-
+declare function ep_autoexplore(awayteam as _monster,slot as short,ship as _cords,li() as short,lastlocalitem as short) as short
 declare function titlemenu() as short
+declare function ep_planetroute(route() as _cords,move as short,start as _cords, target as _cords) as short
 
 declare function teleport(awaytam as _cords, map as short) as _cords
 declare function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() as _tile) as _monster
@@ -1113,6 +1119,12 @@ declare function grenade(from as _cords,map as short) as _cords
 declare function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
 declare function clear_gamestate() as short
 declare function planetflags_toship(m as short) as _ship
+
+declare function colonize_planet(st as short) as short
+declare function get_com_colon_candidate(st as short) as short
+declare function score_planet(i as short,st as short) as short
+declare function score_system(s as short,st as short) as short
+
 
 ' fileIO.bas
 declare function count_lines(file as string) as short
@@ -1156,7 +1168,7 @@ declare sub displaystation(a as short)
 declare sub displayship(show as byte=0)
 declare function display_ship_weapons(m as short=0) as short
 declare sub displaysystem(in as short,forcebar as byte=0,hi as byte=0)
-declare sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short)
+declare function displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords,loctime as short,loctemp as single) as short
 declare sub dtile (x as short,y as short, tiles as _tile,bgcol as short=0)
 declare function locEOL() as _cords
 declare function drawsysmap(x as short, y as short, in as short, hi as short=0,bl as string,br as string) as short
@@ -1169,6 +1181,7 @@ declare function diseaserun(a as short) as short
 declare function settactics() as short
 declare function makevismask(vismask()as byte,byval a as _monster,m as short) as short
 declare function vis_test(a as _cords,p as _cords,test as short) as short
+declare function ap_astar(start as _cords,ende as _cords,diff as short) as short
 
 declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship) as _ship
@@ -1192,6 +1205,14 @@ declare function getrandomsystem(unique as short=1) as short
 declare function getrandomplanet(s as short) as short
 declare function sysfrommap(a as short)as short
 declare function orbitfrommap(a as short) as short
+
+declare function get_colony_building(map as short) as _cords
+declare function grow_colony(map as short) as short
+declare function isbuilding(x as short,y as short,map as short) as short
+declare function closest_building(p as _cords,map as short) as _Cords
+declare function grow_colonies() as short
+declare function count_tiles(i as short,map as short) as short
+declare function remove_building(map as short) as short
 
 declare function askyn(q as string,col as short=11) as short
 declare function randomname() as string
@@ -1254,7 +1275,7 @@ declare function findartifact(awayteam as _monster,v5 as short) as short
     
 declare function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short, byref walking as short) as short
 declare function earthquake(t as _tile,dam as short)as _tile
-declare function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords) as short
+declare function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,byref walking as short, byref ship as _cords,loctemp as single) as short
 declare function numfromstr(t as string) as short
 
 'Star Map generation

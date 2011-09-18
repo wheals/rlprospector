@@ -18,12 +18,14 @@ function sub0(a as single,b as single) as single
     return c
 end function
 
-function calcosx(x as short) as short 'Caculates Ofset X for windows less than 60 tiles wide
+function calcosx(x as short,wrap as byte) as short 'Caculates Ofset X for windows less than 60 tiles wide
     dim osx as short
-    if _mwx=60 then return 0
     osx=x-_mwx/2
-    if osx<0 then osx=0
-    if osx>=60-_mwx then osx=60-_mwx
+    if wrap>0 then
+        if osx<0 then osx=0
+        if osx>60-_mwx then osx=60-_mwx
+    endif
+    if _mwx=60 then osx=0
     return osx
 end function
 
@@ -350,6 +352,12 @@ function movepoint(byval c as _cords, a as short, eo as short=0, border as short
         if c.x<0 then c.x=x
         if c.x>x then c.x=0
     endif
+    if eo=4 then
+        if c.y<0 then c.y=0
+        if c.y>20 then c.y=20
+        if c.x<0 then c.x=x
+        if c.x>x then c.x=0
+    endif
     return c
 end function
 
@@ -640,8 +648,12 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
             endif
         endif
+        if blocktype=5 then
+            if tmap(x,y).seetru<>0 then return -1
+        endif
+            
     next
-
+    if blocktype=5 then return 0
     if blocktype=2 then sleep delay
     return result
 end function

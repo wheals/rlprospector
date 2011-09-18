@@ -189,16 +189,19 @@ function logbook(byref walking as short) as short
     return 0
 end function
 
-function auto_pilot(start as _cords, ende as _cords, diff as short, byref walking as short) as short
+function ap_astar(start as _cords,ende as _cords,diff as short) as short
     dim map(sm_x,sm_y) as short
     dim as short x,y,debug
     debug=0
+    if debug=2 then dprint ""&diff
     for x=0 to sm_x 
         for y=0 to sm_y
+            map(x,y)=0
             if spacemap(x,y)>0 then 
-                map(x,y)=spacemap(x,y)*10*diff
+                map(x,y)=spacemap(x,y)*200*diff^2
+                if map(x,y)<0 then map(x,y)=32000
             else
-                map(x,y)=400*diff
+                map(x,y)=100*diff
             endif
             if debug=1 then
                 color map(x,y)
@@ -207,11 +210,18 @@ function auto_pilot(start as _cords, ende as _cords, diff as short, byref walkin
         next
     next
     lastapwp=a_star(apwaypoints(),ende,start,map(),sm_x,sm_y,0)
+    return lastapwp
+end function
+
+
+function auto_pilot(start as _cords, ende as _cords, diff as short, byref walking as short) as short
+    lastapwp=ap_astar(start,ende,diff)
     if lastapwp>0 then
         show_dotmap(ende.x,ende.y) 
         if askyn( "Route calculated with "&lastapwp &" parsecs. Use it? (y/n)") then
             walking=10
             currapwp=0
+            apdiff=diff
             return 1
         endif
     endif
@@ -308,10 +318,10 @@ function show_minimap(xx as short,yy as short) as short
                         put ((x+osx)*_fw1+px,(y+osy)*_fh1),gtiles(abs(spacemap(x,y))+49),pset
                     else                        
                         color rnd_range(48,59),1
-                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(48,59),1
-                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(96,107),1
-                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(144,155),1
-                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(192,203),1
+                        'if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(48,59),1
+                        'if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(96,107),1
+                        'if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(144,155),1
+                        'if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then color rnd_range(192,203),1
                         draw string ((x+osx)*_fw1+px,(y+osy)*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif
@@ -491,7 +501,7 @@ end function
 function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as _cords) as short
     dim last as short
     dim as short i,a,b,f,j
-    
+    dim as short debug=1
     for a=0 to 255
         lobn(a)=-1
     next
@@ -505,7 +515,9 @@ function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as
             lobc(i)=0
             lobp(i)=map(a).c
             for b=1 to 9
-                if is_special(map(a).planets(b)) then lobc(i)=6
+                if map(a).planets(b)>0 and map(a).planets(b)<max_maps then
+                if is_special(map(a).planets(b)) and planets(map(a).planets(b)).mapstat<>0 then lobc(i)=6
+                endif
             next
         endif
     next

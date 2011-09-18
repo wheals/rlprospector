@@ -67,6 +67,7 @@ function spacecombat(defender as _ship, byref atts as _fleet,ter as short) as _s
     b=0
     for a=1 to 15
         if atts.mem(a).hull>0 then
+            dprint atts.mem(a).c.x &":"&atts.mem(a).c.y
             b+=1
             noenemies+=1
             lastenemy=lastenemy+1
@@ -574,10 +575,8 @@ function com_display(defender as _ship, attacker() as _ship, lastenemy as short,
             list_e(last)=a        
         next
     endif
-    osx=defender.c.x-_mwx/2
-    if osx<0 then osx=0
-    if osx>_mwx then osx=60-_mwx
-    if _mwx=60 then osx=0
+    osx=calcosx(defender.c.x,1)
+    
     senbat=defender.sensors+2
     senbat1=defender.sensors+1
     senbat2=defender.sensors
@@ -815,7 +814,7 @@ function com_fire(target as _ship, attacker as _ship,byref w as _weap, gunner as
     dim del as _weap
     dim wp(255) as _cords
     dim as short roll,a,ROF,dambonus,tohitbonus,i,l,c,osx,j
-    osx=calcosx(attacker.c.x)
+    osx=calcosx(attacker.c.x,1)
     ROF=w.ROF
     for a=1 to 25
         if attacker.weapons(a).made=91 then dambonus+=1
@@ -907,7 +906,7 @@ end function
 function com_hit(target as _ship, w as _weap,dambonus as short, range as short, senac as short) as _ship
     dim as string desig, text
     dim as short roll,osx,j
-    osx=calcosx(target.c.x)
+    osx=calcosx(target.c.x,1)
     if target.desig=player.desig then
         desig=player.desig
     else

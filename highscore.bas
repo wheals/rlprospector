@@ -357,6 +357,7 @@ function score() as integer
     s=s+player.pilot(1)*100
     s=s+player.gunner(1)*100
     s=s+player.science(1)*100
+    s=s+player.doctor(1)*100
     s=s+player.sensors
     s=s+player.engine
     s=s+player.fuel
@@ -365,7 +366,7 @@ function score() as integer
         s=s+player.weapons(a).dam
         s=S+player.weapons(a).range
     next
-    for a=0 to 30
+    for a=0 to laststar
         if map(a).discovered=1 then s=s+100
     next
     for a=0 to 255
@@ -380,6 +381,23 @@ function score() as integer
     for a=0 to lastitem
         if item(a).w.s<0 then s=s+item(a).price\100
     next
+    if retirementassets(1)>0 then s+=1000
+    if retirementassets(2)>0 then s+=2000
+    if retirementassets(3)>0 then s+=5000
+    if retirementassets(4)>0 then s+=10000
+    if retirementassets(5)>0 then s+=100000
+    if retirementassets(6)>0 then s+=200000
+    if retirementassets(7)>0 then s+=500000
+    if retirementassets(8)>0 then s+=1000000
+    if retirementassets(9)>0 then s+=2000000
+    
+    if retirementassets(10)>0 then s+=2000
+    if retirementassets(11)>0 then s+=10000
+    if retirementassets(12)>0 then s+=20000
+    if retirementassets(13)>0 then s+=50000
+    if retirementassets(14)>0 then s+=100000
+    if retirementassets(15)>0 then s+=200000
+    
     s=s-player.deadredshirts*100
     return s
 end function

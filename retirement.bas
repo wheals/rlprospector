@@ -60,7 +60,7 @@ function retirement() as short
     price(2)=1000
     asset(3)="country manor"
     desc(3)="A nice estate in the country on a civilized World. Perfect to spend the autumn years of life."
-    price(3)= 2500
+    price(3)=2500
     asset(4)="small asteroid"
     desc(4)="A small asteroid in a colonized star system. Several rooms with lifesupport already carved out."
     price(4)=5000

@@ -7668,7 +7668,23 @@ function flood_fill(x as short,y as short,map() as short, flag as short=0) as sh
           Flood_Fill(x,y-1,map(),2)
       endif
   endif
-  
+  if flag=3 then
+      if x>=0 and y>=0 and x<=60 and y<=20 then
+          if map(x,y)=0 then
+              map(x,y)=255
+          else
+              return 0
+          endif
+          Flood_Fill(x+1,y,map(),3)
+          Flood_Fill(x-1,y,map(),3)
+          Flood_Fill(x,y+1,map(),3)
+          Flood_Fill(x,y-1,map(),3)
+          Flood_Fill(x+1,y+1,map(),3)
+          Flood_Fill(x-1,y-1,map(),3)
+          Flood_Fill(x-1,y+1,map(),3)
+          Flood_Fill(x+1,y-1,map(),3)
+      endif
+  endif
 end function
 
 function flood_fill2(x as short,y as short, xm as short, ym as short, map() as byte) as short

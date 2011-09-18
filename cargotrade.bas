@@ -19,7 +19,7 @@ function pay_bonuses(st as short) as short
                 If a=0 then dprint "For exploring "&credits(combon(a).value) &" planets you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
                 If a=1 then dprint "For recording biodata of "&credits(combon(a).value) &" aliens you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
                 If a=2 then dprint "For delivering "&credits(combon(a).value) &"Cr. worth of resources you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
-                If a=7 then dprint "For continued business over "&credits(combon(a).value) &" time units you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
+                If a=7 and combon(a).rank>1 then dprint "For continued business over "&credits(combon(a).value) &" time units you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
                 If a=8 then dprint "For destroying "&credits(combon(a).value) &" pirate ships you receive a bonus of "&int(combon(a).rank*factor) &" Cr",15
                 combon(a).value=0
                 player.money+=int(combon(a).rank*factor)
@@ -547,8 +547,10 @@ function company(st as short,byref questroll as short) as short
         endif
         
         if q=-1 then
-            dprint "you transfer new map data on "&reward(0)&" km2. you get paid "&credits(cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2))))&" Cr."
-            player.money=player.money+cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2)))
+            if cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2)))>0 then
+                dprint "you transfer new map data on "&reward(0)&" km2. you get paid "&credits(cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2))))&" Cr."
+                player.money=player.money+cint((reward(7)/15)*basis(st).mapmod*(1+0.1*crew(1).talents(2)))
+            endif
             reward(0)=0
             reward(7)=0
             k=keyin

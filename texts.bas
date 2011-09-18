@@ -1,51 +1,22 @@
 function crew_bio(i as short) as string
     dim t as string
-    select case crew(i).story(0)
-    case is =1
-        t="Was born to rich parents"
-    case is =2
-        t="Was born to well to do parents"
-    case is =3
-        t="Was born to lower class parents"
-    case is =4
-        t="Was born to poor parents"
-    case else
-        t="Was born to middle class parents"
-    end select
-    select case crew(i).story(1)
-    case is=2
-        t=t &" from earth."
-    case is=3
-        t=t &" from an asteroid base."
-    case is=4
-        t=t &" from a space station."
-    case else
-        t=t &" on a colony world."
-    end select
-    t=t &" "&crew(i).n
-    select case crew(i).story(2)
-    case 1 to 3
-        t=t &" got very little education."
-    case 4 to 5
-        t=t &" got a masters degree."
-    case else
-        t=t &" got a decent education."
-    end select
-    select case crew(i).story(3)
-    case 1 to 3
-        t=t &" Always wanted to be a "&crew_desig(crew(i).typ)
-    case else
-        t=t &" First wanted to be a "&crew_desig(rnd_range(1,6))&", but then became a "&crew_desig(crew(i).typ)&"."
-    end select
-    select case crew(i).story(4)
-    case 1 to 3
-        t=t &" Is really happy with the job."
-    case 4 to 6
-        t=t &" Is unhappy with the job."
-    case else
-        t=t &" Likes the job well enough."
-    end select
-    
+    if crew(i).typ<=9 then
+        t="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
+        select case crew(i).story(0)
+        case is =1
+            t=t &"Place of Birth: Spaceship in transit"
+        case is =2
+            t=t &"Place of Birth: Earth"
+        case is =3
+            t=t &"Place of Birth: Sol system colony"
+        case is =4
+            t=t &"Place of Birth: Space station"
+        case else
+            t=t &"Place of Birth: Colony"
+        end select
+        t=t &" |Education: " &4+fix(crew(i).story(1)/2) &" years. "
+        t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
+    endif
     return t
 end function
 
@@ -426,7 +397,7 @@ end function
 
 function listartifacts() as string
     dim as short a,c
-    dim flagst(16) as string
+    dim flagst(20) as string
     dim as short hd,sd
     flagst(1)="Fuel System"
     flagst(2)=" hand disintegrator"
@@ -442,6 +413,10 @@ function listartifacts() as string
     flagst(12)="Cloaking device"
     flagst(13)="Wormhole shield"
     flagst(16)="Wormhole navigation device"
+    flagst(17)="Piloting AI"
+    flagst(18)="Gunner AI"
+    flagst(19)="Science AI"
+    flagst(20)="Medical AI"
     color 15,0
     for a=0 to 5
         if player.weapons(a).desig="Disintegrator" then sd+=1
@@ -698,7 +673,9 @@ function es_part1() as string
         case else
             t="You retire with "&credits(player.money) &" Cr. to your name."
     end select
+    
     t = t &" Your ship doesn't have the range to get back to civilization, you need to book a passage on a long range transport ship for that.|"
+    
     if player.money<500 then
         t=t & " To get a flight back to civilization you sell your ship."
         player.money=player.money+player.h_price/5

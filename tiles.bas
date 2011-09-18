@@ -782,7 +782,7 @@ tiles(88).desc="toxic gas"
 tiles(88).oxyuse=2
 tiles(88).seetru=1
 
-tiles(89).tile=35
+tiles(89).tile=35 'Mr. Grey
 tiles(89).desc="Building"
 tiles(89).col=15
 tiles(89).bgcol=7
@@ -898,7 +898,7 @@ tiles(97).desc="oxygen rich gas bubble"
 tiles(97).oxyuse=-2
 
 
-tiles(98).tile=35
+tiles(98).tile=35 'Black Market
 tiles(98).desc="Building"
 tiles(98).col=8
 tiles(98).seetru=1
@@ -2146,7 +2146,7 @@ tiles(293).desc="security terminal"
 tiles(293).turnsinto=293
 tiles(293).gives=171
 
-tiles(294).tile=35
+tiles(294).tile=35 'Art Trader
 tiles(294).desc="Building"
 tiles(294).col=15
 tiles(294).bgcol=7
@@ -2200,6 +2200,42 @@ tiles(298).col=15
 tiles(298).desc="security terminal"
 tiles(298).turnsinto=298
 tiles(298).gives=172
+
+tiles(299).tile=asc("E") 'SHI Office
+tiles(299).col=9
+tiles(299).bgcol=5
+tiles(299).gives=70
+tiles(299).hp=25
+tiles(299).dr=1
+tiles(299).hitt="you start to shooting at the eridiani explorations office"
+tiles(299).turnsinto=299
+
+tiles(300).tile=asc("S") 'TT Office
+tiles(300).col=14
+tiles(300).bgcol=5
+tiles(300).gives=71
+tiles(300).hp=25
+tiles(300).dr=1
+tiles(300).hitt="you start to shooting at the smith heavy industries office"
+tiles(300).turnsinto=300
+
+tiles(301).tile=asc("T") 'EE Office
+tiles(301).col=12
+tiles(301).bgcol=5
+tiles(301).gives=72
+tiles(301).hp=25
+tiles(301).dr=1
+tiles(301).hitt="you start to shooting at the triax traders office"
+tiles(301).turnsinto=301
+
+tiles(302).tile=asc("O") 'SHI Office
+tiles(302).col=10
+tiles(302).bgcol=5
+tiles(302).gives=73
+tiles(302).hp=25
+tiles(302).dr=1
+tiles(302).hitt="you start to shooting at the omega bioengineering office"
+tiles(302).turnsinto=302
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

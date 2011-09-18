@@ -28,12 +28,12 @@ type _node
     parent as _cords
 end type
 
-declare function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1) as short
+declare function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1,rollover as byte=0) as short
 declare function manhattan(a as _cords,b as _cords) as single
-declare function addneighbours(node() as _node, curr as _cords,mx as short,my as short) as short
+declare function addneighbours(node() as _node, curr as _cords,mx as short,my as short,rollover as byte=0) as short
 declare function findlowerneighbour(node() as _node, curr as _cords,mx as short,my as short) as short
 
-function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1) as short
+function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1,rollover as byte=0) as short
 
 dim node(mx,my) as _node
 dim as short lastopen,lastclosed,lastnode,x,y,i,j
@@ -57,7 +57,7 @@ do
     ccc+=1
     if ccc mod 10=0 and echo=1 then print ".";
     node(curr.x,curr.y).opclo=1 'Node on Open list
-    addneighbours(node(),curr,mx,my)
+    addneighbours(node(),curr,mx,my,rollover)
     node(curr.x,curr.y).opclo=2 'Add node to closed List
     findlowerneighbour(node(),curr,mx,my)
     
@@ -109,10 +109,14 @@ if ccc>0 then
     do
         path(i).x=curr.x
         path(i).y=curr.y
-        i+=1
         curr=node(curr.x,curr.y).parent
+        i+=1
+       
     loop until curr.x=start.x and curr.y=start.y or i>1024
-    i-=1
+    path(i).x=curr.x
+    path(i).y=curr.y
+     
+    'i-=1
     if echo=1 then print "found with "&i &" Waypoints."
     return i
 else
@@ -144,13 +148,17 @@ function findlowerneighbour(node() as _node, curr as _cords,mx as short,my as sh
     return 0
 end function
 
-function addneighbours(node() as _node, curr as _cords,mx as short,my as short) as short
+function addneighbours(node() as _node, curr as _cords,mx as short,my as short,rollover as byte=0) as short
     dim as short x,y
     dim as single ng
     dim p as _cords
     for x=curr.x-1 to curr.x+1
         for y=curr.y-1 to curr.y+1
-            if x>=0 and y>=0 and x<=mx and y<=my then
+            if (rollover=0 and x>=0 and y>=0 and x<=mx and y<=my) or rollover=1 then
+                if rollover=1 then
+                    if x<0 then x=mx
+                    if x>mx then x=0
+                endif
                 if node(x,y).opclo=0  then 
                     node(x,y).opclo=1
                     p.x=x

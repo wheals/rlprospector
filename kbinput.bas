@@ -5,6 +5,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
     static as byte recording
     static as byte seq
     static as string*3 comseq
+    static as string*3 lastkey
     dim as short a,b,i,tog1,tog2,tog3,tog4,ctr,f,it,debug
     dim as string control
     debug=0
@@ -26,10 +27,12 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
 '                    endif
 '                endif
                 Select Case evkey.type
-                    Case EVENT_KEY_PRESS
+                    case EVENT_KEY_REPEAT
+                        key=lastkey
+                    Case (EVENT_KEY_PRESS)
                         if debug =1 then
                             locate 1,1
-                            print evkey.scancode &":"& evkey.ascii
+                            print evkey.scancode &":"& evkey.ascii &":"&EVENT_KEY_PRESS &":"&EVENT_KEY_REPEAT
                         endif
                         select case evkey.scancode
                         case sc_down
@@ -71,7 +74,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 if evkey.type=13 then key=key_quit
             sleep 1
         loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run=1
-            
+        lastkey=key    
         if key<>"" then walking=0 
         if _test_disease=1 and key="#" then
             a=getnumber(0,255,0)

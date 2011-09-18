@@ -196,6 +196,7 @@ end function
 
 sub show_stars(bg as short=0,byref walking as short)
     dim as short a,b,x,y,navcom,mask
+    dim as short reveal
     dim as _cords p,p1,p2
     dim range as integer
     dim as single dx,dy,l,x1,y1,vis
@@ -213,10 +214,6 @@ sub show_stars(bg as short=0,byref walking as short)
         if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
         if player.osy>=sm_y-20 then player.osy=sm_y-20
     endif
-    for a=0 to laststar
-        color spectraltype(map(a).spec),0
-        pset(map(a).c.x*_mwx*_tix/75,map(a).c.y*20*_tiy/35)
-    next
     m.sight=player.sensors+5.5
     m.c=player.c
     makevismask(vismask(),m,-1)
@@ -288,6 +285,7 @@ sub show_stars(bg as short=0,byref walking as short)
                 p.x=x
                 p.y=y
                 if vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then 
+                    if spacemap(x,y)<=0 then reveal=1
                     if spacemap(x,y)=0 then spacemap(x,y)=1
                     if spacemap(x,y)=-2 then spacemap(x,y)=2
                     if spacemap(x,y)=-3 then spacemap(x,y)=3
@@ -478,6 +476,12 @@ sub show_stars(bg as short=0,byref walking as short)
     for a=0 to 2
         if basis(a).discovered>0 then displaystation(a)
     next
+    if walking=10 and reveal=1 then
+                p1=apwaypoints(lastapwp)
+                lastapwp=ap_astar(player.c,p1,apdiff)
+                currapwp=0
+    endif
+
 end sub
 
 function settactics() as short
@@ -681,6 +685,11 @@ sub displaystar(a as short)
             draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"o",,Font1,custom,@_col
         endif
     endif
+    if debug=9 then
+        draw string ((map(a).c.x-player.osx)*_tix+_fw2,(map(a).c.y-player.osy)*_tiy+_fh2),""&score_system(a,0),,Font2,custom,@_col
+        draw string ((map(a).c.x-player.osx)*_tix+_fw2,(map(a).c.y-player.osy)*_tiy+_fh2*2),""&score_system(a,1),,Font2,custom,@_col
+        draw string ((map(a).c.x-player.osx)*_tix+_fw2,(map(a).c.y-player.osy)*_tiy+_fh2*3),""&score_system(a,2),,Font2,custom,@_col
+    endif
 end sub
 
 sub displaystation(a as short)
@@ -833,6 +842,35 @@ function prevplan(p as short,in as short) as short
     return p
 end function
 '
+
+function get_planet_cords(byref p as _cords,mapslot as short) as string
+    dim osx as short
+    dim as string key
+    displayplanetmap(mapslot,osx)
+    displayship
+    do
+        cls
+        osx=p.x-_mwx/2
+        if planets(mapslot).depth>0 then
+            if osx<0 then osx=0
+            if osx>60-_mwx then osx=60-_mwx
+        endif
+        if _mwx=60 then osx=0
+        
+        displayplanetmap(mapslot,osx)
+        draw_border(0)
+        if planetmap(p.x,p.y,mapslot)>0 then
+            dprint tiles(planetmap(p.x,p.y,mapslot)).desc
+        else
+            dprint "Unknown"
+        endif
+        key=cursor(p,mapslot,osx)
+        
+    loop until key=key_esc or key=key_enter
+    
+    return key
+end function
+
 function getplanet(sys as short,forcebar as byte=0) as short
     dim as short r,p,a,b
     dim as string text,key
@@ -1007,7 +1045,7 @@ end function
 '    return r
 'end function
 '
-sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short)
+function displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short,loctemp as single) as short
         dim a as short
         dim c as short
         dim x as short
@@ -1162,10 +1200,13 @@ sub displayawayteam(awayteam as _monster, map as short, lastenemy as short, dead
             draw string((_mwx+2)*_fw1+7*_fw2,23*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
         endif
         color 11,0
-        draw string((_mwx+2)*_fw1,25*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,24*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
+        draw string((_mwx+2)*_fw1,24*_fh2),"Temp:" &loctemp &chr(248)&"C",,Font2,custom,@_col
+        draw string((_mwx+2)*_fw1,25*_fh2),"Gravity:" &planets(map).grav,,Font2,custom,@_col
+        draw string((_mwx+2)*_fw1,27*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
+        draw string((_mwx+2)*_fw1,28*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
         if debug=1 then draw string((_mwx+2)*_fw1,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
-end sub
+    return 0
+end function
 
 sub shipstatus(heading as short=0)
     dim as short c1,c2,c3,c4,c5,c6,c7,c8,sick,offset,mjs,filter
@@ -1578,6 +1619,16 @@ function displayplanetmap(a as short,osx as short) as short
             endif
         endif
     next
+    if debug=2 and lastapwp>0 then
+        for b=0 to lastapwp
+            if apwaypoints(b).x-osx>=0 and apwaypoints(b).x-osx<=_mwx then
+                color 11,0
+                draw string((apwaypoints(b).x-osx)*_tix,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
+                
+            endif
+        next
+    endif
+    
     return 0
 end function
 
