@@ -1,4 +1,18 @@
-function gainxp(slot as short) as short
+function gainxp(typ as short) as short
+    dim as short a,lowest,slot
+    lowest=100
+    if typ<=5 then
+        for a=0 to 128
+            if crew(a).typ=typ and crew(a).hp>0 then
+                if crew(a).xp<lowest then 
+                    slot=a 
+                    lowest=crew(a).xp
+                endif
+            endif
+        next
+    else
+        slot=typ
+    endif
     if crew(slot).hp>0 and crew(slot).xp>=0 then crew(slot).xp+=1
     return 0
 end function
@@ -66,6 +80,7 @@ function cureawayteam(where as short) as short
             if crew(a).disease>0 then sick+=1
         endif
     next
+    if crew(0).disease=0 then crew(0).onship=0
     if cured>1 then dprint cured &" members of your crew where cured.",10
     if cured=1 then dprint cured &" member of your crew was cured.",10
     if cured=0 and sick>0 then dprint "No members of your crew where cured.",14
@@ -358,6 +373,10 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     hpdisplay(a)
+    if _damscream=0 then 
+        FSOUND_PlaySound(FSOUND_FREE, sound(12))
+        sleep 100
+    endif
     sleep 50
 
     if reequip=1 then equip_awayteam(player,a,player.map)
@@ -416,7 +435,7 @@ function gaintalent(slot as short) as string
 end function
 
 
-function levelup(p as _ship) as _ship
+function levelup(p as _ship,from as short) as _ship
     dim a as short
     dim text as string
     dim roll as short
@@ -425,13 +444,20 @@ function levelup(p as _ship) as _ship
     dim _del as _crewmember
     dim rolls(128) as short
     dim lev(128) as byte
-    dim ret(15) as byte
-    dim levt(15) as byte
+    dim ret(16) as byte
+    dim levt(16) as byte
+    dim debug as byte=0
+    if from=1 then dprint "Entering training."
+    for a=0 to 16
+        levt(a)=0
+        ret(a)=0
+    next
     for a=1 to 128
-        if _showrolls=1 then crew(a).xp+=10
+        lev(a)=0
+        if _showrolls=1 or debug=1 then crew(a).xp+=10
         if crew(a).hp>0  then
             roll=rnd_range(1,crew(a).xp)
-            if roll+crew(a).augment(10)*2>5+crew(a).hp^2 and crew(a).xp>0 then
+            if crew(a).xp>0 and (roll+crew(a).augment(10)*2>5+crew(a).hp^2 or debug=1) then
                 lev(a)+=1
                 rolls(a)=crew(a).augment(10)*2+roll
             endif
@@ -445,36 +471,46 @@ function levelup(p as _ship) as _ship
         endif
     next
     
-    for a=1 to 9
+    for a=1 to 16
         if ret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" Retired. "
-        if ret(a)>1 then text=text &a &" "&crew_desig(a)&"s Retired. "
+        if ret(a)>1 then text=text &ret(a) &" "&crew_desig(a)&"s Retired. "
     next
     
     for a=1 to 128
         if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
     
         if crew(a).hp>0 and lev(a)=1 then
-            
             levt(crew(a).typ)+=1
             if crew(a).typ>=6 and crew(a).typ<=7 then
-                crew(a).hpmax+=1
                 crew(a).typ+=1
                 if rnd_range(1,100)<crew(a).xp*3 then text=text &gaintalent(a)
-                crew(a).xp=0
             else
-                crew(a).hpmax+=1
-                if crew(a).typ>1 then crew(a).baseskill(crew(a).typ-1)+=1
+                if crew(a).typ>1 and crew(a).typ<6 then crew(a).baseskill(crew(a).typ-2)+=1
             endif
+            crew(a).hpmax+=1
+            crew(a).hp=crew(a).hpmax
+            crew(a).xp=0
+            
         endif
     next
-    for a=1 to 9
-        if levt(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" got promoted. "
-        if levt(a)>1 then text=text &a &" "&crew_desig(a)&"s got promoted. "
+    for a=1 to 16
+        if levt(a)=1 then text=text &crew_desig(a)&" "&crew(find_crew_type(a)).n &" got promoted. "
+        if levt(a)>1 then text=text & levt(a) &" "&crew_desig(a)&"s got promoted. "
     next
     if text<>"" then dprint text,10
+    if text="" and from=1 then dprint "Nobody got a promotion."
     displayship()
     return p
 end function
+
+function find_crew_type(t as short) as short
+    dim a as short
+    for a=1 to 127
+        if crew(a).typ=t then return a
+    next
+    return 1
+end function
+
 
 function removemember(n as short, f as short) as short
     dim as short a,s,todo
@@ -715,7 +751,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="L"
-            crew(slot).typ=6
+            crew(slot).typ=14
             crew(slot).talents(27)=1
             crew(slot).paymod=2
         endif  
@@ -724,7 +760,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="N"
-            crew(slot).typ=6
+            crew(slot).typ=15
             crew(slot).talents(28)=1
             crew(slot).paymod=2
         endif  
@@ -733,7 +769,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).hpmax=2
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="M"
-            crew(slot).typ=6
+            crew(slot).typ=16
             crew(slot).talents(29)=1
             crew(slot).paymod=2
         endif  
@@ -741,9 +777,55 @@ function addmember(a as short,skill as short) as short
         'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
-    endif     
+    endif   
+    sort_crew()
     return 0
 end function    
+
+function sort_crew() as short
+    dim as short a,f
+    do
+        f=0
+        for a=player.h_maxcrew to 1 step -1
+            if crew(a).hp>0 then 
+                if crew(a).typ>crew(a+1).typ and crew(a+1).hp>0 then
+                    f=1
+                    swap crew(a),crew(a+1)
+                endif
+            endif
+        next
+    loop until f=0
+    do
+        f=0
+        for a=0 to 127
+            if crew(a).talents(27)>crew(a+1).talents(27) and crew(a).hp>0 and crew(a+1).hp>0 then
+                f=1
+                swap crew(a),crew(a+1)
+            endif
+        next
+    loop until f=0
+    do
+        f=0
+        for a=0 to 127
+            if crew(a).talents(28)>crew(a+1).talents(28) and crew(a).hp>0 and crew(a+1).hp>0 then
+                f=1
+                swap crew(a),crew(a+1)
+            endif
+        next
+    loop until f=0
+    do
+        f=0
+        for a=0 to 127
+            if crew(a).talents(29)>crew(a+1).talents(29) and crew(a).hp>0 and crew(a+1).hp>0 then
+                f=1
+                swap crew(a),crew(a+1)
+            endif
+        next
+    loop until f=0
+    
+    return 0
+end function
+
 
 function hiring(st as short,byref hiringpool as short,hp as short) as short
     dim as short b,c,d,e,officers,maxsec,neodog,robots,w
@@ -963,10 +1045,12 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                 'fire
                 g=showteam(0,1,"Who do you want to dismiss?")
                 if g>1 then 
-                    for f=g to 127
-                        crew(f)=crew(f+1)
-                    next
-                    crew(128)=crew(0)
+                    if askyn("Do you really want to dismiss "&crew(g).n &".") then
+                        for f=g to 127
+                            crew(f)=crew(f+1)
+                        next
+                        crew(128)=crew(0)
+                    endif
                 endif
                     
             endif
@@ -980,7 +1064,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                 if askyn("Training will cost "&f &" credits.(y/n)") then
                     if player.money>=f then
                         player.money-=f
-                        player=levelup(player)
+                        player=levelup(player,1)
                     endif
                 endif
                         
@@ -1383,9 +1467,11 @@ function showteam(from as short, r as short=0,text as string="") as short
                             if crew(b-offset).typ=3 then draw string (3*_fw2,y*_fh2), "Gunner ",,font2,custom,@_col
                             if crew(b-offset).typ=4 then draw string (3*_fw2,y*_fh2), "Science",,font2,custom,@_col
                             if crew(b-offset).typ=5 then draw string (3*_fw2,y*_fh2), "Doctor ",,font2,custom,@_col
-                            if crew(b-offset).typ=6 then draw string (3*_fw2,y*_fh2), "Green  ",,font2,custom,@_col
-                            if crew(b-offset).typ=7 then draw string (3*_fw2,y*_fh2), "Veteran",,font2,custom,@_col
-                            if crew(b-offset).typ=8 then draw string (3*_fw2,y*_fh2), "Elite  ",,font2,custom,@_col
+                            if crew(b-offset).talents(27)=0 and crew(b-offset).talents(28)=0 and crew(b-offset).talents(29)=0 then
+                                if crew(b-offset).typ=6 then draw string (3*_fw2,y*_fh2), "Green  ",,font2,custom,@_col
+                                if crew(b-offset).typ=7 then draw string (3*_fw2,y*_fh2), "Veteran",,font2,custom,@_col
+                                if crew(b-offset).typ=8 then draw string (3*_fw2,y*_fh2), "Elite  ",,font2,custom,@_col
+                            endif
                         
                     else
                         color 12,0

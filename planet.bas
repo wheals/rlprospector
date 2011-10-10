@@ -2137,7 +2137,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if planets(a).temp>100 and (planettype>=22 and planettype<44) then planets(a).temp=planets(a).temp-rnd_range(1,planets(a).temp)-80
     if (planettype>=33 and planettype<44) then planets(a).temp=rnd_range(1,950)/10
     if spect=8 then planets(a).temp=-273
-    
+    if planets(a).temp<-273 then planets(a).temp=273
     'planets(a).temp=planets(a).temp*(-20.722*cos(o)+119.87*sin(o)+ (-0.0168*exp(o))+4.69)
     if planets(a).temp<-270 then planets(a).temp=-270+rnd_range(1,10)/10
     

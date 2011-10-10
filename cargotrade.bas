@@ -1382,7 +1382,7 @@ function sickbay(st as short=0) as short
                                         c=0
                                     endif
                                 endif
-                                if crew(c).typ<=9 and b>0 and c>0 then
+                                if (crew(c).typ<=9 or crew(c).typ>=14) and b>0 and c>0 then
                                     if crew(c).augment(augf(b))<augv(b) then
                                         if player.money>=augp(b) and crew(c).hp>0 then
                                             if crew(c).augment(0)<=2 or st<>0 then
@@ -2981,6 +2981,8 @@ function shop(sh as short,pmod as short,t as string) as short
                 endif
                 if paystuff(inv(c).price*pmod*v)=-1 and v>0 then
                     for a=1 to v
+                        uid+=1
+                        inv(c).uid=uid
                         placeitem(inv(c),0,0,0,0,-1)
                     next
                     if v=1 then

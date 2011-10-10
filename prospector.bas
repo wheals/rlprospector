@@ -1,11 +1,16 @@
+
+
 #DEFINE _WINDOWS 
 #DEFINE _OSX
 '#define FBEXT_NO_EXTERNAL_LIBS -1
-#include once "file.bi"
-'#include once "fbgfx.bi" 
+#macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)
+draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col    
+#endmacro
+
 #IFDEF _WINDOWS
 #include once "ext/graphics/font.bi"
 #include once "fmod.bi"
+#include once "file.bi"
 #ENDIF
 #include once "types.bas"
 #include once "tiles.bas"
@@ -31,9 +36,7 @@
 #include once "kbinput.bas"
 #include once "globals.bas"
 #include once "compcolon.bas"
-#macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)
-draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col    
-#endmacro
+
 on error goto errormessage  
 
  
@@ -130,25 +133,25 @@ function titlemenu() as short
     draw_string(_screenx/30+4,_screeny/8+4,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
     color 227,0
-    draw string(_screenx/30+3,_screeny/8+3),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    draw_string(_screenx/30+3,_screeny/8+3,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
     color 226,0
-    draw string(_screenx/30+2,_screeny/8+2),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    draw_string(_screenx/30+2,_screeny/8+2,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
     color 225,0
-    draw string(_screenx/30+1,_screeny/8+1),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    draw_string(_screenx/30+1,_screeny/8+1,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
     color 101,0
-    draw string(_screenx/30,_screeny/8),"PROSPECTOR",,TITLEFONT,custom,@_tcol
+    draw_string(_screenx/30,_screeny/8,"PROSPECTOR",TITLEFONT,_tcol)
     color 15,0
-    draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__ ,,FONT2,custom,@_tcol
-    draw string(_screenx-22*_FW2,_screeny-9*_FH2),"1) start new game    ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-8*_FH2),"2) load saved game   ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-7*_FH2),"3) display highscore ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-6*_FH2),"4) read documentation",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-5*_FH2),"5) configuration     ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-4*_FH2),"6) view/change keys  ",,FONT2,custom,@_col
-    draw string(_screenx-22*_FW2,_screeny-3*_FH2),"7) exit              ",,FONT2,custom,@_col
+    draw_string(_screenx-22*_FW2,_screeny-10*_FH2,__VERSION__ ,FONT2,_tcol)
+    draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"1) start new game    ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-8*_FH2,"2) load saved game   ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-7*_FH2,"3) display highscore ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-6*_FH2,"4) read documentation",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-5*_FH2,"5) configuration     ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-4*_FH2,"6) view/change keys  ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-3*_FH2,"7) exit              ",FONT2,_col)
     return 0
 end function
 
@@ -241,7 +244,7 @@ function startnewgame() as short
     color 11,0
     if b<5 then
         c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
-        draw string(5*_fw1,5*_fh1+c*_fh2), "You christen the beauty (Enter to autoname):",,font2,custom,@_col
+        draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
         faction(0).war(1)=0
         faction(0).war(2)=100
         faction(0).war(3)=0
@@ -249,7 +252,7 @@ function startnewgame() as short
         faction(0).war(5)=100
     else
         c=5+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to get a lot of money you will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
-        draw string(5*_fw1,5*_fh1+c*_fh2), "You christen the beauty (Enter to autoname):",,font2,custom,@_col
+        draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
         faction(0).war(1)=100
         faction(0).war(2)=0
         faction(0).war(3)=100
@@ -270,8 +273,8 @@ function startnewgame() as short
     if open ("savegames/"&player.desig &".sav" for input as a)=0 then
         close a
         do
-            draw string (50,10*_fh2), "That ship is already registered.",,font2,custom,@_col
-            draw string(50,9*_fh2), "You christen the beauty:" &space(25),,font2,custom,@_col
+            draw_string (50,10*_fh2, "That ship is already registered.",font2,_col)
+            draw_string(50,9*_fh2, "You christen the beauty:" &space(25),font2,_col)
             player.desig=gettext((5*_fw1+25*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,13,"")
             if player.desig="" then player.desig=randomname()
         loop until fileexists("savegames/"&player.desig &".sav")=0    
@@ -1114,7 +1117,7 @@ function spacestation(st as short) as _ship
         next
         dprint "You pay your crew "&a &" Cr. in wages"        
         player.money=player.money-a
-        player=levelup(player)
+        player=levelup(player,0)
         if shop_order(st)<>0 and rnd_range(1,100)<33 then
             dprint  "Your ordered "&makeitem(shop_order(st)).desig &" has arrived.",12
             b=rnd_range(1,20)
@@ -1535,10 +1538,10 @@ function explore_space() as short
                         
                     locate map(pl).c.y+1-player.osy,map(pl).c.x+1-player.osx
                     color 0,11
-                    draw string((map(pl).c.x-player.osx)*_fw1,(map(pl).c.y-player.osy)*_fh1), "o",,font1,custom,@_col
+                    draw_string((map(pl).c.x-player.osx)*_fw1,(map(pl).c.y-player.osy)*_fh1, "o",font1,_col)
                     if player.c.x-player.osx>=0 and player.c.x-player.osx<=60 and player.c.y-player.osy>=0 and .y-player.osy<=20 then
                         color _shipcolor,0
-                        draw string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1),"@",,font1,custom,@_col
+                        draw_string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1,"@",font1,_col)
                     endif
                     d=int(distance(player.c,map(pl).c))
                     dprint "Wormhole at "&map(pl).c.x &":"& map(pl).c.y &". Distance "&d &" Parsec."
@@ -1744,7 +1747,7 @@ function explore_space() as short
     if key=key_rename then
         if askyn("Do you want to rename your ship? (y/n)") then
             color 15,0
-            draw string(63*_fw1,0), space(16),,font2,custom,@_col
+            draw_string(63*_fw1,0, space(16),font2,_col)
             key=gettext(63*_fw1/_fw2,0,16,"")
             if key<>"" then player.desig=key
             color 11,0
@@ -2238,7 +2241,7 @@ endif
     endif
         
     
-    if slot=specialplanet(1) then 'apollos planet
+    if slot=specialplanet(1) and specialflag(1)=0 then 'apollos planet
         ship.x=rnd_range(0,60)
         ship.y=rnd_range(0,20)
     endif
@@ -2576,8 +2579,8 @@ endif
             color 11,0
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             for x=0 to 60
-                if x-osx>=0 and x-osx<=_mwx and nightday(x)=1 then draw string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2),chr(193),,Font2,Custom,@_tcol
-                if x-osx>=0 and x-osx<=_mwx and nightday(x)=2 then draw string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh1/2),chr(193),,Font2,Custom,@_tcol
+                if x-osx>=0 and x-osx<=_mwx and nightday(x)=1 then draw_string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2,chr(193),Font2,_tcol)
+                if x-osx>=0 and x-osx<=_mwx and nightday(x)=2 then draw_string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh1/2,chr(193),Font2,_tcol)
             next
             dprint ""
             flip
@@ -2934,7 +2937,7 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
                 if _tiles=0 then
                     if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(rnd_range(63,66))),pset
                 else
-                    draw string(x*_fw1,y*_fh1), chr(176),,font1,custom,@_col
+                    draw_string(x*_fw1,y*_fh1, chr(176),font1,_col)
                 endif
             next
         next
@@ -3115,7 +3118,7 @@ function wormhole_ani(target as _cords) as short
             if _tiles=0 then
                 put ((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
             else
-                draw string((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),"@",,font1,custom,@_col
+                draw_string((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1,"@",font1,_col)
             endif
             player.di+=1
             if player.di=5 then player.di=6
@@ -3320,8 +3323,8 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
     do
     cls
         color 15,0
-        draw string(0,0),"New Ship",,font2,custom,@_col
-        draw string(35*_fw2,0),"Old Ship",,font2,custom,@_col
+        draw_string(0,0,"New Ship",font2,_col)
+        draw_string(35*_fw2,0,"Old Ship",font2,_col)
         for x=0 to 1
             for y=1 to 5
                 bg=0
@@ -3329,11 +3332,11 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
                 if h2.x=x and h2.y=y then bg=5
                 if crs.x=x and crs.y=y then bg=11
                 color 15,bg
-                draw string(x*35*_fw2,y*_fh2),trim(weapons(x,y).desig)&" ",,font2,custom,@_col
+                draw_string(x*35*_fw2,y*_fh2,trim(weapons(x,y).desig)&" ",font2,_col)
             next
         next
         color 15,0
-        draw string(5*_fw2,6*_fh2),"x to swap, esc to exit",,font2,custom,@_col
+        draw_string(5*_fw2,6*_fh2,"x to swap, esc to exit",font2,_col)
         if weapons(crs.x,crs.y).desig<>"-empty-" then
             help =weapons(crs.x,crs.y).desig & " | | Damage: "&weapons(crs.x,crs.y).dam &" | Range: "&weapons(crs.x,crs.y).range &"\"&weapons(crs.x,crs.y).range*2 &"\" &weapons(crs.x,crs.y).range*3 
         else

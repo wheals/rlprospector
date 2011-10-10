@@ -134,6 +134,7 @@ function loadsounds() as short
     sound(9)= FSOUND_Sample_Load(FSOUND_FREE, "data/weap_5.wav", 0, 0, 0)
     sound(10)= FSOUND_Sample_Load(FSOUND_FREE, "data/start.wav", 0, 0, 0)
     sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "data/land.wav", 0, 0, 0)
+    sound(12)= FSOUND_Sample_Load(FSOUND_FREE, "data/pain.wav", 0, 0, 0)
     #endif
     return 0
 end function
@@ -477,24 +478,24 @@ function load_tiles() as short
     next
     cls
     bload "graphics/ships.bmp"
-    for y=0 to 24*16 step 24
+    for y=0 to _tiy*16 step _tiy
         sx=1
         sy+=1
-        for x=0 to 24*8 step 24
-            stiles(sx,sy)=imagecreate(24,24)
-            get (x,y)-(x+23,y+23),stiles(sx,sy)
+        for x=0 to _tix*8 step _tix
+            stiles(sx,sy)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
             sx+=1
         next
         draw string (24*9,y),""&sy
     next
     cls
     bload "graphics/ships2.bmp"
-    for y=0 to 24*16 step 24
+    for y=0 to _tiy*16 step _tiy
         sx=1
         sy+=1
-        for x=0 to 24*8 step 24
-            stiles(sx,sy)=imagecreate(24,24)
-            get (x,y)-(x+23,y+23),stiles(sx,sy)
+        for x=0 to _tix*8 step _tix
+            stiles(sx,sy)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
             sx+=1
         next
         draw string (24*9,y),""&sy
@@ -502,12 +503,12 @@ function load_tiles() as short
     
     cls
     bload "graphics/ships3.bmp"
-    for y=0 to 24*16 step 24
+    for y=0 to _tiy*16 step _tiy
         sx=1
         sy+=1
-        for x=0 to 24*8 step 24
-            stiles(sx,sy)=imagecreate(24,24)
-            get (x,y)-(x+23,y+23),stiles(sx,sy)
+        for x=0 to _tix*8 step _tix
+            stiles(sx,sy)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
             sx+=1
         next
         draw string (24*10,y),""&sy
@@ -1039,7 +1040,10 @@ function loadconfig() as short
                     if instr(text,"1")>0 or instr(text,"of") then _savescumming=1
                 endif
                 
-                
+                if instr(text,"warningdam")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then _damscream=0
+                    if instr(text,"1")>0 or instr(text,"of") then _damscream=1
+                endif
             endif                
         loop until eof(f)
         close #f
@@ -1753,7 +1757,7 @@ function loadgame(filename as string) as short
     dim text as string
     dim p as _planet
     dim debug as byte
-    debug=0
+    debug=1
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -1966,8 +1970,9 @@ function loadgame(filename as string) as short
         f=freefile
         open "portals.csv" for output as #f
         for a=0 to lastportal
-            print #f,portal(a).from.x &";"&portal(a).from.y &";"&portal(a).from.m &";"& portal(a).dest.x &";"&portal(a).dest.y &";"&portal(a).dest.m
+            print #f,portal(a).from.x &";"&portal(a).from.y &";"&portal(a).from.m &";"& portal(a).dest.x &";"&portal(a).dest.y &";"&portal(a).dest.m &";"&portal(a).oneway
         next
+        print #f,player.map
         close #f
         
     endif

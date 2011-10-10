@@ -3383,6 +3383,8 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                 enemy(1)=makemonster(2,slot)
                 enemy(1)=setmonster(enemy(1),slot,spawnmask(),lsp,vismask(),awayteam.c.x+3,awayteam.c.y,1)
                 enemy(1).slot=1
+                planets(slot).plantsfound=(enemy(1).hpmax^2+enemy(1).armor+enemy(1).weapon+rnd_range(1,2))*10
+            
                 planets(slot).depth=1
                 
                 for x=awayteam.c.x+1 to awayteam.c.x+5
@@ -3397,10 +3399,10 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                 next
             endif
         else
+            player.money=player.money+planets(slot).plantsfound
+            dprint "You get "& planets(slot).plantsfound &" Cr. for the fight.",10
             planets(slot).mon_killed(1)=0
-            b=(enemy(1).hpmax^2+enemy(1).armor+enemy(1).weapon+rnd_range(1,2))*10
-            player.money=player.money+b
-            dprint "You get "& b &" Cr. for the fight.",10
+            planets(slot).plantsfound=0
             for x=awayteam.c.x+1 to awayteam.c.x+5
                 for y=awayteam.c.y-2 to awayteam.c.y+2
                     planetmap(x,y,slot)=4

@@ -1364,12 +1364,16 @@ end function
 
 function eris_finds_apollo() as short
     dim as short x,y,a
+    
+    if planetmap(0,0,specialplanet(1))=0 then makeplanetmap(specialplanet(1),3,3)
+    specialflag(1)=1
     for x=0 to 60
         for y=0 to 20
             if abs(planetmap(x,y,specialplanet(1)))=56 then planetmap(x,y,specialplanet(1))=57
         next
     next
-    specialflag(1)=1
+    planets(specialplanet(1)).flavortext=""
+
     for a=3 to lastfleet
         if fleet(a).ty=10 then 
             fleet(a)=fleet(lastfleet)

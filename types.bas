@@ -26,7 +26,7 @@ const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=1
+const rev_map=0
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -78,6 +78,7 @@ dim shared as ushort _screenx=800
 dim shared as ushort _screeny=0
 dim shared as byte _savescumming=1
 dim shared as byte _teamcolor=15
+dim shared as byte _damscream=0
 dim shared as byte _shipcolor=14
 dim shared as byte _chosebest=1
 dim shared as byte _showspacemap=1
@@ -982,7 +983,7 @@ dim shared specialplanet(lastspecial) as short
 dim shared specialplanettext(lastspecial,1) as string
 dim shared specialflag(lastspecial) as byte
 dim shared atmdes(16) as string
-dim shared sound(11) as integer ptr
+dim shared sound(12) as integer ptr
 
 dim shared displaytext(255) as string
 dim shared dtextcol(255) as short
@@ -1035,7 +1036,7 @@ dim shared as any ptr FONT1,FONT2
 dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
 
 dim shared endstory as string
-dim shared crew_desig(15) as string
+dim shared crew_desig(16) as string
 dim shared combon(9) as _company_bonus
 
 ' SUB DECLARATION
@@ -1184,7 +1185,7 @@ declare function vis_test(a as _cords,p as _cords,test as short) as short
 declare function ap_astar(start as _cords,ende as _cords,diff as short) as short
 
 declare function makestuffstring(l as short) as string
-declare function levelup(p as _ship) as _ship
+declare function levelup(p as _ship,from as short) as _ship
 declare function maxsecurity() as short
 declare function get_freecrewslot() as short
 declare function addmember(a as short,skill as short) as short
@@ -1409,7 +1410,10 @@ declare function portfolio(x as short,y as short) as short
 declare function dividend() as short
 declare function getsharetype() as short
 declare function rerollshops() as short
+declare function find_crew_type(t as short) as short
+
 declare function hiring(st as short, byref hiringpool as short, hp as short) as short
+declare function sort_crew() as short
 declare function shipupgrades(st as short) as short
 declare function shipyard(pir as short=1) as short
 declare function ship_design(pir as short) as short
@@ -1446,6 +1450,8 @@ declare function getinvbytype(t as short) as short
 declare function removeinvbytype(t as short, am as short) as short
 declare function getitemlist(inv() as _items, invn()as short, ty as short=0) as short
 declare function sickbay(st as short=0) as short
+declare function first_unused(i as short) as short
+declare function item_assigned(i as short) as short
 
 'Items
 declare function checkitemfilter(t as short,f as short) as short

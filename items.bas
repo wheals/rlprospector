@@ -465,7 +465,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=2
         i.desig="laser rifle"
         i.desigp="laser rifles"
-        i.ldesc="A tornister houses the energy source, connected to a pistolgrip with 3 short barrels. The laserbeams cause a lot of damage."
+        i.ldesc="A backpack houses the energy source, connected to a pistolgrip with 3 short barrels. The laserbeams cause a lot of damage."
         i.icon="/"
         i.col=15
         i.bgcol=0
@@ -482,7 +482,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ty=2
         i.desig="plasma rifle"
         i.desigp="plasma rifles"
-        i.ldesc="A tornister houses the energy source, connected to a rifle. It emits a beam of superheated plasma."
+        i.ldesc="A backpack houses the energy source, connected to a rifle. It emits a beam of superheated plasma."
         i.icon="/"
         i.col=12
         i.bgcol=0
@@ -2760,10 +2760,45 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if player.dead<>0 then return -1
         cls
     loop until i<>0
-    if i>0 then i=mit(i)
+    if i>0 then 
+        if mno(i)<2 then
+            i=mit(i)
+        else
+            i=first_unused(mit(i))
+        endif
+    endif
     return i
 end function
 
+function first_unused(i as short) as short
+    dim as short a,debug
+    debug=0
+    if item_assigned(i)=0 then return i
+    if debug=1 then dprint "Item "&i &"assigned, looking for alternative"
+    for a=0 to lastitem
+        if item(a).w.s<0 and a<>i then
+            if item(a).desig=item(i).desig and item(a).v1=item(i).v1 and item(a).v2=item(i).v2 and item(a).v3=item(i).v3 then
+                if debug=1 and item_assigned(a)=0 then dprint "Item " &a & "is alternative"
+                if debug=1 and item_assigned(a)>0 then dprint "Item " &a & "is used by"&item_assigned(a)-1
+                if item_assigned(a)=0 then return a
+            endif
+        endif
+    next
+    if debug=1 then dprint "No alt found"
+    return i
+end function
+
+function item_assigned(i as short) as short
+    dim as short j
+    for j=0 to 128
+        if crew(j).hp>0 then
+            if item(i).ty=2 and crew(j).pref_lrweap=item(i).uid then return j+1
+            if item(i).ty=4 and crew(j).pref_ccweap=item(i).uid then return j+1
+            if item(i).ty=3 and crew(j).pref_armor=item(i).uid then return j+1
+        endif
+    next
+    return 0
+end function
 
 function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
     dim as single a,b,r

@@ -1,5 +1,5 @@
 function make_spacemap() as short
-    dim as short a,b,c,d,e,astcou,gascou
+    dim as short a,b,c,d,e,astcou,gascou,x,y
     dim as _cords p1,p2,p3
     dim showclouds as byte
     showclouds=0
@@ -7,6 +7,17 @@ function make_spacemap() as short
     print
     Print "Generating sector"
     color 7,0
+    for a=0 to max_maps
+        for x=0 to 60
+            for y=0 to 20
+                planetmap(x,y,a)=0
+            next
+        next
+    next
+    
+    for a=0 to 1024
+        portal(a).oneway=0
+    next
     
     rerollshops
     add_stars
@@ -525,6 +536,7 @@ function add_caves() as short
             portal(a).discovered=show_portals
             portal(a).dimod=2-rnd_range(1,4)
             portal(a).tumod=4-rnd_range(1,8)
+            portal(a).oneway=0
             map(sysfrommap(portal(a).from.m)).discovered=5
             lastplanet=lastplanet+1
             print ".";
