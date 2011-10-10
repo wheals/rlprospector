@@ -1757,7 +1757,6 @@ function loadgame(filename as string) as short
     dim text as string
     dim p as _planet
     dim debug as byte
-    debug=1
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
