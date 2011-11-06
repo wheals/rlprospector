@@ -350,7 +350,7 @@ function loadfonts() as short
     endif
     if _lines<25 then _lines=25
     if _tiles=0 then 
-        _fohi2=10
+        '_fohi2=10
         _fohi1=26
     endif
     if _fohi1=9 then _fohi1=10

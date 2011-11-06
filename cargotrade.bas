@@ -884,14 +884,14 @@ function casino(staked as short=0, st as short=-1) as short
                 if b=6 then dprint "Your pilot wants to leave."
                 if b=7 then dprint "Your gunner thinks the owners could put up a dartboard here for practice."
                 if b=8 then dprint "A lone drunk informs you that the roulette wheel is rigged! He then asks you to buy him a drink."
-                if b=9 then dprint "A scoutship captain claims to have found a lutetium deposit at "&rnd_range(1,59) &":" &rnd_range(1,19) &" that was too large to load into his ship."
+                if b=9 then dprint "A scoutship captain claims to have found a lutetium deposit at coordinates"&rnd_range(1,59) &":" &rnd_range(1,19) &" that was too large to load into his ship."
                 if b=10 then dprint "A security team member tells you a tall tale about fighting alien robots in an ancient city ruin 'They aren't gone. they are sleeping is what i say!'"
-                if b=11 then dprint "Another prospector and a patrol ship captain are discussing an incident on a planet at "&rnd_range(1,59) &":" &rnd_range(1,19) &". Two freelance prospectors had landed on it at the same time and got into a dispute over a palladium deposit. The patrol captain remarks that 'those guys should be taught a lesson'" 
+                if b=11 then dprint "Another prospector and a patrol ship captain are discussing an incident on a planet at coordinates "&rnd_range(1,59) &":" &rnd_range(1,19) &". Two freelance prospectors had landed on it at the same time and got into a dispute over a palladium deposit. The patrol captain remarks that 'those guys should be taught a lesson'" 
                 if b=12 then dprint "A young man shows pictures of his brother. He was last seen on Station "&rnd_range(1,3)&", leaving with a scoutship, and hasn't returned."
                 if b=13 then dprint "you get told that the weather in the stations hydroponic garden was remarkably pleasant lately!"
                 if b=14 then dprint "you learn that the view from port E on the 5th ring of the station is spectacular"
                 if b=15 then dprint "You hear a story about an ancient robot ship prowling the sector, attacking everything on sight. The Anne Bonny is said to have escaped it once. Everything else is destroyed."
-                if b=16 then dprint "A patrolboat captain claims to have fought a big pirate fleet at "&p.x &":"&p.y
+                if b=16 then dprint "A patrolboat captain claims to have fought a big pirate fleet at coordinates "&p.x &":"&p.y
                 if b=17 then dprint "A light transport captain claims in a discussion on traderoutes that the average price for  "& basis(st).inv(1).n &" is "&avgprice(1) &"."
                 if b=18 then dprint "A Merchantman captain claims in a discussion on traderoutes that the average price for  "& basis(st).inv(2).n &" is "&avgprice(2) &"."
                 if b=19 then dprint "A heavy transport captain claims in a discussion on traderoutes that the average price for  "& basis(st).inv(3).n &" is "&avgprice(3) &"."
@@ -947,27 +947,27 @@ function casino(staked as short=0, st as short=-1) as short
                 endif
                 if b=30 then
                     c=sysfrommap(specialplanet(13))
-                    dprint "A frequent patron tells you that Murchesons ditch is at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A frequent patron tells you that Murchesons ditch is at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=31 then
                     c=sysfrommap(specialplanet(10))
-                    dprint "A scout pilot tells you that there is an independent colony at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A scout pilot tells you that there is an independent colony at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=32 then
                     c=sysfrommap(specialplanet(14))
-                    dprint "A well doing merchant tells you that he bought his armed merchantman class ship in a systema at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A well doing merchant tells you that he bought his armed merchantman class ship in a system at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=33 then
                     c=sysfrommap(specialplanet(2))
-                    dprint "A scout pilot claims that nobody has ever returned from exploring a system at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A scout pilot claims that nobody has ever returned from exploring a system at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=34 then
                     c=sysfrommap(specialplanet(27))
-                    dprint "A scout pilot claims that nobody has ever returned from exploring a system at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A scout pilot claims that nobody has ever returned from exploring a system at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=35 then
                     c=sysfrommap(specialplanet(39))
-                    dprint "A merchant says he buys all his grain at "&map(c).c.x &":"&map(c).c.y &"."
+                    dprint "A merchant says he buys all his grain at coordinates "&map(c).c.x &":"&map(c).c.y &"."
                 endif
                 if b=36 or b=37 or b=38 or b=39 then
                     dprint "A scout ship captain tells a tale about how he got chased back to his ship by hostile aliens, but then had the genius idea to order his ship by radio to fire it's ship weapons at them, with devastating results!"
@@ -2010,7 +2010,7 @@ function pirateupgrade() as short
 end function
 
 function customize_item() as short
-    dim as integer a,b,i,j,price,c,nr
+    dim as integer a,b,i,i2,j,price,c,nr
     dim as string t
     dim as byte debug=0
     do
@@ -2055,7 +2055,8 @@ function customize_item() as short
         if a=2 or a=3 then
             i=getitem(,3)
             if i>0 then
-                i=lowest_by_id(item(i).id)
+                i2=lowest_by_id(item(i).id)
+                if i2>0 then i=i2
                 if a=2 then price=100
                 if a=3 then price=250
                 if item(i).v2>0 then 

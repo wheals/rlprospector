@@ -2132,12 +2132,10 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next b
     endif
     makeice(o,a)    
-    planets(a).temp=((100-planets(a).water/1.5-planets(a).atmos*3)/100) 'dampened by atmos & water
-    planets(a).temp=(spect-3)^3*3+planets(a).temp*(((9.1-o)^3)*2-400+rnd_range(1,100)- (((o-3)^2)+1)*rnd_range(10,25))
-    if planets(a).temp>100 and (planettype>=22 and planettype<44) then planets(a).temp=planets(a).temp-rnd_range(1,planets(a).temp)-80
-    if (planettype>=33 and planettype<44) then planets(a).temp=rnd_range(1,950)/10
+    planets(a).temp=round_nr(spect*83-o*(53+rnd_range(1,20)/10),1)'(8-planets(a).dens)
+    'if planets(a).temp>100 and (planettype>=22 and planettype<44) then planets(a).temp=planets(a).temp-rnd_range(1,planets(a).temp)-80
+    'if (planettype>=33 and planettype<44) then planets(a).temp=rnd_range(1,950)/10
     if spect=8 then planets(a).temp=-273
-    if planets(a).temp<-273 then planets(a).temp=273
     'planets(a).temp=planets(a).temp*(-20.722*cos(o)+119.87*sin(o)+ (-0.0168*exp(o))+4.69)
     if planets(a).temp<-270 then planets(a).temp=-270+rnd_range(1,10)/10
     
@@ -3793,7 +3791,9 @@ function makespecialplanet(a as short) as short
         makeroad(p1,p2,a)
         for x=p2.x to p2.x+3
             for y=p2.y to p2.y+4
-                planetmap(x,y,a)=-68
+                if x>=0 and y>=0 and x<=60 and y<=20 then
+                    planetmap(x,y,a)=-68
+                endif
             next
         next
         planetmap(p2.x-1,p2.y,a)=-238

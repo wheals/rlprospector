@@ -157,9 +157,29 @@ end function
 
 function startnewgame() as short
     dim as string text
-    dim as short a,b,c
+    dim as short a,b,c,f
     dim i as _items
+    dim debug as byte
+    debug=0
     make_spacemap() 
+    if debug=1 then
+        f=freefile
+        open "planettemp.csv" for output as #f
+        for a=0 to laststar
+            text=map(a).spec &";"
+            for b=1 to 9
+                text=text &";"
+                if map(a).planets(b)>0 and map(a).planets(b)<1024 then
+                    makeplanetmap(map(a).planets(b),b,map(a).spec)
+                    text=text &planets(map(a).planets(b)).temp 
+                endif
+            next
+            print #f,text
+            print ".";
+        next
+        close #f
+    endif
+        
     background(rnd_range(1,_last_title_pic)&".bmp")
     text="/"&makehullbox(1,"data/ships.csv") &"/"&makehullbox(2,"data/ships.csv") &"/"&makehullbox(3,"data/ships.csv") &"/"&makehullbox(4,"data/ships.csv") &"/"&makehullbox(6,"data/ships.csv")
     if _startrandom=1 then 
@@ -168,15 +188,17 @@ function startnewgame() as short
         b=rnd_range(1,4)
     endif
     player=makeship(1)
+    
+    if b=6 then b=rnd_range(1,4)
+    c=b
+    if b=5 then c=6
+    upgradehull(c,player)
+    
     addmember(1,0)
     addmember(2,1)
     addmember(3,1)
     addmember(4,1)
     addmember(5,1)
-    if b=6 then b=rnd_range(1,4)
-    c=b
-    if b=5 then c=6
-    upgradehull(c,player)
     
     if b=1 then
         placeitem(makeitem(100),0,0,0,0,-1)
@@ -656,7 +678,7 @@ function scanning() as short
         osx=30-_mwx/2
         do
             displayplanetmap(mapslot,osx)
-            dplanet(planets(mapslot),a,scanned)
+            dplanet(planets(mapslot),slot,scanned)
             no_key=keyin(key_la & key_tala &" abcdefghijklmnopqrstuvwxyz" &key_east &key_west)
             if no_key=key_east then osx+=1
             if no_key=key_west then osx-=1

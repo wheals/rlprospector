@@ -159,7 +159,7 @@ function ep_atship(awayteam as _monster,ship as _cords,walking as short) as shor
         dprint "You are at the ship. Press "&key_la &" to launch."
         if awayteam.oxygen<awayteam.oxymax then dprint "Refilling oxygen.",10
         awayteam.oxygen=awayteam.oxymax
-        if awayteam.move=2 and awayteam.jpfuel<awayteam.jpfuelmax then 
+        if (awayteam.move=2 or awayteam.move=3) and awayteam.jpfuel<awayteam.jpfuelmax then 
             dprint "Refilling Jetpacks",10
             awayteam.jpfuel=awayteam.jpfuelmax
         endif

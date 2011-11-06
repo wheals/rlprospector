@@ -5,10 +5,10 @@
 using FB
 randomize timer
 
-const __VERSION__="0.2.3"
+const __VERSION__="0.2.3b"
 
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0 'special planets already discovered
+Const Show_specials=0'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0'outputs statistics to txt files
@@ -1479,6 +1479,8 @@ declare function better_item(i1 as _items,i2 as _items) as short
 declare function listartifacts() as string
 
 'math
+declare function round_nr(i as single,c as short) as single
+declare function C_to_F(c as single) as single
 declare function find_high(list() as short,last as short) as short
 declare function countdeadofficers(max as short) as short
 declare function nearestbase(c as _cords) as short

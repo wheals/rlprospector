@@ -1,5 +1,16 @@
 declare function fixstarmap() as short
 
+function C_to_F(c as single) as single
+    return round_nr(c*9/5+32,1)
+end function
+
+function round_nr(i as single,c as short) as single
+    i=i*10^c
+    i=fix(i)
+    i=i/10^c
+    return i
+end function
+
 function find_high(list() as short,last as short) as short
     dim as short i,m,r
     for i=1 to last

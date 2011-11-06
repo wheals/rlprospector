@@ -403,22 +403,22 @@ function gaintalent(slot as short) as string
         'merchant
     endif
     
-    if roll>=7 and roll<=9 and slot=2 then
+    if roll>=7 and roll<=9 and crew(slot).typ=2 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=10 and roll<=13 and slot=3 then
+    if roll>=10 and roll<=13 and crew(slot).typ=3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=14 and roll<=16 and slot=4 then
+    if roll>=14 and roll<=16 and crew(slot).typ=4 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=17 and roll<=19 and slot=5 then
+    if roll>=17 and roll<=19 and crew(slot).typ=5 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
@@ -461,11 +461,13 @@ function levelup(p as _ship,from as short) as _ship
                 lev(a)+=1
                 rolls(a)=crew(a).augment(10)*2+roll
             endif
-            if a>1 then
-                if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
-                    ret(crew(a).typ)+=1
-                    crew(a)=_del
-                    lev(a)=0
+            if from=0 then
+                if a>1 then
+                    if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
+                        ret(crew(a).typ)+=1
+                        crew(a)=_del
+                        lev(a)=0
+                    endif
                 endif
             endif
         endif
@@ -475,7 +477,6 @@ function levelup(p as _ship,from as short) as _ship
         if ret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" Retired. "
         if ret(a)>1 then text=text &ret(a) &" "&crew_desig(a)&"s Retired. "
     next
-    
     for a=1 to 128
         if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
     
@@ -539,10 +540,13 @@ function rnd_crewmember(onship as short=0) as short
 end function
 
 function get_freecrewslot() as short
-    dim as short b,slot
-    for b=1 to 128  
+    dim as short b,slot,debug
+    debug=1
+    if debug=1 then dprint ""&player.h_maxcrew &":"&player.crewpod &":"&player.cryo
+    for b=1 to player.h_maxcrew+player.crewpod+player.cryo
         if crew(b).hp<=0 then return b
     next
+    
     return -1
 end function
 
@@ -572,7 +576,7 @@ function addmember(a as short,skill as short) as short
         endif
     endif
     if debug=1 then dprint ""&slot
-    if slot>0 then
+    if slot>=0 then
         
         crew(slot)=_del
         crew(slot).baseskill(0)=-5
@@ -725,14 +729,16 @@ function addmember(a as short,skill as short) as short
         endif
         
         if a=14 then 'SO
-            crew(4).hpmax=skill+1
-            crew(4).hp=crew(4).hpmax
-            crew(4).icon="T"
-            crew(4).typ=4
-            crew(4).paymod=0
-            crew(4).n=alienname(1)
-            crew(4).xp=0
-            crew(4).disease=0
+            crew(slot).hpmax=4
+            crew(slot).hp=4
+            crew(slot).hp=crew(4).hpmax
+            crew(slot).icon="T"
+            crew(slot).typ=4
+            crew(slot).paymod=0
+            crew(slot).n=alienname(1)
+            crew(slot).xp=0
+            crew(slot).disease=0
+            crew(slot).baseskill(2)=3
         endif
         
         if a=15 then
@@ -1435,7 +1441,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                     if crew(b-offset).augment(2)=3 then augments=augments &"Muscle Enh. III "
                     if crew(b-offset).augment(3)>0 then augments=augments &"Imp. Lungs "
                     if crew(b-offset).augment(4)>0 then augments=augments &"Speed Enh. "
-                    if crew(b-offset).augment(5)=1 then augments=augments &"Exosceleton "
+                    if crew(b-offset).augment(5)=1 then augments=augments &"Exoskeleton "
                     if crew(b-offset).augment(5)=2 then augments=augments &"Exosceleton II "
                     if crew(b-offset).augment(5)=3 then augments=augments &"Exosceleton III "
                     if crew(b-offset).augment(6)=1 then augments=augments &"Improved Metabolism "

@@ -2860,7 +2860,7 @@ function lowest_by_id(id as short) as short
     dim as short i,best
     dim as single v,cur
     best=-1
-    v=9
+    v=99
     for i=1 to lastitem
         if item(i).w.s<0 and item(i).id=id then
             cur=item(i).v1+item(i).v2+item(i).v3

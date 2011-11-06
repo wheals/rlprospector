@@ -84,11 +84,12 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
             
     
     draw string((_mwx+2)*_fw1,13*_fh2), "Avg. Temperature",,font2,custom,@_col
-    draw string((_mwx+2)*_fw1,15*_fh2), p.temp &" "&chr(248)&"c",,font2,custom,@_col
+    draw string((_mwx+2)*_fw1+_fw2,14*_fh2), p.temp &" "&chr(248)&"C ",,font2,custom,@_col
+    draw string((_mwx+2)*_fw1+_fw2,15*_fh2), c_to_f(p.temp) &" "&chr(248)&"F ",,font2,custom,@_col
     if p.rot>0 then
-        draw string((_mwx+2)*_fw1,16*_fh2),"Rot.:"&p.rot*24 &" h",,font2,custom,@_col
+        draw string((_mwx+2)*_fw1,17*_fh2),"Rot.:"&p.rot*24 &" h",,font2,custom,@_col
     else
-        draw string((_mwx+2)*_fw1,16*_fh2),"Rot.: Nil",,font2,custom,@_col
+        draw string((_mwx+2)*_fw1,17*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
     for a=0 to p.life
         if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 then plife=plife+((p.life+1)*3)/100
@@ -97,8 +98,8 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     if plife>p.highestlife then
         p.highestlife=plife
     endif
-    draw string((_mwx+2)*_fw1,18*_fh2),"Lifeforms:",,font2,custom,@_col
-    draw string((_mwx+2)*_fw1,19*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
+    draw string((_mwx+2)*_fw1,19*_fh2),"Lifeforms:",,font2,custom,@_col
+    draw string((_mwx+2)*_fw1,20*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
     return 0
 end function
 

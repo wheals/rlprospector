@@ -348,7 +348,12 @@ function movefleets() as short
         roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
         if roll>5 or (fleet(a).ty=1 or fleet(a).ty=3) then
             'move towards target
-            direction=nearest(targetlist(fleet(a).t),fleet(a).c)
+            if fleet(a).t>=0 and fleet(a).t<=4068 then
+                direction=nearest(targetlist(fleet(a).t),fleet(a).c)
+            else 
+                fleet(a).t=1
+                direction=5
+            endif
         else
             'move random
             direction=5
