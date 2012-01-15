@@ -81,7 +81,7 @@ function setglobals() as short
     
     specialplanettext(1,0)="I got some strange sensor readings here sir. can't make any sense of it."
     specialplanettext(1,1)="The readings are gone. must have been that temple."
-    specialplanettext(2,0)="There is a ruin of an anient city here, but i get no signs of life. Some high energy readings though."
+    specialplanettext(2,0)="There is a ruin of an anient city here, but I get no signs of life. Some high energy readings though."
     specialplanettext(2,1)="With the planetary defense systems disabled it is safe to land here."
     specialplanettext(3,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
     specialplanettext(4,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
@@ -121,6 +121,7 @@ function setglobals() as short
     specialplanettext(39,0)="A beautiful world with a mild climate. Huge areas of cultivated land are visible, even from orbit, along with some small buildings."
     specialplanettext(40,0)="A beautiful world with a mild climate. There is one big artificial structure."
     specialplanettext(41,0)="There is a big asteroid with a landing pad and some buildings here."
+    
     atmdes(1)="No"
     
     atmdes(2)="remnants of an"
@@ -141,29 +142,32 @@ function setglobals() as short
     atmdes(15)="dense, corrosive"
     atmdes(16)="very dense, corrosive"
     
+    
+    '0=right,1=left
+    
     bestaltdir(1,0)=4
     bestaltdir(1,1)=2
     
     bestaltdir(2,0)=1
     bestaltdir(2,1)=3
     
-    bestaltdir(3,0)=6
-    bestaltdir(3,1)=2
+    bestaltdir(3,0)=2
+    bestaltdir(3,1)=6
     
     bestaltdir(4,0)=7
     bestaltdir(4,1)=1
     
-    bestaltdir(6,0)=9
-    bestaltdir(6,1)=3
+    bestaltdir(6,0)=3
+    bestaltdir(6,1)=9
     
     bestaltdir(7,0)=8
     bestaltdir(7,1)=4
     
-    bestaltdir(8,0)=7
-    bestaltdir(8,1)=9
+    bestaltdir(8,0)=9
+    bestaltdir(8,1)=7
     
-    bestaltdir(9,0)=8
-    bestaltdir(9,1)=6
+    bestaltdir(9,0)=6
+    bestaltdir(9,1)=8
     
     
     spectraltype(1)=12
@@ -195,19 +199,21 @@ function setglobals() as short
     spectralshrt(8)="r"
     spectralname(9)="a wormhole"
     spectralshrt(9)="w"
+    spectralname(10)="a rogue gasgiant"
+    spectralshrt(10)="R"
     
     basis(0)=makecorp(0)
-    basis(0).c.x=35
-    basis(0).c.y=20
+    basis(0).c.x=sm_x/2
+    basis(0).c.y=sm_y/2
     basis(0).discovered=1
     
     basis(1)=makecorp(0)
     basis(1).c.x=10
-    basis(1).c.y=30
+    basis(1).c.y=sm_y-10
     basis(1).discovered=1
     
     basis(2)=makecorp(0)
-    basis(2).c.x=60
+    basis(2).c.x=sm_x-10
     basis(2).c.y=10
     basis(2).discovered=1
     
@@ -314,7 +320,7 @@ function setglobals() as short
         shiptypes(19)="primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
         shiptypes(20)="small space station"
     else
-        color 14,0
+        set_color( 14,0)
         print "ships.csv not found. Can't start game"
         sleep
         end

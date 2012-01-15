@@ -1,7 +1,7 @@
 declare function fixstarmap() as short
 
 function C_to_F(c as single) as single
-    return round_nr(c*9/5+32,1)
+    return round_nr(c*1.8+32,1)
 end function
 
 function round_nr(i as single,c as short) as single
@@ -97,24 +97,25 @@ function fixstarmap() as short
         endif
     next
     if fsp>1 then 
-        color 14,0
+        set_color(14,0)
         print fsp &"specials missing. ";
     endif
     if spfix>0 then
-        color 14,0
+        set_color(14,0)
         print spfix &" specials fixed"
     endif
     for a=0 to laststar
         map(a).ti_no=map(a).spec+68
+        if map(a).spec=10 then map(a).ti_no=89
     next
     if fixed>0 then
-        color 14,0
+        set_color(14,0)
         print fixed &" fixed in "&cc &" loops."
     else
-        color 10,0
+        set_color(10,0)
         print "All Ok"
     endif
-    color 7,0
+    set_color(7,0)
     return 0
 end function
 
@@ -212,11 +213,19 @@ function minimum(a as double,b as double) as double
 end function
 
 
-function distance(first as _cords, last as _cords) as single
-    dim dis as single
-    dis=(first.x-last.x)*(first.x-last.x)
-    dis=dis+(first.y-last.y)*(first.y-last.y)
-    dis=sqr(dis)
+function distance(first as _cords, last as _cords,rollover as byte=0) as single
+    dim as single dis,dx,dy,dx2
+    dx=first.x-last.x
+    dy=first.y-last.y
+    if rollover<>0 then
+        if first.x<last.x then
+            dx2=60-last.x+first.x
+        else
+            dx2=60-first.x+last.x
+        endif
+        if abs(dx)>abs(dx2) then dx=dx2
+    endif
+    dis=sqr(dx*dx+dy*dy)
     return dis
 end function
 
@@ -640,7 +649,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 if _tiles=0 then
                     draw string(x-osx*_fw1,y*_fh1),"*",,font1,custom,@_col
                 else
-                    color col,0
+                    set_color( col,0)
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                 endif
                 sleep delay

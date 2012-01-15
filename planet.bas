@@ -1884,6 +1884,17 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
         
     endif
     
+    if rnd_range(1,100)<5 then 'Geyser caves
+        for d=0 to rnd_range(1,10)+rnd_range(10,15)
+            p1=rnd_point(slot,0)
+            if planets(slot).temp>-50 then
+                planetmap(p1.x,p1.y,slot)=-28
+            else
+                planetmap(p1.x,p1.y,slot)=-30
+            endif
+        next
+    endif
+    
     if rnd_range(1,100)<planets(slot).depth then
         p1=rnd_point(slot,0)
         planetmap(p1.x,p1.y,slot)=-298
@@ -2132,11 +2143,11 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         next b
     endif
     makeice(o,a)    
-    planets(a).temp=round_nr(spect*83-o*(53+rnd_range(1,20)/10),1)'(8-planets(a).dens)
-    'if planets(a).temp>100 and (planettype>=22 and planettype<44) then planets(a).temp=planets(a).temp-rnd_range(1,planets(a).temp)-80
-    'if (planettype>=33 and planettype<44) then planets(a).temp=rnd_range(1,950)/10
+    
+    planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
+    'planets(a).temp=round_nr(spect*83-o*(53+rnd_range(1,20)/10),1)'(8-planets(a).dens)
+    planets(a).temp=fix(((Spect*500*(1-planets(a).dens/10))/(16*3.14*5.67*((orbit*75)^2)))^0.25*2500)*(3/orbit)-173.15
     if spect=8 then planets(a).temp=-273
-    'planets(a).temp=planets(a).temp*(-20.722*cos(o)+119.87*sin(o)+ (-0.0168*exp(o))+4.69)
     if planets(a).temp<-270 then planets(a).temp=-270+rnd_range(1,10)/10
     
     '
@@ -2428,14 +2439,18 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     next
     planets(a).water=(b/1200)*100
     planets(a).darkness=3-cint((5-planets(a).orbit)/2)
-    planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
-    if spect=8 then
+    
+    planets(a).dens=planets(a).atmos
+    if planets(a).dens>5 then planets(a).dens-=5
+    if planets(a).dens>5 then planets(a).dens-=5
+    planets(a).dens-=1
+    if spect=8 or spect=10 then
         makecraters(a,9)
         planets(a).darkness=5
         planets(a).orbit=9
         planets(a).temp=-270+rnd_range(1,10)/10
         planets(a).rot=-1
-    endif    
+    endif
     if show_all=1 then
         for x=0 to 60
             for y=0 to 20
@@ -5950,6 +5965,9 @@ function makedrifter(d as _driftingship, bg as short=0,broken as short=0) as sho
         planets(m).atmos=planets(from.m).atmos
         planets(m).grav=planets(from.m).grav
     endif
+    
+    if planets(m).atmos>0 then planets(m).temp=20+rnd_range(1,20)/10
+    
     planets(m).flags(0)=0
     planets(m).flags(1)=d.s
     planets(m).flags(2)=rnd_range(1,s.h_maxhull)

@@ -2,11 +2,11 @@ function make_spacemap() as short
     dim as short a,b,c,d,e,astcou,gascou,x,y
     dim as _cords p1,p2,p3
     dim showclouds as byte
-    showclouds=0
-    color 11,0
+    showclouds=1
+    set_color( 11,0)
     print
     Print "Generating sector"
-    color 7,0
+    set_color( 7,0)
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -26,8 +26,12 @@ function make_spacemap() as short
     
     make_clouds()
     gen_traderoutes()
-    
-    color 7,0
+    gascou+=1
+    for a=0 to laststar
+        if spacemap(map(a).c.x,map(a).c.y)<>0 then gascou+=1
+    next
+    print "stars in gasclouds:";gascou
+    set_color( 7,0)
     print
     print "Pregenerating planets ";
     
@@ -70,7 +74,32 @@ function make_spacemap() as short
                 if map(a).planets(b)=show_specials then map(a).discovered=1
             next
         next
+        if map(a).spec=10 then map(a).discovered=1
     endif
+    if show_all_specials=1 then
+        for a=0 to laststar
+            for b=1 to 9
+                for c=0 to lastspecial
+                    if map(a).planets(b)=specialplanet(c) then map(a).discovered=1
+                next            
+            next
+        next
+    endif
+    if show_dangerous=1 then
+        for a=0 to laststar
+            for b=1 to 9
+                if map(a).planets(b)=specialplanet(2) then map(a).discovered=1
+                if map(a).planets(b)=specialplanet(3) then map(a).discovered=1
+                if map(a).planets(b)=specialplanet(4) then map(a).discovered=1
+                if map(a).planets(b)=specialplanet(26) then map(a).discovered=1
+                if map(a).planets(b)=specialplanet(27) then map(a).discovered=1
+            next
+        next
+        
+    endif
+    for a=0 to laststar
+        if map(a).spec=10 then map(a).discovered=1
+    next
     print
 
     make_civilisation(0,specialplanet(7))
@@ -81,17 +110,20 @@ function make_spacemap() as short
     if findcompany(3)=0 then specialplanet(42)=32767
     if findcompany(4)=0 then specialplanet(43)=32767
     
-    if show_specials>0 then 
-        map(sysfrommap(specialplanet(show_specials))).discovered=1
-        player.c=map(sysfrommap(specialplanet(show_specials))).c
-    endif
-    fleet(0).mem(1)=makeship(33)
-    fleet(0).ty=1
     fleet(1).mem(1)=makeship(33)
     fleet(1).ty=1
+    fleet(1).c=basis(0).c
     fleet(2).mem(1)=makeship(33)
     fleet(2).ty=1
-    lastfleet=3
+    fleet(2).c=basis(1).c
+    fleet(3).mem(1)=makeship(33)
+    fleet(3).ty=1
+    fleet(3).c=basis(2).c
+    fleet(5).mem(1)=makeship(33)
+    fleet(5).ty=1
+    fleet(5).c=basis(4).c
+    
+    lastfleet=6
     
     if _clearmap=1 then
         for a=0 to laststar+wormhole+1
@@ -120,11 +152,11 @@ function make_spacemap() as short
         next
     endif
     print
-    color 11,0
+    set_color( 11,0)
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
-    color 15,0
+    set_color( 15,0)
     print "Star distribution:"
-    for a=1 to 8
+    for a=1 to 10
         print spectralname(a);":";scount(a)
     next
     print "Asteroid belts:";astcou
@@ -134,12 +166,12 @@ function make_spacemap() as short
 end function
 
 function add_stars() as short
-    dim as short a,cc,b,f
+    dim as short a,cc,b,f,debug
     dim as string l
     dim as _stars del
     dim as _planet delpl
     
-        
+    'debug=2
     
     
     cc=0
@@ -156,7 +188,6 @@ function add_stars() as short
         else
             map(a).spec=rnd_range(1,7)
         endif
-        map(a).ti_no=map(a).spec+68
         if rnd_range(1,100)<91 then
             for b=1 to 9
                 map(a).planets(b)=rnd_range(1,24)-((map(a).spec-3)^2+rnd_range(1,12))
@@ -185,16 +216,36 @@ function add_stars() as short
                 endif
             next
         else
-            map(a).spec=8
-            map(a).ti_no=76
-            cc+=1
-            map(a).planets(1)=cc
+            if rnd_range(1,100)<50 then
+                map(a).spec=8
+                cc+=1
+                map(a).planets(1)=cc
+            else
+                if debug=1 then dprint map(a).c.x &":"&map(a).c.y
+                map(a).spec=10
+                map(a).planets(1)=-20002
+                if rnd_range(1,100)<25 then 
+                    cc+=1
+                    map(a).planets(2)=cc
+                endif
+                if rnd_range(1,100)<15 then 
+                    cc+=1
+                    map(a).planets(rnd_range(3,5))=cc
+                endif
+                
+                if rnd_range(1,100)<5 then 
+                    cc+=1
+                    map(a).planets(rnd_range(6,9))=cc
+                endif
+            endif
         endif
     next
     for a=0 to cc
         planets(a)=delpl
     next
-    
+    for a=1 to laststar
+        map(a).ti_no=89
+    next
     lastplanet=cc
     return 0
 end function
@@ -220,11 +271,24 @@ end function
 
 
 function add_special_planets() as short
-    dim as short a,sys,mp,d
+    dim as short a,sys,mp,d,gas,cgas
+    for a=0 to laststar
+        if spacemap(map(a).c.x,map(a).c.y)<>0 and map(a).discovered=0 and map(a).spec<8 then cgas+=1
+    next
     for a=0 to lastspecial
         do
-            sys=getrandomsystem()
-            print ".";
+            if a=2 or a=3 or a=4 or a=26 or a=27 then 'These specials are always generated in gasclouds
+                cgas-=1
+                gas=1
+            else
+                gas=0
+            endif
+            if cgas<=0 then 
+                gas=0
+                print "No more stars in gas clouds"
+            endif
+            sys=getrandomsystem(1,gas,1)
+            if sys<0 then sys=getrandomsystem(1)
         loop until  map(sys).spec<8 
         mp=getrandomplanet(sys)
         if mp=-1 and a<>18 then 
@@ -247,10 +311,10 @@ function add_special_planets() as short
         
         print ".";
         if specialplanet(a)<0 then
-            color 12,0
+            set_color( 12,0)
             print a;" ";sys;" ";mp
             print lastplanet
-            color 15,0
+            set_color( 15,0)
         endif
     next
     
@@ -621,7 +685,7 @@ function gen_traderoutes() as short
     dim as integer fp,lp
     dim as byte debug=0
     
-    color 7,0
+    set_color( 7,0)
     print "generating traderoutes"
     
     lastwaypoint=5
@@ -663,8 +727,6 @@ function gen_traderoutes() as short
     
     goal.x=basis(r).c.x
     goal.y=basis(r).c.y
-    print "Start:"&start.x &":"&start.y & " Goal:" &goal.x &":"& goal.y
-    sleep
     lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
     offset=11
     if lp>0 then
@@ -734,24 +796,24 @@ function gen_traderoutes() as short
                 endif
                 locate y+1,x+1
                 if map(x,y)>=4 and map(x,y)<=10 then
-                    color 15,0
+                    set_color( 15,0)
                     print "#";
                 endif
                 if map(x,y)=2 then
-                    color 15,0
+                    set_color( 15,0)
                     print ":";
                 endif
                 
                 if map(x,y)=0 then
-                    color 1,0
+                    set_color( 1,0)
                     print ".";
                 endif
             next
         next
-        color 10,0
+        set_color( 10,0)
         x=firstwaypoint
         do
-            color 10,0
+            set_color( 10,0)
             x+=1
             if x>lastwaypoint then x=firststationw
             for y=0 to 2
@@ -762,7 +824,7 @@ function gen_traderoutes() as short
             if t=1 then print "1";
             if t=2 then print "2";
             sleep 66
-            color 1,0
+            set_color( 1,0)
             locate targetlist(x).y+1,targetlist(x).x+1
             print "."
         loop until inkey<>""
@@ -799,7 +861,7 @@ function make_clouds() as short
     dim as short x,y,bx,by,highest,count,a,b,c,r
     dim as single attempt
     dim debug as short
-    debug=1
+    debug=0
     dim as _cords p1,p2,p3,p4
     print
     print "Creating clouds";
@@ -886,8 +948,8 @@ function make_clouds() as short
     next
         attempt=attempt+.01
         if attempt>0.1 then attempt=0.1
-        flood_fill(35,20,spacemap(),1)
-    loop until spacemap(10,30)=255 and spacemap(60,10)=255
+        flood_fill(sm_x/2,sm_y/2,spacemap(),1)
+    loop until spacemap(10,sm_y-10)=255 and spacemap(sm_x-10,10)=255
     do
         x=rnd_range(0,sm_x)
         y=rnd_range(0,sm_y)
@@ -1366,7 +1428,7 @@ function make_alienship(slot as short,t as short) as short
     civ(slot).ship(t).engine=1
     civ(slot).ship(t).pipilot=3
     civ(slot).ship(t).pigunner=3
-    civ(slot).ship(t).ti_no=35+slot
+    civ(slot).ship(t).ti_no=25+slot
     wc=2
     cc=1
     civ(slot).ship(t).weapons(1)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
@@ -1413,6 +1475,8 @@ function make_alienship(slot as short,t as short) as short
         
     
     next
+    civ(slot).ship(t).turnrate=1
+    if civ(slot).ship(t).engine>3 then civ(slot).ship(t).turnrate+=1
     civ(slot).ship(t).c.x=rnd_range(1,60)
     civ(slot).ship(t).c.y=rnd_range(1,20)
     if civ(slot).ship(t).engine<1 then civ(slot).ship(t).engine=1
@@ -1434,9 +1498,9 @@ function make_alienship(slot as short,t as short) as short
         if t=0 then civ(slot).ship(t).desig=civ(slot).n &" warship"
         if t=1 then civ(slot).ship(t).desig=civ(slot).n &" fighter"
     endif
-    civ(0).ship(0).ti_no=45
-    civ(0).ship(1).ti_no=46
-    civ(1).ship(0).ti_no=47
-    civ(1).ship(1).ti_no=48
+    civ(0).ship(0).ti_no=35
+    civ(0).ship(1).ti_no=35
+    civ(1).ship(0).ti_no=36
+    civ(1).ship(1).ti_no=36
     return 0
 end function

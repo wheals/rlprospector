@@ -373,10 +373,12 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
         endif
     next
     hpdisplay(a)
+    #ifdef _FMODSOUND
     if _damscream=0 then 
         FSOUND_PlaySound(FSOUND_FREE, sound(12))
         sleep 100
     endif
+    #endif
     sleep 50
 
     if reequip=1 then equip_awayteam(player,a,player.map)
@@ -445,6 +447,7 @@ function levelup(p as _ship,from as short) as _ship
     dim rolls(128) as short
     dim lev(128) as byte
     dim ret(16) as byte
+    dim conret(16) as byte
     dim levt(16) as byte
     dim debug as byte=0
     if from=1 then dprint "Entering training."
@@ -463,10 +466,16 @@ function levelup(p as _ship,from as short) as _ship
             endif
             if from=0 then
                 if a>1 then
-                    if rnd_range(1,100)>10+crew(a).morale+addtalent(1,4,10) and crew(a).hp>0 and crew(a).augment(11)=0 then
-                        ret(crew(a).typ)+=1
-                        crew(a)=_del
-                        lev(a)=0
+                    if crew(a).hp>0 and crew(a).augment(11)=0 then
+                        roll=rnd_range(1,100)
+                        if roll>10+crew(a).morale+addtalent(1,4,10) then
+                            ret(crew(a).typ)+=1
+                            crew(a)=_del
+                            lev(a)=0
+                        endif
+                        if roll>crew(a).morale+addtalent(1,4,10) and roll<=10+crew(a).morale+addtalent(1,4,10) then
+                            conret(crew(a).typ)+=1
+                        endif
                     endif
                 endif
             endif
@@ -474,9 +483,16 @@ function levelup(p as _ship,from as short) as _ship
     next
     
     for a=1 to 16
-        if ret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" Retired. "
-        if ret(a)>1 then text=text &ret(a) &" "&crew_desig(a)&"s Retired. "
+        if ret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" retired. "
+        if ret(a)>1 then text=text &ret(a) &" "&crew_desig(a)&"s retired. "
+        if conret(a)=1 then text=text &crew_desig(a)&" "&crew(a).n &" considered retiering but had a change of mind. "
+        if conret(a)>1 then text=text &ret(a) &" "&crew_desig(a)&"s considered retiering but changed their minds. "
+    
     next
+    if text<>"" then 
+        dprint text,12
+        text=""
+    endif
     for a=1 to 128
         if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
     
@@ -541,7 +557,7 @@ end function
 
 function get_freecrewslot() as short
     dim as short b,slot,debug
-    debug=1
+    debug=0
     if debug=1 then dprint ""&player.h_maxcrew &":"&player.crewpod &":"&player.cryo
     for b=1 to player.h_maxcrew+player.crewpod+player.cryo
         if crew(b).hp<=0 then return b
@@ -551,7 +567,7 @@ function get_freecrewslot() as short
 end function
 
 function addmember(a as short,skill as short) as short
-    dim as short slot,b,f,c,cc,debug
+    dim as short slot,b,f,c,cc,debug,nameno
     dim _del as _crewmember
     dim as string n(200,1)
     dim as short ln(1)
@@ -586,10 +602,18 @@ function addmember(a as short,skill as short) as short
         for b=0 to 10
             crew(slot).story(b)=rnd_range(1,10)
         next
-        if rnd_range(1,100)<80 then
-            crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&n((rnd_range(1,ln(0))),0)
+        nameno=(rnd_range(1,ln(1)))
+        if nameno<=23 then
+            'female
+            crew(slot).story(10)=0
         else
-            crew(slot).n=n((rnd_range(1,ln(1))),1)&" "&CHR(rnd_range(65,87))&". "&n((rnd_range(1,ln(0))),0)
+            'male
+            crew(slot).story(10)=1
+        endif
+        if rnd_range(1,100)<80 then
+            crew(slot).n=n(nameno,1)&" "&n((rnd_range(1,ln(0))),0)
+        else
+            crew(slot).n=n(nameno,1)&" "&CHR(rnd_range(65,87))&". "&n((rnd_range(1,ln(0))),0)
         endif
         crew(slot).morale=100+(Wage-10)^3*(5/100)
         'crew(slot).talents(rnd_range(1,25))=1
@@ -677,6 +701,7 @@ function addmember(a as short,skill as short) as short
                 crew(slot).n=crew(slot).n &chr(rnd_range(97,122))
             next
             crew(slot).morale=25000
+            crew(slot).story(10)=2
         endif
         
         if a=10 then 'cephalopod
@@ -689,6 +714,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).n=alienname(2)
             crew(slot).morale=25000
             crew(slot).augment(7)=1
+            crew(slot).story(10)=2
         endif
         
         if a=11 then
@@ -701,6 +727,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).n="Neodog"
             crew(slot).xp=-1
             crew(slot).morale=25000
+            crew(slot).story(10)=2
         endif
         
         if a=12 then
@@ -713,6 +740,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).n="Neoape"
             crew(slot).xp=-1
             crew(slot).morale=25000
+            crew(slot).story(10)=2
         endif
         
         if a=13 then
@@ -726,6 +754,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).xp=-1
             crew(slot).morale=25000
             crew(slot).augment(8)=1
+            crew(slot).story(10)=2
         endif
         
         if a=14 then 'SO
@@ -739,6 +768,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).xp=0
             crew(slot).disease=0
             crew(slot).baseskill(2)=3
+            crew(slot).story(10)=2
         endif
         
         if a=15 then
@@ -750,6 +780,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).n="Ted Rofes"
             crew(slot).xp=0
             crew(slot).baseskill(3)=6
+            crew(slot).story(10)=1
         endif
         
         
@@ -780,6 +811,10 @@ function addmember(a as short,skill as short) as short
             crew(slot).paymod=2
         endif  
         crew(slot).hp=crew(slot).hpmax
+        if crew(slot).story(10)<2 then 'Is human
+            crew(slot).story(9)=-1
+            if slot>1 and rnd_range(1,100)<15 then crew(slot).story(8)=rnd_range(1,3)
+        endif
         'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
@@ -787,6 +822,37 @@ function addmember(a as short,skill as short) as short
     sort_crew()
     return 0
 end function    
+
+function girlfriends(st as short) as short
+    dim as short a,gf,whogf,mr,whomr
+    for a=0 to 128
+        if crew(a).hp>0 then
+            if crew(a).story(9)>0 and crew(a).story(9)<>st+1 and crew(a).story(9)<>st+3 then crew(a).morale-=1
+            if crew(a).story(9)=st+1 then 
+                gf+=1
+                whogf=a
+                crew(a).morale+=2
+            endif
+            if crew(a).story(9)=st+3 then 
+                mr+=1
+                whomr=a
+                crew(a).morale+=5
+            endif
+            if crew(a).story(9)=0 then
+                if rnd_range(1,100)<15 then crew(a).story(9)=st+1
+            else
+                if rnd_range(1,100)<5 then crew(a).story(9)=0
+                if rnd_range(1,100)<5 and crew(a).story(9)<=3 then crew(a).story(9)+=3
+            endif
+        endif
+    next
+    if gf=1 then dprint crew(whogf).n &" is very happy to see his girlfriend/boyfriend"
+    if gf>1 then dprint mr &" crewmebers are very happy to see their girlfriends and boyfriends"
+    if mr=1 then dprint crew(whomr).n &" is very happy to see his wife/husband"
+    if mr>1 then dprint mr &" crewmebers are very happy to see their wifes and husbands"
+    return 0
+end function
+
 
 function sort_crew() as short
     dim as short a,f
@@ -1332,7 +1398,7 @@ function showteam(from as short, r as short=0,text as string="") as short
     lines-=1
     cls
     do
-        color 11,0
+        set_color( 11,0)
         screenset 0,1
         cls
         message=""
@@ -1351,12 +1417,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                         endif
                     else
                         locate 22,1
-                        color 14,0
+                        set_color( 14,0)
                         draw string (10,_screeny-_fh2*2), "The captain must stay in the awayteam.",,font2,custom,@_col
                     endif
                 else
                     locate 22,1
-                    color 14,0
+                    set_color( 14,0)
                     draw string (10,_screeny-_fh2*2), "You need to be at the ship to reassign.",,font2,custom,@_col
                 endif
             endif
@@ -1419,7 +1485,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                 if crew(b-offset).hpmax>0 then
                     skills=""
                     augments=""
-                    color 0,bg
+                    set_color( 0,bg)
                     draw string (0,y*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+1)*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+2)*_fh2), space(80),,font2,custom,@_col
@@ -1455,16 +1521,16 @@ function showteam(from as short, r as short=0,text as string="") as short
                     if crew(b-offset).augment(12)>0 then augments=augments &"Synthetic Nerves "
                     'if show_moral=1 then augments=augments &":"&crew(b-offset).morale
                     if skills<>"" then skills=skills &" "
-                    color 15,bg
+                    set_color( 15,bg)
                     if b-offset>9 then
                         draw string (0,y*_fh2), b-offset & " ",,font2,custom,@_col
                     else
                         draw string (0,y*_fh2), " " & b-offset & " ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp>0 then
-                            color 10,bg
+                            set_color( 10,bg)
                             draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
-                            color 15,bg
+                            set_color( 15,bg)
                             if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "Squ.Ld",,font2,custom,@_col
                             if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Sniper",,font2,custom,@_col
                             if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Paramd",,font2,custom,@_col
@@ -1480,37 +1546,37 @@ function showteam(from as short, r as short=0,text as string="") as short
                             endif
                         
                     else
-                        color 12,0
+                        set_color( 12,0)
                         draw string (3*_fw2,y*_fh2), "X",,font2,custom,@_col
                     endif
                     
-                    color 15,bg
-                    if crew(b-offset).hp=0 then color 12,bg
-                    if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
-                    if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
+                    set_color( 15,bg)
+                    if crew(b-offset).hp=0 then set_color( 12,bg)
+                    if crew(b-offset).hp<crew(b-offset).hpmax then set_color( 14,bg)
+                    if crew(b-offset).hp=crew(b-offset).hpmax then set_color( 10,bg)
                     draw string (10*_fw2,y*_fh2), " "&crew(b-offset).hpmax,,font2,custom,@_col
-                    color 15,bg
+                    set_color( 15,bg)
                     draw string (12*_fw2,y*_fh2), "/",,font2,custom,@_col
-                    if crew(b-offset).hp=0 then color 12,bg
-                    if crew(b-offset).hp<crew(b-offset).hpmax then color 14,bg
-                    if crew(b-offset).hp=crew(b-offset).hpmax then color 10,bg
+                    if crew(b-offset).hp=0 then set_color( 12,bg)
+                    if crew(b-offset).hp<crew(b-offset).hpmax then set_color( 14,bg)
+                    if crew(b-offset).hp=crew(b-offset).hpmax then set_color( 10,bg)
                     draw string (13*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
-                    color 15,bg
+                    set_color( 15,bg)
                     draw string (15*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
                     if (crew(b-offset).onship=1 or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
-                        color 14,bg
+                        set_color( 14,bg)
                         draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
                     if crew(b-offset).onship=0 and crew(b-offset).hp>0 then
-                        color 10,bg
+                        set_color( 10,bg)
                         draw string (34*_fw2,y*_fh2) ," Awayteam ",,font2,custom,@_col
                     endif
                     if debug=1 then draw string (40*_fw2,y*_fh2),""&crew(b-offset).oldonship,,font2,custom,@_col
                     if crew(b-offset).hp<=0 then
-                        color 12,bg
+                        set_color( 12,bg)
                         draw string (34*_fw2,y*_fh2) ," Dead ",,font2,custom,@_col
                     endif
-                    color 15,bg
+                    set_color( 15,bg)
                     if crew(b-offset).xp>=0 then 
                         draw string (55*_fw2,y*_fh2)," XP:" &crew(b-offset).xp,,font2,custom,@_col
                     else
@@ -1518,12 +1584,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                     endif
                     draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
                     'print space(70-pos)
-                    color 15,bg
+                    set_color( 15,bg)
                     
                     y+=1
                     xw=4
                     if crew(b-offset).armo>0 then 
-                        color 15,bg
+                        set_color( 15,bg)
                         if crew(b-offset).pref_armor>0 then
                             draw string (xw*_fw2,y*_fh2) ,"*",,font2,custom,@_col
                         else
@@ -1533,12 +1599,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2),trim(item(crew(b-offset).armo).desig)&", ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).armo).desig))+3
                     else
-                        color 14,bg
+                        set_color( 14,bg)
                         draw string (xw*_fw2,y*_fh2), " None,",,font2,custom,@_col
                         xw=xw+7
                     endif
                     if crew(b-offset).weap>0 then 
-                        color 15,bg
+                        set_color( 15,bg)
                         if crew(b-offset).pref_lrweap>0 then
                             draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
@@ -1548,12 +1614,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2) , trim(item(crew(b-offset).weap).desig)&", ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).weap).desig))+3
                     else
-                        color 14,bg
+                        set_color( 14,bg)
                         draw string (xw*_fw2,y*_fh2) ," None,",,font2,custom,@_col
                         xw=xw+7
                     endif
                     if crew(b-offset).blad>0 then 
-                        color 15,bg
+                        set_color( 15,bg)
                         if crew(b-offset).pref_ccweap>0 then
                             draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
@@ -1563,32 +1629,32 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2), trim(item(crew(b-offset).blad).desig)&" ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).blad).desig))+3
                     else
-                        color 14,bg
+                        set_color( 14,bg)
                         draw string (xw*_fw2,y*_fh2) ," None",,font2,custom,@_col
                         xw=xw+7
                     endif
-                    color 11,bg
+                    set_color( 11,bg)
                     if crew(b-offset).jp>0 then draw string (xw*_fw2,y*_fh2) ," Jetpack",,font2,custom,@_col
                     'print space(70-pos)
                     
                     y+=1
                     
-                    color 15,bg
+                    set_color( 15,bg)
                     draw string (1*_fw2,y*_fh2), skills,,font2,custom,@_col
                     draw string ((4+len(skills))*_fw2,y*_fh2), augments,,font2,custom,@_col
                     if crew(b-offset).disease>0 then
-                        color 14,bg
+                        set_color( 14,bg)
                         y+=1
                         draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).ldesc),,font2,custom,@_col
                     endif
                     'print space(70-pos)
                     
                     y+=1
-                    color 11,bg
+                    set_color( 11,bg)
                 endif
             endif
         next
-        color 11,0
+        set_color( 11,0)
         locate 25,1
         if r=0 then 
             if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, e toggle autoequip, esc exit",,font2,custom,@_col
@@ -1598,7 +1664,7 @@ function showteam(from as short, r as short=0,text as string="") as short
         'flip
         textbox(crew_bio(p),_mwx,1,20)
         screenset 0,1
-        no_key=keyin(,,1)
+        no_key=keyin(,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1
         if keyminus(no_key) or getdirection(no_key)=8 then p-=1
         if no_key=key_rename then

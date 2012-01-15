@@ -1,5 +1,32 @@
+function date_string() as string
+    dim as string t,w(3)
+    dim as short i,j
+    t=date
+    for i=1 to len(t)
+        if mid(t,i,1)="-" then
+            j+=1
+        else
+            w(j)=w(j)&mid(t,i,1)
+        endif
+    next
+    if val(w(0))=1 then w(0)="JAN"
+    if val(w(0))=2 then w(0)="FEB"
+    if val(w(0))=3 then w(0)="MAR"
+    if val(w(0))=4 then w(0)="APR"
+    if val(w(0))=5 then w(0)="MAY"
+    if val(w(0))=6 then w(0)="JUN"
+    if val(w(0))=7 then w(0)="JUL"
+    if val(w(0))=8 then w(0)="AUG"
+    if val(w(0))=9 then w(0)="SEP"
+    if val(w(0))=10 then w(0)="OKT"
+    if val(w(0))=11 then w(0)="NOV"
+    if val(w(0))=12 then w(0)="DEZ"
+    return w(1)&"-"&w(0)&"-"&w(2)
+end function
+    
 function crew_bio(i as short) as string
     dim t as string
+    dim as byte debug=0
     if crew(i).typ<=9 then
         t="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
         select case crew(i).story(0)
@@ -16,12 +43,35 @@ function crew_bio(i as short) as string
         end select
         t=t &" |Education: " &4+fix(crew(i).story(1)/2) &" years. "
         t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
+        select case crew(i).morale
+        case is >100 
+            t=t &"Morale :D"
+        case 60 to 100 
+            t=t &"Morale :)"
+        case 40 to 59 
+            t=t &"Morale :/"
+        case is <40  
+            t=t &"Morale :("
+        end select
+        select case crew(i).story(9)
+        case 1 to 3
+            t=t &" |Has a girlfriend/boyfriend on station "&crew(i).story(9)
+        case 4 to 6
+            t=t &" |Has a wife/husband on station "&crew(i).story(9)-3
+        end select
+        if debug=1 then 
+            if crew(i).story(10)=0 then 
+            t=t & "W"
+        else
+            t=t &"M"
+            endif
+            endif
     endif
     return t
 end function
 
 
-function alerts(awayteam as _monster,walking as short) as short
+function alerts(awayteam as _monster) as short
     dim a as short
     static wg as short
     static wj as short
@@ -131,6 +181,7 @@ end function
 
 function low_morale_message() as short
     dim as short a,total,average,crewmembers,who,dead
+    dim as string hesheit,hishersits,himselfherself
     for a=2 to 128
         if crew(a).hp>0 then
             total+=crew(a).morale+addtalent(1,4,10)
@@ -141,6 +192,21 @@ function low_morale_message() as short
     next
     average=total/crewmembers
     who=rnd_range(2,crewmembers)
+    if crew(who).story(10)=0 then 
+        hesheit="she"
+        hishersits="hers"
+        himselfherself="herself"
+    endif
+    if crew(who).story(10)=1 then 
+        hesheit="he"
+        hishersits="his"
+        himselfherself="himself"
+    endif
+    if crew(who).story(10)=2 then 
+        hesheit="it"
+        hishersits="its"
+        himselfherself="itself"
+    endif
     if rnd_range(1,100)>10+average then return 0
     select case average
         case is<10
@@ -158,9 +224,9 @@ function low_morale_message() as short
                 case is=6
                     dprint crew(who).n &" freaks out, certain that the whole crew is going to die horribly."
                 case is=7
-                    dprint "You catch " &crew(who).n &" staring down the barrel of his gun."
+                    dprint "You catch " &crew(who).n &" staring down the barrel of " & hishersits & " gun."
                 case is=8
-                    dprint crew(who).n &" wonders aloud about whether his uniform is strong enough to hang himself with."
+                    dprint crew(who).n &" wonders aloud about whether " & hishersits & " uniform is strong enough to hang " & himselfherself & " with."
                 case is=9
                     dprint crew(who).n &" rants about how there's no adventure out here, only death and horror."
                 case is=10
@@ -178,7 +244,7 @@ function low_morale_message() as short
                 case is=4
                     dprint "You learn that the crew has renamed the ship, and it is ... colorfull"
                 case is=5
-                    dprint crew(who).n &" states that he will quit the next time you dock, and that everybody who still has a full set of marbles should join him."
+                    dprint crew(who).n &" states that " & hesheit & " will quit the next time you dock, and that everybody who still has a full set of marbles should join him."
                 case is=6
                     dprint crew(who).n &" greets you with 'What suicide mission will it be today?'" 
                 case is=7
@@ -192,19 +258,19 @@ function low_morale_message() as short
                 case is=11
                     dprint "A fight breaks out over who is getting the most pay."
                 case is=12
-                    dprint "A fight breaks out over the color of the ship's paint."
+                    dprint "A fight breaks out over the set_color( of the ship's paint."
                 case is=13
-                    dprint "You catch " &crew(who).n &" drinking at his post."
+                    dprint "You catch " &crew(who).n &" drinking at " & hishersits & " post."
                 case is=14
                     dprint crew(who).n &" wishes aloud that he had better equipment... or a better leader."
                 case is=15
                     dprint crew(who).n &" wonders aloud about whether any amount of money could be worth *this*."
                 case is=16    
-                    dprint crew(who).n &" obsessively reviews his last will and testament."
+                    dprint crew(who).n &" obsessively reviews " & hishersits & " last will and testament."
 
             end select
         case 21 to 30
-            select case rnd_range(1,9)
+            select case rnd_range(1,10)
                 case is=1
                     dprint crew(who).n &" tells you that there is a rather mean joke going around about you."
                 case is=2
@@ -220,26 +286,38 @@ function low_morale_message() as short
                 case is=7
                     dprint crew(who).n &" mutters something about how this kind of thing was a lot more fun as a holodeck simulation."
                 case is=8
-                    dprint crew(who).n &" seems a little skittish... more so than when he first signed on."
+                    dprint crew(who).n &" seems a little skittish... more so than when " & hesheit & " first signed on."
                 case is=9
                     dprint crew(who).n &" says 'Hey, buck up. We're not dead yet, right? ...Right?'"
+                case is=10
+                    dprint crew(who).n &" complains about " & hishersits & " spacesuit not fitting right."
             end select
         case 110 to 120
             if rnd_range(1,100)<5 then
-                select case rnd_range(1,4)
+                select case rnd_range(1,8)
                     case is=1
                         dprint crew(who).n &" starts whistling."
                     case is=2
-                        dprint crew(who).n &" tells everybody about the special paintjob he plans to get for his spacesuit."
+                        dprint crew(who).n &" tells everybody about the special paintjob " & hesheit & " plans to get for " & hishersits & " spacesuit."
                     case is=3
                         dprint crew(who).n &" thinks this will be one of the more profitable hauls."
                     case is=4
-                        dprint crew(who).n &" bores everyone to tears by explaining in depth how he will invest enough to get a retirement pension out of his (great) wage."
+                        dprint crew(who).n &" bores everyone to tears by explaining in depth how " & hesheit & "will invest enough to get a retirement pension out of " & hishersits & " (great) wage."
+                    case is=5
+                        dprint crew(who).n &" asks excited what everyone thinks what we are going to find next!"
+                    case is=6
+                        dprint crew(who).n &" offers to put this really great series on the ships entertainment system."
+                    case is=7
+                        dprint crew(who).n &" starts talking about this great book he just read."
+                    case is=8
+                        dprint crew(who).n &" really liked what was for supper yesterday."
+                    case is=9
+                        dprint crew(who).n &" points out that the doc did a really good job on that wound" & hesheit & " got that one time."
                 end select
             endif
         case is>120
             if rnd_range(1,100)<5 then
-            select case rnd_range(1,3)
+            select case rnd_range(1,4)
                 case is=1
                     dprint crew(who).n &" thinks this expedition is going great so far."
                 case is=2
@@ -248,6 +326,8 @@ function low_morale_message() as short
                     dprint crew(who).n &" thinks you are the best captain ever!"
                 case is=4
                     dprint crew(who).n &" explains that he never earned as much money as here."
+                case is=5
+                    dprint crew(who).n &" is certain the next thing we are going to find is going to be an artifact or something else equally cool!"
             end select
             endif
     end select
@@ -417,7 +497,7 @@ function listartifacts() as string
     flagst(18)="Gunner AI"
     flagst(19)="Science AI"
     flagst(20)="Medical AI"
-    color 15,0
+    set_color( 15,0)
     for a=0 to 5
         if player.weapons(a).desig="Disintegrator" then sd+=1
     next

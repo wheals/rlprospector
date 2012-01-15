@@ -22,7 +22,13 @@ function rnd_item(t as short) as _items
     if t=1 then i=makeitem(rnd_range(1,2)) 'transport
     if t=2 then i=makeitem(rnd_range(3,11)) 'ranged weapons
     if t=3 then i=makeitem(rnd_range(40,47)) 'close weapons
-    if t=4 then i=makeitem(rnd_range(12,20)) 'Armor
+    if t=4 then 'Space suits 
+        if rnd_range(1,100)<25 then
+            i=makeitem(320)
+        else
+            i=makeitem(rnd_range(12,20)) 'Armor
+        endif
+    endif
     if t=5 then 
         if rnd_range(1,100)<10 then 
             if rnd_range(1,100)<50 then
@@ -229,9 +235,11 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     if lastitem<25000 then 'Noch platz für neues
         lastitem=lastitem+1
         item(lastitem)=i
+        item(lastitem).uid=lastitem
         return lastitem
     else
         for a=1 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
+            item(a).uid=a
             if item(a).w.s>=0 and item(a).ty<>15 then
                 item(a)=i
                 return a
@@ -491,6 +499,22 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v3=0
         i.price=1125
         i.res=35
+    endif
+    
+    
+    if a=320 then
+        i.ti_no=2012
+        i.id=12
+        i.ty=3
+        i.desig="spacesuit"
+        i.desigp="spacesuits"
+        i.ldesc="Your standard spacesuit."
+        i.icon="&"
+        i.col=15
+        i.bgcol=0
+        i.v1=1
+        i.price=25
+        i.res=10
     endif
     
     if a=12 then
@@ -1832,6 +1856,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=1 'Scanning Range
         i.v3=1 'HPs
         i.v4=0 'HPs
+        i.v5=2 'Speed
         i.icon="s"
         i.col=11
         i.price=100
@@ -1846,6 +1871,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=2 'Scanning Range
         i.v3=2 'HPs
         i.v4=1 'HPs
+        i.v5=3 'Speed
         i.icon="s"
         i.col=11
         i.price=250
@@ -1860,6 +1886,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=3 'Scanning Range
         i.v3=3 'HPs
         i.v4=2 'HPs
+        i.v5=6 'HPs
         i.icon="s"
         i.col=11
         i.price=500
@@ -2701,7 +2728,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 endif
             endif
         endif
-        Color 15,0
+        set_color( 15,0)
         draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
         if offset<0 then offset=0
         if li>15 and offset>li-cu then offset=li-cu
@@ -2715,13 +2742,13 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         do
             if mls(a+offset)<>"" then
                 if checkitemfilter(item(mit(a+offset)).ty,filter)=1 then
-                    color 0,0
+                    set_color( 0,0)
                     draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
                     if cu=a then
                         textbox(mdesc(a+offset),3+40*_fw2/_fw1,3,25,15,1)
-                        color 15,5
+                        set_color( 15,5)
                     else
-                        color 11,0
+                        set_color( 11,0)
                     endif
                     draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset),,font2,custom,@_col
                     if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
@@ -2730,7 +2757,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 a+=1
             endif
         loop until l>15 or mls(a+offset)=""
-        color 15,0
+        set_color( 15,0)
         if li>15 then 
             draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif

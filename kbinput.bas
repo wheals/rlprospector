@@ -1,5 +1,5 @@
 
-function keyin(byref allowed as string="" , byref walking as short=0,blocked as short=0)as string
+function keyin(byref allowed as string="" , blocked as short=0)as string
     dim key as string
     dim as string text
     static as byte recording
@@ -117,7 +117,7 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 return ""
             endif
             if key=key_logbook then
-                logbook(walking)
+                logbook()
                 return ""
             endif
 
@@ -127,7 +127,13 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
                 key=keyin()
                 return ""
             endif
-
+            
+            if key=key_standing then
+                show_standing()
+                
+                return ""
+            endif
+            
             if key=key_quests then
                 showquests
                 return ""
@@ -189,7 +195,10 @@ function keyin(byref allowed as string="" , byref walking as short=0,blocked as 
             close f
         endif
         if len(allowed)>0 and key<>key_esc and key<>key_enter and getdirection(key)=0 then
-            if instr(allowed,key)=0 then key=""
+            if instr(allowed,key)=0 and walking=0 then 
+                'keybindings(allowed)
+                key=""
+            endif
         endif
     loop until key<>"" or walking <>0 or just_run=1
     return key
@@ -208,7 +217,7 @@ function gettext(x as short, y as short, ml as short, text as string) as string
     do 
             
         key=""
-        color 11,0
+        set_color( 11,0)
         draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
         do
             do
@@ -247,7 +256,7 @@ function gettext(x as short, y as short, ml as short, text as string) as string
         
     loop until key=key_enter or key=key_esc
     if key=key_esc or l<1 then
-        color 0,0
+        set_color( 0,0)
         locate y+1,x+1
         print space(len(text));
         text=""
@@ -276,37 +285,37 @@ function getnumber(a as short,b as short, e as short) as short
         return c
     else
         
-        color 11,1
+        set_color( 11,1)
         for i=1 to 61
             draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
         next
-        color 11,11
+        set_color( 11,11)
         draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
         c=a
         if e>0 then c=e
         do 
-            color 11,1
+            set_color( 11,1)
             
             draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
-            color 5,11
+            set_color( 5,11)
             
             draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
             print "-"
     
             if c<10 then 
-                color 1,11
+                set_color( 1,11)
                 print "0" &c
                 draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
             else
-                color 1,11
+                set_color( 1,11)
                 draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
             endif
             
             locate 22,32
-            color 5,11        
+            set_color( 5,11)        
             draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
             
-            color 11,1
+            set_color( 11,1)
             draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
             key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
             if keyplus(key) then c=c+1
@@ -322,7 +331,7 @@ function getnumber(a as short,b as short, e as short) as short
             
         loop until d=1 or d=2
         if d=2 then c=-1
-        color 11,0
+        set_color( 11,0)
     endif
     return c
 end function    
@@ -443,24 +452,24 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     e=0
     do        
         locate y,x
-        color 15,0
+        set_color( 15,0)
         draw string(x*_fw1,y*_fh1), lines(0),,font2,custom,@_col
         
         for a=1 to c
             if loca=a then 
                 if hfl=1 and loca<c then blen=textbox(helps(a),ofx,2,hw,15,1)
-                color 15,5
+                set_color( 15,5)
             else
-                color 11,0
+                set_color( 11,0)
             endif
             locate y+a,x
             draw string(x*_fw1,y*_fh1+a*_fh2),shrt(a) &") "& lines(a),,font2,custom,@_col
         next
-        if player.dead=0 then key=keyin(,,blocked)
+        if player.dead=0 then key=keyin(,blocked)
         
         if hfl=1 then 
             for a=1 to blen
-                color 0,0
+                set_color( 0,0)
                 draw string(ofx*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
             next
         endif
@@ -480,11 +489,11 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if key=key_esc or player.dead<>0 then e=c
     loop until e>0 
     if key=key_esc and markesc=1 then e=-1
-    color 0,0        
+    set_color( 0,0)
     for a=0 to c
         locate y+a,x
         draw string(x*_fw1,y*_fh1+a*_fh2), space(59),,font2,custom,@_col
     next
-    color 11,0
+    set_color( 11,0)
     return e
 end function

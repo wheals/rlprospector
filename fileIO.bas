@@ -93,7 +93,7 @@ end function
 
     
 
-function checkfilestructure() as short    
+function checkfilestructure() as short  
     if chdir("savegames")=-1 then
         mkdir("savegames")
     else
@@ -110,6 +110,36 @@ function checkfilestructure() as short
         player.desig="empty"
         savegame()
     endif
+    return 0
+end function
+
+function load_palette() as short
+    dim as short f,i,j,k,debug
+    dim as string l,w(3)
+    debug=0
+    f=freefile
+    open "p.pal" for input as #f
+    line input #f,l
+    line input #f,l
+    line input #f,l 'First do not need to be checked
+    for i=0 to 255
+        line input #f,l
+        if debug=1 then print l
+        k=1
+        w(1)=""
+        w(2)=""
+        w(3)=""
+        for j=1 to len(l)
+            w(k)=w(k)&mid(l,j,1)
+            if mid(l,j,1)=" " then k+=1
+        next
+        palette_(i)=RGB(val(w(1)),val(w(2)),val(w(3)))
+        if debug=1 then 
+            print w(1);":";w(2);":";w(3)
+            print palette_(i)
+        endif
+    next
+    close #f
     return 0
 end function
 
@@ -139,7 +169,7 @@ function loadsounds() as short
     return 0
 end function
 
-function keybindings() as short
+function keybindings(allowed as string="") as short
     dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
     dim as _cords cc,ncc
     dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
@@ -149,14 +179,16 @@ function keybindings() as short
         ls+=1
         line input #f,text2
         if left(text2,1)<>"#" and len(text2)>0 then                            
-            a+=1
-            lk+=1
-            text=text2
-            keys(a)=loadkey(text2)
-            nkeys(a)=keys(a)
-            varn(a)=left(text,len(text)-len(keys(a))-1)
-            expl(a)=right(varn(a),len(varn(a))-4)
-            expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
+            if allowed="" or instr(allowed,loadkey(text2))>0 or val(text2)>0 then
+                a+=1
+                lk+=1
+                text=text2
+                keys(a)=loadkey(text2)
+                nkeys(a)=keys(a)
+                varn(a)=left(text,len(text)-len(keys(a))-1)
+                expl(a)=right(varn(a),len(varn(a))-4)
+                expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
+            endif
         else
             lastcom+=1
             coml(lastcom)=text2
@@ -189,7 +221,7 @@ function keybindings() as short
             next
         next
         b=0
-        color 11,0
+        set_color( 11,0)
         cls
         if cc.x<1 then cc.x=1
         if cc.y<1 then cc.y=1
@@ -201,7 +233,7 @@ function keybindings() as short
         
         if varn(c)="" then cc=ncc
         screenset 0,1
-        color 15,0
+        set_color( 15,0)
         draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
         for x=1 to 4
             for y=1 to 20
@@ -213,7 +245,7 @@ function keybindings() as short
                     cc.x=x
                     cc.y=y
                     for d=1 to 99
-                        color 15,0
+                        set_color( 15,0)
                         if ucase(trim(varn(b)))=ucase(trim(coml(d))) then draw string (5*_fw2,26*_fh2), comdes(d),,FONT2,custom,@_col
                     next
                 else
@@ -221,17 +253,17 @@ function keybindings() as short
                     bg=0
                 endif
                 if colflag(b)=1 then fg=14
-                color fg,bg
+                set_color( fg,bg)
                 
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
                 endif
             next
         next
-        color 11,0
+        set_color( 11,0)
         draw string (5*_fw2,25*_fh2),"\C=Control Yellow: 2 commands bound to same key.",,FONT2,custom,@_col
         for b=1 to 8
-            color 11,0
+            set_color( 11,0)
             if b=1 then
                 draw string (2*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
             endif
@@ -257,11 +289,11 @@ function keybindings() as short
                 draw string (6*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
             endif
         next
-        color 15,0
+        set_color( 15,0)
         draw string (3*_fw2,4*_fh2),"\|/",,FONT2,custom,@_col
         draw string (3*_fw2,5*_fh2),"- -",,FONT2,custom,@_col
         draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
-        color 11,0
+        set_color( 11,0)
         draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
                
         no_key=keyin
@@ -386,7 +418,7 @@ function loadfonts() as short
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
-    screenres _screenx,_screeny,8,2,GFX_WINDOWED
+    screenres _screenx,_screeny,16,2,GFX_WINDOWED
     if debug=1 then print #f,"Made screen"
     Print "Loading Fonts"
     if _customfonts=1 then
@@ -426,7 +458,7 @@ function loadfonts() as short
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
-    screenres _screenx,_screeny,8,2,GFX_WINDOWED
+    screenres _screenx,_screeny,16,2,GFX_WINDOWED
     
     if debug=1 then 
         print #f,"reset screen size"
@@ -463,7 +495,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
       End If
       ImageDestroy (img)	'Zwischenpuffer löschen
     else
-        color 14,0
+        set_color( 14,0)
         print "Loading font graphics/"&fontdir &"font.bmp failed."
         sleep 600
     endif
@@ -802,6 +834,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_equipment")>0 then key_equipment=loadkey(text)
                 if instr(lctext,"key_quest")>0 then key_quests=loadkey(text)
                 if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
+                if instr(lctext,"key_standing")>0 then key_standing=loadkey(text)
                 
                 if instr(lctext,"key_landing")>0 then key_la=loadkey(text)
                 if instr(lctext,"key_scanning")>0 then key_sc=loadkey(text)
@@ -839,9 +872,9 @@ function loadkeyset() as short
             endif
         next
     else
-        color 14,0
+        set_color( 14,0)
         print "File keybindings.txt not found. Using default keys"
-        color 15,0
+        set_color( 15,0)
         Sleep 1500
         return 1
     endif
@@ -937,6 +970,8 @@ function loadconfig() as short
             line input #f,text
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
+                if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
+                if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
                 if instr(text,"_tix")>0 then _tix=numfromstr(text)
                 if instr(text,"_tiy")>0 then _tiy=numfromstr(text)
                 if instr(text,"gtmwx")>0 then gt_mwx=numfromstr(text)
@@ -1382,6 +1417,7 @@ function getfilename() as string
     dim c as short
     dim n(10) as string
     dim d as string*36
+    dim datestring as string*10
     dim text as string
     dim f as integer
     dim i as integer
@@ -1394,14 +1430,15 @@ function getfilename() as string
             open "savegames/"&n(c) for binary as #f
             get #f,,b
             get #f,,d
+            get #f,,datestring
             close #f
-            text=text &"/" & b &d
+            text=text &"/" & b &d &"("&datestring &")"
             c=c+1
         endif
         a=dir()
     wend    
     text=text &"/Exit"
-    c=menu(text,,_mwx-15,10)
+    c=menu(text,,_mwx-25,10)
     filename=n(c-1)
     return filename    
 end function
@@ -1532,11 +1569,12 @@ function savegame() as short
     dim f as integer
     dim desig as string*36
     dim names as string*36
+    dim datestring as string*12
     dim cl as string
     cl=player.h_sdesc
     names=player.desig
     desig="("&cl &", "&player.money &"Cr T:" &player.turn &")"
-    
+    datestring=date_string
     cls
     back=99
     f=freefile
@@ -1548,7 +1586,7 @@ function savegame() as short
     'save shortinfo
     put #f,,names
     put #f,,desig
-    
+    put #f,,datestring
     'save player
     put #f,,player
     put #f,,whtravelled
@@ -1736,7 +1774,7 @@ function savegame() as short
     next
     close f
     
-    color 14,0
+    set_color( 14,0)
     cls
     return back
 end function
@@ -1754,6 +1792,7 @@ function loadgame(filename as string) as short
     dim f as integer
     dim dat as string*36
     dim names as string*36
+    dim datestring as string*12
     dim text as string
     dim p as _planet
     dim debug as byte
@@ -1774,6 +1813,7 @@ function loadgame(filename as string) as short
         open fname for binary as #f
         get #f,,names
         get #f,,dat
+        get #f,,datestring
         print ".";
         'save player
         get #f,,player
@@ -1976,6 +2016,15 @@ function loadgame(filename as string) as short
         
     endif
     
+    if debug=2 then
+        f=freefile
+        open "items.csv" for output as #f
+        for a=0 to lastitem
+            if item(a).w.s<0 then print #f,item(a).desig &";"&item(a).w.s &";"& item(a).ty &";"&item(a).uid
+        next
+        close #f
+    endif
+        
     if debug=10 then
         f=freefile
         open "factions.csv" for output as #f

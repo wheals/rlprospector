@@ -1,8 +1,10 @@
 
-function meetfleet(f as short)as short
+function meet_fleet(f as short)as short
     static lastturncalled as integer
     dim as short aggr,roll,frd,des,dialog,q,a,total,cloak,x,y
-    dim question(1,7) as string
+    dim question as string
+    dim fname(10) as string
+    gen_fname(fname(),f) 
     if findbest(25,-1)>0 then cloak=5
     if fleet(f).ty=10 then 
         eris_does
@@ -10,72 +12,152 @@ function meetfleet(f as short)as short
         return 0
     endif
     if player.turn>lastturncalled+2 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
-        if fleet(f).ty=2 or fleet(f).ty=4 then player.lastpirate=player.c    
-        question(0,1)="A Merchant Convoy hails us. Attack anyway? (y/n)"
-        question(1,1)="A Merchant Concoy. Their Escorts are on intercept course! Stay and fight? (y/n)"
-        
-        question(0,2)="A fleet without friend foe signature. Attack them? (y/n)"
-        question(1,2)="An unidentified sensor blip. Engage? (y/n)"
-        
-        question(0,3)="A company battleship on anti pirate patrol. They hail us. Attack anyway? (y/n)"
-        question(1,3)="A company battleship hails us 'Pirate Vessel stand down and prepare to be boareded.' Stay and fight? (y/n)"
-
-        question(0,4)="A fleet without friend foe signature. Attack them? (y/n)"
-        question(1,4)="An unidentified sensor blip. Engage? (y/n)"
-        
-        question(0,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
-        question(1,5)="A huge, fast ship on an intercept course! Shall we engage? (y/n)"
-        if fleet(f).ty>5 and fleet(f).ty<8 then
-            if civ(0).contact=0 then
-                question(0,fleet(f).ty)=civfleetdescription(fleet(f)) &", hailing us."
-                question(1,fleet(f).ty)=civfleetdescription(fleet(f)) &",on an attack vector. Shall we engage?(y/n)"
+        if fleet(f).fighting=0 then
+            if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 then 
+                q=1
             else
-                question(0,fleet(f).ty)="A "&civ(0).n &" fleet, hailing us."
-                question(1,fleet(f).ty)="A "&civ(0).n &" fleet on an attack vector. Shall we engage?(y/n)"
+                q=0
             endif
-        endif
-        dialog=fleet(f).ty
-        if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 then 
-            q=1
-        else
-            q=0
-        endif
-        if q=0 then return f
-        
-        des=askyn(question(q,dialog))
-        if des=0 then
+            if q=1 then question="There is a "&fname(fleet(f).ty) &" on an attack vector. Do you want to engage? (y/n)"
+            if q=0 then question="There is a "&fname(fleet(f).ty) &" hailing us."
             if q=1 then
-                if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+cloak>10 then
-                    dprint "you got away"
-                else
-                    dprint "they are closing in"
-                    des=-1
-                endif
+                des=askyn(question)
             else
-                dprint "you return the greeting"
+                dprint question
+                return f
             endif
+            if des=0 then
+                if q=1 then
+                    if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+cloak>10 then
+                        dprint "you got away"
+                    else
+                        dprint "they are closing in"
+                        des=-1
+                    endif
+                else
+                    dprint "you return the greeting"
+                endif
+            endif
+            if des=-1 then
+                factionadd(0,fleet(f).ty,15)
+                playerfightfleet(f)
+            endif
+        else
+            join_fight(f)
         endif
-        if des=-1 then 
-            factionadd(0,fleet(f).ty,+5)
-            playerfightfleet(f)
-            cls
-        endif
-        lastturncalled=player.turn
-        
     endif
-    show_stars(1,0)
+    
+    lastturncalled=player.turn
+    show_stars(1)
     displayship
+    return 0
+        
+end function
+
+function gen_fname(fname() as string,f as short) as short
+    fname(1)="merchant convoy"
+    fname(2)="unidentified sensor blip"
+    fname(3)="company patrol"
+    fname(4)="unidentified sensor blip"
+    fname(5)="huge fast ship"
+    fname(6)=civ(0).n &" fleet"
+    fname(7)=civ(1).n &" fleet"
+    fname(8)="space station"
     return 0
 end function
 
+
+function join_fight(f as short) as short
+    dim as string q,fname(10)
+    dim as short f2,des,faggr,f2aggr,i,debug,fty,f2ty,side 
+    f2=fleet(f).fighting
+    gen_fname(fname(),f)
+    fty=fleet(f).ty
+    f2ty=fleet(f2).ty
+    if f<=6 then fty=8
+    if f2<=6 then f2ty=8
+    dprint "A " &fname(fty) &" and a "& fname(f2ty) &" are fighting here."
+    q="On which side do you want to join the fight?/"& fname(fty) &f &":"&fty &"/" & fname(f2ty)  &f2 &":"&f2ty  & "/Cancel Attack"
+    des=menu(q) 
+    if des=3 or des=-1 then return 0
+    if des=1 then 'aggr1=On PCs side
+        faggr=1
+        f2aggr=0
+        side=f
+    else
+        faggr=0
+        f2aggr=1
+        side=f2
+    endif
+    fname(0)=""
+    fname(1)=""
+    for i=1 to 14
+        if fleet(f).mem(i).hull>0 then fleet(f).mem(i).aggr=faggr
+        if fleet(f2).mem(i).hull>0 then fleet(f2).mem(i).aggr=f2aggr
+        if fleet(f).mem(i).hull>0 then fname(0)=fname(0)&fleet(f).mem(i).aggr
+        if fleet(f2).mem(i).hull>0 then fname(1)=fname(1)&fleet(f2).mem(i).aggr
+    next
+    if faggr=1 then
+        factionadd(0,fleet(f2).ty,15)
+        factionadd(0,fleet(f).ty,-25)
+    else
+        factionadd(0,fleet(f).ty,15)
+        factionadd(0,fleet(f2).ty,-25)
+    endif
+    fleet(f)=add_fleets(fleet(f),fleet(f2))
+    playerfightfleet(f)
+    if player.dead=0 then
+        dprint "The " & fname(side) & " hails your ship and thank you for your help in the battle.",c_gre
+    endif
+    return 0
+end function
+
+
 function playerfightfleet(f as short) as short
-    dim as short a,total
+    dim as short a,total,f2,e
+    dim text as string
+    dim fname(10) as string
+    gen_fname(fname(),f) 
+    
     for a=1 to 8
         basis(10).inv(a).v=0
         basis(10).inv(a).p=0
     next
-    factionadd(0,fleet(f).ty,15)
-    player=spacecombat(player,fleet(f),spacemap(player.c.x,player.c.y))
+'    if fleet(f).fighting>0 then
+'        f2=fleet(f).fighting
+'        text="On which side do you want to join the fight?"
+'        if f>3 then
+'            text=text &"/"&fname(fleet(f).ty)
+'        else
+'            text=text &"/"&fname(8)
+'        endif
+'        if f>3 then
+'            text=text &"/"&fname(fleet(f2).ty)
+'        else
+'            text=text &"/"&fname(8)
+'        endif
+'        text=text &"/don't join fight"
+'        e=menu(text)
+'        if e=3 then 
+'            dprint "You retreat again from the battle."
+'            return 0
+'        endif
+'        if e=1 then
+'            for a=1 to 14
+'                fleet(f).mem(a).aggr=1
+'                fleet(f2).mem(a).aggr=0
+'            next
+'        endif
+'        if e=2 then
+'            for a=1 to 14
+'                fleet(f).mem(a).aggr=0
+'                fleet(f2).mem(a).aggr=1
+'            next
+'        endif
+'        fleet(f)=add_fleets(fleet(f),fleet(f2))
+'        fleet(f2).ty=0
+'    endif
+    spacecombat(fleet(f),spacemap(player.c.x,player.c.y))
     player.shield=player.shieldmax
     if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
     if player.dead>0 and fleet(f).ty=5 then player.dead=21
@@ -103,43 +185,28 @@ function playerfightfleet(f as short) as short
 end function
         
 
-function fleetbattle(red as _fleet,blue as _fleet,a as short,b as short) as short
-    dim as integer rscore,bscore,tim
-    dim as short i,f,t
-    tim=timer
-    do
-        for i=1 to 15
-            if red.mem(i).hull>0 then
-                rscore=rscore+red.mem(i).hull
-                for f=1 to 25
-                    if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner(0)>9 then
-                        t=getship(blue)
-                        if t>0 then
-                            blue.mem(t).hull=blue.mem(t).hull-red.mem(i).weapons(f).dam
-                        endif
+function fleet_battle(red as _fleet,blue as _fleet) as short
+    dim as integer rscore,bscore
+    dim as short i,f,t,j
+    'for tomorrow: Only one side shoots, collide fleets calls both alternately
+    for i=1 to 15
+        if red.mem(i).hull>0 then
+            rscore=rscore+red.mem(i).hull
+            for f=1 to 25
+                if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner(0)>9 then
+                    t=getship(blue)
+                    if t>0 then
+                        blue.mem(t).hull=blue.mem(t).hull-red.mem(i).weapons(f).dam
                     endif
-                next
-            endif
-            
-            if blue.mem(i).hull>0 then
-                bscore=bscore+red.mem(i).hull
-                for f=1 to 25
-                    if blue.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+blue.mem(i).gunner(0)>9 then
-                        t=getship(red)
-                        if t>0 then
-                            red.mem(t).hull=red.mem(t).hull-blue.mem(i).weapons(f).dam
-                        endif
-                    endif
-                next
-            endif
-        next
-    
-    loop until rscore=0 or bscore=0 or getship(red)=-1 or getship(blue)=-1 or timer>tim+1
-    if rscore>bscore then
-        return a
-    else
-        return b
-    endif
+                endif
+            next
+        endif
+    next
+    for i=1 to 14
+        if blue.mem(i).hull>0 then bscore+=1
+    next
+    if bscore>0 then return 0
+    return -1
 end function
 
 function getship(f as _fleet) as short
@@ -155,103 +222,200 @@ function getship(f as _fleet) as short
     return m(rnd_range(1,c))
 end function
 
-function collidefleets() as short
-    dim as short a,b,c,d,civ1,civ2,roll1,roll2,victor,loser    
-    if lastfleet>255 then lastfleet=255
-    for a=1 to lastfleet
-        for b=a to lastfleet
-            if b<>a then
-                if distance(fleet(a).c,fleet(b).c)<2 and fleet(a).ty>0 and fleet(b).ty>0 then
-                    if fleet(a).ty=10 or fleet(b).ty=10 then
-                        if fleet(a).ty=10 and b>2 then fleet(b).ty=0
-                        if fleet(b).ty=10 and a>2 then fleet(a).ty=0
-                    else
-                        c=c+1
-                        if fleet(a).ty<>fleet(b).ty then
-                            roll1=0
-                            roll2=0
-                            if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
-                            if fleet(a).ty<fleet(b).ty then swap fleet(a),fleet(b) 'Higher number on a, gets rid of half of the permutations
-                            if faction(fleet(a).ty).alli<>fleet(b).ty and faction(fleet(b).ty).alli<>fleet(a).ty then
-                                roll1=rnd_range(1,10)+faction(fleet(a).ty).war(fleet(b).ty)
-                                roll2=rnd_range(1,10)+faction(fleet(b).ty).war(fleet(a).ty)
-                                if fleet(a).ty=5 then roll1=100
-                                if fleet(b).ty=5 then roll2=100
-                                if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
-                                if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
-                                if roll1>10 or roll2>10 then factionadd(fleet(a).ty,fleet(b).ty,10)
-                            endif
-                            if show_npcs=3 then dprint roll1 &":"& roll2
-                            if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
-                                if show_npcs=1 then dprint "they battle"
-                                for d=1 to 5
-                                    basis(10).inv(d).v=0
-                                    basis(10).inv(d).p=0
-                                next
-                                fleet(a)=unload_f(fleet(a),10)'
-                                fleet(b)=unload_f(fleet(b),10)'
-                                if ((fleet(a).ty=1 and fleet(b).ty=2) or (fleet(a).ty=2 and fleet(b).ty=1)) and a>2 and b>2 then 
-                                    patrolmod=patrolmod+1
-                                    if rnd_range(1,100)<10 and lastdrifting<128 then
-                                        lastdrifting+=1                                    
-                                        lastplanet+=1
-                                        drifting(lastdrifting).x=fleet(a).c.x
-                                        drifting(lastdrifting).y=fleet(a).c.y
-                                        drifting(lastdrifting).s=rnd_range(1,16)
-                                        drifting(lastdrifting).m=lastplanet
-                                        makedrifter(drifting(lastdrifting))
-                                        planets(lastplanet).darkness=0
-                                        planets(lastplanet).depth=1
-                                        planets(lastplanet).atmos=4
-                                        planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
-                                        planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
-                                        planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
-                                    endif
-                                endif
-                                if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
-    
-                                victor=fleetbattle(fleet(a),fleet(b),a,b)
-                                if victor=b then loser=a
-                                if victor=a then loser=b
-                                fleet(victor)=load_f(fleet(victor),10)
-                                for d=1 to 5
-                                    basis(10).inv(d).v=0
-                                    basis(10).inv(d).p=0
-                                next
-                                if a<3 or b<3 then 'Station attacked
-                                    if fleet(loser).mem(1).hull<=0 and loser<3 then
-                                        if player.turn>1000 then
-                                            basis(loser).c.x=-1
-                                            basis(loser).c.y=-1
-                                        else
-                                            fleet(loser).mem(1).hull=120
-                                        endif
-                                    else
-                                        if a>3 then
-                                            basis(b).lastattacked=fleet(a).ty
-                                        else
-                                            basis(a).lastattacked=fleet(b).ty
-                                        endif
-                                    endif
-                                endif
-                                fleet(loser).ty=0
-                                
-                            endif
-                        endif
+'function collidefleets() as short
+'    dim as short a,b,c,d,civ1,civ2,roll1,roll2,victor,loser,debug
+'    debug=2
+'    if lastfleet>255 then lastfleet=255
+'    for a=1 to lastfleet
+'        for b=a to lastfleet
+'            if b<>a then
+'                if distance(fleet(a).c,fleet(b).c)<2 and fleet(a).ty>0 and fleet(b).ty>0 then
+'                    if fleet(a).ty=10 or fleet(b).ty=10 then
+'                        if fleet(a).ty=10 and b>5 then fleet(b).ty=0
+'                        if fleet(b).ty=10 and a>5 then fleet(a).ty=0
+'                    else
+'                        c=c+1
+'                        if fleet(a).ty<>fleet(b).ty then
+'                            roll1=0
+'                            roll2=0
+'                            if show_NPCs=1 then dprint fleet(a).ty &" meets "&fleet(b).ty
+'                            if fleet(a).ty<fleet(b).ty then swap fleet(a),fleet(b) 'Higher number on a, gets rid of half of the permutations
+'                            if faction(fleet(a).ty).alli<>fleet(b).ty and faction(fleet(b).ty).alli<>fleet(a).ty then
+'                                roll1=rnd_range(1,10)+faction(fleet(a).ty).war(fleet(b).ty)
+'                                roll2=rnd_range(1,10)+faction(fleet(b).ty).war(fleet(a).ty)
+'                                if fleet(a).ty=5 then roll1=100
+'                                if fleet(b).ty=5 then roll2=100
+'                                if fleet(a).ty>5 then roll1=roll1+civ(fleet(a).ty-6).aggr+civ(fleet(a).ty-6).inte
+'                                if fleet(b).ty>5 then roll2=roll2+civ(fleet(b).ty-6).aggr+civ(fleet(b).ty-6).inte
+'                                if roll1>10 or roll2>10 then factionadd(fleet(a).ty,fleet(b).ty,10)
+'                            endif
+'                            if show_npcs=3 then dprint roll1 &":"& roll2
+'                            if faction(fleet(a).ty).war(fleet(b).ty)>=100 or faction(fleet(b).ty).war(fleet(a).ty)>=100 or roll1>10 or roll2>10 then
+'                                if show_npcs=1 then dprint "they battle"
+'                                if debug=2 then dprint "Battle:"&fleet(a).ty &":"& fleet(b).ty &"C:"& fleet(a).c.x &":"& fleet(a).c.y &"-"& fleet(b).c.x &":" &fleet(b).c.y
+'                                for d=1 to 5
+'                                    basis(10).inv(d).v=0
+'                                    basis(10).inv(d).p=0
+'                                next
+'                                fleet(a)=unload_f(fleet(a),10)'
+'                                fleet(b)=unload_f(fleet(b),10)'
+'                                if ((fleet(a).ty=1 and fleet(b).ty=2) or (fleet(a).ty=2 and fleet(b).ty=1)) and a>2 and b>2 then 
+'                                    patrolmod=patrolmod+1
+'                                    if rnd_range(1,100)<10 and lastdrifting<128 then
+'                                        lastdrifting+=1                                    
+'                                        lastplanet+=1
+'                                        drifting(lastdrifting).x=fleet(a).c.x
+'                                        drifting(lastdrifting).y=fleet(a).c.y
+'                                        drifting(lastdrifting).s=rnd_range(1,16)
+'                                        drifting(lastdrifting).m=lastplanet
+'                                        makedrifter(drifting(lastdrifting))
+'                                        planets(lastplanet).darkness=0
+'                                        planets(lastplanet).depth=1
+'                                        planets(lastplanet).atmos=4
+'                                        planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
+'                                        planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
+'                                        planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(a).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+'                                    endif
+'                                endif
+'                                if fleet(a).ty=5 or fleet(b).ty=5 then alienattacks+=1
+'                                fleet(a).fighting=b
+'                                fleet(b).fighting=a
+'                                fleet(a).c=fleet(b).c
+'                                dprint fleet(a).ty &":"&fleet(b).ty
+'    
+'                                victor=fleetbattle(fleet(a),fleet(b),a,b)
+'                                if victor<>0 then
+'                                    fleet(a).fighting=0
+'                                    fleet(b).fighting=0
+'                                    if victor=b then loser=a
+'                                    if victor=a then loser=b
+'                                    fleet(victor)=load_f(fleet(victor),10)
+'                                    for d=1 to 5
+'                                        basis(10).inv(d).v=0
+'                                        basis(10).inv(d).p=0
+'                                    next
+'                                    if a<=4 or b<=4 then 'Station attacked
+'                                        if fleet(loser).mem(1).hull<=0 and loser<3 then
+'                                            if player.turn>1000 then
+'                                                basis(loser).c.x=-1
+'                                                basis(loser).c.y=-1
+'                                            else
+'                                                fleet(loser).mem(1).hull=120
+'                                            endif
+'                                        else
+'                                            if a>4 then
+'                                                basis(b).lastattacked=fleet(a).ty
+'                                            else
+'                                                basis(a).lastattacked=fleet(b).ty
+'                                            endif
+'                                        endif
+'                                    endif
+'                                    fleet(loser).ty=0
+'                                    if debug=2 then dprint loser &" lost the battle"
+'                                endif
+'                            endif
+'                        endif
+'                    endif
+'                else
+'                    if fleet(a).ty=2 and distance(fleet(a).c,fleet(b).c)<1 then 
+'                        fleet(a)=add_fleets(fleet(a),fleet(b))
+'                        fleet(a)=piratecrunch(fleet(a))
+'                    endif
+'                endif
+'                if show_npcs=1 then dprint debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b))
+'            endif
+'        next
+'    next
+'    for a=3 to lastfleet
+'        if fleet(a).ty=0 then 
+'            fleet(a)=fleet(lastfleet)
+'            lastfleet-=1
+'        endif
+'    next
+'    return 0
+'end function
+
+function collide_fleets() as short
+    dim as short f1,f2
+    for f1=1 to lastfleet
+        for f2=1 to lastfleet
+            if f1<>f2 and distance(fleet(f1).c,fleet(f2).c)<2 and fleet(f1).ty<>fleet(f2).ty then
+                if fleet(f1).fighting<>0 then
+                    if fleet_battle(fleet(f1),fleet(fleet(f1).fighting))=-1 then
+                        'F1 has won
+                        resolve_fight(f2)
+                        fleet(f1).fighting=0
                     endif
                 else
-                    if fleet(a).ty=2 and distance(fleet(a).c,fleet(b).c)<1 then fleet(a)=addfleets(fleet(a),fleet(b))
+                    decide_fight(f1,f2)
                 endif
-                if show_npcs=1 then dprint debug_printfleet(fleet(a)) &":" &debug_printfleet(fleet(b))
             endif
         next
     next
-    for a=3 to lastfleet
-        if fleet(a).ty=0 then 
-            fleet(a)=fleet(lastfleet)
-            lastfleet-=1
+    
+    return 0
+end function
+
+function resolve_fight(f2 as short) as short
+    if f2<5 then
+        basis(f2-1).c.x=-1 'Destroy station by moving it off the map
+        fleet(f2).ty=0
+    endif
+    
+    if rnd_range(1,100)<5 and lastdrifting<255 then 'Add drifting debris
+        If fleet(f2).ty=1 then
+            lastdrifting+=1                                    
+            lastplanet+=1
+            drifting(lastdrifting).x=fleet(f2).c.x
+            drifting(lastdrifting).y=fleet(f2).c.y
+            drifting(lastdrifting).s=rnd_range(1,16)
+            drifting(lastdrifting).m=lastplanet
+            makedrifter(drifting(lastdrifting))
+            planets(lastplanet).darkness=0
+            planets(lastplanet).depth=1
+            planets(lastplanet).atmos=4
+            planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
+            planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
+            planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(lastdrifting).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+        
         endif
-    next
+    endif
+    if fleet(f2).ty=1 or fleet(f2).ty=3 then patrolmod+=1
+    fleet(f2).ty=0
+    return 0
+end function
+
+function decide_fight(f1 as short,f2 as short) as short
+    'Decides if f1 and f2 should start a fight
+    dim as byte fighting,aggr1,aggr2 ,debug
+    
+    fighting=0
+    
+    aggr1=faction(fleet(f1).ty).war(fleet(f2).ty)
+    aggr2=faction(fleet(f2).ty).war(fleet(f1).ty)
+    
+    if fleet(f1).ty=6 then aggr1+=civ(0).aggr+civ(0).inte
+    if fleet(f1).ty=7 then aggr1+=civ(1).aggr+civ(1).inte
+    if fleet(f2).ty=6 then aggr2+=civ(0).aggr+civ(0).inte
+    if fleet(f2).ty=7 then aggr2+=civ(1).aggr+civ(1).inte
+    
+    aggr1+=rnd_range(1,10)
+    aggr2+=rnd_range(1,10)
+    
+    if aggr1>=100 or aggr2>=100 then fighting=1
+    
+    'Eris always annihilates fleets that aren't space stations
+    if (fleet(f1).ty=10 and f2<=5) then fleet(f2).ty=0 
+    if (fleet(f2).ty=10 and f1<=5) then fleet(f1).ty=0 
+    if debug=1 then dprint "f1:"&aggr1 &"F2:"&aggr2
+    'Ancient aliens attack everything
+    if fleet(f1).ty=5 or fleet(f2).ty=5 then fighting=1
+    
+    if fighting=1 then
+        if debug=1 then dprint "figt initiated between " &fleet(f1).ty &" and "&fleet(f2).ty
+        fleet(f1).fighting=f2
+        fleet(f2).fighting=f1
+    endif
     return 0
 end function
 
@@ -332,84 +496,92 @@ function movefleets() as short
     dim as short a,b,c,roll,direction,freecargo,s
     a=0
     if lastfleet>255 then lastfleet=255
-    for a=3 to lastfleet
+    for a=6 to lastfleet
         updatetargetlist()
-        if fleet(a).ty=2 then
-            freecargo=0
-            for b=1 to 15
-                if fleet(a).mem(b).hull>0 then 
-                    for c=1 to 10
-                        if fleet(a).mem(b).cargo(c).x=1 then freecargo+=1
-                    next
+        if fleet(a).mem(0).energy>0 then
+            fleet(a).mem(0).energy-=fleet(a).mem(0).engine
+        else
+        fleet(a).mem(0).energy+=10
+        if fleet(a).fighting=0 then
+            if fleet(a).ty=2 then
+                freecargo=0
+                for b=1 to 15
+                    if fleet(a).mem(b).hull>0 then 
+                        for c=1 to 10
+                            if fleet(a).mem(b).cargo(c).x=1 then freecargo+=1
+                        next
+                    endif
+                next
+                if freecargo=0 then fleet(a).t=0
+            endif
+            roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
+            if roll>5 or (fleet(a).ty=1 or fleet(a).ty=3) then
+                'move towards target
+                if fleet(a).t>=0 and fleet(a).t<=4068 then
+                    direction=nearest(targetlist(fleet(a).t),fleet(a).c)
+                else 
+                    fleet(a).t=1
+                    direction=5
                 endif
-            next
-            if freecargo=0 then fleet(a).t=0
-        endif
-        roll=rnd_range(1,6)+rnd_range(1,6)+bestpilotinfleet(fleet(a))
-        if roll>5 or (fleet(a).ty=1 or fleet(a).ty=3) then
-            'move towards target
-            if fleet(a).t>=0 and fleet(a).t<=4068 then
-                direction=nearest(targetlist(fleet(a).t),fleet(a).c)
-            else 
-                fleet(a).t=1
+            else
+                'move random
                 direction=5
             endif
-        else
-            'move random
-            direction=5
-        endif
-        fleet(a).c=movepoint(fleet(a).c,direction,,1)
-        if fleet(a).ty=10 then
-            if spacemap(fleet(a).c.x,fleet(a).c.y)<0 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
-            if spacemap(fleet(a).c.x,fleet(a).c.y)>1 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
+            fleet(a).c=movepoint(fleet(a).c,direction,,1)
+            if fleet(a).ty=10 then
+                if spacemap(fleet(a).c.x,fleet(a).c.y)<0 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
+                if spacemap(fleet(a).c.x,fleet(a).c.y)>1 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
+                if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
+                    eris_finds_apollo
+                endif
+            endif
+            'Check if reached target 
             if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
-                eris_finds_apollo
+                if fleet(a).ty>5 and fleet(a).ty<8 then
+                    if civ(fleet(a).ty-6).inte=2 then
+                        merctrade(fleet(a))
+                    endif
+                    if fleet(a).c.x=civ(fleet(a).ty-6).home.x and fleet(a).c.y=civ(fleet(a).ty-6).home.y then
+                        fleet(a)=unload_f(fleet(a),11)
+                        fleet(a)=load_f(fleet(a),11)
+                    endif
+                endif
+                fleet(a).t=fleet(a).t+1 
+                if fleet(a).t>=lastwaypoint and (fleet(a).ty=1 or fleet(a).ty=3) then fleet(a).t=firststationw
+                if (fleet(a).ty=2 or fleet(a).ty=4) and fleet(a).t>2 then fleet(a).t=0
+                if fleet(a).ty=6 and fleet(a).t>6 then fleet(a).t=3
+                if fleet(a).ty=7 and fleet(a).t>10 then fleet(a).t=7
             endif
+            
+            for s=0 to 2
+                if fleet(a).ty=1 then
+                    if fleet(a).c.x=basis(s).c.x and fleet(a).c.x=basis(s).c.x then merctrade(fleet(a))
+                endif
+                if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
+                    if distance(fleet(a).c,basis(s).c)<12 then
+                        basis(s).lastsighting=a
+                        basis(s).lastsightingdis=fix(distance(fleet(a).c,basis(s).c))
+                        basis(s).lastsightingturn=player.turn
+                    endif
+                endif
+                if fleet(a).ty>5 and fleet(a).ty<8 then
+                    if distance(fleet(a).c,basis(s).c)<fleet(a).mem(1).sensors then 
+                        civ(fleet(a).ty-6).knownstations(s)=1
+                        if show_npcs then dprint civ(fleet(a).ty-6).n &"has discovered station "&s+1
+                    endif
+                endif
+            next
         endif
-        'Check if reached target 
-        if fleet(a).c.x=targetlist(fleet(a).t).x and fleet(a).c.y=targetlist(fleet(a).t).y then
-            if fleet(a).ty>5 and fleet(a).ty<8 then
-                if civ(fleet(a).ty-6).inte=2 then
-                    merctrade(fleet(a))
-                endif
-                if fleet(a).c.x=civ(fleet(a).ty-6).home.x and fleet(a).c.y=civ(fleet(a).ty-6).home.y then
-                    fleet(a)=unload_f(fleet(a),11)
-                    fleet(a)=load_f(fleet(a),11)
-                endif
-            endif
-            fleet(a).t=fleet(a).t+1 
-            if fleet(a).t>=lastwaypoint and (fleet(a).ty=1 or fleet(a).ty=3) then fleet(a).t=firststationw
-            if (fleet(a).ty=2 or fleet(a).ty=4) and fleet(a).t>2 then fleet(a).t=0
-            if fleet(a).ty=6 and fleet(a).t>6 then fleet(a).t=3
-            if fleet(a).ty=7 and fleet(a).t>10 then fleet(a).t=7
         endif
-        
-        for s=0 to 2
-            if fleet(a).ty=1 then
-                if fleet(a).c.x=basis(s).c.x and fleet(a).c.x=basis(s).c.x then merctrade(fleet(a))
-            endif
-            if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
-                if distance(fleet(a).c,basis(s).c)<12 then
-                    basis(s).lastsighting=a
-                    basis(s).lastsightingdis=fix(distance(fleet(a).c,basis(s).c))
-                    basis(s).lastsightingturn=player.turn
-                endif
-            endif
-            if fleet(a).ty>5 and fleet(a).ty<8 then
-                if distance(fleet(a).c,basis(s).c)<fleet(a).mem(1).sensors then 
-                    civ(fleet(a).ty-6).knownstations(s)=1
-                    if show_npcs then dprint civ(fleet(a).ty-6).n &"has discovered station "&s+1
-                endif
-            endif
-        next
     next
     return 0
 end function
 
 function makefleet(f as _fleet) as _fleet
-    dim as short roll
+    dim as short roll,i,e,debug
+    debug=0
     roll=rnd_range(1,6)
-    if countfleet(1)<countfleet(2) or faction(0).war(1)>faction(0).war(2) then 
+    if (countfleet(1)<countfleet(2) or faction(0).war(1)>faction(0).war(2)) or debug=1 then 
         f=makemerchantfleet
     else
         if _easy=1 or player.turn>250 then 
@@ -418,18 +590,24 @@ function makefleet(f as _fleet) as _fleet
             f=makepatrol
         endif
     endif
-    if roll+patrolmod>10 then 
+    if roll+patrolmod>10 and debug=0 then 
         if show_npcs=1 then dprint roll &":" &patrolmod
         f=makepatrol
         patrolmod=0
         makepat=makepat+1
     endif
+    e=999
+    for i=1 to 15
+        if f.mem(i).engine/f.mem(i).hull<e then e=f.mem(i).engine/f.mem(i).hull
+    next
+    f.mem(0).engine=e
+    if f.mem(0).engine<1 then f.mem(0).engine=1
     return f 
 end function
 
 function makequestfleet(a as short) as _fleet
     dim f as _fleet
-    dim as short b,c
+    dim as short b,c,i,e
     dim as _cords p1
     do
         b=rnd_range(1,_NoPB)
@@ -480,6 +658,12 @@ function makequestfleet(a as short) as _fleet
         f.mem(3)=makeship(2)
         f.flag=19
     endif
+    e=0
+    for i=1 to 15
+        if f.mem(i).engine/f.mem(i).hull<e then e=f.mem(i).engine/f.mem(i).hull
+    next
+    f.mem(0).engine=e
+    if f.mem(0).engine<1 then f.mem(0).engine=1
     return f
 end function
 
@@ -550,6 +734,7 @@ end function
 
 function makealienfleet() as _fleet
     dim f as _fleet
+    dim as short i,e
     f.ty=5
     f.mem(1)=makeship(11)
     if sysfrommap(specialplanet(29))>0 then
@@ -557,12 +742,18 @@ function makealienfleet() as _fleet
     else
         f.c=map(sysfrommap(specialplanet(30))).c
     endif
+    
+    for i=1 to 15
+        if f.mem(i).engine/f.mem(i).hull<e then e=f.mem(i).engine/f.mem(i).hull
+    next
+    f.mem(0).engine=e
+    if f.mem(0).engine<1 then f.mem(0).engine=1
     return f
 end function
 
 function makecivfleet(slot as short) as _fleet
     dim f as _fleet
-    dim as short s,p
+    dim as short s,p,i,e
     f.ty=6+slot
     s=civ(slot).phil
     if civ(slot).phil=2 and rnd_range(1,100)<50 then s=s+rnd_range(1,2)
@@ -577,6 +768,12 @@ function makecivfleet(slot as short) as _fleet
     next
     f.c=civ(slot).home
     f.t=3+(slot*4)
+    
+    for i=1 to 15
+        if f.mem(i).engine/f.mem(i).hull<e then e=f.mem(i).engine/f.mem(i).hull
+    next
+    f.mem(0).engine=e
+    if f.mem(0).engine<1 then f.mem(0).engine=1
     return f
 end function
 
@@ -584,6 +781,7 @@ function civfleetdescription(f as _fleet) as string
     dim t as string
     dim as short slot,nos,a
     slot=f.ty-6
+    if slot<0 or slot>1 then return ""
     for a=1 to 15
         if f.mem(a).hull>0 then nos+=1
     next
@@ -624,7 +822,7 @@ function civfleetdescription(f as _fleet) as string
     return t
 end function
 
-function addfleets(byref target as _fleet,byref source as _fleet) as _fleet
+function add_fleets(byref target as _fleet,byref source as _fleet) as _fleet
     dim as short a,b
     dim text as string
     ' Find last ship of target
@@ -642,7 +840,7 @@ function addfleets(byref target as _fleet,byref source as _fleet) as _fleet
         loop until a>14 or b>14
         source=empty_fleet
     endif
-    if target.ty=2 then target=piratecrunch(target)
+    'if target.ty=2 then target=piratecrunch(target)
     
     if show_NPCs=1 then dprint text
     return target
@@ -4113,7 +4311,7 @@ dim as short c,b
         p.fuelmax=100
         p.fueluse=1
         p.money=Startingmoney
-
+        
         p.engine=1
         p.weapons(1)=makeweapon(1)
         p.lastvisit.s=-1
@@ -4137,6 +4335,7 @@ dim as short c,b
         p.bcol=0
         p.mcol=14
         p.cargo(1).x=1
+        p.turnrate=3
     endif
     if a=3 then
         'pirate Cruiser
@@ -4159,6 +4358,7 @@ dim as short c,b
         p.mcol=14
         p.cargo(1).x=1
         p.cargo(2).x=1
+        p.turnrate=2
     endif
     
     if a=4 then
@@ -4188,6 +4388,7 @@ dim as short c,b
         p.cargo(1).x=1
         p.cargo(2).x=1
         p.cargo(3).x=1
+        p.turnrate=2
     endif
     if a=5 then
         'pirate Battleship
@@ -4220,9 +4421,11 @@ dim as short c,b
         p.cargo(2).x=1
         p.cargo(3).x=1
         p.cargo(4).x=1
+        p.turnrate=1
     endif
     if a=6 then
         c=rnd_range(1,10)
+        p.turnrate=1
         if c<5 then                
             p.hull=3
             p.shieldmax=0
@@ -4320,7 +4523,7 @@ dim as short c,b
         p.shield=1
         p.pipilot=4
         p.pigunner=3
-        p.engine=2
+        p.engine=3
         p.weapons(3)=makeweapon(7)
         p.weapons(1)=makeweapon(1)
         p.weapons(2)=makeweapon(1)
@@ -4332,6 +4535,7 @@ dim as short c,b
         p.col=10
         p.bcol=0
         p.mcol=12
+        p.turnrate=2
     endif
 
     if a=8 then
@@ -4365,6 +4569,7 @@ dim as short c,b
         p.cargo(4).x=1
         p.cargo(5).x=1
         p.cargo(6).x=1
+        p.turnrate=2
     endif
     if a=9 then
         'company battleship
@@ -4376,7 +4581,7 @@ dim as short c,b
         p.shield=2
         p.pipilot=1
         p.pigunner=4
-        p.engine=3
+        p.engine=5
         p.desig="Company Battleship"
         p.icon="U"
         p.ti_no=28
@@ -4389,6 +4594,7 @@ dim as short c,b
         p.col=10
         p.bcol=0
         p.mcol=12
+        p.turnrate=1
     endif
     
     if a=10 then
@@ -4422,6 +4628,7 @@ dim as short c,b
         p.cargo(3).x=1
         p.cargo(4).x=1
         p.cargo(5).x=1
+        p.turnrate=3
     endif
     
     if a=11 then
@@ -4445,6 +4652,7 @@ dim as short c,b
         p.col=7
         p.bcol=0
         p.mcol=14
+        p.turnrate=3
     endif
     
     if a=12 then
@@ -4464,6 +4672,7 @@ dim as short c,b
         p.bcol=0
         p.mcol=14
         p.cargo(1).x=1
+        p.turnrate=3
     endif
     
     if a=21 then
@@ -4481,6 +4690,7 @@ dim as short c,b
         p.col=11
         p.mcol=1
         p.weapons(1)=makeweapon(101)
+        p.turnrate=3
     endif
     
     if a=22 then
@@ -4500,6 +4710,7 @@ dim as short c,b
         p.weapons(1)=makeweapon(101)
         p.weapons(2)=makeweapon(102)
         p.weapons(3)=makeweapon(102)
+        p.turnrate=3
     endif
     
     if a=23 then
@@ -4518,6 +4729,7 @@ dim as short c,b
         p.mcol=1
         p.weapons(1)=makeweapon(101)
         p.weapons(2)=makeweapon(101)
+        p.turnrate=3
     endif
     
     
@@ -4536,6 +4748,7 @@ dim as short c,b
         p.col=121
         p.mcol=1
         p.weapons(1)=makeweapon(101)
+        p.turnrate=1
     endif
     
     
@@ -4555,6 +4768,7 @@ dim as short c,b
         p.col=11
         p.mcol=14
         p.weapons(1)=makeweapon(101)
+        p.turnrate=3
     endif
     
     if a=26 then
@@ -4574,6 +4788,7 @@ dim as short c,b
         p.weapons(1)=makeweapon(101)
         p.weapons(2)=makeweapon(101)
         p.weapons(3)=makeweapon(101)
+        p.turnrate=2
     endif
     
     
@@ -4592,6 +4807,7 @@ dim as short c,b
         p.col=205
         p.mcol=1
         p.weapons(1)=makeweapon(101)
+        p.turnrate=3
     endif
     
     if a=28 then
@@ -4609,6 +4825,7 @@ dim as short c,b
         p.col=203
         p.mcol=1
         p.weapons(1)=makeweapon(103)
+        p.turnrate=3
     endif
     
     
@@ -4628,6 +4845,7 @@ dim as short c,b
         p.mcol=1
         p.weapons(1)=makeweapon(104)
         p.weapons(2)=makeweapon(104)
+        p.turnrate=1
     endif
     
     if a=30 then
@@ -4656,6 +4874,7 @@ dim as short c,b
         p.cargo(1).x=1
         p.cargo(2).x=1
         p.cargo(3).x=1
+        p.turnrate=3
     endif
     
     if a=31 then
@@ -4681,6 +4900,7 @@ dim as short c,b
         p.mcol=14
         p.cargo(1).x=1
         p.cargo(2).x=1
+        p.turnrate=2
     endif
     
     if a=32 then
@@ -4706,6 +4926,7 @@ dim as short c,b
         p.mcol=14
         p.cargo(1).x=1
         p.cargo(2).x=1
+        p.turnrate=3
     endif
     
     if a=33 then
@@ -4716,6 +4937,7 @@ dim as short c,b
         p.hull=255
         p.shield=8
         p.pigunner=4
+        p.engine=0
         p.ecm=0
         p.desig="Spacestation"
         p.icon="S"
@@ -4729,6 +4951,7 @@ dim as short c,b
         p.weapons(6)=makeweapon(3)
         p.weapons(7)=makeweapon(3)
         p.weapons(8)=makeweapon(3)
+        p.turnrate=1
     endif
     return p
 end function
