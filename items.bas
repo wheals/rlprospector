@@ -2956,6 +2956,8 @@ function buyweapon(st as short) as _ship
         if makew(a,st)=12 then help=help &"Several light rail guns combined into a battery "
         if makew(a,st)=13 then help=help &"Several light rockets combined into a battery "
         if makew(a,st)=14 then help=help &"Several rockets combined into a battery "
+        if makew(a,st)=85 then help=help &"Collects fuel from interstellar gas clouds and improves the amount of fuel gained from scooping gas giants "
+        if makew(a,st)=86 then help=help &"Collects fuel from interstellar gas clouds and improves the amount of fuel gained from scooping gas giants "
         if makew(a,st)=87 then help=help &"Sacrifices a weapon turret to install additional armor | | +5 to HP"
         if makew(a,st)=88 then help=help &"expandable radiating surfaces, to dissipate weapons heat | | 4 points of heat dissipation"
         if makew(a,st)=89 then help=help &"expandable radiating surfaces, to dissipate weapons heat | | 8 points of heat dissipation"

@@ -878,6 +878,7 @@ function loadkeyset() as short
         Sleep 1500
         return 1
     endif
+    
     return 0
 end function
 
@@ -1079,6 +1080,7 @@ function loadconfig() as short
                     if instr(text,"0")>0 or instr(text,"on") then _damscream=0
                     if instr(text,"1")>0 or instr(text,"of") then _damscream=1
                 endif
+                
             endif                
         loop until eof(f)
         close #f

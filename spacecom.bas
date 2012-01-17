@@ -95,7 +95,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
     player.c.y=10
     player.senac=1
     for a=1 to 15
-        if attacker(a).shiptype=2 and attacker(a).aggr=1 then 
+        if attacker(a).shiptype=2 and attacker(a).aggr=0 then 
             player.c.x=0
             player.c=movepoint(player.c,5)
         endif

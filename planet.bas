@@ -2404,14 +2404,20 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             placeitem(it,p1.x,p1.y,a)        
         endif
         
-        if is_special(a)=0 and a<>pirateplanet(0) and a<>pirateplanet(1) and a<>pirateplanet(2) and rnd_range(1,100)<15-disnbase(player.c)/2 then
-            planet_event(a)
-        endif
+
     endif
     
     planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
     
     modsurface(a,o)
+    
+    if spect=8 or spect=10 then
+        makecraters(a,9)
+        planets(a).darkness=5
+        planets(a).orbit=9
+        planets(a).temp=-270+rnd_range(1,10)/10
+        planets(a).rot=-1
+    endif
     
     for b=0 to planets(a).life
         if rnd_range(1,100)<(planets(a).life+1)*5 then 
@@ -2444,13 +2450,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     if planets(a).dens>5 then planets(a).dens-=5
     if planets(a).dens>5 then planets(a).dens-=5
     planets(a).dens-=1
-    if spect=8 or spect=10 then
-        makecraters(a,9)
-        planets(a).darkness=5
-        planets(a).orbit=9
-        planets(a).temp=-270+rnd_range(1,10)/10
-        planets(a).rot=-1
-    endif
+    
     if show_all=1 then
         for x=0 to 60
             for y=0 to 20
@@ -6525,7 +6525,7 @@ function clean_station_event() as short
 end function
 
 
-sub planet_event(slot as short)
+function planet_event(slot as short) as short
     dim as _cords p1,from,dest
     dim as _cords gc1,gc
     dim as short x,y,a,b,t1,t2,t,maxt,debug
@@ -6556,10 +6556,13 @@ sub planet_event(slot as short)
     
     if t<1 then t=1
     if t>maxt then t=maxt
-    if debug<>0 then t=debug
+    
     generated(t)+=1
     't=4
-    
+    if debug=1 then 
+        print "making "&t & " on planet "&slot &" in system " &sysfrommap(slot)
+        no_key=keyin
+    endif
     if t=1 or t=2 then 'Mining Colony in Distress Flag 22 
         p1.x=rnd_range(0,50)
         p1.y=rnd_range(0,15)
@@ -6801,7 +6804,9 @@ sub planet_event(slot as short)
             placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),slot)
         next
     endif
-end sub
+    return 0
+    
+end function
 
 sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)
     dim as short x,y,a,w,h

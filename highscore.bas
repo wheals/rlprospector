@@ -45,6 +45,7 @@ function death_message() as short
     if player.dead=31 then text="Hardly damaged the unknown vessel continues it's way across the stars, ignoring the burning wreckage of your ship."
     if player.dead=32 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
     if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
+    if player.dead=34 then text="Too late you realize that your ride on the icechunk has brought you too deep into the gas giants atmosphere. Rising pressure squashes you, as the iceblock disintegrates around you."
     if player.dead=98 then 
         endstory=es_part1
         textbox (endstory,2,2,_screenx/_fw2-5)
@@ -460,6 +461,7 @@ function getdeath() as string
     if player.dead=31 then death="Destroyed battling an ancient alien ship"
     if player.dead=32 then death="Died in battle with the "&civ(0).n 
     if player.dead=33 then death="Died in battle with the "&civ(1).n
+    if player.dead=34 then death="Surfed to his death on a chunk of ice"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

@@ -80,7 +80,7 @@ function cureawayteam(where as short) as short
             if crew(a).disease>0 then sick+=1
         endif
     next
-    if crew(0).disease=0 then crew(0).onship=0
+    if crew(1).disease=0 then crew(1).onship=0
     if cured>1 then dprint cured &" members of your crew where cured.",10
     if cured=1 then dprint cured &" member of your crew was cured.",10
     if cured=0 and sick>0 then dprint "No members of your crew where cured.",14
@@ -528,6 +528,71 @@ function find_crew_type(t as short) as short
     return 1
 end function
 
+function no_spacesuit(who() as short) as short
+    dim as short i,last
+    for i=1 to 128
+        if crew(i).hp>0 then
+            if crew(i).onship=0 and crew(i).armo=0 and crew(i).equips=0 then
+                last+=1
+                who(last)=i
+            endif
+        endif
+    next
+    return last
+end function
+
+function remove_no_spacesuit(who() as short,last as short) as short
+    dim as short i
+    for i=1 to last
+        crew(who(i)).oldonship=crew(who(i)).onship
+        crew(who(i)).onship=4
+    next
+    return 0
+end function
+
+function dam_no_spacesuit(dam as short) as short
+    dim as short who(128),last,i,w,dead,hurt,debug,deadw,hurtw
+    dim text as string
+    last=no_spacesuit(who())
+    debug=0
+    if debug=1 then dprint "Damage"&dam
+    if last>0 then
+        do
+            w=rnd_range(1,last)
+            crew(who(w)).hp-=1
+            crew(who(w)).morale-=10
+            if crew(who(w)).hp>0 then
+                hurt+=1
+                hurtw=who(w)
+            else
+                dead+=1
+                deadw=who(w)
+            endif
+            if dam<last then
+                who(w)=who(last)
+                if last>1 then last-=1
+            endif
+            dam-=1
+        loop until dam<=0 or last<=1
+        if hurt>1 then text=text & hurt & " crewmembers hurt"
+        if hurt=1 then text=text & crew(hurtw).n & " was hurt"
+        if dead>0 then 
+            if text<>"" then text=text &", " 
+            if dead>1 then text=text & dead & " crewmembers killed"
+            if dead=1 then text=text & crew(deadw).n & " was killed"
+        endif
+        if hurt>0 or dead>0 then 
+            #ifdef _FMODSOUND
+            if _damscream=0 then 
+                FSOUND_PlaySound(FSOUND_FREE, sound(12))
+                sleep 100
+            endif
+            #endif
+            dprint text &" by extreme environment.",c_red
+        endif
+    endif
+    return 0 
+end function
 
 function removemember(n as short, f as short) as short
     dim as short a,s,todo
@@ -610,6 +675,7 @@ function addmember(a as short,skill as short) as short
             'male
             crew(slot).story(10)=1
         endif
+                
         if rnd_range(1,100)<80 then
             crew(slot).n=n(nameno,1)&" "&n((rnd_range(1,ln(0))),0)
         else
@@ -1416,9 +1482,14 @@ function showteam(from as short, r as short=0,text as string="") as short
                             draw string (10,_screeny-_fh2*2), "Is sick and must stay on board.",,font2,custom,@_col
                         endif
                     else
-                        locate 22,1
-                        set_color( 14,0)
-                        draw string (10,_screeny-_fh2*2), "The captain must stay in the awayteam.",,font2,custom,@_col
+                        if crew(p).onship=1 and crew(p).disease=0 then
+                            crew(p).onship=0
+                            crew(p).oldonship=0
+                        else
+                            locate 22,1
+                            set_color( 14,0)
+                            draw string (10,_screeny-_fh2*2), "The captain must stay in the awayteam.",,font2,custom,@_col
+                        endif
                     endif
                 else
                     locate 22,1

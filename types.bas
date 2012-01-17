@@ -286,7 +286,7 @@ type _items
 end type
     
 type _weap
-    desig as string*15
+    desig as string*30
     dam as short
     range as single
     ammo as short
@@ -333,7 +333,7 @@ type _ship
     money as integer
     aggr as short
     energy as short
-    desig as string *24
+    desig as string *32
     icon as string *1
     ti_no as uinteger
     di as byte
@@ -1096,6 +1096,7 @@ declare function alerts(awayteam as _monster) as short
 declare function launch_probe() as short
 declare function move_probes() as short
 declare function retirement() as short
+declare function no_spacesuit(who() as short) as short
 
 declare function load_palette() as short
 
@@ -1103,9 +1104,15 @@ declare function show_dotmap(x1 as short, y1 as short) as short
 declare function show_minimap(xx as short,yy as short) as short
 declare function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as _Cords ,last as short) as short
 
+declare function dam_no_spacesuit(dam as short) as short
+declare function remove_no_spacesuit(who() as short,last as short) as short
+
+
 declare function calcosx(x as short,wrap as byte) as short
 declare function rg_icechunk() as short
 declare function ep_enviro_effects(temp as single) as short
+declare function ep_needs_spacesuit(slot as short) as short
+
 declare function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short, ship as _cords,li() as short,lastlocalitem as short) as short
 declare function ep_roverreveal(i as integer) as short
 declare function ep_portal(awayteam as _monster) as _cords
@@ -1384,7 +1391,7 @@ declare function addcastle(dest as _cords,slot as short) as short
 
 
 declare sub makemudsshop(slot as short, x1 as short, y1 as short) 
-declare sub planet_event(slot as short)
+declare function planet_event(slot as short) as short
 declare function station_event(m as short) as short
 declare function makewhplanet() as short
 declare sub makeoutpost (slot as short,x1 as short=0, y1 as short=0)

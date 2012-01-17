@@ -18,8 +18,8 @@ function meet_fleet(f as short)as short
             else
                 q=0
             endif
-            if q=1 then question="There is a "&fname(fleet(f).ty) &" on an attack vector. Do you want to engage? (y/n)"
-            if q=0 then question="There is a "&fname(fleet(f).ty) &" hailing us."
+            if q=1 and f>5 then question="There is a "&fname(fleet(f).ty) &" on an attack vector. Do you want to engage? (y/n)"
+            if q=0 and f>5 then question="There is a "&fname(fleet(f).ty) &" hailing us."
             if q=1 then
                 des=askyn(question)
             else

@@ -2,7 +2,7 @@ function make_spacemap() as short
     dim as short a,b,c,d,e,astcou,gascou,x,y
     dim as _cords p1,p2,p3
     dim showclouds as byte
-    showclouds=1
+    showclouds=0
     set_color( 11,0)
     print
     Print "Generating sector"
@@ -97,9 +97,6 @@ function make_spacemap() as short
         next
         
     endif
-    for a=0 to laststar
-        if map(a).spec=10 then map(a).discovered=1
-    next
     print
 
     make_civilisation(0,specialplanet(7))
@@ -392,28 +389,57 @@ function add_easy_planets(start as _cords) as short
 end function
 
 function add_event_planets() as short
-    dim as short a,c,b
-    for c=0 to 5
-        print ".";
-        a=getrandomsystem()
-        if a>0 then
-            if map(a).discovered=0 then
-                b=getrandomplanet(a)
-                if b>0 and b<=lastplanet then
-                    if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
-                        makeplanetmap(b,rnd_range(1,9),map(a).spec)
-                        planet_event(b)
-                        map(a).discovered=3
+    dim as short sys,d,planet,debug,f
+    debug=0
+    for d=0 to 5
+        sys=getrandomsystem()
+        if sys>0 then
+            if debug=1 then print "disc:";map(sys).discovered
+            if map(sys).discovered=0 then
+                planet=getrandomplanet(sys)
+                
+                if planet>0 then
+                    if is_special(planet)=0 then
+                        makeplanetmap(planet,rnd_range(1,9),map(sys).spec)
+                        map(sys).discovered=3
+                        planet_event(planet)
                     endif
                 endif
-            else
-                print "EVENT PLANET GENERATED IN WRONG PLACE:"&map(a).discovered
-                sleep
             endif
         endif
     next
     return 0
 end function
+
+'    
+'    debug=1
+'    if debug=1 then 
+'        f=freefile
+'        open "eventplanet.txt" for output as #f
+'    endif
+'    for d=0 to 5
+'        print ".";
+'        a=getrandomsystem()
+'        if a>0 then
+'            if debug=1 then print a;
+'            if map(a).discovered=0 then
+'                if debug=1 then print ":";map(a).discovered
+'                b=getrandomplanet(a)
+'                if debug=1 then print #f,":"& b &"x:" & map(a).c.x &"y:" &map(a).c.y &"sys:"&a
+'                if b>0 and b<=lastplanet then
+'                    if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
+'                        makeplanetmap(b,rnd_range(1,9),map(a).spec)
+'                        planet_event(b)
+'                        map(a).discovered=3
+'                    endif
+'                endif
+'            else
+'                print "EVENT PLANET GENERATED IN WRONG PLACE:"&map(a).discovered
+'                sleep
+'            endif
+'        endif
+'    next
+'    if debug=1 then close #f
 
 
 function add_drifters() as short
@@ -455,7 +481,10 @@ function add_drifters() as short
     planets(drifting(1).m).mon_noamax(2)=1
     planetmap(19,10,drifting(1).m)=-287
     if rnd_range(1,100)<66 then planetmap(39,13,drifting(1).m)=(298+rnd_range(1,4))*-1
-    
+    planetmap(46,18,drifting(1).m)=-222
+    for a=1 to rnd_range(2,5) 'Some spacesuits in the starting station
+        placeitem(makeitem(320),46,18,drifting(1).m)
+    next
     do
         a=rnd_range(firststationw,lastwaypoint)
     loop until targetlist(a).x>=20 and targetlist(a).x<=25

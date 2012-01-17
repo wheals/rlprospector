@@ -437,6 +437,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             endif
         next
     next
+    vismask(a.c.x,a.c.y)=1
             
 '            if (y>=0 and x>=0 and y<=my and x<=mx) or m>0 then
 '                p.x=x

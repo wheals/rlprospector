@@ -164,19 +164,25 @@ function ep_atship(awayteam as _monster,ship as _cords) as short
             awayteam.jpfuel=awayteam.jpfuelmax
         endif
         for a=1 to 128
-            if crew(a).disease>0 and crew(a).onship=0 then
-                crew(a).oldonship=crew(a).onship
-                crew(a).onship=1
-                dprint crew(a).n &" is sick and stays at the ship."
-            endif
-            if crew(a).disease=0 and crew(a).onship=0 then
-                crew(a).onship=crew(a).oldonship
-                crew(a).oldonship=0
+            if crew(a).hp>0 then
+                if crew(a).disease>0 and crew(a).onship=0 then
+                    crew(a).oldonship=crew(a).onship
+                    crew(a).onship=1
+                    dprint crew(a).n &" is sick and stays at the ship."
+                endif
+                if crew(a).disease=0 and crew(a).onship=0 then
+                    crew(a).onship=crew(a).oldonship
+                    crew(a).oldonship=0
+                endif
             endif
         next
         alerts(awayteam)
         return 0
     else 
+        
+        if ep_Needs_spacesuit(slot)>0 then
+            dam_no_spacesuit(rnd_range(1,ep_needs_spacesuit(slot)))
+        endif
         return walking
     endif
 end function
@@ -682,6 +688,18 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
     return 0
 end function
 
+function ep_needs_spacesuit(slot as short) as short
+    dim dam as short
+    dam=0
+    if planets(slot).atmos=1 then dam=10
+    if planets(slot).atmos=2 or planets(slot).atmos=7 or planets(slot).atmos=12 then dam=5
+    if planets(slot).atmos>12 then dam=planets(slot).atmos/2
+    if planets(slot).temp<-60 or planets(slot).temp>60 then dam=dam+abs(planets(slot).temp/60)
+    if dam>50 then dam=50
+    return dam
+end function
+
+
 function ep_enviro_effects(temp as single) as short
     if temp<55 or temp>66 then
         
@@ -1172,18 +1190,30 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
     slot=player.map
     lastmet=lastmet+1
     if planets(slot).death>0 then 'Exploding planet
-        if planets(slot).death=8 and crew(4).hp>0 then 
-            dprint "Science officer: I wouldn't recommend staying much longer.",15
+        if planets(slot).death=8 then 
+            if planets(slot).flags(28)=0 then
+                if crew(4).hp>0 then dprint "Science officer: I wouldn't recommend staying much longer.",15
+            else
+                if player.pilot(0)>0 then dprint "Pilot: I am starting to worry. We are getting pretty deep into the gravity well of this planet."
+            endif
             no_key=keyin
             planets(slot).death=planets(slot).death-1
         endif
         if planets(slot).death=4 and crew(4).hp>0 then 
-            dprint "Science officer: We really should get back to the ship now!",14
+            if planets(slot).flags(28)=0 then
+                if crew(4).hp>0 then dprint "Science officer: We really should get back to the ship now!",14
+            else
+                if player.pilot(0)>0 then dprint "Pilot: This thing is falling faster than I thought. Let's get out of here!",c_yel
+            endif
             no_key=keyin
             planets(slot).death=planets(slot).death-1
         endif
         if planets(slot).death=2 and crew(4).hp>0 then 
-            dprint "Science officer: This planet is about to fall apart! We must leave! NOW!",12
+            if planets(slot).flags(28)=0 then
+                if crew(4).hp>0 then dprint "Science officer: This planet is about to fall apart! We must leave! NOW!",12
+            else
+                if player.pilot(0)>0 then dprint "Pilot: We need to get of this icechunk! Now!",c_red
+            endif
             no_key=keyin
             planets(slot).death=planets(slot).death-1
         endif
@@ -1197,7 +1227,8 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
         endif
 
     endif    
-
+    
+    
     if slot=specialplanet(8) and rnd_range(1,100)<33 then
         set_color( 11,0)
         dprint "lightning strikes you "& damawayteam(awayteam,1),12            
@@ -2021,9 +2052,10 @@ function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cord
 end function
 
 function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monster,byref lastenemy as short, byref awayteam as _monster) as short
-    dim as short sf2,a,b,c,x,y,r,dam,slot,osx,ani,f,debug
+    dim as short sf2,a,b,c,x,y,r,dam,slot,osx,ani,f,debug,icechunkhole
     dim p2 as _cords
-    debug=0
+    if rnd_range(1,100)<10 and planets(slot).flags(29)>0  then icechunkhole=1
+    if debug=2 then icechunkhole=1
     if debug=1 then
         f=freefile
         open "sflog.txt" for append as #f
@@ -2122,6 +2154,11 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
                                         if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=tmap(x,y).turnsinto
                                         if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-tmap(x,y).turnsinto
                                         tmap(x,y)=tiles(tmap(x,y).turnsinto)
+                                    endif
+                                    if icechunkhole=1 then
+                                        if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=200
+                                        if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-200
+                                        tmap(x,y)=tiles(200)
                                     endif
                                 endif
                             endif
