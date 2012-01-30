@@ -1,6 +1,6 @@
 
 #DEFINE _WINDOWS
-#DEFINE _FMODSOUND 
+'#DEFINE _FMODSOUND 
 '#DEFINE _OSX
 '#define FBEXT_NO_EXTERNAL_LIBS -1
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)    
@@ -11,6 +11,8 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include once "fmod.bi"
 #ENDIF
 #include once "ext/graphics/font.bi"
+'#include "sdl/sdl.bi"
+'#include once "allegro.bi"
 #include once "file.bi"
 #include once "types.bas"
 #include once "tiles.bas"
@@ -135,13 +137,13 @@ do
     
     if player.dead>0 then death_message()
     
-    set_color( 15,0)
+    set__color( 15,0)
     if _restart=0 then 
         loadgame("empty.sav")
         clear_gamestate
     endif
 loop until _restart=1
-#ifdef _windows
+#ifdef _FMODSOUND
 fSOUND_close
 #endif
 end
@@ -152,21 +154,21 @@ function titlemenu() as short
     background(rnd_range(1,_last_title_pic)&".bmp")
     
     
-    set_color( 228,0)
+    set__color( 228,0)
     draw_string(_screenx/30+4,_screeny/8+4,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
-    set_color( 227,0)
+    set__color( 227,0)
     draw_string(_screenx/30+3,_screeny/8+3,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
-    set_color( 226,0)
+    set__color( 226,0)
     draw_string(_screenx/30+2,_screeny/8+2,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
-    set_color( 225,0)
+    set__color( 225,0)
     draw_string(_screenx/30+1,_screeny/8+1,"PROSPECTOR",TITLEFONT,_tcol)
     sleep 10
-    set_color( 101,0)
+    set__color( 101,0)
     draw_string(_screenx/30,_screeny/8,"PROSPECTOR",TITLEFONT,_tcol)
-    set_color( 15,0)
+    set__color( 15,0)
     draw_string(_screenx-22*_FW2,_screeny-10*_FH2,__VERSION__ ,FONT2,_tcol)
     draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"1) start new game    ",FONT2,_col)
     draw_string(_screenx-22*_FW2,_screeny-8*_FH2,"2) load saved game   ",FONT2,_col)
@@ -183,7 +185,7 @@ function startnewgame() as short
     dim as short a,b,c,f
     dim i as _items
     dim debug as byte
-    debug=3
+    debug=99
     
     make_spacemap() 
     if debug=1 then
@@ -287,7 +289,7 @@ function startnewgame() as short
     endif
     if start_teleport=1 then artflag(9)=1
     cls
-    set_color( 11,0)
+    set__color( 11,0)
     if b<5 then
         c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
@@ -313,6 +315,7 @@ function startnewgame() as short
     faction(3).war(4)=100
     faction(4).war(1)=100
     faction(4).war(3)=100
+    
     player.desig=gettext((5*_fw1+44*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,32,"")
     if player.desig="" then player.desig=randomname()
     a=freefile
@@ -333,6 +336,16 @@ function startnewgame() as short
         fleet(7).c=basis(1).c
         fleet(8)=makealienfleet
         fleet(8).c=basis(2).c
+    endif
+    if debug=99 then
+        upgradehull(18,player,0)
+        player.hull=50
+        player.engine=6
+        player.sensors=6
+        player.shield=5
+        player.weapons(1)=makeweapon(66)
+        player.weapons(2)=makeweapon(66)
+        player.weapons(3)=makeweapon(66)
     endif
     cls
     return 0
@@ -375,7 +388,7 @@ function targetlanding(mapslot as short,test as short=0) as short
     p.x=30
     p.y=10
     key=get_planet_cords(p,mapslot)
-    if key=key_enter then
+    if key=key__enter then
         do
             p=movepoint(p,5)
             c+=1
@@ -400,7 +413,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim nextmap as _cords
     p.x=lx
     p.y=ly
-    #ifdef _windows
+    #ifdef _FMODSOUND
     if (_sound=0 or _sound=2) and mapslot>0 then FSOUND_PlaySound(FSOUND_FREE, sound(11))
     #endif
     for b=0 to laststar
@@ -1544,7 +1557,7 @@ function explore_space() as short
     dim as string key,text,allowed
     dim as _cords p1,p2
     lturn=0
-    debug=11
+    
     do
         if debug=8 then dprint "Lastfleet:"&lastfleet
     lturn+=1
@@ -1627,13 +1640,15 @@ function explore_space() as short
             for a=0 to 2
                 if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
                     if askyn( "Do you really want to attack Spacestation-"& a+1 &")(y/n)") then
-                        factionadd(0,fleet(a).ty,20)
+                        factionadd(0,fleet(a+1).ty,20)
                 
-                        playerfightfleet(a)
+                        playerfightfleet(a+1)
                         if player.dead=0 then
-                            dprint "Station "&a+1 &" has been destroyed"
-                            basis(a).c.x=-1
-                            fleet(a+1).c.x=-1
+                            if fleet(a+1).mem(1).hull<=0 then
+                                dprint "Station "&a+1 &" has been destroyed"
+                                basis(a+1).c.x=-1
+                                fleet(a+1).c.x=-1
+                            endif
                         endif
                     endif
                 endif
@@ -1720,10 +1735,10 @@ function explore_space() as short
                         
                             
                         locate map(pl).c.y+1-player.osy,map(pl).c.x+1-player.osx
-                        set_color( 0,11)
+                        set__color( 0,11)
                         draw_string((map(pl).c.x-player.osx)*_fw1,(map(pl).c.y-player.osy)*_fh1, "o",font1,_col)
                         if player.c.x-player.osx>=0 and player.c.x-player.osx<=60 and player.c.y-player.osy>=0 and .y-player.osy<=20 then
-                            set_color( _shipcolor,0)
+                            set__color( _shipcolor,0)
                             draw_string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1,"@",font1,_col)
                         endif
                         d=int(distance(player.c,map(pl).c))
@@ -1733,9 +1748,9 @@ function explore_space() as short
                         if keyminus(key) then pl=pl+1
                         if pl<laststar+1 then pl=laststar+wormhole
                         if pl>laststar+wormhole then pl=laststar+1
-                        set_color( 11,0)
+                        set__color( 11,0)
                         cls 
-                    loop until key=key_enter or key=key_la
+                    loop until key=key__enter or key=key_la
                     b=pl
                 endif
                 if map(b).planets(2)=0 then
@@ -1743,7 +1758,7 @@ function explore_space() as short
                 endif
                 map(b).planets(2)=1
                 dprint "you travel through the wormhole",10
-                #ifdef _windows
+                #ifdef _FMODSOUND
                 if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
                 #endif
                 player.osx=player.c.x-30
@@ -1792,7 +1807,7 @@ function explore_space() as short
                             dprint "Saving game",15
                             savegame()
                         endif
-                        set_color( 11,0)
+                        set__color( 11,0)
                         c=0
                         d=0
                         for b=0 to 10
@@ -1903,7 +1918,7 @@ function explore_space() as short
         endif
         
         if frac(player.turn/25)=0 then 
-            dprint "Making fleet called",c_red
+            
             lastfleet=lastfleet+1
             if lastfleet>255 then lastfleet=6
             fleet(lastfleet)=makecivfleet(0)
@@ -1941,11 +1956,11 @@ function explore_space() as short
     endif
     if key=key_rename then
         if askyn("Do you want to rename your ship? (y/n)") then
-            set_color( 15,0)
+            set__color( 15,0)
             draw_string(63*_fw1,0, space(16),font2,_col)
             key=gettext(63*_fw1/_fw2,0,32,"")
             if key<>"" then player.desig=key
-            set_color( 11,0)
+            set__color( 11,0)
             player.turn=player.turn-1
         endif
     endif
@@ -1962,11 +1977,11 @@ function explore_space() as short
             key=cursor(p2,0,osx)
             show_stars(1)
             displayship(1)
-        loop until key=key_esc or key=key_enter or (asc(ucase(key))>64 and asc(key)<132)
-        set_color( 11,0)
+        loop until key=key__esc or key=key__enter or (asc(ucase(key))>64 and asc(key)<132)
+        set__color( 11,0)
         
         b=0
-        if key<>key_esc then
+        if key<>key__esc then
             for a=1 to lastcom
                 if p2.y=coms(a).c.y-player.osy then
                     if p2.x>=coms(a).c.x-player.osx and p2.x<=coms(a).c.x-player.osx+coms(a).l then
@@ -2180,9 +2195,9 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     
     
     
-    'allowed="12346789ULXFSQRWGCHDO"&key_pickup &key_I
+    'allowed="12346789ULXFSQRWGCHDO"&key_pickup &key__i
     allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he
-    allowed=allowed & key_la & key_pickup & key_I & key_ex & key_of & key_co & key_drop & key_gr & key_wait 
+    allowed=allowed & key_la & key_pickup & key__i & key_ex & key_of & key_co & key_drop & key_gr & key_wait 
     allowed=allowed & key_portal &key_oxy &key_close & key_report &key_autofire &key_autoexplore
     if rev_map=1 then allowed=allowed &"ä"
     if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
@@ -2638,7 +2653,7 @@ endif
     flip
     do
         if show_all=1 then
-            set_color( 15,0)
+            set__color( 15,0)
             locate 21,1
             print awayteam.disease;":";player.disease;":";planets(slot).visited;":";slot;"Temp:";localtemp(awayteam.c.x,awayteam.c.y)
         endif
@@ -2663,7 +2678,7 @@ endif
                 if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                     walking=0
                     dprint "complete."   
-                    key=key_i
+                    key=key__i
                 endif
             else
                 if walking<10 then
@@ -2731,7 +2746,7 @@ endif
             endif
         endif
             
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_i then nextmap=ep_Portal(awayteam)
+        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key__i then nextmap=ep_Portal(awayteam)
         
         if ship_landing>0 and nextmap.m<>0 then ship_landing=1 'Lands immediately if you changed maps
         if ship_landing>0 then ep_landship(ship_landing, nextlanding, ship, nextmap, vismask(), enemy(),lastenemy)
@@ -2765,7 +2780,7 @@ endif
         ep_areaeffects(awayteam,areaeffect(),last_ae,lavapoint(),enemy(),lastenemy,li(),lastlocalitem)
         walking=ep_atship(awayteam,ship)
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
-        if key=key_i or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(awayteam,ship,enemy(),lastenemy,li(),lastlocalitem,localturn)
+        if key=key__i or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(awayteam,ship,enemy(),lastenemy,li(),lastlocalitem,localturn)
         healawayteam(awayteam,0)
         key=""
         if (player.dead=0 and awayteam.lastaction<=0) or walking<>0 then 
@@ -2775,7 +2790,7 @@ endif
             displayplanetmap(slot,awayteam.c.x-_mwx/2,0)
             ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
             displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
-            set_color( 11,0)
+            set__color( 11,0)
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             for x=0 to 60
                 if x-osx>=0 and x-osx<=_mwx and nightday(x)=1 then draw_string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2,chr(193),Font2,_tcol)
@@ -3104,17 +3119,17 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
                 p.x=x
                 p.y=y
                 f=int(distance(p,p1))
-                set_color( 0,0)
-                if f=e  then set_color( 0,1)
-                if f=e+7 then set_color( 236,15)
-                if f=e+6 then set_color( 236,237)
-                if f=e+5 then set_color( 237,238)
-                if f=e+4 then set_color( 238,239)
-                if f=e+3 then set_color( 239,240)
-                if f=e+2 then set_color( 240,241)
-                if f=e+1 then set_color( 241,1)
-                if f=e-1 then set_color( 0,0)
-                if f=e-2 then set_color( 0,0)
+                set__color( 0,0)
+                if f=e  then set__color( 0,1)
+                if f=e+7 then set__color( 236,15)
+                if f=e+6 then set__color( 236,237)
+                if f=e+5 then set__color( 237,238)
+                if f=e+4 then set__color( 238,239)
+                if f=e+3 then set__color( 239,240)
+                if f=e+2 then set__color( 240,241)
+                if f=e+1 then set__color( 241,1)
+                if f=e-1 then set__color( 0,0)
+                if f=e-2 then set__color( 0,0)
                 if f>=e-2 and f<=e+7 then
                     if _tiles=0 then
                         if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(76+f-e)),pset
@@ -3145,7 +3160,7 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
     for e=242 to 249
         for x=0 to 60
             for y=0 to 20
-                set_color( e,e)
+                set__color( e,e)
                 if _tiles=0 then
                     if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(rnd_range(63,66))),pset
                 else
@@ -3221,7 +3236,7 @@ function grenade(from as _cords,map as short) as _cords
         dy=(target.y-from.y)/r
     else
         dprint "Choose direction"
-        key=keyin("12346789"&" "&key_esc)
+        key=keyin("12346789"&" "&key__esc)
         if getdirection(key)=0 then
             ex=1
         else
@@ -3325,7 +3340,7 @@ function wormhole_ani(target as _cords) as short
     dim as short last,a,c
     last=Line_in_points(target,player.c,p())
     for a=1 to last-1
-        set_color( rnd_range(180,214),rnd_range(170,204))
+        set__color( rnd_range(180,214),rnd_range(170,204))
         if p(a).x-player.osx>=0 and p(a).x-player.osx<=_mwx and p(a).y-player.osy>=0 and p(a).y-player.osy<=20 then
             if _tiles=0 then
                 put ((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
@@ -3362,6 +3377,7 @@ function space_radio() as short
     dim dummy as _monster
     dim du(2) as short
     dim debug as short
+    
     debug=0
     dim as single df,dd
     df=9999
@@ -3565,7 +3581,7 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
     next
     do
     cls
-        set_color( 15,0)
+        set__color( 15,0)
         draw_string(0,0,"New Ship",font2,_col)
         draw_string(35*_fw2,0,"Old Ship",font2,_col)
         for x=0 to 1
@@ -3574,11 +3590,11 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
                 if h1.x=x and h1.y=y then bg=5
                 if h2.x=x and h2.y=y then bg=5
                 if crs.x=x and crs.y=y then bg=11
-                set_color( 15,bg)
+                set__color( 15,bg)
                 draw_string(x*35*_fw2,y*_fh2,trim(weapons(x,y).desig)&" ",font2,_col)
             next
         next
-        set_color( 15,0)
+        set__color( 15,0)
         draw_string(5*_fw2,6*_fh2,"x to swap, esc to exit",font2,_col)
         if weapons(crs.x,crs.y).desig<>"-empty-" then
             help =weapons(crs.x,crs.y).desig & " | | Damage: "&weapons(crs.x,crs.y).dam &" | Range: "&weapons(crs.x,crs.y).range &"\"&weapons(crs.x,crs.y).range*2 &"\" &weapons(crs.x,crs.y).range*3 
@@ -3586,7 +3602,7 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
             help = "Empty slot"
         endif
         textbox(help,2,8,25,11,1)
-        set_color( 15,0)
+        set__color( 15,0)
         key=keyin()
         crs=movepoint(crs,getdirection(key))
         if crs.x<0 then crs.x=1
@@ -3595,7 +3611,7 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
         if crs.y>5 then crs.y=1
         if crs.x=0 and crs.y>player.h_maxweaponslot+1 then crs.y=1
         if crs.x=1 and crs.y>s1.h_maxweaponslot+1 then crs.y=1
-        if key=key_enter then
+        if key=key__enter then
             if crs.x=0 then 
                 h1=crs
                 if crs.y<1 then crs.y=5
@@ -3612,7 +3628,7 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
         if key="x" and h1.y<>0 and h2.y<>0 then 
             swap weapons(h1.x,h1.y),weapons(h2.x,h2.y)
         endif
-    loop until key=key_esc
+    loop until key=key__esc
     for f=1 to player.h_maxweaponslot
         if weapons(0,f).desig<>"-empty-" then player.weapons(f)=weapons(0,f)
     next
@@ -3755,7 +3771,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim slbc as byte
     dim as short slot
     slot=player.map
-    #ifdef _windows
+    #ifdef _FMODSOUND
     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
     #endif
     if defender.stuff(2)=1 then mname="flying "
@@ -3989,10 +4005,10 @@ open "error.log" for append as #f
 print #f,text 
 close #f 
 locate 10,10
-set_color( 12,0)
+set__color( 12,0)
 print "ERROR: Please inform the author and send him the file error.log"
 print "matthias.mennel@gmail.com"
-set_color( 14,0)
+set__color( 14,0)
 print text
 sleep
 if attempts=0 then

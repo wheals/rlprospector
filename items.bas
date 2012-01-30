@@ -2728,7 +2728,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 endif
             endif
         endif
-        set_color( 15,0)
+        set__color( 15,0)
         draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
         if offset<0 then offset=0
         if li>15 and offset>li-cu then offset=li-cu
@@ -2742,13 +2742,13 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         do
             if mls(a+offset)<>"" then
                 if checkitemfilter(item(mit(a+offset)).ty,filter)=1 then
-                    set_color( 0,0)
+                    set__color( 0,0)
                     draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
                     if cu=a then
                         textbox(mdesc(a+offset),3+40*_fw2/_fw1,3,25,15,1)
-                        set_color( 15,5)
+                        set__color( 15,5)
                     else
-                        set_color( 11,0)
+                        set__color( 11,0)
                     endif
                     draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset),,font2,custom,@_col
                     if mno(a+offset)>1 then draw string (3*_fw1,3*_fh1+l*_fh2),mls(a+offset) & "("&mno(a+offset) &")",,font2,custom,@_col
@@ -2757,7 +2757,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 a+=1
             endif
         loop until l>15 or mls(a+offset)=""
-        set_color( 15,0)
+        set__color( 15,0)
         if li>15 then 
             draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif
@@ -2782,8 +2782,8 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
             endif
         endif
         if cu>li then cu=li
-        if key=key_enter then i=cu+offset
-        if key=key_esc then i=-1
+        if key=key__enter then i=cu+offset
+        if key=key__esc then i=-1
         if player.dead<>0 then return -1
         cls
     loop until i<>0

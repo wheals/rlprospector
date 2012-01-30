@@ -98,9 +98,9 @@ function drawroulettetable() as short
             z=z+1
             locate y+2,x*3+45,0
             if coltable(z)=12 then
-                set_color( 12,2)
+                set__color( 12,2)
             else
-                set_color( 0,2)
+                set__color( 0,2)
             endif
             if z<10 then
                 if x<3 then
@@ -117,7 +117,7 @@ function drawroulettetable() as short
             endif
         next
     next
-    set_color( 15,0)
+    set__color( 15,0)
     return 0
 end function
 
@@ -723,7 +723,7 @@ function casino(staked as short=0, st as short=-1) as short
                         num=rnd_range(0,36)
                         col=coltable(num)
                         locate 15,25
-                        set_color( col,0)
+                        set__color( col,0)
                         print " "&num &" "
                         sleep d*d*2
                     next
@@ -769,7 +769,7 @@ function casino(staked as short=0, st as short=-1) as short
                         endif
                         col=coltable(num)
                         locate 15,25
-                        set_color( col,0)
+                        set__color( col,0)
                         print " "&num &" "
                         sleep d*d*2
                     endif
@@ -781,7 +781,7 @@ function casino(staked as short=0, st as short=-1) as short
                         if b=5 and coltable(num)=12 then num=rnd_range(0,36)                        
                         col=coltable(num)
                         locate 15,25
-                        set_color( col,0)
+                        set__color( col,0)
                         print " "&num &" "
                         sleep d*d*2
                     endif
@@ -1043,36 +1043,36 @@ function play_slot_machine() as short
                 if b>9 then b=1
                 if c>9 then c=1
                 if _tiles=0 then
-                    put (45*_fw2+1*_tix,10*_tiy),gtiles(a+68),pset
-                    put (45*_fw2+2*_tix,10*_tiy),gtiles(b+68),pset
-                    put (45*_fw2+3*_tix,10*_tiy),gtiles(c+68),pset
+                    put (45*_fw2+1*_tix,10*_tiy),gtiles(a+68),trans
+                    put (45*_fw2+2*_tix,10*_tiy),gtiles(b+68),trans
+                    put (45*_fw2+3*_tix,10*_tiy),gtiles(c+68),trans
                 else
                     if a<8 then
-                        set_color( spectraltype(a),0)
+                        set__color( spectraltype(a),0)
                         draw string (45*_fw2+1*_fh1,10*_fw1),"*",,font1,custom,@_col
                     else
-                        if a=8 then set_color( 7,0)
-                        if a=9 then set_color( 179,0)
+                        if a=8 then set__color( 7,0)
+                        if a=9 then set__color( 179,0)
                         draw string (45*_fw2+1*_fh1,10*_fw1),"o",,font1,custom,@_col
                     endif
                     
                     
                     if b<8 then
-                        set_color( spectraltype(b),0)
+                        set__color( spectraltype(b),0)
                         draw string (45*_fw2+2*_fh1,10*_fw1),"*",,font1,custom,@_col
                     else
-                        if b=8 then set_color( 7,0)
-                        if b=9 then set_color( 179,0)
+                        if b=8 then set__color( 7,0)
+                        if b=9 then set__color( 179,0)
                         draw string (45*_fw2+2*_fh1,10*_fw1),"o",,font1,custom,@_col
                     endif
                     
                     
                     if c<8 then
-                        set_color( spectraltype(c),0)
+                        set__color( spectraltype(c),0)
                         draw string (45*_fw2+3*_fh1,10*_fw1),"*",,font1,custom,@_col
                     else
-                        if c=8 then set_color( 7,0)
-                        if c=9 then set_color( 179,0)
+                        if c=8 then set__color( 7,0)
+                        if c=9 then set__color( 179,0)
                         draw string (45*_fw2+3*_fh1,10*_fw1),"o",,font1,custom,@_col
                     endif
                     
@@ -1606,14 +1606,14 @@ function ship_design(pir as short) as short
             for a=1 to 8
                 price(0)+=price(a)*value(a)
                 if cur=a then
-                    set_color( 15,5)
+                    set__color( 15,5)
                 else
-                    set_color( 11,0)
+                    set__color( 11,0)
                 endif
                 draw string(2*_FW2,(3+a)*_FH2),space(25),,FONT2,Custom,@_col
                 draw string (3*_FW2,(3+a)*_FH2),component(a)&"("&value(a)&"):"&price(a) &"Cr.",,FONT2,CUSTOM,@_COL
             next
-            set_color( 15,0)
+            set__color( 15,0)
             draw string(2*_FW2,2*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,3*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,3*_FH2),"Points("&ptval &"): "&pts,,FONT2,Custom,@_col
@@ -1621,9 +1621,9 @@ function ship_design(pir as short) as short
             draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,12*_FH2),"Price: "&price(0),,FONT2,Custom,@_col
             if cur=a then
-                set_color( 15,5)
+                set__color( 15,5)
             else
-                set_color( 11,0)
+                set__color( 11,0)
             endif
             draw string(2*_FW2,13*_FH2),space(25),,FONT2,Custom,@_col
             draw string(2*_FW2,13*_FH2),"Exit",,FONT2,Custom,@_col
@@ -1650,7 +1650,7 @@ function ship_design(pir as short) as short
                     endif
                 endif
             endif
-        loop until ptval=0 or key=key_esc or (cur=9 and key=key_enter)
+        loop until ptval=0 or key=key__esc or (cur=9 and key=key__enter)
         if askyn("Do you want to keep this ship design?(y/n)") then
             h.h_maxhull=value(1)
             h.h_maxengine=value(3)
@@ -2116,16 +2116,16 @@ function stockmarket(st as short) as short
         next
         cls
         displayship
-        set_color( 15,0)
+        set__color( 15,0)
         locate 2,2
         draw string(2*_fw1,2*_fh1), "Company",,font2,custom,@_col
         locate 2,30
         draw string(2*_fw1+28*_fw2,2*_fh1), "Price",,font2,custom,@_col
-        set_color( 11,0)
+        set__color( 11,0)
         text="Company" &space(18) &"Price"
         last=0
         for a=0 to 2
-            set_color( 11,0)
+            set__color( 11,0)
             if dis(basis(a).company)=0 then
                 last+=1
                 locate 2+last,2
@@ -2221,9 +2221,9 @@ function portfolio(x as short,y2 as short) as short
         endif
     next
     locate y,x
-    set_color( 15,0)
+    set__color( 15,0)
     draw string(x*_fw1,y2*_fh1), "Portfolio:",,font2,custom,@_col
-    set_color( 11,0)
+    set__color( 11,0)
     y=1
     for a=1 to 4
         if n(a)>0 then 
@@ -2516,11 +2516,11 @@ function showprices(st as short) as short
             relhigh(a)=0
         next
     cls
-    set_color( 11,0)
+    set__color( 11,0)
     for a=0 to 8
-        set_color( a+8,0)
+        set__color( a+8,0)
         if a=0 then 
-            set_color( 11,0)
+            set__color( 11,0)
             draw string (0,a*_fh2),"Turn :",,font2,custom,@_col
         else
             draw string (0,a*_fh2),basis(st).inv(a).n &":",,font2,custom,@_col
@@ -2534,7 +2534,7 @@ function showprices(st as short) as short
     if relative=0 then
         for a=1 to 8
             for b=0 to 10
-                set_color( a+8,0)
+                set__color( a+8,0)
                 line (b*(5*_fw2)+15*_fw2,(highest-goods_prices(a,b,st))/20+20*_fh2+a)-((b+1)*(5*_fw2)+15*_fw2,(highest-goods_prices(a,b+1,st))/20+20*_fh2+a)
             next
             draw string (0,(highest-goods_prices(a,0,st))/21+20*_fh2+a*2),basis(st).inv(a).n &":",,font2,custom,@_tcol
@@ -2543,7 +2543,7 @@ function showprices(st as short) as short
     else
         for a=1 to 8
             for b=0 to 10
-                set_color( a+8,0)
+                set__color( a+8,0)
                 line (b*(5*_fw2)+15*_fw2,(goods_prices(a,b,st)/relhigh(a))*50+20*_fh2+a)-((b+1)*(5*_fw2)+15*_fw2,(goods_prices(a,b+1,st)/relhigh(a))*50+20*_fh2+a)
             next
             draw string (0,(goods_prices(a,0,st))/relhigh(a)*50+20*_fh2+a*2),basis(st).inv(a).n &":",,font2,custom,@_tcol
@@ -2554,7 +2554,7 @@ function showprices(st as short) as short
     no_key=keyin
     if no_key="a" then relative=0
     if no_key="r" then relative=1
-    loop until no_key=key_esc
+    loop until no_key=key__esc
     return 0
 end function
 
@@ -2658,14 +2658,14 @@ end function
 function displaywares(st as short) as short
     dim a as short
     dim t as string
-    set_color( 15,0 )
+    set__color( 15,0 )
     draw string (2*_fw1,2*_fh1),"Wares",,font2,custom,@_col
     draw string (2*_fw1+22*_fw2,2*_fh1),"Price",,font2,custom,@_col
     draw string (2*_fw1+35*_fw2,2*_fh1),"Qut.",,font2,custom,@_col
     draw string (2*_fw1+17*_fw2,2*_fh1+_fh2),"Buy",,font2,custom,@_col
     draw string (2*_fw1+25*_fw2,2*_fh1+_fh2),"Sell",,font2,custom,@_col
     for a=1 to 8
-        set_color( 11,0)
+        set__color( 11,0)
         draw string(2*_fw1+3*_fw2,3*_fh1+a*_fh2),basis(st).inv(a).n,,font2,custom,@_col
         t=""
         if basis(st).inv(a).p<1000 then t=t &" "

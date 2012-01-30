@@ -95,7 +95,7 @@ function ep_areaeffects(awayteam as _monster,areaeffect() as _ae,byref last_ae a
                         if distance(p1,areaeffect(a).c)<= areaeffect(a).rad then
                             if show_eq=1 then
                                 locate p1.y+1,p1.x+1
-                                set_color( 15,0)
+                                set__color( 15,0)
                                 print "."
                             endif
                             if tmap(x,y).no=1 or tmap(x,y).no=2 then tmap(x,y).hp=tmap(x,y).hp+10
@@ -427,7 +427,7 @@ function ep_communicateoffer(key as string, awayteam as _monster,enemy() as _mon
     dprint "direction?"
     do
         dkey=keyin
-    loop until getdirection(dkey)>0 or dkey=key_esc
+    loop until getdirection(dkey)>0 or dkey=key__esc
     p2=movepoint(awayteam.c,getdirection(dkey))
     locate p2.y+1,p2.x+1
     if key=key_co and planetmap(p2.x,p2.y,slot)=190 then 
@@ -536,7 +536,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                             if x>60 then x-=61
                             put (x*_tix,portal(a).from.y*_tiy),gtiles(gt_no(portal(a).ti_no)),trans
                         else
-                            set_color( portal(a).col,0)
+                            set__color( portal(a).col,0)
                             draw string(portal(a).from.x*_fw1,portal(a).from.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
                         endif
                 endif
@@ -556,7 +556,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                                 if x>60 then x-=61
                                 put (x*_tix,portal(a).dest.y*_tiy),gtiles(gt_no(portal(a).ti_no)),trans
                             else
-                                set_color( portal(a).col,0)
+                                set__color( portal(a).col,0)
                                 draw string(portal(a).dest.x*_fw1,portal(a).dest.y*_fh1),chr(portal(a).tile),,Font1,custom,@_col
                             endif
                         endif  
@@ -583,7 +583,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                     else
                         fg=rnd_range(abs(item(li(a)).col),abs(item(li(a)).bgcol))
                     endif
-                    set_color( fg,bg)
+                    set__color( fg,bg)
                     if _tiles=0 then
                         x=item(li(a)).w.x-osx
                         if x<0 then x+=61
@@ -594,12 +594,12 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                             draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_col
                         else
                             if item(li(a)).bgcol<=0 then
-                                set_color( 241,0)
+                                set__color( 241,0)
                                 draw string(p.x*_fw1-1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                                 draw string(p.x*_fw1+1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                                 draw string(p.x*_fw1,P.y*_fh1+1), item(li(a)).icon,,font1,custom,@_tcol
                                 draw string(p.x*_fw1,P.y*_fh1-1), item(li(a)).icon,,font1,custom,@_tcol
-                                set_color( fg,bg)
+                                set__color( fg,bg)
                                 draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_tcol
                             else
                                 draw string(p.x*_fw1,P.y*_fh1), item(li(a)).icon,,font1,custom,@_col
@@ -615,9 +615,9 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
         if enemy(a).hp<=0 then
             p.x=enemy(a).c.x
             p.y=enemy(a).c.y
-            if vis_test(awayteam.c,p,planets(slot).depth)=-1 and p.y>=0 and p.y<=20 then
+            if  p.y>=0 and p.y<=20 then 'vis_test(awayteam.c,p,planets(slot).depth)=-1 and
                 if vismask(p.x,p.y)>0 then
-                    set_color( 12,0)
+                    set__color( 12,0)
                     if _tiles=0 then
                         if enemy(a).hpmax>0 then put ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(1093)),trans
                     else
@@ -635,9 +635,9 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                 if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
                     if enemy(a).cmshow=1 then
                         enemy(a).cmshow=0    
-                        set_color( enemy(a).col,179)
+                        set__color( enemy(a).col,179)
                     else
-                        set_color( enemy(a).col,0)
+                        set__color( enemy(a).col,0)
                     endif
                     if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if _tiles=0 then
@@ -647,10 +647,10 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
                         endif
                         if enemy(a).sleeping>0 then 
                             if _tiles=0 then
-                                set_color(  203,0)
+                                set__color(  203,0)
                                 draw string ((p.x-osx)*_tix,P.y*_fh1),"z",,font2,custom,@_tcol
                             else
-                                set_color(  203,0)
+                                set__color(  203,0)
                                 draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                             endif
                         endif
@@ -664,7 +664,7 @@ function ep_display(awayteam as _monster, vismask()as byte, enemy() as _monster,
     if debug=2 and lastapwp>=0 then
         for b=0 to lastapwp
             if apwaypoints(b).x-osx>=0 and apwaypoints(b).x-osx<=_mwx then
-                set_color( 11,0)
+                set__color( 11,0)
                 draw string((apwaypoints(b).x-osx)*_tix,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
                 if tmap(apwaypoints(b).x,apwaypoints(b).y).onopen<>0 then 
                     draw string((apwaypoints(b).x-osx)*_tix+_fw1,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col 
@@ -850,7 +850,7 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
             
             if rnd_range(1,6)+rnd_range(1,6)+maximum(player.pilot(1)-1,player.science(1))+kit>8 then
                 dprint "The repair was succesfull!"
-                set_color( 15,0)
+                set__color( 15,0)
                 b=tmap(awayteam.c.x,awayteam.c.y).no-127
                 if tmap(awayteam.c.x,awayteam.c.y).no=241 then b=18
                 textbox(shiptypes(b) &"||"&makehullbox(b,"data/ships.csv"),2,5,25,15,1)
@@ -982,7 +982,7 @@ function ep_inspect(awayteam as _monster,byref ship as _cords, enemy() as _monst
             endif
             tmap(awayteam.c.x,awayteam.c.y).vege=0
         else
-            dprint "Your science officer is dead."
+            dprint "No science officer or doctor on the team.",c_yel
         endif
     endif
     if b=0 then
@@ -1167,14 +1167,14 @@ function ep_launch(awayteam as _monster, byref ship as _cords,byref nextmap as _
                 else
                     dprint "You start without incident"
                     nextmap.m=-1
-                    #ifdef _windows
+                    #ifdef _FMODSOUND
                     if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
                     #endif
                 endif                    
             endif
         else
             nextmap.m=-1
-            #ifdef _windows
+            #ifdef _FMODSOUND
             if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(10))
             #endif
         endif
@@ -1230,7 +1230,7 @@ function ep_planeteffect(awayteam as _monster, ship as _cords, enemy() as _monst
     
     
     if slot=specialplanet(8) and rnd_range(1,100)<33 then
-        set_color( 11,0)
+        set__color( 11,0)
         dprint "lightning strikes you "& damawayteam(awayteam,1),12            
         player.killedby="lightning strike"
     endif
@@ -1866,7 +1866,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                 if planetmap(enemy(a).c.x,enemy(a).c.y,slot)>0 then 
                     dtile(enemy(a).c.x,enemy(a).c.y,tiles(planetmap(enemy(a).c.x,enemy(a).c.y,slot)),1)
                 else
-                    set_color( 0,0)
+                    set__color( 0,0)
                     draw string(enemy(a).c.x*_fw1,enemy(a).c.y*_fh1), " ",,font1,custom,@_col
                 endif
             endif
@@ -1999,7 +1999,7 @@ function ep_monstermove(awayteam as _monster, enemy() as _monster, m() as single
                     if item(li(b)).ty=22 then enemy(a).sleeping=enemy(a).sleeping+rnd_range(1,item(li(b)).v1)
                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 then 
                         locate item(li(b)).w.y+1,item(li(b)).w.x+1
-                        set_color( item(li(b)).col,1)
+                        set__color( item(li(b)).col,1)
                         draw string (item(li(b)).w.x*_fw1,item(li(b)).w.y*_fh1), chr(176),,font2,custom,@_col
                         dprint "The mine explodes under the "&enemy(a).sdesc &"!"
                         sleep 50
@@ -2070,7 +2070,7 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
         if shipfire(sf2).when>0 then  
             shipfire(sf2).when-=1
             if shipfire(sf2).tile<>"" and vismask(shipfire(sf2).where.x,shipfire(sf2).where.y)>0 then
-                set_color( 7,0)
+                set__color( 7,0)
                 draw string (shipfire(sf2).where.x*_fw1,shipfire(sf2).where.y*_fh1),shipfire(sf2).tile,,Font1,custom,@_col
             endif
             if shipfire(sf2).when=0 then
@@ -2125,17 +2125,17 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
                                 'Show
                                 locate y+1,x+1
                                 if player.weapons(shipfire(sf2).what).ammomax>0 then
-                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set_color( 15,15)
-                                    if distance(shipfire(sf2).where,p2)>0 then set_color( 12,14)
-                                    if distance(shipfire(sf2).where,p2)>1 then set_color( 12,0)
+                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
+                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 12,14)
+                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 12,0)
                                 else
-                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set_color( 15,15)
-                                    if distance(shipfire(sf2).where,p2)>0 then set_color( 11,9)
-                                    if distance(shipfire(sf2).where,p2)>1 then set_color( 9,1)
+                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
+                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 11,9)
+                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 9,1)
                                 endif                        
                                 if shipfire(sf2).stun=1 then
-                                    if distance(shipfire(sf2).where,p2)>0 then set_color( 242,244)
-                                    if distance(shipfire(sf2).where,p2)>1 then set_color( 246,248)
+                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 242,244)
+                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 246,248)
                                 endif
                                 if _tiles=0 then
                                     put((x-osx)*_tix,y*_tiy),gtiles(gt_no(77+ani)),trans
@@ -2168,7 +2168,7 @@ function ep_shipfire(shipfire() as _shipfire,vismask() as byte,enemy() as _monst
                 sleep 15
                 loop until ani>=8 or _tiles=1
                 sleep 100+distance(awayteam.c,shipfire(sf2).where)*6
-                #ifdef _windows
+                #ifdef _FMODSOUND
                 if (_sound=0 or _sound=2) and planets(slot).atmos>1 then FSOUND_PlaySound(FSOUND_FREE, sound(4))
                 #endif
             endif
@@ -2228,7 +2228,7 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
                     if instr(text,"TARGET")>0 then 
                         dprint "Get target for rover:"
                         text=get_planet_cords(p1,slot)
-                        if text=key_enter then item(b).vt=p1
+                        if text=key__enter then item(b).vt=p1
                         text=""
                     endif
                     if instr(text,"POSITI")>0 or instr(text,"WHERE")>0 then
@@ -2309,8 +2309,8 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
                     nextlanding=awayteam.c
                     do
                         text=cursor(nextlanding,slot,osx)
-                    loop until text=key_enter or text=key_esc
-                    if text=key_enter then
+                    loop until text=key__enter or text=key__esc
+                    if text=key__enter then
                         player.landed.m=0
                     else
                         nextlanding.x=p.x
@@ -2341,8 +2341,8 @@ function ep_radio(awayteam as _monster,byref ship as _cords, byref nextlanding a
             shipfire(sf).where=awayteam.c
             do
                 text=cursor(shipfire(sf).where,slot,osx)
-            loop until text=key_enter or text=key_esc
-            if text=key_enter then
+            loop until text=key__enter or text=key__esc
+            if text=key__enter then
                 if pathblock(p2,shipfire(sf).where,slot,1)=0 then
                     dprint "No line of sight to that target."
                     shipfire(sf).where.x=-1
@@ -2530,7 +2530,7 @@ function ep_grenade(awayteam as _monster, shipfire() as _shipfire, byref sf as s
                     if item(c).v2=2 then shipfire(sf).stun=1
                     shipfire(sf).tile=item(c).icon
                     player.weapons(shipfire(sf).what)=makeweapon(item(c).v1)
-                    player.weapons(shipfire(sf).what).ammomax=1 'Sets set_color( to redish
+                    player.weapons(shipfire(sf).what).ammomax=1 'Sets set__color( to redish
                     item(c)=item(lastitem)
                     lastitem=lastitem-1
                 endif
@@ -2568,7 +2568,7 @@ function ep_playerhitmonster(awayteam as _monster,old as _cords, enemy() as _mon
 '                if _tiles=0 then
 '                    put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
 '                else
-'                    set_color( _teamcolor,0
+'                    set__color( _teamcolor,0
 '                    draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
 '                endif
                 if enemy(a).sleeping>0 then
@@ -2634,7 +2634,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
     if _tiles=0 then
         put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
     else
-        set_color( _teamcolor,0)
+        set__color( _teamcolor,0)
         draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
     endif
     range=1.5
@@ -2664,11 +2664,11 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
             if _tiles=0 then
                 put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
             else
-                set_color( _teamcolor,0)
+                set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
             endif
             p2=movepoint(p2,autofire_dir,4)
-            set_color( scol,0)
+            set__color( scol,0)
             if vismask(p2.x,p2.y)>0 then 
                 if _tiles=0 then
                     if range<4 then
@@ -2700,7 +2700,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
             if _tiles=0 then
                 put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
             else
-                set_color( _teamcolor,0)
+                set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
             endif
             p1=p
@@ -2716,7 +2716,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
                 awayteam.lastaction+=1              
                 lp=line_in_points(autofire_target,awayteam.c,wp())
                 for b=1 to lp
-                    set_color( scol,0)
+                    set__color( scol,0)
                     if _tiles=0 then
                         if range<4 then
                             put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
@@ -2757,7 +2757,7 @@ function ep_fire(awayteam as _monster,enemy() as _monster,lastenemy as short,vis
                 if lp>=1 then
                     for b=1 to lp
                         if wp(b).x>=0 and wp(b).x<=60 and wp(b).y>=0 and wp(b).y<=20 then
-                            set_color( scol,0)
+                            set__color( scol,0)
                             if _tiles=0 then
                                 if range<4 then
                                     put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
@@ -2868,7 +2868,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
         endif
         if _mwx=60 then osx=0
         
-        set_color( _teamcolor,0)
+        set__color( _teamcolor,0)
         if _tiles=0 then
             put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
         else
@@ -2876,7 +2876,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
         endif
         if planetmap(ship.x,ship.y,slot)>0 and slot=player.landed.m then
             locate ship.y+1,ship.x+1
-            set_color( _shipcolor,0)
+            set__color( _shipcolor,0)
             if _tiles=0 then
                 put ((ship.x-osx)*_tix,ship.y*_tiy),stiles(5,player.ti_no),trans
             else
@@ -2909,10 +2909,10 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
                     if enemy(a).c.x=p2.x and enemy(a).c.y=p2.y and enemy(a).hpmax>0 then
                         if enemy(a).hp>0 then
                             if enemy(a).c.x=p2.x and enemy(a).c.y=p2.y then
-                                set_color( enemy(a).col,9)
+                                set__color( enemy(a).col,9)
                                 text=text &" "& mondis(enemy(a))
                             else
-                                set_color( enemy(a).col,0)
+                                set__color( enemy(a).col,0)
                             endif
                             if _tiles=0 then
                                 put ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
@@ -2920,7 +2920,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
                                 draw string (enemy(a).c.x*_fw1,enemy(a).c.y*_fh1), chr(enemy(a).tile),,Font1,custom,@_col
                             endif
                         else
-                            set_color( 12,0)
+                            set__color( 12,0)
                             if _tiles=0 then
                                  put ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tix),gtiles(261),trans
                             else
@@ -2936,7 +2936,7 @@ function ep_examine(awayteam as _monster,ship as _cords,vismask() as byte, li() 
             if text<>"" then dprint text
             text=""
         endif
-    loop until key=key_enter or key=key_esc or ucase(key)="Q" 
+    loop until key=key__enter or key=key__esc or ucase(key)="Q" 
     return 0
 end function
 
@@ -2957,7 +2957,7 @@ function ep_jumppackjump(awayteam as _monster) as short
                 dtile(awayteam.c.x,awayteam.c.y,tmap(awayteam.c.x,awayteam.c.y),1)
         
                 awayteam.c=movepoint(awayteam.c,d)
-                set_color( _teamcolor,0)
+                set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
                 sleep 50
             next
@@ -3032,8 +3032,8 @@ function ep_crater(slot as short,ship as _cords,awayteam as _monster,li() as sho
         shipfire(sf).what=10+sf
         shipfire(sf).where=p1                
         player.weapons(shipfire(sf).what)=makeweapon(1)
-        player.weapons(shipfire(sf).what).ammomax=1 'Sets set_color( to redish
-        player.weapons(shipfire(sf).what).dam=r 'Sets set_color( to redish
+        player.weapons(shipfire(sf).what).ammomax=1 'Sets set__color( to redish
+        player.weapons(shipfire(sf).what).dam=r 'Sets set__color( to redish
         if rnd_range(1,100)<33+r then
             lastlocalitem=lastlocalitem+1
             lastitem=lastitem+1
@@ -3594,7 +3594,7 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                 shipfire(sf).when=3
                 shipfire(sf).what=10+sf
                 player.weapons(shipfire(sf).what)=makeweapon(rnd_range(1,5))
-                sf=sf+1 'Sets set_color( to blueish
+                sf=sf+1 'Sets set__color( to blueish
             endif
         endif
     endif
@@ -3781,7 +3781,7 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                             no_key=keyin
                             p2=movepoint(awayteam.c,getdirection(no_key))
                             if tmap(p2.x,p2.y).walktru=0 then awayteam.c=p2
-                        loop until no_key=key_esc or rnd_range(1,6)+rnd_range(1,6)+player.science(1)<10
+                        loop until no_key=key__esc or rnd_range(1,6)+rnd_range(1,6)+player.science(1)<10
                         awayteam.c=p1
                     else
                         dprint "You do not get it to work properly."

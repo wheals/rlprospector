@@ -26,29 +26,51 @@ function setglobals() as short
     tacdes(4)="cautious"
     tacdes(5)="defensive"
     
+    
+    
+    
     talent_desig(1)="Competent"
+    talent_desc(1)="Competent: Is better suited to take over other officers jobs."
     talent_desig(2)="Haggler"
+    talent_desc(2)="Haggler: Gets better prices at shops"
     talent_desig(3)="Confident"
+    talent_desc(3)="Confident: Better chance to get company quests"
     talent_desig(4)="Charming"
+    talent_desc(4)="Charming: Better morale for crewmembers"
     talent_desig(5)="Gambler"
+    talent_desc(5)="Gambler: Better chance to win in the casino"
+    
     talent_desig(6)="Merchant"
+    talent_desc(6)="Merchant: Gets better prices when buying/selling cargo"
     
     talent_desig(7)="Evasion" 
     talent_desig(8)="High grav training"
     talent_desig(9)="Asteroid miner"
-    
+    talent_desc(7)="Evasion: Has a better chance to get away when fleeing from space battles"
+    talent_desc(8)="High grav training: Has a better chance to land successfully"
+    talent_desc(9)="Asteroid miner: Finds more ore in asteroids, and catches them easier"
+
     talent_desig(10)="Tactics expert"
     talent_desig(11)="Leadership"
     talent_desig(12)="Ships weapons expert"
     talent_desig(13)="Improvise mines"
+    talent_desc(10)="Tactics expert: Increases effect from tactics setting"
+    talent_desc(11)="Leadership: +1 on all to hit rolls from awayteam"
+    talent_desc(13)="Improvise mines: Can turn a certain amount of ship fuel into jury rigged mines"
     
     talent_desig(14)="Linguist"
     talent_desig(15)="Biologist"
     talent_desig(16)="Sensor expert"
-    
+    talent_desc(14)="Linguist: Better chance to understand aliens"
+    talent_desc(15)="Biologist: Better results from scanning plants and recording alien biodata"
+    talent_desc(16)="Sensor expert: Is better at using sensors"    
+
     talent_desig(17)="Disease expert"
     talent_desig(18)="First aid expert"
     talent_desig(19)="Field medic"
+    talent_desc(17)="Disease expert: Increased chance to cure diseases"
+    talent_desc(18)="First aid expert: Better results from using medpacks"
+    talent_desc(19)="Field medic: Higher regeneration rate"
     
     talent_desig(20)="Tough"
     talent_desig(21)="Defensive"
@@ -57,6 +79,13 @@ function setglobals() as short
     talent_desig(24)="Fast"
     talent_desig(25)="Strong"
     talent_desig(26)="Aim"
+    talent_desc(20)="Fast: Increased speed"
+    talent_desc(21)="Aim: +1 to ranged weapons to hit"
+    talent_desc(22)="Sharpshooter: +.1 to ranged weapons damage"
+    talent_desc(23)="Close combat expert: +1 to close combat to hit"
+    talent_desc(24)="Strong: +.1 to close combat damage"
+    talent_desc(25)="Tough: +1 to hitpoints"
+    talent_desc(26)="Defensive: -1 on enemies to hit rolls"
     
     talent_desig(27)="Squad Leader"
     talent_desig(28)="Sniper"
@@ -320,7 +349,7 @@ function setglobals() as short
         shiptypes(19)="primitve alien spaceprobe, hundreds of years old travelling sublight through the void"
         shiptypes(20)="small space station"
     else
-        set_color( 14,0)
+        set__color( 14,0)
         print "ships.csv not found. Can't start game"
         sleep
         end

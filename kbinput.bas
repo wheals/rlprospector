@@ -52,9 +52,9 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                         case sc_pagedown
                             key = key_se
                         case sc_escape
-                            key=key_esc
+                            key=key__esc
                         case sc_enter
-                            key=key_enter
+                            key=key__enter
                         case sc_pageup
                             key=key_pageup
                         case sc_pagedown
@@ -194,7 +194,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             next
             close f
         endif
-        if len(allowed)>0 and key<>key_esc and key<>key_enter and getdirection(key)=0 then
+        if len(allowed)>0 and key<>key__esc and key<>key__enter and getdirection(key)=0 then
             if instr(allowed,key)=0 and walking=0 then 
                 'keybindings(allowed)
                 key=""
@@ -217,7 +217,7 @@ function gettext(x as short, y as short, ml as short, text as string) as string
     do 
             
         key=""
-        set_color( 11,0)
+        set__color( 11,0)
         draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
         do
             do
@@ -232,10 +232,10 @@ function gettext(x as short, y as short, ml as short, text as string) as string
             loop until screenevent(@evkey)
             
             if evkey.type=EVENT_KEY_press then
-                if evkey.ascii=asc(key_esc) then key=key_esc
+                if evkey.ascii=asc(key__esc) then key=key__esc
                 if evkey.ascii=8 then key=chr(8)
                 if evkey.ascii=32 then key=chr(32)
-                if evkey.ascii=asc(key_enter) then key=key_enter
+                if evkey.ascii=asc(key__enter) then key=key__enter
                 if evkey.ascii>32 and evkey.ascii<123 then key=chr(evkey.ascii)
             endif
         loop until key<>""  
@@ -245,7 +245,7 @@ function gettext(x as short, y as short, ml as short, text as string) as string
            text=left(text,len(text)-1)
            if text=chr(8) then text=""
         endif
-        if l<ml and key<>key_enter and key<>chr(8) and key<>key_esc then
+        if l<ml and key<>key__enter and key<>chr(8) and key<>key__esc then
             text=text &key
             l=l+1
         endif
@@ -254,15 +254,15 @@ function gettext(x as short, y as short, ml as short, text as string) as string
             text=left(text,ml)
         endif
         
-    loop until key=key_enter or key=key_esc
-    if key=key_esc or l<1 then
-        set_color( 0,0)
+    loop until key=key__enter or key=key__esc
+    if key=key__esc or l<1 then
+        set__color( 0,0)
         locate y+1,x+1
         print space(len(text));
         text=""
     endif
     if len(text)=0 then text=""
-    if text=key_enter or text=key_esc or text=chr(8) then text=""
+    if text=key__enter or text=key__esc or text=chr(8) then text=""
     while inkey<>""
     wend
     return text
@@ -285,43 +285,43 @@ function getnumber(a as short,b as short, e as short) as short
         return c
     else
         
-        set_color( 11,1)
+        set__color( 11,1)
         for i=1 to 61
             draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
         next
-        set_color( 11,11)
+        set__color( 11,11)
         draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
         c=a
         if e>0 then c=e
         do 
-            set_color( 11,1)
+            set__color( 11,1)
             
             draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
-            set_color( 5,11)
+            set__color( 5,11)
             
             draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
             print "-"
     
             if c<10 then 
-                set_color( 1,11)
+                set__color( 1,11)
                 print "0" &c
                 draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
             else
-                set_color( 1,11)
+                set__color( 1,11)
                 draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
             endif
             
             locate 22,32
-            set_color( 5,11)        
+            set__color( 5,11)        
             draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
             
-            set_color( 11,1)
+            set__color( 11,1)
             draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
-            key=keyin(key_up &key_dn &key_rt &key_lt &"1234567890+-"&key_esc &key_enter)
+            key=keyin(key__up &key__dn &key__rt &key__lt &"1234567890+-"&key__esc &key__enter)
             if keyplus(key) then c=c+1
             if keyminus(key) then c=c-1
-            if key=key_enter then d=1
-            if key=key_esc then d=2
+            if key=key__enter then d=1
+            if key=key__esc then d=2
             buffer=buffer+key
             if len(buffer)>2 then buffer=""
             if val(buffer)<>0 or buffer="0" then c=val(buffer)
@@ -331,20 +331,20 @@ function getnumber(a as short,b as short, e as short) as short
             
         loop until d=1 or d=2
         if d=2 then c=-1
-        set_color( 11,0)
+        set__color( 11,0)
     endif
     return c
 end function    
 
 function keyplus(key as string) as short
     dim r as short
-    if key=key_up or key=key_lt or key=key_south or key="+" then r=-1
+    if key=key__up or key=key__lt or key=key_south or key="+" then r=-1
     return r
 end function
 
 function keyminus(key as string) as short
     dim r as short
-    if key=key_dn or key=key_rt or key=key_north or key="-" then r=-1
+    if key=key__dn or key=key__rt or key=key_north or key="-" then r=-1
     return r
 end function
 
@@ -358,10 +358,10 @@ function getdirection(key as string) as short
     if key=key_ne then return 9
     if key=key_se then return 3
     if key=key_sw then return 1
-    if key=key_up then return 8
-    if key=key_dn then return 2
-    if key=key_rt then return 6
-    if key=key_lt then return 4
+    if key=key__up then return 8
+    if key=key__dn then return 2
+    if key=key__rt then return 6
+    if key=key__lt then return 4
     return 0
 end function
 
@@ -378,8 +378,8 @@ function askyn(q as string,col as short=11) as short
             dprint ""
             if _anykeyno=0 and key<>key_yes then key="N"
         endif
-    loop until key="N" or key="n" or key=" " or key=key_esc or key=key_enter or key=key_yes  
-    if key=key_yes or key=key_enter then a=-1
+    loop until key="N" or key="n" or key=" " or key=key__esc or key=key__enter or key=key_yes  
+    if key=key_yes or key=key__enter then a=-1
     return a
 end function
 
@@ -446,21 +446,21 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     for a=0 to c
         lines(a)=lines(a)&space(longest-len(lines(a)))
     next
-    hw=_mwx*_fw1-((4+longest)*_fw2)
+    hw=_mwx*_fw1-((longest)*_fw2)-(4+x)*_fw1
     hw=hw/_fw2
     ofx=x+4+(longest*_fw2/_fw1)
     e=0
     do        
         locate y,x
-        set_color( 15,0)
+        set__color( 15,0)
         draw string(x*_fw1,y*_fh1), lines(0),,font2,custom,@_col
         
         for a=1 to c
             if loca=a then 
                 if hfl=1 and loca<c then blen=textbox(helps(a),ofx,2,hw,15,1)
-                set_color( 15,5)
+                set__color( 15,5)
             else
-                set_color( 11,0)
+                set__color( 11,0)
             endif
             locate y+a,x
             draw string(x*_fw1,y*_fh1+a*_fh2),shrt(a) &") "& lines(a),,font2,custom,@_col
@@ -469,7 +469,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         
         if hfl=1 then 
             for a=1 to blen
-                set_color( 0,0)
+                set__color( 0,0)
                 draw string(ofx*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
             next
         endif
@@ -477,7 +477,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         if getdirection(key)=2 then loca=loca+1
         if loca<1 then loca=c
         if loca>c then loca=1
-        if key=key_enter then e=loca
+        if key=key__enter then e=loca
         if key=key_awayteam then 
             showteam(0)
             key=""
@@ -486,14 +486,14 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
             if key=lcase(shrt(a)) then loca=a
             if key=ucase(shrt(a)) then e=a
         next
-        if key=key_esc or player.dead<>0 then e=c
+        if key=key__esc or player.dead<>0 then e=c
     loop until e>0 
-    if key=key_esc and markesc=1 then e=-1
-    set_color( 0,0)
+    if key=key__esc and markesc=1 then e=-1
+    set__color( 0,0)
     for a=0 to c
         locate y+a,x
         draw string(x*_fw1,y*_fh1+a*_fh2), space(59),,font2,custom,@_col
     next
-    set_color( 11,0)
+    set__color( 11,0)
     return e
 end function

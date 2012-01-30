@@ -122,7 +122,7 @@ function load_palette() as short
     line input #f,l
     line input #f,l
     line input #f,l 'First do not need to be checked
-    for i=0 to 255
+    do
         line input #f,l
         if debug=1 then print l
         k=1
@@ -138,14 +138,16 @@ function load_palette() as short
             print w(1);":";w(2);":";w(3)
             print palette_(i)
         endif
-    next
+        i+=1
+        if debug=2 then print i;":";
+    loop until eof(f)
     close #f
     return 0
 end function
 
 
 function loadsounds() as short
-    #ifdef _windows
+    #ifdef _FMODSOUND
     print "Loading sounds:";
     fsound_init(48000,11,0)
     print FSOUND_geterror();
@@ -221,7 +223,7 @@ function keybindings(allowed as string="") as short
             next
         next
         b=0
-        set_color( 11,0)
+        set__color( 11,0)
         cls
         if cc.x<1 then cc.x=1
         if cc.y<1 then cc.y=1
@@ -233,7 +235,7 @@ function keybindings(allowed as string="") as short
         
         if varn(c)="" then cc=ncc
         screenset 0,1
-        set_color( 15,0)
+        set__color( 15,0)
         draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
         for x=1 to 4
             for y=1 to 20
@@ -245,7 +247,7 @@ function keybindings(allowed as string="") as short
                     cc.x=x
                     cc.y=y
                     for d=1 to 99
-                        set_color( 15,0)
+                        set__color( 15,0)
                         if ucase(trim(varn(b)))=ucase(trim(coml(d))) then draw string (5*_fw2,26*_fh2), comdes(d),,FONT2,custom,@_col
                     next
                 else
@@ -253,17 +255,17 @@ function keybindings(allowed as string="") as short
                     bg=0
                 endif
                 if colflag(b)=1 then fg=14
-                set_color( fg,bg)
+                set__color( fg,bg)
                 
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
                 endif
             next
         next
-        set_color( 11,0)
+        set__color( 11,0)
         draw string (5*_fw2,25*_fh2),"\C=Control Yellow: 2 commands bound to same key.",,FONT2,custom,@_col
         for b=1 to 8
-            set_color( 11,0)
+            set__color( 11,0)
             if b=1 then
                 draw string (2*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
             endif
@@ -289,11 +291,11 @@ function keybindings(allowed as string="") as short
                 draw string (6*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
             endif
         next
-        set_color( 15,0)
+        set__color( 15,0)
         draw string (3*_fw2,4*_fh2),"\|/",,FONT2,custom,@_col
         draw string (3*_fw2,5*_fh2),"- -",,FONT2,custom,@_col
         draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
-        set_color( 11,0)
+        set__color( 11,0)
         draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
                
         no_key=keyin
@@ -307,7 +309,7 @@ function keybindings(allowed as string="") as short
         'c=(cc.x-1)*20+cc.y
         if varn(c)="" then o=c
         
-        if no_key=key_enter and keys(c)<>"" then
+        if no_key=key__enter and keys(c)<>"" then
             screenset 1,1
             draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
             draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),expl(c),,FONT2,custom,@_col
@@ -316,7 +318,7 @@ function keybindings(allowed as string="") as short
                 nkeys(c)=newkey
             endif
         endif
-    loop until no_key=key_esc
+    loop until no_key=key__esc
     
     for a=1 to lk
         if keys(a)<>nkeys(a) then 
@@ -495,7 +497,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
       End If
       ImageDestroy (img)	'Zwischenpuffer löschen
     else
-        set_color( 14,0)
+        set__color( 14,0)
         print "Loading font graphics/"&fontdir &"font.bmp failed."
         sleep 600
     endif
@@ -846,7 +848,7 @@ function loadkeyset() as short
                 
                 if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
                 if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
-                if instr(lctext,"key_inspect")>0 then key_i=loadkey(text)
+                if instr(lctext,"key_inspect")>0 then key__i=loadkey(text)
                 if instr(lctext,"key_examine")>0 then key_ex=loadkey(text)
                 if instr(lctext,"key_radio")>0 then key_ra=loadkey(text)
                 if instr(lctext,"key_teleport")>0 then key_te=loadkey(text)
@@ -872,9 +874,9 @@ function loadkeyset() as short
             endif
         next
     else
-        set_color( 14,0)
+        set__color( 14,0)
         print "File keybindings.txt not found. Using default keys"
-        set_color( 15,0)
+        set__color( 15,0)
         Sleep 1500
         return 1
     endif
@@ -1282,7 +1284,7 @@ function configuration() as short
         if c=15 then
             dprint "Select volume (0-4)"
             _volume=getnumber(0,4,_volume)                        
-            #ifdef _windows
+            #ifdef _FMODSOUND
             IF _volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
             IF _volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
             IF _volume = 2 THEN FSOUND_SetSFXMasterVolume(128)
@@ -1683,6 +1685,7 @@ function savegame() as short
     next
     
     put #f,,lastdrifting
+    if lastdrifting>128 then lastdrifting=128
     for a=1 to lastdrifting
         put #f,,drifting(a)
         print ".";
@@ -1776,7 +1779,7 @@ function savegame() as short
     next
     close f
     
-    set_color( 14,0)
+    set__color( 14,0)
     cls
     return back
 end function

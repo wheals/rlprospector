@@ -97,11 +97,11 @@ function fixstarmap() as short
         endif
     next
     if fsp>1 then 
-        set_color(14,0)
+        set__color(14,0)
         print fsp &"specials missing. ";
     endif
     if spfix>0 then
-        set_color(14,0)
+        set__color(14,0)
         print spfix &" specials fixed"
     endif
     for a=0 to laststar
@@ -109,13 +109,13 @@ function fixstarmap() as short
         if map(a).spec=10 then map(a).ti_no=89
     next
     if fixed>0 then
-        set_color(14,0)
+        set__color(14,0)
         print fixed &" fixed in "&cc &" loops."
     else
-        set_color(10,0)
+        set__color(10,0)
         print "All Ok"
     endif
-    set_color(7,0)
+    set__color(7,0)
     return 0
 end function
 
@@ -650,7 +650,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 if _tiles=0 then
                     draw string(x-osx*_fw1,y*_fh1),"*",,font1,custom,@_col
                 else
-                    set_color( col,0)
+                    set__color( col,0)
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
                 endif
                 sleep delay

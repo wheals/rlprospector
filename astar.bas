@@ -94,11 +94,11 @@ do
                 endif
                 if debug=1 then
                     locate y+1,x+1
-                    set_color(10,0)
+                    set__color(10,0)
                     if node(x,y).opclo=1 then print "1";
                     if node(x,y).opclo=2 then print "2";
                     if node(x,y).opclo=0 then 
-                        set_color(15,0)
+                        set__color(15,0)
                         print distance(p,goal,rollover);
                     endif
                 endif

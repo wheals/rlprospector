@@ -10,7 +10,7 @@ function death_message() as short
     if not fileexists(player.desig &".bmp") then screenshot(3)
     cls
     background(rnd_range(1,_last_title_pic)&".bmp")
-    set_color( 12,0)
+    set__color( 12,0)
     if player.fuel<=0 then player.dead=1
     if player.dead=1 then text="You ran out of fuel. Slowly your life support fails while you wait for your end beneath the eternal stars"
     if player.dead=2 then text="The station impounds your ship for outstanding depts. You start a new career as cook at the stations bistro"
@@ -52,7 +52,7 @@ function death_message() as short
     endif
     if player.dead=99 then text="Till next time!"
     if text<>"" then
-        set_color( 11,0)
+        set__color( 11,0)
         #ifdef _windows
         gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
         #endif
@@ -158,12 +158,12 @@ sub postmortem
     
     cls
     locate 1,20 
-    set_color( 15,0) 
+    set__color( 15,0) 
     #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
     #endif
     draw_string (10,10, st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",titlefont,_col)
-    set_color( 11,0)
+    set__color( 11,0)
     a=1+cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
     b=1+cint((textbox(explorationtext ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
     c=1+cint((textbox(listartifacts ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
@@ -293,18 +293,18 @@ sub highsc()
     endif
     'display highscore table
     offset=rank
-    set_color( 11,0)
+    set__color( 11,0)
 
     cls
     
     background(rnd_range(1,_last_title_pic)&".bmp")
     yo=(_screeny-22*_fh2)/2
     xo=(_screenx-80*_fw2)/2
-    set_color( 0,0)
+    set__color( 0,0)
     for a=yo/2-_fh2 to _screeny-yo/2+_fh2 step _fh2-1
         draw_string (xo,a,space(80),font2,_col)
     next
-    set_color( 15,0)
+    set__color( 15,0)
     #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
     #endif
@@ -312,25 +312,25 @@ sub highsc()
     
     for a=1 to 10
         if a=rank then 
-            set_color( 15,0)
+            set__color( 15,0)
         else
-            set_color( 11,0)
+            set__color( 11,0)
         endif
         draw_string (5*_fw2+xo,yo+(a*2)*_fh2, a & ".) " & trim(highscore(a+off2).desig) & ", "& highscore(a+off2).points &" pts.:",font2,_col)
         locate (a*2)+2,2 
         if a=rank then
-            set_color( 14,0)
+            set__color( 14,0)
         else
-            set_color( 7,0)
+            set__color( 7,0)
         endif
         draw_string (2*_fw2+xo,yo+(a*2+1)*_fh2, trim(highscore(a+off2).death),font2,_col)
     next
-    set_color( 11,0)
+    set__color( 11,0)
     locate 24,5,0
     if rank>10 then draw_string (2*_fw2+xo,_screeny-yo, highscore(10).points &" Points required to enter highscore. you scored "&s &" Points",font2,_col)
     locate 25,20,0 
     draw_string (2*_fw2+xo,_screeny-yo/2, "Esc to continue",font2,_col)
-    no_key=keyin(key_esc)
+    no_key=keyin(key__esc)
     'save highscore table
     f=freefile
     

@@ -1007,7 +1007,7 @@ function talk_culture(c as short) as short
     t(2,1)="We value art as a form of individual expression. There are no 'professionals' or an 'industry'"
     t(2,2)="Art is a waste of resources. Growing civilisations need it. We have outgrown that phase centuries ago."
     t(2,3)="We base the value of art on its educational value."
-    t(2,4)="Our language will be rather hard for you to learn:' - the alien presents a little blue bug - 'Part of the meaning is conveyed by this animal changing it's set_color(. Its a chameleon, and trained to react to the users touches."
+    t(2,4)="Our language will be rather hard for you to learn:' - the alien presents a little blue bug - 'Part of the meaning is conveyed by this animal changing it's set__color(. Its a chameleon, and trained to react to the users touches."
     t(2,5)="We are most impressed with feats of the body. Our most import areas of art are sport, dance, and general acrobatics. We get very little out of a film, picture or books other than for education"
     t(2,6)="The value of Art is its contribution to the survival of the species. It can do so by reminding individuals that they are nothing without the group."
     
@@ -2226,10 +2226,10 @@ function showquests() as short
     dim as short a,b,c,d,sys,p
     dim dest(10) as short
     cls
-    set_color( 15,0)
+    set__color( 15,0)
     print "Missions:"
     print
-    set_color( 11,0)
+    set__color( 11,0)
     for a=1 to 10
         if player.cargo(a).x=10 or player.cargo(a).x=11 then 
             b+=1
@@ -2237,10 +2237,10 @@ function showquests() as short
         endif
     next
     if b>0 then
-        set_color( 15,0)
+        set__color( 15,0)
         print "Cargo:"
         for a=1 to b
-            set_color( 11,0)
+            set__color( 11,0)
             print "  Cargo for Station-"&dest(a)
         next
     endif
@@ -2259,9 +2259,9 @@ function showquests() as short
     if player.questflag(2)=1 then print "  Rescue a company executive from pirates"
     if player.questflag(12)=1 then print "  A small green alien told you about a monster in their mushroom caves."
     print
-    set_color( 15,0)
+    set__color( 15,0)
     print "Headhunting"
-    set_color( 11,0)
+    set__color( 11,0)
     if player.questflag(15)=1 then print "  Bring down the pirate battleship 'Anne Bonny'"
     if player.questflag(16)=1 then print "  Bring down the pirate destroyer 'Black Corsair'"
     if player.questflag(17)=1 then print "  Bring down the pirate cruiser 'Hussar'"

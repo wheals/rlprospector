@@ -3,10 +3,10 @@ function make_spacemap() as short
     dim as _cords p1,p2,p3
     dim showclouds as byte
     showclouds=0
-    set_color( 11,0)
+    set__color( 11,0)
     print
     Print "Generating sector"
-    set_color( 7,0)
+    set__color( 7,0)
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -31,7 +31,7 @@ function make_spacemap() as short
         if spacemap(map(a).c.x,map(a).c.y)<>0 then gascou+=1
     next
     print "stars in gasclouds:";gascou
-    set_color( 7,0)
+    set__color( 7,0)
     print
     print "Pregenerating planets ";
     
@@ -149,9 +149,9 @@ function make_spacemap() as short
         next
     endif
     print
-    set_color( 11,0)
+    set__color( 11,0)
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
-    set_color( 15,0)
+    set__color( 15,0)
     print "Star distribution:"
     for a=1 to 10
         print spectralname(a);":";scount(a)
@@ -308,10 +308,10 @@ function add_special_planets() as short
         
         print ".";
         if specialplanet(a)<0 then
-            set_color( 12,0)
+            set__color( 12,0)
             print a;" ";sys;" ";mp
             print lastplanet
-            set_color( 15,0)
+            set__color( 15,0)
         endif
     next
     
@@ -714,7 +714,7 @@ function gen_traderoutes() as short
     dim as integer fp,lp
     dim as byte debug=0
     
-    set_color( 7,0)
+    set__color( 7,0)
     print "generating traderoutes"
     
     lastwaypoint=5
@@ -825,24 +825,24 @@ function gen_traderoutes() as short
                 endif
                 locate y+1,x+1
                 if map(x,y)>=4 and map(x,y)<=10 then
-                    set_color( 15,0)
+                    set__color( 15,0)
                     print "#";
                 endif
                 if map(x,y)=2 then
-                    set_color( 15,0)
+                    set__color( 15,0)
                     print ":";
                 endif
                 
                 if map(x,y)=0 then
-                    set_color( 1,0)
+                    set__color( 1,0)
                     print ".";
                 endif
             next
         next
-        set_color( 10,0)
+        set__color( 10,0)
         x=firstwaypoint
         do
-            set_color( 10,0)
+            set__color( 10,0)
             x+=1
             if x>lastwaypoint then x=firststationw
             for y=0 to 2
@@ -853,7 +853,7 @@ function gen_traderoutes() as short
             if t=1 then print "1";
             if t=2 then print "2";
             sleep 66
-            set_color( 1,0)
+            set__color( 1,0)
             locate targetlist(x).y+1,targetlist(x).x+1
             print "."
         loop until inkey<>""

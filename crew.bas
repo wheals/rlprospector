@@ -1464,11 +1464,11 @@ function showteam(from as short, r as short=0,text as string="") as short
     lines-=1
     cls
     do
-        set_color( 11,0)
+        set__color( 11,0)
         screenset 0,1
         cls
         message=""
-        if no_key=key_enter then
+        if no_key=key__enter then
             if r=0 then
                 if from=0 then
                     if p>1 then
@@ -1487,13 +1487,13 @@ function showteam(from as short, r as short=0,text as string="") as short
                             crew(p).oldonship=0
                         else
                             locate 22,1
-                            set_color( 14,0)
+                            set__color( 14,0)
                             draw string (10,_screeny-_fh2*2), "The captain must stay in the awayteam.",,font2,custom,@_col
                         endif
                     endif
                 else
                     locate 22,1
-                    set_color( 14,0)
+                    set__color( 14,0)
                     draw string (10,_screeny-_fh2*2), "You need to be at the ship to reassign.",,font2,custom,@_col
                 endif
             endif
@@ -1556,7 +1556,7 @@ function showteam(from as short, r as short=0,text as string="") as short
                 if crew(b-offset).hpmax>0 then
                     skills=""
                     augments=""
-                    set_color( 0,bg)
+                    set__color( 0,bg)
                     draw string (0,y*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+1)*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+2)*_fh2), space(80),,font2,custom,@_col
@@ -1592,16 +1592,16 @@ function showteam(from as short, r as short=0,text as string="") as short
                     if crew(b-offset).augment(12)>0 then augments=augments &"Synthetic Nerves "
                     'if show_moral=1 then augments=augments &":"&crew(b-offset).morale
                     if skills<>"" then skills=skills &" "
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     if b-offset>9 then
                         draw string (0,y*_fh2), b-offset & " ",,font2,custom,@_col
                     else
                         draw string (0,y*_fh2), " " & b-offset & " ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp>0 then
-                            set_color( 10,bg)
+                            set__color( 10,bg)
                             draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
-                            set_color( 15,bg)
+                            set__color( 15,bg)
                             if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "Squ.Ld",,font2,custom,@_col
                             if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Sniper",,font2,custom,@_col
                             if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Paramd",,font2,custom,@_col
@@ -1617,37 +1617,37 @@ function showteam(from as short, r as short=0,text as string="") as short
                             endif
                         
                     else
-                        set_color( 12,0)
+                        set__color( 12,0)
                         draw string (3*_fw2,y*_fh2), "X",,font2,custom,@_col
                     endif
                     
-                    set_color( 15,bg)
-                    if crew(b-offset).hp=0 then set_color( 12,bg)
-                    if crew(b-offset).hp<crew(b-offset).hpmax then set_color( 14,bg)
-                    if crew(b-offset).hp=crew(b-offset).hpmax then set_color( 10,bg)
+                    set__color( 15,bg)
+                    if crew(b-offset).hp=0 then set__color( 12,bg)
+                    if crew(b-offset).hp<crew(b-offset).hpmax then set__color( 14,bg)
+                    if crew(b-offset).hp=crew(b-offset).hpmax then set__color( 10,bg)
                     draw string (10*_fw2,y*_fh2), " "&crew(b-offset).hpmax,,font2,custom,@_col
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     draw string (12*_fw2,y*_fh2), "/",,font2,custom,@_col
-                    if crew(b-offset).hp=0 then set_color( 12,bg)
-                    if crew(b-offset).hp<crew(b-offset).hpmax then set_color( 14,bg)
-                    if crew(b-offset).hp=crew(b-offset).hpmax then set_color( 10,bg)
+                    if crew(b-offset).hp=0 then set__color( 12,bg)
+                    if crew(b-offset).hp<crew(b-offset).hpmax then set__color( 14,bg)
+                    if crew(b-offset).hp=crew(b-offset).hpmax then set__color( 10,bg)
                     draw string (13*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     draw string (15*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
                     if (crew(b-offset).onship=1 or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
-                        set_color( 14,bg)
+                        set__color( 14,bg)
                         draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
                     if crew(b-offset).onship=0 and crew(b-offset).hp>0 then
-                        set_color( 10,bg)
+                        set__color( 10,bg)
                         draw string (34*_fw2,y*_fh2) ," Awayteam ",,font2,custom,@_col
                     endif
                     if debug=1 then draw string (40*_fw2,y*_fh2),""&crew(b-offset).oldonship,,font2,custom,@_col
                     if crew(b-offset).hp<=0 then
-                        set_color( 12,bg)
+                        set__color( 12,bg)
                         draw string (34*_fw2,y*_fh2) ," Dead ",,font2,custom,@_col
                     endif
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     if crew(b-offset).xp>=0 then 
                         draw string (55*_fw2,y*_fh2)," XP:" &crew(b-offset).xp,,font2,custom,@_col
                     else
@@ -1655,12 +1655,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                     endif
                     draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
                     'print space(70-pos)
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     
                     y+=1
                     xw=4
                     if crew(b-offset).armo>0 then 
-                        set_color( 15,bg)
+                        set__color( 15,bg)
                         if crew(b-offset).pref_armor>0 then
                             draw string (xw*_fw2,y*_fh2) ,"*",,font2,custom,@_col
                         else
@@ -1670,12 +1670,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2),trim(item(crew(b-offset).armo).desig)&", ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).armo).desig))+3
                     else
-                        set_color( 14,bg)
+                        set__color( 14,bg)
                         draw string (xw*_fw2,y*_fh2), " None,",,font2,custom,@_col
                         xw=xw+7
                     endif
                     if crew(b-offset).weap>0 then 
-                        set_color( 15,bg)
+                        set__color( 15,bg)
                         if crew(b-offset).pref_lrweap>0 then
                             draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
@@ -1685,12 +1685,12 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2) , trim(item(crew(b-offset).weap).desig)&", ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).weap).desig))+3
                     else
-                        set_color( 14,bg)
+                        set__color( 14,bg)
                         draw string (xw*_fw2,y*_fh2) ," None,",,font2,custom,@_col
                         xw=xw+7
                     endif
                     if crew(b-offset).blad>0 then 
-                        set_color( 15,bg)
+                        set__color( 15,bg)
                         if crew(b-offset).pref_ccweap>0 then
                             draw string (xw*_fw2,y*_fh2), "*",,font2,custom,@_col
                         else
@@ -1700,32 +1700,32 @@ function showteam(from as short, r as short=0,text as string="") as short
                         draw string (xw*_fw2,y*_fh2), trim(item(crew(b-offset).blad).desig)&" ",,font2,custom,@_col
                         xw=xw+len(trim(item(crew(b-offset).blad).desig))+3
                     else
-                        set_color( 14,bg)
+                        set__color( 14,bg)
                         draw string (xw*_fw2,y*_fh2) ," None",,font2,custom,@_col
                         xw=xw+7
                     endif
-                    set_color( 11,bg)
+                    set__color( 11,bg)
                     if crew(b-offset).jp>0 then draw string (xw*_fw2,y*_fh2) ," Jetpack",,font2,custom,@_col
                     'print space(70-pos)
                     
                     y+=1
                     
-                    set_color( 15,bg)
+                    set__color( 15,bg)
                     draw string (1*_fw2,y*_fh2), skills,,font2,custom,@_col
                     draw string ((4+len(skills))*_fw2,y*_fh2), augments,,font2,custom,@_col
                     if crew(b-offset).disease>0 then
-                        set_color( 14,bg)
+                        set__color( 14,bg)
                         y+=1
                         draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).ldesc),,font2,custom,@_col
                     endif
                     'print space(70-pos)
                     
                     y+=1
-                    set_color( 11,bg)
+                    set__color( 11,bg)
                 endif
             endif
         next
-        set_color( 11,0)
+        set__color( 11,0)
         locate 25,1
         if r=0 then 
             if from=0 then draw string (10,_screeny-_fh2), "enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, e toggle autoequip, esc exit",,font2,custom,@_col
@@ -1752,7 +1752,7 @@ function showteam(from as short, r as short=0,text as string="") as short
         if p>last then p=last
         if p+offset>lines then offset=lines-p
         if p+offset<1 then offset=1-p
-    loop until no_key=key_esc or no_key=" "
+    loop until no_key=key__esc or no_key=" "
     cls
     return 0
 end function

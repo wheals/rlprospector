@@ -57,13 +57,13 @@ const _spawnoff=0
 const show_moral=0
 const makemoodlog=0
 const xk=chr(255) 
-const key_up = xk + "H"
-const key_dn = xk + "P"
-const key_rt= xk + "M"
-const key_lt = xk + "K"
-const key_esc = Chr(27)
-const key_enter = Chr(13)
-const key_space = Chr(32)
+const key__up = xk & "H"
+const key__dn = xk & "P"
+const key__rt= xk & "M"
+const key__lt = xk & "K"
+const key__esc = Chr(27)
+const key__enter = Chr(13)
+const key__space = Chr(32)
 const lastflag=20
 dim shared as ubyte sm_x=75
 dim shared as ubyte sm_y=50
@@ -142,15 +142,15 @@ dim shared as string*3 key_tala="k"
 dim shared as string*3 key_sc="s"
 dim shared as string*3 key_save="s"
 dim shared as string*3 key_quit="q"
-dim shared as string*3 key_D="D"
-dim shared as string*3 key_G="G"
+'dim shared as string*3 key_D="D"
+'dim shared as string*3 key_G="G"
 dim shared as string*3 key_report="R"
 dim shared as string*3 key_rename="r"
 dim shared as string*3 key_dock="d"
 dim shared as string*3 key_comment="c"
 dim shared as string*3 key_probe="p"
 
-dim shared as string*3 key_i="i"
+dim shared as string*3 key__i="i"
 dim shared as string*3 key_ex="x"
 dim shared as string*3 key_ra="r"
 dim shared as string*3 key_te="t"
@@ -603,6 +603,61 @@ end type
 
 dim shared goods_prices(8,12,12) as single
 
+type _fuel
+    declare function changeprice() as short
+    declare function adddemand(volume as short) as short
+    declare function addsupply(volume as short) as short
+    declare function init(ty as byte) as short
+    tanksize as short
+    content as short
+    demand as short
+    supply as short
+    price as single
+end type
+
+function _fuel.changeprice() as short
+    if demand>supply then price+=.1
+    if demand<supply then price-=.1
+    return 0
+end function
+
+function _fuel.init(ty as byte) as short
+    
+    if ty=1 then 
+        price=1.5
+        tanksize=500
+    endif
+    if ty=2 then 
+        price=1
+        tanksize=2500
+    endif
+    content=tanksize/2
+    return 0
+end function
+
+function _fuel.addsupply(volume as short) as short
+    dim rest as short
+    content+=volume
+    if content>tanksize then
+        rest=content-tanksize
+    else
+        rest=0
+    endif
+    supply+=volume-rest
+    return rest
+end function
+
+function _fuel.adddemand(volume as short) as short
+    dim rest as short
+    content-=volume
+    if content<0 then
+        rest=volume-content
+        content=0
+    endif
+    demand+=volume-rest
+    return rest
+end function
+
 type _comment
     c as _cords
     t as string*32
@@ -906,15 +961,15 @@ End Property
 '  As Any Ptr last_target   '/* Last target buffer set */
 '  As Integer max_h      '/* Max registered height of target buffer */
 '  As Integer bpp      '/* Bytes per pixel */
-'  As Uinteger Ptr Palette   '/* Current RGB set_color( values for each palette index */
-'  As Uinteger Ptr device_palette   '/* Current RGB set_color( values of visible device palette */
-'  As Byte Ptr color_association   '/* Palette set_color( index associations for CGA/EGA emulation */
+'  As Uinteger Ptr Palette   '/* Current RGB set__color( values for each palette index */
+'  As Uinteger Ptr device_palette   '/* Current RGB set__color( values of visible device palette */
+'  As Byte Ptr color_association   '/* Palette set__color( index associations for CGA/EGA emulation */
 '  As Byte Ptr dirty               '/* Dirty lines buffer */
 '  As Any Ptr driver      '/* Gfx driver in use */
 '  As Integer w
 '  As Integer h         '/* Current mode width and height */
 '  As Integer depth      '/* Current mode depth */
-'  As Integer color_mask      '/* set_color( bit mask for colordepth emulation */
+'  As Integer color_mask      '/* set__color( bit mask for colordepth emulation */
 '  As Any Ptr default_palette   '/* Default palette for current mode */
 '  As Integer scanline_size   '/* Vertical size of a single scanline in pixels */
 '  As Uinteger fg_color
@@ -954,6 +1009,9 @@ End Property
 '7 mapsincredits
 '8 Pirate outpost
 
+dim shared talent_desc(29) as string
+    
+
 dim shared palette_(255) as uinteger
 
 dim shared apwaypoints(1024) as _cords
@@ -962,7 +1020,8 @@ dim shared currapwp as short
 dim shared apdiff as short
 
 dim shared talent_desig(29) as string
-dim shared evkey as EVENT
+dim shared evkey as event
+'dim shared video as SDL_Surface ptr
 dim shared reward(9) as single
 dim shared ano_money as short
 
@@ -1068,7 +1127,8 @@ dim shared shop_order(2) as short
 dim shared lastprobe as short
 dim shared probe(100) as _cords 'm=Item,
 
-dim shared as FB.IMAGE ptr TITLEFONT
+'dim shared as FB.image ptr TITLEFONT
+dim shared as any ptr TITLEFONT
 dim shared as any ptr FONT1,FONT2
 dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
 
@@ -1621,7 +1681,7 @@ declare function es_living(byref pmoney as single) as string
 using ext
 #ENDIF
 
-declare function set_color(fg as short,bg as short,vismask as byte=1) as short
+declare function set__color(fg as short,bg as short,vismask as byte=1) as short
 dim shared as uinteger _fgcolor_,_bgcolor_ 
 declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
 
@@ -1662,8 +1722,9 @@ declare function factionadd(a as short,b as short, add as short) as short
 #define RGBA_G( c ) ( CUInt( c ) Shr  8 And 255 )
 #define RGBA_B( c ) ( CUInt( c )        And 255 )
 
-function set_color(fg as short,bg as short,vismask as byte=1) as short
+function set__color(fg as short,bg as short,vismask as byte=1) as short
     dim as uinteger r,g,b
+    if fg>255 or bg>255 or fg<0 or bg<0 then return 0
     if vismask=1 then
         color palette_(fg),palette_(bg)
     else

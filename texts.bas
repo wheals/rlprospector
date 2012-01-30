@@ -26,6 +26,7 @@ end function
     
 function crew_bio(i as short) as string
     dim t as string
+    dim as short a
     dim as byte debug=0
     if crew(i).typ<=9 then
         t="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
@@ -59,13 +60,24 @@ function crew_bio(i as short) as string
         case 4 to 6
             t=t &" |Has a wife/husband on station "&crew(i).story(9)-3
         end select
+        
+        for a=1 to 25
+            if crew(i).talents(a)>0 then 
+                t=t &" | "
+                exit for
+            endif
+        next
+        
+        for a=1 to 25
+            if crew(i).talents(a)>0 then t=t &" |"&talent_desc(a) 
+        next
         if debug=1 then 
             if crew(i).story(10)=0 then 
             t=t & "W"
         else
             t=t &"M"
             endif
-            endif
+        endif
     endif
     return t
 end function
@@ -82,52 +94,52 @@ function alerts(awayteam as _monster) as short
         wg=1
         for a=1 to wg
             if _sound=0 or _sound=2 then    
-                #ifdef _windows
+                #ifdef _FMODSOUND
                 FSOUND_PlaySound(FSOUND_FREE, sound(1))                
                 #endif
             endif
         next
         walking=0
-        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+        if _sound=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
     if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
         dprint ("Oxygen low.",14)
         wg=2
         for a=1 to wg
             if _sound=0 or _sound=2 then
-                #ifdef _windows
+                #ifdef _FMODSOUND
                 FSOUND_PlaySound(FSOUND_FREE, sound(1))   
                 sleep 350
                 #endif
             endif
         next
         walking=0
-        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)       
+        if _sound=2 then no_key=keyin(" "&key__enter &key__esc)       
     endif
     if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
         dprint ("Switching to oxygen reserve!",12)
         wg=3
         for a=1 to wg
             if _sound=0 or _sound=2 then 
-                #ifdef _windows
+                #ifdef _FMODSOUND
                 FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
                 sleep 350
                 #endif
             endif
         next
         walking=0
-        if _sound=2 then no_key=keyin(" "&key_enter &key_esc)    
+        if _sound=2 then no_key=keyin(" "&key__enter &key__esc)    
     endif
     if awayteam.jpfuel<awayteam.jpfuelmax then
         if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
             wj=1
             for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    #ifdef _windows
+                    #ifdef _FMODSOUND
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                     sleep 350
                     #endif
-                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                    if _sound=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
             next  
             walking=0  
@@ -137,11 +149,11 @@ function alerts(awayteam as _monster) as short
             wj=2
             for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    #ifdef _windows
+                    #ifdef _FMODSOUND
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                     sleep 350
                     #endif
-                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                    if _sound=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
             next   
             walking=0 
@@ -152,11 +164,11 @@ function alerts(awayteam as _monster) as short
             wj=3
         for a=1 to wj
                 if _sound=0 or _sound=2 then    
-                    #ifdef _windows
+                    #ifdef _FMODSOUND
                     FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
                     sleep 350
                     #endif
-                    if _sound=2 then no_key=keyin(" "&key_enter &key_esc)
+                    if _sound=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
             next    
             dprint ("Switching to jetpack fuel reserve",12)
@@ -258,7 +270,7 @@ function low_morale_message() as short
                 case is=11
                     dprint "A fight breaks out over who is getting the most pay."
                 case is=12
-                    dprint "A fight breaks out over the set_color( of the ship's paint."
+                    dprint "A fight breaks out over the set__color( of the ship's paint."
                 case is=13
                     dprint "You catch " &crew(who).n &" drinking at " & hishersits & " post."
                 case is=14
@@ -497,7 +509,7 @@ function listartifacts() as string
     flagst(18)="Gunner AI"
     flagst(19)="Science AI"
     flagst(20)="Medical AI"
-    set_color( 15,0)
+    set__color( 15,0)
     for a=0 to 5
         if player.weapons(a).desig="Disintegrator" then sd+=1
     next
