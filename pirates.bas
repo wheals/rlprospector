@@ -49,16 +49,16 @@ function meet_fleet(f as short)as short
     
     lastturncalled=player.turn
     show_stars(1)
-    displayship
+    display_ship
     return 0
         
 end function
 
 function gen_fname(fname() as string,f as short) as short
     fname(1)="merchant convoy"
-    fname(2)="unidentified sensor blip"
+    fname(2)="pirate fleet"
     fname(3)="company patrol"
-    fname(4)="unidentified sensor blip"
+    fname(4)="pirate fleet"
     fname(5)="huge fast ship"
     fname(6)=civ(0).n &" fleet"
     fname(7)=civ(1).n &" fleet"
@@ -78,19 +78,19 @@ function join_fight(f as short) as short
     if f2<=6 then f2ty=8
     dprint "A " &fname(fty) &" and a "& fname(f2ty) &" are fighting here."
     q="On which side do you want to join the fight?/"& fname(fty) &f &":"&fty &"/" & fname(f2ty)  &f2 &":"&f2ty  & "/Cancel Attack"
-    des=menu(q) 
+    des=menu(q,"",0,18,1) 
     if des=3 or des=-1 then return 0
     if des=1 then 'aggr1=On PCs side
         faggr=1
         f2aggr=0
-        side=f
+        side=fty
     else
         faggr=0
         f2aggr=1
-        side=f2
+        side=f2ty
     endif
-    fname(0)=""
-    fname(1)=""
+'    fname(0)=""
+'    fname(1)=""
     for i=1 to 14
         if fleet(f).mem(i).hull>0 then fleet(f).mem(i).aggr=faggr
         if fleet(f2).mem(i).hull>0 then fleet(f2).mem(i).aggr=f2aggr
@@ -185,13 +185,14 @@ function playerfightfleet(f as short) as short
 end function
         
 
-function fleet_battle(red as _fleet,blue as _fleet) as short
+function fleet_battle(byref red as _fleet,byref blue as _fleet) as short
     dim as integer rscore,bscore
-    dim as short i,f,t,j
+    dim as short i,f,t,j,debug
+    debug=1
     'for tomorrow: Only one side shoots, collide fleets calls both alternately
     for i=1 to 15
-        if red.mem(i).hull>0 then
-            rscore=rscore+red.mem(i).hull
+        if red.mem(i).hull>0 and rnd_range(1,6)>4 then 'exits and has Initiative
+            rscore+=1
             for f=1 to 25
                 if red.mem(i).weapons(f).dam>0 and rnd_range(1,6)+rnd_range(1,6)+red.mem(i).gunner(0)>9 then
                     t=getship(blue)
@@ -202,9 +203,10 @@ function fleet_battle(red as _fleet,blue as _fleet) as short
             next
         endif
     next
-    for i=1 to 14
+    for i=1 to 15
         if blue.mem(i).hull>0 then bscore+=1
     next
+    if debug=1 then dprint rscore &":"& bscore
     if bscore>0 then return 0
     return -1
 end function
@@ -340,14 +342,14 @@ function collide_fleets() as short
     for f1=1 to lastfleet
         for f2=1 to lastfleet
             if f1<>f2 and distance(fleet(f1).c,fleet(f2).c)<2 and fleet(f1).ty<>fleet(f2).ty then
-                if fleet(f1).fighting<>0 then
+                if fleet(f1).fighting<>0 then 'They already are in battle
                     if fleet_battle(fleet(f1),fleet(fleet(f1).fighting))=-1 then
                         'F1 has won
-                        resolve_fight(f2)
+                        resolve_fight(fleet(f1).fighting)
                         fleet(f1).fighting=0
                     endif
                 else
-                    decide_fight(f1,f2)
+                    decide_if_fight(f1,f2)
                 endif
             endif
         next
@@ -358,8 +360,8 @@ end function
 
 function resolve_fight(f2 as short) as short
     if f2<5 then
-        basis(f2-1).c.x=-1 'Destroy station by moving it off the map
-        fleet(f2).ty=0
+        basis(f2-1).c.x=-1 'Destroy station f2-1 by moving it off the map
+        fleet(f2).ty=0 'Delete fleet for basis f2-1
     endif
     
     if rnd_range(1,100)<5 and lastdrifting<128 then 'Add drifting debris
@@ -370,13 +372,13 @@ function resolve_fight(f2 as short) as short
             drifting(lastdrifting).y=fleet(f2).c.y
             drifting(lastdrifting).s=rnd_range(1,16)
             drifting(lastdrifting).m=lastplanet
-            makedrifter(drifting(lastdrifting))
+            make_drifter(drifting(lastdrifting))
             planets(lastplanet).darkness=0
             planets(lastplanet).depth=1
             planets(lastplanet).atmos=4
             planets(lastplanet).mon_template(1)=makemonster(32,lastplanet)
             planets(lastplanet).mon_template(2)=makemonster(33,lastplanet)
-            planets(lastplanet).flavortext="No hum from the engines is heard as you enter the " &shiptypes(drifting(lastdrifting).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
+            planets_flavortext(lastplanet)="No hum from the engines is heard as you enter the " &shiptypes(drifting(lastdrifting).s)&". Emergency lighting bathes the corridors in red light, and the air smells stale."
         
         endif
     endif
@@ -385,7 +387,7 @@ function resolve_fight(f2 as short) as short
     return 0
 end function
 
-function decide_fight(f1 as short,f2 as short) as short
+function decide_if_fight(f1 as short,f2 as short) as short
     'Decides if f1 and f2 should start a fight
     dim as byte fighting,aggr1,aggr2 ,debug
     
@@ -412,19 +414,23 @@ function decide_fight(f1 as short,f2 as short) as short
     if fleet(f1).ty=5 or fleet(f2).ty=5 then fighting=1
     
     if fighting=1 then
-        if debug=1 then dprint "figt initiated between " &fleet(f1).ty &" and "&fleet(f2).ty
+        if debug=1 then dprint "fight initiated between " &fleet(f1).ty &" and "&fleet(f2).ty
         fleet(f1).fighting=f2
         fleet(f2).fighting=f1
+        if f1<3 then basis(f1).lastfight=f2
+        if f2<3 then basis(f1).lastfight=f1
     endif
     return 0
 end function
 
 function ss_sighting(i as short) as short
     dim as string text,text2,text3
-    dim as short fn,a,s 
+    dim as short fn,fn2,a,s,c
     dim as _cords p
     if basis(i).lastsighting=0 then return 0
     fn=basis(i).lastsighting
+    fn2=basis(i).lastfight
+    c=11
     if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
         if basis(i).lastsightingturn-player.turn<25 then
             text ="There are some rumors about"
@@ -465,10 +471,29 @@ function ss_sighting(i as short) as short
         text3="There is some damage from a fight being repaired."
     endif
     if fleet(i).mem(1).hull<33 then
+        c=c_yel
         text3="There is some heavy damage from a fight being repaired."
     endif
     if fleet(i).mem(1).hull<11 then
+        c=c_red
         text3="The station is heavily damaged, barely operational."
+    endif
+    if fleet(i).mem(1).hull<66 then
+        select case fleet(fn2).ty
+            case is=2
+                text3=text3 &" Word on the station is pirates have attacked!"
+            case is=4
+                text3=text3 &" Word on the station is the pirate ship "& fleet(fn).mem(1).desig &" attacked!"
+            case is=5
+                text3=text3 &" Word on the station is that a single, huge ship, with powerful weapons attacked!"
+            case 6,7
+                s=fleet(fn).ty-6
+                if civ(s).contact=1 then
+                    text3=text3 &" Word on the station is " &civ(s).n &" ships have attacked."
+                else
+                    text3=text3 &" Word on the station is an unknown civilisation has attacked."
+                endif
+        end select
     endif
     if rnd_range(1,100)>alienattacks and player.questflag(3)=0 then
         if alienattacks>5 then text2=" You hear a rumor about disappearing scout ships." 
@@ -488,11 +513,11 @@ function ss_sighting(i as short) as short
         endif
     endif
     'text=text & fn &"typ:"&fleet(fn).ty
-    if text<>"" or text3<>"" or text2<>"" then dprint trim(text3 &text &text2)
+    if text<>"" or text3<>"" or text2<>"" then dprint trim(text3 &text &text2),c
     return 0
 end function
     
-function movefleets() as short
+function move_fleets() as short
     dim as short a,b,c,roll,direction,freecargo,s
     a=0
     if lastfleet>255 then lastfleet=255
@@ -528,6 +553,7 @@ function movefleets() as short
                 direction=5
             endif
             fleet(a).c=movepoint(fleet(a).c,direction,,1)
+            fleet(a).fuel+=1
             if fleet(a).ty=10 then
                 if spacemap(fleet(a).c.x,fleet(a).c.y)<0 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
                 if spacemap(fleet(a).c.x,fleet(a).c.y)>1 and rnd_range(1,100)<10 then spacemap(fleet(a).c.x,fleet(a).c.y)=0
@@ -554,8 +580,9 @@ function movefleets() as short
             endif
             
             for s=0 to 2
-                if fleet(a).ty=1 then
-                    if fleet(a).c.x=basis(s).c.x and fleet(a).c.x=basis(s).c.x then merctrade(fleet(a))
+                
+                if fleet(a).ty=1 or fleet(a).ty=3 then
+                    if fleet(a).c.x=basis(s).c.x and fleet(a).c.y=basis(s).c.y then merctrade(fleet(a))
                 endif
                 if fleet(a).ty<>3 and fleet(a).ty<>1 then 'No Merchant or Patrol
                     if distance(fleet(a).c,basis(s).c)<12 then
@@ -571,6 +598,8 @@ function movefleets() as short
                     endif
                 endif
             next
+            
+            
         endif
         endif
     next
@@ -579,7 +608,7 @@ end function
 
 function makefleet(f as _fleet) as _fleet
     dim as short roll,i,e,debug
-    debug=0
+    
     roll=rnd_range(1,6)
     if (countfleet(1)<countfleet(2) or faction(0).war(1)>faction(0).war(2)) or debug=1 then 
         f=makemerchantfleet
@@ -598,7 +627,7 @@ function makefleet(f as _fleet) as _fleet
     endif
     e=999
     for i=1 to 15
-        if f.mem(i).engine/f.mem(i).hull<e then e=f.mem(i).engine/f.mem(i).hull
+        if f.mem(i).movepoints(0)<e and f.mem(i).movepoints(0)>0 then e=f.mem(i).movepoints(0)
     next
     f.mem(0).engine=e
     if f.mem(0).engine<1 then f.mem(0).engine=1
@@ -614,7 +643,8 @@ function makequestfleet(a as short) as _fleet
         c+=1
     loop until piratebase(b)>0 or c>50
     if piratebase(b)<0 then
-        p1=rnd_point
+        p1.x=rnd_range(0,sm_x)
+        p1.y=rnd_range(0,sm_y)
     else
         p1=map(piratebase(b)).c
     endif
@@ -1185,7 +1215,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
         enemy.sdesc=ti(g)
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
+        enemy=randomcritterdescription(enemy,g,enemy.hp/planets(map).grav,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
         if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,1,planets(map).depth)
         if rnd_range(1,15)<planets(map).depth then
             enemy.breedson=rnd_range(0,5+planets(map).depth)
@@ -1683,7 +1713,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
-        if a=88 then enemy.lang=34
+        if a=88 then 
+            enemy.faction=10
+            enemy.allied=0
+            enemy.aggr=1
+            enemy.lang=34
+        endif
     endif
     
     if a=15 then
@@ -4192,17 +4227,15 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
-        enemy.faction=1
         enemy.items(1)=97
         enemy.itemch(1)=115
         enemy.items(2)=98
         enemy.itemch(2)=115
-        
+        enemy.faction=10
     endif
     
     if a=99 then 'Citizen
         enemy.ti_no=1086
-        enemy.faction=1
         enemy.intel=5 'Should make them not ally with the guards
         enemy.sdesc="scientist"
         enemy.ldesc="a busy looking scientist"
@@ -4223,8 +4256,34 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stuff(1)=0
         enemy.col=39
         enemy.aggr=1
+        enemy.faction=10
     endif
     
+    
+    if a=100 then 'Citizen
+        enemy.ti_no=1086
+        enemy.faction=1
+        enemy.intel=5 'Should make them not ally with the guards
+        enemy.sdesc="scientist"
+        enemy.ldesc="a busy looking scientist"
+        enemy.lang=37
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.cmmod=7
+        enemy.move=0.8
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.range=1.5
+        enemy.atcost=rnd_range(6,12)/10
+        enemy.hasoxy=1
+        enemy.tile=Asc("H")
+        enemy.sprite=286
+        enemy.hpmax=3
+        enemy.hp=3
+        enemy.stuff(1)=0
+        enemy.col=39
+        enemy.aggr=1
+    endif
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     
@@ -4292,7 +4351,7 @@ end function
 function makeship(a as short) as _ship
 dim p as _ship
 dim as short c,b
-
+    p.loadout=one_to_five(a)
     if a=1 then
         'players ship    
         'retirementassets(9)=1
@@ -4311,8 +4370,8 @@ dim as short c,b
         p.fuelmax=100
         p.fueluse=1
         p.money=Startingmoney
-        
-        p.engine=1
+        p.loadout=0
+        p.engine=6
         p.weapons(1)=makeweapon(1)
         p.lastvisit.s=-1
     endif
@@ -4423,6 +4482,7 @@ dim as short c,b
         p.cargo(4).x=1
         p.turnrate=1
     endif
+    
     if a=6 then
         c=rnd_range(1,10)
         p.turnrate=1

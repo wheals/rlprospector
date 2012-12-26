@@ -3,20 +3,20 @@ function show_standing() as short
     dim stscore(7) as string
     dim as short a,debug
     
-    scale(0)="Excellent"
-    scale(1)="Friendly"
-    scale(2)="Neutral"
-    scale(3)="Hostile"
-    scale(4)="Very hostile"
-    scale(5)="War"
+    scale(0)=" {10}Excellent{11}"
+    scale(1)=" {10}Friendly{11}"
+    scale(2)=" {14}Neutral{11}"
+    scale(3)=" {12}Hostile{11}"
+    scale(4)=" {12}Very hostile{11}"
+    scale(5)=" {12}War{11}"
     for a=1 to 7
         stscore(a)=scale(faction(0).war(a)/20)
         if debug=1 then stscore(a)=stscore(a) '& faction(0).war(a)/20 &"-"&faction(0).war(a)
     next
-    scale(6)="Faction standing: \ Companies:"&stscore(1) &" \ Pirates:"&stscore(2) 
-    if civ(0).contact>0 then scale(6)=scale(6) &" \ "&civ(0).n & stscore(6)
-    if civ(1).contact>0 then scale(6)=scale(6) &" \ "&civ(1).n & stscore(7)
-    textbox(scale(6),2,2,30)
+    scale(6)="{15}Faction standing:{11} | Companies:"&stscore(1) &" | Pirates:"&stscore(2) 
+    if civ(0).contact>0 then scale(6)=scale(6) &" | "&civ(0).n & stscore(6)
+    if civ(1).contact>0 then scale(6)=scale(6) &" | "&civ(1).n & stscore(7)
+    textbox(scale(6),2,2,30.1)
     no_key=keyin()
     return 0
 end function
@@ -33,7 +33,7 @@ function logbook() as short
     static as short curs
     dim as short x,y,a,b,p,m,lx,ly,dlx,diff,i,last,ll,debug
     dim as string key,lobk1,lobk2
-    debug=0
+    
     ll=fix(20*_fh1/_fh2)
     last=lb_listmake(lobk(),lobn(),lobc(),lobp())
     for a=1 to last       'tests all lobn for special planets, system comments and planets comments for coloring bg
@@ -107,7 +107,7 @@ function logbook() as short
             if lobn(curs)>laststar then show_wormholemap(lobn(curs))
             if lobn(curs)<=laststar then
                 if map(lobn(curs)).discovered>1 then
-                    displaysystem(lobn(curs),1)
+                    display_system(lobn(curs),1)
                 else
                     dprint trim(map(lobn(curs)).desig)&": only long range data."
                 endif
@@ -155,7 +155,7 @@ function logbook() as short
                             if planets(m).comment<>"" then dprint planets(m).comment
                             if planetmap(0,0,m)=0 then
                                 cls
-                                displayship(1)
+                                display_ship(1)
                                 set__color( 15,0)
                                 draw string (15*_fw1,10*_fh1),"No map data for this planet.",,Font2,custom,@_col
                                 no_key=keyin
@@ -163,7 +163,7 @@ function logbook() as short
                                 cls
                                 do
                                     dplanet(planets(m),p,planets(m).mapped)
-                                    displayplanetmap(m,0,1)
+                                    display_planetmap(m,0,1)
                                     no_key=keyin(key_comment &key_report &key__esc)
                                     if no_key=key_comment then
                                         dprint "Enter comment on planet"
@@ -216,7 +216,7 @@ end function
 function ap_astar(start as _cords,ende as _cords,diff as short) as short
     dim map(sm_x,sm_y) as short
     dim as short x,y,debug
-    debug=0
+    
     if debug=2 then dprint ""&diff
     for x=0 to sm_x 
         for y=0 to sm_y
@@ -322,7 +322,7 @@ end function
 
 function show_minimap(xx as short,yy as short) as short
     dim as short a,x1,y1,x,y,osx,osy,n,bg,wid,px,py,debug,f
-    debug=0
+    
     x1=xx
     y1=yy
     wid=fix(20*_fw2/_fw1)
@@ -339,7 +339,7 @@ function show_minimap(xx as short,yy as short) as short
             if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
                 if spacemap(x,y)>=2 and  spacemap(x,y)<=5 then 
                     if _tiles=0 then
-                        put ((x+osx)*_fw1+px,(y+osy)*_fh1),gtiles(abs(spacemap(x,y))+49),pset
+                        put ((x+osx)*_fw1+px,(y+osy)*_fh1),gtiles(abs(spacemap(x,y))+49),trans
                     else                        
                         set__color( rnd_range(48,59),1)
                         'if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(48,59),1
@@ -414,7 +414,7 @@ function show_minimap(xx as short,yy as short) as short
                     x=x+osx
                     y=y+osy
                     if _tiles=0 then
-                        put (x*_tix+px,y*_tiy),stiles(drifting(a).g_tile.x,drifting(a).g_tile.y),pset
+                        put (x*_tix+px,y*_tiy),stiles(drifting(a).g_tile.x,drifting(a).g_tile.y),trans
                     else
                         draw string (x*_fw1+px,y*_fh1+py),"s",,Font1,custom,@_col
                     endif                
@@ -432,7 +432,7 @@ function show_minimap(xx as short,yy as short) as short
                 if _tiles=1 then
                     draw string (x*_fw1+px,y*_fh1),"S",,Font1,custom,@_col
                 else
-                    put (x*_tix+px,y*_tiy),gtiles(44),pset
+                    put (x*_tix+px,y*_tiy),gtiles(44),trans
                 endif
             endif
         endif
@@ -455,7 +455,7 @@ function show_wormholemap(j as short=0) as short
     dim as short px,py,i,debug
     px=_screenx-2-sm_x*2
     py=11*_fh1+_fh2+2
-    debug=0
+    
     if j>0 then
         if debug=1 then map(j).planets(2)=1
         if map(j).planets(2)=1 then

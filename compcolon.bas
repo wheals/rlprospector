@@ -1,7 +1,7 @@
 function colonize_planet(st as short) as short
     dim as short planet,debug,d
     dim as _cords p
-    debug=0
+    
     planet=get_com_colon_candidate(st)
     if planet>0 and score_planet(planet,st)+rnd_range(1,100)>500 then
         planets(planet).colflag(0)=basis(st).company

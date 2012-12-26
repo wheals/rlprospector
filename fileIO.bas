@@ -14,6 +14,42 @@ function count_lines(file as string) as short
     return n
 end function
 
+function character_name(byref gender as byte) as string
+    dim as string n,fn(200),ln(200),st
+    dim as short f,lastfn,lastln,fnn,lnn
+    f=freefile
+    open "data/crewnames.txt" for input as #f
+    do
+        ln(lastln)=st
+        lastln+=1
+        line input #f,st
+    loop until st="####"
+    st=""
+    do
+        fn(lastfn)=st
+        lastfn+=1
+        line input #f,st
+    loop until eof(f)
+    st=""
+    close #f
+    lastfn-=1
+    lastln-=1
+    lnn=rnd_range(1,lastln)
+    fnn=rnd_range(1,lastfn)
+    if rnd_range(1,100)<80 then
+        n=fn(fnn) &" "&ln(lnn)
+    else
+        n=fn(fnn) &" "&CHR(rnd_range(65,87))&". " &ln(lnn)
+    endif
+    if fnn<=23 then 
+        gender=0 'Female
+    else
+        gender=1 'Male
+    endif
+    return n
+end function
+
+
 function gethullspecs(t as short,file as string) as _ship
     dim as short f,a,b
     dim as string word(11)
@@ -116,7 +152,7 @@ end function
 function load_palette() as short
     dim as short f,i,j,k,debug
     dim as string l,w(3)
-    debug=0
+    
     f=freefile
     open "p.pal" for input as #f
     line input #f,l
@@ -377,7 +413,7 @@ end function
 
 function loadfonts() as short
     dim as short a,debug,f
-    debug=0
+    
     if debug=1 then
         f=freefile
         open "fontlog.txt" for append as #f
@@ -460,7 +496,7 @@ function loadfonts() as short
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
-    screenres _screenx,_screeny,16,2,GFX_WINDOWED
+    screenres _screenx,_screeny,16,2
     
     if debug=1 then 
         print #f,"reset screen size"
@@ -493,7 +529,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
           i=i+1
         Loop
         Close ff
-        Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet	'Twischenpuffer in Font kopieren
+        Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet	'Zwischenpuffer in Font kopieren
       End If
       ImageDestroy (img)	'Zwischenpuffer löschen
     else
@@ -534,7 +570,7 @@ function load_tiles() as short
         next
         draw string (24*9,y),""&sy
     next
-    
+
     cls
     bload "graphics/ships3.bmp"
     for y=0 to _tiy*16 step _tiy
@@ -547,8 +583,8 @@ function load_tiles() as short
         next
         draw string (24*10,y),""&sy
     next
-    
-    
+
+
     a=1
     n=1
     cls
@@ -558,7 +594,7 @@ function load_tiles() as short
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
             gt_no(n)=a
-            a+=1 
+            a+=1
             n+=1
         next
     next
@@ -570,7 +606,7 @@ function load_tiles() as short
         gtiles(a)=imagecreate(_tix,_tiy)
         get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
         gt_no(n)=a
-        a+=1 
+        a+=1
         n+=1
     next
     y=_tiy
@@ -578,10 +614,10 @@ function load_tiles() as short
         gtiles(a)=imagecreate(_tix,_tiy)
         get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
         gt_no(n)=a
-        a+=1 
+        a+=1
         n+=1
     next
-    
+
     n=101
     cls
     bload "graphics/land.bmp"
@@ -590,11 +626,11 @@ function load_tiles() as short
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
             gt_no(n)=a
-            a+=1 
-            n+=1 
+            a+=1
+            n+=1
         next
     next
-    
+
     n=750
     cls
     bload "graphics/critters3.bmp"
@@ -603,11 +639,11 @@ function load_tiles() as short
         gtiles(a)=imagecreate(_tix,_tiy)
         get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
         gt_no(n)=a
-        a+=1 
-        n+=1 
+        a+=1
+        n+=1
     next
-    
-    
+
+
     n=800
     cls
     bload "graphics/critters2.bmp"
@@ -616,13 +652,13 @@ function load_tiles() as short
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
             gt_no(n)=a
-            a+=1 
-            n+=1 
+            a+=1
+            n+=1
         next
         draw string (x,y),""&n-1
     next
     if showtiles=1 then sleep
-    
+
     n=1000
     cls
     bload "graphics/critters.bmp"
@@ -631,8 +667,8 @@ function load_tiles() as short
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
             gt_no(n)=a
-            a+=1 
-            n+=1 
+            a+=1
+            n+=1
         next
     next
     n=2001
@@ -643,11 +679,11 @@ function load_tiles() as short
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
             gt_no(n)=a
-            a+=1 
-            n+=1 
+            a+=1
+            n+=1
         next
     next
-    
+
     n=3001
     cls
     bload "graphics/portals.bmp"
@@ -656,10 +692,10 @@ function load_tiles() as short
         gtiles(a)=imagecreate(_tix,_tiy)
         get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
         gt_no(n)=a
-        a+=1 
-        n+=1 
+        a+=1
+        n+=1
     next
-    
+
     bload "graphics/missing.bmp"
     gtiles(2048)=imagecreate(_tix,_tiy)
     get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
@@ -668,6 +704,367 @@ function load_tiles() as short
     return 0
 end function
 
+
+'function load_tiles() as short
+'    dim as short x,y,a,n,sx,sy,showtiles
+'    dim as any ptr img,img2
+'    showtiles=0
+'    for a=0 to 4096
+'        gt_no(a)=2048
+'    next
+'    cls
+'    img=bmp_load( "graphics/ships.bmp")
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get img,(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*9,y),""&sy
+'    next
+'    imagedestroy(img)
+'    cls
+'    img=bmp_load( "graphics/ships2.bmp")
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get img,(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*9,y),""&sy
+'    next
+'    imagedestroy(img)
+'    
+'    
+'    cls
+'    img=bmp_load( "graphics/ships3.bmp")
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get img,(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*10,y),""&sy
+'    next
+'    imagedestroy(img)
+'    
+'    
+'    a=1
+'    n=1
+'    cls
+'    bload("graphics/space.bmp")
+'        
+'    for y=0 to _tiy*6 step _tiy
+'        for x=0 to _tix*15 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1
+'        next
+'    next
+'    
+'    n=75
+'    cls
+'    bload "graphics/weapons.bmp"
+'    y=0
+'    for x=0 to _tix*2 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1
+'    next
+'    y=_tiy
+'    for x=0 to _tix*8 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1
+'    next
+'    
+'    n=101
+'    imagedestroy(img)
+'    img=0
+'    cls
+'    img=bmp_load( "graphics/land.bmp")
+'    for y=0 to _tiy*16 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get img,(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    
+'    n=750
+'    cls
+'    bload "graphics/critters3.bmp"
+'    for y=0 to _tiy*10 step _tiy
+'        x=0
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1 
+'    next
+'    
+'    
+'    n=800
+'    cls
+'    bload "graphics/critters2.bmp"
+'    for y=0 to _tiy*10 step _tiy
+'        for x=0 to _tix*12 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'        draw string (x,y),""&n-1
+'    next
+'    if showtiles=1 then sleep
+'    
+'    n=1000
+'    cls
+'    bload "graphics/critters.bmp"
+'    for y=0 to _tiy*4 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    n=2001
+'    cls
+'    bload "graphics/items.bmp"
+'    for y=0 to _tiy*5 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    
+'    n=3001
+'    cls
+'    bload "graphics/portals.bmp"
+'    y=0
+'    for x=0 to _tix*8 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1 
+'    next
+'    
+'    bload "graphics/missing.bmp"
+'    gtiles(2048)=imagecreate(_tix,_tiy)
+'    get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
+'    cls
+'    print "loaded "& a &" sprites."
+'    return 0
+'end function
+'
+'
+'
+'function load_tiles() as short
+'    dim as short x,y,a,n,sx,sy,showtiles
+'    dim image(12) as any ptr
+'    showtiles=0
+'    for a=0 to 4096
+'        gt_no(a)=2048
+'    next
+'    print "Loading sprites .";
+'    image(0)=bmp_load( "graphics/ships.bmp")
+'    image(1)=bmp_load( "graphics/ships2.bmp")
+'    image(2)=bmp_load( "graphics/ships3.bmp")
+'    image(3)=bmp_load( "graphics/space.bmp")
+'    
+'    put (0,0),image(3) 
+'    sleep
+'    
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get image(0),(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*9,y),""&sy
+'    next
+'    print ".";
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get image(1),(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*9,y),""&sy
+'    next
+'    
+'    print ".";
+'    for y=0 to _tiy*16 step _tiy
+'        sx=1
+'        sy+=1
+'        for x=0 to _tix*8 step _tix
+'            stiles(sx,sy)=imagecreate(_tix,_tiy)
+'            get image(2),(x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+'            sx+=1
+'        next
+'        draw string (24*10,y),""&sy
+'    next
+'    
+'    
+'    n=75
+'    print ".";
+'    image(4)=bmp_load( "graphics/weapons.bmp")
+'    y=0
+'    for x=0 to _tix*2 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get image(4),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1
+'    next
+'    y=_tiy
+'    for x=0 to _tix*8 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get image(4),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1
+'    next
+'    
+'    
+'    a=1
+'    n=1
+'    print ".";
+'    for y=0 to _tiy*6 step _tiy
+'        for x=0 to _tix*15 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(3),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1
+'        next
+'    next
+'    n=101
+'    print ".";
+'    image(5)=bmp_load( "graphics/land.bmp")
+'    for y=0 to _tiy*16 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(5),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    
+'    n=750
+'    print ".";
+'    image(6)=bmp_load( "graphics/critters3.bmp")
+'    for y=0 to _tiy*10 step _tiy
+'        x=0
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get image(6),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1 
+'    next
+'    
+'    
+'    n=800
+'    print ".";
+'    image(7)=bmp_load( "graphics/critters2.bmp")
+'    for y=0 to _tiy*10 step _tiy
+'        for x=0 to _tix*12 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(7),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'        draw string (x,y),""&n-1
+'    next
+'    if showtiles=1 then sleep
+'    
+'    n=1000
+'    print ".";
+'    image(8)=bmp_load( "graphics/critters.bmp")
+'    for y=0 to _tiy*4 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(8),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    
+'    print ".";
+'    image(9)=bmp_load( "graphics/planetmap.bmp")
+'    
+'    n=1500
+'    for y=0 to _tiy*3 step _tiy
+'        for x=0 to _tix*11 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(9),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    n=2001
+'    print ".";
+'    image(10)=bmp_load( "graphics/items.bmp")
+'    for y=0 to _tiy*5 step _tiy
+'        for x=0 to _tix*19 step _tix
+'            gtiles(a)=imagecreate(_tix,_tiy)
+'            get image(10),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'            gt_no(n)=a
+'            a+=1 
+'            n+=1 
+'        next
+'    next
+'    
+'    n=3001
+'    print ".";
+'    image(11)=bmp_load( "graphics/portals.bmp")
+'    y=0
+'    for x=0 to _tix*8 step _tix
+'        gtiles(a)=imagecreate(_tix,_tiy)
+'        get image(11),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+'        gt_no(n)=a
+'        a+=1 
+'        n+=1 
+'    next
+'    
+'    image(12)=bmp_load( "graphics/missing.bmp")
+'    gtiles(2048)=imagecreate(_tix,_tiy)
+'    get image(12),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
+'    print ".";
+'    print " loaded "& a &" sprites."
+'    sleep
+'    return 0
+'end function
+'
 function randomname() as string
     dim f as integer
     dim d as integer
@@ -903,6 +1300,44 @@ function numfromstr(t as string) as short
     return val(t2)
 end function
 
+function load_dialog_quests() as short
+    dim as short f,i,j,g
+    dim as string l,w(3)
+    
+    f=freefile
+    open "data/dialogquests.csv" for input as #f
+    do
+        i+=1
+        for j=0 to 2
+            for g=0 to 2
+                w(g)=""
+            next
+            line input #f,l
+            string_towords(w(),l,";")
+        
+            questguydialog(i,j,Q_WANT)=w(1)
+            questguydialog(i,j,Q_HAS)=w(2)
+        next
+        
+    loop until eof(f)
+    
+    close #f
+    f=freefile
+    open "data/dialogquests2.csv" for input as #f
+    i=0
+    do
+        w(0)=""
+        w(1)=""
+        line input #f,l
+        string_towords(w(),l,";")
+        i+=1
+        questguyquestion(i,Q_WANT)=w(0)
+        questguyquestion(i,Q_HAS)=w(1)
+    loop until eof(f)
+    close #f
+    return 0
+end function
+
 
 function load_dialog(fn as string, n() as _dialognode) as short
     dim as short f,i,j,g,node,answer
@@ -942,7 +1377,7 @@ end function
 
 function string_towords(word() as string, s as string, break as string, punct as short=0) as short
     dim as short i,a,debug
-    debug=0
+    
     for a=1 to len(s)
         if mid(s,a,1)=break then
             if debug=1 then dprint word(i)
@@ -1081,6 +1516,11 @@ function loadconfig() as short
                 if instr(text,"warningdam")>0 then
                     if instr(text,"0")>0 or instr(text,"on") then _damscream=0
                     if instr(text,"1")>0 or instr(text,"of") then _damscream=1
+                endif
+                
+                if instr(text,"sysmapt")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then _sysmapt=0
+                    if instr(text,"1")>0 or instr(text,"of") then _sysmapt=1
                 endif
                 
             endif                
@@ -1421,7 +1861,7 @@ function getfilename() as string
     dim c as short
     dim n(10) as string
     dim d as string*36
-    dim datestring as string*10
+    dim datestring as string*12
     dim text as string
     dim f as integer
     dim i as integer
@@ -1538,7 +1978,7 @@ function loadbones() as short
         close #f
         planets(m)=pl
         planets(m).visited=_debug_bones
-        planets(m).flavortext="You get a wierd sense of deja vu from this place."
+        planets_flavortext(m)="You get a wierd sense of deja vu from this place."
         kill "bones/"&s
     endif
     return 0
@@ -1667,7 +2107,7 @@ function savegame() as short
     next
     
     for a=0 to 20
-        for b=0 to 21
+        for b=0 to 29
             put #f,,shopitem(a,b)
         next
         print ".";
@@ -1746,7 +2186,7 @@ function savegame() as short
         put #f,,flag(a)
     next
     
-    for a=0 to 20
+    for a=0 to lastartifact
         put #f,,artflag(a)
     next
     print ".";
@@ -1777,6 +2217,13 @@ function savegame() as short
             next
         next
     next
+    
+    for a=0 to lastquestguy
+        put #f,,questguy(a)
+    next
+    
+    put #f,,foundsomething
+    
     close f
     
     set__color( 14,0)
@@ -1897,7 +2344,7 @@ function loadgame(filename as string) as short
         
                     
         for a=0 to 20
-            for b=0 to 21
+            for b=0 to 29
                 get #f,,shopitem(a,b)
             next
             print ".";
@@ -1971,7 +2418,7 @@ function loadgame(filename as string) as short
             get #f,,flag(a)
         next
         
-        for a=0 to 20
+        for a=0 to lastartifact
             get #f,,artflag(a)
         next
         print ".";
@@ -2002,6 +2449,13 @@ function loadgame(filename as string) as short
                 next
             next
         next
+        
+            
+        for a=0 to lastquestguy
+            get #f,,questguy(a)
+        next
+        
+        get #f,,foundsomething
         
         close f
         if fname<>"savegames/empty.sav" and _savescumming=1 then kill(fname)

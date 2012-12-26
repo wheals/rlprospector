@@ -1,5 +1,46 @@
+
+function urn(min as short, max as short,mult as short,bonus as short) as short 
+    'Returns a random number between min and max, chances increase by mult per increase towards min 
+    dim as short values(1024),v,j,i,r 
+    v=min
+    
+    while v<=max
+        i=0
+        for i=1 to v*mult
+            if j<=1024 then j+=1
+            values(j)=1+max-v
+        next
+        v+=1
+    wend
+    r=rnd_range(1,j)+bonus
+    if r<1 then r=1
+    if r>j then r=j
+    return values(r)
+end function
+
+
 declare function fixstarmap() as short
 
+function one_to_five(m as short) as short
+    dim as short r
+    r=rnd_range(1,100)+m
+    if r<0 then r=0
+    if r>100 then r=100
+    
+    select case r
+    case is<=50
+        return 1
+    case 51 to 75
+        return 2
+    case 76 to 89
+        return 3
+    case 90 to 96
+        return 4
+    case else
+        return 5
+    end select
+end function
+    
 function C_to_F(c as single) as single
     return round_nr(c*1.8+32,1)
 end function
@@ -11,10 +52,22 @@ function round_nr(i as single,c as short) as single
     return i
 end function
 
-function find_high(list() as short,last as short) as short
+function find_high(list() as short,last as short, start as short=1) as short
     dim as short i,m,r
     for i=1 to last
         if list(i)>m then
+            r=i
+            m=list(i)
+        endif
+    next
+    return r
+end function
+
+function find_low(list() as short,last as short,start as short=1) as short
+    dim as short i,m,r
+    m=32767
+    for i=start to last
+        if list(i)<m then
             r=i
             m=list(i)
         endif
@@ -119,11 +172,11 @@ function fixstarmap() as short
     return 0
 end function
 
-function nearestbase(c as _cords) as short
+function nearest_base(c as _cords) as short
     dim r as single
     dim a as short
     dim b as short
-    r=65
+    r=650
     for a=0 to 2
         if distance(c,basis(a).c)<r then 
             r=distance(c,basis(a).c)
@@ -566,7 +619,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     Dim As Integer x, xinc1, xinc2
     Dim As Integer y, yinc1, yinc2
     dim debug as short
-    debug=0
+    
     osx=b.x-_mwx/2
     if rollover=0 then
         if osx<0 then osx=0
@@ -800,12 +853,10 @@ function fill_rect(r as _rect,wall as short, floor as short,map() as short) as s
     return 0
 end function
 
-function rnd_point(m as short=-1,w as short=-1,t as short=0)as _cords
+function rnd_point(m as short=-1,w as short=-1,t as short=-1)as _cords
     dim p(1281) as _cords
     dim as short last,x,y,a,debug
-    debug=0
-    'if debug=1 then dprint "M:"&m &"W:"&w &"T:"&t
-    if m>0 and w>=0 then
+   if m>0 and w>=0 then
         for x=0 to 60
             for y=0 to 20
                 if tiles(abs(planetmap(x,y,m))).walktru=w then
@@ -817,7 +868,7 @@ function rnd_point(m as short=-1,w as short=-1,t as short=0)as _cords
         next
         if a>0 then return p(rnd_range(0,a-1))
     endif
-    if m>0 and t>0 and w=0 then
+    if m>0 and t>0 and w=-1 then
         if debug=1 then dprint "Looking for tile "&t
         for x=0 to 60
             for y=0 to 20

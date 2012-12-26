@@ -1,113 +1,886 @@
-
-function alienname(flag as short) as string
-    dim as string n,vokal,cons
-    dim as short a,b,f2,i,f
-    dim as string txt(2000)
-    if flag=1 then
-        for a=1 to 2
-            if len(n)>0 then n=n &"-"
-            do
-                vokal=CHR(rnd_range(65,90))
-            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
-            do
-                cons=CHR(rnd_range(65,90))
-            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
-            n=n &cons
-            if flag=2 then n=n &"l"
-            for b=1 to rnd_range(1,5)
-                n=n &lcase(vokal)
-            next
-        next
-    endif
-    if flag=2 then
-        for a=1 to 2
-            do
-                vokal=CHR(rnd_range(65,90))
-            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
-            do
-                cons=CHR(rnd_range(65,90))
-            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
-            if len(n)>1 then 
-                n=n &lcase(cons)
+function questguy_newloc(i as short) as short
+    dim as short j,noperstation(2),s1,s2,s3,debug
+    for j=1 to lastquestguy
+        if questguy(j).location>=0 then' Is on a big station
+            noperstation(questguy(j).location)+=1
+        endif
+    next
+    if debug=1 then dprint "Newloc called:" & noperstation(0) &":"& noperstation(1) &":" &noperstation(2)
+    s1=find_high(noperstation(),2,0)
+    s3=find_low(noperstation(),2,0)
+    s2=3-s1-s3's2 is the one that isn't s1 or s3
+    if debug=1 then dprint s1 &":"& s2 &":"& s3
+    if questguy(i).location=-1 then
+        if rnd_range(1,100)<=50 then
+            questguy(i).location=s3
+        else
+            if rnd_range(1,100)<=50 then
+                questguy(i).location=s2
             else
-                n=n &cons 
+                questguy(i).location=s1
             endif
-            n=n &"l"
-            for b=1 to rnd_range(1,2)
-                n=n &lcase(vokal)
-            next
-        next
-        if rnd_range(1,100)<50 then n=n &lcase(cons)
-    endif
-    if flag=3 then
-        f2=freefile
-        open "data/syllables.txt" for input as #f2
-        while not eof(f2)
-            i+=1
-            line input #f2,txt(i)
-        wend
-        close f2
-        
-        for f=0 to rnd_range(1,3)
-            if rnd_range(1,100)<50 then
-                n=n & txt(rnd_range(1,i))
+        endif
+    else
+        if rnd_range(1,100)<=30 then
+            questguy(i).location=-1
+        else            
+            if rnd_range(1,100)<=50 then
+                questguy(i).location=s3
             else
-                n=n & left(txt(rnd_range(1,i)),2)
-            endif
-            if rnd_range(1,100)<10 then
-                if rnd_range(1,100)<50 then
-                    n=n &"'"
+                if rnd_range(1,100)<=50 then
+                    questguy(i).location=s2
                 else
-                    n=n &"-"
+                    questguy(i).location=s1
                 endif
             endif
-        next
-        n=left(n,1)&lcase(mid(n,2,len(n)))    
+        endif
     endif
-    return n
-end function 
+    for j=1 to lastquestguy
+        if questguy(i).location=questguy(j).location then 
+            if questguy(i).location<0 then
+                questguy(i).knows(j)=questguy(i).location
+            else
+                questguy(i).knows(j)=questguy(i).location+1
+            endif
+        endif
+    next
+    return 0
+end function
 
-function dodialog(no as short,e as _monster, fl as short) as short
-    dim node(64) as _dialognode
-    dim as short last
-    last=load_dialog("data/dialog" &no & ".csv",node())
-    no=1
+function questguy_newquest(i as short) as short
+    dim wanttable(25,2) as short
+    dim hastable(25,2) as short
+    dim as short f,j,l,debug
+    dim as string w(5),li
+    'debug=22
+    f=freefile
+    open "data/wanthas.csv" for input as #f
     do
-        no=node_menu(no,node(),e,fl)
+        line input #f,li
+        j+=1
+        w(0)=""
+        w(1)=""
+        w(2)=""
+        w(3)=""
+        w(4)=""
+        w(5)=""
+        string_towords(w(),li,";")
+        wanttable(j,0)=val(w(0))
+        wanttable(j,1)=val(w(1))
+        wanttable(j,2)=val(w(2))
+        hastable(j,0)=val(w(0))
+        hastable(j,1)=val(w(3))
+        hastable(j,2)=val(w(4))
+    loop until eof(f)
+    close #f
+    'if debug=1 then dprint "lines :"&j &" | In->" &questguy(i).want.type &":"& questguy(i).has.type
+    if questguy(i).want.type=0 then
+        if rnd_range(1,100)<30 then 'standard
+            l=rnd_range(1,7)
+        else 'Specific
+            l=questguy(i).job+7
+        endif
+        if debug=1 then dprint "adding want from line "&l
+        if rnd_range(1,100)<50 then
+            questguy(i).want.type=wanttable(l,1)
+        else
+            questguy(i).want.type=wanttable(l,2)
+        endif
+        if questguy(i).want.type=0 then
+            l=rnd_range(1,7)
+            if rnd_range(1,100)<50 then
+                questguy(i).want.type=wanttable(l,1)
+            else
+                questguy(i).want.type=wanttable(l,2)
+            endif
+        endif
+        IF debug>0 then questguy(i).want.type=debug
+        make_questitem(i,q_want)
+        questguy(i).want.motivation=rnd_range(0,2)
+    endif    
+    if questguy(i).has.type=0 then
+        if rnd_range(1,100)<30 then 'standard
+            l=rnd_range(1,7)
+        else 'Specific
+            l=questguy(i).job+7
+        endif
+        if debug=1 then dprint "adding has from line "&l
+        if rnd_range(1,100)<50 then
+            questguy(i).has.type=hastable(l,1)
+        else
+            questguy(i).has.type=hastable(l,2)
+        endif
+        if questguy(i).has.type=0 then
+            l=rnd_range(1,7)
+            if rnd_range(1,100)<50 then
+                questguy(i).has.type=hastable(l,1)
+            else
+                questguy(i).has.type=hastable(l,2)
+            endif
+        endif
+        IF debug>0 then questguy(i).has.type=debug
+        make_questitem(i,q_has)
+        questguy(i).want.motivation=rnd_range(0,2)
+    endif
+    if questguy(i).want.type=questguy(i).has.type then
+        if rnd_range(1,100)<=50 then
+            questguy(i).want.type=0
+        else
+            
+            questguy(i).has.type=0
+        endif
+    endif
+    'if debug=1 then dprint "Out->" &questguy(i).want.type &":"& questguy(i).has.type
+    return 0
+end function
+
+function make_questitem(i as short,wanthas as short) as short
+    dim o as _questitem pointer
+    dim as short who,comp
+    dim as string genname(4)
+    genname(2)="gun"
+    genname(3)="spacesuit"
+    genname(4)="closecombat weapon"
+    if wanthas=q_want then
+        'want
+        o=@questguy(i).want
+    else
+        o=@questguy(i).has
+        'has
+    endif
+    if (*o).type=1 then 'Equipment item
+        if wanthas=q_want then
+            questguy(i).want.it.ty=rnd_range(2,4) 'What kind of Item
+            questguy(i).want.it.v1=rnd_range(1,3)+(*o).motivation*2 'Minimun v1
+            questguy(i).want.it.desig=genname(questguy(i).want.it.ty)
+        else 'Has
+            questguy(i).has.it=rnd_item(33)
+        endif
+    endif
+    
+    if (*o).type=2 then 'Heirloom	2
+        if wanthas=q_want then
+            
+            (*o).it=rnd_item(33)
+            (*o).it.desig=questguy(i).n &"s "&(*o).it.desig
+            (*o).it.v6=i
+            (*o).whohasit=get_other_questguy(i)
+        else
+        endif
+            
+    endif
+    
+    if (*o).type=3 then 'Autograph	3
+        if wanthas=q_want then
+            questguy(i).want.it.ty=57
+            questguy(i).want.it.v1=rnd_questguy_byjob(14) 'Negative v1 means that value must be exact
+            questguy(i).other=questguy(i).want.it.v1
+            
+        else
+            (*o).it=makeitem(1002,rnd_questguy_byjob(14))
+        endif
+        
+    endif
+    
+    if (*o).type=4 then'Outstanding Loan	4
+        if wanthas=q_want then
+            questguy(i).other=get_other_questguy(i)
+            questguy(i).loan=rnd_range(1,10)*100
+        else
+            
+        endif
+        
+    endif
+    
+    if (*o).type=5 then'Station improvements	5
+        if wanthas=q_want then
+            questguy(i).other=get_other_questguy(i)
+        else
+        endif
+        
+    endif
+        
+    if (*o).type=6 then'Drug	7
+        if wanthas=q_want then
+            (*o).it.ty=60
+            (*o).it.v1=rnd_range(1,6)
+            (*o).it.price=(*o).it.v1*100
+            
+            (*o).it.desig="Drug "&chr(64+(*o).it.v1)
+            (*o).it.desigp="Drugs "
+        else
+            
+            questguy(i).has.it=makeitem(1005,rnd_range(1,6))
+        endif
+        
+    endif
+    
+    if (*o).type=7 then'Souvenir	8
+        if wanthas=q_want then
+            (*o).it.ty=23
+        else
+            (*o).it=makeitem(rnd_range(93,94))
+        endif
+        
+    endif
+        
+    if (*o).type=8 then'Tools	9
+        if wanthas=q_want then
+        else
+            (*o).it=makeitem(1004,rnd_range(1,6))
+        endif
+        
+    endif
+    
+    if (*o).type=9 then'Show Concept	10
+        if wanthas=q_want then
+        else
+            (*o).it=makeitem(1008,rnd_questguy_byjob(14),rnd_range(1,6))
+        endif
+        
+    endif
+    
+    if (*o).type=10 then'Station Sensor access	11
+        if wanthas=q_want then
+        else
+        endif
+    endif
+    
+    if (*o).type=11 then'Alibi	12
+        if wanthas=q_want then
+            questguy(i).other=get_other_questguy(i)
+        else
+        endif
+    endif
+    
+    if (*o).type=12 then'Message	13
+        who=get_other_questguy(i)
+        questguy(i).other=who
+        if wanthas=q_want then
+            (*o).it.desig="Message for "&questguy(who).n
+        else
+        endif
+        
+    
+    endif
+    if (*o).type=13 then'Loc of Pirates	14
+        if wanthas=q_want then
+        else
+        endif
+        
+    
+    endif
+    if (*o).type=14 then'Loc of Special Planet	15
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    
+    if (*o).type=15 then'Loc of Garden World	16
+    endif
+    
+    if (*o).type=16 then'Loc of Person	17
+        questguy(i).other=get_other_questguy(i)
+    endif
+    
+    if (*o).type=17 then'Good paiyng Captain	18
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    if (*o).type=18 then'Research
+        questguy(i).other=rnd_questguy_byjob(15,i)'If no astro
+        if questguy(i).other=0 then questguy(i).other=rnd_questguy_byjob(16,i)'xeno
+        if questguy(i).other=0 then questguy(i).other=rnd_questguy_byjob(6,i)'Doctor
+        if questguy(i).other=0 then questguy(i).other=rnd_questguy_byjob(4,i)'SO
+        if questguy(i).other=0 then questguy(i).other=rnd_questguy_byjob(13,i)'SO
+        if wanthas=q_want then
+        else
+            questguy(i).has.it=makeitem(1010,i)
+        endif
+        
+    endif
+    
+    if (*o).type=19 then'Info on Megacorp	21
+        if wanthas=q_want then
+            do
+                comp=rnd_range(0,3)
+            loop until comp<>questguy(i).job-10
+            questguy(i).want.it=makeitem(1006,comp)
+        else
+            if questguy(i).job>=10 and questguy(i).job<=13 then 
+                comp=questguy(i).job-10
+            else
+                comp=rnd_range(0,3)
+            endif
+            questguy(i).has.it=makeitem(1006,questguy(i).job-10,rnd_range(1,3))
+            
+        endif
+        
+    endif
+    if (*o).type=20 then'Bio Data	22
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    if (*o).type=21 then'Anomaly Data	23
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    
+    if (*o).type=22 then'Jury Rig Plans	25
+        if wanthas=q_want then
+        else
+            (*o).it=makeitem(1011)
+        endif
+        
+    endif
+    if (*o).type=23 then'Wormhole Info	26
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    if (*o).type=24 then'Crime Info	27
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    if (*o).type=25 then'Where to Perform	28
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    if (*o).type=26 then'info on has wants loc	29
+        if wanthas=q_want then
+        else
+        endif
+        
+    endif
+    return 0
+end function
+
+function get_other_questguy(i as short) as short
+    dim as short other,j,h
+    dim others(15) as short
+    for j=1 to lastquestguy
+        if questguy(i).location<>questguy(j).location then
+            h+=1
+            others(h)=j
+        endif    
+    next
+    return others(rnd_range(1,h))
+end function
+
+function get_highestrisk_questguy(st as short) as short
+    dim as short r,high,j
+    for j=1 to lastquestguy
+        if questguy(j).location=st then
+            if questguy(j).risk>high then
+                r=j
+                high=questguy(j).risk
+            endif
+        endif
+    next
+    return r
+end function
+
+
+function rnd_questguy_byjob(jo as short,self as short=0) as short
+    dim as short other,j,h
+    dim others(15) as short
+    for j=1 to lastquestguy
+        if questguy(j).job=jo and (self=0 or j<>self) then
+            h+=1
+            others(h)=j
+        endif    
+    next
+    return others(rnd_range(1,h))
+end function
+
+function questguy_dialog(i as short) as short
+    dim node(64) as _dialognode
+    dim as short no
+    no=1
+    'dim as short fl
+    dim e as _monster
+    
+    update_qg_dialog(i,node())
+    
+    questguy_message(i) 'Check if player has message for qg before entering dialogue
+    
+    do
+        update_qg_dialog(i,node())
+        no=node_menu(no,node(),e,0,i)
     loop until no=0
     return 0
 end function
 
-function node_menu(no as short,node() as _dialognode,e as _monster, fl as short) as short
-    dim text as string
-    dim as short a,c,flag
+function update_qg_dialog(i as short,node() as _dialognode) as short
+    dim as short debug,j,jj,o
+    dim deletenode as _dialognode
+    for j=1 to 64
+        node(j).no=0
+        node(j).statement=""
+        for jj=0 to 5
+            node(j).param(jj)=0
+        next
+        for jj=0 to 16
+            node(j).option(jj).no=0
+            node(j).option(jj).answer=""
+        next
+    next
+    
+    questguy(i).talkedto=1
+    if questguy(i).friendly<0 then questguy(i).friendly=0
+    if questguy(i).friendly>2 then questguy(i).friendly=2
+    select case questguy(i).friendly
+    case is=0
+        node(1).statement="What do you want?"
+    case is=1
+        node(1).statement="Hello"
+    case is=2
+        node(1).statement="Oh! Hello! Happy to meet you!"
+    end select
+    
+    if debug=1 then node(1).statement=questguy(i).has.it.desig &":"& questguy(i).want.it.desig
+    node(1).option(1).answer="Who are you?"
+    node(1).option(1).no=2
+    o=1
+    if questguy(i).want.given=0 and questguy(i).want.type<>0 then
+        o+=1
+        node(1).option(o).answer=questguyquestion(questguy(i).want.type,Q_WANT)
+        node(1).option(o).no=3
+    endif
+    if questguy(i).has.given=0 and questguy(i).has.type<>0 then
+        o+=1
+        node(1).option(o).answer=questguyquestion(questguy(i).has.type,Q_HAS)
+        node(1).option(o).no=4
+    endif
+    o+=1
+    node(1).option(o).answer="Do you know ...?"
+    node(1).option(o).no=8
+    
+    
+    if questguy(i).job=1 or questguy(i).job>=10 and questguy(i).job<=14 then
+        o+=1
+        if questguy(i).job=1 then node(1).option(o).answer="Can I get access for the stations sensors?"
+        if questguy(i).job=14 then node(1).option(o).answer="Can I have an autograph"
+        if questguy(i).job>=10 and questguy(i).job<=13 then node(1).option(o).answer="Do you have any info on your company?"
+        node(1).option(o).no=6
+        node(6).effekt="GIVEJOBHAS"
+        node(6).param(0)=i
+    endif
+    
+    for j=1 to lastitem
+        if item(j).w.s=-1 and item(j).ty=62 and item(j).v1=i then
+            o+=1
+            node(1).option(o).answer="I got your money"
+            node(1).option(o).no=18
+            node(18).statement="Great! Thank you! Here are your "&questguy(i).want.motivation+1 &"0%."
+            node(18).effekt="ABGEBEN"
+            node(18).param(0)=j
+            node(18).param(1)=i
+        endif
+    next
+    
+    
+    for j=1 to lastquestguy
+        if questguy(j).want.type=qt_heirloom and i=questguy(j).want.whohasit and questguy(j).talkedto>0 then
+            o+=1
+            node(1).option(o).answer="Do you have something for "&questguy(j).n &"?"
+            node(1).option(o).no=14
+            node(14).statement="yes, i do have "&questguy(j).want.it.desig
+            node(14).option(1).answer="Can I have it?"
+            node(14).option(1).no=15
+            node(14).option(2).answer="Is there something you want that I can swap for it?"
+            node(14).option(2).no=16
+            node(15).effekt="SELLOTHER"
+            node(15).param(0)=j
+            node(15).param(1)=questguy(j).want.motivation+1
+        endif
+        if questguy(j).want.type=qt_outloan and i=questguy(j).other and questguy(j).talkedto=1 then
+            o+=1
+            node(1).option(o).answer=questguy(j).n &" says you owe him money"
+            node(1).option(o).no=17
+            if questguy(i).money>=questguy(j).loan then
+                node(17).statement="Yes, I know. Can you give it to him?"
+                node(17).effekt="EINTREIBEN"
+                node(17).param(0)=j
+            else
+                node(17).statement="Yes, I know, but I can't afford to pay back right now."
+            endif
+        endif
+    next
+    
+    if questguy(i).want.type<>0 and questguy(i).has.type<>0 and questguy(i).want.given=0 and questguy(i).has.given=0 then
+        o+=1
+        node(1).option(o).answer="Maybe we can do a trade?"
+        node(1).option(o).no=18
+    endif
+        
+    if findbest(89,-1)>0 then
+        o+=1
+        node(1).option(o).answer="I have this crystal. Do you want to take a look at it?"
+        node(1).option(o).no=22
+    endif
+    
+    o+=1
+    node(1).option(o).answer="Let's have a drink."
+    node(1).option(o).no=21
+    o+=1
+    node(1).option(o).answer="Bye"
+    node(1).option(o).no=0
+    
+    node(2).statement="I am "&questguy(i).n &", a "&questguyjob(questguy(i).job) &"."
+    node(2).option(1).no=1
+    
+    node(3).statement=questguydialog(questguy(i).want.type,questguy(i).want.motivation,Q_WANT)
+    node(3).effekt="SELLWANT"
+    node(3).param(0)=i
+    node(3).param(1)=questguy(i).want.motivation+1
+    node(3).option(1).no=1
+    if questguy(i).want.type=qt_stationsensor then node(3).param(2)=10*(questguy(i).want.motivation+1)
+    if questguy(i).want.type=qt_heirloom then node(3).param(1)=node(3).param(1)+rnd_range(1,3)
+    if questguy(i).want.type=qt_autograph then node(3).param(2)=50*(questguy(i).want.motivation+1)
+    
+    if questguy(i).want.type=qt_biodata then
+        node(3).effekt="BUYBIODATA" 
+        node(3).param(0)=i
+        node(3).param(1)=1+questguy(i).want.motivation
+    endif
+    if questguy(i).want.type=qt_anomaly then
+        node(3).effekt="BUYANOMALY"
+        node(3).param(0)=i
+        node(3).param(1)=1+questguy(i).want.motivation
+    endif
+    
+    if questguy(i).want.type=qt_message then
+        node(4).effekt="GIVEMESSAGE"
+        node(4).param(0)=i
+    endif
+    
+    node(4).statement=questguydialog(questguy(i).has.type,questguy(i).has.motivation,Q_HAS)
+    if questguy(i).has.type=qt_research or questguy(i).has.type=qt_juryrig or questguy(i).has.type=qt_EI or questguy(i).has.type=qt_drug or questguy(i).has.type=qt_souvenir or questguy(i).has.type=qt_tools or questguy(i).has.type=qt_showconcept then
+        node(4).effekt="SELLHAS"
+        node(4).param(0)=i
+        node(4).param(1)=1+questguy(i).has.motivation
+    endif
+    if questguy(i).has.type=qt_drug then
+        node(4).effekt="SELLHAS"
+    endif
+    if questguy(i).has.type=qt_tools then
+        node(4).effekt="SELLHAS"
+        node(4).param(0)=i
+    endif
+    if questguy(i).has.type=qt_ei then
+        node(4).effekt="SELLHAS"
+        node(4).param(0)=i
+    endif
+    if questguy(i).has.type=qt_message then
+        node(4).effekt="GIVEMESSAGE"
+        node(4).param(0)=i
+    endif
+    
+    node(4).option(1).no=1
+    
+    'Do you know ....
+    node(8).option(1).answer="Never mind"  'We must make the lastseen list nonrandom but factual.
+    node(8).option(1).no=1
+    jj=1
+    for j=1 to lastquestguy
+        if j<>i and questguy(i).location<>questguy(j).location then 'He will always know himself
+            if questguy(j).talkedto<>0 then
+                jj+=1
+                node(8).option(jj).answer=questguy(j).n
+                if questguy(i).knows(j)<>0 then
+                    if questguy(i).knows(j)>0 then
+                        node(8).option(jj).no=10+questguy(i).knows(j)
+                    else
+                        node(8).option(jj).no=10
+                    endif
+                else
+                    node(8).option(jj).no=9
+                endif
+            endif
+        endif
+    next
+    node(9).statement="Sorry, don't know who that is."
+    node(9).option(1).no=1
+    node(10).statement="Last I saw that person on one of the small space stations."
+    node(10).option(1).no=1
+    node(11).statement="Last saw that person on station 1"
+    node(11).option(1).no=1
+    node(12).statement="Last saw that person on station 2"
+    node(12).option(1).no=1
+    node(13).statement="Last saw that person on station 3"
+    node(13).option(1).no=1
+    
+    node(21).statement="Oh, thanks!"
+    node(21).effekt="HAVEDRINK"
+    node(21).param(0)=i
+    node(21).option(1).no=1
+    
+    select case questguy(i).job
+    case is=13 'Omega
+        node(22).statement="Where did you get that from???"
+        node(22).option(1).answer="Just found it"
+        node(22).option(1).no=23
+        node(22).option(2).answer="Tell the whole story"
+        node(22).option(2).no=24
+    case 4 or 15 'SO or Xenobiologist
+        node(22).statement="Interesting, may I look at it?"
+        node(22).option(1).answer="Yes"
+        node(22).option(1).no=25
+        node(25).statement="It seems to still have some of those properties that effect your perception. It's working like an illusion-filter!"
+        node(25).option(1).no=1
+        node(22).option(2).answer="No"
+        node(22).option(2).no=1
+    case else
+        node(22).statement="Oh, that's pretty! But I don't know what to do with it."
+        node(22).option(1).no=1
+    end select
 
-    dprint adapt_nodetext(node(no).statement,e,fl),11
+    return 0
+end function
+
+
+function questguy_message(c as short) as short
+    dim as short i,d
+    for i=1 to lastitem
+        if item(i).ty=58 and item(i).w.s=-1 and item(i).v2=c then
+            if askyn("Do you want to deliver the message?(y/n)") then
+                d=rnd_range(1,6)*questguy(item(i).v2).want.motivation
+                dprint "You get a "&5*d &" Cr. tip"
+                player.money+=d
+                destroyitem(i)
+            endif
+        endif
+    next
+    return 0
+end function
+
+    
+
+function has_questguy_want(i as short,byref t as short) as short
+    dim as short a,b,c
+    'Item
+    for a=1 to lastitem
+        if item(a).w.s=-1 then
+            select case questguy(i).want.type
+            case is=qt_EI
+                t=qt_EI
+                if item(a).ty=questguy(i).want.it.ty and item(a).v1>=questguy(i).want.it.v1 then return a
+            case is=qt_heirloom
+                t=qt_heirloom
+                if item(a).ty=questguy(i).want.it.ty and item(a).v6=i then return a
+            case is=qt_autograph
+                t=qt_autograph
+                if item(a).ty=57 and item(a).ty=questguy(i).want.it.ty and item(a).v1=questguy(i).want.it.v1 then return a
+            case is=qt_drug
+                t=qt_drug
+                if item(a).ty=60 and item(a).v1=questguy(i).want.it.v1 then return a
+            case is=qt_souvenir
+                t=qt_souvenir
+                if item(a).ty=23 then return a
+            case is=qt_showconcept
+                t=qt_showconcept
+                if item(a).ty=63 and (item(a).v1=i or item(a).v1=0) then return a
+            case is=qt_stationsensor
+                t=qt_stationsensor
+                if item(a).ty=64 and (questguy(i).location=-1 or item(a).v1=questguy(i).location) then return a
+            case is=qt_message
+                t=qt_message
+                if item(a).ty=58 and item(a).v2=i then return a
+            case is=qt_research
+                if item(a).ty=65 and item(a).v1=questguy(i).other then return a
+            case is=qt_tools
+                t=qt_tools
+                if item(a).ty=59 then return a
+            case is=qt_megacorp
+                t=qt_megacorp
+                if player.questflag(21)=1 then return -21
+                if player.questflag(22)=1 then return -22
+                if player.questflag(23)=1 then return -23
+                if player.questflag(24)=1 then return -24
+                if item(a).ty=61 and item(a).v1=questguy(i).want.it.v1 then return a
+            case is=qt_juryrig
+                t=qt_juryrig
+                if item(a).ty=66 then return a
+            end select
+        endif
+    next
+    
+    'Location of character
+    for a=1 to lastquestguy
+        if questguy(a).talkedto=1 then 'Player knows
+            if questguy(i).knows(a)=0 then 'character doesnt
+                if questguy(i).want.type=qt_goodpaying and questguy(a).job=2 then
+                    t=qt_goodpaying
+                    return a
+                endif
+                if questguy(i).want.type=qt_stationimp and questguy(a).job=17 then
+                    t=qt_stationimp
+                    return a
+                endif
+                if questguy(i).want.type=qt_locofperson and questguy(i).other=a then
+                    t=qt_locofperson
+                    return a
+                endif
+            else
+                if questguy(i).want.type=qt_alibi and a=questguy(i).other then
+                    t=qt_alibi
+                    return a
+                endif
+            endif
+        endif
+    next
+    
+    'Location of planet
+    for a=1 to laststar
+        if map(a).discovered=1 and questguy(i).systemsknown(a)=0 then
+            for b=1 to 9
+                if map(a).planets(b)>0 and map(a).planets(b)<=max_maps then
+                    if planets(map(a).planets(b)).discovered<>0 then
+                        if questguy(i).want.type=qt_locofpirates then
+                            for c=0 to _nopb
+                                if piratebase(c)=map(a).planets(b) then
+                                    t=qt_locofpirates
+                                    return map(a).planets(b)
+                                endif
+                            next
+                        endif
+                        if questguy(i).want.type=qt_locofgarden then
+                            if isgardenworld(map(a).planets(b)) then
+                                t=qt_locofgarden
+                                return map(a).planets(b)
+                            endif
+                        endif
+                        if questguy(i).want.type=qt_locofspecial then
+                            if is_special(map(a).planets(b)) then
+                                t=qt_locofspecial
+                                return map(a).planets(b)
+                            endif
+                        endif
+                    endif
+                endif
+            next
+        endif
+    next
+    
+    
+    'Info
+    
+'        
+'    qt_showconcept
+'    qt_stationsensor
+'    qt_message
+'    qt_locofpirates
+'    qt_locofspecial
+'    qt_locofgarden
+'    qt_locofperson
+'    qt_goodpaying
+'    qt_research
+'    qt_stationneeds
+'    qt_megacorp
+'    qt_biodata
+'    qt_anomaly
+'    qt_murderclients
+'    qt_juryrig
+'    qt_wormhole
+'    qt_crime
+'    qt_whereperform
+'    qt_haswantsloc
+'        if questguy(i).want.it.v1<0 then
+'            if item(a).ty=questguy(i).want.it.ty and item(a).v1=abs(questguy(i).want.it.v1) and item(a).w.s=-1 then 
+'                if item(a).ty=57 then item(a).price=rnd_range(1,6)*50 'Autograph
+'                return a
+'            endif
+'        else
+'            if item(a).ty=questguy(i).want.it.ty and item(a).v1>=questguy(i).want.it.v1 and item(a).w.s=-1 then 
+'                t=qt_EI
+'                return a
+'            endif
+'        endif
+    'next
+    return -1
+end function
+
+function dodialog(no as short,e as _monster, fl as short) as short
+    dim node(64) as _dialognode
+    dim as short last,debug
+    last=load_dialog("data/dialog" &no & ".csv",node())
+    no=1
+    debug=1
+    do
+        display_ship(0)
+        no=node_menu(no,node(),e,fl)
+        if debug=1 then dprint "Next node:"&no
+    loop until no=0
+    return 0
+end function
+
+function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,qgindex as short=0) as short
+    dim text as string
+    dim as short a,c,flag,debug
+    debug=1
+    dprint adapt_nodetext(node(no).statement,e,fl,qgindex),11
     if node(no).effekt<>"" then dialog_effekt(node(no).effekt,node(no).param(),e,fl)
     text="You say"
     for a=1 to 16
         if node(no).option(a).answer<>"" then 
-            text=text &"/"& adapt_nodetext(node(no).option(a).answer,e,fl)
+            text=text &"/"& adapt_nodetext(node(no).option(a).answer,e,fl,qgindex)
+            if debug=1 then text=text &"("& node(no).option(a).no &")"
             flag+=1
         endif
     next
+    'if qgindex>0 then text=text &"/Bye."
     if flag>0 then
         do
-            c=menu(text,,0,20-flag)
-        loop until c>-1
-        dprint adapt_nodetext(node(no).option(c).answer,e,fl),15
+            c=menu(text,,0,20-flag,1)
+        loop until c>=0
+        dprint adapt_nodetext(node(no).option(c).answer,e,fl,qgindex),15
+        if debug=1 then dprint "you choose "&node(no).option(c).no
         return node(no).option(c).no
     else
-        return 0
+        return node(no).option(1).no
     endif
 end function
 
-function adapt_nodetext(t as string, e as _monster,fl as short) as string
+function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=0) as string
     dim word(128) as string
+    dim stword(128) as string
     dim r as string
-    dim as short l,i
-    l=string_towords(word(),t," ",1)
+    dim as string himher(1),hishers(1),heshe(1)
+    himher(0)="her"
+    himher(1)="him"
+    hishers(0)="hers"
+    hishers(1)="his"
+    heshe(0)="he"
+    heshe(1)="she"
+    dim as short l,i,j
+    l=string_towords(stword(),t," ",1)
     for i=0 to l
+        if instr(stword(i),">")>0 and instr(stword(i),">")<len(stword(i)) then
+            word(j)=left(stword(i),instr(stword(i),">"))
+            j+=1
+            word(j)=right(stword(i),len(stword(i))-instr(stword(i),">"))
+            j+=1
+        else
+            
+            word(j)=stword(i)
+            j+=1
+        endif
+    next
+    j-=1
+    for i=0 to j
         if word(i)="<FLEET>" then word(i)=""&abs(fl)
         if word(i)="<PLAYER>" then word(i)="captain "&crew(1).n &" of the "&player.desig
         if word(i)="<COORDS>" then 
@@ -117,6 +890,16 @@ function adapt_nodetext(t as string, e as _monster,fl as short) as string
                 word(i)=drifting(abs(fl)).x &":"& drifting(abs(fl)).y
             endif
         endif
+        if word(i)="<ITEMW>" and qgindex>0 then word(i)=questguy(qgindex).want.it.desig
+        if word(i)="<ITEMH>" and qgindex>0 then word(i)=questguy(qgindex).has.it.desig
+        if word(i)="<CHARACTER>" and qgindex>0 then word(i)=questguy(questguy(qgindex).other).n
+        if word(i)="<HESHE>" and qgindex>0 then word(i)=heshe(questguy(questguy(qgindex).other).gender)
+        if word(i)="<HIMHER>" and qgindex>0 then word(i)=himher(questguy(questguy(qgindex).other).gender)
+        if word(i)="<HISHERS>" and qgindex>0 then word(i)=hishers(questguy(questguy(qgindex).other).gender)
+        if word(i)="<MONEY>" and qgindex>0 then word(i)=credits(questguy(questguy(qgindex).other).loan)
+        if word(i)="<DRUG>" and qgindex>0 then
+            
+        endif
         r=r &word(i)
         if len(word(i+1))>1 or ucase(word(i+1))="A" or ucase(word(i+1))="I" then r=r &" "
         
@@ -125,7 +908,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short) as string
 end function
 
 function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short) as short
-    dim as short f,a
+    dim as short f,a,i,t,rew
     dim as _items it
     if effekt="CHANGEMOOD" then e.aggr=p(0)
     if effekt="BUYFUEL" then
@@ -163,7 +946,220 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 endif
             endif
         endif
+        if p(0)=1 then 'Questitem
+            player.money+=item(p(1)).price*p(2)
+            item(p(1))=item(lastitem)
+            lastitem-=1
+        endif
     endif
+    if effekt="GIVEHAS" then
+        placeitem(questguy(p(0)).has.it,0,0,0,0,-1)
+        questguy(p(0)).has.given+=1
+    endif
+    
+    if effekt="GIVEJOBHAS" then
+        select case questguy(p(0)).job
+        case is=1
+            it=makeitem(1009,questguy(p(0)).location)
+            if questguy(p(0)).friendly>1 then
+                it.price=0
+            else
+                it.price=25
+            endif
+        case is=14
+            it=makeitem(1002,p(0))
+            if questguy(p(0)).friendly>0 then
+                it.price=10
+            else
+                it.price=0
+            endif
+                
+        case else
+            it=makeitem(1006,questguy(p(0)).job-9,questguy(p(0)).friendly)
+            it.price=150*questguy(p(0)).friendly
+        end select
+        if it.price=0 then
+            dprint "Of course!"
+            placeitem(it,0,0,0,0,-1)
+        else
+            if askyn("Do you want to pay "&it.price &" Cr. for the "&it.desig &"?(y/n)") then
+                if player.money-it.price>=0 then
+                    it.price=0
+                    placeitem(it,0,0,0,0,-1) 
+                    player.money-=it.price
+                endif
+            endif
+        endif
+                    
+    endif
+    
+    if effekt="SELLHAS" then
+        it=questguy(p(0)).has.it
+        p(1)=questguy(p(0)).has.motivation+1
+        rew=fix((it.price/p(1))*(10-questguy(p(0)).friendly)/10)
+        dprint it.price &"/"& p(1) &"*"& (10-questguy(p(0)).friendly)/10 &"="& rew
+        'dprint "it desig="&it.desig &":"&p(0) &":"&p(1)
+        if askyn("Do you want to buy "& it.desig &" for "& rew &" Cr.(y/n)") then
+            if player.money>=rew then
+                player.money-=rew
+                placeitem(questguy(p(0)).has.it,0,0,0,0,-1)
+                questguy(p(0)).has.given+=1
+            else
+                dprint "You don't have enough money"
+            endif
+        endif
+    endif
+    
+    if effekt="SELLWANT" Then
+        i=has_questguy_want(p(0),t)
+        
+        dprint "T is "&t &"I is "&i
+        if i>0 then
+            select case t
+            case qt_juryrig,qt_EI,qt_heirloom,qt_autograph,qt_megacorp,qt_drug,qt_souvenir,qt_tools,qt_showconcept,qt_stationsensor
+                if askyn("Do you want to sell your "&item(i).desig &" for "&item(i).price*p(1)+p(2) &" Cr.(y/n)?") then
+                    player.money+=item(i).price*p(1)+p(2)
+                    destroyitem(i)
+                    questguy(p(0)).want.given+=1
+                    if t=qt_drug and questguy(p(0)).want.motivation>0 then questguy(p(0)).want.motivation-=1
+                else
+                    if item(i).ty=57 then item(i).price=0
+                
+                endif
+            case qt_stationimp,qt_goodpaying,qt_alibi,qt_locofperson
+                if questguy(p(0)).want.given=0 then
+                    if askyn("Do you want to tell him about "&questguy(i).n &"?(y/n)") then
+                        player.money+=50*(questguy(p(0)).want.motivation+1)
+                        dprint "Oh, thanks. I will contact him. Here, " &50*(questguy(p(0)).want.motivation+1) &" Cr. for your services"
+                        questguy(p(0)).want.given+=1
+                    endif
+                endif
+            case qt_locofpirates,qt_locofspecial,qt_locofgarden
+                if askyn("Do you want to tell him about the system at "&map(sysfrommap(t)).c.x &":"& map(sysfrommap(t)).c.y &"?(y/n)") then
+                    questguy(p(0)).systemsknown(t)=1
+                    if t=qt_locofpirates then
+                        dprint "Thank you very much! I will avoid those coordinates from now on."
+                        rew=100*(questguy(p(0)).want.motivation+1)
+                    else
+                        dprint "Oh! thanks! I will have a look at it!"
+                        rew=50*(questguy(p(0)).want.motivation+1)
+                    endif
+                    player.money+=rew
+                    dprint "You get "&rew &" Cr. for the information"
+                    
+                endif
+            end select
+            
+        endif
+        if i<0 and t=qt_megacorp then
+            i=abs(i)
+            if askyn("Do you want to sell your information on "&companyname(i-21) &"?(y/n)") then
+                player.questflag(i)+=1
+                player.money+=15000
+            endif
+        endif
+    endif
+    
+    if effekt="GIVEMESSAGE" then
+        if askyn("Do you want to deliver the message?(y/n)") then placeitem(makeitem(1003,p(0),questguy(p(0)).other),0,0,0,0,-1)
+    endif
+    
+    if effekt="GIVEAUTOGRAPH" then
+        placeitem(makeitem(1002,p(0)),0,0,0,0,-1)
+    endif
+    
+    if effekt="GIVESACC" then
+        placeitem(makeitem(1009,p(0)),0,0,0,0,-1)
+    endif
+    
+    if effekt="BUYBIODATA" then
+        if reward(1)>0 then
+            if askyn("Do you want to sell your biodatat for "& reward(1)*p(1) & "Cr.?(y/n)") then
+                player.money+=reward(1)*p(1)
+                questguy(p(0)).want.motivation-=1
+                if questguy(p(0)).want.motivation=-1 then questguy(p(0)).want.given=1
+                reward(1)=0
+            endif
+        endif
+    endif
+    
+    if effekt="BUYANOMALY" then
+        if ano_money>0 then
+            if askyn("Do you want to sell your data on anomalies for "& ano_money*p(1) & "Cr.?(y/n)") then
+                player.money+=ano_money*p(1)
+                questguy(p(0)).want.motivation-=1
+                if questguy(p(0)).want.motivation=-1 then questguy(p(0)).want.given=1
+                ano_money=0
+            endif
+        endif
+    endif
+    
+    if effekt="BUYWANT" then
+        a=has_questguy_want(p(0),t)
+        if a>1 then
+            if askyn("Do you want to sell your "&item(a).desig &" to "&questguy(p(0)).n &"(y/n") then
+            endif
+        endif
+    endif
+    
+    if effekt="SELLOTHER" then
+        it=questguy(p(0)).want.it
+        if askyn("Do you want to buy the "&it.desig &" for "&it.price*p(1) &"?(y/n)") then
+            if player.money>=it.price*p(1) then
+                player.money-=it.price*p(1)
+                placeitem(it,0,0,0,0,-1)
+            endif
+        endif
+    endif
+    
+    if effekt="EINTREIBEN" then
+        placeitem(makeitem(1007,p(0),questguy(p(0)).loan),0,0,0,0,-1)
+        questguy(p(0)).loan=0
+    endif
+    
+    if effekt="ABGEBEN" then
+        player.money+=item(p(0)).v2*(questguy(p(1)).want.motivation+1)/10
+        destroyitem(p(0))
+    endif
+    
+    if effekt="HAVEDRINK" then
+        player.money-=2
+        if player.money>=0 then
+            p(1)+=1
+            select case rnd_range(1,100)-questguy(p(0)).friendly*5-p(1)
+            case is<=10
+                questguy(p(0)).friendly+=1
+                dprint "You really hit it off with "&questguy(p(0)).n &"."
+            case is>=90
+                questguy(p(0)).friendly-=1
+                dprint "The conversation devolves into an argument."
+            case else
+                dprint "You have a little smalltalk, and enjoy the drink."
+            end select
+        else
+            dprint "You don't have enough money.",14
+            player.money+=2
+        endif
+    endif
+    
+    if effekt="LEARNSKILL" then 'p0=price p1=skill
+        
+        if player.money>=p(0) then
+            a=showteam(0,0,"Learn "&talent_desig(p(1)))
+            if a>=0 then
+                if can_learn_skill(a,p(1))=-1 then
+                    crew(a).talents(p(1))+=1
+                    player.money-=p(0)
+                endif
+            else
+                dprint crew(a).n &" can't learn " &talent_desig(p(1)),c_yel
+            endif
+        else
+            dprint "You don't have enough money",14
+            
+        endif
+    endif
+    
     return 0
 end function
 
@@ -970,6 +1966,31 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         endif
         if e.aggr=2 then dprint "I surrender!"
     endif
+    
+    if e.lang=37 then
+        if e.aggr=0 then dprint "I am not going to deal with you!"
+        if e.aggr=2 then dprint "I surrender!"
+        if e.aggr=1 then
+            if askyn("If you got problem with the megacorps, i could take a look at your record, and see what I can do. (y/n)") then
+                if faction(0).war(1)+faction(0).war(3)>0 then
+                    if askyn("Ok, I could do something there for "& (faction(0).war(1)+faction(0).war(3))*75 &" Cr. (y/n)") then
+                        if player.money>=(faction(0).war(1)+faction(0).war(3))*75 then
+                            player.money-=(faction(0).war(1)+faction(0).war(3))*75
+                            faction(0).war(1)=0
+                            faction(0).war(3)=0
+                            dprint "All right, they shouldn't bother you anymore."
+                        else
+                            dprint "You don't have enough money"
+                        endif
+                    endif
+                else
+                    dprint "I don't think you have any problems."
+                endif
+            else
+                dprint "Ok, feel free to see me anytime"
+            endif
+        endif
+    endif
     return 0
 end function
 
@@ -1373,7 +2394,7 @@ function eris_finds_apollo() as short
             if abs(planetmap(x,y,specialplanet(1)))=56 then planetmap(x,y,specialplanet(1))=57
         next
     next
-    planets(specialplanet(1)).flavortext=""
+    planets_flavortext(specialplanet(1))=""
 
     for a=3 to lastfleet
         if fleet(a).ty=10 then 
@@ -1557,15 +2578,15 @@ end function
 function plantname(ti as _tile) as string
     dim s as string
     dim a as byte
-    dim parts(5,4) as string
+    dim pname(7) as string
     dim colors(12) as string
     dim num(5) as string
     
-    num(1)="no"
-    num(2)="a single"
-    num(3)="few"
-    num(4)="numerous"
-    num(5)="many"
+    num(1)="Some"
+    num(2)="A few"
+    num(3)="Few"
+    num(4)="Numerous"
+    num(5)="Many"
     
     colors(1)="black"
     colors(2)="white"
@@ -1577,50 +2598,15 @@ function plantname(ti as _tile) as string
     colors(8)="purple"
     colors(9)="orange"
     
-    parts(1,0)="single surface root"
-    parts(2,0)="single deep root"
-    parts(3,0)="twin root"
-    parts(4,0)="branching rootsystem"
-    parts(5,0)="branching surface rootsystem"
+    pname(1)="Mosses"
+    pname(2)="Ferns"
+    pname(3)="Conifers"
+    pname(4)="Cycads"
+    pname(5)="Gnetophytes"
+    pname(6)="Flowering plants"
+    pname(7)="Mushrooms"
     
-    parts(1,1)="short stem"
-    parts(2,1)="long stem"
-    parts(3,1)="wide stem"
-    parts(4,1)="no stem"
-    
-    parts(1,2)="short twig"
-    parts(2,2)="wide twig"
-    parts(3,2)="thick twig"
-    parts(4,2)="thin twig"
-    parts(5,2)=" twig"
-    
-    parts(1,3)="leaves"
-    parts(2,3)="wide leaves"
-    parts(3,3)="thick leaves"
-    parts(4,3)="sharp leaves"
-    parts(5,3)="curled leaves"
-    
-    parts(1,4)="tiny flower"
-    parts(2,4)="mushroom hat"
-    parts(3,4)="wide flower"
-    parts(4,4)="long flower"
-    parts(5,4)="huge flower"
-    
-    
-    s="some interesting plants"
-    if ti.no=10 or ti.no=14 then 'grass
-        a=rnd_range(1,4)
-        if a=1 then s="grass with a very high oxygen output."
-        if a=2 then s="grass with a very high nutritonal value."
-        if a=3 then s="grass expelling poisonous fumes."
-        if a=4 then s="grass storing high amounts of liquids."
-    endif
-    if ti.no=6 then 'shrubs
-        
-    endif
-    if ti.no=7 then 'woods
-    
-    endif
+    s=num(rnd_range(1,5))&" interesting " &colors(rnd_range(1,9))&" "&pname(rnd_range(1,7))
     return s
 end function
 
@@ -1637,6 +2623,7 @@ if water=1 then
     w1=4
     w2=1
 endif
+if weight<=0 then weight=1
 spec=spec+1
 species(1)="Avian"
 species(2)="Arachnide"
@@ -1833,7 +2820,7 @@ if rnd_range(1,6)<3 then
     endif    
 endif
 
-text=text &" It weighs appr. "&weight*rnd_range(1,8)*rnd_range(1,10) &" Kg."
+text=text &" It weighs appr. "&(weight*rnd_range(1,8)*rnd_range(1,10)) &" Kg."
 if flies=1 then 
     if rnd_range(1,100)<66 then 
         text= text &" It flies using "&wings(rnd_range(1,3)) &"."
@@ -1855,7 +2842,7 @@ return enemy
 end function
 
 
-function givequest(st as short, byref questroll as short) as short
+function give_quest(st as short, byref questroll as short) as short
     dim as short a,b,bay, s,pl,car,st2,m,o,m2,o2,x,y
     dim as _cords p
     static stqroll as short
@@ -1905,14 +2892,18 @@ function givequest(st as short, byref questroll as short) as short
             car=rnd_range(3,4)
             dprint "The company rep offers you a contract to deliver "&car &" tons of cargo to station " &st2+1 &"."
             if askyn(" They will pay 200 cr per ton. Do you accept?(y/n)") then
+                if getnextfreebay<0 then 
+                    dprint "You have no room.",c_red
+                    return questroll
+                endif
                 do
                     bay=getnextfreebay
                     if bay>0 then
-                        player.cargo(bay).x=11
+                        player.cargo(bay).x=12
                         player.cargo(bay).y=st2
                         car=car-1
                     endif
-                loop until getnextfreebay=0 or car=0
+                loop until getnextfreebay<0 or car=0
                 if car>0 then dprint "You don't have enough room for all the cargo, and leave "&car &" tons behind."
                 questroll=999
             endif
@@ -1941,7 +2932,7 @@ function givequest(st as short, byref questroll as short) as short
                         if askyn("Do you want to make room for the cargo (losing "& basis(st).inv(player.cargo(1).x-1).n &")?(y/n)") then bay=1
                     endif
                     if bay>0 then
-                        player.cargo(bay).x=10 'type=specialcargo
+                        player.cargo(bay).x=12 'type=specialcargo
                         player.cargo(bay).y=a 'Destination
                     endif
                 endif
@@ -1958,7 +2949,7 @@ function givequest(st as short, byref questroll as short) as short
             endif
         else
             
-            if st<>player.lastvisit.s then stqroll=rnd_range(1,9)
+            if st<>player.lastvisit.s then stqroll=rnd_range(1,10)
             a=stqroll
             
             if a=1 and player.questflag(2)=0 then
@@ -1983,7 +2974,8 @@ function givequest(st as short, byref questroll as short) as short
                 fleet(lastfleet).ty=5
                 fleet(lastfleet).mem(1)=makeship(11)
                 fleet(lastfleet).flag=5
-                fleet(lastfleet).c=rnd_point            
+                fleet(lastfleet).c.x=rnd_range(0,sm_x)            
+                fleet(lastfleet).c.y=rnd_range(0,sm_y)            
             endif
             
             if a=3 and player.questflag(5)=2 then
@@ -1995,7 +2987,8 @@ function givequest(st as short, byref questroll as short) as short
                 fleet(lastfleet).mem(2)=makeship(11)
                 fleet(lastfleet).mem(3)=makeship(11)
                 fleet(lastfleet).flag=6
-                fleet(lastfleet).c=rnd_point            
+                fleet(lastfleet).c.x=rnd_range(0,sm_x)     
+                fleet(lastfleet).c.y=rnd_range(0,sm_y)     
             endif
             
             if a=4 and player.questflag(11)=0 then
@@ -2015,7 +3008,7 @@ function givequest(st as short, byref questroll as short) as short
                 drifting(m).m=lastplanet+1
                 lastplanet=lastplanet+1
                 loadmap(14,lastplanet)
-                makedrifter(drifting(m))
+                make_drifter(drifting(m))
                 p=rnd_point(lastplanet,0)
                 planetmap(p.x,p.y,lastplanet)=-226
                 player.questflag(11)=1
@@ -2027,7 +3020,7 @@ function givequest(st as short, byref questroll as short) as short
                 planets(m).mon_template(0)=makemonster(29,m)
                 planets(m).mon_noamin(0)=10
                 planets(m).mon_noamax(0)=20
-                planets(m).flavortext="No hum from the engines is heard as you enter the Battleship. Emergency lighting bathes the corridors in red light, and the air smells stale."
+                planets_flavortext(m)="No hum from the engines is heard as you enter the Battleship. Emergency lighting bathes the corridors in red light, and the air smells stale."
             endif
             
             if a=5 and player.questflag(16)>0 and player.questflag(15)=0 then'other quests
@@ -2065,6 +3058,15 @@ function givequest(st as short, byref questroll as short) as short
                 fleet(lastfleet)=makequestfleet(5)
             endif
             
+            if a=10 and player.questflag(26)=0 then
+                s=getrandomsystem
+                pl=getrandomplanet(s)
+                if pl>0 then
+                    dprint "We haven't heard in a while from a ship that last reported from " & map(s).c.x &":"&map(s).c.y & ". We offer you 500 Cr. if you can find out what hapened to them."
+                    player.questflag(26)=pl
+                    placeitem(Makeitem(81,1),rnd_range(0,60),rnd_range(0,20),pl)
+                endif
+            endif
             questroll=999
         endif
     endif
@@ -2222,13 +3224,13 @@ function planetbounty() as short
 end function
 
 
-function showquests() as short
+function show_quests() as short
     dim as short a,b,c,d,sys,p
     dim dest(10) as short
+    dim as string txt
     cls
     set__color( 15,0)
-    print "Missions:"
-    print
+    txt="{15}Missions: |{11}"
     set__color( 11,0)
     for a=1 to 10
         if player.cargo(a).x=10 or player.cargo(a).x=11 then 
@@ -2238,38 +3240,42 @@ function showquests() as short
     next
     if b>0 then
         set__color( 15,0)
-        print "Cargo:"
+        txt=txt & "Cargo:"
         for a=1 to b
             set__color( 11,0)
-            print "  Cargo for Station-"&dest(a)
+            txt=txt & "| Cargo for Station-"&dest(a)
         next
     endif
     if player.questflag(8)>0 and player.towed<0 then print " Deliver a "&shiptypes(-player.towed) &" hull to Station "&player.questflag(8)+1
-    print
+    
     if player.questflag(7)>0 then 
         sys=sysfrommap(player.questflag(7))
         for d=1 to 9
             if map(sys).planets(d)=player.questflag(7) then p=d
         next
-        print "  Map planet in orbit "&p &" in the system at "&map(sys).c.x &":"&map(sys).c.y
+        txt=txt & "|  Map planet in orbit "&p &" in the system at "&map(sys).c.x &":"&map(sys).c.y
     endif
-    if player.questflag(9)=1 then print "  Find a working robot factory"
-    if player.questflag(10)>0 then print "  Find a planet without life and a "&atmdes(player.questflag(10))&" atmosphere."
-    if player.questflag(11)=1 then print "  Find a missing company battleship"
-    if player.questflag(2)=1 then print "  Rescue a company executive from pirates"
-    if player.questflag(12)=1 then print "  A small green alien told you about a monster in their mushroom caves."
-    print
+    if player.questflag(9)=1 then txt=txt & "|  Find a working robot factory"
+    if player.questflag(10)>0 then txt=txt & "|  Find a planet without life and a "&atmdes(player.questflag(10))&" atmosphere."
+    if player.questflag(11)=1 then txt=txt & "|  Find a missing company battleship"
+    if player.questflag(2)=1 then txt=txt & "|  Rescue a company executive from pirates"
+    if player.questflag(12)=1 then txt=txt & "|  A small green alien told you about a monster in their mushroom caves."
+    if player.questflag(26)>0 then 
+        sys=player.questflag(26)
+        txt=txt & "| Find out what happened to an expedition last reported from "& map(sys).c.x &":"&map(sys).c.y &"."
+    endif
+    txt=txt & "|"
     set__color( 15,0)
-    print "Headhunting"
+    txt=txt & "|{15}Headhunting:{11}"
     set__color( 11,0)
-    if player.questflag(15)=1 then print "  Bring down the pirate battleship 'Anne Bonny'"
-    if player.questflag(16)=1 then print "  Bring down the pirate destroyer 'Black Corsair'"
-    if player.questflag(17)=1 then print "  Bring down the pirate cruiser 'Hussar'"
-    if player.questflag(18)=1 then print "  Bring down the pirate fighter 'Adder'"
-    if player.questflag(19)=1 then print "  Bring down the pirate fighter 'Black Widow'"
-    if player.questflag(5)=1 then print "  Bring down an unknown alien ship"
-    if player.questflag(6)=1 then print "  Bring down an unknown alien ship"
-    
+    if player.questflag(15)=1 then txt=txt & "|  Bring down the pirate battleship 'Anne Bonny'"
+    if player.questflag(16)=1 then txt=txt & "|  Bring down the pirate destroyer 'Black Corsair'"
+    if player.questflag(17)=1 then txt=txt & "|  Bring down the pirate cruiser 'Hussar'"
+    if player.questflag(18)=1 then txt=txt & "|  Bring down the pirate fighter 'Adder'"
+    if player.questflag(19)=1 then txt=txt & "|  Bring down the pirate fighter 'Black Widow'"
+    if player.questflag(5)=1 then txt=txt & "|  Bring down an unknown alien ship"
+    if player.questflag(6)=1 then txt=txt & "|  Bring down an unknown alien ship"
+    textbox(txt,2,2,30)
     no_key=keyin
     return 0
 end function
@@ -2279,19 +3285,19 @@ end function
 function checkquestcargo(player as _ship, st as short) as _ship
     dim as short a,b,undeliverable,where
     for a=1 to 25
-        if player.cargo(a).x=10 or player.cargo(a).x=11 then 
+        if player.cargo(a).x=11 or player.cargo(a).x=12 then 
             if basis(player.cargo(a).y).c.x=-1 then 
                 undeliverable+=1
                 where=player.cargo(a).y
             endif
         endif
-        if player.cargo(a).x=10 and player.cargo(a).y=st then
+        if player.cargo(a).x=11 and player.cargo(a).y=st then
             player.cargo(a).x=1
             player.cargo(a).y=0
             player.money=player.money+500
             dprint "the local representative pays you for delivering the cargo",10
         endif
-        if player.cargo(a).x=11 and player.cargo(a).y=st then
+        if player.cargo(a).x=12 and player.cargo(a).y=st then
             player.cargo(a).x=1
             player.cargo(a).y=0
             player.money=player.money+200
@@ -2309,7 +3315,7 @@ function checkquestcargo(player as _ship, st as short) as _ship
     if undeliverable>0 then
         if askyn("The Station commander offers to buy your cargo for station "& where & " for 10 Cr per ton(y/n)") then
             for a=1 to 25
-                if (player.cargo(a).x=10 or player.cargo(a).x=11) and player.cargo(a).y=where then
+                if (player.cargo(a).x=11 or player.cargo(a).x=12) and player.cargo(a).y=where then
                     player.cargo(a).x=1
                     player.cargo(a).y=0
                     player.money=player.money+10

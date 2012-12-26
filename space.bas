@@ -1,7 +1,13 @@
 function make_spacemap() as short
-    dim as short a,b,c,d,e,astcou,gascou,x,y
+    dim as short a,f,b,c,d,e,astcou,gascou,x,y
+    dim as byte makelog=1
     dim as _cords p1,p2,p3
+    dim as _planet del 
     dim showclouds as byte
+    if makelog=1 then
+        f=freefile
+        open "creation.log" for output as #f
+    endif
     showclouds=0
     set__color( 11,0)
     print
@@ -13,19 +19,27 @@ function make_spacemap() as short
                 planetmap(x,y,a)=0
             next
         next
+        planets(a)=del
     next
-    
+    if makelog=1 then print #f,,"Generated sector"
     for a=0 to 1024
         portal(a).oneway=0
     next
-    
+    if makelog=1 then print #f,,"Portals done"
     rerollshops
+    if makelog=1 then print #f,,"Reroll shops done"
     add_stars
+    if makelog=1 then print #f,,"add_stars done"
     add_wormholes
+    if makelog=1 then print #f,,"add_wormholes done"
     distribute_stars
-    
+    if makelog=1 then print #f,,"distribute_stars done"
     make_clouds()
+    if makelog=1 then print #f,"make_clouds done"
+    
     gen_traderoutes()
+    if makelog=1 then print #f,"gen_traderoutes done"
+    
     gascou+=1
     for a=0 to laststar
         if spacemap(map(a).c.x,map(a).c.y)<>0 then gascou+=1
@@ -36,20 +50,33 @@ function make_spacemap() as short
     print "Pregenerating planets ";
     
     add_easy_planets(targetlist(firstwaypoint))
+    if makelog=1 then print #f,"add_easy_planets done"
+    
     add_special_planets
+    if makelog=1 then print #f,"add_special_planets done"
+    
     add_event_planets
-
+    if makelog=1 then print #f,"addeventplanets done"
+    
     print "checking for starmap errors: ";
     fixstarmap()
-
+    if makelog=1 then print #f,"Fixstarmap"
+    
     add_caves
+    if makelog=1 then print #f,"addcaves"
+    
     add_piratebase
+    if makelog=1 then print #f,"addpiratbase"
+    
     add_drifters
+    if makelog=1 then print #f,"adddrifters"
+    
     
     
     
     print "loading bones"
     loadbones
+    if makelog=1 then print #f,"loadbones done"
     
     for a=0 to laststar
         if map(a).discovered=2 then map(a).discovered=show_specials
@@ -100,12 +127,20 @@ function make_spacemap() as short
     print
 
     make_civilisation(0,specialplanet(7))
+    if makelog=1 then print #f,"makeciv1 done"
+    
     make_civilisation(1,specialplanet(46))
+    if makelog=1 then print #f,"makeciv2 done"
+    
+    add_questguys
     
     if findcompany(1)=0 then specialplanet(40)=32767
     if findcompany(2)=0 then specialplanet(41)=32767
     if findcompany(3)=0 then specialplanet(42)=32767
     if findcompany(4)=0 then specialplanet(43)=32767
+    
+    
+    if makelog=1 then print #f,"delete company specials"
     
     fleet(1).mem(1)=makeship(33)
     fleet(1).ty=1
@@ -148,6 +183,12 @@ function make_spacemap() as short
         
         next
     endif
+    
+    if makelog=1 then 
+        print #f,"Clear stuff"
+        close #f
+    endif
+    
     print
     set__color( 11,0)
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
@@ -268,7 +309,7 @@ end function
 
 
 function add_special_planets() as short
-    dim as short a,sys,mp,d,gas,cgas
+    dim as short a,sys,mp,d,gas,cgas,cc
     for a=0 to laststar
         if spacemap(map(a).c.x,map(a).c.y)<>0 and map(a).discovered=0 and map(a).spec<8 then cgas+=1
     next
@@ -286,6 +327,14 @@ function add_special_planets() as short
             endif
             sys=getrandomsystem(1,gas,1)
             if sys<0 then sys=getrandomsystem(1)
+            if a=7 or a=46 and disnbase(map(sys).c)<25 then 
+                cc=0
+                do
+                    cc+=1
+                    sys=getrandomsystem(1,gas,1)
+                    if sys<0 then sys=getrandomsystem(1)
+                loop until disnbase(map(sys).c)>=25-cc/20 or cc>500
+            endif
         loop until  map(sys).spec<8 
         mp=getrandomplanet(sys)
         if mp=-1 and a<>18 then 
@@ -390,7 +439,7 @@ end function
 
 function add_event_planets() as short
     dim as short sys,d,planet,debug,f
-    debug=0
+    
     for d=0 to 5
         sys=getrandomsystem()
         if sys>0 then
@@ -463,7 +512,7 @@ function add_drifters() as short
         if a=4 then drifting(a).s=17
         if a=5 then drifting(a).s=18 
         if a=6 then drifting(a).s=19 
-        if drifting(a).s<=22 then makedrifter(drifting(a))
+        if drifting(a).s<=22 then make_drifter(drifting(a))
         drifting(a).p=show_all
     next
     print
@@ -471,7 +520,7 @@ function add_drifters() as short
     drifting(1).y=targetlist(firstwaypoint).y
     planets(drifting(1).m).atmos=5
     planets(drifting(1).m).depth=1
-    planets(drifting(1).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
+    planets_flavortext(drifting(1).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     deletemonsters(drifting(1).m)
     planets(drifting(1).m).mon_template(0)=makemonster(88,drifting(1).m)
     planets(drifting(1).m).mon_noamin(0)=2
@@ -479,6 +528,10 @@ function add_drifters() as short
     planets(drifting(1).m).mon_template(2)=makemonster(99,drifting(1).m)
     planets(drifting(1).m).mon_noamin(2)=1
     planets(drifting(1).m).mon_noamax(2)=1
+    planets(drifting(1).m).flags(29)=5
+    planets(drifting(2).m).flags(29)=6
+    planets(drifting(3).m).flags(29)=7
+    
     planetmap(19,10,drifting(1).m)=-287
     if rnd_range(1,100)<66 then planetmap(39,13,drifting(1).m)=(298+rnd_range(1,4))*-1
     planetmap(46,18,drifting(1).m)=-222
@@ -493,7 +546,7 @@ function add_drifters() as short
     planets(drifting(2).m).atmos=5
     planets(drifting(2).m).depth=1
     deletemonsters(drifting(2).m)
-    planets(drifting(2).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
+    planets_flavortext(drifting(2).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(2).m).mon_template(0)=makemonster(88,drifting(2).m)
     planets(drifting(2).m).mon_noamin(0)=3
     planets(drifting(2).m).mon_noamax(0)=6
@@ -508,7 +561,7 @@ function add_drifters() as short
     planets(drifting(3).m).atmos=5
     planets(drifting(3).m).depth=1
     deletemonsters(drifting(3).m)
-    planets(drifting(3).m).flavortext="A cheerfull sign says 'Welcome! Please enjoy our services'"
+    planets_flavortext(drifting(3).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(3).m).mon_template(0)=makemonster(88,drifting(3).m)
     planets(drifting(3).m).mon_noamin(0)=3
     planets(drifting(3).m).mon_noamax(0)=6
@@ -521,7 +574,7 @@ function add_drifters() as short
     if drifting(4).y<0 then drifting(lastdrifting).y=0
     if drifting(4).x>sm_x then drifting(lastdrifting).x=sm_x
     if drifting(4).y>sm_y then drifting(lastdrifting).y=sm_y
-    planets(drifting(4).m).flavortext="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
+    planets_flavortext(drifting(4).m)="You enter the alien vessel. The air is breathable. Most of the ship seems to be a huge hall illuminated in blue light. Strange trees grow in orderly rows and stranger insect creatures scurry about." 
     planets(drifting(4).m).atmos=4
     planets(drifting(4).m).depth=1
     deletemonsters(drifting(4).m)
@@ -529,7 +582,7 @@ function add_drifters() as short
     planets(drifting(4).m).mon_noamin(0)=16
     planets(drifting(4).m).mon_noamax(0)=26
     
-    planets(drifting(5).m).flavortext="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
+    planets_flavortext(drifting(5).m)="This ship has been drifting here for millenia. The air is gone. Propably some asteroid punched a hole into the hull. Dim green lights on the floor barely illuminate the corridors."
     planets(drifting(5).m).darkness=5
     planets(drifting(5).m).atmos=1
     planets(drifting(5).m).depth=1
@@ -541,7 +594,7 @@ function add_drifters() as short
     planets(drifting(5).m).flags(7)=66
     planets(drifting(5).m).flags(4)=6
     
-    planets(drifting(6).m).flavortext="You dock at the ancient space probe."
+    planets_flavortext(drifting(6).m)="You dock at the ancient space probe."
     planets(drifting(6).m).darkness=5
     deletemonsters(drifting(6).m)
     planets(drifting(6).m).atmos=1
@@ -592,7 +645,7 @@ end function
 
 function add_caves() as short
     dim as short a,b,debug
-    debug=0
+    
     lastportal=22
     for a=0 to lastportal
          
@@ -681,6 +734,69 @@ function add_piratebase() as short
            b=b+disnbase(map(piratebase(a)).c)
         next
     loop until b>24 or c>255
+    return 0
+end function
+
+function add_questguys() as short
+    dim as short i,debug,f
+    dim alreadyhere(17) as byte
+    for i=0 to lastquestguy 'For the deletion questguy
+        questguy(i).location=-2 'Everybody starts nowhere
+    next
+    debug=1
+    f=freefile
+    if debug=1 then open "questguys.log" for output as #f
+    for i=1 to lastquestguy
+        print #f,"Making qg "&i
+        questguy(i)=questguy(0) 'Delete quest guy
+        questguy(i).n=character_name(questguy(i).gender)
+        if i=1 then 
+            questguy(i).location=0
+            questguy(i).job=1
+        endif
+        if i=2 then
+            questguy(i).location=1
+            questguy(i).job=1
+        endif
+        if i=3 then 
+            questguy(i).location=2
+            questguy(i).job=1
+        endif
+        if i=4 then questguy(i).job=14
+        if i>4 then 
+            do
+                questguy(i).job=rnd_range(2,17)
+            loop until alreadyhere(questguy(i).job)=0
+            alreadyhere(questguy(i).job)=1
+            questguy_newloc(i)
+        endif
+        questguy(i).risk=rnd_range(3,9)
+        select case questguy(i).job
+        case 1
+            questguy(i).risk+=1
+        case 2 to 9
+            questguy(i).risk+=2
+        end select
+        if questguy(i).risk>9 then questguy(i).risk=9 
+        if debug=1 then print #f,"Doing newquest"
+        questguy_newquest(i)
+        questguy(i).friendly=rnd_range(0,2) '0 hates you, 2 loves you
+        questguy(i).money=rnd_range(1,10)*100
+        select case questguy(i).job
+        case 1
+            questguy(i).money+=rnd_range(5,10)*100
+        case 2,14,15,16,17
+            questguy(i).money+=rnd_range(5,10)*10
+        case 10,11,12,13
+            questguy(i).money+=rnd_range(5,15)*100
+        case 9
+            questguy(i).money+=rnd_range(5,10)*10
+        case else
+            questguy(i).money-=rnd_range(1,10)*100
+            if questguy(i).money<=0 then questguy(i).money=rnd_range(100,300)
+        end select'        
+    next
+    if debug=1 then close #f
     return 0
 end function
 
@@ -890,7 +1006,7 @@ function make_clouds() as short
     dim as short x,y,bx,by,highest,count,a,b,c,r
     dim as single attempt
     dim debug as short
-    debug=0
+    
     dim as _cords p1,p2,p3,p4
     print
     print "Creating clouds";
@@ -957,10 +1073,24 @@ function make_clouds() as short
                 p1.y=rnd_range(1,sm_y)
             endif
         loop until not((p1.x=10 and p1.y=30) or (p1.x=60 and p1.y=10) or (p1.x=35 and p1.y=20))
+        select case rnd_range(1,100)
+        case is<20 
+            c=-6
+        case 20 to 40
+            c=-7
+        case 41 to 60
+            c=-8
+        case 61 to 90
+            c=-9
+        case else
+            c=-10
+        end select
+        
         c=-6
         if rnd_range(1,100)<33 then c=-7
         if rnd_range(1,100)<33 then c=-8
-        if rnd_range(1,100)<66 then c=-(8+rnd_range(1,9))
+        if rnd_range(1,100)<66 then c=-9
+        
         for b=1 to 9
             if rnd_range(1,100)>66 then
                 p2=p1

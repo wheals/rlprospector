@@ -2,6 +2,7 @@ declare function credits(i as integer) as string
 
 function credits(i as integer) as string
     dim as string t,r,z(12)
+    dim as single fra
     dim  as integer b=1000000
     dim as byte c,l
     t=t &i

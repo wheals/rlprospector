@@ -1,3 +1,72 @@
+function alienname(flag as short) as string
+    dim as string n,vokal,cons
+    dim as short a,b,f2,i,f
+    dim as string txt(2000)
+    if flag=1 then
+        for a=1 to 2
+            if len(n)>0 then n=n &"-"
+            do
+                vokal=CHR(rnd_range(65,90))
+            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
+            do
+                cons=CHR(rnd_range(65,90))
+            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
+            n=n &cons
+            if flag=2 then n=n &"l"
+            for b=1 to rnd_range(1,5)
+                n=n &lcase(vokal)
+            next
+        next
+    endif
+    if flag=2 then
+        for a=1 to 2
+            do
+                vokal=CHR(rnd_range(65,90))
+            loop until vokal="A" or vokal="E" or vokal="I" or vokal="O" or vokal="U"
+            do
+                cons=CHR(rnd_range(65,90))
+            loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
+            if len(n)>1 then 
+                n=n &lcase(cons)
+            else
+                n=n &cons 
+            endif
+            n=n &"l"
+            for b=1 to rnd_range(1,2)
+                n=n &lcase(vokal)
+            next
+        next
+        if rnd_range(1,100)<50 then n=n &lcase(cons)
+    endif
+    if flag=3 then
+        f2=freefile
+        open "data/syllables.txt" for input as #f2
+        while not eof(f2)
+            i+=1
+            line input #f2,txt(i)
+        wend
+        close f2
+        
+        for f=0 to rnd_range(1,3)
+            if rnd_range(1,100)<50 then
+                n=n & txt(rnd_range(1,i))
+            else
+                n=n & left(txt(rnd_range(1,i)),2)
+            endif
+            if rnd_range(1,100)<10 then
+                if rnd_range(1,100)<50 then
+                    n=n &"'"
+                else
+                    n=n &"-"
+                endif
+            endif
+        next
+        n=left(n,1)&lcase(mid(n,2,len(n)))    
+    endif
+    return n
+end function 
+
+
 function date_string() as string
     dim as string t,w(3)
     dim as short i,j
@@ -44,6 +113,7 @@ function crew_bio(i as short) as string
         end select
         t=t &" |Education: " &4+fix(crew(i).story(1)/2) &" years. "
         t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
+        t=t &" ||To hit gun:"&tohit_gun(i) &"|To hit cc:"&tohit_close(i) &"||"
         select case crew(i).morale
         case is >100 
             t=t &"Morale :D"
@@ -306,7 +376,7 @@ function low_morale_message() as short
             end select
         case 110 to 120
             if rnd_range(1,100)<5 then
-                select case rnd_range(1,8)
+                select case rnd_range(1,11)
                     case is=1
                         dprint crew(who).n &" starts whistling."
                     case is=2
@@ -316,7 +386,7 @@ function low_morale_message() as short
                     case is=4
                         dprint crew(who).n &" bores everyone to tears by explaining in depth how " & hesheit & "will invest enough to get a retirement pension out of " & hishersits & " (great) wage."
                     case is=5
-                        dprint crew(who).n &" asks excited what everyone thinks what we are going to find next!"
+                        dprint crew(who).n &" asks excitedly what everyone thinks what we are going to find next!"
                     case is=6
                         dprint crew(who).n &" offers to put this really great series on the ships entertainment system."
                     case is=7
@@ -325,6 +395,10 @@ function low_morale_message() as short
                         dprint crew(who).n &" really liked what was for supper yesterday."
                     case is=9
                         dprint crew(who).n &" points out that the doc did a really good job on that wound" & hesheit & " got that one time."
+                    case is=10
+                        dprint crew(who).n &" tells a really funny joke."
+                    case is=11
+                        dprint crew(who).n &" has no complaints."
                 end select
             endif
         case is>120
@@ -628,7 +702,13 @@ function shipstatsblock() as string
     c=10
     if player.hull<(player.h_maxhull+player.addhull)/2 then c= 14
     if player.hull<2 then c=12    
-    t= "{15}Hullpoints(max :{11}"&player.h_maxhull+player.addhull &"{15}):{"&c &"}" & player.hull
+    t= "{15}Hullpoints"
+    if player.armortype=1 then t=t &"(Standard)"
+    if player.armortype=2 then t=t &"(Laminate)"
+    if player.armortype=3 then t=t &"(Nanocomposite)"
+    if player.armortype=4 then t=t &"(Diamanoid)"
+    if player.armortype=5 then t=t &"(Neutronium)"
+    t=t &"|(max :{11}"&max_hull(player)&"{15}):{"&c &"}" & player.hull
     if player.shield>0 then
         c= 10
         if player.shield<player.shieldmax/2 then c=14

@@ -8,7 +8,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
     static as string*3 lastkey
     dim as short a,b,i,tog1,tog2,tog3,tog4,ctr,f,it,debug
     dim as string control
-    debug=0
     if walking<>0 then sleep 50
     flip
     if _test_disease=1 and allowed<>"" then allowed="#"&allowed
@@ -73,8 +72,9 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 endif            
                 if evkey.type=13 then key=key_quit
             sleep 1
-        loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run=1
+        loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run<>0
         lastkey=key    
+        
         if key<>"" then walking=0 
         if _test_disease=1 and key="#" then
             a=getnumber(0,255,0)
@@ -135,9 +135,14 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             endif
             
             if key=key_quests then
-                showquests
+                show_quests
                 return ""
             endif
+            
+            if key=key_quit then 
+                if askyn("Do you really want to quit? (y/n)") then player.dead=6
+            endif
+            
             if key="ü" then dprint faction(0).war(2) &""
         endif
         if key=key_autoinspect then
@@ -173,9 +178,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             end select
             key=""
         endif
-        if key=key_quit then 
-            if askyn("Do you really want to quit? (y/n)") then player.dead=6
-        endif
         if key="$" and dbshow_factionstatus=1 then
             
             for a=0 to 7
@@ -200,7 +202,11 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 key=""
             endif
         endif
-    loop until key<>"" or walking <>0 or just_run=1
+    loop until key<>"" or walking <>0 or just_run<>0
+    if just_run<>0 then 
+        if just_run>0 then just_run-=1
+        if key=key__esc then just_run=0
+    endif
     return key
 end function
 
@@ -365,7 +371,7 @@ function getdirection(key as string) as short
     return 0
 end function
 
-function askyn(q as string,col as short=11) as short
+function askyn(q as string,col as short=11,sure as short=0) as short
     dim a as short
     dim key as string*1
     dprint (q,col)
@@ -379,7 +385,10 @@ function askyn(q as string,col as short=11) as short
             if _anykeyno=0 and key<>key_yes then key="N"
         endif
     loop until key="N" or key="n" or key=" " or key=key__esc or key=key__enter or key=key_yes  
+    
     if key=key_yes or key=key__enter then a=-1
+    if key<>key_yes and sure=1 then a=askyn("Are you sure?(y/n)")
+    
     return a
 end function
 
@@ -387,9 +396,9 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     ' 0= headline 1=first entry
     dim as short blen
     dim as string text,help
-    dim lines(25) as string
-    dim helps(25) as string
-    dim shrt(25) as string
+    dim lines(26) as string
+    dim helps(26) as string
+    dim shrt(26) as string
     dim as string key,delhelp
     dim a as short
     dim b as short
@@ -451,13 +460,12 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     ofx=x+4+(longest*_fw2/_fw1)
     e=0
     do        
-        locate y,x
         set__color( 15,0)
         draw string(x*_fw1,y*_fh1), lines(0),,font2,custom,@_col
         
         for a=1 to c
             if loca=a then 
-                if hfl=1 and loca<c then blen=textbox(helps(a),ofx,2,hw,15,1)
+                if hfl=1 and loca<=c and helps(a)<>"" then blen=textbox(helps(a),ofx,2,hw,15,1)
                 set__color( 15,5)
             else
                 set__color( 11,0)
@@ -465,6 +473,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
             locate y+a,x
             draw string(x*_fw1,y*_fh1+a*_fh2),shrt(a) &") "& lines(a),,font2,custom,@_col
         next
+        
         if player.dead=0 then key=keyin(,blocked)
         
         if hfl=1 then 

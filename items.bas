@@ -20,13 +20,13 @@ function rnd_item(t as short) as _items
     
     
     if t=1 then i=makeitem(rnd_range(1,2)) 'transport
-    if t=2 then i=makeitem(rnd_range(3,11)) 'ranged weapons
-    if t=3 then i=makeitem(rnd_range(40,47)) 'close weapons
+    if t=2 then i=makeitem(urn(3,11,2,player.turn/500)) 'ranged weapons
+    if t=3 then i=makeitem(urn(40,47,2,player.turn/500)) 'close weapons
     if t=4 then 'Space suits 
         if rnd_range(1,100)<25 then
             i=makeitem(320)
         else
-            i=makeitem(rnd_range(12,20)) 'Armor
+            i=makeitem(urn(12,20,2,player.turn/500)) 'Armor
         endif
     endif
     if t=5 then 
@@ -116,7 +116,7 @@ function rnd_item(t as short) as _items
         if r=32 then i=makeitem(102)
     endif
     if t=21 then 'specialty shop exploration gear
-        r=rnd_range(1,23)
+        r=rnd_range(1,27)
         if r=1 then i=makeitem(49)
         if r=2 then i=makeitem(50)
         if r=3 then i=makeitem(51)
@@ -140,6 +140,10 @@ function rnd_item(t as short) as _items
         if r=17 then i=makeitem(104)
         if r=22 then i=makeitem(22)
         if r=23 then i=makeitem(23)
+        if r=24 then i=makeitem(62)
+        if r=25 then i=makeitem(63)
+        if r=26 then i=makeitem(162)
+        if r=27 then i=makeitem(163)
     endif
       
     if t=23 then 'Weapons
@@ -161,6 +165,17 @@ function rnd_item(t as short) as _items
         end select
     endif
     
+    if t=33 then 'Weapons or armor
+        select case rnd_range(1,100)
+        case is<33
+            i=makeitem(rnd_range(3,11))
+        case is>66
+            i=makeitem(rnd_range(40,47))
+        case else
+            i=makeitem(rnd_range(12,20))
+        end select
+        
+    endif
     return i
 end function
 
@@ -303,7 +318,6 @@ function checkitemfilter(t as short,f as short) as short
     
     return r
 end function
-
 
 function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
     dim i as _items
@@ -1701,6 +1715,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp="Id Tags"
         i.ldesc="An Id Tag of a spaceship crew member"
         i.v1=rnd_range(1,3)
+        i.v2=mod1
         i.col=11
         i.res=89
         i.icon="?"
@@ -1859,7 +1874,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v5=2 'Speed
         i.icon="s"
         i.col=11
-        i.price=100
+        i.price=50
+        i.res=100
     endif
     if a=101 then
         i.ti_no=2118
@@ -1874,7 +1890,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v5=3 'Speed
         i.icon="s"
         i.col=11
-        i.price=250
+        i.price=100
+        i.res=100
     endif
     if a=102 then
         i.ti_no=2119
@@ -1889,7 +1906,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v5=6 'HPs
         i.icon="s"
         i.col=11
-        i.price=500
+        i.res=100
+        i.price=150
     endif
     if a=103 then
         i.ti_no=2120
@@ -1901,6 +1919,89 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=1
     endif
 '   
+    if a=110 then 'Drone MK1
+        i.ti_no=2118
+        i.desig="MK I Drone"
+        i.desigp="MK I Drones"
+        i.ty=67
+        i.id=552
+        i.v1=1 'HP
+        i.v2=1 'Dam
+        i.v3=1 'Range
+        i.v4=3 'Engine
+        i.price=500
+        i.res=100
+        i.icon="d"
+        i.col=c_gre
+        i.ldesc="A autonomous drone for space combat. It has " &i.v1 &" Hullpoint, and is armed with a " &i.v2 &"0 GJ plasma cannon"
+    endif
+    
+    if a=111 then 'Drone MK1
+        i.ti_no=2118
+        i.desig="MK II Drone"
+        i.desigp="MK II Drones"
+        i.ty=67
+        i.id=553
+        i.v1=2 'HP
+        i.v2=2 'Dam
+        i.v3=1 'Range
+        i.v4=4 'Engine
+        i.price=1000
+        i.res=100
+        i.icon="d"
+        i.col=c_gre
+        i.ldesc="A autonomous drone for space combat. It has " &i.v1 &" Hullpoints, and is armed with a " &i.v2 &"0 GJ plasma cannon"
+    endif
+    
+    
+    if a=112 then 'Drone MK1
+        i.ti_no=2118
+        i.desig="MK III Drone"
+        i.desigp="MK III Drones"
+        i.ty=67
+        i.id=554
+        i.v1=3 'HP
+        i.v2=3 'Dam
+        i.v3=2 'Range
+        i.v4=5 'Engine
+        i.price=1500
+        i.res=100
+        i.icon="d"
+        i.col=c_gre
+        i.ldesc="A autonomous drone for space combat. It has " &i.v1 &" Hullpoints, and is armed with a " &i.v2 &"0 GJ plasma cannon"
+    endif
+    
+    
+    
+    if a=162 then
+        i.ti_no=2062
+        i.id=62
+        i.ty=29
+        i.desig="cage trap"
+        i.desigp="cage traps"
+        i.ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
+        i.icon=chr(128)
+        i.col=13
+        i.v1=0
+        i.v2=1
+        i.price=125
+    endif
+    
+    
+    if a=163 then
+        i.ti_no=2062
+        i.id=62
+        i.ty=29
+        i.desig="stasis trap"
+        i.desigp="stasis traps"
+        i.ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
+        i.icon=chr(128)
+        i.col=13
+        i.v1=0
+        i.v2=5
+        i.price=525
+    endif
+
 
 'if a=81 then
 '        i.ti_no=2003
@@ -2159,7 +2260,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         if i.v2=14 then i.col=12
         if i.v2=14 then i.ti_no=2099
         
-        i.v5=(i.v1+rnd_range(1,player.science(0)+i.v2))*(rnd_range(1,5+player.science(0)))
+        if i.v1<1 then i.v1=1
+        
+        i.v5=1+(i.v1+rnd_range(1,player.science(0)+i.v2))*(rnd_range(1,5+player.science(0)))
+        if i.v5<1 then i.v5=1
         i.price=i.v5/10   
         i.res=i.v5*10         
         
@@ -2300,8 +2404,132 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=2000
     endif
     
+    if a=1002 then
+        i.ti_no=2113
+        i.id=1002
+        i.ty=57
+        i.icon="?"
+        i.col=15
+        i.desig="Autograph of "&questguy(mod1).n
+        i.desigp="Autographs"
+        i.v1=mod1
+    endif
+    
+    if a=1003 then
+        i.ti_no=2113
+        i.id=1002
+        i.ty=58
+        i.icon="?"
+        i.col=15
+        i.desig="Message for "&questguy(mod2).n
+        i.desigp="Messages"
+        i.v1=mod1
+        i.v2=mod2
+    endif
     
     
+    if a=1004 then
+        i.ti_no=2113
+        i.id=1004
+        i.ty=59
+        i.icon="?"
+        i.col=15
+        i.desig="Tools"
+        i.desigp="Tools"
+        i.price=mod1*75
+        i.v1=mod1
+    endif
+    
+    if a=1005 then
+        i.ti_no=2113
+        i.id=1005
+        i.ty=60
+        i.icon="?"
+        i.col=15
+        i.desig="Drug "&chr(64+mod1)
+        i.desigp="Drugs"
+        i.price=mod1*100
+        i.v1=mod1
+    endif
+    
+    if a=1006 then
+        i.ti_no=2113
+        i.id=1006
+        i.ty=61
+        i.icon="?"
+        i.col=11
+        i.desig="Report"
+        i.desigp="Reports"
+        if mod2=2 then i.desig="Secret "&i.desig
+        if mod2=3 then i.desig="Top secret "&i.desig
+        i.ldesc="a "& lcase(i.desig) & " on "&companyname(mod1)
+    endif
+        
+    if a=1007 then
+        i.ti_no=2113
+        i.id=1007
+        i.ty=62
+        i.icon="?"
+        i.col=11
+        i.desig=mod2 &" Cr. for "&questguy(mod1).n
+        i.desigp="Receipts"
+        i.v1=mod1
+        i.v2=mod2
+    endif
+    
+    if a=1008 then
+        i.ti_no=2113
+        i.id=1008
+        i.ty=63
+        i.icon="?"
+        i.col=15
+        if mod1>0 then
+            i.desig="Show concept for "&questguy(mod1).n
+        else
+            i.desig="generic show concept"
+        endif
+        i.desigp="Show concepts"
+        i.v1=mod1
+        i.v2=mod2
+        i.price=75*mod2
+        if mod1=0 then i.price=i.price/2
+    endif
+    
+    if a=1009 then
+        i.ti_no=2113
+        i.id=1009
+        i.ty=64
+        i.icon="?"
+        i.col=15
+        i.desig="PW for station "&mod1 &" sensors"
+        i.desigp="PWs for station sensors"
+        i.v1=mod1
+    endif
+    
+    if a=1010 then
+        i.ti_no=2113
+        i.id=1010
+        i.ty=65
+        i.icon="?"
+        i.col=15
+        i.desig="Research paper by "&questguy(mod1).n
+        i.desigp="Research papers"
+        i.v1=mod1
+        i.price=rnd_range(1,6)*20
+    endif
+        
+        
+    if a=1011 then
+        i.ti_no=2113
+        i.id=1011
+        i.ty=66
+        i.icon="?"
+        i.col=15
+        i.desig="Jury rig plans"
+        i.desigp="Jury rig plans"
+        i.price=rnd_range(1,6)*15
+    endif
+        
     i.discovered=show_items
     
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
@@ -2332,7 +2560,7 @@ function modify_item(i as _items) as _items
     endif
     
     if i.id>=12 and i.id<=20 then
-        if rnd_range(1,100)<10+a then
+        if rnd_range(1,100)<10 then
             if rnd_range(1,100)<66 then
                 i.desig="camo "&i.desig
                 i.desigp="camo "&i.desigp
@@ -2563,10 +2791,10 @@ function removeequip() as short
 end function
 
 
-function getitemlist(inv() as _items, invn()as short,ty as short=0) as short
+function getitemlist(inv() as _items, invn()as short,ty as short=0,ty2 as short=0) as short
     dim as short b,a,set,lastinv
     for a=0 to lastitem
-        if item(a).w.s<0 and (ty=0 or item(a).ty=ty) then 'Item on ship
+        if item(a).w.s<0 and (ty=0 or item(a).ty=ty or item(a).ty=ty2) then 'Item on ship
             set=0
             for b=0 to lastinv
                 if inv(b).id=item(a).id then
@@ -2799,7 +3027,7 @@ end function
 
 function first_unused(i as short) as short
     dim as short a,debug
-    debug=0
+    
     if item_assigned(i)=0 then return i
     if debug=1 then dprint "Item "&i &"assigned, looking for alternative"
     for a=0 to lastitem
@@ -2924,24 +3152,20 @@ end function
 
 
 function buyweapon(st as short) as _ship
-    dim as short a,b,c,d,i,mod1,mod2,mod3,mod4
+    dim as short a,b,c,d,i,mod1,mod2,mod3,mod4,ex
     dim as short last
-    dim inv(20) as _weap
+    dim it as _items 
     dim weapons as string
     dim key as string
     dim wmenu as string
     dim help as string
     for a=1 to 20
-        if makew(a,st)<>0 then 
-            i+=1
-            inv(i)=makeweapon(makew(a,st))
-        endif
+        if makew(a,st)<>0 then i+=1
     next
-    
     weapons="Weapons:"
     for a=1 to i
-        weapons=weapons &"/ " &inv(a).desig &" - "&inv(a).p 
-        help=help &"/ "&inv(a).desig &" | | "    
+        weapons=weapons &"/ " &wsinv(a).desig &" - "&wsinv(a).p 
+        help=help &"/ "&wsinv(a).desig &" | | "    
         if makew(a,st)=1 then help=help &"A simple gun firing metal shells propelled by an explosion. "
         if makew(a,st)=2 then help=help &"Metal shells accelerated to high speeds using electric fields "
         if makew(a,st)=3 then help=help &"Self propelled rockets with chemical explosives"
@@ -2972,18 +3196,25 @@ function buyweapon(st as short) as _ship
         if makew(a,st)=98 then help=help &"Not the safest way to store fuel. It holds 50 tons"
         if makew(a,st)=99 then help=help &"A weapons turret modified to hold an additional ton of cargo."
         
-        if makew(a,st)<15 then help=help &" | | Damage: "&inv(a).dam &" | Range: "&inv(a).range &"\"&inv(a).range*2 &"\" &inv(a).range*3 
-        if inv(a).ammomax>0 then help=help &" | Ammuniton: "&inv(a).ammomax 
-        help=help &"| Heat:"&inv(a).heat &"\"&inv(a).heatadd &"\"& inv(a).heatsink
+        if makew(a,st)<15 then help=help &" | | Damage: "&wsinv(a).dam &" | Range: "&wsinv(a).range &"\"&wsinv(a).range*2 &"\" &wsinv(a).range*3 
+        if wsinv(a).ammomax>0 then help=help &" | Ammuniton: "&wsinv(a).ammomax 
+        help=help &"| Heat:"&wsinv(a).heat &"\"&wsinv(a).heatadd &"\"& wsinv(a).heatsink
     next
+    
+   
+    
     weapons=weapons &"/Exit"
     help=help &" /"
-    last=i+1
+    last=i
+    ex=i+1
     do
+        screenset 0,1
         cls
-        displayship()        
+        display_ship()        
+        dprint ""
         d=menu(weapons,help,2,2)
-        if d<last then
+        flip
+        if d>=1 and d<=last then
             b=player.h_maxweaponslot
             wmenu="Weapon Slot/"
             for a=1 to b
@@ -3001,19 +3232,19 @@ function buyweapon(st as short) as _ship
                     if not(askyn("Do you want to replace the "&player.weapons(c).desig &"(y/n)")) then c=b
                 endif
                 if c<b then
-                    if paystuff(inv(d).p) then
-                        player.weapons(c)=inv(d)
+                    if paystuff(wsinv(d).p) then
+                        player.weapons(c)=wsinv(d)
                     else
-                        dprint "You don't have enough money"
+                        dprint "You don't have enough money.",c_yel
                     endif
                 endif
             endif
         endif
-    
+        
            
         recalcshipsbays
-        displayship
-    loop until d=last
+        
+    loop until d=ex
                       
     return player
 end function
@@ -3059,6 +3290,11 @@ function makeweapon(a as short) as _weap
     loop until w.made=a or eof(f)
     close #f
     if a=w.made then
+        if a>=6 and a<=10 then
+            w.dam=one_to_five((w.dam-2)*5+player.turn/1000)
+            w.desig=w.dam &"0 GJ "&w.desig
+            w.p=(w.dam+w.range)^2*250
+        endif
         return w
     else 
         return w2 'return empty weapon instead of last if not found
@@ -3071,7 +3307,7 @@ function findartifact(awayteam as _monster,v5 as short) as short
             
             if all_resources_are=0 then
                 if v5=0 then
-                    c=rnd_range(1,20)
+                    c=rnd_range(1,23)
                     if c=2 or c=5 then
                         c=rnd_range(1,10)
                         if c=2 or c=5 then artflag(c)=1
@@ -3082,12 +3318,12 @@ function findartifact(awayteam as _monster,v5 as short) as short
             else
                 c=all_resources_are
             endif
-            if c<0 or c>20 then c=rnd_range(1,20)
+            if c<0 or c>22 then c=rnd_range(1,23)
             if (rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
                 artflag(c)=1                
                 artifact(c,awayteam)
             else
-                dprint "He cant figure out what it is."
+                dprint "Science officer can't figure out what it is.",14
                 reward(4)=reward(4)+1
             endif
             return 0
@@ -3217,6 +3453,18 @@ function artifact(c as short,awayteam as _monster) as short
         dprint "It's a sophisticated medical AI"
         player.pidoctor=8
     endif
+    
+    if c=21 then
+        dprint "It's technical specifications on neutronium-production!"
+    endif
+    if c=22 then
+        dprint "It's technical specifications how to build quantum-warheads!"
+    endif
+    
+    if c=23 then
+        dprint "It's a batch of hull repairing nanobots!"
+    endif
+    
     return 0
 end function
 
