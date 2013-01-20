@@ -393,7 +393,7 @@ function company(st as short,byref questroll as short) as short
     
     if player.questflag(22)=1 then
         if basis(st).company=2 then
-            if askyn("Do you want to blackmail Smith Heavy Industries with your informatin on their slave work?(y/n)") then
+            if askyn("Do you want to blackmail Smith Heavy Industries with your information on their slave work?(y/n)") then
                 factionadd(0,1,1)
                 player.money=player.money+1000
                 companystats(2).capital=companystats(2).capital-rnd_range(1,100)
@@ -429,7 +429,7 @@ function company(st as short,byref questroll as short) as short
     
     if player.questflag(24)=1 then
         if basis(st).company=4 then
-            if askyn("Do you want to blackmail Omega Bioengineering with your informatin on their experiments?(y/n)") then
+            if askyn("Do you want to blackmail Omega Bioengineering with your information on their experiments?(y/n)") then
                 factionadd(0,1,1)
                 player.money=player.money+1000
                 companystats(4).capital=companystats(4).capital-rnd_range(1,100)
@@ -592,7 +592,7 @@ function company(st as short,byref questroll as short) as short
             dprint "you transfer data on alien lifeforms worth "& credits(cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2)))) &" Cr."
             player.money=player.money+cint(reward(1)*basis(st).biomod*(1+0.1*crew(1).talents(2)))
             reward(1)=0
-            for a=1 to lastitem
+            for a=0 to lastitem
                 if item(a).ty=26 and item(a).w.s<0 then 
                     item(a).v1=0 'Empty cages
                     item(a).ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
@@ -1190,7 +1190,7 @@ function refuel(st as short,price as single) as short
     refueled=player.fuelmax+player.fuelpod-player.fuel
     if cint(refueled*price)>player.money then refueled=player.money/price
     player.money-=cint(refueled*price)
-    player.fuel=player.fuelmax+player.fuelpod
+    player.fuel+=refueled
     if refueled=0 and player.money>price then dprint "Your tanks are full."
     
     for b=0 to 10
@@ -2047,7 +2047,7 @@ function shipupgrades(st as short) as short
             if d=13 then change_loadout
             display_ship()
             loop until d=-1 or d=14
-            for b=1 to lastitem
+            for b=0 to lastitem
                 if item(b).ty=50 then
                     item(b)=item(lastitem)
                     lastitem=lastitem-1
@@ -2638,60 +2638,6 @@ function load_s(s as _ship, good as short, st as short) as short
 end function
 
 
-'function merctrade(basis as station, merc as pirates) as pirates
-'    dim a as short
-'    dim f as integer
-'    dim high as short
-'    dim bought as short
-'    dim text as string
-'    dim tot as short
-'    if merc.con(1)<>9 then 'Not a patrol
-'        for a=1 to 5
-'            tot=tot+basis.inv(a).v
-'        next
-'        
-'        text="basis inv total:" &tot &"sold:"
-'        for a=1 to 14
-'            if merc.con(a)>0 then
-'                basis.inv(merc.con(a)).v=basis.inv(merc.con(a)).v+1
-'                merc.con(15)=merc.con(15)+basis.inv(merc.con(a)).p
-'                text=text &merc.con(a) &","
-'                merc.con(a)=0
-'            endif
-'        next
-'        high=15
-'        bought=0
-'        text=text &"bought:"
-'        do 
-'            for a=1 to 5
-'                if basis.inv(a).v>high then
-'                    basis.inv(a).v=basis.inv(a).v-1
-'                    bought=bought+1
-'                    if bought<15 then
-'                        merc.con(bought)=a
-'                        merc.con(15)=merc.con(15)-basis.inv(a).p
-'                        text=text & a &","
-'                    endif
-'                endif
-'            next
-'            high=high-1
-'        loop until high=0 or bought>3
-'        if make_files=1 then
-'            f=freefile
-'            open "traders.txt" for append as #f
-'            print #f,text
-'            text="Merc leaves with("& bought &")"
-'            for a=1 to 14
-'                text=text &merc.con(a)&","
-'            next
-'            print #f,text
-'            print #f,"money:"&merc.con(15)
-'            close #f
-'        endif
-'    endif
-'    return merc
-'end function
-'
 function trading(st as short) as short
     dim a as short
     screenset 1,1
@@ -2700,6 +2646,7 @@ function trading(st as short) as short
             cls
             display_ship()
             displaywares(st)
+            dprint ""
             a=menu(" /Buy/Sell/Price development/Stock Market/Exit",,2,14)
             if a=1 then buygoods(st)
             if a=2 then sellgoods(st)
@@ -2711,6 +2658,7 @@ function trading(st as short) as short
             cls
             display_ship()
             displaywares(st)
+            dprint ""
             if st<>10 then a=menu(" /Buy/Sell/Exit",,2,14)
             if st=10 then a=menu(" /Plunder/Leave behind/Exit",,2,14)
             if a=1 then buygoods(st)
@@ -2827,7 +2775,7 @@ function sellgoods(st as short) as short
     dim sold as short
     dim m as short
     do
-        text=cargobay(st)
+        text=cargobay("Sell:/")
         b=0
         em=0
         for a=1 to 25
@@ -2852,9 +2800,9 @@ function sellgoods(st as short) as short
                             player.tradingmoney=player.tradingmoney+cint((0.8+addtalent(1,6,.01))*sold*basis(st).inv(player.cargo(c).x-1).p)
             
                             basis(st).inv(player.cargo(c).x-1).v=basis(st).inv(player.cargo(c).x-1).v+sold
-                            dprint "sold " & sold & " tons of " & basis(st).inv(player.cargo(c).x-1).n & " for " & cint(basis(st).inv(player.cargo(c).x-1).p*sold*(0.8+addtalent(1,6,.01))) &" Cr."
+                            dprint "Sold " & sold & " tons of " & basis(st).inv(player.cargo(c).x-1).n & " for " & cint(basis(st).inv(player.cargo(c).x-1).p*sold*(0.8+addtalent(1,6,.01))) &" Cr."
                             removeinvbytype(player.cargo(c).x-1,sold)
-                            no_key=keyin
+                            'no_key=keyin
                             c=b+1
                         endif
                     endif
@@ -2928,6 +2876,7 @@ dim re as short
     next
     return b
 end function
+
 function change_prices(st as short,etime as short) as short
     dim a as short
     dim b as short
@@ -3030,6 +2979,16 @@ function change_prices(st as short,etime as short) as short
     return 0
 end function
 
+function rarest_good() as short
+    dim as short j,i,good(lastgood)
+    for j=0 to 3
+        for i=1 to lastgood
+            good(i)+=basis(i).inv(i).v
+        next
+    next
+    return find_low(good(),lastgood)
+end function
+
 function stationgoods(st as short) as string
     dim as string text,pl 
     dim a as short
@@ -3054,14 +3013,13 @@ function stationgoods(st as short) as string
     return text
 end function
 
-function cargobay(st as short) as string
-    dim text as string
+function cargobay(text as string) as string
     dim a as short
-    text="Sell:/"
+    
     for a=1 to 10        
         if player.cargo(a).x=1  then text=text &"Empty/"
         if player.cargo(a).x>1 and player.cargo(a).x<=10 then
-            text=text & basis(st).inv(player.cargo(a).x-1).n
+            text=text & basis(0).inv(player.cargo(a).x-1).n
             if player.cargo(a).y=0 then
                 text=text &" found/"
             else
@@ -3416,9 +3374,10 @@ function rerollshops() as short
     next
     
     for i=0 to 19
-        a=0
+        b=0
         spec=rnd_range(1,4)
         do
+            b+=1
             flag=0
             it=makeitem(0)
             if i<=3 then 'Station Shops
@@ -3437,9 +3396,9 @@ function rerollshops() as short
                 endif
             endif
             if i=4 then 'Colony I
-                if a=19 then it=makeitem(97)
-                if a=18 then it=makeitem(98)
-                if a<17 then
+                if b=19 then it=makeitem(97)
+                if b=18 then it=makeitem(98)
+                if b<17 then
                     it=makeitem(rnd_range(1,lstcomit))
                 endif
             endif
@@ -3449,8 +3408,12 @@ function rerollshops() as short
             if i=6 then 'Black market
                 it=rnd_item(12)
             endif
-            if i=7 then
-                it=makeitem(rnd_range(1,73))
+            if i=7 then 'Mudds
+                if b=1 then 
+                    it=makeitem(250)
+                else
+                    it=makeitem(rnd_range(1,73))
+                endif
             endif
             if i>7 then
                 it=rnd_item(rnd_range(1,11))

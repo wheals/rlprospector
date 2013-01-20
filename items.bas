@@ -6,27 +6,28 @@ function rnd_item(t as short) as _items
         if rnd_range(1,100)<88 then
             t=rnd_range(1,4) 'weapons and armor
         else
-            t=-1
             if rnd_range(1,100)<50 then
                 i=makeitem(rnd_range(36,37))
             else
                 i=makeitem(rnd_range(100,102))
             endif
+            return i
         endif
     endif
+    
     if t=21 then 
         t=rnd_range(1,9)
     endif
     
     
     if t=1 then i=makeitem(rnd_range(1,2)) 'transport
-    if t=2 then i=makeitem(urn(3,11,2,player.turn/500)) 'ranged weapons
-    if t=3 then i=makeitem(urn(40,47,2,player.turn/500)) 'close weapons
+    if t=2 then i=makeitem(urn(0,8,2,player.turn/500)+3) 'ranged weapons
+    if t=3 then i=makeitem(urn(0,7,2,player.turn/500)+40) 'close weapons
     if t=4 then 'Space suits 
         if rnd_range(1,100)<25 then
             i=makeitem(320)
         else
-            i=makeitem(urn(12,20,2,player.turn/500)) 'Armor
+            i=makeitem(urn(0,8,2,player.turn/500)+12) 'Armor
         endif
     endif
     if t=5 then 
@@ -81,7 +82,7 @@ function rnd_item(t as short) as _items
         end select 
     endif
     if t=12 then 'All but weapons and meds
-        r=rnd_range(1,33)
+        r=rnd_range(1,32)
         if r=1 then i=makeitem(1)
         if r=2 then i=makeitem(2)
         if r=3 then i=makeitem(21)
@@ -115,6 +116,7 @@ function rnd_item(t as short) as _items
         if r=31 then i=makeitem(101)
         if r=32 then i=makeitem(102)
     endif
+    
     if t=21 then 'specialty shop exploration gear
         r=rnd_range(1,27)
         if r=1 then i=makeitem(49)
@@ -176,6 +178,64 @@ function rnd_item(t as short) as _items
         end select
         
     endif
+    
+    if t=44 then 'Starting equipment Weak stuff
+        select case rnd_range(1,74)
+        case 1 to 5 
+            i=makeitem(21,,,,1)'1 Airfilters
+        case 5 to 9 
+            i=makeitem(24,,,,1)'2 Grenade
+        case 10 to 20 
+            i=makeitem(26,,,,1)'3 Binocs
+        case 21 to 30 
+            i=makeitem(28,,,,1)'4 Lamp
+        case 31 to 38 
+            i=makeitem(31,,,,1)'5 Medpack
+        case 39 to 42 
+            i=makeitem(34,,,,1)'6 Lockpicks
+        case 43 to 47 
+            i=makeitem(36,,,,1)'7 Anaesthtics
+        case 48 to 53 
+            i=makeitem(38,,,,1)'8 Ox tank
+        case 54 to 55 
+            i=makeitem(56,,,,1)'9 Disease Kit
+        case 56 to 58 
+            i=makeitem(70,,,,1)'10 em beacon
+        case 59 to 65 
+            i=makeitem(78,,,,1)'11 Flash grenade
+        case 65 to 69
+            select case rnd_range(1,3)
+            case is=1
+                i=makeitem(82,,,,1)'12 Autopsy kit
+            case is=2
+                i=makeitem(83,,,,1)'13 Botany Kit
+            case is=3
+                i=makeitem(84,,,,1)'14 SR Kit
+            end select
+        case 70 to 72
+            i=makeitem(31,,,,1)'5 Medpack
+        case 72 to 74
+            i=makeitem(106,,,,1)'15 Grenade
+        end select
+        
+    endif
+    
+    
+    if t=45 then 'weak weapons and armor
+        select case rnd_range(1,100)
+        case 1 to 30
+            i=makeitem(urn(0,4,1,0)+3,,,,1)
+        case 31 to 50
+            i=makeitem(urn(0,4,1,0)+40,,,,1)
+        case 51 to 80
+            i=makeitem(urn(0,2,1,0)+12,,,,1)
+        case else
+            i=makeitem(320)
+        end select
+    end if
+    
+    
+    
     return i
 end function
 
@@ -240,6 +300,7 @@ function calc_resrev() as short
 end function
 
 function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as short=0, s as short=0) as short
+    if m>0 and s<0 then dprint "m:"&m &"s:"&s &"lp:"&lastplanet
     i.w.x=x
     i.w.y=y
     i.w.m=m
@@ -253,7 +314,7 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
         item(lastitem).uid=lastitem
         return lastitem
     else
-        for a=1 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
+        for a=0 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
             item(a).uid=a
             if item(a).w.s>=0 and item(a).ty<>15 then
                 item(a)=i
@@ -319,7 +380,7 @@ function checkitemfilter(t as short,f as short) as short
     return r
 end function
 
-function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0) as _items
+function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0,nomod as byte=0) as _items
     dim i as _items
     dim as short f,roll,target
     if uid=4294967295 then 
@@ -329,6 +390,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     uid=uid+1
     i.uid=uid
+    i.scanmod=1
     
     if a=1 then
         i.ti_no=2001
@@ -680,7 +742,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=0
         i.price=20
         i.res=25
-        if rnd_range(1,100)<30 then
+        if rnd_range(1,100)<30 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
                 i.desig="good "&i.desig
@@ -710,7 +772,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=0
         i.price=1500
         i.res=35
-        if rnd_range(1,100)<20 then
+        if rnd_range(1,100)<20 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=122
                 i.desig="powerful "&i.desig
@@ -740,7 +802,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=0
         i.price=2500
         i.res=55
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=123
                 i.desig="powerful "&i.desig
@@ -797,7 +859,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=2
         i.price=90
         i.res=15
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
                 i.desig="good "&i.desig
@@ -826,7 +888,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=4
         i.price=500
         i.res=25
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
                 i.desig="good "&i.desig
@@ -855,7 +917,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=3
         i.price=40
         i.res=35
-        if rnd_range(1,100)<30 then
+        if rnd_range(1,100)<30 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
                 i.desig="strong "&i.desig
@@ -885,7 +947,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v1=6
         i.price=90
         i.res=55
-        if rnd_range(1,100)<30 then
+        if rnd_range(1,100)<30 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
                 i.desig="strong "&i.desig
@@ -1188,7 +1250,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=500
         i.ldesc="A device to increase the range and improve the aim of grenades."
         i.res=55
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.v1=1
                 i.price=400
@@ -1643,7 +1705,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ldesc="A modified portable sensor set. Enables the user to see through walls"
         
         i.v1=2
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             
             if rnd_range(1,100)<60 then
                 i.v1=3
@@ -1725,6 +1787,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=82 then
         i.ti_no=2114
         i.ty=48
+        i.id=82
         i.desig="Autopsy kit"
         i.desigp="Autopsy kits"
         i.ldesc="Tools for analyzing alien corpses"
@@ -1733,7 +1796,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=15
         i.icon="+"
         i.price=250
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.desig="Small autopsy kit"
                 i.desigp="Small autopsy kits"
@@ -1751,6 +1814,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=83 then
         i.ti_no=2115
         i.ty=49
+        i.id=83
         i.desig="Botany kit"
         i.desigp="Botany kits"
         i.ldesc="A kit containing tools for advanced plant analysis"
@@ -1759,7 +1823,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=15
         i.icon="+"
         i.price=250
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.desig="Small botany kit"
                 i.desigp="Small botany kits"
@@ -1778,6 +1842,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=84 then
         i.ti_no=2116
         i.ty=50
+        i.id=84
         i.desig="Ship repair kit"
         i.desigp="Ship repair kits"
         i.ldesc="A kit containing tools for ship repair"
@@ -1786,15 +1851,15 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.bgcol=15
         i.icon="+"
         i.price=500
-        if rnd_range(1,100)<10 then
+        if rnd_range(1,100)<10 and nomod=0 then
             if rnd_range(1,100)<50 then
                 i.desig="Small ship repair kit"
                 i.desigp="Small ship repair kits"
                 i.v1=1
                 i.price=250
             else
-                i.desig="Good ship kit"
-                i.desigp="Good ship kits"
+                i.desig="Good ship repair kit"
+                i.desigp="Good ship repair kits"
                 i.v1=3
                 i.price=750
             endif
@@ -1804,6 +1869,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=104 then
         i.ti_no=2117
         i.ty=56
+        i.id=104
         i.desig="MK I Gas mining probe"
         i.desig="MK I Gas mining probes"
         i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to 10 tons of fuel"
@@ -1819,6 +1885,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=105 then
         i.ti_no=2117
         i.ty=56
+        i.id=105
         i.desig="MK II Gas mining probe"
         i.desig="MK II Gas mining probes"
         i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to 25 tons of fuel"
@@ -1864,6 +1931,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=100 then
         i.ti_no=2117
         i.ty=55
+        i.id=100
         i.desig="MK I Probe"
         i.desigp="MK I Probes"
         i.ldesc="A probe for deep space operation. It has a range of 5 parsecs and 1 HP"
@@ -1871,7 +1939,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=1 'Scanning Range
         i.v3=1 'HPs
         i.v4=0 'HPs
-        i.v5=2 'Speed
+        i.v5=4 'Speed
         i.icon="s"
         i.col=11
         i.price=50
@@ -1880,6 +1948,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=101 then
         i.ti_no=2118
         i.ty=55
+        i.id=101
         i.desig="MK II Probe"
         i.desigp="MK II Probes"
         i.ldesc="A probe for deep space operation. It has a range of 7 parsecs and 2 HP"
@@ -1887,7 +1956,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.v2=2 'Scanning Range
         i.v3=2 'HPs
         i.v4=1 'HPs
-        i.v5=3 'Speed
+        i.v5=5 'Speed
         i.icon="s"
         i.col=11
         i.price=100
@@ -1896,6 +1965,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=102 then
         i.ti_no=2119
         i.ty=55
+        i.id=102
         i.desig="MK III Probe"
         i.desigp="MK III Probes"
         i.ldesc="A probe for deep space operation. It has a range of 10 parsecs and 3 HP"
@@ -1971,7 +2041,31 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.ldesc="A autonomous drone for space combat. It has " &i.v1 &" Hullpoints, and is armed with a " &i.v2 &"0 GJ plasma cannon"
     endif
     
-    
+    if a=152 then
+        i.ti_no=2025
+        i.ty=77
+        i.id=556
+        i.icon="'"
+        i.col=14
+        i.desig="mining explosives"
+        i.desigp="mining explosives"
+        i.v1=10
+        i.price=25
+        i.res=90
+        if rnd_range(1,100)<10 and nomod=0 then
+            if rnd_range(1,100)<66 then
+                i.v1=7
+                i.price=20
+                i.desig="weak "&i.desig
+                i.desigp="weak "&i.desigp
+            else
+                i.v1=12
+                i.price=30
+                i.desig="strong "&i.desig
+                i.desigp="strong "&i.desigp
+            endif
+        endif
+    endif
     
     if a=162 then
         i.ti_no=2062
@@ -1990,7 +2084,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=163 then
         i.ti_no=2062
-        i.id=62
+        i.id=63
         i.ty=29
         i.desig="stasis trap"
         i.desigp="stasis traps"
@@ -2267,7 +2361,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=i.v5/10   
         i.res=i.v5*10         
         
-        i.scanmod=rnd_range(0,i.v1)
+        i.scanmod=rnd_range(1,i.v1)/10
         i.icon="*"
         i.bgcol=0  
         roll=rnd_range(1,100+player.turn/100+mod1+mod2)
@@ -2291,7 +2385,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=100000
         i.ti_no=2100
     endif
-
+    
+    if a=123 then
+        i.ti_no=2102
+        i.id=123
+        i.ty=103
+        i.desig="Squidsuit"
+        i.desigp="Squidsuits"
+        i.ldesc="A limegreen suit, made for creatures with no arms and 9 tentacles. Whenever the wearer is hit that area of the cloth changes corresponding to the nature of the attack."
+        i.icon="&"
+        i.col=11
+        i.v1=8
+        i.res=120
+        i.price=250
+    endif
+    
     if a=97 then
         i.ti_no=2101
         i.id=97
@@ -2339,6 +2447,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
             if rnd_range(1,100)<35 then i=makeitem(98)
             if rnd_range(1,100)<45 then i=makeitem(97)
             if rnd_range(1,100)<16 then i=makeitem(95)
+            if rnd_range(1,100)<16 then i=makeitem(123)
         endif
         i.res=100
     endif
@@ -2377,6 +2486,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.price=i.v1*i.v2*20
         i.res=100
     endif
+    
+    if a=250 then
+        i.ti_no=2121
+        i.id=250
+        i.ty=80
+        i.desig="Tribble"
+        i.desigp="Tribbles"
+        i.ldesc="A most curious creature, its trilling seems to have a tranquilizing effect on the human nervous system." 
+        i.v1=1
+        i.price=5
+        i.res=10
+        i.icon="*"
+        i.col=7
+    endif
+        
     
     if a=301 then
         i.ti_no=2109
@@ -2533,9 +2657,18 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     i.discovered=show_items
     
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
-    i=modify_item(i)
+    if nomod=0 and a<>320 then i=modify_item(i) 'Never modify standard spacesuits
     return i
     
+end function
+
+function equipment_value() as short
+    dim i as short
+    dim as integer m
+    for i=0 to lastitem
+        if item(i).w.s<0 then m+=item(i).price
+    next
+    return m
 end function
 
 function modify_item(i as _items) as _items
@@ -2580,11 +2713,13 @@ function modify_item(i as _items) as _items
                 i.desig="sturdy "&i.desig
                 i.desigp="sturdy "&i.desigp
                 i.res=i.res+50
+                i.id=i.id+130
                 i.price=i.price*1.1
             else
                 i.desig="acidproof "&i.desig
                 i.desigp="acidproof "&i.desigp
                 i.res=i.res+100
+                i.id=i.id+140
                 i.price=i.price*1.25
             endif
         endif
@@ -2628,11 +2763,13 @@ function modify_item(i as _items) as _items
                 i.desig="sturdy "&i.desig
                 i.desigp="sturdy "&i.desigp
                 i.res=i.res+50
+                i.id=i.id+130
                 i.price=i.price*1.1
             else
                 i.desig="acidproof "&i.desig
                 i.desigp="acidproof "&i.desigp
                 i.res=i.res+100
+                i.id=i.id+140
                 i.price=i.price*1.25
             endif
         endif
@@ -2705,7 +2842,7 @@ function modify_item(i as _items) as _items
         i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1
     endif
     
-    if i.id=49 then
+    if i.id=49 then 'tanks
         if rnd_range(1,100)<30 then
             if rnd_range(1,100)<50 then
                 i.id=i.id+100
@@ -2741,12 +2878,12 @@ function modify_item(i as _items) as _items
             else
                 if rnd_range(1,100)<50 then
                     i.desig="powerful "&i.desig
-                    i.desigp="very powerful "&i.desigp
+                    i.desigp="powerful "&i.desigp
                     i.id=i.id+102
                     i.v1=i.v1+.1
                     i.price=i.price*1.2
                 else
-                    i.desig="powerful "&i.desig
+                    i.desig="very powerful "&i.desig
                     i.desigp="very powerful "&i.desigp
                     i.id=i.id+103
                     i.v1=i.v1+.2
@@ -2757,7 +2894,7 @@ function modify_item(i as _items) as _items
         i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     
     endif
-    if i.id=98 then 
+    if i.id=98 or i.id=123 then 
         if rnd_range(1,100)<30 then
             if rnd_range(1,100)<5 then
                 if rnd_range(1,100)<50 then
@@ -2770,7 +2907,7 @@ function modify_item(i as _items) as _items
                     i.desig="tattered "&i.desig
                     i.desigp="tattered "&i.desigp
                     i.id=i.id+101
-                    i.v3=i.v3-1
+                    i.v1=i.v1-1
                     i.price=i.price*0.75
                 endif
             endif
@@ -2784,7 +2921,7 @@ end function
 
 function removeequip() as short
     dim a as short
-    for a=1 to lastitem
+    for a=0 to lastitem
         if item(a).w.s<0 then item(a).w.s=-1
     next
     return 0
@@ -2794,7 +2931,7 @@ end function
 function getitemlist(inv() as _items, invn()as short,ty as short=0,ty2 as short=0) as short
     dim as short b,a,set,lastinv
     for a=0 to lastitem
-        if item(a).w.s<0 and (ty=0 or item(a).ty=ty or item(a).ty=ty2) then 'Item on ship
+        if item(a).w.s<0 and (ty=0 or (item(a).ty=ty or item(a).ty=ty2)) then 'Item on ship
             set=0
             for b=0 to lastinv
                 if inv(b).id=item(a).id then
@@ -2842,7 +2979,7 @@ function getrnditem(fr as short,ty as short) as short
 end function
 
 function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as short=0) as short
-    dim as short i,offset,a,b,c,li,cu,set,k,filter,l,c2
+    dim as short i,offset,a,b,c,li,cu,set,k,filter,l,c2,lasttb
     dim i_fs(11) as string
     dim mls(255) as string
     dim mdesc(255) as string
@@ -2907,6 +3044,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if item(mit(a)).ty=2 then mls(a)=mls(a) &"[A:"&item(mit(a)).v3 &" D:"&item(mit(a)).v1 &" R:"&item(mit(a)).v2 &"]"
         if item(mit(a)).ty=4 then mls(a)=mls(a) &"[A:"&item(mit(a)).v3 &" D:"&item(mit(a)).v1  &"]"
         if item(mit(a)).ty=3 then mls(a)=mls(a) &"[PV:"&item(mit(a)).v1 &"]"
+        if item(mit(a)).w.m>0 then mls(a) =mls(a) &map(sysfrommap(item(mit(a)).w.m)).c.x &":"& map(sysfrommap(item(mit(a)).w.m)).c.y   
     next
     
     do
@@ -2956,8 +3094,13 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
                 endif
             endif
         endif
+        screenset 0,1
         set__color( 15,0)
         draw string (3*_fw1,3*_fh1), "Select item:",,font2,custom,@_col 
+        for l=0 to lasttb
+            set__color(0,0)
+            draw string (3*_fw1+41*_fw2,3*_fh1+l*_fh2),space(25),,font2,custom,@_col
+        next
         if offset<0 then offset=0
         if li>15 and offset>li-cu then offset=li-cu
         if cu>li then 
@@ -2968,12 +3111,13 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         l=1
         a=1
         do
+            
             if mls(a+offset)<>"" then
                 if checkitemfilter(item(mit(a+offset)).ty,filter)=1 then
                     set__color( 0,0)
                     draw string (3*_fw1,3*_fh1+l*_fh2),space(35),,font2,custom,@_col
                     if cu=a then
-                        textbox(mdesc(a+offset),3+40*_fw2/_fw1,3,25,15,1)
+                        lasttb=textbox(mdesc(a+offset),3+40*_fw2/_fw1,3,25,15,1)
                         set__color( 15,5)
                     else
                         set__color( 11,0)
@@ -2990,6 +3134,7 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
             draw string (3*_fw1,3*_fh1+20*_fh2), "[MORE]",,font2,custom,@_col 
         endif
         draw string (3*_fw1,3*_fh1+20*_fh2), "Return to select item, ESC to quit, " &key_filter & " to filter items ("&i_fs(filter) &")",,font2,custom,@_col
+        flip
         key=keyin(key_filter)
         k=getdirection(key)
         if key=key_filter then 
@@ -3013,7 +3158,8 @@ function getitem(fr as short=999,ty as short=999,forceselect as byte=0,ty2 as sh
         if key=key__enter then i=cu+offset
         if key=key__esc then i=-1
         if player.dead<>0 then return -1
-        cls
+        
+        
     loop until i<>0
     if i>0 then 
         if mno(i)<2 then
@@ -3116,7 +3262,7 @@ function lowest_by_id(id as short) as short
     dim as single v,cur
     best=-1
     v=99
-    for i=1 to lastitem
+    for i=0 to lastitem
         if item(i).w.s<0 and item(i).id=id then
             cur=item(i).v1+item(i).v2+item(i).v3
             if cur<v then 
@@ -3130,7 +3276,7 @@ end function
 
 function count_items(i as _items) as short
     dim as short j,r
-    for j=1 to lastitem
+    for j=0 to lastitem
         if item(j).w.s<0 and item(j).id=i.id and item(j).v1=i.v1 and item(j).v2=i.v2 and item(j).v3=i.v3 then r+=1
     next
     return r
@@ -3291,7 +3437,7 @@ function makeweapon(a as short) as _weap
     close #f
     if a=w.made then
         if a>=6 and a<=10 then
-            w.dam=one_to_five((w.dam-2)*5+player.turn/1000)
+            w.dam=urn(1,5,25,(w.dam-2)*5+player.turn/1000)
             w.desig=w.dam &"0 GJ "&w.desig
             w.p=(w.dam+w.range)^2*250
         endif

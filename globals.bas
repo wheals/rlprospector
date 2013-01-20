@@ -582,7 +582,7 @@ function setglobals() as short
         dtextcol(a)=11
     next
     for a=0 to fix((22*_fh1)/_fh2)
-        displaytext(a)=""&a
+        displaytext(a)=" "
     next
     
     player.desig=""

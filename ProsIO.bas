@@ -16,7 +16,7 @@ function earthquake(t as _tile,dam as short)as _tile
 end function
 
 function hpdisplay(a as _monster) as short
-    dim as short hp,b,c,x,y
+    dim as short hp,b,c,x,y,l
     hp=0
     a.hpmax=0
     a.hp=0
@@ -41,6 +41,7 @@ function hpdisplay(a as _monster) as short
         for x=1 to 15
             c=c+1
             if crew(c).hpmax>0 and crew(c).onship=0 then
+                l=y
                 if crew(c).hp>0  then
                     
                     set__color( 14,0)
@@ -58,17 +59,20 @@ function hpdisplay(a as _monster) as short
             endif
         next
     next
-    return 0
+    return l
 end function
 
 function dplanet(p as _planet,orbit as short,scanned as short) as short
     dim a as short
     dim as single plife
     dim text as string
+    dim as short debug
+    debug=1
     draw_border(0)
       
     set__color( 15,0)
     draw string((_mwx+2)*_fw1,1*_fh2), "Scanning Results:",,font2,custom,@_col
+    
     set__color( 11,0)
     draw string((_mwx+2)*_fw1,2*_fh2), "Planet in orbit " & orbit,,font2,custom,@_col
     draw string((_mwx+2)*_fw1,3*_fh2), scanned &" km2 scanned",,font2,custom,@_col
@@ -91,16 +95,7 @@ function dplanet(p as _planet,orbit as short,scanned as short) as short
     else
         draw string((_mwx+2)*_fw1,17*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
-    for a=0 to p.life
-        if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 then plife=plife+((p.life+1)*3)/100
-    next
-    if plife>1 then plife=1
-    if plife>p.highestlife then
-        set__color(c_yel,0)
-        draw string((_mwx+2)*_fw1,19*_fh2),"Revised:",,font2,custom,@_col
-        p.highestlife=plife
-        set__color 11,0
-    endif
+    
     select case p.highestlife*100
     case is=0
         set__color(c_gre,0)
@@ -240,7 +235,7 @@ end function
 
 sub show_stars(bg as short=0)
     dim as uinteger alphav
-    dim as short a,b,x,y,navcom,mask
+    dim as short a,b,x,y,navcom,mask,ti_no
     dim as short reveal
     dim as _cords p,p1,p2
     dim range as integer
@@ -311,25 +306,21 @@ sub show_stars(bg as short=0)
                         draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif
-                if abs(spacemap(x+player.osx,y+player.osy))>=6 and abs(spacemap(x+player.osx,y+player.osy))<=17 then
+                if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=20 then
+                    ti_no=abs(spacemap(x+player.osx,y+player.osy))
+                    if ti_no>10 then ti_no-=10
                     if _tiles=0 then 
-                        if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
-                            alphav=192
-                            if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                            put (x*_fw1+1,y*_fh1+1),gtiles(abs(spacemap(x+player.osx,y+player.osy))+49),alpha,alphav
-                        endif
+                        alphav=192
+                        if vismask(x+player.osx,y+player.osy)=1 then alphav=255
+                        put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
                     else
-                        if abs(spacemap(x+player.osx,y+player.osy))=6 then set__color( 2,0)
-                        if abs(spacemap(x+player.osx,y+player.osy))=7 then set__color( 10,0)
-                        if abs(spacemap(x+player.osx,y+player.osy))=8 then set__color( 4,0)
-                        if abs(spacemap(x+player.osx,y+player.osy))=9 then set__color( 12,0)
-                        if abs(spacemap(x+player.osx,y+player.osy))=10 then set__color( 3,0)
-                        if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=17  then 
-                            draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
-                        else
-                            set__color( 1,0)
-                            'if navcom>0 and spacemap(x+player.osx,y+player.osy)>0 then draw string (x*_fw1,y*_fh1),".",,Font1,custom,@_col
-                        endif
+                        if ti_no=6 then set__color( 2,0)
+                        if ti_no=7 then set__color( 10,0)
+                        if ti_no=8 then set__color( 4,0)
+                        if ti_no=9 then set__color( 12,0)
+                        if ti_no=10 then set__color( 3,0)
+                        draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
+                        
                     endif
                 endif
             next
@@ -812,7 +803,7 @@ function display_station(a as short,vismask as byte) as short
         if fleet(a).fighting<>0 then 
             set__color( c_red,0,vismask)
             draw string (x*_fw1,y*_fh1),"x",,Font2,custom,@_col
-            if player.turn mod 10=0 then dprint "Station "&a+1 &" is sending a distress signal.",10
+            if player.turn mod 10=0 then dprint "Station "&a+1 &" is sending a distress signal! They are under attack!",c_red
         endif
     endif
     if debug=1 then draw string (x*_fw1,y*_fh1),""&count_gas_giants_area(basis(a).c,7) &":"& basis(a).inv(9).v ,,Font2,custom,@_col
@@ -821,7 +812,7 @@ function display_station(a as short,vismask as byte) as short
 end function
 
 function display_ship(show as byte=0) as short
-    dim  as short a,b,mjs,wl
+    dim  as short a,mjs,wl',b
     static wg as byte
     dim t as string
     dim as string p,g,s,d,carg
@@ -954,10 +945,37 @@ function display_ship(show as byte=0) as short
             draw string ((player.c.x-player.osx)*_fw1,(player.c.y-player.osy)*_fh1),"@",,Font1,custom,@_col
         endif
     endif
+    wl+=6
+    
+    display_comstring(wl)
     set__color( 11,0)
     if player.tractor=0 then player.towed=0
+    return wl+4
+end function
+
+function display_comstring(wl as short) as short
+    dim as string ws(40)
+    dim as short last,b,start,room,needed,parts
+    static counter as byte
+    counter+=1
+    if comstr="" then return 0
+    last=string_towords(ws(),comstr,";")
+    room=_lines-wl
+    needed=last
+    parts=needed/room
+    if counter>=parts then counter=0
+    if parts>1 then
+        start=(last/parts)*counter
+        last=(last/parts)*(counter+1)
+    endif
+    if last>40 then last=40
+    for b=start to last
+        set__color(15,0)
+        draw string((_mwx+2)*_fw1,(b+wl-start)*_fh2),ws(b),,Font2,custom,@_col
+    next
     return 0
 end function
+
 
 function display_ship_weapons(m as short=0) as short
     dim as short a,b,bg,wl,hasammo
@@ -1457,7 +1475,7 @@ end function
 '    return r
 'end function
 '
-function displayawayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short,loctemp as single) as short
+function display_awayteam(awayteam as _monster, map as short, lastenemy as short, deadcounter as short, ship as _cords, loctime as short,loctemp as single) as short
         dim a as short
         dim c as short
         dim x as short
@@ -1468,7 +1486,7 @@ function displayawayteam(awayteam as _monster, map as short, lastenemy as short,
         static wj as byte
         dim thp as short
         dim as string poi
-        dim as byte fw1,fh1
+        dim as byte fw1,fh1,l
         dim debug as byte=0
         Fh1=22
         dim osx as short
@@ -1549,74 +1567,93 @@ function displayawayteam(awayteam as _monster, map as short, lastenemy as short,
             set__color( _teamcolor,0)
             draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
         endif    
-        hpdisplay(awayteam)
+        l=hpdisplay(awayteam)
         set__color( 11,0)
-        draw string((_mwx+2)*_fw1,6*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
-        if awayteam.move=0 then draw string((_mwx+2)*_fw1,7*_fh2), "Trp.: None",,Font2,custom,@_col
-        if awayteam.move=1 then draw string((_mwx+2)*_fw1,7*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
-        if awayteam.move=2 then draw string((_mwx+2)*_fw1,7*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
-        if awayteam.move=3 then draw string((_mwx+2)*_fw1,7*_fh2), "Trp.: Jetp&Hover",,Font2,custom,@_col
-        if awayteam.move=4 then draw string((_mwx+2)*_fw1,7*_fh2), "Trp.: Teleport(T)",,Font2,custom,@_col
-        
-        draw string((_mwx+2)*_fw1,8*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,9*_fh2),"Firearms :"&awayteam.guns_to,,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,10*_fh2), "Melee :"&awayteam.blades_to,,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
+        l+=1
+        if awayteam.move=0 then draw string((_mwx+2)*_fw1,l*_fh2), "Trp.: None",,Font2,custom,@_col
+        if awayteam.move=1 then draw string((_mwx+2)*_fw1,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
+        if awayteam.move=2 then draw string((_mwx+2)*_fw1,l*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
+        if awayteam.move=3 then draw string((_mwx+2)*_fw1,l*_fh2), "Trp.: Jetp&Hover",,Font2,custom,@_col
+        if awayteam.move=4 then draw string((_mwx+2)*_fw1,l*_fh2), "Trp.: Teleport",,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2),"Firearms :"&awayteam.guns_to,,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2), "Melee :"&awayteam.blades_to,,Font2,custom,@_col
         if player.stuff(3)=2 then
-            draw string((_mwx+2)*_fw1,11*_fh2),"Alien Scanner",,font2,custom,@_col
-            draw string((_mwx+2)*_fw1,12*_fh2),lastenemy-deadcounter &" Lifeforms ",,Font2,custom,@_col
+            l+=1
+            draw string((_mwx+2)*_fw1,l*_fh2),"Alien Scanner",,font2,custom,@_col
+            l+=1
+            draw string((_mwx+2)*_fw1,l*_fh2),lastenemy-deadcounter &" Lifeforms ",,Font2,custom,@_col
         endif
         calc_resrev
-        draw string((_mwx+2)*_fw1,14*_fh2),"Mapped    :"& cint(reward(0)),,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,15*_fh2), "Bio Data  :"& cint(reward(1)),,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,16*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
+        l+=2
+        draw string((_mwx+2)*_fw1,l*_fh2),"Mapped    :"& cint(reward(7)),,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2), "Bio Data  :"& cint(reward(1)),,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
         if len(tmap(awayteam.c.x,awayteam.c.y).desc)<18 then
-            draw string((_mwx+2)*_fw1,18*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map) 
+            l+=1
+            draw string((_mwx+2)*_fw1,l*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map) 
         else 
             dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         
-        if awayteam.move=2 or awayteam.move=3 then
-            draw string((_mwx+2)*_fw1,20*_fh2), key_ju &" for emerg.",,Font2,custom,@_col
-            draw string((_mwx+2)*_fw1,21*_fh2), "Jetpackjump",,Font2,custom,@_col
-        endif
-        if awayteam.move=4 then
-            draw string((_mwx+2)*_fw1,20*_fh2), key_te &" activates",,Font2,custom,@_col
-            draw string((_mwx+2)*_fw1,21*_fh2),"Transporter",,Font2,custom,@_col
-        endif
+'        if awayteam.move=2 or awayteam.move=3 then
+'            
+'            draw string((_mwx+2)*_fw1,20*_fh2), key_ju &" for emerg.",,Font2,custom,@_col
+'            draw string((_mwx+2)*_fw1,21*_fh2), "Jetpackjump",,Font2,custom,@_col
+'        endif
+'        if awayteam.move=4 then
+'            draw string((_mwx+2)*_fw1,20*_fh2), key_te &" activates",,Font2,custom,@_col
+'            draw string((_mwx+2)*_fw1,21*_fh2),"Transporter",,Font2,custom,@_col
+'        endif
         if (awayteam.move=2 or awayteam.move=3) and awayteam.hp>0 then
             set__color( 11,0)
-            locate 23,63
-            draw string((_mwx+2)*_fw1,22*_fh2), "Jetpackfuel:",,Font2,custom,@_col
+            l+=1
+            draw string((_mwx+2)*_fw1,l*_fh2), "Jetpackfuel:",,Font2,custom,@_col
             set__color( 10,0)
             if awayteam.jpfuel<awayteam.jpfuelmax*.5 then set__color( 14,0)
             if awayteam.jpfuel<awayteam.jpfuelmax*.3 then set__color( 12,0)
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
             if awayteam.hp>0 then
-                draw string((_mwx+2)*_fw1+12*_fw2,22*_fh2), ""&int(awayteam.jpfuel/awayteam.hp),,Font2,custom,@_col
+                draw string((_mwx+2)*_fw1+12*_fw2,l*_fh2), ""&int(awayteam.jpfuel/awayteam.hp),,Font2,custom,@_col
             else
-                draw string((_mwx+2)*_fw1+12*_fw2,22*_fh2), ""&awayteam.jpfuel,,Font2,custom,@_col
+                draw string((_mwx+2)*_fw1+12*_fw2,l*_fh2), ""&awayteam.jpfuel,,Font2,custom,@_col
             endif
         endif
         
-        if player.turn mod 5=0 then low_morale_message
+        if player.turn mod 15=0 then low_morale_message
         
         set__color( 11,0)
-        locate 24,63
-        draw string((_mwx+2)*_fw1,23*_fh2),"Oxygen:",,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2),"Oxygen:",,Font2,custom,@_col
         set__color( 10,0)
         if awayteam.oxygen<50 then set__color( 14,0)
         if awayteam.oxygen<25 then set__color( 12,0)
         if awayteam.hp>0 then
-            draw string((_mwx+2)*_fw1+7*_fw2,23*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
+            draw string((_mwx+2)*_fw1+7*_fw2,l*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
         else
-            draw string((_mwx+2)*_fw1+7*_fw2,23*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
+            draw string((_mwx+2)*_fw1+7*_fw2,l*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
         endif
         set__color( 11,0)
-        draw string((_mwx+2)*_fw1,24*_fh2),"Temp:" &loctemp &chr(248)&"C",,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,25*_fh2),"Gravity:" &planets(map).grav,,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,27*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
-        draw string((_mwx+2)*_fw1,28*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
+        l+=2
+        draw string((_mwx+2)*_fw1,l*_fh2),"Temp:" &loctemp &chr(248)&"C",,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2),"Gravity:" &planets(map).grav,,Font2,custom,@_col
+        l+=2
+        draw string((_mwx+2)*_fw1,l*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
+        l+=1
+        draw string((_mwx+2)*_fw1,l*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
         if debug=1 then draw string((_mwx+2)*_fw1,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
+    
+        display_comstring(l+2)
+
+        
     return 0
 end function
 
@@ -1660,8 +1697,7 @@ function shipstatus(heading as short=0) as short
     next
     'Cargo
     b=b-1
-    text=cargobay(0)
-    text=mid(text,6) 'first "SELL" out
+    text=cargobay("/")
     a=0
     locate 17,3
     set__color( 15,0)
@@ -1703,14 +1739,13 @@ function shipstatus(heading as short=0) as short
     
     c=c+2
     if heading=0 then
-    lastinv=getitemlist(inv(),invn()) 
-    set__color( 15,0)
-    draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(2+c+a)*_fh2) ,"Equipment("&lastinv & "):",,font2,custom,@_col
-    set__color( 11,0)
-    if heading=0 then  
+        lastinv=getitemlist(inv(),invn()) 
+        set__color( 15,0)
+        draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(2+c+a)*_fh2) ,"Equipment("&lastinv & ", " &credits(equipment_value) &  " Cr.):",,font2,custom,@_col
+        set__color( 11,0)
         do
             set__color( 15,0)
-            draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(2+c)*_fh2) ,"Equipment("&lastinv & "):",,font2,custom,@_col
+            draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(2+c+a)*_fh2) ,"Equipment("&lastinv & ", " &credits(equipment_value) &  " Cr.):",,font2,custom,@_col
             set__color( 11,0)
             'for a=0 to _lines-c     
             a=0
@@ -1726,7 +1761,7 @@ function shipstatus(heading as short=0) as short
                     if invn(b+offset)>1 then
                         draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(3+c+a)*_fh2) , invn(b+offset)&" "&left(inv(b+offset).desigp,27),,font2,custom,@_col
                     else
-                        if invn(b+offset)=1 then draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(3+c+a)*_fh2) , invn(b+offset)&" "&left(inv(b+offset).desig,27),,font2,custom,@_col
+                        if invn(b+offset)=1 then draw string (((_mwx)*_fw2/_fw1+4)*_fw1,(3+c+a)*_fh2) , left(inv(b+offset).desig,27),,font2,custom,@_col
                     endif
                 endif
                 'dprint _lines-c &":"&a &":"& b &":" &lastinv
@@ -1748,8 +1783,8 @@ function shipstatus(heading as short=0) as short
             if key=key_filter then filter=itemfilter
             if offset<0 then offset=0
             if offset>33 then offset=33
-            loop until key=key__esc or key=" "
-        endif
+        loop until key=key__esc or key=" "
+        
     endif
     cls
     return 0

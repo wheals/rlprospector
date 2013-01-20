@@ -426,7 +426,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     loop until len(text)<=0
     c=c-1
     if help<>"" then
-        help=help &"/"
+        if right(help,len(help)-1)<>"/" then help=help &"/"
         hfl=1
         e=0
         b=len(help)

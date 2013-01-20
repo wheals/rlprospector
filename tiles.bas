@@ -1668,7 +1668,7 @@ tiles(221).locked=3
 tiles(221).shootable=1
 tiles(221).dr=-1
 tiles(221).hp=2
-tiles(221).turnsinto=202
+tiles(221).turnsinto=80
 
 tiles(222).tile=179
 tiles(222).col=0
@@ -1678,7 +1678,7 @@ tiles(222).desc="locker"
 tiles(222).shootable=1
 tiles(222).dr=-1
 tiles(222).hp=2
-tiles(222).turnsinto=202
+tiles(222).turnsinto=80
 
 tiles(223).tile=asc("C")
 tiles(233).col=114
@@ -1694,7 +1694,7 @@ tiles(225).col=11
 tiles(255).bgcol=1
 tiles(225).desc="cryogenic chamber"
 tiles(225).gives=886
-tiles(255).turnsinto=202
+tiles(255).turnsinto=80
 tiles(255).hides=2
 
 tiles(226).tile=asc("*")

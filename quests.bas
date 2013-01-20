@@ -469,17 +469,18 @@ function update_qg_dialog(i as short,node() as _dialognode) as short
     node(1).option(o).no=8
     
     
-    if questguy(i).job=1 or questguy(i).job>=10 and questguy(i).job<=14 then
+    if questguy(i).job=1 or (questguy(i).job>=4 and questguy(i).job<=6) or (questguy(i).job>=10 and questguy(i).job<=14) then
         o+=1
         if questguy(i).job=1 then node(1).option(o).answer="Can I get access for the stations sensors?"
         if questguy(i).job=14 then node(1).option(o).answer="Can I have an autograph"
+        if questguy(i).job>=4 and questguy(i).job<=6 then node(1).option(o).answer="Do you want to compare notes with our " & questguyjob(questguy(i).job) & "?"
         if questguy(i).job>=10 and questguy(i).job<=13 then node(1).option(o).answer="Do you have any info on your company?"
         node(1).option(o).no=6
         node(6).effekt="GIVEJOBHAS"
         node(6).param(0)=i
     endif
     
-    for j=1 to lastitem
+    for j=0 to lastitem
         if item(j).w.s=-1 and item(j).ty=62 and item(j).v1=i then
             o+=1
             node(1).option(o).answer="I got your money"
@@ -654,7 +655,7 @@ end function
 
 function questguy_message(c as short) as short
     dim as short i,d
-    for i=1 to lastitem
+    for i=0 to lastitem
         if item(i).ty=58 and item(i).w.s=-1 and item(i).v2=c then
             if askyn("Do you want to deliver the message?(y/n)") then
                 d=rnd_range(1,6)*questguy(item(i).v2).want.motivation
@@ -672,7 +673,7 @@ end function
 function has_questguy_want(i as short,byref t as short) as short
     dim as short a,b,c
     'Item
-    for a=1 to lastitem
+    for a=0 to lastitem
         if item(a).w.s=-1 then
             select case questguy(i).want.type
             case is=qt_EI
@@ -821,6 +822,7 @@ function dodialog(no as short,e as _monster, fl as short) as short
     debug=1
     do
         display_ship(0)
+        if debug=1 then dprint node(no).effekt
         no=node_menu(no,node(),e,fl)
         if debug=1 then dprint "Next node:"&no
     loop until no=0
@@ -847,7 +849,7 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
             c=menu(text,,0,20-flag,1)
         loop until c>=0
         dprint adapt_nodetext(node(no).option(c).answer,e,fl,qgindex),15
-        if debug=1 then dprint "you choose "&node(no).option(c).no
+        if debug=1 then dprint "you choose "&node(no).option(c).no &":"&c
         return node(no).option(c).no
     else
         return node(no).option(1).no
@@ -859,6 +861,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
     dim stword(128) as string
     dim r as string
     dim as string himher(1),hishers(1),heshe(1)
+        
     himher(0)="her"
     himher(1)="him"
     hishers(0)="hers"
@@ -890,6 +893,8 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
                 word(i)=drifting(abs(fl)).x &":"& drifting(abs(fl)).y
             endif
         endif
+        if word(i)="<#FL>" then word(i)=""&abs(fl)
+        if word(i)="I-<#FL>" then word(i)="IS-"&abs(fl)
         if word(i)="<ITEMW>" and qgindex>0 then word(i)=questguy(qgindex).want.it.desig
         if word(i)="<ITEMH>" and qgindex>0 then word(i)=questguy(qgindex).has.it.desig
         if word(i)="<CHARACTER>" and qgindex>0 then word(i)=questguy(questguy(qgindex).other).n
@@ -898,7 +903,6 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         if word(i)="<HISHERS>" and qgindex>0 then word(i)=hishers(questguy(questguy(qgindex).other).gender)
         if word(i)="<MONEY>" and qgindex>0 then word(i)=credits(questguy(questguy(qgindex).other).loan)
         if word(i)="<DRUG>" and qgindex>0 then
-            
         endif
         r=r &word(i)
         if len(word(i+1))>1 or ucase(word(i+1))="A" or ucase(word(i+1))="I" then r=r &" "
@@ -908,8 +912,10 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
 end function
 
 function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short) as short
-    dim as short f,a,i,t,rew
+    dim as short f,a,i,t,rew,ph,dh
     dim as _items it
+    dim as single fuelprice,fuelsell
+        
     if effekt="CHANGEMOOD" then e.aggr=p(0)
     if effekt="BUYFUEL" then
         if askyn("Do you want to buy fuel for "&p(0) &" Cr. (y/n)") then
@@ -946,10 +952,13 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 endif
             endif
         endif
-        if p(0)=1 then 'Questitem
-            player.money+=item(p(1)).price*p(2)
+        if p(0)=2 then 'Questitem
+            dprint "You sell your "&item(p(1)).desig &" for "& credits(item(p(1)).price*p(2)*(1+crew(1).talents(2)/10)) &" Cr."
+            player.money+=item(p(1)).price*p(2)*(1+crew(1).talents(2)/10)
+            
             item(p(1))=item(lastitem)
             lastitem-=1
+            
         endif
     endif
     if effekt="GIVEHAS" then
@@ -973,18 +982,31 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             else
                 it.price=0
             endif
-                
+        case 4 to 6
+            if questguy(p(0)).friendly=2 and questguy(p(0)).flag(0)=0 then
+                dprint "Of course!"
+                if questguy(p(0)).job=4 then gainxp(4,urn(0,3,15,0))
+                if questguy(p(0)).job=5 then gainxp(3,urn(0,1,15,0))
+                if questguy(p(0)).job=6 then gainxp(5,urn(0,3,15,0))
+                questguy(p(0)).flag(0)=1
+                return 0
+            else
+                dprint "I don't have anything interesting to share."
+                return 0
+            endif
+            
         case else
             it=makeitem(1006,questguy(p(0)).job-9,questguy(p(0)).friendly)
             it.price=150*questguy(p(0)).friendly
         end select
-        if it.price=0 then
-            dprint "Of course!"
+        it.price=it.price*(1-crew(1).talents(2)/10)
+        if it.price=0 and it.desig<>"" then
+            dprint "Of course! "&questguy(p(0)).n &" hands you a "&it.desig &"."
             placeitem(it,0,0,0,0,-1)
         else
             if askyn("Do you want to pay "&it.price &" Cr. for the "&it.desig &"?(y/n)") then
                 if player.money-it.price>=0 then
-                    it.price=0
+                    dprint "You buy a "&it.desig &"."
                     placeitem(it,0,0,0,0,-1) 
                     player.money-=it.price
                 endif
@@ -996,7 +1018,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     if effekt="SELLHAS" then
         it=questguy(p(0)).has.it
         p(1)=questguy(p(0)).has.motivation+1
-        rew=fix((it.price/p(1))*(10-questguy(p(0)).friendly)/10)
+        rew=fix((it.price/p(1))*(10-questguy(p(0)).friendly-crew(0).talents(2))/10)
         dprint it.price &"/"& p(1) &"*"& (10-questguy(p(0)).friendly)/10 &"="& rew
         'dprint "it desig="&it.desig &":"&p(0) &":"&p(1)
         if askyn("Do you want to buy "& it.desig &" for "& rew &" Cr.(y/n)") then
@@ -1160,6 +1182,82 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         endif
     endif
     
+    if effekt="PIRATETHREAT" then
+        for i=1 to 15
+            dh+=fleet(fl).mem(i).hull
+        next
+        ph=player.hull
+        if rnd_range(1,ph+dh)+dh>rnd_range(1,ph+dh)+ph then
+            'defend
+            dprint "Ha! We are going to defend ourselves!"&ph,c_yel
+            if rnd_range(1,100)>25+faction(0).war(1) then
+                if askyn("Do you really want to attack?(y/n)") then 
+                    i=1
+                else
+                    dprint "Wannabe pirate scum.... Click"
+                    i=0
+                    factionadd(0,fleet(fl).ty,1)
+                endif
+            else
+                i=1
+            endif
+            if i=1 then
+                factionadd(0,fleet(fl).ty,3)
+                playerfightfleet(fl)
+            endif
+        else
+            'Drop cargo
+            dprint "Ok, we don't want any trouble.",c_gre
+            factionadd(0,fleet(fl).ty,2)
+            for i=1 to lastgood
+                basis(10).inv(i).v=0
+                basis(10).inv(i).p=0
+            next
+            fleet(fl)=unload_f(fleet(fl),10)
+            trading(10)
+            fleet(fl)=load_f(fleet(fl),10)
+        endif
+    endif
+    
+    if effekt="FUELPRICE" then
+        fl=abs(fl)
+        fuelprice=round_nr(basis(nearest_base(player.c)).inv(9).p/30+disnbase(player.c)/15-count_gas_giants_area(player.c,3)/2,2)
+        if fuelprice<1 then fuelprice=1
+        if planets(drifting(fl).m).flags(26)=9 then fuelprice=fuelprice*3 
+        fuelsell=fuelprice/2
+        
+        dprint "We buy for " &credits(fuelsell) & " Cr. and sell for " & credits(fuelprice) & " Cr."
+    endif
+    
+    if effekt="STATIONEVENT" then
+        fl=abs(fl)
+        fuelprice=round_nr(basis(nearest_base(player.c)).inv(9).p/30+disnbase(player.c)/15-count_gas_giants_area(player.c,3)/2,2)
+        if fuelprice<1 then fuelprice=1
+        if planets(drifting(fl).m).flags(26)=9 then fuelprice=fuelprice*3 
+        fuelsell=fuelprice/2
+        
+        select case planets(drifting(fl).m).flags(26)
+        
+        case is=1
+            dprint "There is a alien lifeform lose on the station, and advises you to stay clear of dark corners."
+        Case is=4
+            dprint "There is a mushroom infestation on the station! Please dock and help us! We will pay you if you can destroy them!"
+        case is=5 
+            dprint "Please help us! The station is under attack from pirates!"
+        case is=6
+            dprint "We got a little problem. The station has been hit by an asteroid and is currently leaking. Better wear your spacesuits if you come on board."
+        case is=9 
+            dprint "There is a fuel shortage and the prices have been increased to "&fuelprice &" for buying and "&fuelsell & " a ton for selling"
+        case is=10
+            dprint "There is a party of civilized aliens on board!"
+        case is=12
+            dprint "There is a tribble infestation on the station!"
+        case else
+            dprint "Business is going very well, thank you for asking!."
+        end select
+        
+    endif
+    
     return 0
 end function
 
@@ -1190,7 +1288,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     roll=rnd_range(1,6)+rnd_range(1,6)+player.science(0)+e.intel+addtalent(4,14,2)
     if e.lang<0 then
         if roll>9 then
-            dprint "Your established communication with the " & e.sdesc &"."
+            dprint "You have established communication with the " & e.sdesc &"."
             e.lang=-e.lang
             e.cmmod=e.cmmod+1
             if e.lang=30 then e.aggr=0
@@ -1348,7 +1446,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
         end select
     endif
     if e.lang=2 then
-        if e.aggr=0 then dprint "He growls:'Get off our world war monger!"
+        if e.aggr=0 then dprint "He growls:'Get off our world warmonger!"
         if e.aggr=1 then
             a=rnd_range(1,6)
             if a=1 then dprint "The Citizen welcomes you to the colony"
@@ -1543,7 +1641,7 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
     endif    
     
     if e.lang=18 then
-        if e.aggr=0 then dprint "He growls:'Get off our world war monger!'"
+        if e.aggr=0 then dprint "He growls:'Get off our world warmonger!'"
         if e.aggr=1 then
             a=rnd_range(1,6)
             if a=1 then dprint "The Citizen welcomes you to the colony"
@@ -1563,7 +1661,28 @@ function communicate(awayteam as _monster, e as _monster,mapslot as short,li()as
             if a=1 then dprint "It says: 'Is there a lot of water on your world?'"
             if a=2 then dprint "It says 'You have a very low number of arms, maybe we should lend you some'"
             if a=3 then dprint "It says: 'Traveling among the stars, must be exciting!'"
-            if a>3 then 
+            if a=4 then dprint "It says: 'Our religious leaders have a creation myth. It states that we were made by gods for the purpose of exploring dangerous places for them."
+            if a=5 then 
+                b=findbest(103,-1)
+                if b>0 then
+                    if askyn("It says: 'Oh! you have a ceremonial robe? I would be interested in a trade'(y/n)") then
+                        it=makeitem(94)
+                        if askyn("Do you want to swap your "&item(b).desig &" for a "&it.desig &"?(y/n)") then
+                            placeitem(it,0,0,0,0,-1)
+                            dprint "Thank you very much! We don't know how to make these."
+                            item(b).w.s=0
+                            item(b).w.p=monslot
+                        endif
+                        
+                    else
+                        dprint "I understand. If I had one I too wouldn't want to part with it."
+                    endif
+                    
+                else
+                    dprint "It says: 'If you find any ceremonial robes, I am willing to buy them!"
+                endif
+            endif
+            if a>5 then 
                 dprint "It says: 'I can help you! I would love to travel with you! May I?'"
                 if askyn("Do you want to let the cephalopod join your crew?(y/n)") then
                     if maxsecurity>0 then
@@ -2991,7 +3110,7 @@ function give_quest(st as short, byref questroll as short) as short
                 fleet(lastfleet).c.y=rnd_range(0,sm_y)     
             endif
             
-            if a=4 and player.questflag(11)=0 then
+            if a=4 and player.questflag(11)=0 and lastdrifting<128 then
                 player.questflag(11)=1
                 x=5-rnd_range(1,10)+map(sysfrommap(specialplanet(27))).c.x
                 y=5-rnd_range(1,10)+map(sysfrommap(specialplanet(27))).c.y

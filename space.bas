@@ -1,5 +1,5 @@
 function make_spacemap() as short
-    dim as short a,f,b,c,d,e,astcou,gascou,x,y
+    dim as short a,f,b,c,d,e,astcou,gascou,x,y,i
     dim as byte makelog=1
     dim as _cords p1,p2,p3
     dim as _planet del 
@@ -22,23 +22,67 @@ function make_spacemap() as short
         planets(a)=del
     next
     if makelog=1 then print #f,,"Generated sector"
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
+    
     for a=0 to 1024
         portal(a).oneway=0
     next
-    if makelog=1 then print #f,,"Portals done"
+    if makelog=1 then print #f,,"Portals done" &lastitem
     rerollshops
-    if makelog=1 then print #f,,"Reroll shops done"
+    if makelog=1 then print #f,,"Reroll shops done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
     add_stars
-    if makelog=1 then print #f,,"add_stars done"
+    if makelog=1 then print #f,,"add_stars done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
     add_wormholes
-    if makelog=1 then print #f,,"add_wormholes done"
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
+    if makelog=1 then print #f,,"add_wormholes done" &lastitem
     distribute_stars
-    if makelog=1 then print #f,,"distribute_stars done"
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
+    if makelog=1 then print #f,,"distribute_stars done" &lastitem
     make_clouds()
-    if makelog=1 then print #f,"make_clouds done"
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
+    if makelog=1 then print #f,"make_clouds done" &lastitem
     
     gen_traderoutes()
-    if makelog=1 then print #f,"gen_traderoutes done"
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
+    
+    
+    if makelog=1 then print #f,"gen_traderoutes done" &lastitem
     
     gascou+=1
     for a=0 to laststar
@@ -50,33 +94,73 @@ function make_spacemap() as short
     print "Pregenerating planets ";
     
     add_easy_planets(targetlist(firstwaypoint))
-    if makelog=1 then print #f,"add_easy_planets done"
+    if makelog=1 then print #f,"add_easy_planets done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     add_special_planets
-    if makelog=1 then print #f,"add_special_planets done"
+    if makelog=1 then print #f,"add_special_planets done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     add_event_planets
-    if makelog=1 then print #f,"addeventplanets done"
+    if makelog=1 then print #f,"addeventplanets done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     print "checking for starmap errors: ";
     fixstarmap()
-    if makelog=1 then print #f,"Fixstarmap"
+    if makelog=1 then print #f,"Fixstarmap" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     add_caves
-    if makelog=1 then print #f,"addcaves"
+    if makelog=1 then print #f,"addcaves" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     add_piratebase
-    if makelog=1 then print #f,"addpiratbase"
+    if makelog=1 then print #f,"addpiratbase" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     add_drifters
-    if makelog=1 then print #f,"adddrifters"
+    if makelog=1 then print #f,"adddrifters" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     
     
     
     print "loading bones"
     loadbones
-    if makelog=1 then print #f,"loadbones done"
+    if makelog=1 then print #f,"loadbones done" &lastitem
+    if makelog=1 then
+        for i=0 to lastplanet
+            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
+        next
+    endif
     
     for a=0 to laststar
         if map(a).discovered=2 then map(a).discovered=show_specials
@@ -127,10 +211,10 @@ function make_spacemap() as short
     print
 
     make_civilisation(0,specialplanet(7))
-    if makelog=1 then print #f,"makeciv1 done"
+    if makelog=1 then print #f,"makeciv1 done" &lastitem
     
     make_civilisation(1,specialplanet(46))
-    if makelog=1 then print #f,"makeciv2 done"
+    if makelog=1 then print #f,"makeciv2 done" &lastitem
     
     add_questguys
     
@@ -140,7 +224,7 @@ function make_spacemap() as short
     if findcompany(4)=0 then specialplanet(43)=32767
     
     
-    if makelog=1 then print #f,"delete company specials"
+    if makelog=1 then print #f,"delete company specials" &lastitem
     
     fleet(1).mem(1)=makeship(33)
     fleet(1).ty=1
@@ -155,7 +239,19 @@ function make_spacemap() as short
     fleet(5).ty=1
     fleet(5).c=basis(4).c
     
-    lastfleet=6
+    lastfleet=12
+    for a=6 to lastfleet
+        fleet(a)=makemerchantfleet
+        fleet(a).t=rnd_range(firstwaypoint,lastwaypoint)
+        fleet(a).c=targetlist(fleet(a).t)
+        e=999
+        for b=1 to 15
+            if fleet(a).mem(b).movepoints(0)<e and fleet(a).mem(b).movepoints(0)>0 then e=fleet(a).mem(b).movepoints(0)
+        next
+        fleet(a).mem(0).engine=e
+        if fleet(a).mem(0).engine<1 then fleet(a).mem(0).engine=1
+        
+    next
     
     if _clearmap=1 then
         for a=0 to laststar+wormhole+1
@@ -185,7 +281,7 @@ function make_spacemap() as short
     endif
     
     if makelog=1 then 
-        print #f,"Clear stuff"
+        print #f,"Clear stuff" &lastitem
         close #f
     endif
     
@@ -210,7 +306,9 @@ function add_stars() as short
     dim as _planet delpl
     
     'debug=2
-    
+    for a=0 to max_maps
+        planets(a)=delpl
+    next
     
     cc=0
     for a=0 to laststar
@@ -281,7 +379,7 @@ function add_stars() as short
     for a=0 to cc
         planets(a)=delpl
     next
-    for a=1 to laststar
+    for a=0 to laststar
         map(a).ti_no=89
     next
     lastplanet=cc
@@ -645,7 +743,6 @@ end function
 
 function add_caves() as short
     dim as short a,b,debug
-    
     lastportal=22
     for a=0 to lastportal
          
@@ -655,7 +752,6 @@ function add_caves() as short
             portal(a).ti_no=3001
             print ".";
             portal(a).from.m=get_nonspecialplanet(1)
-            if debug=1 then print portal(a).from.m
             if portal(a).from.m<=0 then
                 b=rnd_range(1,9)
                 if portal(a).from.s=-1 then
@@ -670,12 +766,16 @@ function add_caves() as short
                     'print portal(a).from.s &":" & map(portal(a).from.s).planets(b)
                 else
                     portal(a).from.m=map(portal(a).from.s).planets(b)
-                endif                
+                endif
+            else
+                portal(a).from.s=sysfrommap(portal(a).from.m)
+                portal(a).dest.s=sysfrommap(portal(a).from.m)
             endif
             'portal(a).from.m=map(portal(a).from.s).planets(portal(a).from.p)
+            lastplanet+=1
             portal(a).from.x=rnd_range(1,59)
             portal(a).from.y=rnd_range(1,19)
-            portal(a).dest.m=lastplanet+1
+            portal(a).dest.m=lastplanet
             portal(a).dest.s=portal(a).from.s
             portal(a).dest.x=rnd_range(1,59)
             portal(a).dest.y=rnd_range(1,19)
@@ -684,7 +784,7 @@ function add_caves() as short
             portal(a).tumod=4-rnd_range(1,8)
             portal(a).oneway=0
             map(sysfrommap(portal(a).from.m)).discovered=5
-            lastplanet=lastplanet+1
+            
             print ".";
             if debug=1 then
                 portal(a).from.x=30
@@ -723,13 +823,17 @@ function add_piratebase() as short
         for a=0 to _nopb
            if _minsafe=0 and disnbase(map(piratebase(a)).c)<4 then 
                d=getrandomsystem(0)
-               swap map(piratebase(a)),map(d)
-               piratebase(a)=d
+               if d>=0 then
+                   swap map(piratebase(a)),map(d)
+                   piratebase(a)=d
+               endif
            endif
            if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
                d=getrandomsystem(0)
-               swap map(piratebase(a)),map(d)
-               piratebase(a)=d
+               if d>=0 then
+                   swap map(piratebase(a)),map(d)
+                   piratebase(a)=d
+               endif
            endif
            b=b+disnbase(map(piratebase(a)).c)
         next

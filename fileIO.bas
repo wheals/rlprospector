@@ -617,7 +617,16 @@ function load_tiles() as short
         a+=1
         n+=1
     next
+    y=_tiy*2
+    for x=0 to _tix*2 step _tix
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1
+        n+=1
+    next
 
+    
     n=101
     cls
     bload "graphics/land.bmp"
@@ -671,10 +680,26 @@ function load_tiles() as short
             n+=1
         next
     next
+    
+    n=1500
+    cls
+    bload "graphics/characters.bmp"
+    
+    for y=0 to _tiy*1 step _tiy
+        for x=0 to _tix*7 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1
+            n+=1
+        next
+    next
+    
+    
     n=2001
     cls
     bload "graphics/items.bmp"
-    for y=0 to _tiy*5 step _tiy
+    for y=0 to _tiy*6 step _tiy
         for x=0 to _tix*19 step _tix
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
@@ -1862,10 +1887,12 @@ function getfilename() as string
     dim n(10) as string
     dim d as string*36
     dim datestring as string*12
+    dim ustring as string*512
+    dim as string planetstring,artifactstring,help
     dim text as string
     dim f as integer
     dim i as integer
-    text="Files:"
+    text="Savegames:"
     a=dir$("savegames/*.sav")
     while a<>""
         if a<>"empty.sav" then
@@ -1882,7 +1909,8 @@ function getfilename() as string
         a=dir()
     wend    
     text=text &"/Exit"
-    c=menu(text,,_mwx-25,10)
+    background(rnd_range(1,_last_title_pic)&".bmp")
+    c=menu(text,help,_mwx-25,10)
     filename=n(c-1)
     return filename    
 end function

@@ -4,7 +4,7 @@ function urn(min as short, max as short,mult as short,bonus as short) as short
     dim as short values(1024),v,j,i,r 
     v=min
     
-    while v<=max
+    while v<=max-min
         i=0
         for i=1 to v*mult
             if j<=1024 then j+=1
@@ -20,26 +20,6 @@ end function
 
 
 declare function fixstarmap() as short
-
-function one_to_five(m as short) as short
-    dim as short r
-    r=rnd_range(1,100)+m
-    if r<0 then r=0
-    if r>100 then r=100
-    
-    select case r
-    case is<=50
-        return 1
-    case 51 to 75
-        return 2
-    case 76 to 89
-        return 3
-    case 90 to 96
-        return 4
-    case else
-        return 5
-    end select
-end function
     
 function C_to_F(c as single) as single
     return round_nr(c*1.8+32,1)
@@ -853,10 +833,10 @@ function fill_rect(r as _rect,wall as short, floor as short,map() as short) as s
     return 0
 end function
 
-function rnd_point(m as short=-1,w as short=-1,t as short=-1)as _cords
+function rnd_point(m as short=-1,w as short=-1,t as short=-1,vege as short=-1)as _cords
     dim p(1281) as _cords
     dim as short last,x,y,a,debug
-   if m>0 and w>=0 then
+    if m>0 and w>=0 then
         for x=0 to 60
             for y=0 to 20
                 if tiles(abs(planetmap(x,y,m))).walktru=w then
@@ -886,6 +866,28 @@ function rnd_point(m as short=-1,w as short=-1,t as short=-1)as _cords
             return p(a)
         endif
     endif
+    
+    if m>0 and vege=1 then 'Return a point with vege>0
+        a=0
+        for x=0 to 60
+            for y=0 to 20
+                if tmap(x,y).vege>0 then
+                    a+=1
+                    p(a).x=x
+                    p(a).y=y
+                endif
+            next
+        next
+        if a>0 then
+            return p(rnd_range(1,a))
+        else
+            p(0).x=-1
+            p(0).y=-1
+            return p(0)
+        endif
+    endif
+            
+                    
     
     p(0).x=rnd_range(0,60)
     p(0).y=rnd_range(0,20)

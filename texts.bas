@@ -261,6 +261,36 @@ function makehullbox(t as short,file as string) as string
     return box
 end function
 
+function inventory_text() as string
+    dim as short i,c,b
+    dim as _items inv(35)
+    dim as short invn(35)
+    dim text as string
+    c=getitemlist(inv(),invn()) 
+    text="||Equipment (Value "&Credits(equipment_value) &"):"
+    for i=1 to c
+        if invn(i)>1 then
+            text=text &"|"&invn(i)&" "&inv(i).desigp
+        else 
+            text=text &"|"&inv(i).desig
+        endif
+        
+    next
+    return text
+        b+=1
+'        select case invn(i)
+'        case is >9
+'            draw string (_screenx-(len(trim(inv(i).desig))+3)*_fw2,_screeny-((c-b)*_fh2)),invn(i)&" "&inv(i).desigp,,font2,custom,@_col
+'        case 2 to 9
+'            draw string (_screenx-(len(trim(inv(i).desig))+3)*_fw2,_screeny-((c-b)*_fh2)),invn(i)&" "&inv(i).desigp,,font2,custom,@_col
+'        case else
+'            draw string (_screenx-len(trim(inv(i).desig))*_fw2,_screeny-((c-b)*_fh2)),inv(i).desig,,font2,custom,@_col
+'        
+'        end select
+    
+end function
+
+
 function low_morale_message() as short
     dim as short a,total,average,crewmembers,who,dead
     dim as string hesheit,hishersits,himselfherself
@@ -1059,7 +1089,19 @@ function es_part1() as string
             endif
         endif
     else
-        t=t &" | During all this, there are more and more reports of mysterious robot ships attacking explorers, settlers and traders in the sector of space you helped to explore. |Finally the stations are abandoned. |Mankind seems to come to the conclusion that the exploration of space is too dangerous. New expeditions are cancelled, the current holds of humanity fortified. After taking a bloody nose, humans decide to hole up, in case something dangerous is out there. ||And you finally pass on to the next adventure, one you will never return from."
+        if rnd_range(1,100)<66 then
+            t=t &" | During all this, there are more and more reports of mysterious robot ships"_
+            &" attacking explorers, settlers and traders in the sector of space you helped to"_
+            &" explore. |Finally the stations are abandoned. "_
+            &"|Mankind seems to come to the conclusion that the exploration of space is too "_
+            &"dangerous. New expeditions are cancelled, the current holds of humanity fortified. "_
+            &"After taking a bloody nose, humans decide to hole up, in case something dangerous is out there."
+        else
+            t=t &" | You pay little attention to news that come out of the sector where you earned your riches. "_
+            &" That changes when SHI announces that they managed to control a type of automated alien scoutships, that was a threat to exploration and commerce in the sector before."_
+            &" Automated exploration becomes standard, and much safer for humans, but you are too old to be part of this new adventure."
+        endif
+        t=t &" ||And you finally pass on to the next adventure, one you will never return from."    
     endif
     t=t &" ||| "&space(_screenx/(_fw2*2)-15)&" T H E  E N D ||"
     return t

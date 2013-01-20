@@ -1,4 +1,4 @@
-function gainxp(typ as short) as short
+function gainxp(typ as short,v as short=1) as short
     dim as short a,lowest,slot
     lowest=100
     if typ<=5 then
@@ -13,7 +13,10 @@ function gainxp(typ as short) as short
     else
         slot=typ
     endif
-    if crew(slot).hp>0 and crew(slot).xp>=0 then crew(slot).xp+=1
+    if crew(slot).hp>0 and crew(slot).xp>=0 then 
+        crew(slot).xp+=v
+        dprint crew_desig(crew(slot).typ) &" " &crew(slot).n &" has gained "&v &" Xp.",c_gre
+    endif
     return 0
 end function
 
@@ -158,11 +161,26 @@ function addtalent(cr as short, ta as short, value as single) as single
 end function
     
 function changemoral(value as short, where as short) as short
-    dim a as short
+    dim as short a,tribbles
+    for a=0 to lastitem
+        if item(a).ty=80 and item(a).w.s<0 then 
+            tribbles+=1
+            if rnd_range(1,100)>=99 and rnd_range(1,100)>=99 then
+                dprint "Someone overfed a tribble."
+                placeitem(makeitem(250),,,,,-1)
+            endif
+        endif
+    next
     if value<0 then value=value*bunk_multi
     if value>0 then value=value/bunk_multi
     for a=2 to 128
-        if crew(a).hp>0 and crew(a).onship=where then crew(a).morale=crew(a).morale+value
+        if crew(a).hp>0 and crew(a).onship=where then 
+            crew(a).morale=crew(a).morale+value
+            if tribbles>0 then 
+                tribbles-=1
+                crew(a).morale+=1
+            endif
+        endif
     next
     return 0
 end function
@@ -572,29 +590,38 @@ function remove_no_spacesuit(who() as short,last as short) as short
 end function
 
 function dam_no_spacesuit(dam as short) as short
-    dim as short who(128),last,i,w,dead,hurt,debug,deadw,hurtw
+    dim as short who(128),last,i,w,dead,hurt,debug,deadw,hurtw,hps(128)
     dim text as string
     last=no_spacesuit(who())
-    
-    if debug=1 then dprint "Damage"&dam
+    for i=1 to 128
+        if crew(i).hp>0 then hps(i)=crew(i).hp
+    next
+    debug=1
+    if debug=1 then dprint "Damage"&dam &"last:"&last
     if last>0 then
         do
             w=rnd_range(1,last)
             crew(who(w)).hp-=1
             crew(who(w)).morale-=10*bunk_multi
-            if crew(who(w)).hp>0 then
-                hurt+=1
-                hurtw=who(w)
-            else
-                dead+=1
-                deadw=who(w)
-            endif
             if dam<last then
                 who(w)=who(last)
                 if last>1 then last-=1
             endif
             dam-=1
         loop until dam<=0 or last<=1
+        for i=1 to 128
+            if hps(i)>0 then
+                if crew(i).hp<=0 then 
+                    dead+=1
+                    deadw=i
+                endif
+                if crew(i).hp>0 and crew(i).hp<hps(i) then 
+                    hurt+=1
+                    hurtw=i
+                endif
+            endif
+        next
+        
         if hurt>1 then text=text & hurt & " crewmembers hurt"
         if hurt=1 then text=text & crew(hurtw).n & " was hurt"
         if dead>0 then 
@@ -610,6 +637,7 @@ function dam_no_spacesuit(dam as short) as short
                 sleep 100
             endif
             #endif
+            changemoral(-10,0)
             dprint text &" by extreme environment.",c_red
         endif
     endif
@@ -711,7 +739,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).story(b)=rnd_range(1,10)
         next
         'crew(slot).story(9)=rnd_range(1,3)
-        crew(slot).n=character_name(crew(slot).story(10))
+        crew(slot).n=character_name(crew(slot).story(10)) '0 male 1 female
 '        nameno=(rnd_range(1,ln(1)))
 '        if nameno<=23 then
 '            'female
@@ -731,52 +759,65 @@ function addmember(a as short,skill as short) as short
         'crew(slot).talents(rnd_range(1,25))=1
         'crew(slot).talents(rnd_range(1,25))=1
         'crew(slot).disease=rnd_range(1,17)
+        
         if a=1 then 'captain
-            crew(slot).hpmax=6
-            crew(slot).hp=6
-            crew(slot).icon="C"
-            crew(slot).typ=1
-            crew(slot).baseskill(0)=captainskill
-            crew(slot).baseskill(1)=captainskill
-            crew(slot).baseskill(2)=captainskill
-            crew(slot).baseskill(3)=captainskill
-            cat=1
+            background(rnd_range(1,_last_title_pic)&".bmp")
+            cat=2
+            if equipment_value<1150 then cat+=1
             do
-                if cat>1 then 
-                    text="Choose captains talents (" &cat &")"
-                else
-                    text="Choose captains talent (" &cat &")"
-                endif
                 help=""
-                text=text &"/No Talent, +100 Cr."
-                help=help &"/start with "& player.money+100 &" Cr. instead of 500"
-                text=text &"/Additional talent, 100 Cr less startingmoney"
-                help=help &"/start with "& player.money-100 &" Cr. instead of 500. Choose one more starting talent"
-                text=text &"/5 Spacesuits"
-                help=help &"/start with 5 standard issue spacesuits"
+                if cat>1 then 
+                    text="Choose captain("& player.h_sdesc &") "&crew(slot).n & "s talents (" &cat &")"
+                else
+                    text="Choose captain("& player.h_sdesc &") " &crew(slot).n & "s talent (" &cat &")"
+                endif
+                text=text &"/No talent, +50 Cr."
+                help=help &"/Start with "& player.money+50 &" Cr. instead of 500" &inventory_text
+                text=text &"/Additional talent, -50 Cr."
+                help=help &"/Start with "& player.money-50 &" Cr. instead of 500. Choose one more starting talent"&inventory_text
+                text=text &"/2 Spacesuits"
+                help=help &"/start with 2 standard issue spacesuits"&inventory_text
+                text=text &"/additional random items"
+                help=help &"/Start with one more random item"&inventory_text
+                text=text &"/Tribble"
+                help=help &"/Start with a pet tribble"&inventory_text
                 for i=1 to 6
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)
+                    help=help &"/"&talent_desc(i)&inventory_text 
+                    'help=help &"Ship:"&player.h_sdesc
+                
                 next
                 for i=20 to 26
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)
+                    help=help &"/"&talent_desc(i)&inventory_text
+                    'help=help &"Ship:"&player.h_sdesc
                 next
                 i=menu(text,help)
                 select case i
                 case 1,-1
-                    player.money+=100
+                    player.money+=50
                     cat-=1
                 case 2
-                    player.money-=100
+                    player.money-=50
                     cat+=1
                 case 3
                     cat-=1
-                    for j=1 to 5
+                    for j=1 to 2
                         placeitem(makeitem(320),0,0,0,0,-1)
                     next
+                case 4
+                    
+                        if rnd_range(1,100)<50 then
+                            placeitem(rnd_item(44),0,0,0,0,-1)
+                        else
+                            placeitem(rnd_item(45),0,0,0,0,-1)
+                        endif
+                    cat-=1
+                case 5
+                    placeitem(makeitem(250),0,0,0,0,-1)
+                    cat-=1
                 case else
-                    j=i-3
+                    j=i-5
                     
                     if j>6 then j+=13
                     crew(slot).talents(j)+=1
@@ -801,6 +842,16 @@ function addmember(a as short,skill as short) as short
 '                    crew(slot).hp+=1
 '                endif
             loop until cat=0
+            
+            crew(slot).hpmax=6
+            crew(slot).hp=6
+            crew(slot).icon="C"
+            crew(slot).typ=1
+            crew(slot).baseskill(0)=captainskill
+            crew(slot).baseskill(1)=captainskill
+            crew(slot).baseskill(2)=captainskill
+            crew(slot).baseskill(3)=captainskill
+            
         endif
         if a=2 then 'Pilot
             crew(slot).hpmax=skill+1
@@ -887,6 +938,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).morale=25000
             crew(slot).augment(7)=1
             crew(slot).story(10)=2
+            crew(slot).equips=2'Can use weapons and squidsuit
         endif
         
         if a=11 then
@@ -996,7 +1048,10 @@ function addmember(a as short,skill as short) as short
 end function    
 
 function girlfriends(st as short) as short
+    dim hisher(1) as string
     dim as short a,gf,whogf,mr,whomr
+    hisher(0)=" his "
+    hisher(1)=" her "
     for a=0 to 128
         if crew(a).hp>0 then
             'if crew(a).story(9)>0 and crew(a).story(9)<>st+1 and crew(a).story(9)<>st+3 then crew(a).morale-=1
@@ -1018,9 +1073,9 @@ function girlfriends(st as short) as short
             endif
         endif
     next
-    if gf=1 then dprint crew(whogf).n &" is very happy to see his girlfriend/boyfriend"
+    if gf=1 then dprint crew(whogf).n &" is very happy to see" & hisher(crew(whogf).story(10)) & "girlfriend/boyfriend"
     if gf>1 then dprint gf &" crewmebers are very happy to see their girlfriends/boyfriends"
-    if mr=1 then dprint crew(whomr).n &" is very happy to see his wife/husband"
+    if mr=1 then dprint crew(whomr).n &" is very happy to see" & hisher(crew(whomr).story(10)) & "wife/husband"
     if mr>1 then dprint mr &" crewmebers are very happy to see their wifes/husbands"
     return 0
 end function
@@ -1474,10 +1529,10 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     awayteam.light=0
     awayteam.jpfueluse=0
     awayteam.jpfuelmax=0
-    for a=1 to lastitem
+    for a=0 to lastitem
         if item(a).w.s=-2 then item(a).w.s=-1
     next
-    for a=1 to lastitem
+    for a=0 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
         if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
@@ -1494,7 +1549,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     hovers=0
     jpacks=0
     
-    for a=1 to lastitem
+    for a=0 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
         if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
@@ -1572,7 +1627,7 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
         'find best ranged weapon
         'give to redshirt
 
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips=0 then 
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips<>1 then 
             if crew(a).augment(7)=0 then
                 cantswim+=1
             else
@@ -1585,8 +1640,10 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 jpacks+=1
                 awayteam.jpfueluse+=1
             endif
-            if crew(a).equips=0 then
-                b=findbest(2,-1)        
+            
+            if crew(a).equips<>1 then
+                b=-1
+                if crew(a).equips<>1 then b=findbest(2,-1)        
                 if b>-1 and crew(a).weap=0 then
                     'dprint "Equipping "&item(b).desig & b
                     awayteam.secweap(a)=item(b).v1
@@ -1596,8 +1653,10 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                     crew(a).weap=b
                     item(b).w.s=-2
                 endif
-                'find best armor        
-                b=findbest(3,-1)
+                'find best armor   
+                b=-1
+                if crew(a).equips=0 then b=findbest(3,-1)
+                if crew(a).equips=2 then b=findbest(103,-1)'Squidsuit
                 'give to redshirt
                 if b>-1 and crew(a).armo=0 then
                     awayteam.secarmo(a)=item(b).v1

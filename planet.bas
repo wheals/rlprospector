@@ -36,7 +36,7 @@ function space_next_to_wall() as short
 end function
 
 
-sub makefinalmap(m as short)
+function makefinalmap(m as short) as short
     dim as _cords p,p2
     dim as short f,x,y,c,l
     planets(m).darkness=5
@@ -78,9 +78,10 @@ sub makefinalmap(m as short)
     planets(m).mon_noamin(3)=10
     planets(m).grav=0.5
     planets(m).atmos=3
-end sub
+    return 0
+end function
 
-sub makeplatform(slot as short,platforms as short,rooms as short, translate as short, adddoors as short=0)
+function makeplatform(slot as short,platforms as short,rooms as short, translate as short, adddoors as short=0) as short
     
     dim map(60,20) as short
     dim as short x,y,a,w,h,c,d,b,n,flag,door,c0
@@ -298,10 +299,10 @@ sub makeplatform(slot as short,platforms as short,rooms as short, translate as s
         next
     next
 
+    return 0
+end function
 
-end sub
-
-sub makecomplex(byref enter as _cords, down as short,blocked as byte=0)
+function makecomplex(byref enter as _cords, down as short,blocked as byte=0) as short
     
     dim as short last,wantsize,larga,largb,lno,x,y,mi,slot,old,a,dx,dy,dis,d,b,c,best,startdigging
     dim t as _rect
@@ -531,8 +532,8 @@ do
         loop until r(a).wd(5)=0 and a<>b
         x=rnd_range(r(a).x,r(a).x+r(a).w)
         y=rnd_range(r(a).y,r(a).y+r(a).h)
-        lastportal=lastportal+1
-        lastplanet=lastplanet+1
+        lastportal+=1
+        lastplanet+=1
         a=lastportal
         portal(a).desig="A shaft. "
         portal(a).tile=111
@@ -631,9 +632,10 @@ do
         planets(slot).atmos=1
         planets(slot).grav=1
     endif
-end sub
+    return 0
+end function
 
-sub makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short)
+function makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short) as short
 
 dim as short map(60,20)
 dim as short map2(60,20)
@@ -1062,10 +1064,10 @@ if t=1 then
     next
 endif
     
+return 0
+end function
 
-end sub
-
-sub makecomplex3(slot as short,cn as short, rc as short,columns as short,tileset as short)
+function makecomplex3(slot as short,cn as short, rc as short,columns as short,tileset as short) as short
 
 dim map(60,20) as short
 dim filled as short
@@ -1336,10 +1338,10 @@ if tileset=3 then
     next
 endif
 
+return 0
+end function
 
-end sub
-
-sub makecomplex4(slot as short,rn as short,tileset as short)
+function makecomplex4(slot as short,rn as short,tileset as short) as short
         
     dim as short map(60,20)
     dim as short map2(60,20)
@@ -1492,9 +1494,10 @@ sub makecomplex4(slot as short,rn as short,tileset as short)
         next
         planetmap(0,0,slot)=50
     endif
-end sub
+    return 0
+end function
 
-sub makelabyrinth(slot as short)
+function makelabyrinth(slot as short) as short
     
     dim map(60,20) as short
     dim as short x,y,a,b,c,count
@@ -1601,9 +1604,10 @@ sub makelabyrinth(slot as short)
            if map(x,y)=5 then planetmap(x,y,slot)=-151                    
        next
     next
-end sub
+    return 0
+end function
 
-sub makeroots(slot as short)
+function makeroots(slot as short) as short
     dim as _cords p,p2
     dim as short a,b,c,x,y
     if planets(slot).depth=0 then planets(slot).depth=1
@@ -1645,7 +1649,8 @@ sub makeroots(slot as short)
             next
         next
     endif
-end sub
+    return 0
+end function
 
             
 sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, froti as short, blocked as short=1)
@@ -1685,23 +1690,23 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
     planetmap(enter.x,enter.y,slot)=0
     
     if (rnd_range(1,100)<45 or spemap>0) and blocked=0 then
-        lastportal=lastportal+1
-        lastplanet=lastplanet+1
-        a=lastportal
-        portal(a).desig="A natural tunnel. "
-        portal(a).tile=111
-        portal(a).ti_no=3003
-        portal(a).col=7
-        portal(a).from.s=enter.s
-        portal(a).from.m=enter.m
-        portal(a).from.x=rnd_range(1,59)
-        portal(a).from.y=rnd_range(1,19)
-        portal(a).dest.m=lastplanet
-        portal(a).dest.s=portal(a).from.s
-        portal(a).dest.x=rnd_range(1,59)
-        portal(a).dest.y=rnd_range(1,19)
-        portal(a).discovered=show_portals
-        map(portal(a).from.s).discovered=3
+        lastportal+=1
+        lastplanet+=1
+        
+        portal(lastportal).desig="A natural tunnel. "
+        portal(lastportal).tile=111
+        portal(lastportal).ti_no=3003
+        portal(lastportal).col=7
+        portal(lastportal).from.s=enter.s
+        portal(lastportal).from.m=enter.m
+        portal(lastportal).from.x=rnd_range(1,59)
+        portal(lastportal).from.y=rnd_range(1,19)
+        portal(lastportal).dest.m=lastplanet
+        portal(lastportal).dest.s=portal(lastportal).from.s
+        portal(lastportal).dest.x=rnd_range(1,59)
+        portal(lastportal).dest.y=rnd_range(1,19)
+        portal(lastportal).discovered=show_portals
+        map(portal(lastportal).from.s).discovered=3
         for b=0 to lastportal
             if portal(a).dest.m=portal(b).from.m then
                 if portal(a).dest.x=portal(b).from.x and portal(a).from.y=portal(b).from.y then
@@ -1934,7 +1939,7 @@ sub makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, 
     endif
 end sub
 
-sub makeplanetmap(a as short,orbit as short,spect as short)
+function makeplanetmap(a as short,orbit as short,spect as short) as short
     dim gascloud as short
     dim b1 as short
     dim b2 as short
@@ -1961,7 +1966,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
     dim as short last,wantsize,larga,largb,lno,mi,old,alwaysstranded
     if a<=0 then 
        dprint "ERROR: Attempting to make planet map at "&a,14
-       return
+       return 0
     endif
     prefmin=rnd_range(1,14)
     planettype=rnd_range(1,100)
@@ -2103,7 +2108,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a,0,0)
         next b
     endif
     
@@ -2112,7 +2117,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a,0,0)
         next b
     endif
     
@@ -2125,7 +2130,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                d=d+1
                p=rnd_point
             loop until planetmap(p.x,p.y,a)=-7 or planetmap(p.x,p.y,a)=-8 or d=10
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+disnbase(player.c)\5+gascloud,planets(a).depth+disnbase(player.c)\6+gascloud,prefmin),p.x,p.y,a,0,0)
         next b
     
     endif
@@ -2133,7 +2138,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         makecraters(a,o)'craters
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a,0,0)
             if rnd_range(1,100)<66 then
                 d=158
             else
@@ -2154,7 +2159,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                d=d+1
                p=rnd_point
             loop until planetmap(p.x,p.y,a)=-1 or planetmap(p.x,p.y,a)=-2 or d=10
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a,0,0)
         next b
     
     endif
@@ -2163,10 +2168,10 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         for b=0 to rnd_range(0,3)+gascloud+disnbase(player.c)\4
             d=0
             p=rnd_point
-            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a)
+            if specialplanet(15)<>a then placeitem(makeitem(96,planets(a).depth+planets(a).minerals,planets(a).depth+planets(a).minerals,prefmin),p.x,p.y,a,0,0)
         next b
     endif
-    makeice(o,a)    
+    makeice(a,o)    
     
     planets(a).dens=(planets(a).atmos-1)-6*((planets(a).atmos-1)\6)
     'planets(a).temp=round_nr(spect*83-o*(53+rnd_range(1,20)/10),1)'(8-planets(a).dens)
@@ -2232,7 +2237,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                     next
                 next
                 if rnd_range(1,100)>33 then planetmap(p1.x,p1.y,a)=-7
-                if rnd_range(1,100)>33 then placeitem(makeitem(96,10,-1),p1.x,p1.y,a)
+                if rnd_range(1,100)>33 then placeitem(makeitem(96,10,-1),p1.x,p1.y,a,0,0)
             endif
         
         endif
@@ -2266,7 +2271,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
                         p2.y=y
                         if distance(p1,p2)<b then 
                             if rnd_range(1,100)<88 then planetmap(x,y,a)=-13
-                            if rnd_range(1,100)<15 then placeitem(makeitem(96,-2,-3),x,y,a)
+                            if rnd_range(1,100)<15 then placeitem(makeitem(96,-2,-3),x,y,a,0,0)
                         endif
                     endif
                 next
@@ -2314,7 +2319,7 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             planetmap(p1.x,p1.y,a)=-76
             for b=0 to rnd_range(1,4)
                 if rnd_range(1,100)<25 then placeitem(rnd_item(6),p1.x,p1.y,a)
-                if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a)
+                if rnd_range(1,100)<35 then placeitem(makeitem(96,-2,-2),p1.x,p1.y,a,0,0)
             next
             if rnd_range(1,100)<42 then 
                 p1=movepoint(p1,5)
@@ -2335,75 +2340,18 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
             next
         endif
         
-'        'Castle : Belongs to adaptmap
-'        if rnd_range(1,100)<300 then
-'            p=rnd_point
-'            if p.x>55 then p.x=55
-'            if p.y>15 then p.y=15
-'            p2.x=p.x+4
-'            p2.y=p.y+4
-'            if p2.x-p.x>10 then 
-'                if rnd_range(1,100)<50 then
-'                    p.x=p2.x-5
-'                else
-'                    p2.x=p.x+5
-'                endif
-'            endif
-'            if p2.y-p.y>10 then 
-'                if rnd_range(1,100)<50 then
-'                    p.y=p2.y-5
-'                else
-'                    p2.y=p.y+5
-'                endif
-'            endif
-'            dprint "Making vault from "&p.x &":"&p.y &" to "&p2.x &":"& p2.y
-'            for x=p.x to p2.x
-'                for y=p.y to p2.y
-'                    planetmap(x,y,a)=-4
-'                    if x=p.x or y=p.y or x=p2.x or y=p2.y then planetmap(x,y,a)=-49
-'                next
-'            next
-'            planetmap(p.x-1,p.y,a)=-50
-'            planetmap(p.x,p.y-1,a)=-50
-'            planetmap(p.x-1,p.y-1,a)=-50
-'            
-'            planetmap(p2.x+1,p.y,a)=-50
-'            planetmap(p2.x,p.y-1,a)=-50
-'            planetmap(p2.x+1,p.y-1,a)=-50
-'            
-'            planetmap(p.x-1,p2.y,a)=-50
-'            planetmap(p.x,p2.y+1,a)=-50
-'            planetmap(p.x-1,p2.y+1,a)=-50
-'            
-'            planetmap(p2.x+1,p2.y,a)=-50
-'            planetmap(p2.x,p2.y+1,a)=-50
-'            planetmap(p2.x+1,p2.y+1,a)=-50
-'            
-'            select case rnd_range(1,4)
-'            case 1
-'                planetmap(p.x,rnd_range(p.y+1,p2.y-1),a)=-157
-'            case 2
-'                planetmap(p2.x,rnd_range(p.y+1,p2.y-1),a)=-157
-'            case 3
-'                planetmap(rnd_range(p.x+1,p2.x-1),p.y,a)=-157
-'            case 4
-'                planetmap(rnd_range(p.x+1,p2.x-1),p2.y,a)=-157
-'            end select
-'            planets(a).vault.x=p.x
-'            planets(a).vault.y=p.y
-'            planets(a).vault.w=p2.x-p.x
-'            planets(a).vault.h=p2.y-p.y
-'            planets(a).vault.wd(5)=2
-'            planets(a).vault.wd(6)=-12
-'            planets(a).mon_template(12)=makemonster(1,a)
-'        endif
-'        
+        
         if rnd_range(1,100)<3 then
             p=rnd_point
             do
                 planetmap(p.x,p.y,a)=-193
                 p=movepoint(p,5)
             loop until rnd_range(1,100)<77
+        endif
+        
+        if rnd_range(1,200)<3+disnbase(player.c)/10 then 'Abandoned squidsuit
+            p=rnd_point
+            placeitem(makeitem(123),p.x,p.y,a)
         endif
         
         'radioactive crater   
@@ -2500,7 +2448,9 @@ sub makeplanetmap(a as short,orbit as short,spect as short)
         planetmap(p.x,p.y,a)=add_tile_each_map
     endif
     if isgardenworld(a) then planets_flavortext(a)="This place is lovely."
-end sub
+    if planets(a).temp=0 and planets(a).grav=0 then dprint "Made a 0 planet,#"&a,c_red
+    return 0
+end function
 
 function modsurface(a as short,o as short) as short
     
@@ -2717,7 +2667,7 @@ next
 
 togglingfilter(a)
 togglingfilter(a,8,7)
-makeice(o,a)
+makeice(a,o)
 end sub
 
 sub makeoceanworld(a as short,o as short)
@@ -2774,7 +2724,7 @@ sub makeoceanworld(a as short,o as short)
     next
     planets(a).mon_template(0)=makemonster(24,a)
     planets(a).mon_template(1)=makemonster(10,a)
-    makeice(o,a)
+    makeice(a,o)
 end sub
 
 sub makemossworld(a as short, o as short)
@@ -3069,6 +3019,7 @@ function make_special_planet(a as short) as short
     dim as _rect r
     dim as _cords gc,gc1
     dim it as _items
+    dim addship as _driftingship
     ' UNIQUE PLANETS
     '
     for b=0 to lastspecial
@@ -3873,7 +3824,8 @@ function make_special_planet(a as short) as short
         portal(lastportal).discovered=show_portals
         portal(lastportal).tumod=10
         portal(lastportal).dimod=-3
-        lastplanet=lastplanet+1
+        
+        lastplanet+=1
         planets(a).mon_template(0)=makemonster(20,a)
         planets(a).mon_noamax(0)=24
         planets(a).mon_noamin(0)=18
@@ -4956,11 +4908,37 @@ function make_special_planet(a as short) as short
         for b=0 to 36
             planetmap(rnd_range(0,60),rnd_range(4,16),a)=-239
         next
-        planets(a).temp=12.3
-        planets(a).rot=12.3 
+        deletemonsters(a)
+        planets(a).temp=16.3
+        planets(a).rot=12.3
+        planets(a).atmos=5
         planets(a).mon_template(0)=makemonster(42,a)
         planets(a).mon_noamin(0)=10
         planets(a).mon_noamax(0)=25
+        p1=rnd_point(a,,2)
+        addship.x=p1.x
+        addship.y=p1.y
+        addship.m=a
+        addship.s=18
+        planetmap(p1.x,p1.y,a)=-149
+        make_drifter(addship,2,1)
+        deletemonsters(lastplanet)
+        planets(lastplanet).mon_template(0)=makemonster(90,a)
+        planets(lastplanet).mon_noamin(0)=0
+        planets(lastplanet).mon_noamax(0)=5
+        for x=0 to 60
+            for y=0 to 20
+                if abs(planetmap(x,y,lastplanet))=82 then planetmap(x,y,lastplanet)=-80 'Delete spawning computers
+            next
+        next
+        for b=0 to rnd_range(1,6)
+            p1=rnd_point(lastplanet,,202)
+            planetmap(p1.x,p1.y,lastplanet)=-rnd_range(290,293)
+        next
+        for b=0 to rnd_range(1,6)
+            p1=rnd_point(lastplanet,,202)
+            placeitem(makeitem(99),p1.x,p1.y,lastplanet)
+        next
     endif
     
     if a=specialplanet(36) then
@@ -6010,7 +5988,7 @@ end function
 
 
 
-function makeice(o as short,a as short) as short
+function makeice(a as short,o as short) as short
     dim as short ice,x,y
     ice=(10-o)*rnd_range(5,10)
     if o<3 then ice=100
@@ -6324,7 +6302,7 @@ function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as s
         for y=r.y to r.y+r.h
             if planetmap(x,y,slot)=0 then
                 if rnd_range(1,100)<11 then placeitem(rnd_item(21),x,y,slot)
-                if rnd_range(1,100)<21 then placeitem(makeitem(96),x,y,slot,-3,-3)
+                if rnd_range(1,100)<21 then placeitem(makeitem(96,-3,-3),x,y,slot)
                 if rnd_range(1,100)<3 then placeitem(makeitem(99),x,y,slot)                
             endif
         next
@@ -6351,7 +6329,7 @@ function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as s
                 else    
                     planetmap(x,y,slot)=-4
                     if rnd_range(1,100)<21 then placeitem(makeitem(7),x,y,slot)
-                    if rnd_range(1,100)<15 then placeitem(makeitem(96),x,y,slot,5,5)
+                    if rnd_range(1,100)<15 then placeitem(makeitem(96,5,5),x,y,slot)
                 endif
             next
         next
@@ -6488,23 +6466,28 @@ function station_event(m as short) as short
         end select
     case is>55 'Bad Stuff
         select case rnd_range(1,100)
-            case 0 to 25
+            case 0 to 20
                 planets(m).flags(26)=1 'Standard Critter loose
                 planets(m).mon_template(2)=makemonster(1,m)
                 planets(m).mon_noamin(2)=1
                 planets(m).mon_noamax(2)=1
-            case 26 to 50
+            case 21 to 40
                 planets(m).flags(26)=4 'Crawling Shrooms loose
                 planets(m).mon_template(2)=makemonster(34,m)
                 planets(m).mon_noamin(2)=1
                 planets(m).mon_noamax(2)=1
-            case 51 to 75
+            case 41 to 60
                 planets(m).flags(26)=5 'Pirate band attacking
                 planets(m).mon_template(2)=makemonster(3,m)
                 planets(m).mon_noamin(2)=1
                 planets(m).mon_noamax(2)=3
                 p=rnd_point(m,,203)
                 planetmap(p.x,p.y,m)=-67
+            case 61 to 80 'Tribble infestation
+                planets(m).flags(26)=12
+                planets(m).mon_template(2)=makemonster(80,m)
+                planets(m).mon_noamin(1)=1
+                planets(m).mon_noamax(1)=1
             case else
                 planets(m).flags(26)=6 'Leak
                 p=rnd_point(m,,243)
@@ -6714,12 +6697,12 @@ function planet_event(slot as short) as short
             planetmap(rnd_range(0,60),rnd_range(0,20),slot)=-146
         next
         for x=0 to rnd_range(1,5)
-            placeitem(makeitem(96,planets(slot).depth+disnbase(player.c)\5,planets(a).depth+disnbase(player.c)\6),rnd_range(0,60),rnd_range(0,20),slot)
+            placeitem(makeitem(96,planets(slot).depth+disnbase(player.c)\5,planets(a).depth+disnbase(player.c)\6),rnd_range(0,60),rnd_range(0,20),slot,0,0)
         next
         for x=0 to 3
             p1=rnd_point
             planetmap(p1.x,p1.y,slot)=-59
-            placeitem(makeitem(96,planets(slot).depth+disnbase(player.c)\5,planets(a).depth+disnbase(player.c)\6),p1.x,p1.y,slot)
+            placeitem(makeitem(96,planets(slot).depth+disnbase(player.c)\5,planets(a).depth+disnbase(player.c)\6),p1.x,p1.y,slot,0,0)
 
         next
         
@@ -6806,7 +6789,7 @@ function planet_event(slot as short) as short
         planets(lastplanet).mon_noamax(2)=planets(slot).mon_noamin(2)+2
         for b=0 to 20+rnd_range(0,6)+disnbase(player.c)\4
             gc=rnd_point(lastplanet,0)
-            placeitem(makeitem(96,planets(lastplanet).depth+disnbase(player.c)\5,planets(lastplanet).depth+disnbase(player.c)\6),gc.x,gc.y,lastplanet)
+            placeitem(makeitem(96,planets(lastplanet).depth+disnbase(player.c)\5,planets(lastplanet).depth+disnbase(player.c)\6),gc.x,gc.y,lastplanet,0,0)
         next b
     endif
     if t=10 then 'Living geysers
@@ -6831,10 +6814,10 @@ function planet_event(slot as short) as short
         planets(slot).temp=4326+rnd_range(1,100)
         planets(slot).death=10+rnd_range(0,6)+rnd_range(0,6)
         for b=0 to rnd_range(1,8)+rnd_range(1,5)+rnd_range(1,3)
-            placeitem(makeitem(96,4,4),rnd_range(0,60),rnd_range(0,20),slot)
+            placeitem(makeitem(96,4,4),rnd_range(0,60),rnd_range(0,20),slot,0,0)
         next
         for b=0 to rnd_range(0,15)+15
-            placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),slot)
+            placeitem(makeitem(96,9,7),rnd_range(0,60),rnd_range(0,20),slot,0,0)
         next
     endif
     return 0
