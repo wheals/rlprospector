@@ -8,11 +8,32 @@ function setglobals() as short
     wage=10
     
     for a=0 to 5
-        companystats(a).capital=1000
+        companystats(a).capital=25000
         companystats(a).profit=0
         companystats(a).rate=0
         companystats(a).shares=100
     next
+    
+    bountyquestreason(1)="for repeated acts of piracy."
+    bountyquestreason(2)="for damaging company property."
+    bountyquestreason(3)="for repeated acts of piracy."
+    bountyquestreason(4)="since she has become dangerously close to discover one of our bases."
+    bountyquestreason(5)="because she has shown no mercy in spacecombat and shall be afforded none."
+    bountyquestreason(6)=". She is the most dangerous pirate hunter out there at this time and must be dealt with."
+    
+    shopname(1) ="Explorers Gear"
+    shopname(2) ="Cheap Chunks"
+    shopname(3) ="Space'n'Stuff"
+    shopname(4) ="YeOlde Weapons Locker"
+    
+    shipyardname(sy_military)="SHI Vessels Division ltd."
+    shipyardname(sy_civil)="Eridiani Exploratory Craft ltd."
+    shipyardname(sy_pirates)="Lost and Found"
+    shipyardname(sy_blackmarket)="LeOfInCo ltd."
+    
+    moduleshopname(ms_energy)="OBE High Energy Research Lab"
+    moduleshopname(ms_projectile)="SHI Weapons Division ltd."
+    moduleshopname(ms_modules)="Triax Ship-Accesoirs"
     
     ammotypename(0)="Kinetic projectile"
     ammotypename(1)="Explosive shell"
@@ -26,11 +47,40 @@ function setglobals() as short
     awayteamcomp(3)=1
     awayteamcomp(4)=1
     
+    piratenames(ST_PFighter)="pirate fighter"                  
+    piratenames(ST_PCruiser)="pirate cruiser"                  
+    piratenames(ST_PDestroyer)="pirate destroyer" 
+    piratenames(ST_PBattleship)="pirate battleship"
+    piratenames(ST_lighttransport)="light transport"                 
+    piratenames(ST_heavytransport)="heavy transport"                 
+    piratenames(ST_merchantman)="merchantman"                 
+    piratenames(ST_armedmerchant)="armed merchantman"                 
+    piratenames(ST_CFighter)="company fighter"                         
+    piratenames(ST_CEscort)="company escort"                          
+    piratenames(ST_Cbattleship)="company battleship"                         
+    piratenames(ST_AnneBonny)="Anne Bonny"                      
+    piratenames(ST_BlackCorsair)="Black Corsair"                   
+    piratenames(st_hussar)="Hussar"
+    piratenames(st_blackwidow)="Black Widow"
+    piratenames(st_adder)="Adder"
+    piratenames(ST_AlienScoutShip)="ancient alien scoutship"              
+    piratenames(ST_spacespider)="space spider"                  
+    piratenames(ST_livingsphere)="living sphere"                   
+    piratenames(ST_hydrogenworm)="hydrogen worm"   
+    piratenames(ST_livingplasma)="living plasma"
+    piratenames(ST_starjellyfish)="star jellyfish"        
+    piratenames(ST_cloudshark)="cloudshark"         
+    piratenames(ST_Gasbubble)="gas bubble"
+    piratenames(ST_cloud)="symbiotic cloud"
+    piratenames(ST_Floater)="floater"
+    piratenames(st_spacestation)="space station"
+    
     tacdes(1)="reckless"
     tacdes(2)="agressive"
     tacdes(3)="neutral"
     tacdes(4)="cautious"
     tacdes(5)="defensive"
+    tacdes(6)="nonlethal"
     
     questguyjob(1)="Station Commander"
     questguyjob(2)="Freelancer"
@@ -50,7 +100,6 @@ function setglobals() as short
     questguyjob(16)="Astrophysicist"
     questguyjob(17)="Engineer"
 '    qt_EI'1
-'    qt_heirloom'2
 '    qt_autograph'3
 '    qt_outloan'4
 '    qt_stationimp'5
@@ -72,12 +121,53 @@ function setglobals() as short
 '    qt_anomaly'21
 '    qt_juryrig'22
 '
-
+    standardphrase(sp_greetfriendly,0)="Hello! Glad to meet you!"
+    standardphrase(sp_greetfriendly,1)="Greetings! How do you do?"
+    standardphrase(sp_greetfriendly,2)="How do you do? Happy to see you!"
+    standardphrase(sp_greetneutral,0)="Hello. How can I help you?"
+    standardphrase(sp_greetneutral,1)="Hi. Everything OK?"
+    standardphrase(sp_greetneutral,2)="Erm. Can I help you?"
+    standardphrase(sp_greethostile,0)="What do you want?"
+    standardphrase(sp_greethostile,1)="What's up?"
+    standardphrase(sp_greethostile,2)="Why do you disturb me?"
+    standardphrase(sp_gotalibi,0)="I got you an alibi."
+    standardphrase(sp_gotalibi,1)="I think I can help you with your problem."
+    standardphrase(sp_gotalibi,2)="I think I found somebody who can vouch for you."    
+    standardphrase(sp_gotmoney,0)="I have got your money."
+    standardphrase(sp_gotmoney,1)="I met 1<CHAR>. He sends you your money."
+    standardphrase(sp_gotmoney,2)="I got your money."
+    
+    standardphrase(sp_cantpayback,0)="I would love to pay it back, but I can't at this time."
+    standardphrase(sp_cantpayback,1)="Sorry. Don't have enough money to pay it back right now."
+    standardphrase(sp_cantpayback,2)="Things haven't been easy lately. I am afraid I can't spare a single credit!"
+    
+    itemcat(1)="Transport:"
+    itemcat(2)="Ranged weapons:"
+    itemcat(3)="Armor:"
+    itemcat(4)="Closecombat weapons:"
+    itemcat(5)="Micellaneous:"
+    
+    itemcat(0)="None"
+    itemcat(1)="Transport"
+    itemcat(2)="Ranged Weapons"
+    itemcat(3)="Armor"
+    itemcat(4)="Close combat weapons"
+    itemcat(5)="Medical supplies"
+    itemcat(6)="Grenades"
+    itemcat(7)="Artwork"
+    itemcat(8)="Resources"
+    itemcat(9)="Equipment"
+    itemcat(10)="Space ship equipment"
+    itemcat(11)="Miscellaneous"
+    
     companyname(1)="Eridiani Explorations"
     companyname(2)="Smith Heavy Industries"
     companyname(3)="Triax Traders"
     companyname(4)="Omega Bionegineering"
-    
+    companynameshort(1)="EE"
+    companynameshort(2)="SHI"
+    companynameshort(3)="TT"
+    companynameshort(4)="OB"
     
     talent_desig(1)="Competent"
     talent_desc(1)="Competent: Is better suited to take over other officers jobs."
@@ -102,7 +192,7 @@ function setglobals() as short
     talent_desig(10)="Tactics expert"
     talent_desc(10)="Tactics expert: Increases effect from tactics setting"
     talent_desig(11)="Leadership"
-    talent_desc(11)="Leadership: +1 on all to hit rolls from awayteam"
+    talent_desc(11)="Leadership: +1 on all to hit rolls for entire awayteam"
     talent_desig(12)="Ships weapons expert"
     talent_desc(12)="+1 to hit for ship weapons."
     talent_desig(13)="Improvise mines"
@@ -163,8 +253,8 @@ function setglobals() as short
     specialplanettext(1,1)="The readings are gone. must have been that temple."
     specialplanettext(2,0)="There is a ruin of an anient city here, but I get no signs of life. Some high energy readings though."
     specialplanettext(2,1)="With the planetary defense systems disabled it is safe to land here."
-    specialplanettext(3,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
-    specialplanettext(4,0)="Ruins of buildings cover the whole planet, but i get no readings on life forms"
+    specialplanettext(3,0)="Ruins of buildings cover the whole planet, but I get no readings on life forms"
+    specialplanettext(4,0)="Ruins of buildings cover the whole planet, but I get no readings on life forms"
     specialplanettext(5,0)="Readings indicate almost no water, and extremly high winds. Also very strong readings for lifeforms"
     specialplanettext(6,0)="The atmosphere of this planet is very peculiar. It only lets light in the UV range to the surface"
     specialplanettext(8,0)="Extremly high winds and severe lightning storms on this planet"
@@ -201,6 +291,50 @@ function setglobals() as short
     specialplanettext(39,0)="A beautiful world with a mild climate. Huge areas of cultivated land are visible, even from orbit, along with some small buildings."
     specialplanettext(40,0)="A beautiful world with a mild climate. There is one big artificial structure."
     specialplanettext(41,0)="There is a big asteroid with a landing pad and some buildings here."
+    
+    spdescr(0)="The destination of a generation ship"
+    spdescr(1)="The home of an alien claiming to be a god"
+    spdescr(2)="An alien city with working defense systems"
+    spdescr(3)="An ancient city"
+    spdescr(4)="Another ancient city"
+    spdescr(5)="A world without water and huge sandworms"
+    spdescr(6)="A world with invisible beasts"
+    spdescr(8)="A world with very violent weather"
+    spdescr(9)="An alien base still in good condition"
+    spdescr(10)="An independent colony"
+    spdescr(11)="A casino trying to cheat"
+    spdescr(12)="The prison of an ancient entity"
+    spdescr(13)="Murchesons Ditch"
+    spdescr(14)="The blackmarket"
+    spdescr(15)="A pirate gunrunner operation" 
+    spdescr(16)="A planet with immortal beings" 
+    spdescr(17)="A civilization upon entering the space age"
+    spdescr(18)="The home planet of a civilization about to explore the stars"
+    spdescr(19)="The outpost of an advanced civilization"
+    spdescr(20)="A creepy colony"
+    spdescr(21)="An ancient refueling platform"
+    spdescr(22)="An ancient refueling platform"
+    spdescr(23)="An ancient refueling platform"
+    spdescr(24)="An ancient refueling platform"
+    spdescr(25)="An ancient refueling platform"
+    spdescr(26)="A crystal planet"
+    spdescr(27)="A living planet"
+    spdescr(28)="An ancient city with an intact spaceport"
+    spdescr(29)="A very boring planet"
+    spdescr(30)="The last outpost of an ancient race"
+    spdescr(31)="An asteroid base of an ancient race"
+    spdescr(32)="An asteroid base"
+    spdescr(33)="Another asteroid base"
+    spdescr(34)="A world devastated by war"
+    spdescr(35)="A world populated by peaceful cephalopods"
+    spdescr(36)="A tribe of small green people in trouble"
+    spdescr(37)="An invisible labyrinth"
+    spdescr(39)="A very fertile world plagued by burrowing monsters"
+    spdescr(40)="A world under control of Eridiani Explorations"
+    spdescr(41)="A world under control of Smith Heavy Industries"
+    spdescr(42)="A world under control of Triax Traders"
+    spdescr(43)="A world under control of Omega Bioengineering"
+    spdescr(44)="The ruins of an ancient war"
     
     atmdes(1)="No"
     
@@ -260,6 +394,7 @@ function setglobals() as short
     spectraltype(7)=9
     spectraltype(8)=0
     spectraltype(9)=11
+    spectraltype(10)=0
     
     
     spectralname(1)="red sun (spectral class M)"
@@ -313,11 +448,11 @@ function setglobals() as short
     combon(7).base=100 'Turns survived
     combon(8).base=5 'Pirate Ships destroyed
     
-    baseprice(1)=50
-    baseprice(2)=100
-    baseprice(3)=250
-    baseprice(4)=500
-    baseprice(5)=1000
+    baseprice(1)=100
+    baseprice(2)=250
+    baseprice(3)=500
+    baseprice(4)=750
+    baseprice(5)=1500
     baseprice(6)=500
     baseprice(7)=500
     baseprice(8)=500
@@ -327,28 +462,32 @@ function setglobals() as short
         avgprice(a)=baseprice(a)
     next
     
+    goodsname(1)="Food"
+    goodsname(2)="Basic Goods"
+    goodsname(3)="Tech Goods"
+    goodsname(4)="Luxury Goods"
+    goodsname(5)="Weapons Parts"
+    goodsname(6)="OBE Narcotics"
+    goodsname(7)="SHI Hightech"
+    goodsname(8)="EE Computers"
+    goodsname(9)="Fuel"
+    
     for a=0 to 12
-        basis(a).inv(1).n="Food"
         basis(a).inv(1).v=rnd_range(1,6)+4
         basis(a).inv(1).p=baseprice(1)
         
-        basis(a).inv(2).n="Basic Goods"
         basis(a).inv(2).v=rnd_range(1,7)+3
         basis(a).inv(2).p=baseprice(2)
         
-        basis(a).inv(3).n="Tech Goods"
         basis(a).inv(3).v=rnd_range(1,8)+2
         basis(a).inv(3).p=baseprice(3)
         
-        basis(a).inv(4).n="Luxury Goods"
         basis(a).inv(4).v=rnd_range(1,8)+1
         basis(a).inv(4).p=baseprice(4)
         
-        basis(a).inv(5).n="Weapons"
         basis(a).inv(5).v=rnd_range(1,8)
         basis(a).inv(5).p=baseprice(5)
         
-        basis(a).inv(6).n="Narcotics"
         basis(a).inv(6).p=baseprice(6)
         if  basis(a).company=4 then
             basis(a).inv(6).v=rnd_range(1,8)
@@ -356,7 +495,6 @@ function setglobals() as short
             basis(a).inv(6).v=0
         endif
         
-        basis(a).inv(7).n="Hightech "
         basis(a).inv(7).p=baseprice(7)
         if  basis(a).company=2 then
             basis(a).inv(7).v=rnd_range(1,8)
@@ -364,7 +502,6 @@ function setglobals() as short
             basis(a).inv(7).v=0
         endif
         
-        basis(a).inv(8).n="Computers"
         basis(a).inv(8).p=baseprice(8)
         if  basis(a).company=1 then
             basis(a).inv(8).v=rnd_range(1,8)
@@ -372,7 +509,6 @@ function setglobals() as short
             basis(a).inv(8).v=0
         endif
         
-        basis(a).inv(9).n="Fuel"
         basis(a).inv(9).p=baseprice(9)
         basis(a).inv(9).v=5
     next

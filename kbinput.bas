@@ -74,7 +74,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             sleep 1
         loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run<>0
         lastkey=key    
-        
         if key<>"" then walking=0 
         if _test_disease=1 and key="#" then
             a=getnumber(0,255,0)
@@ -88,16 +87,41 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             b=0
             key=""
         endif
-        if blocked=0 then
-            if key=key_manual then
-                a=menu("Help/Manual/Keybindings/Exit","",2,2)
-                if a=1 then manual
-                if a=2 then keybindings
+        
+        if blocked>=97 then
+            if (asc(key)>=97 and asc(key)<=blocked) then return key
+        endif
+        if blocked=0 or blocked>=97 then
+            if _debug>0 and key="\Cm" then
+                dprint "merchanttalent:"
+                crew(1).talents(6)=getnumber(0,5,0)
+            endif
+            
+            if _debug>0 and key="\Ci" then
+                dprint "Itemdump"
+                f=freefile
+                open "itemdump.txt" for output as #f
+                for i=0 to lastitem
+                    print #f,i &";"&item(i).desig &";"&item(i).w.s &"m:"& item(i).w.m &"C:"&cords(item(i).w)
+                next
+                close #f
+            endif
+            if _debug>0 and key=key_testspacecombat then
+                spacecombat(fleet(rnd_range(6,lastfleet)),9)
+            endif
+            
+            if key=key_awayteam then showteam(1)
+            
+            if key=key_accounting then
+                textbox(income_expenses,2,2,45,11,1)
+                no_key=keyin
                 return ""
             endif
-            if key=key_screenshot then 
-                screenshot(3)
-                dprint "saved screenshot in screenshot.bmp"
+            
+            if key=key_manual then
+                a=menu(bg_parent,"Help/Manual/Keybindings/Exit","",2,2)
+                if a=1 then manual
+                if a=2 then keybindings
                 return ""
             endif
             if key=key_messages then 
@@ -122,7 +146,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             endif
 
             if key=key_equipment then
-                a=getitem(999)
+                a=get_item()
                 if a>0 then dprint item(a).ldesc
                 key=keyin()
                 return ""
@@ -134,7 +158,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 return ""
             endif
             
-            if key=key_quests then
+            if key=key_quest then
                 show_quests
                 return ""
             endif
@@ -143,7 +167,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 if askyn("Do you really want to quit? (y/n)") then player.dead=6
             endif
             
-            if key="ü" then dprint faction(0).war(2) &""
         endif
         if key=key_autoinspect then
             select case _autoinspect
@@ -188,14 +211,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 dprint text
             next
         endif
-        if key=key_mfile then
-            f=freefile
-            open "map.txt" for output as #f
-            for a=1 to laststar
-                print #f, a;":";map(a).discovered
-            next
-            close f
-        endif
         if len(allowed)>0 and key<>key__esc and key<>key__enter and getdirection(key)=0 then
             if instr(allowed,key)=0 and walking=0 then 
                 'keybindings(allowed)
@@ -210,12 +225,68 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
     return key
 end function
 
-function gettext(x as short, y as short, ml as short, text as string) as string
+
+function cursor(target as _cords,map as short,osx as short,osy as short=0,radius as short=0) as string
+    dim key as string
+    dim as _cords p2
+    dim as short border,eo
+    if configflag(con_tiles)=1 then
+        set__color( 11,11)
+        draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
+    else
+        'if map>0 then
+            put ((target.x-osx)*_tix,(target.y-osy)*_tiy),gtiles(85),trans
+        'else
+        '    put ((target.x+osx)*_tix,(target.y+osy)*_tiy),gtiles(85),trans
+        'endif
+    endif
+    key=keyin
+    if map>0 then
+        border=0
+        if planets(map).depth=0 then
+            eo=4
+        else
+            eo=0
+        endif
+    endif
+    if map<=0 then border=1
+    if _debug=707 then dprint "EO:"&eo
+    'dprint ""&planetmap(target.x,target.y,map)
+    if map>0 then
+        if planetmap(target.x,target.y,map)<0 then
+            if configflag(con_tiles)=0 then
+                put ((target.x-osx)*_tix,(target.y-osy)*_tiy),gtiles(0),trans
+            else
+                set__color( 0,0)
+                draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
+            endif
+        else
+            if target.x>=0 and target.y>=0 and target.x<=60 and target.y<=20 then dtile(target.x-osx,target.y,tiles(planetmap(target.x,target.y,map)),1)
+        endif
+    else
+        if configflag(con_tiles)=0 then
+            put ((target.x-osx)*_tix,(target.y-osy)*_tiy),gtiles(0),trans
+        else
+            set__color( 0,0)
+            draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
+        endif
+    endif
+    set__color( 11,0)
+    p2=target
+    target=movepoint(target,getdirection(key),eo,border)
+    if radius>0 and distance(target,awayteam.c)>radius then target=p2
+    return key
+end function
+
+function gettext(x as short, y as short, ml as short, text as string,pixel as short=0) as string
     dim as short l,lasttimer
     dim key as string
     dim p as _cords
     l=len(text)
-    sleep 150
+    if pixel=0 then
+        x=x*_fw2
+        y=y*_fh2
+    endif
     if l>ml and text<>"" then
         text=left(text,ml-1)
         l=ml-1
@@ -224,15 +295,15 @@ function gettext(x as short, y as short, ml as short, text as string) as string
             
         key=""
         set__color( 11,0)
-        draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
+        draw string (x,y), text &"_ ",,font2,custom,@_col
         do
             do
                 sleep 1
                 lasttimer+=1
                 if lasttimer>100 then
-                    draw string (x*_fw2,y*_fh2), text &"  ",,font2,custom,@_col
+                    draw string (x,y), text &"  ",,font2,custom,@_col
                 else
-                    draw string (x*_fw2,y*_fh2), text &"_ ",,font2,custom,@_col
+                    draw string (x,y), text &"_ ",,font2,custom,@_col
                 endif
                 if lasttimer>200 then lasttimer=0
             loop until screenevent(@evkey)
@@ -262,15 +333,9 @@ function gettext(x as short, y as short, ml as short, text as string) as string
         
     loop until key=key__enter or key=key__esc
     if key=key__esc or l<1 then
-        set__color( 0,0)
-        locate y+1,x+1
-        print space(len(text));
-        text=""
     endif
     if len(text)=0 then text=""
     if text=key__enter or text=key__esc or text=chr(8) then text=""
-    while inkey<>""
-    wend
     return text
 end function
 
@@ -283,7 +348,7 @@ function getnumber(a as short,b as short, e as short) as short
     dim p as _cords
     screenset 1,1
     dprint ""
-    if _altnumber=0 then
+    if configflag(con_altnum)=0 then
         p=locEOL
         c=numfromstr((gettext(p.x,p.y,46,"")))
         if c>b then c=b
@@ -375,30 +440,32 @@ function askyn(q as string,col as short=11,sure as short=0) as short
     dim a as short
     dim key as string*1
     dprint (q,col)
-    while screenevent(@evkey)
-    wend
     do
         key=keyin
         displaytext(_lines-1)=displaytext(_lines-1)&key
         if key <>"" then 
             dprint ""
-            if _anykeyno=0 and key<>key_yes then key="N"
+            if configflag(con_anykeyno)=0 and key<>key_yes then key="N"
         endif
     loop until key="N" or key="n" or key=" " or key=key__esc or key=key__enter or key=key_yes  
     
     if key=key_yes or key=key__enter then a=-1
-    if key<>key_yes and sure=1 then a=askyn("Are you sure?(y/n)")
-    
+    if key<>key_yes and sure=1 then a=askyn("Are you sure? Let me ask that again:" & q)
+    if key=key_yes then 
+        dprint "Yes.",15
+    else
+        dprint "No.",15
+    endif
     return a
 end function
 
-function menu(te as string, he as string="", x as short=2, y as short=2, blocked as short=0, markesc as short=0) as short
+function menu(bg as byte,te as string, he as string="", x as short=2, y as short=2, blocked as short=0, markesc as short=0,st as short=-1) as short
     ' 0= headline 1=first entry
     dim as short blen
     dim as string text,help
-    dim lines(26) as string
-    dim helps(26) as string
-    dim shrt(26) as string
+    dim lines(63) as string
+    dim helps(63) as string
+    dim shrt(63) as string
     dim as string key,delhelp
     dim a as short
     dim b as short
@@ -411,7 +478,8 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     dim lastspace as short
     dim tlen as short
     dim longest as short
-    dim as short ofx
+    dim as short ofx,l2,longestbox,longesthelp,backpic,offset
+    backpic=rnd_range(1,_last_title_pic)
     text=te
     help=he
     b=len(text)
@@ -443,29 +511,82 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
     if loca>c then loca=c
     b=0
     for a=0 to c
-        shrt(a)=chr(64+b+a)
+        shrt(a)=chr(96+b+a)
         if getdirection(lcase(shrt(a)))>0 or getdirection(lcase(shrt(a)))>0 or val(shrt(a))>0 or ucase(shrt(a))=ucase(key_awayteam) then
             do 
                 b+=1
-                shrt(a)=chr(64+b+a)
+                shrt(a)=chr(96+b+a)
             loop until getdirection(lcase(shrt(a)))=0 and getdirection(shrt(a))=0 and val(shrt(a))=0
         endif
-        if len(lines(a))>longest then longest=len(lines(a))
+        if len(trim(lines(a)))>longest then longest=len(trim(lines(a)))
     next
     for a=0 to c
         lines(a)=lines(a)&space(longest-len(lines(a)))
     next
-    hw=_mwx*_fw1-((longest)*_fw2)-(4+x)*_fw1
+    hw=_mwx*_fw1-((longest)*_fw2)-(3+x)*_fw1
     hw=hw/_fw2
+    
+    for a=0 to c
+        longesthelp=1
+        l2=textbox(helps(a),ofx,2,hw,15,1,,longesthelp)
+        if l2>longestbox then longestbox=l2
+    next
+    
+    if longestbox>20 or (longestbox/hw)>2 or hw<8 then
+        hw=_screenx-((4+x)*_fw1)-((longest)*_fw2)
+        hw=hw/_fw2
+    endif
+    'if hw>longesthelp then hw=longesthelp
     ofx=x+4+(longest*_fw2/_fw1)
     e=0
     do        
+        if bg<>bg_noflip then
+            screenset 0,1
+            set__color(15,0)
+            cls
+            select case bg
+            case bg_ship
+                display_ship
+            case bg_shiptxt
+                display_ship
+                dprint ""
+            case bg_shipstars
+                display_stars(1)
+                display_ship
+            case bg_shipstarstxt
+                display_stars(1)
+                display_ship
+                dprint ""
+            case bg_awayteam
+                display_awayteam(0)
+            case bg_awayteamtxt
+                display_awayteam(0)
+                dprint ""
+            case bg_randompic
+                background(backpic &".bmp")
+            case bg_randompictxt
+                background(backpic &".bmp")
+                dprint ""
+            case bg_stock
+                display_ship
+                display_stock
+                portfolio(17,2)
+                dprint ""
+            case bg_roulette
+                drawroulettetable
+                display_ship
+                dprint ""
+            case is>=bg_trading
+                display_ship()
+                displaywares(bg-bg_trading)
+            end select
+        endif
         set__color( 15,0)
-        draw string(x*_fw1,y*_fh1), lines(0),,font2,custom,@_col
+        draw string(x*_fw1,y*_fh1), lines(0)&space(3),,font2,custom,@_col
         
         for a=1 to c
             if loca=a then 
-                if hfl=1 and loca<=c and helps(a)<>"" then blen=textbox(helps(a),ofx,2,hw,15,1)
+                if hfl=1 and loca<=c and helps(a)<>"" then blen=textbox(helps(a),ofx,2,hw,15,1,,,offset)
                 set__color( 15,5)
             else
                 set__color( 11,0)
@@ -474,7 +595,12 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
             draw string(x*_fw1,y*_fh1+a*_fh2),shrt(a) &") "& lines(a),,font2,custom,@_col
         next
         
-        if player.dead=0 then key=keyin(,blocked)
+        if bg<>bg_noflip then 
+            flip
+        else
+            dprint ""
+        endif
+        if player.dead=0 then key=keyin(,96+c)
         
         if hfl=1 then 
             for a=1 to blen
@@ -484,16 +610,15 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         endif
         if getdirection(key)=8 then loca=loca-1
         if getdirection(key)=2 then loca=loca+1
+        if help<>"" then
+            if key="+" then offset+=1
+            if key="-" then offset-=1
+        endif
         if loca<1 then loca=c
         if loca>c then loca=1
         if key=key__enter then e=loca
-        if key=key_awayteam then 
-            showteam(0)
-            key=""
-        endif
         for a=0 to c
             if key=lcase(shrt(a)) then loca=a
-            if key=ucase(shrt(a)) then e=a
         next
         if key=key__esc or player.dead<>0 then e=c
     loop until e>0 
@@ -504,5 +629,7 @@ function menu(te as string, he as string="", x as short=2, y as short=2, blocked
         draw string(x*_fw1,y*_fh1+a*_fh2), space(59),,font2,custom,@_col
     next
     set__color( 11,0)
+    cls
+    screenset 1,1
     return e
 end function

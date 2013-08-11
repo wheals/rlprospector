@@ -2,6 +2,167 @@
 ' Calculate and display Highscore and post-mortem
 '
 
+function space_mapbmp() as short
+    dim as any ptr img
+    dim as short x,y,a,n,ti_no,minx,maxx,miny,maxy
+    dim as byte debug=0
+    if debug=1  and _debug=1 then dprint "configflag(con_tiles)"&configflag(con_tiles)
+    minx=-1
+    miny=-1
+    maxx=-1
+    maxy=-1
+    for x=0 to sm_x
+        for y=0 to sm_y
+            if debug=1 and _debug=1 then spacemap(x,y)=abs(spacemap(x,y))
+            if spacemap(x,y)>0 then
+                if minx=-1 or minx>x then minx=x
+                if miny=-1 or miny>y then miny=y
+                if maxx=-1 or maxx<x then maxx=x
+                if maxy=-1 or maxy<y then maxy=y
+            endif
+        next
+    next
+    
+    for a=1 to laststar+wormhole
+        if map(a).discovered>0 then
+            x=map(a).c.x
+            y=map(a).c.y
+            if minx=-1 or minx>x then minx=x
+            if miny=-1 or miny>y then miny=y
+            if maxx=-1 or maxx<x then maxx=x
+            if maxy=-1 or maxy<y then maxy=y
+        endif
+    next
+    
+    for a=1 to lastdrifting
+        if drifting(a).p=1 then
+            x=drifting(a).x
+            y=drifting(a).y
+            if minx=-1 or minx>x then minx=x
+            if miny=-1 or miny>y then miny=y
+            if maxx=-1 or maxx<x then maxx=x
+            if maxy=-1 or maxy<y then maxy=y
+        endif
+    next
+    if maxx-minx<25 then
+        maxx+=12
+        minx-=12
+        if minx<0 then minx=0
+        if maxx>sm_x then maxx=sm_x
+    endif
+    
+    img=imagecreate((maxx-minx+1)*_fw1,(maxy-miny+1)*_fh1,rgba(0,0,77,0))
+    
+    for x=0 to sm_x
+        for y=0 to sm_y
+            if spacemap(x,y)>0 then
+                if configflag(con_tiles)=0 then
+                    if spacemap(x,y)=1 then put img,((x-minx)*_tix,(y-miny)*_tiy),gtiles(50),pset
+                    if spacemap(x,y)>=2 and spacemap(x,y)<=20 then
+                        if spacemap(x,y)>10 then 
+                            ti_no=spacemap(x,y)-10
+                        else
+                            ti_no=spacemap(x,y)
+                        endif
+                        put img,((x-minx)*_tix,(y-miny)*_tiy),gtiles(ti_no+49),trans
+                    endif
+                else
+                    set__color(1,0)
+                    if spacemap(x,y)=1 then draw string img,((x-minx)*_fw1,(y-miny)*_fh1),".",,Font1,custom,@_col
+                    
+                    if spacemap(x,y)>=2 and spacemap(x,y)<=5 then
+                        set__color( rnd_range(48,59),1)
+                        if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(48,59),1)
+                        if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(96,107),1)
+                        if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(144,155),1)
+                        if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(192,203),1)
+                        draw string img,((x-minx)*_fw1,(y-miny)*_fh1),chr(176),,Font1,custom,@_col
+                    endif
+                    if spacemap(x,y)>5 then
+                        if spacemap(x,y)>10 then
+                            ti_no=spacemap(x,y)-10
+                        else
+                            ti_no=spacemap(x,y)
+                        endif
+                        if ti_no=6 then set__color( 2,0)
+                        if ti_no=7 then set__color( 10,0)
+                        if ti_no=8 then set__color( 4,0)
+                        if ti_no=9 then set__color( 12,0)
+                        if ti_no=10 then set__color( 3,0)
+                        draw string img,((x-minx)*_fw1,(y-miny)*_fh1),":",,Font1,custom,@_col
+                    endif
+                endif
+            endif
+        next
+    next
+    for a=1 to lastdrifting
+        if drifting(a).p=1 or (debug=1  and _debug=1) then
+            if configflag(con_tiles)=0 then
+                if drifting(a).g_tile.x=0 or drifting(a).g_tile.x=5 or drifting(a).g_tile.x>9 then drifting(a).g_tile.x=rnd_range(1,4)
+                put img,((drifting(a).x-minx)*_fw1,(drifting(a).y-miny)*_fh1),stiles(drifting(a).g_tile.x,drifting(a).g_tile.y),trans
+            else
+                set__color(7,0)
+                draw string img,((drifting(a).x-minx)*_fw1,(drifting(a).y-miny)*_fh1),"s",,Font1,custom,@_col
+            endif
+        endif
+    next
+    for a=0 to laststar+wormhole
+        if map(a).discovered>0  or (debug=1 and _debug=1) then
+            if configflag(con_tiles)=0 then
+                put img,((map(a).c.x-minx)*_fw1,(map(a).c.y-miny)*_fh1),gtiles(map(a).ti_no),trans
+            else
+                set__color( spectraltype(map(a).spec),0)
+                if map(a).spec<8 then draw string img,((map(a).c.x-minx)*_fw1,(map(a).c.y-miny)*_fh1),"*",,Font1,custom,@_tcol
+                if map(a).spec=8 then     
+                    set__color( 7,0)
+                    draw string img,((map(a).c.x-minx)*_fw1,(map(a).c.y-miny)*_fh1),"o",,Font1,custom,@_tcol
+                endif
+                if map(a).spec=9 then 
+                    n=distance(map(a).c,map(map(a).planets(1)).c)/5
+                    if n<1 then n=1
+                    if n>6 then n=6
+                    set__color( 179+n,0)
+                    draw string img,((map(a).c.x-minx)*_fw1,(map(a).c.y-miny)*_fh1),"o",,Font1,custom,@_tcol
+                endif
+                if map(a).spec=10 then
+                    set__color(63,0)
+                    draw string img,((map(a).c.x-minx)*_fw1,(map(a).c.y-miny)*_fh1),"O",,Font1,custom,@_col
+                endif
+            endif
+        endif
+    next
+    for a=0 to 2
+        if basis(a).c.x>=minx and basis(a).c.y>=miny and basis(a).c.x<=maxx and basis(a).c.y<=maxy then
+            if configflag(con_tiles)=1 then
+                set__color(15,0)
+                draw string img,((basis(a).c.x-minx)*_fw1,(basis(a).c.y-miny)*_fh1),"S",,Font1,custom,@_col
+            else
+                put img,((basis(a).c.x-minx)*_tix,(basis(a).c.y-miny)*_tiy),gtiles(44),trans
+            endif
+        endif
+    next
+    if configflag(con_tiles)=0 then
+        put img,((player.c.x-minx)*_tix-(_tiy-_tix)/2,(player.c.y-miny)*_tiy),stiles(player.di,player.ti_no),trans
+    else
+        set__color( _shipcolor,0)
+        draw string img,((player.c.x-minx)*_fw1,(player.c.y-miny)*_fh1),"@",,Font1,custom,@_col
+    endif
+    if debug=1 and _debug=1 then
+        set__color(15,0)
+        for a=11 to lastwaypoint
+            x=targetlist(a).x
+            y=targetlist(a).y
+            if x>=minx and x<=maxx and y>=miny and y<=maxx then
+                draw string img,((targetlist(a).x-minx)*_tix,(targetlist(a).y-miny)*_tiy),"*",,font1,custom,@_col
+            endif
+        next
+    endif
+    bsave player.desig &"-map.bmp",img
+    imagedestroy img
+    return 0
+end function
+
+    
 function death_message() as short
     dim as string text
     dim as short b,a,wx,tx
@@ -11,46 +172,7 @@ function death_message() as short
     cls
     background(rnd_range(1,_last_title_pic)&".bmp")
     set__color( 12,0)
-    if player.fuel<=0 then player.dead=1
-    if player.dead=1 then text="You ran out of fuel. Slowly your life support fails while you wait for your end beneath the eternal stars"
-    if player.dead=2 then text="The station impounds your ship for outstanding depts. You start a new career as cook at the stations bistro"
-    if player.dead=3 then text="Your awayteam was obliterated. your Bones are being picked clean by alien scavengers under a strange sun"
-    if player.dead=4 then text="After a few months stranded on an alien world you decide to stop sending distress signals, and try to start a colony with your crew. All works really well untill one day that really big animal shows up..."
-    if player.dead=5 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by pirates"
-    if player.dead=6 then text="Farewell Captain!"
-    if player.dead=7 then text="You didn't think the pirates base would be the size of a city, much less a whole planet. The last thing you see is the muzzle of a pirate gaussgun pointed at you."
-    'if player.dead=8 then text= "You think you can see a malicious grin beneath the leaves as the prehensile vines snap your neck"
-    if player.dead=9 then text="Apollo convinces you with bare fists and lightningbolts that he in fact is a god"
-    if player.dead=10 then text="The robots defending the city are old, but still very well armed and armored. Their long gone masters would have been pleased to learn how easily they repelled the intruders."
-    if player.dead=11 then text="The Sandworm swallows the last of your awayteam with one gulp"
-    if player.dead=12 then text="Explosions start rocking your ship as the interstellar gas starts ripping holes into the hull. You try to make a quick run out but you aren't fast enough." 
-    if player.dead=13 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the merchants escort ships"
-    if player.dead=14 then text="You run out of oxygen on an airless world. Your death comes quick"
-    if player.dead=15 then text="With horror you watch as the ground cracks open beneath the " &player.desig &" and your ship disappears in a sea of molten lava"
-    if player.dead=16 then text="Trying to cross the lava field proved to be too much for your crew"
-    if player.dead=17 then text="The world around you dissolves into an orgy of flying rock, bright light and fire. Then all is black."
-    if player.dead=18 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed while trying to "&space(41)&"ignore the station commanders wishes"
-    if player.dead=19 then text="Your pilot crashes the ship into the asteroid. You feel very alone as you drift in your spacesuit among the debris, hoping for someone to pick up your weak distress signal."
-    if player.dead=20 then text="When the monster destroys your ship your only hope is to leave the wreck in your spacesuit. With dread you watch it gobble up the debris while totally ignoring the people it just doomed to freezing among the asteroids."    
-    if player.dead=21 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an ancient alien ship"
-    if player.dead=22 then text="A creaking hull shows that your pilot underestimated the pressure and gravity of this gas giant. Heat rises as you fall deeper and deeper into the atmosphere with ground to hit below. Your ship gets crushed. You are long dead when it eventually gets torn apart by winds and evaporated by the rising heat."
-    if player.dead=23 then text="The creatures living here tore your ship to pieces. The winds will do the same with you floating through the storms of the gas giant like a leaf in a hurricane."
-    if player.dead=24 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the" &space(41)& "strange forces inside the wormhole"
-    if player.dead=25 then text="The inhabitants of the ship overpower you. Now two ships will drift through the void till the end of time."
-    if player.dead=26 then text="The weapons of the Anne Bonny fire one last time before your proud ship gets turned into a cloud of hot gas."
-    if player.dead=27 then text="Within seconds the refueling platform and your ship are high above you. Jetpacks won't suffice to fight against the gas giants gravity. You plunge into your fiery death."
-    if player.dead=28 then text="The last thing you remember is the doctor giving you an injection. Your corpse will be disposed of."
-    if player.dead=29 then text="A huge wall of light and fire appears on the horizon. Within the blink of an eye it rushes over you, dispersing your ashes in the wind."
-    if player.dead=30 then text="High gravity shakes your ship. Suddenly an energy discharge out of nowhere evaporates your ship!"
-    if player.dead=31 then text="Hardly damaged the unknown vessel continues it's way across the stars, ignoring the burning wreckage of your ship."
-    if player.dead=32 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
-    if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
-    if player.dead=34 then text="Too late you realize that your ride on the icechunk has brought you too deep into the gas giants atmosphere. Rising pressure squashes you, as the iceblock disintegrates around you."
-    if player.dead=98 then 
-        endstory=es_part1
-        textbox (endstory,2,2,_screenx/_fw2-5)
-    endif
-    if player.dead=99 then text="Till next time!"
+    text=death_text() 
     if text<>"" then
         set__color( 11,0)
         #ifdef _windows
@@ -75,18 +197,10 @@ function death_message() as short
     no_key=keyin
     if player.dead<99 then 
         if askyn("Do you want to see the last messages again?(y/n)") then messages
-        highsc()
+        high_score()
     endif
 
     return 0
-end function
-
-
-function mercper() as short
-    dim as single per
-    if player.tradingmoney>0 and player.money>0 then per=100*(player.tradingmoney/player.money)
-    if per>100 then per=100        
-    return int( per)
 end function
 
 function explper() as short
@@ -116,16 +230,126 @@ function explper() as short
     return int(per)
 end function
 
+function post_mortemII() as short
+    dim as short page,full,half,third,i,x,offset,crewn,bg
+    dim as string key,header(4),crewtext,income
+    dim as byte unflags(lastspecial)
+    make_unflags(unflags())
+    full=(_screenx-4*_fw1)/_fw2
+    half=fix(full/2)
+    third=fix(full/3)
+    
+    for i=1 to 128
+        if crew(i).hpmax>0 then 
+            crewn+=1
+            crewtext=crewtext &"{15}"&i &") "&crew_text(crew(i))
+        endif
+    next
+    
+    header(0)="a) Achievements"
+    header(1)="b) Discoveries"
+    header(2)="c) Ship"
+    header(3)="d) Crew ("&crewn &")"
+    header(4)="e) Equipment"
+    #ifdef _windows
+    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
+    #endif
+    
+    bg=rnd_range(1,_last_title_pic)
+    income=mission_type &"|{15}" & get_death &"||"&income_expenses
+    do
+        set__color(11,0)
+        screenset 0,1
+        cls
+        background(bg &".bmp")
+    
+        line (2*_fw1,4*_fh1)-(2*_fw1+full*_fw2,20*_fh1),rgb(0,0,128),BF
+        select case page
+        case 0 'Achievments
+            textbox("|"&income,2,4,half,11,1,,,offset)
+            textbox("|"&exploration_text ,2+half*_fw2/_fw1,4,half,11,1,,,offset)
+        case 1 'Uniques and artifacts
+            textbox("|"&list_artifacts(artflag()),2,4,half,11,1,,,offset)
+            textbox("|"&uniques(unflags()),2+half*_fw2/_fw1,4,half,11,1,,,offset)
+        case 2 'Ship
+            textbox("|"&shipstatsblock,2,4,third,11,1)
+            textbox("|"&weapon_string,2+third*_fw2/_fw1,4,third,11,1)
+            textbox("|"&cargo_text,2+2*(third*_fw2/_fw1),4,third,11,1)
+        case 3 'Crew
+            textbox("|"&crewtext,2,4,full,11,1,0,0,offset)
+        case 4 'Equipment
+            textbox("|"&list_inventory,2,4,full,11,1,0,0,offset)
+        end select
+        set__color(11,0)
+        x=len("Mission Summary: "&player.desig)/2
+        draw string(2*_fw1,_fh1),"Mission summary: "&player.h_desig &" "&player.desig,,titlefont,custom,@_tcol
+        x=2*_fw1
+        for i=0 to 4
+            if i=page then
+                set__color(15,1)
+            else
+                set__color(15,1,0)
+            endif
+            draw string(x,4*_fh1-_fh2),header(i),,font2,custom,@_col
+            if i=page then draw string(x+1,4*_fh1-_fh2),header(i),,font2,custom,@_tcol
+            x+=len(header(i))*_fw2+_fw1
+        next
+        dprint ""
+        flip
+        key=keyin(,3)
+        select case key
+        case "1","a","A"
+            page=0
+            offset=0
+        case "2","u","U","B","b"
+            page=1
+            offset=0
+        case "3","C","c"
+            page=2
+            offset=0
+        case "4","D","d"
+            page=3
+            offset=0
+        case "5","E","e"
+            page=4
+            offset=0 
+        case else
+            if key=key__rt then
+                offset=0
+                page+=1
+                if page>4 then page=0
+            endif
+            if key=key__lt then
+                offset=0
+                page-=1
+                if page<0 then page=4
+            endif
+            if key="+" then offset+=5
+            if key="-" then offset-=5
+        end select    
+            
+    loop until key=key__esc
+    
+    
+    if askyn("Do you want to save your mission summary to a file?(y/n)") then
+        'configflag(con_tiles)=old_g
+        postmort_html
+        'configflag(con_tiles)=1
+    else
+        kill player.desig &".bmp"
+    endif
+    'configflag(con_tiles)=old_g
+    
+    return 0
+end function
 
-sub postmortem
-    dim as byte localdebug=0
-    dim as short a,b,c,f
-    dim as short ll,tp,exps,expp
-    dim st as string
-    dim per(3) as double
-    dim discovered(lastspecial) as short
-    dim descr(lastspecial) as string
-    dim flagst(16) as string
+
+function post_mortem() as short
+    dim as byte debug=0
+    dim as short a,b,c,d,f
+    dim as short ll,tp,exps,expp,foundspec
+    'dim descr(lastspecial) as string
+    'dim flagst(16) as string
     dim xx as short
     dim yy as short
     dim old_g as short
@@ -135,26 +359,19 @@ sub postmortem
     dim inv(255) as _items
     dim invn(255) as short
     dim text as string
-    dim as short set,lastinv    
-    if _savescumming=1 then kill("savegames/"&player.desig &".sav")
-    old_g=_tiles
-    _tiles=1
+    dim as short set,lastinv   
+    dim as byte unflags(lastspecial)
+    if configflag(con_savescumming=1) then kill("savegames/"&player.desig &".sav")
+    old_g=configflag(con_tiles)
+    configflag(con_tiles)=1
     'count ioncanons
     for a=0 to 5
         if player.weapons(a).made=66 then b=b+1
     next
-    if b>0 then 
-        artflag(4)=b
-        flagst(4)=b &flagst(4)
-        if b>1 then flagst(4)=flagst(4) & "s"
-    endif
-    if player.cryo>0 then
-        artflag(8)=1
-        flagst(8)=player.cryo &flagst(8)
-        if player.cryo>1 then flagst(8)=flagst(8)+"s"
-    endif
-    'count cryochambers
-    st=player.h_desig
+    if b>0 then artflag(4)=b
+    if player.cryo>0 then artflag(8)=player.cryo
+    
+    foundspec=make_unflags(unflags())
     
     cls
     locate 1,20 
@@ -162,88 +379,83 @@ sub postmortem
     #ifdef _windows
     gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
     #endif
-    draw_string (10,10, st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",titlefont,_col)
+    draw_string (10,10, player.h_desig & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",titlefont,_col)
     set__color( 11,0)
-    a=1+cint(textbox(moneytext,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
-    b=1+cint((textbox(explorationtext ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
-    c=1+cint((textbox(listartifacts ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
-    if c>b then
-        textbox(missiontype,_screenx/(_fw1*2)-15,c+1,30,15)
+    a=1+cint(textbox(income_expenses,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
+    b=a+1+cint((textbox(exploration_text ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
+    c=1+cint((textbox(list_artifacts(artflag()) ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
+    if b>c then 
+        d=b
     else
-        textbox(missiontype,_screenx/(_fw1*2)-15,b+1,30,15)
+        d=c
     endif
-    if localdebug=1 then
+    textbox(mission_type,_screenx/(_fw1*2)-15,d+1,30,15)
+    if debug=1 and _debug=1 then
         f=freefile
         open "screnstats.txt" for output as #f
         print #f,a;" ";b;" ";c;" ";_screenx/(_fw1*2)-15
         close #f
     endif
     'sleep 800,1
-    if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then
-        cls
-        textbox(uniques,1,2,_screeny/_fw2-2)
-        
+    foundspec=make_unflags(unflags())
+    if foundspec>0 then
+        if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then
+            cls
+            make_unflags(unflags())
+            textbox(uniques(unflags()),1,2,_screeny/_fw2-2)
+        endif
     endif
         
-    if askyn("Save mission summary to file?(y/n)") then
-        f=freefile
-        open "data/template.html" for input as f
-        ll=0
-        while not eof(f)
-            ll+=1
-            line input #f,lines(ll)
-        wend
-        close f
-        dprint "saving to "&player.desig &".html"
-        f=freefile
-        open player.desig &".html" for output as f
-        for a=1 to ll
-            if lcase(lines(a))="missionsummary" then lines(a)=UCASE(st & " " &player.desig & " MISSION SUMMARY: " &score() &" pts")
-            if lcase(lines(a))="screenshot" then lines(a)="<img src="&chr(34)&player.desig &".bmp"&chr(34)&">"
-            if lcase(lines(a))="death" then lines(a)=getdeath
-            if lcase(lines(a))="endstory" then 
-                lines(a)="<b>Epilogue</b><br>" &texttofile(endstory)
-            endif
-            if lcase(lines(a))="missiontype" then lines(a)=texttofile(missiontype)
-            if lcase(lines(a))="moneytext" then lines(a)=texttofile(moneytext)
-            if lcase(lines(a))="explorationtext" then lines(a)=texttofile(explorationtext)
-            if lcase(lines(a))="uniques" then lines(a)=texttofile(uniques)
-            if lcase(lines(a))="accomplishments" then
-                lines(a)=""
-                if player.science(1)=6 then print #f,"Found and recruited the best science officer in the sector"    
-                if player.gunner(1)=6 then print #f,"Found and recruited the best gunner in the sector"
-                if player.pilot(1)=6 then print #f,"Found and recruited the best pilot in the sector";
-                print #f,""
-                if player.questflag(1)=4 then print #f,"Destroyed the infamous Anne Bonny."
-                if player.questflag(2)=4 then print #f,"Brought the kidnappers to justice."
-                if player.questflag(4)=4 then print #f,"Destroyed the Black Corsair."
-                if player.questflag(5)=4 then print #f,"Managed to defeat a mysterious ship."
-                if specialflag(20)=1 then print #f,,"Managed to free a colony of an opressive crystal intelligence."
-                if player.questflag(3)=2 then print #f,"Secured the use of alien robot ships."
-            endif
-            if lcase(lines(a))="items" then
-                lines(a)=""
-                print #f,"<b>Equipment:</b><br>"
-                lastinv=getitemlist(inv(),invn())
-                for b=0 to lastinv
-                    if invn(b)>1 then
-                        print #f,trim(invn(b)&" "&inv(b).desigp) &"<br>"
-                    else
-                        print #f,trim(inv(b).desig)&"<br>"
-                    endif
-                next
-            endif
-            print #f,lines(a)
-        next
-        close f
-        dprint "saved"
+    if askyn("Do you want to save your mission summary to a file?(y/n)") then
+        configflag(con_tiles)=old_g
+        postmort_html
+        configflag(con_tiles)=1
     else
         kill player.desig &".bmp"
     endif
-    _tiles=old_g
-end sub
+    configflag(con_tiles)=old_g
+    return 0
+end function
 
-sub highsc()
+function postmort_html() as short
+    dim as short f,ll,i
+    dim as string fname
+    dim lines(255) as string
+    space_mapbmp
+    f=freefile
+    open "data/template.html" for input as f
+    ll=0
+    while not eof(f)
+        ll+=1
+        line input #f,lines(ll)
+    wend
+    close f
+    fname="("&date_string &")" &player.desig &".html"
+    dprint "saving to "&fname &". Key to continue."
+    f=freefile
+    open fname for output as f
+    for i=1 to ll
+        lines(i)=trim(lines(i))
+        if lines(i)="{title}" then lines(i)=player.desig &" mission summary"
+        if lines(i)="{screenshots}" then 
+            lines(i)="<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &".bmp" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
+            lines(i)=lines(i)&"<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &"-map.bmp" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
+        endif
+        
+        if lines(i)="{ship}" then lines(i)=ship_table
+        if lines(i)="{crew}" then lines(i)=crew_table
+        if lines(i)="{uniqueart}" then lines(i)=planet_artifacts_table
+        if lines(i)="{achievements}" then lines(i)=acomp_table
+        if lines(i)="{equipment}" then lines(i)=items_table
+        
+        print #f,lines(i)
+    next
+    no_key=keyin
+    close #f
+    return 0
+end function
+
+function high_score() as short
     
     dim highscore(11) as _table
     dim in as integer=1
@@ -268,7 +480,8 @@ sub highsc()
     rank=1
     if player.desig<>"" then
         
-        postmortem
+        post_mortemII
+        
         if player.score=0 then 
             s=score()
         else
@@ -286,7 +499,7 @@ sub highsc()
         if rank<11 then
             highscore(rank).points=s
             highscore(rank).desig=player.desig &" ("&date_string &"), "& ltrim(player.h_desig) &", " &credits(player.money) &" Cr."            
-            highscore(rank).death=getdeath
+            highscore(rank).death=get_death
         endif
     else
         rank=-1
@@ -344,7 +557,8 @@ sub highsc()
       next
     close f
     cls
-end sub
+    return 0
+end function
 
 function score() as integer
     dim s as integer
@@ -353,7 +567,7 @@ function score() as integer
     dim c as short
     s=s+player.hull
     s=s+player.shieldmax
-    s=s+player.money-player.piratekills
+    s=s+player.money-income(mt_pirates)
     s=s+player.turn
     s=s+player.pilot(1)*100
     s=s+player.gunner(1)*100
@@ -362,7 +576,7 @@ function score() as integer
     s=s+player.sensors
     s=s+player.engine
     s=s+player.fuel
-    s=s+player.piratekills*1.5
+    s=s+income(mt_pirates)*1.5
     for a=0 to 5
         s=s+player.weapons(a).dam
         s=S+player.weapons(a).range
@@ -403,18 +617,14 @@ function score() as integer
     return s
 end function
 
-function getdeath() as string
+function get_death() as string
     dim as string death,key 
     dim as short a,st
     if player.dead=1 then death="Captain forgot to refuel his spaceship"    
     if player.dead=2 then death="Captain became a cook after running out of money"
     if player.dead=3 or player.dead=25 then 
         key=left(player.killedby,1)
-        if instr("AEIOU",ucase(key)) then
-            player.killedby=lcase("n "&player.killedby)
-        else
-            player.killedby=lcase(" "&player.killedby)
-        endif
+        player.killedby=add_a_or_an(player.killedby,0)
         if player.dead=3 then
             if player.landed.s>0 then 
                 player.killedby=player.killedby & " under "
@@ -427,9 +637,9 @@ function getdeath() as string
             for a=1 to lastdrifting
                 if player.landed.s=drifting(a).m then st=drifting(a).s
             next
-            death="Captain got killed by a"&player.killedby &" on a "&shiptypes(st)
+            death="Captain got killed by "&player.killedby &" on "&add_a_or_an(shiptypes(st),0)
         else
-            death="Captain got killed by a" &player.killedby &"an unknown world"
+            death="Captain got killed by " &player.killedby &"an unknown world"
         endif
     endif
     if player.dead=4 then death="Captain started his own Colony"
@@ -462,6 +672,7 @@ function getdeath() as string
     if player.dead=32 then death="Died in battle with the "&civ(0).n 
     if player.dead=33 then death="Died in battle with the "&civ(1).n
     if player.dead=34 then death="Surfed to his death on a chunk of ice"
+    if player.dead=35 then death="Flew into his own engine exaust"
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&player.turn &" Turns"
     return death

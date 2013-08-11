@@ -3,7 +3,7 @@ function buytitle() as short
     dim as integer price
     dim as string title
     dim sameorbetter as byte
-    a=menu("Buy title /Lord - 1,000 Cr./Baron - 5,000 Cr./Viscount - 10,000 Cr./Count 25,000 Cr./Marquees - 50,000 Cr./Duke - 100,000 Cr./Exit")
+    a=menu(bg_parent,"Buy title /Lord - 1,000 Cr./Baron - 5,000 Cr./Viscount - 10,000 Cr./Count 25,000 Cr./Marquees - 50,000 Cr./Duke - 100,000 Cr./Exit")
     if a>0 and a<7 then
         if a=1 then
             title="Lord"
@@ -82,13 +82,13 @@ function retirement() as short
     mtext="Assets/"
     htext="/"
     for a=1 to 9
-        mtext=mtext &asset(a) &space(26-len(asset(a)))&credits(price(a))& "Cr./"
+        mtext=mtext &asset(a) &space(_swidth-len(asset(a))-len(credits(price(a))))&credits(price(a))& "Cr./"
         htext=htext &desc(a) &"/"
     next
     mtext=mtext &"back"
     htext=htext &"/"
     do
-        a=menu("Retirement/ retire now/ buy assets/back")
+        a=menu(bg_parent,"Retirement/ retire now/ buy assets/back")
         if a=1 then
             if askyn("Do you really want to retire now? (y/n)") then
                 if askyn("Are you sure? (y/n)") then 
@@ -98,12 +98,13 @@ function retirement() as short
         endif
         if a=2 then
             do
-                b=menu(mtext,htext)
+                b=menu(bg_parent,mtext,htext)
                 
                 if b>0 and b<10 then
                     if retirementassets(b-1)=0 or b=2 or b=1 then
                         if paystuff(price(b)) then
-                            dprint "You buy a "&asset(b)
+                            dprint "You buy "&add_a_or_an(asset(b),0) &"." 
+                
                             if retirementassets(b-1)<255 then retirementassets(b-1)+=1
                         endif
                     else

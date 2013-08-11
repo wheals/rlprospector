@@ -1,20 +1,62 @@
+function get_biodata(e as _monster) as integer
+    if e.hp>0 then
+        return (50)*(1+e.stunres/2)*e.biomod+cint(2*e.biomod*(e.hpmax^2)/3)
+    else
+        return e.biomod*(e.hpmax^2/3)
+    endif
+end function
+
+function sort_by_distance(c as _cords,p() as _cords,l() as short,last as short) as short
+    dim as short sort,i
+    dim as byte debug=1
+    do
+        sort=0
+        for i=1 to last-1
+            if distance(c,p(i))>distance(c,P(i+1)) then
+                sort=1
+                swap p(i),p(i+1)
+                swap l(i),l(i+1)
+            endif
+        next
+    loop until sort=0
+    if debug=1 and _debug=1 then
+        for i=1 to last
+            dprint i &":"&int(distance(c,p(i)))
+        next
+    endif
+    
+    return 0
+end function
+
+function furthest(list() as _cords,last as short, a as _cords,b as _cords) as short
+    dim as single dis
+    dim as short i,res
+    for i=1 to last
+        if distance(list(i),a)+distance(list(i),b)>dis then
+            dis=distance(list(i),a)+distance(list(i),b)
+            res=i
+        endif
+    next
+    return res
+end function
 
 function urn(min as short, max as short,mult as short,bonus as short) as short 
-    'Returns a random number between min and max, chances increase by mult per increase towards min 
-    dim as short values(1024),v,j,i,r 
-    v=min
-    
-    while v<=max-min
-        i=0
-        for i=1 to v*mult
-            if j<=1024 then j+=1
-            values(j)=1+max-v
+    dim as short values(1024),v,st,i,j,e,f,r
+    if min>max then 
+        st=-1
+    else
+        st=1
+    endif
+    for i=min to max step st
+        e+=1
+        for j=1 to e
+            f+=1
+            values(f)=i
         next
-        v+=1
-    wend
-    r=rnd_range(1,j)+bonus
+    next
+    r=rnd_range(1,f)+bonus
+    if r>f then r=f
     if r<1 then r=1
-    if r>j then r=j
     return values(r)
 end function
 
@@ -26,9 +68,9 @@ function C_to_F(c as single) as single
 end function
 
 function round_nr(i as single,c as short) as single
-    i=i*10^c
-    i=fix(i)
-    i=i/10^c
+    i=i*(10^c)
+    i=int(i)
+    i=i/(10^c)
     return i
 end function
 
@@ -64,6 +106,7 @@ end function
 
 function calcosx(x as short,wrap as byte) as short 'Caculates Ofset X for windows less than 60 tiles wide
     dim osx as short
+    if _debug=107 then dprint "x="&x &" _mwx/2="&_mwx/2 &" R:"&x-_mwx/2 
     osx=x-_mwx/2
     if wrap>0 then
         if osx<0 then osx=0
@@ -129,26 +172,10 @@ function fixstarmap() as short
             planetmap(0,0,specialplanet(c))=0
         endif
     next
-    if fsp>1 then 
-        set__color(14,0)
-        print fsp &"specials missing. ";
-    endif
-    if spfix>0 then
-        set__color(14,0)
-        print spfix &" specials fixed"
-    endif
     for a=0 to laststar
         map(a).ti_no=map(a).spec+68
         if map(a).spec=10 then map(a).ti_no=89
     next
-    if fixed>0 then
-        set__color(14,0)
-        print fixed &" fixed in "&cc &" loops."
-    else
-        set__color(10,0)
-        print "All Ok"
-    endif
-    set__color(7,0)
     return 0
 end function
 
@@ -166,7 +193,7 @@ function nearest_base(c as _cords) as short
     return b
 end function
 
-function disnbase(c as _cords) as single
+function disnbase(c as _cords,weight as short=2) as single
     dim r as single
     dim a as short
     r=65
@@ -174,7 +201,7 @@ function disnbase(c as _cords) as single
         if distance(c,basis(a).c)<r then r=distance(c,basis(a).c)
     next
     for a=1 to 3
-        if distance(c,fleet(a).c)*2<r then r=distance(c,fleet(a).c)*2
+        if distance(c,fleet(a).c)*weight<r then r=distance(c,fleet(a).c)*2
     next
     return r
 end function
@@ -414,22 +441,14 @@ function movepoint(byval c as _cords, a as short, eo as short=0, border as short
     return c
 end function
 
-function makevismask(vismask()as byte,byval a as _monster,m as short) as short
+function make_vismask(vismask() as byte,c as _cords, sight as short,m as short) as short
     dim as short illu
     dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
     dim as byte mask
     dim as _cords p,pts(128)
-    x1=a.c.x
-    y1=a.c.y
+    x1=c.x
+    y1=c.y
     if m>0 then
-        i=findbest(42,-1)
-        if i>0 then 
-            grr=item(i).v1
-        endif
-        illu=10-a.dark
-        if a.light>illu then illu=a.light
-        if a.sight>illu then a.sight=illu
-        if a.sight<2 then a.sight=2
         mx=60
         my=20
     else
@@ -442,15 +461,15 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             vismask(x,y)=-1
         next
     next
-    for x=a.c.x-12 to a.c.x+12 
-        for y=a.c.y-12 to a.c.y+12 
-            if x=a.c.x-12 or x=a.c.x+12 or y=a.c.y-12 or y=a.c.y+12 then
+    for x=c.x-12 to c.x+12 
+        for y=c.y-12 to c.y+12 
+            if x=c.x-12 or x=c.x+12 or y=c.y-12 or y=c.y+12 then
                 mask=1
                 p.x=x
                 p.y=y
-                d=line_in_points(p,a.c,pts())
+                d=line_in_points(p,c,pts())
                 for i=1 to d
-                    if distance(a.c,pts(i))<=a.sight then
+                    if distance(c,pts(i))<=sight then
                         if m>0 then
                             if pts(i).x>60 then pts(i).x-=61
                             if pts(i).x<0 then pts(i).x+=61
@@ -470,7 +489,7 @@ function makevismask(vismask()as byte,byval a as _monster,m as short) as short
             endif
         next
     next
-    vismask(a.c.x,a.c.y)=1
+    vismask(c.x,c.y)=1
             
 '            if (y>=0 and x>=0 and y<=my and x<=mx) or m>0 then
 '                p.x=x
@@ -586,7 +605,7 @@ function nextpoint(byval start as _cords, byval target as _cords) as _cords
 end function
 
 
-function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=100,rollover as byte=0) as short
+function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktype as short=1,col as short=0, delay as short=25,rollover as byte=0) as short
     dim as single px,py
     dim deltax as single
     dim deltay as single
@@ -600,11 +619,6 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     Dim As Integer y, yinc1, yinc2
     dim debug as short
     
-    osx=b.x-_mwx/2
-    if rollover=0 then
-        if osx<0 then osx=0
-        if osx>=60-_mwx then osx=60-_mwx
-    endif
     if abs(c.x-b.x)>30 then
         if c.x>b.x then
             b.x+=61
@@ -612,6 +626,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
             c.x+=61
         endif
     endif
+    osx=calcosx(awayteam.c.x,rollover)
     deltax = Abs(c.x - b.x)
     deltay = Abs(c.y - b.y)
     If deltax >= deltay Then
@@ -658,7 +673,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
           x = x + xinc2
           y = y + yinc2
         End If
-        if rollover=0 then
+        if rollover>0 then 
             if x<0 then x=0
             if x>60 then x=60
         else
@@ -668,6 +683,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
         
         if y<0 then y=0
         if y>20 then y=20
+        
         if blocktype=1 or blocktype=3 or blocktype=4 then 'check for firetru
            if tmap(x,y).firetru=1  then 
                 if not (x=b.x and y=b.y) then
@@ -680,8 +696,8 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 endif
             endif
             if col>0 then 
-                if _tiles=0 then
-                    draw string(x-osx*_fw1,y*_fh1),"*",,font1,custom,@_col
+                if configflag(con_tiles)=0 then
+                    put((x-osx)*_fw1,y*_fh1),gtiles(gt_no(75)),trans
                 else
                     set__color( col,0)
                     draw string(x*_fw1,y*_fh1),"*",,font1,custom,@_col
@@ -849,21 +865,25 @@ function rnd_point(m as short=-1,w as short=-1,t as short=-1,vege as short=-1)as
         if a>0 then return p(rnd_range(0,a-1))
     endif
     if m>0 and t>0 and w=-1 then
-        if debug=1 then dprint "Looking for tile "&t
+        if debug=1 and _debug=1 then dprint "Looking for tile "&t
         for x=0 to 60
             for y=0 to 20
                 if abs(planetmap(x,y,m))=t then
+                    a+=1
                     p(a).x=x
                     p(a).y=y
-                    a=a+1
                 endif
             next
         next
-        if a=0 and debug=1 then dprint "No tiles found"
+        if a=0 and debug=1 and _debug=1 then dprint "No tiles found"
         if a>0 then 
-            a=rnd_range(0,a-1)
-            if debug=1 then dprint "Point returned was "&p(a).x &":"&p(a).y
+            a=rnd_range(1,a)
+            if debug=1 and _debug=1 then dprint "Point returned was "&p(a).x &":"&p(a).y
             return p(a)
+        else
+            p(0).x=-1
+            p(0).y=-1
+            return p(0) 
         endif
     endif
     

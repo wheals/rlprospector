@@ -8,11 +8,20 @@ function make_spacemap() as short
         f=freefile
         open "creation.log" for output as #f
     endif
+    screenset 1,1
+    b=rnd_range(1,_last_title_pic)
+    background(b &".bmp")
+    
+    set__color 0,0
+    for a=0 to 3
+        draw string(_screenx/2-(8*_fw1),_screeny/2-(2-a)*_fh1),space(27),,font1,custom,@_col
+        draw string(_screenx/2-(8*_fw1),_screeny/2-(2-a)*_fh1+_fh1/2),space(27),,font1,custom,@_col
+    next
+    set__color 15,0
+    draw string(_screenx/2-(6*_fw1),_screeny/2-_fh1),"Generating Sector:",,font1,custom,@_col
+    set__color 5,1
+    draw string(_screenx/2-(7*_fw1),_screeny/2),string(1,178),,font1,custom,@_col
     showclouds=0
-    set__color( 11,0)
-    print
-    Print "Generating sector"
-    set__color( 7,0)
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -22,145 +31,81 @@ function make_spacemap() as short
         planets(a)=del
     next
     if makelog=1 then print #f,,"Generated sector"
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
-    
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(2,178),,font1,custom,@_col
     
     for a=0 to 1024
         portal(a).oneway=0
     next
     if makelog=1 then print #f,,"Portals done" &lastitem
-    rerollshops
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(3,178),,font1,custom,@_col
+    
+    gen_shops
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(4,178),,font1,custom,@_col
+    
+    reroll_shops
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(5,178),,font1,custom,@_col
     if makelog=1 then print #f,,"Reroll shops done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    
     
     add_stars
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(6,178),,font1,custom,@_col
     if makelog=1 then print #f,,"add_stars done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
     
     add_wormholes
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
-    
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(7,178),,font1,custom,@_col
     if makelog=1 then print #f,,"add_wormholes done" &lastitem
+    
     distribute_stars
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
-    
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(8,178),,font1,custom,@_col
     if makelog=1 then print #f,,"distribute_stars done" &lastitem
-    make_clouds()
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
     
+    make_clouds()
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(9,178),,font1,custom,@_col
     if makelog=1 then print #f,"make_clouds done" &lastitem
     
     gen_traderoutes()
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
-    
-    
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(10,178),,font1,custom,@_col
     if makelog=1 then print #f,"gen_traderoutes done" &lastitem
+    
+    add_stations
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(11,178),,font1,custom,@_col
     
     gascou+=1
     for a=0 to laststar
         if spacemap(map(a).c.x,map(a).c.y)<>0 then gascou+=1
     next
-    print "stars in gasclouds:";gascou
-    set__color( 7,0)
-    print
-    print "Pregenerating planets ";
     
     add_easy_planets(targetlist(firstwaypoint))
     if makelog=1 then print #f,"add_easy_planets done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(12,178),,font1,custom,@_col
     
     add_special_planets
     if makelog=1 then print #f,"add_special_planets done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(13,178),,font1,custom,@_col
     
     add_event_planets
     if makelog=1 then print #f,"addeventplanets done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(14,178),,font1,custom,@_col
     
-    print "checking for starmap errors: ";
     fixstarmap()
     if makelog=1 then print #f,"Fixstarmap" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(15,178),,font1,custom,@_col
     
     add_caves
     if makelog=1 then print #f,"addcaves" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(16,178),,font1,custom,@_col
     
     add_piratebase
     if makelog=1 then print #f,"addpiratbase" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(17,178),,font1,custom,@_col
     
     add_drifters
     if makelog=1 then print #f,"adddrifters" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(18,178),,font1,custom,@_col
     
-    
-    
-    
-    print "loading bones"
-    loadbones
+    load_bones
     if makelog=1 then print #f,"loadbones done" &lastitem
-    if makelog=1 then
-        for i=0 to lastplanet
-            if planets(i).grav=0 and planets(i).temp=0 then print #f,,"Planet "&i &" is empty"
-        next
-    endif
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(19,178),,font1,custom,@_col
     
     for a=0 to laststar
         if map(a).discovered=2 then map(a).discovered=show_specials
@@ -208,15 +153,17 @@ function make_spacemap() as short
         next
         
     endif
-    print
-
+    if makelog=1 then print #f,"Making Civs"
     make_civilisation(0,specialplanet(7))
-    if makelog=1 then print #f,"makeciv1 done" &lastitem
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(20,178),,font1,custom,@_col
     
+    if makelog=1 then print #f,"makeciv1 done" &lastitem
     make_civilisation(1,specialplanet(46))
     if makelog=1 then print #f,"makeciv2 done" &lastitem
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(21,178),,font1,custom,@_col
     
     add_questguys
+    draw string(_screenx/2-7*_fw1,_screeny/2),string(22,178),,font1,custom,@_col
     
     if findcompany(1)=0 then specialplanet(40)=32767
     if findcompany(2)=0 then specialplanet(41)=32767
@@ -226,16 +173,16 @@ function make_spacemap() as short
     
     if makelog=1 then print #f,"delete company specials" &lastitem
     
-    fleet(1).mem(1)=makeship(33)
+    fleet(1).mem(1)=make_ship(33)
     fleet(1).ty=1
     fleet(1).c=basis(0).c
-    fleet(2).mem(1)=makeship(33)
+    fleet(2).mem(1)=make_ship(33)
     fleet(2).ty=1
     fleet(2).c=basis(1).c
-    fleet(3).mem(1)=makeship(33)
+    fleet(3).mem(1)=make_ship(33)
     fleet(3).ty=1
     fleet(3).c=basis(2).c
-    fleet(5).mem(1)=makeship(33)
+    fleet(5).mem(1)=make_ship(33)
     fleet(5).ty=1
     fleet(5).c=basis(4).c
     
@@ -280,13 +227,15 @@ function make_spacemap() as short
         next
     endif
     
+    gen_bountyquests()
+    
     if makelog=1 then 
         print #f,"Clear stuff" &lastitem
         close #f
     endif
     
-    print
     set__color( 11,0)
+    print
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
     set__color( 15,0)
     print "Star distribution:"
@@ -298,6 +247,27 @@ function make_spacemap() as short
     sleep 1250
     return 0
 end function
+
+function add_stations() as short
+    dim as _cords p
+    dim as single d
+    dim as short j,i,res
+    for j=0 to 1
+        p.x=(basis(1+j).c.x+basis(0+j).c.x)/2
+        p.y=(basis(1+j).c.y+basis(0+j).c.y)/2
+        d=9999
+        for i=firststationw to lastwaypoint
+            if distance(targetlist(i),p)<d then 
+                d=distance(targetlist(i),p)
+                res=i
+            endif
+        next
+        drifting(2+j).x=targetlist(res).x
+        drifting(2+j).y=targetlist(res).y
+    next
+    return 0
+end function
+
 
 function add_stars() as short
     dim as short a,cc,b,f,debug
@@ -316,7 +286,6 @@ function add_stars() as short
         for b=1 to 9
             map(a).planets(b)=0
         next
-        print ".";
         map(a).c.x=rnd_range(0,sm_x)
         map(a).c.y=rnd_range(0,sm_y)
         if rnd_range(1,100)<36 then
@@ -357,7 +326,7 @@ function add_stars() as short
                 cc+=1
                 map(a).planets(1)=cc
             else
-                if debug=1 then dprint map(a).c.x &":"&map(a).c.y
+                if debug=1 and _debug=1 then dprint map(a).c.x &":"&map(a).c.y
                 map(a).spec=10
                 map(a).planets(1)=-20002
                 if rnd_range(1,100)<25 then 
@@ -387,24 +356,62 @@ function add_stars() as short
 end function
 
 function add_wormholes() as short
-    dim a as short
+    dim as short a,i,last,x,y,ano,qux1,quy1,qux2,quy2
+    dim quadrant(2,2) as byte
     for a=laststar+1 to laststar+wormhole-1 step 2
-        map(a).c.x=rnd_range(0,sm_x)
-        map(a).c.y=rnd_range(0,sm_y)
+        do 
+            qux1=rnd_range(0,2)
+            quy1=rnd_range(0,2)
+            qux2=rnd_range(0,2)
+            quy2=rnd_range(0,2)
+        loop until quadrant(qux1,quy1)=0 and quadrant(qux2,quy2)=0 and (qux1<>qux2 or quy1<>quy2)
+        quadrant(qux1,quy1)=1
+        quadrant(qux2,quy2)=1
+        do
+            map(a).c.x=rnd_range(0,sm_x/3)+qux1*sm_x/3
+            map(a).c.y=rnd_range(0,sm_y/3)+quy1*sm_y/3
+            map(a+1).c.x=rnd_range(0,sm_x/3)+qux2*sm_x/3
+            map(a+1).c.y=rnd_range(0,sm_y/3)+quy2*sm_y/3
+        loop until distance(map(a).c,map(a+1).c)>25
+        
         map(a).spec=9
         map(a).ti_no=77
         map(a).planets(1)=a+1
         map(a).discovered=maximum(show_all,show_wormholes)
         map(a+1).planets(1)=a
-        map(a+1).c.x=rnd_range(0,sm_x)
-        map(a+1).c.y=rnd_range(0,sm_y)
         map(a+1).spec=9
         map(a+1).ti_no=77
         map(a+1).discovered=maximum(show_all,show_wormholes)
     next
+    
     return 0
 end function
 
+function add_ano(p1 as _cords,p2 as _cords,ano as short=0) as short
+    dim as _cords p(256),p3
+    dim as short last,x,y,r,ring
+    if p2.x>=0 then
+        last=line_in_points(p1,p2,p())
+        if ano=0 then ano=rnd_range(6,9)
+        p3=p(rnd_range(1,last))
+        r=rnd_range(0,3)
+    else
+        p3=p1
+        r=4
+        ring=2
+    endif
+    if r=3 then ring=1
+    for x=p3.x-6 to p3.x+6
+        for y=p3.y-6 to p3.y+6
+            p(0).x=x
+            p(0).y=y
+            if ((r=4 and ring=2 and (distance(p(0),p3)>2.5 and distance(p(0),p3)<4.5)) xor (ring=0 and distance(p(0),p3)<=r) xor (ring=1 and cint(distance(p(0),p3))=r)) and x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                spacemap(x,y)=-ano
+            endif
+        next
+    next
+    return 0
+end function
 
 function add_special_planets() as short
     dim as short a,sys,mp,d,gas,cgas,cc
@@ -423,14 +430,14 @@ function add_special_planets() as short
                 gas=0
                 print "No more stars in gas clouds"
             endif
-            sys=getrandomsystem(1,gas,1)
-            if sys<0 then sys=getrandomsystem(1)
+            sys=get_random_system(1,gas,1)
+            if sys<0 then sys=get_random_system(1)
             if a=7 or a=46 and disnbase(map(sys).c)<25 then 
                 cc=0
                 do
                     cc+=1
-                    sys=getrandomsystem(1,gas,1)
-                    if sys<0 then sys=getrandomsystem(1)
+                    sys=get_random_system(1,gas,1)
+                    if sys<0 then sys=get_random_system(1)
                 loop until disnbase(map(sys).c)>=25-cc/20 or cc>500
             endif
         loop until  map(sys).spec<8 
@@ -453,13 +460,6 @@ function add_special_planets() as short
         
         if a<>18 then specialplanet(a)=mp
         
-        print ".";
-        if specialplanet(a)<0 then
-            set__color( 12,0)
-            print a;" ";sys;" ";mp
-            print lastplanet
-            set__color( 15,0)
-        endif
     next
     
     specialplanet(30)=lastplanet+1
@@ -511,12 +511,9 @@ function add_easy_planets(start as _cords) as short
         next
         closest(b)=r
     next
-    print
-    print "Generating starting planets"
     for b=0 to 4
         for a=1 to 9
             map(closest(b)).discovered=6
-            print ".";
             if map(closest(b)).planets(a)>0 then
                 if is_special(map(b).planets(a))=0 then
                     makeplanetmap(map(closest(b)).planets(a),a,map(closest(b)).spec+5)
@@ -539,9 +536,9 @@ function add_event_planets() as short
     dim as short sys,d,planet,debug,f
     
     for d=0 to 5
-        sys=getrandomsystem()
+        sys=get_random_system()
         if sys>0 then
-            if debug=1 then print "disc:";map(sys).discovered
+            if debug=1 and _debug=1 then print "disc:";map(sys).discovered
             if map(sys).discovered=0 then
                 planet=getrandomplanet(sys)
                 
@@ -549,7 +546,7 @@ function add_event_planets() as short
                     if is_special(planet)=0 then
                         makeplanetmap(planet,rnd_range(1,9),map(sys).spec)
                         map(sys).discovered=3
-                        planet_event(planet)
+                        make_eventplanet(planet)
                     endif
                 endif
             endif
@@ -558,62 +555,43 @@ function add_event_planets() as short
     return 0
 end function
 
-'    
-'    debug=1
-'    if debug=1 then 
-'        f=freefile
-'        open "eventplanet.txt" for output as #f
-'    endif
-'    for d=0 to 5
-'        print ".";
-'        a=getrandomsystem()
-'        if a>0 then
-'            if debug=1 then print a;
-'            if map(a).discovered=0 then
-'                if debug=1 then print ":";map(a).discovered
-'                b=getrandomplanet(a)
-'                if debug=1 then print #f,":"& b &"x:" & map(a).c.x &"y:" &map(a).c.y &"sys:"&a
-'                if b>0 and b<=lastplanet then
-'                    if is_special(b)=0 and b<>pirateplanet(0) and b<>pirateplanet(1) and b<>pirateplanet(2) then
-'                        makeplanetmap(b,rnd_range(1,9),map(a).spec)
-'                        planet_event(b)
-'                        map(a).discovered=3
-'                    endif
-'                endif
-'            else
-'                print "EVENT PLANET GENERATED IN WRONG PLACE:"&map(a).discovered
-'                sleep
-'            endif
-'        endif
-'    next
-'    if debug=1 then close #f
-
-
 function add_drifters() as short
-    dim as short a,b,c,d
-    dim as _cords p1
+    dim as short a,b,c,d,e,f,ba(3)
+    dim as _cords p
+    dim as byte makelog=1
     
-    print
-    print "Making drifters";
+    for e=firstwaypoint to lastwaypoint
+        if targetlist(e).x=basis(0).c.x and targetlist(e).y=basis(0).c.y then ba(1)=e 
+        if targetlist(e).x=basis(1).c.x and targetlist(e).y=basis(1).c.y then ba(2)=e 
+        if targetlist(e).x=basis(2).c.x and targetlist(e).y=basis(2).c.y then ba(3)=e 
+    next
+    
+    if makelog=1 then
+        f=Freefile
+        open "drifter.log" for output as #f
+    endif
     for a=1 to lastdrifting
-        print ".";
+        if makelog=1 then print #f,a
         lastplanet=lastplanet+1
         drifting(a).x=rnd_range(0,sm_x)
         drifting(a).y=rnd_range(0,sm_y)
         drifting(a).s=rnd_range(1,a)
-        if drifting(a).s>16 then drifting(a).s=rnd_range(1,12)
-        if all_drifters_are>0 then drifting(a).s=all_drifters_are
         drifting(a).m=lastplanet
         if a=1 then drifting(a).s=20
         if a=2 then drifting(a).s=20
         if a=3 then drifting(a).s=20
         if a=4 then drifting(a).s=17
         if a=5 then drifting(a).s=18 
-        if a=6 then drifting(a).s=19 
-        if drifting(a).s<=22 then make_drifter(drifting(a))
+        if a=6 then drifting(a).s=19
+        if a=7 or a=8 then drifting(a).s=rnd_range(9,12)
+        if a>=9 and a<=11 then drifting(a).s=rnd_range(5,8)
+        if a>=12 and a<=16 then drifting(a).s=rnd_range(1,4)
+        if makelog=1 then print #f,drifting(a).x;":";drifting(a).y;":";drifting(a).s;":";drifting(a).m
+    
+        if drifting(a).s<=22 then make_drifter(drifting(a),0,0,f)
         drifting(a).p=show_all
     next
-    print
+    if makelog=1 then close #f
     drifting(1).x=targetlist(firstwaypoint).x
     drifting(1).y=targetlist(firstwaypoint).y
     planets(drifting(1).m).atmos=5
@@ -636,11 +614,15 @@ function add_drifters() as short
     for a=1 to rnd_range(2,5) 'Some spacesuits in the starting station
         placeitem(makeitem(320),46,18,drifting(1).m)
     next
+    
+    b=0
     do
-        a=rnd_range(firststationw,lastwaypoint)
-    loop until targetlist(a).x>=20 and targetlist(a).x<=25
-    drifting(2).x=targetlist(a).x
-    drifting(2).y=targetlist(a).y
+        b+=1
+        p=targetlist(rnd_range(firstwaypoint,lastwaypoint))
+    loop until (p.x>=20 and p.x<=25) or b>250
+    
+    drifting(2).x=p.x
+    drifting(2).y=p.y
     planets(drifting(2).m).atmos=5
     planets(drifting(2).m).depth=1
     deletemonsters(drifting(2).m)
@@ -651,11 +633,14 @@ function add_drifters() as short
     planetmap(19,10,drifting(2).m)=-287
     if rnd_range(1,100)<33 then planetmap(39,13,drifting(2).m)=(298+rnd_range(1,4))*-1
     
+    b=0
     do
-        a=rnd_range(firststationw,lastwaypoint)
-    loop until targetlist(a).x>=45 and targetlist(a).x<=50
-    drifting(3).x=targetlist(a).x
-    drifting(3).y=targetlist(a).y
+        b+=1
+        p=targetlist(rnd_range(firstwaypoint,lastwaypoint))
+    loop until (p.x>=50 and p.x<=55) or b>250
+    drifting(3).x=p.x
+    drifting(3).y=p.y
+    
     planets(drifting(3).m).atmos=5
     planets(drifting(3).m).depth=1
     deletemonsters(drifting(3).m)
@@ -730,12 +715,12 @@ function add_drifters() as short
     loop until d=0
     
     for a=0 to 15
-        p1=rnd_point(drifting(5).m,0)
-        planetmap(p1.x,p1.y,drifting(5).m)=-81
+        p=rnd_point(drifting(5).m,0)
+        planetmap(p.x,p.y,drifting(5).m)=-81
     next
     for a=0 to 15
-        p1=rnd_point(drifting(5).m,0)
-        planetmap(p1.x,p1.y,drifting(5).m)=-158
+        p=rnd_point(drifting(5).m,0)
+        planetmap(p.x,p.y,drifting(5).m)=-158
     next
     
     return 0
@@ -750,7 +735,6 @@ function add_caves() as short
             portal(a).tile=111
             portal(a).col=7
             portal(a).ti_no=3001
-            print ".";
             portal(a).from.m=get_nonspecialplanet(1)
             if portal(a).from.m<=0 then
                 b=rnd_range(1,9)
@@ -785,14 +769,13 @@ function add_caves() as short
             portal(a).oneway=0
             map(sysfrommap(portal(a).from.m)).discovered=5
             
-            print ".";
-            if debug=1 then
+            if debug=1 and _debug=1 then
                 portal(a).from.x=30
                 portal(a).from.y=10
                 
             endif
     next
-    if debug=1 then
+    if debug=1 and _debug=1 then
         a=freefile
         open "portals.csv" for output as #a
         for b=0 to lastportal
@@ -808,28 +791,30 @@ function add_piratebase() as short
     for a=0 to _NoPB
         lastplanet=lastplanet+1
         pirateplanet(a)=lastplanet
-        piratebase(a)=getrandomsystem
+        piratebase(a)=get_random_system(,2)
         if piratebase(a)=-1 then piratebase(a)=rnd_range(0,laststar)
         map(piratebase(a)).discovered=show_pirates
         map(piratebase(a)).planets(rnd_range(1,9))=pirateplanet(a)
-        print ".";
+        
     next
     
     'print pirateplanet
     'sleep
+    'lets leave the swapping for debug
+    
     do
         c=c+1
         b=0
         for a=0 to _nopb
-           if _minsafe=0 and disnbase(map(piratebase(a)).c)<4 then 
-               d=getrandomsystem(0)
+           if configflag(con_minsafe)=0 and disnbase(map(piratebase(a)).c)<4 then 
+               d=get_random_system(0)
                if d>=0 then
                    swap map(piratebase(a)),map(d)
                    piratebase(a)=d
                endif
            endif
            if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
-               d=getrandomsystem(0)
+               d=get_random_system(0)
                if d>=0 then
                    swap map(piratebase(a)),map(d)
                    piratebase(a)=d
@@ -842,17 +827,21 @@ function add_piratebase() as short
 end function
 
 function add_questguys() as short
-    dim as short i,debug,f
+    dim as short i,debug,f,j
     dim alreadyhere(17) as byte
+    questguy(0).n="Questguy0" 'WE should never see this guy
+    for i=0 to lastquestguy
+        questguy(i)=questguy(0) 'Delete quest guy
+    next
     for i=0 to lastquestguy 'For the deletion questguy
         questguy(i).location=-2 'Everybody starts nowhere
     next
+    
     debug=1
     f=freefile
-    if debug=1 then open "questguys.log" for output as #f
+    if debug=1 and _debug=1 then open "questguys.log" for output as #f
     for i=1 to lastquestguy
-        print #f,"Making qg "&i
-        questguy(i)=questguy(0) 'Delete quest guy
+        if debug=1 and _debug=1 then print #f,"Making qg "&i
         questguy(i).n=character_name(questguy(i).gender)
         if i=1 then 
             questguy(i).location=0
@@ -882,10 +871,12 @@ function add_questguys() as short
             questguy(i).risk+=2
         end select
         if questguy(i).risk>9 then questguy(i).risk=9 
-        if debug=1 then print #f,"Doing newquest"
+        if debug=1 and _debug=1 then print #f,"Doing newquest"
         questguy_newquest(i)
-        questguy(i).friendly=rnd_range(0,2) '0 hates you, 2 loves you
-        questguy(i).money=rnd_range(1,10)*100
+        for j=0 to lastquestguy
+            questguy(i).friendly(j)=rnd_range(0,2) '0 hates you, 2 loves you
+        next
+        questguy(i).money=rnd_range(1,5)*100
         select case questguy(i).job
         case 1
             questguy(i).money+=rnd_range(5,10)*100
@@ -898,20 +889,48 @@ function add_questguys() as short
         case else
             questguy(i).money-=rnd_range(1,10)*100
             if questguy(i).money<=0 then questguy(i).money=rnd_range(100,300)
-        end select'        
+        end select' 
+        if debug=1 and _debug=1 then 
+            print #f,i;"flag 3";questguy(i).flag(3)
+            print #f,i;"flag 4";questguy(i).flag(4)
+        endif
+        if debug=1 and _debug=1 then print #f,i;"Outloan:"&questguy(questguy(i).flag(1)).loan ;" to "; questguy(questguy(i).flag(1)).n
+        if debug=1 and _debug=1 then print #f,"Money:"&questguy(i).money
     next
-    if debug=1 then close #f
+    if debug=1 and _debug=1 then 
+        for i=1 to lastquestguy
+            print #f,questguy(i).n ;" loaned ";questguy(questguy(i).flag(1)).loan;" to "; questguy(questguy(i).flag(1)).n
+        next
+        close #f
+    endif
     return 0
 end function
 
+function gen_bountyquests() as short
+    dim as short f,i
+    dim as string w(4),l
+    f=freefile
+    open "data\bountyquests.csv" for input as #f
+    do
+        line input #f,l
+        string_towords(w(),l,";")
+        i+=1
+        bountyquest(i).employer=val(w(0))
+        bountyquest(i).ship=val(w(1))
+        bountyquest(i).reward=val(w(2))
+        bountyquest(i).reason=rnd_range(1,3)+3*bountyquest(i).employer
+        if _debug=707 then dprint i &":"&w(0) &":"&w(1) &":"&w(2)
+    loop until eof(f)
+    close #f
+    return 0
+end function
+
+
 function distribute_stars() as short
     dim a as short
-    print
-    print "distributing ";
     for a=0 to laststar
         map(a).discovered=show_all
         pwa(a)=map(a).c
-        print ".";
     next
     for a=laststar+1 to laststar+wormhole
         map(a).discovered=show_wormholes
@@ -920,7 +939,6 @@ function distribute_stars() as short
     a=distributepoints(pwa(),pwa(),laststar+wormhole)
     for a=0 to laststar+wormhole
         map(a).c=pwa(a)
-        print ".";
     next
     return 0
 end function
@@ -931,11 +949,9 @@ function gen_traderoutes() as short
     dim t as short
     dim map(sm_x,sm_y) as short
     dim as integer x,y,i,offset,a,d,r
-    dim as integer fp,lp
-    dim as byte debug=0
-    
-    set__color( 7,0)
-    print "generating traderoutes"
+    dim as integer fp,lp,smallstation
+    dim as byte debug
+    dim as byte visited(2)
     
     lastwaypoint=5
     firstwaypoint=5
@@ -947,15 +963,15 @@ function gen_traderoutes() as short
         for y=0 to sm_y
             p.x=x
             p.y=y
-            if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 then map(x,y)=abs(spacemap(x,y))*2
-            if abs(spacemap(x,y))>5 then map(x,y)=1
+            if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 then map(x,y)=3200
+            if abs(spacemap(x,y))>5 then map(x,y)=15
             'if abs(spacemap(x-1,y))>=2 then map(x,y)=1
             'if abs(spacemap(x,y-1))>=2 then map(x,y)=1
             'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
             'if spacemap(x,y-1)<>0 and spacemap(x,y-1)<>1 and disnbase(p)>3 then map(x,y)=1
             'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
             'if spacemap(x-1,y)<>0 and spacemap(x-1,y)<>1 and disnbase(p)>3 then map(x,y)=1
-            if map(x,y)>0 and show_NPCs=1 then
+            if map(x,y)>0 and show_NPCs=1 and _debug=1 then
                 locate y+1,x+1
                 print "#"
             endif
@@ -968,12 +984,16 @@ function gen_traderoutes() as short
     start.y=targetlist(0).y
     d=99999
     for a=0 to 2
-        if distance(basis(a).c,start)<d then
-            d=distance(basis(a).c,start)
+        lp=a_star(wpl(),basis(a).c,start,map(),sm_x,sm_y)
+        if lp<d and visited(a)=0 then
+            d=lp
             r=a
         endif
+        for i=0 to lp
+            wpl(i).x=0
+            wpl(i).y=0
+        next
     next
-    
     goal.x=basis(r).c.x
     goal.y=basis(r).c.y
     lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
@@ -989,68 +1009,115 @@ function gen_traderoutes() as short
     else
         
     endif
-    
-    lastwaypoint=lp+offset
-    print offset;"-";lastwaypoint
-    offset=lastwaypoint+1
-    firststationw=lastwaypoint
-    for a=1 to 2
-        start.x=basis(a-1).c.x
-        start.y=basis(a-1).c.y
-        goal.x=basis(a).c.x
-        goal.y=basis(a).c.y
+    firstwaypoint=lp+offset
+    smallstation=2
+    do
+        lastwaypoint=lp+offset
+        offset=lastwaypoint+1
+        firststationw=lastwaypoint
+        visited(r)=1
+        
+        start=targetlist(lastwaypoint)
+        d=99999
+        for a=0 to 2
+            lp=a_star(wpl(),basis(a).c,start,map(),sm_x,sm_y)
+            if lp<d and visited(a)=0 then
+                d=lp
+                r=a
+            endif
+            for i=0 to lp
+                wpl(i).x=0
+                wpl(i).y=0
+            next
+        next
+        goal.x=basis(r).c.x
+        goal.y=basis(r).c.y
         lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
+        if lp>0 then
+            for i=0 to lp
+                targetlist(i+offset).x=wpl(i).x
+                targetlist(i+offset).y=wpl(i).y
+                spacemap(wpl(i).x,wpl(i).y)=0
+                wpl(i).x=0
+                wpl(i).y=0
+            next
+        endif
+    loop until visited(0)=1 and visited(1)=1 and visited(2)=1
+
+start=targetlist(lastwaypoint)
+goal=targetlist(firstwaypoint)
+offset=lastwaypoint+1
+if debug=5 and _debug=1 then
+    locate goal.y+1,goal.x+1
+    print "G"
+    locate start.y+1,start.x+1
+    print "S"
+endif
+lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
+
+    if lp>0 then
         for i=0 to lp
             targetlist(i+offset).x=wpl(i).x
             targetlist(i+offset).y=wpl(i).y
-
+            spacemap(wpl(i).x,wpl(i).y)=0
             wpl(i).x=0
             wpl(i).y=0
+            if debug=5 and _debug=1 then
+                sleep 50
+                locate targetlist(i+offset).y+1,targetlist(i+offset).x+1
+                print "*"
+            endif
         next
-        print offset;"-";lastwaypoint+lp
-        lastwaypoint=lastwaypoint+lp+1
-        offset=lastwaypoint
-    next
-    start.x=basis(2).c.x
-    start.y=basis(2).c.y
-    goal.x=basis(0).c.x
-    goal.y=basis(0).c.y
-    lp=A_star(wpl(),goal,start,map(),sm_x,sm_y)
-    for i=0 to lp
-        targetlist(i+offset).x=wpl(i).x
-        targetlist(i+offset).y=wpl(i).y
-    next
-    offset=offset+lp+1
-    print offset;"-";lastwaypoint+lp
-    lastwaypoint=lastwaypoint+lp
-    firstwaypoint=11
-    if targetlist(firstwaypoint).x>1 and targetlist(firstwaypoint).y>1 then
-        if spacemap(targetlist(firstwaypoint).x,0)=0 or spacemap(targetlist(firstwaypoint).x,0)=1 then
-            targetlist(firstwaypoint).y=0
-        else
-            targetlist(firstwaypoint).x=0
-        endif
     endif
-    lastwaypoint-=1
-    print firstwaypoint &"-"&lastwaypoint
-    if debug=5 then
+    lastwaypoint=lastwaypoint+lp
+'    for a=1 to 2
+'        start.x=basis(a-1).c.x
+'        start.y=basis(a-1).c.y
+'        goal.x=basis(a).c.x
+'        goal.y=basis(a).c.y
+'        lp=A_Star(wpl(),goal,start,map(),sm_x,sm_y)
+'        for i=0 to lp
+'            targetlist(i+offset).x=wpl(i).x
+'            targetlist(i+offset).y=wpl(i).y
+'
+'            wpl(i).x=0
+'            wpl(i).y=0
+'        next
+'        print offset;"-";lastwaypoint+lp
+'        lastwaypoint=lastwaypoint+lp+1
+'        offset=lastwaypoint
+'    next
+'    start.x=basis(2).c.x
+'    start.y=basis(2).c.y
+'    goal.x=basis(0).c.x
+'    goal.y=basis(0).c.y
+'    lp=A_star(wpl(),goal,start,map(),sm_x,sm_y)
+'    for i=0 to lp
+'        targetlist(i+offset).x=wpl(i).x
+'        targetlist(i+offset).y=wpl(i).y
+'    next
+'    offset=offset+lp+1
+'    print offset;"-";lastwaypoint+lp
+'    lastwaypoint=lastwaypoint+lp
+    firstwaypoint=11
+'    
+    if debug=5 and _debug=1 then
         for x=0 to sm_x
             for y=0 to sm_y
                 if spacemap(x,y)<>0 and spacemap(x,y)<>1 then 
-                    map(x,y)=2
-                    if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 then map(x,y)=1
-                
+                    map(x,y)=abs(spacemap(x,y))
+                    
                 else
                     map(x,y)=0
                 endif
                 locate y+1,x+1
-                if map(x,y)>=4 and map(x,y)<=10 then
+                if map(x,y)>=1 and map(x,y)<=9 then
                     set__color( 15,0)
-                    print "#";
-                endif
-                if map(x,y)=2 then
-                    set__color( 15,0)
-                    print ":";
+                    if map(x,y)=1 then print "1";
+                    if map(x,y)=2 then print "2";
+                    if map(x,y)=3 then print "3";
+                    if map(x,y)=4 then print "4";
+                    if map(x,y)=5 then print "5";
                 endif
                 
                 if map(x,y)=0 then
@@ -1073,19 +1140,30 @@ function gen_traderoutes() as short
             if t=1 then print "1";
             if t=2 then print "2";
             sleep 66
-            set__color( 1,0)
+            set__color( 15,0)
             locate targetlist(x).y+1,targetlist(x).x+1
             print "."
         loop until inkey<>""
         sleep
         
     endif
-    if debug=5 then
-        for a=5 to lastwaypoint
+    if debug=5 and _debug=1 then
+        for a=11 to lastwaypoint
             locate targetlist(a).y+1,targetlist(a).x+1
             print "*"
             sleep 100
         next
+        set__color(c_red,0)
+        locate targetlist(0).y+1,targetlist(0).x+1
+        print "*TP0"
+        
+        locate targetlist(firstwaypoint).y+1,targetlist(firstwaypoint).x+1
+        print "*FWP"
+        for a=0 to 3
+            locate basis(a).c.y+1,basis(a).c.x+2
+            print "<-S"&a+1;
+        next
+        sleep    
     endif
 '    
 '    targetlist(0)=basis(0).c
@@ -1104,146 +1182,260 @@ function gen_traderoutes() as short
     return 0
 end function
 
+function gen_shops() as short
+    dim  as short i,j,flag,debug,mudddone,lastshopspec,botsdone
+    dim as byte shopspec(7)
+    
+    lastshopspec=7
+    j=1
+    for i=0 to lastshopspec
+       shopspec(i)=j
+       j+=1
+       if j>4 then j=1
+    next
+    for i=0 to 3 'Set shopspecs. Never should be the same twice
+        j=rnd_range(0,lastshopspec)
+        basis(i).shop(sh_equipment)=shopspec(j)
+        shopspec(j)=shopspec(lastshopspec)
+        lastshopspec-=1
+        if rnd_range(1,100)<15 then 
+            basis(i).shop(sh_mudds)=1
+            mudddone=1
+        endif
+        if rnd_range(1,100)<15 then
+            basis(i).shop(sh_bots)=1
+            botsdone=1
+        endif
+        select case rnd_range(1,100)
+        case 1 to 10
+            basis(i).pricelevel=1.2
+        case 11 to 30
+            basis(i).pricelevel=1.1
+        case 71 to 90
+            basis(i).pricelevel=0.9
+        case 91 to 100
+            basis(i).pricelevel=0.8
+        case else
+            basis(i).pricelevel=1
+        end select
+        if rnd_range(1,100)<(1-basis(i).pricelevel)*100 or _debug=1 then basis(i).shop(sh_used)=1
+    next
+    if mudddone=0 then basis(rnd_range(0,2)).shop(Sh_mudds)=1
+    if botsdone=0 then basis(rnd_range(0,2)).shop(Sh_bots)=1
+    if _debug=1 and debug=1 then
+        for i=0 to 2
+            basis(i).shop(sh_mudds)=1
+            basis(i).shop(sh_bots)=1
+        next
+    endif
+    j=0
+    lastshopspec=5
+    for i=0 to lastshopspec
+       shopspec(i)=j
+       j+=1
+       if j>2 then j=0
+    next
+    for i=6 to 7
+        shopspec(i)=0
+    next
+    for i=0 to 3
+        j=rnd_range(0,lastshopspec)
+        basis(i).shop(sh_modules)=shopspec(j)
+        shopspec(j)=shopspec(lastshopspec)
+        lastshopspec-=1
+        basis(i).shop(sh_shipyard)=rnd_range(0,1)
+    next
+    
+    shopspec(0)=0
+    shopspec(1)=1
+    shopspec(2)=rnd_range(0,1)
+    lastshopspec=2
+    for i=0 to 2
+        j=rnd_range(0,lastshopspec)
+        basis(i).shop(sh_shipyard)=shopspec(j)
+        shopspec(j)=shopspec(lastshopspec)
+        lastshopspec-=1
+    next
+    basis(3).shop(sh_shipyard)=rnd_range(0,1)
+    
+    return 0
+end function
 
 function make_clouds() as short
     dim wmap(sm_x,sm_y)as ubyte
-    dim as short x,y,bx,by,highest,count,a,b,c,r
+    dim wmap2(sm_x,sm_y)as ubyte
+    dim as short x,y,bx,by,highest,count,a,b,c,r,last,i,ano,x1,y1,j,last2,f
     dim as single attempt
     dim debug as short
+    dim pp(1024) as _cords
     
-    dim as _cords p1,p2,p3,p4
-    print
-    print "Creating clouds";
-    do
-        if debug=1 then print attempt
-        print ".";
-        for x=0 to sm_x
-            for y=0 to sm_y
+    dim as _cords p1,p2,p3,p4,p(1024)
+    for i=0 to sm_x*sm_y*0.66
+        wmap(rnd_range(0,sm_x),rnd_range(0,sm_y))=1
+    next
+    for i=0 to laststar
+        if rnd_range(1,100)<50 then wmap(map(i).c.x,map(i).c.y)=1
+    next
+    for a=0 to 2
+        for x=basis(a).c.x-2 to basis(a).c.x+2
+            for y=basis(a).c.y-2 to basis(a).c.y+2
                 wmap(x,y)=0
-                spacemap(x,y)=0
             next
         next
-        highest=0
-        do
-            count=0
-            bx=rnd_range(3,7)
-            p1.x=rnd_range(bx,sm_x-bx)
-            p1.y=rnd_range(by,sm_y-by)
-            r=rnd_range(1,100)
-            if r<=20 then p1.y=sm_y
-            if r<=15 then p1.x=sm_x
-            if r<=10 then p1.y=0
-            if r<=5 then p1.x=0
-            for x=0 to sm_x
-                for y=0 to sm_y
-                    p2.x=x
-                    p2.y=y
-                    if distance(p1,p2)<bx then wmap(x,y)=wmap(x,y)+rnd_range(1,6)
-                    if wmap(x,y)>highest then highest=wmap(x,y)
-                    if wmap(x,y)>=8 then count+=1
+    next
+    for i=0 to 5
+        for x=1 to sm_x-1
+            for y=1 to sm_y-1
+                count=0
+                for x1=x-1 to x+1
+                    for y1=y-1 to y+1
+                        if wmap(x1,y1)=1 then count+=1
+                    next
+                next
+                if count>=5 then 
+                    wmap2(x,y)=1
+                else
+                    wmap2(x,y)=0
+                endif
+            next
+        next
+        for x=0 to sm_x
+            for y=0 to sm_y
+                wmap(x,y)=wmap2(x,y)
+            next
+        next
+    next
+    for j=0 to 1
+        for i=1 to 4
+            
+            
+            for x=1 to sm_x-1
+                for y=1 to sm_y-1
+                    count=0
+                    for x1=x-1 to x+1
+                        for y1=y-1 to y+1
+                            if wmap(x1,y1)=i then count+=1
+                        next
+                    next
+                    if count>=7 and wmap(x,y)<i+1 then 
+                        wmap2(x,y)=i+1
+                    else
+                        wmap2(x,y)=wmap(x,y)
+                    endif
                 next
             next
-        loop until count>=sm_x*sm_y*(0.20-attempt)
-        for x=0 to sm_x
-            for y=0 to sm_y
-                if wmap(x,y)=8 or wmap(x,y)=9  then spacemap(x,y)=-2                    
-                if wmap(x,y)=10 or wmap(x,y)=11  then spacemap(x,y)=-3                    
-                if wmap(x,y)=12 or wmap(x,y)=13  then spacemap(x,y)=-4                    
-                if wmap(x,y)>13 then spacemap(x,y)=-5                    
-                if abs(spacemap(x,y))>2 then count+=1
+            
+            for x=0 to sm_x
+                for y=0 to sm_y
+                    wmap(x,y)=wmap2(x,y)
+                next
             next
+            
         next
+    next
+'    for x=0 to sm_x
+'        for y=0 to sm_y
+'            if wmap(x,y)>0 and wmap(x,y)<5 then wmap(x,y)+=1
+'            color rgba(wmap(x,y)*50,wmap(x,y)*50,wmap(x,y)*50,255)
+'            pset(x*2,y*2)
+'            pset(x*2,y*2+1)
+'            pset(x*2+1,y*2+1)
+'            pset(x*2+1,y*2)
+'        next
+'    next
+'    color rgba(0,255,0,255)
+'    for a=0 to 2
+'        pset (basis(a).c.x*2,basis(a).c.y*2)
+'    next
+'    sleep
     
+    for x=0 to sm_x
+        for y=0 to sm_y
+            spacemap(x,y)=-wmap(x,y)
+            if abs(spacemap(x,y))=1 then spacemap(x,y)=0
+        next
+    next
+    
+    
+
     if rnd_range(1,100)<33 then
         p1.x=rnd_range(1,sm_x)
         p1.y=rnd_range(1,sm_y)
     else
         p1=map(rnd_range(laststar+1,laststar+wormhole)).c
     endif
-    
-    
-    for a=0 to 65 'Space - Time Anomalies
-        do
-            if rnd_range(1,100)<33 then
-                if rnd_range(1,100)<33 then
-                    p1.x=rnd_range(1,sm_x)
-                    p1.y=rnd_range(1,sm_y)
-                else
-                    p1=map(rnd_range(laststar+1,laststar+wormhole)).c
+
+    for a=laststar+1 to laststar+wormhole
+        last=line_in_points(map(a).c,map(map(a).planets(1)).c,p())
+        for i=1 to last
+            if a mod 2=0 then
+                last2+=1
+                pp(last2)=p(i)
+            endif
+            if rnd_range(1,10)<12-distance(map(a).c,p(i)) then
+                if p(i).x>=0 and p(i).y>=0 and p(i).x<=sm_x and p(i).y<=sm_y then
+                    spacemap(p(i).x,p(i).y)=-1*rnd_range(6,9)
                 endif
             endif
-            if spacemap(p1.x,p1.y)=-6 or spacemap(p1.x,p1.y)=-7 or spacemap(p1.x,p1.y)=-8 then
-                p1.x=rnd_range(1,sm_x)
-                p1.y=rnd_range(1,sm_y)
-            endif
-        loop until not((p1.x=10 and p1.y=30) or (p1.x=60 and p1.y=10) or (p1.x=35 and p1.y=20))
-        select case rnd_range(1,100)
-        case is<20 
-            c=-6
-        case 20 to 40
-            c=-7
-        case 41 to 60
-            c=-8
-        case 61 to 90
-            c=-9
-        case else
-            c=-10
-        end select
-        
-        c=-6
-        if rnd_range(1,100)<33 then c=-7
-        if rnd_range(1,100)<33 then c=-8
-        if rnd_range(1,100)<66 then c=-9
-        
-        for b=1 to 9
-            if rnd_range(1,100)>66 then
-                p2=p1
-                do
-                    if rnd_range(1,100)<66 then
-                        p2=movepoint(p2,b,,1)
-                    else
-                        p2=movepoint(p2,5,,1)
-                    endif
-                    spacemap(p2.x,p2.y)=c                    
-                loop until rnd_range(1,100)>10+a/2 or (p2.x=10 and p2.y=30) or (p2.x=60 and p2.y=10) or (p2.x=35 and p2.y=20)
+        next
+        ano=rnd_range(6,9)
+        r=distance(map(a).c,map(map(a).planets(1)).c)/20
+        if r<1 then r=1
+        for x=map(a).c.x-r to map(a).c.x+r
+            for y=map(a).c.y-r to map(a).c.y+r
+                if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                    p1.x=x
+                    p1.y=y
+                    if distance(p1,map(a).c)<=r then spacemap(x,y)=-ano
+                endif
+            next
+        next
+        if rnd_range(1,100)<distance(map(a).c,map(map(a).planets(1)).c) or rnd_range(1,100)<distance(map(a).c,map(map(a).planets(1)).c) then
+            'add_ano(map(a).c,map(map(a).planets(1)).c,ano)
+        endif
+    next
+    
+    if _debug=1 then dprint "Last2:"&last2
+    for i=1 to last2
+        for a=1 to last2
+            if i<>a then
+                if pp(a).x=pp(i).x and pp(a).y=pp(i).y then
+                    p1.x=-1
+                    'add_ano(pp(i),p1,rnd_range(6,9))
+                    for j=a-rnd_range(1,4) to a+rnd_range(1,4)
+                        if j>=1 and j<=last2 then
+                            if distance(pp(a),pp(j))<=5 then spacemap(pp(j).x,pp(j).y)=-rnd_range(6,9)
+                        endif
+                    next
+                endif
             endif
         next
     next
-        attempt=attempt+.01
-        if attempt>0.1 then attempt=0.1
-        flood_fill(sm_x/2,sm_y/2,spacemap(),1)
-    loop until spacemap(10,sm_y-10)=255 and spacemap(sm_x-10,10)=255
-    do
-        x=rnd_range(0,sm_x)
-        y=rnd_range(0,sm_y)
-        if spacemap(x,1)=255 then
-            targetlist(0).x=x
-            targetlist(0).y=0
-        endif
-        
-        if spacemap(x,sm_y)=255 then
-            targetlist(0).x=x
-            targetlist(0).y=sm_y
-        endif
-        
-        if spacemap(0,y)=255 then
-            targetlist(0).x=0
-            targetlist(0).y=y
-        endif
-        
-        if spacemap(sm_x,y)=255 then
-            targetlist(0).x=sm_x
-            targetlist(0).y=y
-        endif
-    loop until targetlist(0).x=0 xor targetlist(0).y=0
     
-    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>11 then
+    x=rnd_range(0,sm_x)
+    y=rnd_range(0,sm_y)
+    select case rnd_range(1,4)
+    case 1
+        targetlist(0).x=x
+        targetlist(0).y=0
+    case 2
+        targetlist(0).x=x
+        targetlist(0).y=sm_y
+    case 3
+        targetlist(0).x=0
+        targetlist(0).y=y
+    case 4
+        targetlist(0).x=sm_x
+        targetlist(0).y=y
+    end select
+        
+
+    if spacemap(map(piratebase(0)).c.x,map(piratebase(0)).c.y)<>0 then
         p1=map(piratebase(0)).c
         do
             spacemap(p1.x,p1.y)=255
             p1=movepoint(p1,5)
-            print ".";
-        loop until spacemap(p1.x,p1.y)=255
+        loop until spacemap(p1.x,p1.y)=0
         
     endif
     
@@ -1292,7 +1484,7 @@ function make_civilisation(slot as short,m as short) as short
     endif
     civ(slot).spec=makemonster(1,m,1)
     civ(slot).spec.sdesc=civ(slot).n
-    civ(slot).spec.ldesc="A " &civ(slot).n &". " &civ(slot).spec.ldesc
+    civ(slot).spec.ldesc=add_a_or_an(civ(slot).n,1) &". " &civ(slot).spec.ldesc
     civ(slot).spec.hpmax=civ(slot).spec.hpmax+rnd_range(1,civ(slot).tech)+rnd_range(1,civ(slot).aggr)
     civ(slot).spec.hp=civ(slot).spec.hpmax
     civ(slot).spec.armor=rnd_range(1,civ(slot).tech)
@@ -1360,7 +1552,9 @@ function make_civilisation(slot as short,m as short) as short
     
     make_alienship(slot,0)
     make_alienship(slot,1)
-    
+    civ(slot).ship(0).st=st_civ1+slot
+    civ(slot).ship(1).st=st_civ1+slot
+    piratenames(st_civ1+slot)=civ(slot).n &" ship"
     for a=0 to 6
         if rnd_range(1,100)<66 then
             civ(slot).culture(a)=rnd_range(1,5+civ(slot).aggr+civ(slot).phil)
@@ -1372,7 +1566,7 @@ function make_civilisation(slot as short,m as short) as short
     tiles(272+slot).tile=64 
     tiles(272+slot).col=civ(slot).spec.col
     tiles(272+slot).bgcol=0
-    tiles(272+slot).desc="A "&civ(slot).n &" spaceship."
+    tiles(272+slot).desc=add_a_or_an(civ(slot).n,1) &" spaceship."
     tiles(272+slot).seetru=1
     tiles(272+slot).hides=2
     
@@ -1384,7 +1578,7 @@ function make_civilisation(slot as short,m as short) as short
         tiles(274+slot).col=137
     endif
     tiles(274+slot).bgcol=0
-    tiles(274+slot).desc="A "&civ(slot).n &" building."
+    tiles(274+slot).desc=add_a_or_an(civ(slot).n,1) &" building."
     tiles(274+slot).seetru=1
     tiles(274+slot).hides=2
     
@@ -1568,13 +1762,20 @@ function make_civilisation(slot as short,m as short) as short
     endif 
     
     'shop21+slot= alienshop
-    shopitem(1,22+slot)=civ(slot).item(0)
-    shopitem(2,22+slot)=civ(slot).item(1)
+    shopitem(1,26+slot)=civ(slot).item(0)
+    shopitem(2,26+slot)=civ(slot).item(1)
     b=2
     for a=0 to civ(slot).tech*2+civ(slot).inte
        b+=1
-       shopitem(b,22+slot)=(rnd_item(5))
+       shopitem(b,22+slot)=(rnd_item(RI_ShopAliens))
     next
+    
+    if slot=0 then 
+        spdescr(7)="The homeworld of the "&civ(0).n
+    endif
+    if slot=1 then 
+        spdescr(46)="The homeworld of the "&civ(1).n
+    endif
     return 0
 end function
 
@@ -1685,7 +1886,6 @@ function make_alienship(slot as short,t as short) as short
     if civ(slot).ship(t).hull<1 then civ(slot).ship(t).hull=1
     civ(slot).ship(t).shieldmax=rnd_range(1,civ(slot).tech)-2
     if civ(slot).ship(t).shieldmax<0 then civ(slot).ship(t).shieldmax=0
-    civ(slot).ship(t).shield=civ(slot).ship(t).shieldmax
     civ(slot).ship(t).sensors=rnd_range(1,civ(slot).tech)
     civ(slot).ship(t).col=civ(slot).spec.col
     civ(slot).ship(t).engine=1

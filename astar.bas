@@ -36,100 +36,102 @@ type _node
     parent as _cords
 end type
 
-declare function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1,rollover as byte=0) as short
+declare function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=0,rollover as byte=0) as short
 declare function manhattan(a as _cords,b as _cords) as single
 declare function addneighbours(node() as _node, curr as _cords,mx as short,my as short,rollover as byte=0) as short
 declare function findlowerneighbour(node() as _node, curr as _cords,mx as short,my as short,rollover as byte=0) as short
 
-function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=1,rollover as byte=0) as short
-
-dim node(mx,my) as _node
-dim as short lastopen,lastclosed,lastnode,x,y,i,j
-dim as integer ccc
-dim as _cords curr,p,best
-dim as single d
-dim as byte debug=0
-
-if debug=1 then
-    locate my+2,1
-    print start.x;":";start.y;"-";goal.x;":";goal.y
-endif
-curr=start
-for x=0 to mx
-    for y=0 to my
-        node(x,y).cost=abs(map(x,y))
-    next
-next
-
-do
-    ccc+=1
-    if ccc mod 10=0 and echo=1 then print ".";
-    node(curr.x,curr.y).opclo=1 'Node on Open list
-    addneighbours(node(),curr,mx,my,rollover)
-    node(curr.x,curr.y).opclo=2 'Add node to closed List
-    findlowerneighbour(node(),curr,mx,my)
+function a_star(path() as _cords, start as _cords,goal as _cords,map() as short,mx as short,my as short,echo as short=0,rollover as byte=0) as short
     
-    d=9999999
-    best.x=-1
-    best.y=-1
-    if curr.x<>goal.x or curr.y<>goal.y then
-        for x=0 to mx
-            for y=0 to my
-                
-                p.x=x
-                p.y=y
-                if curr.x<>goal.x or curr.y<>goal.y then
-                    if node(x,y).opclo=1 then
-                        node(x,y).h=distance(p,goal,rollover)
-                        if node(x,y).h+node(x,y).g<d or manhattan(p,goal)=0 then
-                            best.x=x
-                            best.y=y
-                            if distance(p,goal,rollover)>0 then 
-                                d=node(x,y).h+node(x,y).g
-                            else
-                                d=0
+    dim node(mx,my) as _node
+    dim as integer lastopen,lastclosed,lastnode,x,y,i,j
+    dim as integer ccc
+    dim as _cords curr,p,best
+    dim as single d
+    dim as byte debug=0
+    
+    if debug=1 then
+        locate my+2,1
+        print start.x;":";start.y;"-";goal.x;":";goal.y
+    endif
+    curr=start
+    for x=0 to mx
+        for y=0 to my
+            node(x,y).cost=abs(map(x,y))
+        next
+    next
+    
+    do
+        ccc+=1
+        if ccc mod 10=0 and echo=1 then print ".";
+        node(curr.x,curr.y).opclo=1 'Node on Open list
+        addneighbours(node(),curr,mx,my,rollover)
+        node(curr.x,curr.y).opclo=2 'Add node to closed List
+        findlowerneighbour(node(),curr,mx,my)
+        
+        d=9999999
+        best.x=-1
+        best.y=-1
+        if curr.x<>goal.x or curr.y<>goal.y then
+            for x=0 to mx
+                for y=0 to my
+                    
+                    p.x=x
+                    p.y=y
+                    if curr.x<>goal.x or curr.y<>goal.y then
+                        if node(x,y).opclo=1 then
+                            node(x,y).h=distance(p,goal,rollover)
+                            if node(x,y).h+node(x,y).g<d or manhattan(p,goal)=0 then
+                                best.x=x
+                                best.y=y
+                                if distance(p,goal,rollover)>0 then 
+                                    d=node(x,y).h+node(x,y).g
+                                else
+                                    d=0
+                                endif
                             endif
                         endif
                     endif
-                endif
-                if debug=1 then
-                    locate y+1,x+1
-                    set__color(10,0)
-                    if node(x,y).opclo=1 then print "1";
-                    if node(x,y).opclo=2 then print "2";
-                    if node(x,y).opclo=0 then 
-                        set__color(15,0)
-                        print distance(p,goal,rollover);
-                    endif
-                endif
+                    
+                next
+            next
+            if debug=1 then sleep 100
+            if best.x>=0 and best.y>=0 and not (curr.x=goal.x and curr.y=goal.y) then
+                node(best.x,best.y).opclo=2
+                curr=best
+            endif
+        endif
+    loop until (curr.x=goal.x and curr.y=goal.y) or ccc<0
+    if debug=5 then
+        for x=0 to mx
+            for y=0 to my
+                locate y*3,x*5
+                print "g";int(node(x,y).g)
+                locate (y*3)+1,x*5
+                print "c";int(node(x,y).cost)
             next
         next
-        if debug=1 then sleep 100
-        if best.x>=0 and best.y>=0 and not (curr.x=goal.x and curr.y=goal.y) then
-            node(best.x,best.y).opclo=2
-            curr=best
-        endif
-    endif
-loop until (curr.x=goal.x and curr.y=goal.y) or ccc<0
-if ccc>0 then
-    i=0
-    do
+    end if
+    
+    if ccc>0 then
+        i=0
+        do
+            path(i).x=curr.x
+            path(i).y=curr.y
+            curr=node(curr.x,curr.y).parent
+            i+=1
+           
+        loop until (curr.x=start.x and curr.y=start.y) or i=ubound(path)
         path(i).x=curr.x
         path(i).y=curr.y
-        curr=node(curr.x,curr.y).parent
-        i+=1
-       
-    loop until curr.x=start.x and curr.y=start.y or i>1024
-    path(i).x=curr.x
-    path(i).y=curr.y
-     
-    'i-=1
-    if echo=1 then print "found with "&i &" Waypoints."
-    return i
-else
-    if echo=1 then print "No path found"
-endif
-return -1
+         
+        'i-=1
+        if echo=1 then print "found with "&i &" Waypoints."
+        return i
+    else
+        if echo=1 then print "No path found"
+    endif
+    return -1
 end function
 
 function findlowerneighbour(node() as _node, curr as _cords,mx as short,my as short,rollover as byte=0) as short

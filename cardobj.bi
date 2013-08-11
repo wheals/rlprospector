@@ -151,8 +151,6 @@ Enum cardid
    cSpadJack
    cSpadQueen
    cSpadKing
-   cJokerBlack
-   cJokerRed
 End Enum
 
 'Card Suits
@@ -162,8 +160,6 @@ Enum cardsuit
    sDiamond
    sHeart
    sSpade
-   sJokerBlack
-   sJokerRed
 End Enum
 
 'Card face
@@ -182,7 +178,6 @@ Enum cardface
    fJack
    fQueen
    fKing
-   fJoker
 End Enum
 
 'Card object.
@@ -191,7 +186,7 @@ Type cardobj
 	_cards As Any Ptr
 	_cardwidth As Integer
 	_cardheight As Integer
-    _cardval (cClubAce To cJokerRed) As Integer
+    _cardval (cClubAce To cSpadKing) As Integer
 	Declare Sub _ClearCards ()
 	Public:
 	Declare Constructor ()
@@ -200,14 +195,14 @@ Type cardobj
 	Declare Property CardHeight() As Integer
 	Declare property SetCardValue (cid As cardid, cv As Integer)
 	Declare Sub DrawCardBack (x As Integer, y As Integer, cb As cardback)
-	Declare Sub DrawCardFront (x As Integer, y As Integer, cid As cardid)
+	Declare Sub DrawCardFront (x As Integer, y As Integer, cid As short)
 	Declare Sub DrawPlaceholder (x As Integer, y As Integer, border As UInteger = pWhite, backg As UInteger = pGray)
 	Declare Sub DrawPlaceholder (x As Integer, y As Integer, pl As cardplace)
 	Declare Sub ClearCards ()
 	Declare Sub Shuffle (d() As cardid)
 	Declare Function Version () As String
 	Declare Function LoadCards (cardfront As String) As Integer
-	Declare Function CSuit (cid As cardid) As cardsuit
+	Declare Function CSuit (cid As integer) As integer
 	Declare Function CFace (cid As cardid) As cardface
 	Declare Function CRank (cid As cardid) As Integer
 	Declare Function CValue (cid As cardid) As Integer
@@ -233,7 +228,7 @@ Constructor cardobj ()
 	_cards = NULL
 	_cardwidth = 43
 	_cardheight = 64
-	For i As Integer = cClubAce To cJokerRed
+	For i As Integer = cClubAce To cSpadking
 	   _cardVal(i) = CRank(i)
 	Next
 End Constructor
@@ -296,284 +291,288 @@ Sub cardobj.DrawCardBack (x As Integer, y As Integer, cb As cardback)
 End Sub
 
 'Draws the card fronts.
-Sub cardobj.DrawCardFront (x As Integer, y As Integer, cid As cardid)
+Sub cardobj.DrawCardFront (x As Integer, y As Integer, cid As short)
 	Dim tp As Any Ptr = ImageCreate(_cardwidth, _cardheight)
    Dim As Integer x1, y1, x2, y2
-   
-	If (_cards <> NULL) And (tp <> NULL) Then
-		Select Case cid
-		   Case cClubAce
-		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubTwo
-		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubThree
-		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubFour
-		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubFive
-		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubSix
-		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubSeven
-		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubEight
-		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubNine
-		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubTen
-		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubJack
-		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubQueen
-		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cClubKing
-		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamAce
-		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamTwo
-		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamThree
-		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamFour
-		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamFive
-		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamSix
-		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamSeven
-		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamEight
-		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamNine
-		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamTen
-		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamJack
-		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamQueen
-		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cDiamKing
-		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearAce
-		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearTwo
-		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearThree
-		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearFour
-		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearFive
-		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearSix
-		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearSeven
-		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearEight
-		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearNine
-		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearTen
-		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearJack
-		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearQueen
-		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cHearKing
-		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadAce
-		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadTwo
-		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadThree
-		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadFour
-		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadFive
-		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadSix
-		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadSeven
-		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadEight
-		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadNine
-		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadTen
-		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadJack
-		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadQueen
-		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cSpadKing
-		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   Case cJokerRed
-		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 4: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		   case cJokerBlack
-		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
-		      y1 = _cardheight * 4: y2 = y1 + (_cardHeight - 1)
-				Get _cards, (x1, y1) - (x2, y2), tp
-				Put (x, y), tp, Trans
-		End Select
-	End If
+   dim as short x3,y3,i
+    for y3=0 to 3
+        for x3=0 to 12
+            i+=1
+            if i=cid then
+                x1=_cardwidth*x3
+                y1=_cardheight*y3
+                x2=x1+_cardwidth-1
+                y2=y1+_cardheight-1
+                get _cards,(x1,y1)-(x2,y2),tp
+                put (x,y),tp,trans
+            endif
+        next
+    next
+'    
+'	If (_cards <> NULL) And (tp <> NULL) Then
+'		Select Case cid
+'		   Case cClubAce
+'		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubTwo
+'		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubThree
+'		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubFour
+'		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubFive
+'		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubSix
+'		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubSeven
+'		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubEight
+'		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubNine
+'		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubTen
+'		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubJack
+'		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubQueen
+'		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cClubKing
+'		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 0: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamAce
+'		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamTwo
+'		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamThree
+'		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamFour
+'		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamFive
+'		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamSix
+'		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamSeven
+'		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamEight
+'		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamNine
+'		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamTen
+'		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamJack
+'		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamQueen
+'		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cDiamKing
+'		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 1: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearAce
+'		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearTwo
+'		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearThree
+'		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearFour
+'		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearFive
+'		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearSix
+'		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearSeven
+'		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearEight
+'		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearNine
+'		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearTen
+'		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearJack
+'		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearQueen
+'		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cHearKing
+'		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 2: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadAce
+'		      x1 = _cardwidth * 0: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadTwo
+'		      x1 = _cardwidth * 1: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadThree
+'		      x1 = _cardwidth * 2: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadFour
+'		      x1 = _cardwidth * 3: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadFive
+'		      x1 = _cardwidth * 4: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadSix
+'		      x1 = _cardwidth * 5: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadSeven
+'		      x1 = _cardwidth * 6: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadEight
+'		      x1 = _cardwidth * 7: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadNine
+'		      x1 = _cardwidth * 8: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadTen
+'		      x1 = _cardwidth * 9: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadJack
+'		      x1 = _cardwidth * 10: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadQueen
+'		      x1 = _cardwidth * 11: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		   Case cSpadKing
+'		      x1 = _cardwidth * 12: x2 = x1 + (_cardwidth - 1)
+'		      y1 = _cardheight * 3: y2 = y1 + (_cardHeight - 1)
+'				Get _cards, (x1, y1) - (x2, y2), tp
+'				Put (x, y), tp, Trans
+'		End Select
+'	End If
 	If tp <> NULL Then
 	   'Deallocate temp image.
 	   ImageDestroy tp
@@ -646,22 +645,18 @@ Function cardobj.LoadCards (cards As String) As Integer
 End Function
 
 'Returns the suit of the card based on the card id.
-Function cardobj.CSuit (cid As cardid) As cardsuit
+Function cardobj.CSuit (cid As integer) As integer
    Dim ret As cardsuit = sNone
 
-   Select Case As Const cid
-      Case cClubAce To cClubKing
+   Select Case cid
+      Case 1 To 13
          ret = sClub
-      Case cDiamAce To cDiamKing
+      Case 14 To 26
          ret = sDiamond 
-      Case cHearAce To cHearKing
+      Case 27 To 39
          ret = sHeart 
-      Case cSpadAce To cSpadKing
+      Case 40 To 52
          ret = sSpade
-      Case cJokerRed
-         ret = sJokerRed
-      Case cJokerBlack
-         ret = sJokerBlack
    End Select
    
    Return ret
@@ -671,7 +666,7 @@ End Function
 Function cardobj.CFace (cid As cardid) As cardface
    Dim ret As cardface = fNone
    
-   Select Case As Const cid
+   Select Case cid
       Case cClubAce, cDiamAce, cHearAce, cSpadAce
          ret = fAce
       Case cClubTwo, cDiamTwo, cHearTwo, cSpadTwo
@@ -698,8 +693,6 @@ Function cardobj.CFace (cid As cardid) As cardface
          ret = fQueen
       Case cClubKing, cDiamKing, cHearKing, cSpadKing
          ret = fKing
-      Case cJokerBlack, cJokerRed
-         ret = fJoker
    End Select
    
    Return ret
@@ -736,8 +729,6 @@ Function cardobj.CRank (cid As cardid) As Integer
          ret = 12
       Case cClubKing, cDiamKing, cHearKing, cSpadKing
          ret = 13
-      Case cJokerBlack, cJokerRed
-         ret = 14
    End Select
    
    Return ret
@@ -800,9 +791,7 @@ Function cardobj.FaceString (cf As cardface) As String
          ret = "Queen"
       Case fKing
          ret = "King"
-      Case fJoker
-         ret = "Joker"
-   End Select
+    End Select
    
    Return ret
 End Function
@@ -824,17 +813,13 @@ Function cardobj.SuitString (cs As cardsuit) As String
    
    Select Case cs
       Case sClub
-         ret = "Club"
+         ret = "C"
       Case sDiamond
-         ret = "Diamond"
+         ret = "D"
       Case sHeart
-         ret = "Heart"
+         ret = "H"
       Case sSpade
-         ret = "Spade"
-      Case sJokerBlack
-         ret = "Black Joker"
-      Case sJokerRed
-         ret = "Red Joker"
+         ret = "S"
    End Select
    
    Return ret

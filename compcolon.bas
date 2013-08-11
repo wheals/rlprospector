@@ -16,7 +16,7 @@ function colonize_planet(st as short) as short
         endif
         p=movepoint(p,d)
         planetmap(p.x,p.y,planet)=68
-        if debug=1 then dprint "Built colony at "& map(sysfrommap(planet)).c.x &":"&map(sysfrommap(planet)).c.y
+        if debug=1 and _debug=1 then dprint "Built colony at "& map(sysfrommap(planet)).c.x &":"&map(sysfrommap(planet)).c.y
     endif
     return 0
 end function
@@ -75,7 +75,7 @@ function grow_colony(map as short) as short
     planets(map).colflag(1)+=count_tiles(68,map)*5
     planets(map).colflag(1)+=rnd_range(1,60)
     roll=rnd_range(1,100)
-    if debug=1 then dprint roll &":"& planets(map).colflag(1)
+    if debug=1 and _debug=1 then dprint roll &":"& planets(map).colflag(1)
     if roll<planets(map).colflag(1) then
         if rnd_range(1,100)<66 then
             if planets(map).colflag(4)=0 then

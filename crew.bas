@@ -1,4 +1,4 @@
-function gainxp(typ as short,v as short=1) as short
+function gainxp(typ as short,v as short=1) as string
     dim as short a,lowest,slot
     lowest=100
     if typ<=5 then
@@ -15,9 +15,28 @@ function gainxp(typ as short,v as short=1) as short
     endif
     if crew(slot).hp>0 and crew(slot).xp>=0 then 
         crew(slot).xp+=v
-        dprint crew_desig(crew(slot).typ) &" " &crew(slot).n &" has gained "&v &" Xp.",c_gre
+        return crew_desig(crew(slot).typ) &" " &crew(slot).n &" has gained "&v &" Xp."
     endif
-    return 0
+    return ""
+end function
+
+function skill_test(bonus as short,targetnumber as short,echo as string="") as short
+    dim as short roll
+    roll=rnd_range(1,20)
+    if roll+bonus>=targetnumber then
+        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" (Needed "& targetnumber &", rolled "&roll &"+"& bonus &": Success)",c_gre
+        return -1
+    else
+        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" (Needed "& targetnumber &", rolled "&roll &"+"& bonus &": Failure)",c_red
+        return 0
+    end if
+end function
+
+             
+
+function haggle_(way as string) as single
+    if lcase(way)="up" then return (1+crew(1).talents(2)/10) 
+    if lcase(way)="down" then return (1-crew(1).talents(2)/10) 
 end function
 
 function can_learn_skill(ci as short,si as short) as short
@@ -38,11 +57,11 @@ function can_learn_skill(ci as short,si as short) as short
 end function
 
 
-function bestcrew(skill as short, no as short,onship as short) as short
+function best_crew(skill as short, no as short) as short
     dim as short i,j,result,last
     dim skillvals(128) as short
     for i=0 to 128
-        if crew(i).baseskill(skill)>0 and crew(i).hp>0 and (crew(i).onship=0 or onship=0) then
+        if crew(i).baseskill(skill)>0 and crew(i).hp>0 and (crew(i).onship=location or location=lc_onship) then
             j+=1
             skillvals(j)=crew(i).baseskill(skill)
         endif
@@ -70,10 +89,10 @@ function cureawayteam(where as short) as short
     dim as short bonus,pack,cured,sick,a,biodata
     dim as string text
     if where=0 then 'On planet=0 On Ship=1
-        if _chosebest=0 then
+        if configflag(con_chosebest)=0 then
             pack=findbest(19,-1)
         else
-            pack=getitem()
+            pack=get_item()
             if item(pack).ty<>19 then
                 dprint "You can't use that",14
                 pack=-1
@@ -92,52 +111,44 @@ function cureawayteam(where as short) as short
     
     for a=0 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and (crew(a).onship=where or where=1) then
-            if crew(a).disease>0 and rnd_range(1,6)+rnd_range(1,6)+bonus+player.doctor(where)+addtalent(5,17,1)>5+crew(a).disease/2 then
-                biodata+=crew(a).disease*2
-                crew(a).disease=0
-                crew(a).onship=crew(a).oldonship
-                crew(a).oldonship=0
-                cured+=1
+            if crew(a).disease>0 then
+                if skill_test(bonus+player.doctor(location)+add_talent(5,17,1),st_average+crew(a).disease/2,"Doctor") then
+                    biodata+=crew(a).disease*2
+                    crew(a).disease=0
+                    crew(a).onship=crew(a).oldonship
+                    crew(a).oldonship=0
+                    cured+=1
+                endif
             endif
             if crew(a).disease>0 then sick+=1
         endif
     next
-    reward(1)+=biodata
+    reward(1)+=biodata 'Cured a disease
     if crew(1).disease=0 then crew(1).onship=0
     if cured>1 then dprint cured &" members of your crew where cured (gained "& biodata &" biodata).",10
     if cured=1 then dprint cured &" member of your crew was cured (gained "& biodata &" biodata).",10
     if cured=0 and sick>0 then dprint "No members of your crew where cured.",14
     if sick>0 then dprint sick &" are still sick.",14
-    if cured>0 then gainxp(5)
+    if cured>0 then dprint gainxp(5),c_gre
     return 0
 end function
 
-function maxsecurity() as short
+function max_security() as short
     dim as short b,total
-    total=player.h_maxcrew+player.crewpod+player.cryo-5
+    total=2*(player.h_maxcrew-5)+2*player.crewpod+player.cryo
     for b=6 to 128
         if crew(b).hp>0 then total-=1
     next
     return total
 end function
 
-function skillcheck(targetnumber as short,skill as short, modifier as short) as short
-    'skill
-    '1 Pilot
-    '2 Gunner
-    '3 Science
-    '4 Doctor
-    dim as short skillvalue
-    if rnd_range(1,6)+rnd_range(1,6)+skillvalue+modifier>targetnumber then
-        return -1
-    else
-        return 0
-    endif
+function total_bunks() as short
+    return player.h_maxcrew+player.crewpod+player.cryo-5
 end function
 
-function addtalent(cr as short, ta as short, value as single) as single
+function add_talent(cr as short, ta as short, value as single) as single
     dim total as short
-    if cr>0 then
+    if cr>=0 then
         if crew(cr).hp>0 and crew(cr).talents(ta)>0 and ta=10 then
             if player.tactic>0 then return crew(cr).talents(ta)
             if player.tactic<0 then return -crew(cr).talents(ta)
@@ -202,16 +213,16 @@ function healawayteam(byref a as _monster,heal as short) as short
         if item(fac).v1>0 then reg=reg+0.1
     endif
     if player.doctor(1)>0 then
-       doc=doc+player.doctor(1)/25+addtalent(5,17,.1)
+       doc=doc+player.doctor(1)/25+add_talent(5,17,.1)
     endif
-    if heal>0 then heal=heal+player.doctor(1)+addtalent(5,19,3)
+    if heal>0 then heal=heal+player.doctor(1)+add_talent(5,19,3)
     if reg>=1 then 
         heal=heal+reg
         reg=0
         h=1
     endif
     if doc>=1 then
-        if rnd_range(1,6)+rnd_range(1,6)+player.doctor(1)>10 then
+        if skill_test(player.doctor(1),st_hard) then
             heal=heal+doc
             h=1
         endif
@@ -230,7 +241,7 @@ function healawayteam(byref a as _monster,heal as short) as short
     loop until heal=0 or ex=0
     if player.doctor(1)>0 and h=2 then
         dprint "The doctor fixes some cuts and bruises"
-        gainxp(5)
+        dprint gainxp(5),c_gre
     endif
     if fac>0 and h=2 then 
         dprint "the nanobots heal your wounded"
@@ -242,7 +253,7 @@ end function
 
 function infect(a as short,dis as short) as short
     dim as short roll
-    roll=rnd_range(1,6)+rnd_range(1,6)+player.doctor(1)
+    roll=rnd_range(1,6) +rnd_range(1,6)+player.doctor(location)
     if roll<maximum(3,dis) and crew(a).hp>0 and crew(a).hpmax>0 then
         crew(a).disease=dis
         crew(a).oldonship=crew(a).onship
@@ -296,9 +307,9 @@ function diseaserun(onship as short) as short
     return 0
 end function
 
-function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as short=0) as string
+function damawayteam(dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as integer ex,b,t,last,last2,armeff,reequip,roll,cc
+    dim as integer ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus
     dim as short local_debug=0
     dim target(128) as integer
     dim stored(128) as integer
@@ -337,9 +348,9 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             stored(b)=crew(b).hp
         endif
     next
-    if dam>a.armor/(2*last) then
-        dam=dam-a.armor/(2*last)
-        armeff=int(a.armor/(2*last))
+    if dam>awayteam.armor/(2*last) then
+        dam=dam-awayteam.armor/(2*last)
+        armeff=int(awayteam.armor/(2*last))
     else
         armeff=dam-1
         dam=1
@@ -359,9 +370,14 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
                 dam=0
             endif
             if ap=0 or ap=1 or ap=4 then
+                if player.tactic=3 then 'No tactic bonus for using nonlethal
+                    tacbonus=0
+                else
+                    tacbonus=player.tactic
+                endif
                 roll=rnd_range(1,25)
-                if local_debug=1 then text=text &":" &roll &":"&a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1)
-                if roll>2+a.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+addtalent(3,10,1)+addtalent(t,20,1) or ap=4 or ap=1 or roll=25 then
+                if local_debug=1 and _debug=1 then text=text &":" &roll &":"&awayteam.secarmo(target(t))+crew(target(t)).augment(5)+player.tactic+add_talent(3,10,1)+add_talent(t,20,1)
+                if roll>2+awayteam.secarmo(target(t))+crew(target(t)).augment(5)+tacbonus+add_talent(3,10,1)+add_talent(t,20,1) or ap=4 or ap=1 or roll=25 then
                     if not(crew(target(t)).typ=13 and ap=4) then crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
                 else
@@ -390,10 +406,11 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             endif
         endif
     next
-    if armeff>0 then text=text &armeff &" prevented by armor. "
-    
+    if armeff>0 then text=text &" "&armeff &" prevented by armor. "
+
     for b=1 to 16
         if injured(b)>0 then
+            walking=0
             if injured(b)>1 then
                 text=text &injured(b) &" "&desc(b)&"s injured. "
             else
@@ -404,6 +421,7 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
     for b=1 to 16
         player.deadredshirts=player.deadredshirts+killed(b)
         if killed(b)>0 then
+            walking=0
             if killed(b)>1 then
                 text=text &killed(b) &" "&desc(b)&"s killed. "
             else
@@ -412,16 +430,16 @@ function damawayteam(byref a as _monster,dam as short, ap as short=0,disease as 
             changemoral(-3*killed(b),0)
         endif
     next
-    hpdisplay(a)
+    hpdisplay(awayteam)
     #ifdef _FMODSOUND
-    if _damscream=0 then 
+    if configflag(con_damscream)=0 then 
         FSOUND_PlaySound(FSOUND_FREE, sound(12))
         sleep 100
     endif
     #endif
     sleep 50
 
-    if reequip=1 then equip_awayteam(player,a,player.map)
+    if reequip=1 then equip_awayteam(player.map)
     if local_debug=1 then text=text & " Out:"&dam
     return trim(text)
 end function
@@ -486,9 +504,9 @@ function levelup(p as _ship,from as short) as _ship
     dim _del as _crewmember
     dim rolls(128) as short
     dim lev(128) as byte
-    dim ret(16) as byte
-    dim conret(16) as byte
-    dim levt(16) as byte
+    dim ret(46) as byte
+    dim conret(46) as byte
+    dim levt(46) as byte
     dim debug as byte=0
     if from=1 then dprint "Entering training."
     for a=0 to 16
@@ -508,12 +526,12 @@ function levelup(p as _ship,from as short) as _ship
                 if a>1 then
                     if crew(a).hp>0 and crew(a).augment(11)=0 then
                         roll=rnd_range(1,100)
-                        if roll>10+crew(a).morale+addtalent(1,4,10) then
+                        if roll>10+crew(a).morale+add_talent(1,4,10) then
                             ret(crew(a).typ)+=1
                             crew(a)=_del
                             lev(a)=0
                         endif
-                        if roll>crew(a).morale+addtalent(1,4,10) and roll<=10+crew(a).morale+addtalent(1,4,10) then
+                        if roll>crew(a).morale+add_talent(1,4,10) and roll<=10+crew(a).morale+add_talent(1,4,10) then
                             conret(crew(a).typ)+=1
                         endif
                     endif
@@ -522,12 +540,13 @@ function levelup(p as _ship,from as short) as _ship
         endif
     next
     
-    for a=1 to 16
+    for a=1 to 46
         if ret(a)=1 then dprint crew_desig(a)&" "&crew(a).n &" retired. ",12
         if ret(a)>1 then dprint ret(a) &" "&crew_desig(a)&"s retired. ",12
         if conret(a)=1 then dprint crew_desig(a)&" "&crew(a).n &" considered retiring but had a change of mind. ",14
         if conret(a)>1 then dprint ret(a) &" "&crew_desig(a)&"s considered retiring but changed their minds. ",14
-    
+        if ret(a)=1 and a>=30 then dprint "Your passenger " &crew(a).n & "decided to find another ship."
+        if ret(a)>1 and a>=30 then dprint a &" of your passengers decided to find another ship."
     next
     for a=1 to 128
         if _showrolls=1 then text=text &crew(a).n &"Rolled "&rolls(a) &", needed"& 5+crew(a).hp^2
@@ -597,7 +616,7 @@ function dam_no_spacesuit(dam as short) as short
         if crew(i).hp>0 then hps(i)=crew(i).hp
     next
     debug=1
-    if debug=1 then dprint "Damage"&dam &"last:"&last
+    if debug=1 and _debug=1 then dprint "Damage"&dam &"last:"&last
     if last>0 then
         do
             w=rnd_range(1,last)
@@ -632,7 +651,7 @@ function dam_no_spacesuit(dam as short) as short
         endif
         if hurt>0 or dead>0 then 
             #ifdef _FMODSOUND
-            if _damscream=0 then 
+            if configflag(con_damscream)=0 then 
                 FSOUND_PlaySound(FSOUND_FREE, sound(12))
                 sleep 100
             endif
@@ -644,7 +663,7 @@ function dam_no_spacesuit(dam as short) as short
     return 0 
 end function
 
-function removemember(n as short, f as short) as short
+function remove_member(n as short, f as short) as short
     dim as short a,s,todo
     
     if f=0 then s=6
@@ -673,7 +692,7 @@ end function
 function get_freecrewslot() as short
     dim as short b,slot,debug
     
-    if debug=1 then dprint ""&player.h_maxcrew &":"&player.crewpod &":"&player.cryo
+    if debug=1 and _debug=1 then dprint ""&player.h_maxcrew &":"&player.crewpod &":"&player.cryo
     for b=1 to (player.h_maxcrew+player.crewpod)*player.bunking+player.cryo
         if crew(b).hp<=0 then return b
     next
@@ -701,8 +720,8 @@ function bunk_multi() as single
 end function
 
 
-function addmember(a as short,skill as short) as short
-    dim as short slot,b,f,c,cc,debug,nameno,i,cat,j
+function add_member(a as short,skill as short) as short
+    dim as short slot,b,f,c,cc,debug,nameno,i,cat,j,turret,rask
     dim as string text,help
     dim _del as _crewmember
     dim as string n(200,1)
@@ -726,7 +745,7 @@ function addmember(a as short,skill as short) as short
             slot=showteam(0,1,"Replace who?")
         endif
     endif
-    if debug=1 then dprint ""&slot
+    if debug=1 and _debug=1 then dprint ""&slot
     if slot<0 then return -1
     if slot>=0 then
         
@@ -761,67 +780,154 @@ function addmember(a as short,skill as short) as short
         'crew(slot).disease=rnd_range(1,17)
         
         if a=1 then 'captain
-            background(rnd_range(1,_last_title_pic)&".bmp")
+            
+            crew(slot).hpmax=6
+            crew(slot).hp=6
+            crew(slot).icon="C"
+            crew(slot).typ=1
+            crew(slot).baseskill(0)=captainskill
+            crew(slot).baseskill(1)=captainskill
+            crew(slot).baseskill(2)=captainskill
+            crew(slot).baseskill(3)=captainskill
+            
             cat=2
             if equipment_value<1150 then cat+=1
+            if player.h_no=2 then cat+=1
             do
                 help=""
                 if cat>1 then 
-                    text="Choose captain("& player.h_sdesc &") "&crew(slot).n & "s talents (" &cat &")"
+                    text="Captain("& player.h_sdesc &") "&crew(slot).n & "s talents (" &cat &")"
                 else
-                    text="Choose captain("& player.h_sdesc &") " &crew(slot).n & "s talent (" &cat &")"
+                    text="Captain("& player.h_sdesc &") " &crew(slot).n & "s talent (" &cat &")"
                 endif
                 text=text &"/No talent, +50 Cr."
-                help=help &"/Start with "& player.money+50 &" Cr. instead of 500" &inventory_text
+                help=help &"/Start with "& player.money+50 &" Cr. instead of 500||" &list_inventory
                 text=text &"/Additional talent, -50 Cr."
-                help=help &"/Start with "& player.money-50 &" Cr. instead of 500. Choose one more starting talent"&inventory_text
+                help=help &"/Start with "& player.money-50 &" Cr. instead of 500. Choose one more starting talent||"&list_inventory
                 text=text &"/2 Spacesuits"
-                help=help &"/start with 2 standard issue spacesuits"&inventory_text
-                text=text &"/additional random items"
-                help=help &"/Start with one more random item"&inventory_text
+                help=help &"/Start with 2 standard issue spacesuits||"&list_inventory
                 text=text &"/Tribble"
-                help=help &"/Start with a pet tribble"&inventory_text
+                help=help &"/Start with a pet tribble||"&list_inventory
+                text=text &"/Additional random items"
+                help=help &"/Start with two more random items||"&list_inventory
+                text=text &"/Energy weapon"
+                if startingweapon=1 then text=text &"(x)"
+                help=help &"/Start with an energy weapon for your ship. If you change your mind just select again||"&list_inventory
+                if startingweapon=1 then help=help &"|currently selected"
+                text=text &"/Missile weapon"
+                if startingweapon=2 then text=text &"(x)"
+                if startingweapon=2 then help=help &"|currently selected"
+                help=help &"/Start with a missile weapon for your ship. If you change your mind just select again||"&list_inventory
+                
                 for i=1 to 6
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)&inventory_text 
+                    help=help &"/"&talent_desc(i)&"||"&list_inventory 
                     'help=help &"Ship:"&player.h_sdesc
                 
                 next
                 for i=20 to 26
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)&inventory_text
+                    help=help &"/"&talent_desc(i)&"||"&list_inventory
                     'help=help &"Ship:"&player.h_sdesc
                 next
-                i=menu(text,help)
+                turret=-2
+                rask=21
+                if player.h_no=2 then
+                    turret=21
+                    rask=22
+                    text=text &"/Additional module(3 pts.)"
+                    help=help &"/Pay 3 pts for a module for your fighter ship."
+                endif
+                text=text &"/Random"
+                help=help &"/Choose one at random"
+                i=menu(bg_randompictxt,text,help)
+                if i=rask then 
+                    do
+                        i=rnd_range(1,20)
+                    loop until i<>6 and i<>7 and i<>2
+                endif
                 select case i
                 case 1,-1
-                    player.money+=50
+                    addmoney(50,mt_startcash)
                     cat-=1
+                    dprint "Additional money: +50 Cr."
                 case 2
-                    player.money-=50
-                    cat+=1
+                    if player.money>=50 then
+                        addmoney(-50,mt_startcash)
+                        cat+=1
+                        dprint "Less money: -50 Cr."
+                    endif
                 case 3
                     cat-=1
                     for j=1 to 2
                         placeitem(makeitem(320),0,0,0,0,-1)
                     next
+                    dprint "Item: 2 Spacesuits"
                 case 4
-                    
-                        if rnd_range(1,100)<50 then
-                            placeitem(rnd_item(44),0,0,0,0,-1)
-                        else
-                            placeitem(rnd_item(45),0,0,0,0,-1)
-                        endif
-                    cat-=1
-                case 5
                     placeitem(makeitem(250),0,0,0,0,-1)
                     cat-=1
+                    dprint "Item: A tribble"
+                case 5
+                    for j=1 to 2
+                        if rnd_range(1,100)<50 then
+                            item(lastitem+1)=rnd_item(RI_WeakStuff)
+                        else
+                            item(lastitem+1)=rnd_item(RI_WeakWeapons)
+                        endif
+                        
+                        dprint "Item: "&add_a_or_an(item(lastitem+1).desig,1)
+                        placeitem(item(lastitem+1),0,0,0,0,-1)
+                        item(lastitem+1)=item(lastitem+2)
+                    next
+                    cat-=1
+                case 6
+                    select case startingweapon
+                    case 0
+                        startingweapon=1
+                        cat-=1
+                    case 1
+                        startingweapon=0
+                        cat+=1
+                    case 2
+                        startingweapon=1
+                    end select
+                    dprint "Guaranteed energy weapon"
+                case 7
+                    select case startingweapon
+                    case 0
+                        startingweapon=2
+                        cat-=1
+                    case 1
+                        startingweapon=2                        
+                    case 2
+                        startingweapon=0
+                        cat+=1
+                    end select
+                    dprint "Guaranteed missile weapon"
+                case turret
+                    if cat>=3 then
+                        player.weapons(2)=starting_turret
+                        if player.weapons(2).made<>0 then cat-=3
+                    endif
                 case else
-                    j=i-5
+                    j=i-7
                     
                     if j>6 then j+=13
                     crew(slot).talents(j)+=1
                     cat-=1
+                    dprint "Talent: "&talent_desig(j)
+                    
+                    if i=1 then
+                        captainskill+=2
+                        crew(slot).baseskill(0)+=2
+                        crew(slot).baseskill(1)+=2
+                        crew(slot).baseskill(2)+=2
+                        crew(slot).baseskill(3)+=2
+                    endif
+                    if i=20 then 
+                        crew(slot).hpmax+=1
+                        crew(slot).hp+=1
+                    endif
                 end select
 '                
 '                if i>6 then i+=13
@@ -843,14 +949,6 @@ function addmember(a as short,skill as short) as short
 '                endif
             loop until cat=0
             
-            crew(slot).hpmax=6
-            crew(slot).hp=6
-            crew(slot).icon="C"
-            crew(slot).typ=1
-            crew(slot).baseskill(0)=captainskill
-            crew(slot).baseskill(1)=captainskill
-            crew(slot).baseskill(2)=captainskill
-            crew(slot).baseskill(3)=captainskill
             
         endif
         if a=2 then 'Pilot
@@ -939,6 +1037,7 @@ function addmember(a as short,skill as short) as short
             crew(slot).augment(7)=1
             crew(slot).story(10)=2
             crew(slot).equips=2'Can use weapons and squidsuit
+            if rnd_range(1,100)<15 then placeitem(makeitem(123),0,0,0,0,-1)
         endif
         
         if a=11 then
@@ -1050,8 +1149,8 @@ end function
 function girlfriends(st as short) as short
     dim hisher(1) as string
     dim as short a,gf,whogf,mr,whomr
-    hisher(0)=" his "
-    hisher(1)=" her "
+    hisher(0)=" her "
+    hisher(1)=" his "
     for a=0 to 128
         if crew(a).hp>0 then
             'if crew(a).story(9)>0 and crew(a).story(9)<>st+1 and crew(a).story(9)<>st+3 then crew(a).morale-=1
@@ -1196,8 +1295,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
     cls
     
     do
-        display_ship(0)
-        b=menu(text,help)
+        b=menu(bg_shiptxt,text,help)
         if b>0 and b<ex then
             if meni(b)<=5 then 'hire Officer
                 select case rnd_range(1,150)
@@ -1213,29 +1311,27 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                     skill=5
                 end select
                 if askyn(cname(meni(b))&", Skill:" & skill &" Wage per mission: " & skill*skill*Wage &") hire? (y/n)") then
-                    if player.money>=skill*skill*Wage then
-                        player.money=player.money-skill*skill*Wage 
-                        hiringpool+=addmember(meni(b),skill)
-                    else
-                        dprint "Not enough money for first wage."
+                    if paystuff(skill*skill*Wage) then
+                        hiringpool+=add_member(meni(b),skill)
                     endif
                 endif
             endif
             
             if meni(b)>5 and meni(b)<=18 then 'Hire Crewmember
-                maxsec=maxsecurity()
-                dprint "No. of " &cname(meni(b))& " to hire. (Max: "& minimum(maxsec,fix(player.money/cwage(meni(b))))&","&maxsec*2 & " with double bunking)"
-                c=getnumber(0,maxsec*2,0)
-                if c>0 then
-                    if player.money<c*cwage(meni(b)) then
-                        dprint "Not enough money for first wage."
-                    else
-                        for d=1 to c
-                            hiringpool-=1
-                            if addmember(meni(b),0)<>0 then exit for
-                        next
-                        player.money=player.money-c*Wage
+                maxsec=total_bunks()
+                if max_security>0 then
+                    dprint "No. of " &cname(meni(b))& " to hire. (Max: "& minimum(maxsec,fix(player.money/cwage(meni(b))))&","&max_security & " with double bunking)"
+                    c=getnumber(0,maxsec*2,0)
+                    if c>0 then
+                        if paystuff(c*cwage(meni(b))) then
+                            for d=1 to c
+                                hiringpool-=1
+                                if add_member(meni(b),0)<>0 then exit for
+                            next
+                        endif
                     endif
+                else
+                    dprint "You don't have enough room to hire additional crew.",c_yel
                 endif
             endif
             
@@ -1276,8 +1372,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                 next
                 f=f/2
                 if askyn("Training will cost "&f &" credits.(y/n)") then
-                    if player.money>=f then
-                        player.money-=f
+                    if paystuff(f) then
                         player=levelup(player,1)
                     endif
                 endif
@@ -1515,8 +1610,8 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
     return 0
 end function
 
-function equip_awayteam(player as _ship,awayteam as _monster, m as short) as short
-    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra
+function equip_awayteam(m as short) as short
+    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra,robots
     dim as single oxytanks,oxy
     dim as short cantswim,cantfly,invisibility
     dim as byte debug=0
@@ -1535,9 +1630,10 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     for a=0 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+1
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
     next
-    for a=1 to 128
+    for a=1 to 128 'determine fuel use
+        'if crew(a).hp>0 and crew(a).onship=0 then awayteam.hp+=1
+        if crew(a).typ=13 then robots+=1
         if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
             crew(a).jp=1
             awayteam.jpfueluse+=1
@@ -1552,7 +1648,6 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     for a=0 to lastitem
         if item(a).ty=1 and item(a).v1=1 and item(a).w.s=-1 then hovers=hovers+item(a).v2
         if item(a).ty=1 and item(a).v1=2 and item(a).w.s=-1 then jpacks=jpacks+1
-        if item(a).ty=1 and item(a).v1=3 and item(a).w.s=-1 then awayteam.move=4        
     next
     infra=2
     awayteam.invis=6
@@ -1641,6 +1736,10 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                 awayteam.jpfueluse+=1
             endif
             
+            'Find best Jetpack(V3 lowest value)
+            'Give to crewmember
+            
+            
             if crew(a).equips<>1 then
                 b=-1
                 if crew(a).equips<>1 then b=findbest(2,-1)        
@@ -1672,6 +1771,14 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
                     item(b).w.s=-2
                 else
                     awayteam.invis=0
+                endif
+                if crew(a).augment(8)=0 then
+                    b=findbest_jetpack()
+                    awayteam.jpfueluse=0
+                    if b>0 then
+                        item(b).w.s=-2
+                        awayteam.jpfueluse+=item(b).v3
+                    endif
                 endif
             endif
             oxy=.75
@@ -1722,14 +1829,16 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     'count teleportation devices
     awayteam.move=0
     if awayteam.move<4 and cantswim<=hovers then awayteam.move=1
-    if awayteam.move<4 and cantfly<=jpacks then awayteam.move=awayteam.move+2
-    if artflag(9)>0 then awayteam.move=4
+    if awayteam.move<4 and cantfly<=jpacks*1.5+robots*2 then awayteam.move=awayteam.move+2
+    awayteam.carried=cantfly-jpacks-robots*2
+    if awayteam.carried<0 then awayteam.carried=0
+    if cantfly-jpacks-robots*2>0 then awayteam.jpfueluse=awayteam.jpfueluse+(cantfly-jpacks-robots*2) 'The ones that need to be carried use extra fuel
     
     awayteam.nohp=hovers
-    awayteam.nojp=jpacks
+    awayteam.nojp=jpacks*1.5+robots*2
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
-    if findbest(10,-1)>-1 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
+    if findbest(10,-1)>-1 and is_drifter(m)=0 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
     if findbest(46,-1)>-1 then awayteam.invis=7
     awayteam.sight=3
     awayteam.light=0
@@ -1738,25 +1847,33 @@ function equip_awayteam(player as _ship,awayteam as _monster, m as short) as sho
     if awayteam.oxymax<200 then awayteam.oxymax=200
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
+    awayteam.jpfueluse=awayteam.jpfueluse*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
     'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
-    if debug=2 then dprint awayteam.invis &":"&findbest(46,-1)
+    if debug=2 and _debug=1 then dprint awayteam.invis &":"&findbest(46,-1)
     return 0
 end function
 
 function tohit_gun(a as short) as short
-    return crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*7+addtalent(3,10,1)+addtalent(3,11,1)+addtalent(a,23,1)+player.gunner(1)
+    return crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*7+add_talent(3,10,1)+add_talent(3,11,1)+add_talent(a,23,1)+player.gunner(1)
 end function
 
 function tohit_close(a as short) as short
-    return addtalent(3,10,1)+crew(a).talents(28)*3+addtalent(a,21,1)+crew(a).hp-crew(a).talents(29)*7
+    return add_talent(3,10,1)+crew(a).talents(28)*3+add_talent(a,21,1)+crew(a).hp-crew(a).talents(29)*7
 end function 
 
 function showteam(from as short, r as short=0,text as string="") as short
     return crew_menu(crew(),from,r,text)
 end function
 
+function count_crew(crew() as _crewmember) as short
+    dim as short b,last
+    for b=1 to 128
+        if crew(b).hpmax>0 then last+=1
+    next
+    return last
+end function
 
 function crew_menu(crew() as _crewmember, from as short, r as short=0,text as string="") as short
     dim as short b,bg,last,a,sit,cl,y,lines,xw,xhp
@@ -1773,12 +1890,10 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
     onoff(0)="On "
     onoff(1)=" - "
     onoff(2)="Off"
-    for b=1 to 128
-        if crew(b).hpmax>0 then last+=1
-    next
+    last=count_crew(crew())
     if p=0 then p=1
     no_key=""
-    equip_awayteam(player,dummy,0)
+    equip_awayteam(0)
     lines=fix((_screeny)/(_fh2*4))
     lines-=1
     cls
@@ -1802,7 +1917,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                             draw string (10,_screeny-_fh2*2), "Is sick and must stay on board.",,font2,custom,@_col
                         endif
                     else
-                        if crew(p).onship=1 and crew(p).disease=0 then
+                        if crew(p).onship=lc_onship and crew(p).disease=0 then
                             crew(p).onship=0
                             crew(p).oldonship=0
                         else
@@ -1829,14 +1944,14 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                 case 2
                     crew(p).equips=0
             end select
-            equip_awayteam(player,dummy,0)
+            equip_awayteam(0)
         endif
         
         if no_key="a" and r=1 then return -1'Install augment in all
         
         
         if no_key="s" then
-            sit=getitem()
+            sit=get_item()
             if sit>0 then
                 for cl=1 to 128
                     if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
@@ -1852,7 +1967,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                 if item(sit).ty=3 then 
                     crew(p).pref_armor=item(sit).uid
                 endif
-                equip_awayteam(player,dummy,0)
+                equip_awayteam(0)
             endif
         endif
         
@@ -1860,7 +1975,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
             crew(p).pref_lrweap=0
             crew(p).pref_ccweap=0
             crew(p).pref_armor=0
-            equip_awayteam(player,dummy,0)
+            equip_awayteam(0)
         
         endif
         
@@ -1880,37 +1995,9 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     draw string (0,y*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+1)*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+2)*_fh2), space(80),,font2,custom,@_col
-                    for a=1 to 26
-                        if crew(b-offset).talents(a)>0 then 
-                            if skills<>"" then 
-                                skills=skills &", "&talent_desig(a)&"("&crew(b-offset).talents(a)&")"
-                            else
-                                skills=talent_desig(a)&"("&crew(b-offset).talents(a)&")"
-                            endif
-                        endif
-                    next
+                    skills=skill_text(crew(b-offset))
+                    augments=augment_text(crew(b-offset))
                     
-                    if crew(b-offset).augment(1)=1 then augments=augments &"Targeting "
-                    if crew(b-offset).augment(1)=2 then augments=augments &"Targeting II "
-                    if crew(b-offset).augment(1)=3 then augments=augments &"Targeting III "
-                    if crew(b-offset).augment(2)=1 then augments=augments &"Muscle Enh. "
-                    if crew(b-offset).augment(2)=2 then augments=augments &"Muscle Enh. II "
-                    if crew(b-offset).augment(2)=3 then augments=augments &"Muscle Enh. III "
-                    if crew(b-offset).augment(3)>0 then augments=augments &"Imp. Lungs "
-                    if crew(b-offset).augment(4)>0 then augments=augments &"Speed Enh. "
-                    if crew(b-offset).augment(5)=1 then augments=augments &"Exoskeleton "
-                    if crew(b-offset).augment(5)=2 then augments=augments &"Exosceleton II "
-                    if crew(b-offset).augment(5)=3 then augments=augments &"Exosceleton III "
-                    if crew(b-offset).augment(6)=1 then augments=augments &"Improved Metabolism "
-                    if crew(b-offset).augment(6)=2 then augments=augments &"Improved Metabolism II "
-                    if crew(b-offset).augment(6)=3 then augments=augments &"Improved Metabolism III "
-                    if crew(b-offset).augment(7)>0 then augments=augments &"FloatLegs "
-                    if crew(b-offset).augment(8)>0 then augments=augments &"Jetpack "
-                    if crew(b-offset).augment(9)>0 then augments=augments &"Chameleon Skin "
-                    if crew(b-offset).augment(10)>0 then augments=augments &"Neural Computer "
-                    if crew(b-offset).augment(11)>0 then augments=augments &"Loyality Chip "
-                    if crew(b-offset).augment(12)>0 then augments=augments &"Synthetic Nerves "
-                    'if show_moral=1 then augments=augments &":"&crew(b-offset).morale
                     if skills<>"" then skills=skills &" "
                     set__color( 15,bg)
                     if b-offset>9 then
@@ -1919,9 +2006,9 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                         draw string (0,y*_fh2), " " & b-offset & " ",,font2,custom,@_col
                     endif
                     if crew(b-offset).hp>0 then
-                            set__color( 10,bg)
-                            draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
-                            set__color( 15,bg)
+                        set__color( 10,bg)
+                        draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
+                        set__color( 15,bg)
                             if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "Squ.Ld",,font2,custom,@_col
                             if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Sniper",,font2,custom,@_col
                             if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Paramd",,font2,custom,@_col
@@ -1934,6 +2021,8 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                                 if crew(b-offset).typ=6 then draw string (3*_fw2,y*_fh2), "Green  ",,font2,custom,@_col
                                 if crew(b-offset).typ=7 then draw string (3*_fw2,y*_fh2), "Veteran",,font2,custom,@_col
                                 if crew(b-offset).typ=8 then draw string (3*_fw2,y*_fh2), "Elite  ",,font2,custom,@_col
+                                if crew(b-offset).typ>=30 then draw string (3*_fw2,y*_fh2), "Passenger",,font2,custom,@_col
+                            
                             endif
                         
                     else
@@ -1956,7 +2045,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     draw string ((13+xhp)*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
                     set__color( 15,bg)
                     draw string (16*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
-                    if (crew(b-offset).onship=1 or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
+                    if (crew(b-offset).onship=lc_onship or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
                         set__color( 14,bg)
                         draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
@@ -1964,7 +2053,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                         set__color( 10,bg)
                         draw string (34*_fw2,y*_fh2) ," Awayteam ",,font2,custom,@_col
                     endif
-                    if debug=1 then draw string (40*_fw2,y*_fh2),""&crew(b-offset).oldonship,,font2,custom,@_col
+                    if debug=1 and _debug=1 then draw string (40*_fw2,y*_fh2),""&crew(b-offset).oldonship,,font2,custom,@_col
                     if crew(b-offset).hp<=0 then
                         set__color( 12,bg)
                         draw string (34*_fw2,y*_fh2) ," Dead ",,font2,custom,@_col

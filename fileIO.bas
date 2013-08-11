@@ -14,6 +14,21 @@ function count_lines(file as string) as short
     return n
 end function
 
+function open_file(filename as string) as short
+    dim f as short
+    f=freefile
+    if fileexists(filename) then
+        open filename for input as #f
+        return f
+    else
+        color rgb(255,255,0)
+        print "Couldn't find "&filename &"."
+        sleep
+        end
+    endif
+end function
+
+
 function character_name(byref gender as byte) as string
     dim as string n,fn(200),ln(200),st
     dim as short f,lastfn,lastln,fnn,lnn
@@ -62,13 +77,9 @@ function gethullspecs(t as short,file as string) as _ship
         line input #f,l
     next
     close #f
-    for a=1 to len(l)
-        if mid(l,a,1)=";" then
-            if b<11 then b+=1
-        else
-            word(b)=word(b)&mid(l,a,1)
-        endif
-    next
+    
+    string_towords(word(),l,";")
+    
     n.h_no=t
     n.h_desig=word(0)
     n.h_price=val(word(1))
@@ -108,7 +119,7 @@ function delete_custom(pir as short) as short
         next
         last+=1
         men=men &"Exit"
-        c=menu(men,des)
+        c=menu(bg_parent,men,des)
         if c>0 and c<last then
             if askyn("do you really want to delete this ship design? (y/n)") then
                 lines(c)=lines(n)
@@ -129,7 +140,16 @@ end function
 
     
 
-function checkfilestructure() as short  
+function check_filestructure() as short  
+    if chdir("data")=-1 then
+        set__color(c_yel,0)
+        print "Can't find folder 'data'. Try reinstalling the game."
+        sleep
+        end
+    else 
+        chdir("..")
+    endif
+    
     if chdir("savegames")=-1 then
         mkdir("savegames")
     else
@@ -152,7 +172,12 @@ end function
 function load_palette() as short
     dim as short f,i,j,k,debug
     dim as string l,w(3)
-    
+    if not(fileexists("p.pal")) then
+        color rgb(255,255,0),0
+        print "p.pal not found - can't start the game"
+        sleep
+        end
+    endif
     f=freefile
     open "p.pal" for input as #f
     line input #f,l
@@ -160,7 +185,7 @@ function load_palette() as short
     line input #f,l 'First do not need to be checked
     do
         line input #f,l
-        if debug=1 then print l
+        if debug=1 and _debug=1 then print l
         k=1
         w(1)=""
         w(2)=""
@@ -170,19 +195,22 @@ function load_palette() as short
             if mid(l,j,1)=" " then k+=1
         next
         palette_(i)=RGB(val(w(1)),val(w(2)),val(w(3)))
-        if debug=1 then 
+        if debug=1 and _debug=1 then 
             print w(1);":";w(2);":";w(3)
             print palette_(i)
         endif
         i+=1
-        if debug=2 then print i;":";
+        if debug=2 and _debug=1 then print i;":";
     loop until eof(f)
     close #f
+    
+        
+    
     return 0
 end function
 
 
-function loadsounds() as short
+function load_sounds() as short
     #ifdef _FMODSOUND
     print "Loading sounds:";
     fsound_init(48000,11,0)
@@ -211,6 +239,9 @@ function keybindings(allowed as string="") as short
     dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
     dim as _cords cc,ncc
     dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
+    if not fileexists("keybindings.txt") then 
+        save_keyset
+    endif
     f=freefile
     open "keybindings.txt" for input as #f
     while not eof(f)
@@ -364,7 +395,6 @@ function keybindings(allowed as string="") as short
     
     if changed=1 then
         if askyn("Do you want to save changes(y/n)?") then
-            
             f=freefile
             open "keybindings.txt" for output as #f
             lastcom=1
@@ -373,14 +403,84 @@ function keybindings(allowed as string="") as short
                 print #f,varn(a)&" "&nkeys(a)
             next
             close #f
-            loadkeyset
+            load_keyset
         endif
     endif
     return 0
 end function
 
+function save_keyset() as short
+    dim f as short
+    f=freefile
+    open "keybindings.txt" for output as #f
+    print #f,"gtmwx=40"
+    print #f,"key_nw = "&key_nw
+    print #f,"key_north = "&key_north
+    print #f,"key_ne = "&key_ne
+    print #f,"key_west = "&key_west
+    print #f,"key_east = "&key_east
+    print #f,"key_sw = " &key_sw
+    print #f,"key_south = "&key_south
+    print #f,"key_se = "&key_se
+    print #f,"key_wait = "&key_wait
+    print #f,"key_portal = "&key_portal
+    print #f,"key_layfire = "&key_layfire
+    print #f,"key_manual = "&key_manual
+    print #f,"key_messages = "&key_messages
+    print #f,"key_configuration = "&key_configuration
+    print #f,"key_autoinspect = "&key_autoinspect
+    print #f,"key_autopickup = "&key_autopickup
+    print #f,"key_shipstatus ="&key_shipstatus
+    print #f,"key_awayteam ="&key_awayteam
+    print #f,"key_togglehpdisplay ="&key_togglehpdisplay
+    print #f,"key_tactics ="&key_tactics
+    print #f,"key_filter ="&key_filter
+    print #f,"key_logbook ="&key_logbook
+    print #f,"key_quest ="&key_quest
+    'print #f,"key_weapons ="&key_weapons
+    print #f,"key_equipment ="&key_equipment
+    print #f,"key_yes ="&key_yes
+    print #f,"key_landing ="&key_la
+    print #f,"key_scanning ="&key_sc
+    print #f,"key_standing ="&key_standing
+    print #f,"key_targetlanding ="&key_tala
+    print #f,"key_dock ="&key_dock
+    print #f,"key_save ="&key_save
+    print #f,"key_quit="&key_quit
+    print #f,"key_rename ="&key_rename
+    print #f,"key_comment ="&key_comment
+    print #f,"key_tow ="&key_tow
+    print #f,"key_pickup ="&key_pickup
+    print #f,"key_dropitem ="&key_drop
+    print #f,"key_inspect ="&key_inspect
+    print #f,"key_examine ="&key_ex
+    print #f,"key_radio ="&key_ra 
+    print #f,"key_teleport ="&key_te
+    print #f,"key_jump ="&key_ju 
+    print #f,"key_communicate ="&key_co
+    print #f,"key_offer ="&key_of
+    print #f,"key_grenade ="&key_gr
+    print #f,"key_fire ="&key_fi
+    print #f,"key_autofire ="&key_autofire
+    print #f,"key_heal ="&key_he
+    print #f,"key_walk ="&key_walk
+    print #f,"key_oxygen ="&key_oxy
+    print #f,"key_close ="&key_close
+    print #f,"key_dropshield ="&key_dropshield
+    print #f,"key_activatesensors ="&key_ac
+    print #f,"key_run ="&key_ru
+    print #f,"key_togglemanjets ="&key_togglemanjets
+    
+    print #f,"_tix:24"
+    print #f,"_tiy:24"
+    print #f,"tilefont:18"
+    print #f,"textfont:16"
+    print #f,"lines:26"
+    close f
+    return 0
+end function
 
-function loadmap(m as short,slot as short)as short
+function load_map(m as short,slot as short)as short
     dim as short f,b,x,y
     f=freefile
     open "data/deckplans.dat" for binary as #f
@@ -411,15 +511,30 @@ function count_savegames() as short
 end function
 
 
-function loadfonts() as short
+function load_fonts() as short
     dim as short a,debug,f
+    dim as integer depth
     
-    if debug=1 then
+    if debug=1 and _debug=1 then
         f=freefile
         open "fontlog.txt" for append as #f
     endif
+    if ((not fileexists("graphics/font"&_fohi1 &".bmp")) or (not fileexists("graphics/font"&_fohi2 &".bmp"))) then 
+        if configflag(con_customfonts)=0 then
+            if not fileexists("graphics/ships.bmp") then configflag(con_tiles)=1
+            configflag(con_customfonts)=1
+            _fw1=8
+            _tix=8
+            _mwx=60
+            color 14,0
+            print "Couldn't find fonts. Switching to built in font."
+            sleep 1500
+        else
+        
+        endif
+    endif
     if _lines<25 then _lines=25
-    if _tiles=0 then 
+    if configflag(con_tiles)=0 then 
         '_fohi2=10
         _fohi1=26
     endif
@@ -449,38 +564,51 @@ function loadfonts() as short
     _FH2=_fohi2
     _FW1=_FH1/2+2
     _FW2=_FH2/2+2
-    if _tiles=0 then
+    if configflag(con_tiles)=0 then
         _Fw1=_tix
         _Fh1=_tiy
     endif
+    
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
     screenres _screenx,_screeny,16,2,GFX_WINDOWED
-    if debug=1 then print #f,"Made screen"
+    if debug=1 and _debug=1 then print #f,"Made screen"
     Print "Loading Fonts"
-    if _customfonts=1 then
+    'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT1, 32, 448, _fh1)
+    'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT2, 32, 448, _fh2)
+    set__color(11,0)
+    
+    if configflag(con_customfonts)=0 then
         print "loading font 1"
         font1=load_font(""&_fohi1,_FH1)
-        if debug=1 then print #f,"Loaded Font 1"
+        if debug=1 and _debug=1  then print #f,"Loaded Font 1"
         print "loading font 2"
         font2=load_font(""&_fohi2,_FH2)
-        if debug=1 then print #f,"Loaded Font 2"
+        if debug=1 and _debug=1 then print #f,"Loaded Font 2"
     else 
-        Font1 = ImageCreate((254-1) * 8, 17)
+        _screenx=1024
+        _screeny=768
+        screenres _screenx,_screeny,16,2,GFX_WINDOWED
+        width _screenx/8,_screeny/16
+        'font1=load_font("FH1.bmp",16)
+        'font2=load_font("FH1.bmp",16)
+        Font1 = ImageCreate((254-1) * 8, 17,rgba(0,0,0,0),16)
+        Font2 = ImageCreate((254-1) * 8, 17,rgba(0,0,0,0),16)
         dim as ubyte ptr p
-        ImageInfo( Font1, , , , , p )
-        p[0] = 0
-        p[1] = 1
-        p[2] = 254
+        ImageInfo( Font1, , ,depth , , p )
         
-        For a = 1 To 254
-            p[3 + a - 1] = 8
-            Draw String Font1, ((a - 1) * 8, 1), Chr(a), 1
+        p[0] = 0
+        p[1] = 24
+        p[2] = 254
+        For a = 24 To 254
+            p[3 + a - 24] = 8
+            Draw String Font1, ((a - 24) * 8, 1), Chr(a),rgba(255,255,255,255)
         Next 
-        font2=font1
         _fh1=16
         _fh2=16
+        bsave "F1.bmp",Font1
+        font2=font1
     endif
     
     _FW1=_FH1/2+2
@@ -489,16 +617,20 @@ function loadfonts() as short
     _FW1=gfx.font.gettextwidth(FONT1,"W")
     _FW2=gfx.font.gettextwidth(FONT2,"W")
     #endif
-    if _tiles=0 then
+    if configflag(con_tiles)=0 then
         _Fw1=_tix
         _Fh1=_tiy
     endif    
+    
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
-    screenres _screenx,_screeny,16,2
+    screenres _screenx,_screeny,16,2,GFX_ALWAYS_ON_TOP
+    screenres _screenx,_screeny,16,2,GFX_WINDOWED
     
-    if debug=1 then 
+    sidebar=(_mwx+1)*_fw1+_fw2
+    
+    if debug=1 and _debug=1 then 
         print #f,"reset screen size"
         close #f
     endif
@@ -534,7 +666,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
       ImageDestroy (img)	'Zwischenpuffer löschen
     else
         set__color( 14,0)
-        print "Loading font graphics/"&fontdir &"font.bmp failed."
+        print "Loading font graphics/"&fontdir &".bmp failed."
         sleep 600
     endif
     return font
@@ -543,9 +675,23 @@ end function
 function load_tiles() as short
     dim as short x,y,a,n,sx,sy,showtiles
     showtiles=0
+    screenset 0,1
+    cls
+    set__color 15,0
+    print "Loading Tiles"
+    flip
+    screenset 0,1
     for a=0 to 4096
         gt_no(a)=2048
     next
+    if not fileexists("graphics/ships.bmp") then
+        color rgb(255,255,0)
+        print "Couldn't find graphic tiles, switching to ASCII"
+        configflag(con_tiles)=1
+        configflag(con_sysmaptiles)=1
+        sleep 1500
+        return 0
+    endif
     cls
     bload "graphics/ships.bmp"
     for y=0 to _tiy*16 step _tiy
@@ -584,7 +730,33 @@ function load_tiles() as short
         draw string (24*10,y),""&sy
     next
 
+        cls
+    bload "graphics/drifting.bmp"
+    for y=0 to _tiy*16 step _tiy
+        sx=1
+        sy+=1
+        for x=0 to _tix*8 step _tix
+            stiles(sx,sy)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),stiles(sx,sy)
+            sx+=1
+        next
+        draw string (24*10,y),""&sy
+    next
 
+
+    cls
+    bload "graphics/shield.bmp"
+    for x=0 to 7
+        for y=0 to 4
+            shtiles(x,y)=imagecreate(16,16)
+            get (x*16,y*16)-((x+1)*16-1,(y+1)*16-1),shtiles(x,y)
+        next
+    next
+    
+    'Clear tile
+    gtiles(0)=imagecreate(_tix,_tiy,rgba(0,0,0,255))
+    
+    
     a=1
     n=1
     cls
@@ -695,6 +867,21 @@ function load_tiles() as short
         next
     next
     
+    n=1600
+    'Space tiles
+    cls
+    bload "graphics/planetmap.bmp"
+    
+    for y=0 to _tiy*4 step _tiy
+        for x=0 to _tix*5 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1
+            n+=1
+        next
+    next
+    
     
     n=2001
     cls
@@ -725,6 +912,7 @@ function load_tiles() as short
     gtiles(2048)=imagecreate(_tix,_tiy)
     get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
     cls
+    flip
     print "loaded "& a &" sprites."
     return 0
 end function
@@ -1158,10 +1346,11 @@ function randomname() as string
 end function
 
 function background(fn as string) as short
-    cls
+    static last as string
+    static firstcall as byte
     Dim As Integer filenum, bmpwidth, bmpheight,x,y
-    Dim As Any Ptr img
-    dim as any ptr dst
+    static As Any Ptr img
+    cls
     fn="graphics/"&fn
     '' open BMP file
     filenum = FreeFile()
@@ -1172,23 +1361,26 @@ function background(fn as string) as short
         Get #filenum, 23, bmpheight
 
     Close #filenum
-    '' create image with BMP dimensions
-    img = ImageCreate( bmpwidth, Abs(bmpheight) )
-
-    If img = 0 Then Return 0
-    'dst=imagecreate(_screenx,_screeny)
-    '' load BMP file into image buffer
-    BLoad( fn, img )
+    if fn<>last then
+        '' create image with BMP dimensions
+        if firstcall<>0 then imagedestroy(img)
+        img = ImageCreate( bmpwidth, Abs(bmpheight) )
+    
+        If img = 0 Then Return 0
+        'dst=imagecreate(_screenx,_screeny)
+        '' load BMP file into image buffer
+        BLoad( fn, img )
+        last=fn
+    endif
     x=(_screenx-bmpwidth)/2    
     y=(_screeny-bmpheight)/2
-    put (x,y),img
-    imagedestroy( img )
-    
+    put (x,y),img,pset
+    firstcall=1
     Return 0
     
 end function
 
-function loadkeyset() as short
+function load_keyset() as short
     dim as short f,a,b,c,i,j,li
     dim as string text,lctext
     dim keys(256) as string
@@ -1240,10 +1432,10 @@ function loadkeyset() as short
                 if instr(lctext,"key_se")>0 then key_se=loadkey(text)
                 if instr(lctext,"key_wait")>0 then key_wait=loadkey(text)
                 if instr(lctext,"key_portal")>0 then key_portal=loadkey(text)
+                if instr(lctext,"key_accounting")>0 then key_accounting=loadkey(text)
                 
                 if instr(lctext,"key_manual")>0 then key_manual=loadkey(text)
                 if instr(lctext,"key_messages")>0 then key_messages=loadkey(text)
-                if instr(lctext,"key_screenshot")>0 then key_screenshot=loadkey(text)
                 if instr(lctext,"key_configuration")>0 then key_configuration=loadkey(text)
                 if instr(lctext,"key_autopickup")>0 then key_autopickup=loadkey(text)
                 if instr(lctext,"key_autoinspect")>0 then key_autoinspect=loadkey(text)
@@ -1256,7 +1448,7 @@ function loadkeyset() as short
                 if instr(lctext,"key_awayteam")>0 then key_awayteam=loadkey(text)
                 if instr(lctext,"key_logbook")>0 then key_logbook=loadkey(text)
                 if instr(lctext,"key_equipment")>0 then key_equipment=loadkey(text)
-                if instr(lctext,"key_quest")>0 then key_quests=loadkey(text)
+                if instr(lctext,"key_quest")>0 then key_quest=loadkey(text)
                 if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
                 if instr(lctext,"key_standing")>0 then key_standing=loadkey(text)
                 
@@ -1265,12 +1457,11 @@ function loadkeyset() as short
                 if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
                 if instr(lctext,"key_rename")>0 then key_rename=loadkey(text)
                 if instr(lctext,"key_targetlanding")>0 then key_tala=loadkey(text)
-                if instr(lctext,"key_launchprobe")>0 then key_probe=loadkey(text)
                 if instr(lctext,"key_togglehpdisplay")>0 then key_togglehpdisplay=loadkey(text)
                 
                 if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
                 if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
-                if instr(lctext,"key_inspect")>0 then key__i=loadkey(text)
+                if instr(lctext,"key_inspect")>0 then key_inspect=loadkey(text)
                 if instr(lctext,"key_examine")>0 then key_ex=loadkey(text)
                 if instr(lctext,"key_radio")>0 then key_ra=loadkey(text)
                 if instr(lctext,"key_teleport")>0 then key_te=loadkey(text)
@@ -1285,10 +1476,9 @@ function loadkeyset() as short
                 if instr(lctext,"key_oxygen")>0 then key_oxy=loadkey(text)
                 if instr(lctext,"key_close")>0 then key_close=loadkey(text)
                 
-                if instr(lctext,"key_dropshield")>0 then key_sh=loadkey(text)
+                if instr(lctext,"key_shield")>0 then key_dropshield=loadkey(text)
                 if instr(lctext,"key_activatesensors")>0 then key_ac=loadkey(text)
                 if instr(lctext,"key_run")>0 then key_ru=loadkey(text)
-                if instr(lctext,"key_dropmine")>0 then key_dr=loadkey(text)
                 if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=loadkey(text)
                 if instr(lctext,"key_yes")>0 then key_yes=loadkey(text)
                 if instr(lctext,"key_extendedkey")>0 then key_extended=loadkey(text)
@@ -1298,6 +1488,7 @@ function loadkeyset() as short
     else
         set__color( 14,0)
         print "File keybindings.txt not found. Using default keys"
+        save_keyset
         set__color( 15,0)
         Sleep 1500
         return 1
@@ -1307,13 +1498,14 @@ function loadkeyset() as short
 end function
 
 function loadkey(byval t2 as string) as string
-    dim as short l,i,s
-    dim as string t
+    dim as short l,i,record
+    dim as string t,t3
     t=t2
-    l=len(t)
-    s=instr(t,"=")
-    t=right(t,l-s-1)
-    return trim(t)
+    for i=1 to len(t)
+        if record=1 then t3 &=mid(t,i,1)
+        if mid(t,i,1)="=" then record=1
+    next
+    return trim(t3)
 end function
 
 function numfromstr(t as string) as short
@@ -1329,12 +1521,11 @@ function load_dialog_quests() as short
     dim as short f,i,j,g
     dim as string l,w(3)
     
-    f=freefile
-    open "data/dialogquests.csv" for input as #f
+    f=open_file("data/dialogquests.csv")
     do
         i+=1
         for j=0 to 2
-            for g=0 to 2
+            for g=0 to 3
                 w(g)=""
             next
             line input #f,l
@@ -1342,17 +1533,18 @@ function load_dialog_quests() as short
         
             questguydialog(i,j,Q_WANT)=w(1)
             questguydialog(i,j,Q_HAS)=w(2)
+            questguydialog(i,j,Q_ANSWER)=w(3)
         next
         
     loop until eof(f)
     
     close #f
-    f=freefile
-    open "data/dialogquests2.csv" for input as #f
+    f=open_file("data/dialogquests2.csv")
     i=0
     do
         w(0)=""
         w(1)=""
+        w(2)=""
         line input #f,l
         string_towords(w(),l,";")
         i+=1
@@ -1402,10 +1594,13 @@ end function
 
 function string_towords(word() as string, s as string, break as string, punct as short=0) as short
     dim as short i,a,debug
-    
+    'Starts with 0,
+    for a=0 to ubound(word)
+        word(a)=""
+    next
     for a=1 to len(s)
         if mid(s,a,1)=break then
-            if debug=1 then dprint word(i)
+            if debug=1 and _debug=1 then dprint word(i)
             i+=1
         else
             if punct=1 and (mid(s,a,1)="." or mid(s,a,1)=",") then
@@ -1420,147 +1615,6 @@ function string_towords(word() as string, s as string, break as string, punct as
 end function
 
 
-function loadconfig() as short
-    dim f as short
-    dim text as string
-    
-    if fileexists("config.txt") then
-        f=freefile
-        open "config.txt" for input as #f
-        print "loading config";
-        do
-            print ".";
-            line input #f,text
-            if instr(text,"#")=0 and len(text)>1 then
-                text=lcase(text)
-                if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
-                if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
-                if instr(text,"_tix")>0 then _tix=numfromstr(text)
-                if instr(text,"_tiy")>0 then _tiy=numfromstr(text)
-                if instr(text,"gtmwx")>0 then gt_mwx=numfromstr(text)
-                if instr(text,"tilefont")>0 then _FoHi1=numfromstr(text)
-                if instr(text,"textfont")>0 then _FoHi2=numfromstr(text)
-                if instr(text,"lines")>0 then _lines=numfromstr(text)
-                if instr(text,"shipcolor")>0 then _shipcolor=numfromstr(text)
-                if instr(text,"teamcolor")>0 then _teamcolor=numfromstr(text)
-                
-                if instr(text,"autosale")>0 then
-                    if instr(text,"0")>0 or instr(text,"on")>0 then _autosell=0
-                    if instr(text,"1")>0 or instr(text,"of") then _autosell=1
-                endif
-                
-                if instr(text,"autopick")>0 then
-                    if instr(text,"0")>0 or instr(text,"on")>0 then _autopickup=0
-                    if instr(text,"1")>0 or instr(text,"of") then _autopickup=1
-                endif
-                if instr(text,"chosebe")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _chosebest=0
-                    if instr(text,"1")>0 or instr(text,"of") then _chosebest=1
-                endif
-                if instr(text,"soun")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _sound=0
-                    if instr(text,"1")>0 or instr(text,"of") then _sound=1
-                    if instr(text,"2")>0 or instr(text,"high") then _sound=2
-                endif
-                if instr(text,"diagon")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _diagonals=0
-                    if instr(text,"1")>0 or instr(text,"of") then _diagonals=1
-                endif
-                if instr(text,"screen")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _savescreenshots=0
-                    if instr(text,"1")>0 or instr(text,"of") then _savescreenshots=1
-                endif
-                if instr(text,"startrandom")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _startrandom=0
-                    if instr(text,"1")>0 or instr(text,"of") then _startrandom=1
-                endif
-                if instr(text,"autosave")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _autosave=0
-                    if instr(text,"1")>0 or instr(text,"of") then _autosave=1
-                endif
-                if instr(text,"minimum")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _minsafe=0
-                    if instr(text,"1")>0 or instr(text,"of") then _minsafe=1
-                endif
-                if instr(text,"anykeyno")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _anykeyno=0
-                    if instr(text,"1")>0 or instr(text,"of") then _anykeyno=1
-                endif
-                if instr(text,"restart")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _restart=0
-                    if instr(text,"1")>0 or instr(text,"of") then _restart=1
-                endif
-                if instr(text,"warnings")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _warnings=0
-                    if instr(text,"1")>0 or instr(text,"of") then _warnings=1
-                endif
-                if instr(text,"tiles")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _tiles=0
-                    if instr(text,"1")>0 or instr(text,"of") then _tiles=1
-                endif
-                if instr(text,"easy")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _easy=0
-                    if instr(text,"1")>0 or instr(text,"of") then _easy=1
-                endif
-                if instr(text,"volume")>0 then
-                    if instr(text,"0")>0 then _volume=0
-                    if instr(text,"1")>0 then _volume=1
-                    if instr(text,"2")>0 then _volume=2
-                    if instr(text,"3")>0 then _volume=3
-                    if instr(text,"4")>0 then _volume=4
-                endif
-                if instr(text,"altnum")>0 then
-                    if instr(text,"0")>0 then _altnumber=0
-                    if instr(text,"1")>0 then _altnumber=1
-                endif
-                if instr(text,"showvis")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _showvis=0
-                    if instr(text,"1")>0 or instr(text,"of") then _showvis=1
-                endif
-                
-                if instr(text,"onbar")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _onbar=0
-                    if instr(text,"1")>0 or instr(text,"of") then _onbar=1
-                endif
-                
-                if instr(text,"classic")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _customfonts=0
-                    if instr(text,"1")>0 or instr(text,"of") then _customfonts=1
-                endif
-                
-                if instr(text,"transitem")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _transitems=0
-                    if instr(text,"1")>0 or instr(text,"of") then _transitems=1
-                endif
-                
-                if instr(text,"savescumming")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _savescumming=0
-                    if instr(text,"1")>0 or instr(text,"of") then _savescumming=1
-                endif
-                
-                if instr(text,"warningdam")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _damscream=0
-                    if instr(text,"1")>0 or instr(text,"of") then _damscream=1
-                endif
-                
-                if instr(text,"sysmapt")>0 then
-                    if instr(text,"0")>0 or instr(text,"on") then _sysmapt=0
-                    if instr(text,"1")>0 or instr(text,"of") then _sysmapt=1
-                endif
-                
-            endif                
-        loop until eof(f)
-        close #f
-    else
-        dprint "No Config.txt. Using default configuration"
-    endif
-    if _tiles=0 then
-        _mwx=gt_mwx
-    else
-        _mwx=60
-    endif
-    return 0
-end function
 
 function texttofile(text as string) as string
     dim a as short
@@ -1595,9 +1649,9 @@ function configuration() as short
     dim offon(1) as string
     dim warn(2) as string
     dim res as string
-    dim as short c,d,f
+    dim as short c,d,f,i
     dim oldtiles as byte
-    oldtiles=_tiles
+    oldtiles=configflag(con_tiles)
     onoff(0)=" On "
     onoff(1)=" Off"
     warn(0)="On  "
@@ -1607,146 +1661,36 @@ function configuration() as short
     offon(1)=" On "
     screenshot(1)
     do
-        if _customfonts=1 then
+        if configflag(con_customfonts)=1 then
             res="tiles:"&_fohi1 &" text:"& _fohi2 &" lines:"&_lines
         else
             res="classic"
         endif
-        text="Prospector "&__VERSION__ &" Configuration/ Autopickup :"& onoff(_autopickup)
-        text=text &"/ Always chose best item :"& onoff(_chosebest)
-        text=text &"/ Sound effects :"& warn(_sound)
-        text=text &"/ Automatically chose diagonal:" & onoff(_diagonals)
-        text=text &"/ Always sell all:" & onoff(_autosell)
-        text=text &"/ Start with random ship:"& onoff(_startrandom)
-        text=text &"/ Don't use Ext Ascii for screenshots:" & onoff(_savescreenshots)
-        text=text &"/ Autosave on entering station:" & onoff(_autosave)
-        text=text &"/ Minimum safe distance to pirate planets:" & onoff(_minsafe)
-        text=text &"/ Any key counts as no on yes-no questions:" & onoff(_anykeyno)
-        text=text &"/ Return to start menu on death:" & onoff(_restart)
-        text=text &"/ Navigational Warnings(Gasclouds & 1HP landings):" & onoff(_warnings)
-        text=text &"/ Graphic tiles:" & onoff(oldtiles)
-        text=text &"/ Easy start:" & onoff(_easy)
-        text=text &"/ Volume (0-4):" & _volume
-        text=text &"/ Resolution: "&res
-        text=text &"/ Underlay for visible tiles: "& onoff(_showvis)
-        text=text &"/ Starmap on bar: "& onoff(_onbar)
-        text=text &"/ Alternative Numberinput: "& onoff(_altnumber)
-        text=text &"/ Transparent Items: "& onoff(_transitems)
-        text=text &"/ Main window width(tile mode): "& gt_mwx
-        text=text &"/ Savescumming: "& onoff(_savescumming)
+        text="Prospector "&__VERSION__ &" Configuration"
+        for i=1 to con_end-1
+            select case i
+            case con_volume
+                text=text &"/ Volume (0-4):" & _volume
+            case con_res
+                text=text &"/ Resolution: "&res
+            case con_gtmwx
+                text=text &"/ Main window width(tile mode): "& gt_mwx
+            case con_sound
+                text=text &"/ Sound effects :"& warn(configflag(con_sound))
+            case else
+                text=text & configdesc(i) & onoff(configflag(i)) 
+            end select
+        next
         text=text &"/Exit"
-        c=menu(text,,,,1)
-        if c=1 then
-            select case _autopickup
-            case is=1
-                _autopickup=0
-            case is=0
-                _autopickup=1
-            end select
-        endif
-        if c=2 then
-            select case _chosebest
-            case is=1
-                _chosebest=0
-            case is=0
-                _chosebest=1
-            end select
-        endif 
-        if c=3 then
-            _sound=_sound+1
-             if _sound=3 then _sound=0
-        endif
-        if c=4 then
-            select case _diagonals
-            case is=1
-                _diagonals=0
-            case is=0
-                _diagonals=1
-            end select
-        endif
-        
-        if c=5 then
-            select case _autosell
-            case is=1
-                _autosell=0
-            case is=0
-                _autosell=1
-            end select
-        endif
-        if c=6 then
-            select case _startrandom
-            case is=1
-                _startrandom=0
-            case is=0
-                _startrandom=1
-            end select
-        endif
-        if c=7 then
-            select case _savescreenshots
-            case is=1
-                _savescreenshots=0
-            case is=0
-                _savescreenshots=1
-            end select
-        endif
-        if c=8 then
-            select case _autosave
-            case is=1
-                _autosave=0
-            case is=0
-                _autosave=1
-            end select
-        endif
-        if c=9 then
-            select case _minsafe
-            case is=1
-                _minsafe=0
-            case is=0
-                _minsafe=1
-            end select
-        endif
-        if c=10 then
-            select case _anykeyno
-            case is=1
-                _anykeyno=0
-            case is=0
-                _anykeyno=1
-            end select
-        endif
-        if c=11 then
-            select case _restart
-            case is=1
-                _restart=0
-            case is=0
-                _restart=1
-            end select
-        endif
-        if c=12 then
-            select case _warnings
-            case is=1
-                _warnings=0
-            case is=0
-                _warnings=1
-            end select
-        endif
-        if c=13 then
-            select case oldtiles
-            case is=1
-                oldtiles=0
-            case is=0
-                oldtiles=1
-            end select
-            dprint "Change will have effect after restart of the game."
-        endif
-        if c=14 then
-            select case _easy
-            case is=1
-                _easy=0
-            case is=0
-                _easy=1
-            end select
-        endif
-        if c=15 then
+        c=menu(bg_randompic,text,,,,1)
+        select case c
+        case con_sound
+            configflag(c)+=1
+            if configflag(c)>2 then configflag(c)=0
+        case con_sound
+            configflag(con_sound)=configflag(con_sound)+1
+            if configflag(con_sound)=3 then configflag(con_sound)=0
+        case con_volume
             dprint "Select volume (0-4)"
             _volume=getnumber(0,4,_volume)                        
             #ifdef _FMODSOUND
@@ -1756,10 +1700,8 @@ function configuration() as short
             IF _volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
             IF _volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
             #endif
-        endif
-        
-        if c=16 then
-            d=menu("Resolution/Tiles/Text/Lines/Classic look: "& onoff(_customfonts)&" (overrides if on)/Exit")
+        case con_res
+            d=menu(bg_randompic,"Resolution/Tiles/Text/Lines/Classic look: "& onoff(configflag(con_customfonts))&" (overrides if on)/Exit")
             if d=1 then 
                 dprint "Set graphic font height:(8-28)"
                 _fohi1=Getnumber(8,28,_fohi1)
@@ -1773,125 +1715,178 @@ function configuration() as short
                 _lines=Getnumber(22,33,_lines)
             endif
             if d=4 then
-                select case _customfonts
+                select case configflag(con_customfonts)
                 case is=1
-                    _customfonts=0
+                    configflag(con_customfonts)=0
                 case is=0
-                    _customfonts=1
+                    configflag(con_customfonts)=1
                 end select
             endif
             if _fohi2>_fohi1 then _fohi2=_fohi1
             dprint "Resolution will be changed next time you start prospector."
-        endif
-        
-        if c=17 then
-            select case _showvis
-            case is=1
-                _showvis=0
-            case is=0
-                _showvis=1
-            end select
-        endif
-        if c=18 then 
-            
-            select case _onbar
-            case is=1
-                _onbar=0
-            case is=0
-                _onbar=1
-            end select
-        endif
-        
-        if c=19 then 
-            
-            select case _altnumber
-            case is=1
-                _altnumber=0
-            case is=0
-                _altnumber=1
-            end select
-        endif
-        
-        if c=20 then 
-            
-            select case _transitems
-            case is=1
-                _transitems=0
-            case is=0
-                _transitems=1
-            end select
-        endif
-        if c=21 then
+        case con_gtmwx 
             gt_mwx=getnumber(20,60,30)
             dprint "Will be changed next time you start prospector."
-        endif
-        if c=22 then
-            
-            select case _savescumming
-            case is=1
-                _savescumming=0
-            case is=0
-                _savescumming=1
+        case con_end,-1 'Exit, do nothing
+        case else
+            select case configflag(c)
+            case 1
+                configflag(c)=0
+            case 0
+                configflag(c)=1
             end select
-        endif
-    loop until c=23
+        end select
+        
+    loop until c=con_end or c=-1
     
     screenshot(2)
-    saveconfig(oldtiles)
+    save_config(oldtiles)
     return 0
 end function
 
-function saveconfig(oldtiles as short) as short
-    dim f as short
+function save_config(oldtiles as short) as short
+    dim as short f,i
     f=freefile
     open "config.txt" for output as #f
     print #f,"# 0 is on, 1 is off"
+    for i=con_tiles to con_end-1
+        print #f,configname(i)&":"&configflag(i)
+    next
     print #f,""
+    print #f,"gtmwx:"&gt_mwx
     print #f,"_tix:"&_tix
     print #f,"_tiy:"&_tiy
-    print #f,"gtmwx:"&gt_mwx
     print #f,"tilefont:"&_FoHi1
     print #f,"textfont:"&_FoHi2
     print #f,"lines:"&_lines
-    print #f,"autopickup:"&_autopickup
-    print #f,"chosebest:"&_chosebest
-    print #f,"sound:"&_sound
-    print #f,"diagonals:"&_diagonals
-    print #f,"autosale:"&_autosell
-    print #f,"startrandom:"&_startrandom
-    print #f,"safescreenshots:"&_savescreenshots
-    print #f,"autosave:"&_autosave
-    print #f,"minsafe:"&_minsafe
-    print #f,"anykeyno:"&_anykeyno
-    print #f,"restart:"&_restart
-    print #f,"warnings:"&_warnings
-    print #f,"tiles:"& oldtiles
-    print #f,"easy:"&_easy
     print #f,"volume:"&_volume
-    print #f,"altnum:"&_altnumber
-    print #f,"showvis:"&_showvis
-    print #f,"onbar:"&_onbar
-    print #f,"classic:"&_customfonts
-    print #f,"transitem:"&_transitems
-    print #f,"savescumming:"&_savescumming
     close #f
     return 0
 end function
+
+function load_config() as short
+    dim as short f,i,j
+    dim as string text,rhs,lhs
     
+    if fileexists("config.txt") then
+        f=freefile
+        open "config.txt" for input as #f
+        print "loading config";
+        do
+            print ".";
+            line input #f,text
+            if instr(text,"#")=0 and len(text)>1 then
+                text=lcase(text)
+                
+                for i=con_tiles to con_end-1
+                    j=instr(text,":")
+                    rhs=right(text,len(text)-j)
+                    lhs=left(text,j-1)    
+                    if lhs=configname(i) then
+                        if val(rhs)=0 or rhs="on" then configflag(i)=0
+                        if val(rhs)=1 or rhs="off" then configflag(i)=1
+                        print i;":";lhs;":";rhs ;":";configflag(i)
+                    endif   
+                next
+                
+                if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
+                if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
+                if instr(text,"_tix")>0 then _tix=numfromstr(text)
+                if instr(text,"_tiy")>0 then _tiy=numfromstr(text)
+                if instr(text,"gtmwx")>0 then gt_mwx=numfromstr(text)
+                if instr(text,"tilefont")>0 then _FoHi1=numfromstr(text)
+                if instr(text,"textfont")>0 then _FoHi2=numfromstr(text)
+                if instr(text,"lines")>0 then _lines=numfromstr(text)
+                if instr(text,"shipcolor")>0 then _shipcolor=numfromstr(text)
+                if instr(text,"teamcolor")>0 then _teamcolor=numfromstr(text)
+                
+                               
+                if instr(text,"soun")>0 then
+                    if instr(text,"0")>0 or instr(text,"on") then configflag(con_sound)=0
+                    if instr(text,"1")>0 or instr(text,"of") then configflag(con_sound)=1
+                    if instr(text,"2")>0 or instr(text,"high") then configflag(con_sound)=2
+                endif
+                
+                if instr(text,"volume")>0 then
+                    if instr(text,"0")>0 then _volume=0
+                    if instr(text,"1")>0 then _volume=1
+                    if instr(text,"2")>0 then _volume=2
+                    if instr(text,"3")>0 then _volume=3
+                    if instr(text,"4")>0 then _volume=4
+                endif
+                
+                if instr(text,"rolls")>0 then
+                    if instr(text,"0")>0 then configflag(con_showrolls)=0
+                    if instr(text,"1")>0 then configflag(con_showrolls)=1
+                    if instr(text,"2")>0 then configflag(con_showrolls)=2
+                endif
+              
+            endif                
+        loop until eof(f)
+        close #f
+    else
+        color 15,0
+        print "No Config.txt. Using default configuration"
+        configflag(con_tiles)=0
+        configflag(con_gtmwx)=40
+        configflag(con_classic)=1
+        configflag(con_showvis)=0
+        configflag(con_transitem)=0
+        configflag(con_onbar)=1
+        configflag(con_sysmaptiles)=0
+        configflag(con_customfonts)=0
+        configflag(con_chosebest)=0
+        configflag(con_autosale)=0
+        configflag(con_sound)=0
+        configflag(con_warnings)=0
+        configflag(con_damscream)=0
+        configflag(con_volume)=2
+        configflag(con_anykeyno)=0
+        configflag(con_diagonals)=1
+        configflag(con_altnum)=1
+        configflag(con_easy)=0
+        configflag(con_minsafe)=0
+        configflag(con_startrandom)=1
+        configflag(con_autosave)=0
+        configflag(con_savescumming)=0
+        configflag(con_restart)=0
+        gt_mwx=40
+        _tix=24
+        _tiy=24
+        _Fohi1=18
+        _Fohi2=16
+        _lines=26
+        _volume=1
+        save_config(configflag(con_tiles))
+        load_config
+    endif
+    
+    if configflag(con_tiles)=0 then
+        _mwx=gt_mwx
+    else
+        _mwx=60
+    endif
+    
+    return 0
+end function
+
 
 function getfilename() as string
     dim filename as string
     dim a as string
     dim b as string*36
     dim c as short
-    dim n(10) as string
+    dim n(20) as string
     dim d as string*36
     dim datestring as string*12
     dim ustring as string*512
-    dim as string planetstring,artifactstring,help
+    dim as string help
     dim text as string
+    dim unflags(lastspecial) as byte
+    dim artflags(lastartifact) as short
     dim f as integer
     dim i as integer
+    dim as short j,ll,ca
     text="Savegames:"
     a=dir$("savegames/*.sav")
     while a<>""
@@ -1902,37 +1897,56 @@ function getfilename() as string
             get #f,,b
             get #f,,d
             get #f,,datestring
+            get #f,,unflags()
+            get #f,,artflags()
             close #f
+            ll=0
+            for j=0 to lastspecial
+                if unflags(j)=1 then ll+=1
+            next
+            for j=0 to lastartifact
+                if artflags(j)=1 then ca+=1
+            next
             text=text &"/" & b &d &"("&datestring &")"
+            if ll>20 then
+                help=help &"/ Discovered " & ll &" unique planets"
+            else
+                help=help &"/" &trim(uniques(unflags())) 
+            endif
+            if ca>20 then
+                help=help &"| Discovered "& ca &" artifacts"
+            else
+                help=help &"|"& trim(list_artifacts(artflags()))
+            endif
             c=c+1
         endif
         a=dir()
     wend    
     text=text &"/Exit"
-    background(rnd_range(1,_last_title_pic)&".bmp")
-    c=menu(text,help,_mwx-25,10)
-    filename=n(c-1)
+    c=menu(bg_randompictxt,text,help,2,2)
+    if c>0 then filename=n(c-1)
     return filename    
 end function
 
-function savebones(ship as _cords,team as _cords,t as short) as short
+function save_bones(t as short) as short
     dim f as integer
     dim as short x,y,a,b
+    dim as _cords team
     dim bones_item(128) as _items
     if _debug_bones=1 then dprint "Saving bones file"
-    if is_special(ship.m) then return 0
-    if is_drifter(ship.m) then return 0
-    if planets(ship.m).depth=0 then planetmap(ship.x,ship.y,ship.m)=127+player.h_no
+    if is_special(player.landed.m) then return 0
+    if is_drifter(player.landed.m) then return 0
+    if planets(player.landed.m).depth=0 then planetmap(player.landed.x,player.landed.y,player.landed.m)=127+player.h_no
     f=freefile
     open "bones/"&player.desig &".bon" for binary as #f
-    put #f,,planets(ship.m)
+    put #f,,planets(player.landed.m)
     for x=0 to 60
         for y=0 to 20
-            if planetmap(x,y,ship.m)>0 then planetmap(x,y,ship.m)=-planetmap(x,y,ship.m)
-            put #f,,planetmap(x,y,ship.m)
+            if planetmap(x,y,player.landed.m)>0 then planetmap(x,y,player.landed.m)=-planetmap(x,y,player.landed.m)
+            put #f,,planetmap(x,y,player.landed.m)
         next
     next
-    
+    team=awayteam.c
     for a=0 to lastitem
         if item(a).w.s=-1 and rnd_range(1,100)<50 then
             b+=1
@@ -1958,26 +1972,27 @@ function savebones(ship as _cords,team as _cords,t as short) as short
     return 0
 end function
 
-function loadbones() as short
+function load_bones() as short
     dim s as string
     dim as short d,c,m,f,sys
     dim as _cords p
     dim as _planet pl
     s=getbonesfile
-    if _debug_bones=1 then dprint "loading bones file:" &s
+    if _debug_bones=1 and _debug=1 then dprint "loading bones file:" &s
     if s<>"" then
         f=freefile
         open "bones/"&s for binary as #f
         get #f,,pl
         if pl.depth=0 then 
             do
-                sys=getrandomsystem
+                sys=get_random_system
                 m=getrandomplanet(sys)
             loop until m>0 and isgasgiant(m)=0 and is_special(m)=0
+            BonesFlag=m
             for x=0 to 60
                 for y=0 to 20
                     get #f,,planetmap(x,y,m)
-                    if _debug_bones=1 then planetmap(x,y,m)=-planetmap(x,y,m)
+                    if _debug_bones=1 and _debug=1 then planetmap(x,y,m)=-planetmap(x,y,m)
                 next
             next
             map(sys).discovered=4                
@@ -1987,7 +2002,7 @@ function loadbones() as short
             for x=0 to 60
                 for y=0 to 20
                     get #f,,planetmap(x,y,m)
-                    if _debug_bones=1 then planetmap(x,y,m)=-planetmap(x,y,m)
+                    if _debug_bones=1 and _debug=1 then planetmap(x,y,m)=-planetmap(x,y,m)
                 next
             next
             p=rnd_point(m,0)
@@ -1995,6 +2010,12 @@ function loadbones() as short
             portal(sys).dest.y=p.y
             map(sysfrommap(portal(sys).from.m)).discovered=4
         endif
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,m)>0 then planetmap(x,y,m)=planetmap(x,y,m)*-1
+            next
+        next
+        planets(m).visited=0
         get #f,,d
         for c=lastitem+1 to lastitem+1+d
             if c>0 and c<=25000 then
@@ -2022,13 +2043,13 @@ function getbonesfile() as string
         d=dir()
         chance=chance+1
     loop until d=""
-    if _debug_bones=2 then print "chance for bones file:"&chance
+    if _debug_bones=2 and _debug=1 then print "chance for bones file:"&chance
     d=dir$("bones/*.bon")
     do
         if (rnd_range(1,100)<chance or _debug_bones=1) and s="" then s=d
         d=dir()
     loop until d=""
-    if _debug_bones=1 then dprint s
+    if _debug_bones=1 and _debug=1 then dprint s
     return s
 end function
 
@@ -2043,6 +2064,10 @@ function savegame() as short
     dim names as string*36
     dim datestring as string*12
     dim cl as string
+    dim unflags(lastspecial) as byte
+    dim artifactstr as string*512
+
+    make_unflags(unflags())
     cl=player.h_sdesc
     names=player.desig
     desig="("&cl &", "&player.money &"Cr T:" &player.turn &")"
@@ -2059,13 +2084,23 @@ function savegame() as short
     put #f,,names
     put #f,,desig
     put #f,,datestring
+    put #f,,unflags()
+    put #f,,artflag()
+    print ".";
     'save player
     put #f,,player
     put #f,,whtravelled
     put #f,,whplanet
     put #f,,ano_money
+    put #f,,questroll
     put #f,,_autopickup
     put #f,,_autoinspect
+    put #f,,ranoutoffuel
+    put #f,,income()
+    put #f,,piratekills()
+    put #f,,farthestexpedition
+    put #f,,BonesFlag
+    'put #f,,bountyquest()
     for a=1 to 128
         put #f,,crew(a)
     next
@@ -2146,6 +2181,13 @@ function savegame() as short
         next
     next
     
+    put #f,,usedship()
+    
+    put #f,,lastcagedmonster
+    for a=0 to lastcagedmonster
+        put #f,,cagedmonster(a)
+    next
+    
     for x=0 to sm_x
         for y=0 to sm_y
             put #f,,spacemap(x,y)
@@ -2214,10 +2256,6 @@ function savegame() as short
         put #f,,flag(a)
     next
     
-    for a=0 to lastartifact
-        put #f,,artflag(a)
-    next
-    print ".";
     
     put #f,,firstwaypoint
     put #f,,lastwaypoint
@@ -2260,7 +2298,7 @@ function savegame() as short
 end function
 
 
-function loadgame(filename as string) as short
+function load_game(filename as string) as short
     dim from as short
     dim ship as _cords
     dim awayteam as _monster
@@ -2273,6 +2311,8 @@ function loadgame(filename as string) as short
     dim dat as string*36
     dim names as string*36
     dim datestring as string*12
+    dim unflags(lastspecial) as byte
+    
     dim text as string
     dim p as _planet
     dim debug as byte
@@ -2294,14 +2334,23 @@ function loadgame(filename as string) as short
         get #f,,names
         get #f,,dat
         get #f,,datestring
+        get #f,,unflags()
+        get #f,,artflag()
         print ".";
         'save player
         get #f,,player
         get #f,,whtravelled
         get #f,,whplanet
         get #f,,ano_money
+        get #f,,questroll
         get #f,,_autopickup
         get #f,,_autoinspect
+        get #f,,ranoutoffuel
+        get #f,,income()
+        get #f,,piratekills()
+        get #f,,farthestexpedition
+        get #f,,BonesFlag
+        'get #f,,bountyquest()
         for a=1 to 128
             get #f,,crew(a)
         next
@@ -2365,7 +2414,7 @@ function loadgame(filename as string) as short
         for a=0 to lastshare
             Get #f,,shares(a)
         next
-                    
+        
         for a=0 to 2
             Get #f,,shop_order(a)
         next
@@ -2383,6 +2432,15 @@ function loadgame(filename as string) as short
             next
         next
         
+        
+        get #f,,usedship()
+        
+        get #f,,lastcagedmonster
+        for a=0 to lastcagedmonster
+            get #f,,cagedmonster(a)
+        next
+    
+    
                                         
         for x=0 to sm_x
             for y=0 to sm_y
@@ -2446,9 +2504,6 @@ function loadgame(filename as string) as short
             get #f,,flag(a)
         next
         
-        for a=0 to lastartifact
-            get #f,,artflag(a)
-        next
         print ".";
         
         
@@ -2486,13 +2541,13 @@ function loadgame(filename as string) as short
         get #f,,foundsomething
         
         close f
-        if fname<>"savegames/empty.sav" and _savescumming=1 then kill(fname)
+        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then kill(fname)
         player.lastvisit.s=-1
     else 
         player.desig=filename
     endif
     cls
-    if debug=1 then
+    if debug=1 and _debug=1 then
         f=freefile
         open "portals.csv" for output as #f
         for a=0 to lastportal
@@ -2503,7 +2558,7 @@ function loadgame(filename as string) as short
         
     endif
     
-    if debug=2 then
+    if debug=2 and _debug=1 then
         f=freefile
         open "items.csv" for output as #f
         for a=0 to lastitem
@@ -2512,7 +2567,7 @@ function loadgame(filename as string) as short
         close #f
     endif
         
-    if debug=10 then
+    if debug=10 and _debug=1 then
         f=freefile
         open "factions.csv" for output as #f
         for a=0 to 5

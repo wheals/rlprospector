@@ -1,13 +1,16 @@
- 
+'Master debug switch: Do not touch!
+const _debug=0
+
 #DEFINE _WINDOWS
-'#DEFINE _FMODSOUND 
+#DEFINE _FMODSOUND 
 '#DEFINE _OSX
 '#define FBEXT_NO_EXTERNAL_LIBS -1
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)    
 draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col    
 #endmacro
-
+#inclib "freetype"
 #IFDEF _FMODSOUND
+#inclib "fmod.dll"
 #include once "fmod.bi"
 #ENDIF
 #include once "ext/graphics/font.bi"
@@ -15,9 +18,13 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 '#include once "allegro.bi"
 #include once "file.bi"
 #include "cardobj.bi"
-
+#include "string.bi"
 #include once "types.bas"
 #include once "tiles.bas"
+'f=freefile
+'open "data/tiles.dat" for binary as #f
+'get #f,,tiles()
+'close #f
 #include once "credits.bas"
 #include once "retirement.bas"  
 #include once "math.bas" 
@@ -45,19 +52,19 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 
 on error goto errormessage  
 
- 
+screenres 640,320 
 cls
 ' Load 
 print
 print "Prospector "&__VERSION__
 print
-checkfilestructure
-loadconfig
-loadfonts
-if _tiles=0 or _sysmapt=0 then load_tiles
+check_filestructure
+load_config
+load_fonts
+if configflag(con_tiles)=0 or configflag(con_sysmaptiles)=0 then load_tiles
 cls
-loadkeyset
-loadsounds
+load_keyset
+load_sounds
 load_palette()
 
 if not fileexists("register") then
@@ -65,11 +72,12 @@ if not fileexists("register") then
     open "register" for output as f
     print #f,"0"
     print #f,""
-    if menu("Autonaming/Standard/Babylon 5 Shipnames")=2 then
+    if menu(bg_randompic,"Autonaming/Standard/Babylon 5 Shipnames")=2 then
         print #f,"b5shipnames.txt"
     endif
     
     close #f
+    set__color(11,0)
     cls
     if askyn("This is the first time you start prospector. Do you want to see the keybindings before you start?(Y/N)") then
        keybindings 
@@ -85,9 +93,9 @@ do
     setglobals
     do
         titlemenu
-        key=keyin("1234567")
-        if key="1" then
-            if count_savegames()>8 then
+        key=keyin("1234567abcdefght",3)
+        if key="1" or key="a" then
+            if count_savegames()>20 then
                 key=""
                 dprint "Too many Savegames, choose one to overwrite",14
                 text=getfilename()
@@ -99,13 +107,12 @@ do
                 endif     
             endif
         endif
-        if key="2" then key=fromsavegame(key)
-        if key="3" then highsc()
-        if key="4" then manual
-        if key="5" then configuration
-        if key="6" then keybindings
-        
-'        if key="8" then 
+        if key="2" or key="b" then key=from_savegame(key)
+        if key="3" or key="c" then high_score()
+        if key="4" or key="d" then manual
+        if key="5" or key="e" then configuration
+        if key="6" or key="f" then keybindings
+'           if key="8" then 
 '            dim i as _items
 '            f=freefile
 '            open "items.csv" for output as #f
@@ -123,32 +130,64 @@ do
 '                clear_gamestate
 '            next
 '        endif
-        if key="9" then
-            a=getnumber(0,10000,0)
-            put(30,0),gtiles(gt_no(a)),pset
-            sleep
+        if _debug=1 then
+                if key="t" then
+                    a=getnumber(0,10000,0)
+                    put(30,0),gtiles(gt_no(a)),pset
+                    no_key=keyin
+                    sleep
+                endif
+                if key="8" then
+                    f=freefile
+                    open "itemslist.txt" for output as #f
+                    for b=2 to 10
+                        
+                        item(0).desig=""
+                        item(0)=makeitem(b)
+                        if item(0).desig<>"" then print #f,item(0).desig &":"&item(0).v1 &":"&item(0).price
+                    next
+                    for b=40 to 47
+                        
+                        item(0).desig=""
+                        item(0)=makeitem(b)
+                        if item(0).desig<>"" then print #f,item(0).desig &":"&item(0).v1 &":"&item(0).price
+                    next
+                        
+                    close #f
+                end if 
+                if key="9" then 
+                    cls
+                    set__color(15,0)
+                    for a=1 to 10
+                        reroll_shops
+                        print a
+                    next
+                endif
         endif
-    loop until key="1" or key="2" or key="7" 
+    loop until key="1" or key="2" or key="7"  or key="a"  or key="b" or key="g" 
+    set__color(11,0)
     cls
-    if key="1" then start_new_game
+    if key="1" or key="a" then start_new_game
         
-    if key="1" or key="2" and player.dead=0 then
+    if key="1" or key="2" or key="a" or key="b" and player.dead=0 then
         key=""
-        show_stars(1)
+        gamerunning=1
+        display_stars(1)
         display_ship(1)
         explore_space
     endif
     
-    if key="7" then end
+    if key="7" or key="g" then end
     
     if player.dead>0 then death_message()
     
     set__color( 15,0)
-    if _restart=0 then 
-        loadgame("empty.sav")
+    if configflag(con_restart)=0 then 
+        load_game("empty.sav")
         clear_gamestate
+        gamerunning=0
     endif
-loop until _restart=1
+loop until configflag(con_restart)=1
 #ifdef _FMODSOUND
 fSOUND_close
 #endif
@@ -175,14 +214,14 @@ function titlemenu() as short
     draw_string(_screenx/30,_screeny/8,"PROSPECTOR",TITLEFONT,_tcol)
 
     set__color( 15,0)
-    draw_string(_screenx-22*_FW2,_screeny-10*_FH2,__VERSION__ ,FONT2,_tcol)
-    draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"1) start new game    ",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-8*_FH2,"2) load saved game   ",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-7*_FH2,"3) display highscore ",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-6*_FH2,"4) read documentation",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-5*_FH2,"5) configuration     ",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-4*_FH2,"6) view/change keys  ",FONT2,_col)
-    draw_string(_screenx-22*_FW2,_screeny-3*_FH2,"7) exit              ",FONT2,_col)
+    draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__,,FONT2
+    draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"a) start new game    ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-8*_FH2,"b) load saved game   ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-7*_FH2,"c) display highscore ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-6*_FH2,"d) read documentation",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-5*_FH2,"e) configuration     ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-4*_FH2,"f) view/change keys  ",FONT2,_col)
+    draw_string(_screenx-22*_FW2,_screeny-3*_FH2,"g) exit              ",FONT2,_col)
     
     return 0
 end function
@@ -190,11 +229,12 @@ end function
 function start_new_game() as short
     dim as string text
     dim as short a,b,c,f,d
+    dim doubleitem(4555) as byte
     dim i as _items
     dim debug as byte
-    debug=3
+    debug=126
     make_spacemap() 
-    if debug=1 then
+    if debug=1 and _debug=1 then
         f=freefile
         open "planettemp.csv" for output as #f
         for a=0 to laststar
@@ -211,44 +251,61 @@ function start_new_game() as short
         next
         close #f
     endif
-    background(rnd_range(1,_last_title_pic)&".bmp")
-    text="/"&makehullbox(1,"data/ships.csv") &"/"&makehullbox(2,"data/ships.csv") &"/"&makehullbox(3,"data/ships.csv") &"/"&makehullbox(4,"data/ships.csv") &"/"&makehullbox(6,"data/ships.csv")
-    if _startrandom=1 then 
-        b=menu("Choose ship/Scout/Long Range Fighter/Light Transport/Troop Transport/Pirate Cruiser/Random",text)
+    text="/"&makehullbox(1,"data/ships.csv") &"|Comes with 3 Probes MKI/"&makehullbox(2,"data/ships.csv")&"|Comes with 2 combat drones and fully armored|You get one more choice at a talent if you take this ship/"&makehullbox(3,"data/ships.csv") &"|Comes with paid for cargo to collect on delivery/"&makehullbox(4,"data/ships.csv") &"|Comes with 5 veteran security team members/"&makehullbox(6,"data/ships.csv")&"|You will start as a pirate if you choose this option"
+    if configflag(con_startrandom)=1 then 
+        b=menu(bg_randompic,"Choose ship/Scout/Long Range Fighter/Light Transport/Troop Transport/Pirate Cruiser/Random",text)
     else
         b=rnd_range(1,4)
     endif
-    player=makeship(1)
+    player=make_ship(1)
     if b=6 then b=rnd_range(1,4)
     c=b  
     if b=5 then c=6
     upgradehull(c,player)
+    player.hull=player.h_maxhull
+    dprint "Your ship: "&player.h_desig
     d=0
     do
         d+=1
-        placeitem(rnd_item(45),0,0,0,0,-1) 'Weapons and armor
+        i=rnd_item(RI_WeakWeapons)
+        doubleitem(i.id)+=1
+        placeitem(i,0,0,0,0,-1) 'Weapons and armor
     loop until equipment_value>750 or d>5 'No more than 6 w&as
     d=0
     do
         d+=1
-        placeitem(rnd_item(44),0,0,0,0,-1) 'Other stuff
+        do
+            i=rnd_item(RI_WeakStuff)
+        loop until doubleitem(i.id)=0
+        doubleitem(i.id)+=1
+        placeitem(i,0,0,0,0,-1) 'Other stuff
     loop until equipment_value>1000 and d>2 'At least 3 other stuffs
+    
+    if _debug=707 then 
+        placeitem(makeitem(48),0,0,0,0,-1)
+        placeitem(makeitem(52),0,0,0,0,-1)
+        for c=1 to 10
+            placeitem(makeitem(24),0,0,0,0,-1)
+            placeitem(makeitem(26),0,0,0,0,-1)
+        next
+    endif
     
     if b=1 then
         placeitem(makeitem(100),0,0,0,0,-1)
         placeitem(makeitem(100),0,0,0,0,-1)
         placeitem(makeitem(100),0,0,0,0,-1)
-        placeitem(makeitem(123),0,0,0,0,-1)
-        placeitem(makeitem(152),0,0,0,0,-1)
-        i.ty=52
-        i.v1=1
-        i.desig="SC"
-        placeitem(i,0,0,0,0,-1)
+        if _debug=1 then placeitem(makeitem(65),0,0,0,0,-1)
+        if _debug=1 then placeitem(makeitem(66),0,0,0,0,-1)
+        if _debug=1 then placeitem(makeitem(301),,,,,-1)
+        if _debug=1 then placeitem(makeitem(105),,,,,-1)
+        if _debug=1 then placeitem(makeitem(64),,,,,-1)
+        if _debug=1 then placeitem(makeitem(64),,,,,-1)
+        if _debug=1 then placeitem(makeitem(64),,,,,-1)
 '        placeitem(makeitem(250),0,0,0,0,-1)
 '        placeitem(makeitem(162),0,0,0,0,-1)
 '        placeitem(makeitem(162),0,0,0,0,-1)
 '        placeitem(makeitem(163),0,0,0,0,-1)
-        if debugvacuum=1 then placeitem(makeitem(23),0,0,0,0,-1)
+        if debugvacuum=1 and _debug=1 then placeitem(makeitem(23),0,0,0,0,-1)
         'player.cargo(1).x=10
 '        placeitem(makeitem(52),0,0,0,0,-1)
 '        placeitem(makeitem(52),0,0,0,0,-1)
@@ -263,37 +320,50 @@ function start_new_game() as short
         'placeitem(makeitem(85),0,0,0,0,-1)
     endif
     
-    addmember(1,0)
-    addmember(2,1)
-    addmember(3,1)
-    addmember(4,1)
-    addmember(5,1)
-    if debug=3 then player.questflag(22)=1
-
     if b=2 then 
-        placeitem(makeitem(103),0,0,0,0,-1)
+        player.equipment(se_shipdetection)=1
         placeitem(makeitem(110),0,0,0,0,-1)
         placeitem(makeitem(110),0,0,0,0,-1)
     endif
+    
     if b=3 then
         player.cargo(1).x=11
         player.cargo(2).x=rnd_range(1,3)
         player.cargo(1).y=nearest_base(player.c)
         player.cargo(2).y=rnd_range(1,5)*player.cargo(2).x
     endif
+    
+    
+    add_member(1,0)
+    add_member(2,1)
+    add_member(3,1)
+    add_member(4,1)    
+    add_member(5,1)
+    if debug=3 and _debug=1 then player.questflag(22)=1
+    
+    
     if b=4 then
         player.security=5
         for c=6 to 10
-            addmember(7,0)
+            add_member(7,0)
         next
     endif
-    if rnd_range(1,100)<51 then
+    
+    player.turn=-500 'To make starting weapons less powerfull
+    
+    select case startingweapon
+    case 1
         player.weapons(1)=makeweapon(rnd_range(6,7))
-    else
+    case 2
         player.weapons(1)=makeweapon(rnd_range(1,3))
-    endif
+    case else
+        if rnd_range(1,100)<51 then
+            player.weapons(1)=makeweapon(rnd_range(6,7))
+        else
+            player.weapons(1)=makeweapon(rnd_range(1,3))
+        endif
+    end select
     if b=5 then
-        player.weapons(1)=makeweapon(2)
         player.weapons(2)=makeweapon(99)
         player.weapons(3)=makeweapon(99)
         pirateupgrade
@@ -303,17 +373,15 @@ function start_new_game() as short
         faction(0).war(2)=-100
         faction(0).war(1)=100
         player.c=map(piratebase(0)).c
-        lastfleet=5
-        for a=1 to 5
-            fleet(a)=makemerchantfleet
-            fleet(a).c=basis(rnd_range(0,2)).c
-        next
     endif
+    player.turn=0
     if start_teleport=1 then artflag(9)=1
+    set__color(11,0)
     cls
     set__color( 11,0)
+    
     if b<5 then
-        c=textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
+        c=2+textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
         faction(0).war(1)=0
         faction(0).war(2)=100
@@ -321,7 +389,7 @@ function start_new_game() as short
         faction(0).war(4)=100
         faction(0).war(5)=100
     else
-        c=5+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to get a lot of money you will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
+        c=2+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to avoid the company patrols, and get good loot, it will be very profitable! You will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
         faction(0).war(1)=100
         faction(0).war(2)=0
@@ -338,7 +406,7 @@ function start_new_game() as short
     faction(4).war(1)=100
     faction(4).war(3)=100
     
-    player.desig=gettext((5*_fw1+44*_fw2)/_fw2,(5*_fh1+c*_fh2)/_fh2,32,"")
+    player.desig=gettext((5*_fw1+44*_fw2),(5*_fh1+c*_fh2),32,"",1)
     if player.desig="" then player.desig=randomname()
     a=freefile
     if open ("savegames/"&player.desig &".sav" for input as a)=0 then
@@ -350,7 +418,7 @@ function start_new_game() as short
             if player.desig="" then player.desig=randomname()
         loop until fileexists("savegames/"&player.desig &".sav")=0    
     endif
-    if debug=3 or debug=99 then 
+    if (debug=3 or debug=99) and _debug=1 then 
         fleet(lastfleet+1)=makealienfleet
         fleet(lastfleet+1).c=basis(0).c
         fleet(lastfleet+2)=makealienfleet
@@ -360,51 +428,79 @@ function start_new_game() as short
         dprint "fleettypes"& fleet(lastfleet+1).ty &":" & fleet(lastfleet+2).ty &":"& fleet(lastfleet+3).ty
         lastfleet+=3
     endif
-    if debug=99 then
+    if (debug=127 and _debug>0) then
         upgradehull(18,player,0)
-        player.hull=50
-        player.engine=6
+        player.hull=10
+        player.engine=3
         player.sensors=6
-        player.shield=5
+        player.shieldmax=5
         player.weapons(1)=makeweapon(66)
         player.weapons(2)=makeweapon(66)
-        player.weapons(3)=makeweapon(66)
+        for a=1 to 45
+            add_member(8,0)
+            placeitem(makeitem(97),0,0,0,0,-1)
+            placeitem(makeitem(98),0,0,0,0,-1)
+        next
+        player.money+=10000
+        artflag(16)=1
+        
     endif
-    if debug=2 then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
+    
+    if debug=126 and _debug=1 then
+        upgradehull(9,player,0)
+        player.hull=player.h_maxhull
+        player.engine=3
+        player.sensors=3
+        player.shieldmax=2
+        player.weapons(1)=makeweapon(4)
+        player.weapons(1)=makeweapon(3)
+        for a=1 to 15
+            add_member(8,0)
+            placeitem(rnd_item(RI_WEAPONS),0,0,0,0,-1)
+            placeitem(rnd_item(RI_Armor),0,0,0,0,-1)
+        next
+        player.money+=6000
+    endif
+    
+    if debug=2 and _debug=1 then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
+    if _debug=1 then player.cursed=1
     just_run=run_until
+    if show_specials>0 then
+        player.c=map(sysfrommap(specialplanet(show_specials))).c
+    endif
+    set__color(11,0)
+    if debug=125 and _debug>0 then player.money=3000
+    cls
     return 0
 end function
 
-function fromsavegame(key as string) as string
+function from_savegame(key as string) as string
     dim as short c
     c=count_savegames
+    set__color(11,0)
     cls
     if c=0 then 
         dprint "No Saved Games"
         no_key=keyin
         key=""
     else
-        loadgame(getfilename())
+        load_game(getfilename())
         if player.desig="" then key=""
         player.dead=0
         if savefrom(0).map>0 then            
             landing(0)
         endif
-'        f=freefile
-'        open "specials.txt" for output as #f
-'        for c=0 to lastspecial
-'            print #f,specialplanet(c)
-'        next
-'        close #f
     endif
+    set__color(11,0)
     cls
     return key
 end function
 
-function targetlanding(mapslot as short,test as short=0) as short
+function target_landing(mapslot as short,test as short=0) as short
     dim as _cords p
     dim as string key
     dim as short c,osx
+    set__color(11,0)
     cls
     screenset 1,1
     
@@ -417,7 +513,7 @@ function targetlanding(mapslot as short,test as short=0) as short
             p=movepoint(p,5)
             c+=1
             player.fuel-=1
-        loop until c>5 or (tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).walktru=0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>3+c+planets(mapslot).grav+planets(mapslot).dens)
+        loop until c>5 or (tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).walktru=0 and skill_test(player.pilot(0),st_easy+c+planets(mapslot).grav+planets(mapslot).dens,"Pilot:"))
         if c<=5 then
             landing(mapslot,p.x,p.y,c)
         else
@@ -432,30 +528,27 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim as short l,m,a,b,c,d,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad,landinggear,who(128),last2,alle
     dim light as single
     dim p as _cords
-    dim last as short
-    dim awayteam as _monster
+    dim as short  last,debug
     dim nextmap as _cords
+    dim as _monster delaway
+    awayteam=delaway
+    debug=1
     p.x=lx
     p.y=ly
+    if lx=0 and ly=0 then p=rnd_point(mapslot,0)
     #ifdef _FMODSOUND
-    if (_sound=0 or _sound=2) and mapslot>0 then FSOUND_PlaySound(FSOUND_FREE, sound(11))
+    if (configflag(con_sound)=0 or configflag(con_sound)=2) and mapslot>0 then FSOUND_PlaySound(FSOUND_FREE, sound(11))
     #endif
-    for b=0 to laststar
-        for c=1 to 9
-            if mapslot=map(b).planets(c) then 
-                slot=c
-                sys=b
-            endif
-        next
-    next
+    sys=sysfrommap(mapslot)
     if savefrom(0).map=0 then
         if mapslot=specialplanet(29) and findbest(89,-1)>0 then mapslot=specialplanet(30)
         if mapslot=specialplanet(30) and findbest(89,-1)=-1 then mapslot=specialplanet(29)
         if mapslot=specialplanet(29) then specialflag(30)=1
-        if _warnings=0 and player.hull=1 then
+        if configflag(con_warnings)=0 and player.hull=1 and planets(mapslot).depth=0 then
             if not askyn("Pilot: 'Are you sure captain? I can't guarantee i get this bucket up again'(Y/N)",14) then return 0
         endif
         if mapslot>0 then
+            set__color(11,0)
             cls
             if planetmap(0,0,mapslot)=0 then makeplanetmap(mapslot,slot,map(sys).spec)
             awayteam.hp=0
@@ -467,9 +560,18 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             next
             'awayteam.hpmax=awayteam.hp
             if player.dead=0 then
-                do
-                    if lx=0 and ly=0 then p=rnd_point(mapslot,0)
-                loop until tiles(abs(planetmap(p.x,p.y,mapslot))).locked=0 and tiles(abs(planetmap(p.x,p.y,mapslot))).gives=0 and abs(planetmap(p.x,p.y,mapslot))<>45 and abs(planetmap(p.x,p.y,mapslot))<>80 
+                while tiles(abs(planetmap(p.x,p.y,mapslot))).locked<>0 or _
+                    tiles(abs(planetmap(p.x,p.y,mapslot))).gives<>0 or _
+                    tiles(abs(planetmap(p.x,p.y,mapslot))).walktru<>0 or _
+                    abs(planetmap(p.x,p.y,mapslot))=45 or _
+                    abs(planetmap(p.x,p.y,mapslot))=80 
+                    if lx=0 and ly=0 then 
+                        p=rnd_point(mapslot,0)
+                    else 
+                        p=movepoint(p,5,,4)'4=Rollover
+                    endif
+                wend
+                
                 'if ((mapslot=pirateplanet(0) or mapslot=pirateplanet(1) or mapslot=pirateplanet(2)) and player.pirate_agr<=0) or isgasgiant(mapslot)<>0 then
                     for x=0 to 60
                         for y=0 to 20
@@ -491,13 +593,13 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 player.landed.y=p.y
                 player.landed.m=mapslot
                 nextmap=player.landed
-                equip_awayteam(player,awayteam,mapslot)
+                equip_awayteam(mapslot)
             endif
             
             last2=no_spacesuit(who(),alle)
-            if last2>0 and ep_needs_Spacesuit(mapslot,awayteam.c)<>0 then
+            if last2>0 and ep_needs_Spacesuit(mapslot,player.landed)<>0 then
                 if alle=0 then
-                    if askyn("You will need spacesuits on this planet. Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
+                    if askyn("You will need spacesuits. Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
                         remove_no_spacesuit(who(),last2)
                     endif
                 else
@@ -505,21 +607,21 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 endif
             endif
             
-            if awayteam.stuff(8)=1 then dprint "You deploy your satellite"
-            roll=rnd_range(1,6)+rnd_range(1,6)+landingpad+player.pilot(0)+addtalent(2,8,1)
+            if awayteam.stuff(8)=1 and planets(slot).depth=0 then dprint "You deploy your satellite."
+            roll=landingpad+player.pilot(0)+add_talent(2,8,1)
             landinggear=findbest(41,-1)
             if landinggear>0 and landingpad=0 then roll=roll+item(landinggear).v1
-            target=2*planets(mapslot).dens+2*planets(mapslot).grav^2
+            if _debug=321 then dprint "Density:"&planets(mapslot).dens
+            target=planets(mapslot).dens+2*planets(mapslot).grav^2
             if mapslot<>specialplanet(2) and test=0 then
-                dprint "("&roll &":"&target &")"
-                if roll>target then
+                if skill_test(roll,target,"Pilot") then
                     if landingpad=0 then
                         dprint ("Your pilot succesfully landed in the difficult terrain",10) 
                     else
                         dprint ("You landed on the landinpad",10)
                     endif
                     player.fuel=player.fuel-1
-                    gainxp(2)
+                    dprint gainxp(2),c_gre
                 else
                     if landingpad=0 then
                         dprint ("your pilot damaged the ship trying to land in difficult terrain.",12)
@@ -530,7 +632,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                     player.fuel=player.fuel-2-int(planets(mapslot).grav)
                     if player.hull<=0 then
                         dprint ("A Crash landing. you will never be able to start with that thing again",12)
-                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>10 then
+                        if skill_test(player.pilot(0),st_veryhard,"Pilot") then
                             dprint ("but your pilot wants to try anyway and succeeds!",12)
                             player.hull=1
                         else
@@ -553,8 +655,10 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
         
         if player.dead=0 and awayteam.hp>0 then
             do
-                equip_awayteam(player,awayteam,slot)
-                nextmap=explore_planet(awayteam,nextmap,slot)
+                if _debug=1 then dprint "nextmap" & nextmap.m &"x:"&nextmap.x &"y:"&nextmap.y
+                equip_awayteam(slot)
+                nextmap=explore_planet(nextmap,slot)
+                set__color(11,0)
                 cls
                 removeequip
                 
@@ -595,7 +699,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                     player.stuff(1)=3
                 endif
                 if reward(5)=3 then
-                    slot=getrandomsystem()
+                    slot=get_random_system()
                     if slot<0 then slot=rnd_range(0,laststar)
                     map(slot).discovered=1
                     for b=1 to 9
@@ -662,10 +766,10 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             endif
         next
         player.landed.m=0
-        show_stars(1)
+        display_stars(1)
         display_ship
-        if awayteam.stuff(8)=1 and player.dead=0 and test=0 then 
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+player.tractor>6 then
+        if awayteam.stuff(8)=1 and player.dead=0 and test=0 and planets(slot).depth=0 then 
+            if skill_test(player.pilot(0)+player.tractor,st_easy,"Pilot:") then
                 dprint "You rendevouz with your satellite and take it back in",10
             else
                 dprint "When trying to rendevouz with your satellite your pilot rams and destroys it.",12
@@ -693,37 +797,40 @@ function scanning() as short
     dim as short osx
     dim as single roll,target
     dim debug as byte
-    dim as short plife
+    dim as short plife,li(255),lastlocalitem
     debug=1
     'if getsystem(player)>0 then
-    a=getplanet(getsystem(player))
+    a=getplanet(get_system())
     slot=a
     if a>0 then 
-        sys=getsystem(player)
+        sys=get_system()
         mapslot=map(sys).planets(a)
         if mapslot=specialplanet(29) and findbest(89,-1)>0 then mapslot=specialplanet(30)
         if mapslot=specialplanet(30) and findbest(89,-1)=-1 then mapslot=specialplanet(29)
         if mapslot=specialplanet(29) then specialflag(30)=1
-        if mapslot<0 and mapslot>-20000 then map(sys).planets(a)=asteroidmining(mapslot)
+        if mapslot<0 and mapslot>-20000 then map(sys).planets(a)=asteroid_mining(mapslot)
         if mapslot=-20001 then dprint "A helium-hydrogen gas giant"
         if mapslot=-20002 then dprint "A methane-ammonia gas giant"
         if mapslot=-20003 then dprint "A hot jupiter"
-        if mapslot<-20000 or isgasgiant(mapslot)>0 then gasgiantfueling(mapslot,a,sys)
+        if mapslot<-20000 or isgasgiant(mapslot)>0 then gasgiant_fueling(mapslot,a,sys)
         if mapslot>0 and isgasgiant(mapslot)=0 then
         if planetmap(0,0,mapslot)=0 then
             makeplanetmap(mapslot,a,map(sys).spec)
             'makefinalmap(mapslot)
         endif
         if planets(mapslot).mapstat=0 then planets(mapslot).mapstat=1 
+        lastlocalitem=make_localitemlist(li(),mapslot)
+        if _debug=9 then dprint "moving rovers."
+        move_rover(mapslot,li(),lastlocalitem)
+    
         for x=60 to 0 step -1
             for y=0 to 20
-                target=10+(planets(mapslot).mapped/100*player.sensors)+planets(mapslot).dens 
+                target=st_average+(planets(mapslot).mapped/100*player.sensors)+planets(mapslot).dens 
                 if abs(planetmap(x,y,mapslot))=8 then target=target-1 
                 if abs(planetmap(x,y,mapslot))=7 then target=target-2 
-                roll=rnd_range(1,6)+rnd_range(1,6)+minimum(player.science(0)+1,player.sensors)
-                if  roll>target and planetmap(x,y,mapslot)<0 then
+                if skill_test(minimum(player.science(0)+1,player.sensors),target) and planetmap(x,y,mapslot)<0 then
                     planetmap(x,y,mapslot)=planetmap(x,y,mapslot)*-1
-                    reward(0)=reward(0)+.5
+                    reward(0)=reward(0)+.4+player.sensors/10
                     reward(7)=reward(7)+planets(mapslot).mapmod
                     scanned=scanned+1
                 endif
@@ -731,16 +838,16 @@ function scanning() as short
         next
         for b=0 to lastitem
             if item(b).w.m=mapslot and item(b).w.p=0 and item(b).w.s=0 then
-                target=(7+planets(mapslot).dens)*item(a).scanmod 
-                roll=(rnd_range(1,6)+rnd_range(1,6)+addtalent(4,15,1)+minimum(player.science(0),player.sensors))*item(b).scanmod
-                if roll>target then 
+                target=st_hard+planets(mapslot).dens*item(a).scanmod 
+                if skill_test(add_talent(4,15,1)+minimum(player.science(0),player.sensors)*item(b).scanmod,target) then 
                     item(b).discovered=1
                     itemfound+=1
                 endif
             endif
         next
         planets(mapslot).mapped=planets(mapslot).mapped+scanned
-        if scanned>50 then gainxp(4)
+        if scanned>50 then dprint gainxp(4),c_gre
+        set__color(11,0)
         cls
         if mapslot=player.questflag(7) then dprint "This is the planet Eridiani Explorations wants us to map completely"
         if mapslot=pirateplanet(0) then
@@ -773,33 +880,38 @@ function scanning() as short
             planets(mapslot).flags(27)=2
         endif
         if isgardenworld(mapslot) then dprint "This planet is earthlike."
-        if planets(mapslot).colflag(0)>0 then dprint "There is a "& companyname(planets(mapslot).colflag(0)) &" colony on this planet. They are sending greetings."
-        if debug=1 then dprint "Map number "&slot &":"& mapslot
+        if planets(mapslot).colflag(0)>0 then dprint "There is "& add_a_or_an(companyname(planets(mapslot).colflag(0)),0) &" colony on this planet. They are sending greetings."
+        if debug=1 and _debug=1 then dprint "Map number "&slot &":"& mapslot
         osx=30-_mwx/2
         
         for a=0 to planets(mapslot).life
-            if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>7 then plife=plife+((planets(mapslot).life+1)*3)/100
+            if skill_test(player.science(location),st_hard) then plife=plife+((planets(mapslot).life+1)*3)/100
         next
         if plife>1 then plife=1
         if plife>planets(mapslot).highestlife then 
             planets(mapslot).highestlife=plife 
             dprint "Revising earlier lifeform estimate",c_yel
         endif
+        if planets(mapslot).discovered<2 then planets(mapslot).discovered=2 
         do
+            screenset 0,1
+            cls
             display_planetmap(mapslot,osx,1)
-            dplanet(planets(mapslot),slot,scanned)
+            dplanet(planets(mapslot),slot,scanned,mapslot)
             dprint ""
+            flip
             no_key=keyin(key_la & key_tala &" abcdefghijklmnopqrstuvwxyz" &key_east &key_west)
             if no_key=key_east then osx+=1
             if no_key=key_west then osx-=1
             if osx<0 then osx=0
             if osx>60-_mwx then osx=60-_mwx
-        cls
+            set__color(11,0)
+            cls
         
         loop until no_key<>key_east and no_key<>key_west
         if no_key=key_la then key=key_la
         if no_key=key_tala then key=key_tala
-        if rnd_range(player.pilot(0),6)+rnd_range(1,6)+player.pilot(0)<8 and player.fuel>30 then
+        if not(skill_test(player.pilot(location),st_veryeasy,"Pilot:")) and player.fuel>30 then
             dprint "your pilot had to correct the orbit.",14
             x=rnd_range(1,4)-player.pilot(0)
             if x<1 then x=1
@@ -808,14 +920,14 @@ function scanning() as short
         endif
         endif
         if key=key_la then landing(map(sys).planets(slot))
-        if key=key_tala then targetlanding(map(sys).planets(slot))
+        if key=key_tala then target_landing(map(sys).planets(slot))
     endif
     'show_stars(1,0)
     'displayship
     return 0
 end function
 
-function asteroidmining(slot as short) as short
+function asteroid_mining(slot as short) as short
     dim it as _items
     dim en as _fleet
     dim as short f,q,m,roll
@@ -832,15 +944,15 @@ function asteroidmining(slot as short) as short
     roll=rnd_range(1,100)
     slot=slot-rnd_range(1,10)
     player.fuel=player.fuel-1
-    if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<9 then player.fuel=player.fuel-rnd_range(1,3)
+    if skill_test(player.pilot(0),st_hard,"Pilot") then player.fuel=player.fuel-rnd_range(1,3)
     if (slot<-11 and slot>-13) or (slot<-51 and slot>-54)  then
         dprint "you have discovered a dwarf planet among the asteroids!",10
         no_key=keyin
         lastplanet=lastplanet+1
         slot=lastplanet
     else
-        f=rnd_range(1,6)+rnd_range(1,6)+player.tractor*2+minimum(player.science(0)+1,player.sensors+1)+3*addtalent(2,9,2)
-        if f+slot>5 then
+        if skill_test(player.tractor*2+minimum(player.science(0)+1,player.sensors+1)+3*add_talent(2,9,2)+slot,st_average) then
+        
             do
                 it=makeitem(96,f+slot+165,-2)
             loop until it.ty=15
@@ -849,11 +961,11 @@ function asteroidmining(slot as short) as short
                 display_ship()                            
                 q=-1
                 do                                        
-                    if _warnings=0 and player.hull=1 then 
+                    if configflag(con_warnings)=0 and player.hull=1 then 
                         q=askyn("Pilot: 'If i make a mistake it could be fatal. Shall I really try?'(y/n)")
                     endif
                     if q=-1 then
-                        if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+player.tractor*2>6+rnd_range(1,6) then
+                        if skill_test(player.pilot(0)+player.tractor*2,st_average,"Pilot") then
                             q=0
                             placeitem((it),0,0,0,0,-1)
                             reward(2)=reward(2)+it.v5
@@ -897,11 +1009,11 @@ function asteroidmining(slot as short) as short
                 dprint "It attacks!",12
                 no_key=keyin
                 if rnd_range(1,6)<5 then
-                    en.ty=1
-                    en.mem(1)=makeship(3)
+                    en.ty=ft_pirate
+                    en.mem(1)=make_ship(3)
                 else
                     en.ty=1
-                    en.mem(1)=makeship(4)
+                    en.mem(1)=make_ship(4)
                 endif
                 no_key=keyin
                 spacecombat(en,10)
@@ -913,7 +1025,7 @@ function asteroidmining(slot as short) as short
             dprint "Wait. that is no ship. It is  "&mon(m) &"!",14
             no_key=keyin
             en.ty=8
-            en.mem(1)=makeship(20+m)
+            en.mem(1)=make_ship(20+m)
             spacecombat(en,20)
             
             if player.dead>0 then 
@@ -928,14 +1040,15 @@ function asteroidmining(slot as short) as short
                 endif
             endif
         endif
+        set__color(11,0)
         cls
         display_ship()
-        show_stars(1)
+        display_stars(1)
     endif
     return slot
 end function
 
-function gasgiantfueling(p as short, orbit as short, sys as short) as short
+function gasgiant_fueling(p as short, orbit as short, sys as short) as short
     dim as short fuel,roll,noa,a,mo,m,probe,probeflag,hydrogenscoop,debug,freebay
     dim en as _fleet
     static restfuel as byte
@@ -969,18 +1082,18 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
             if not(askyn("Do you want to use your gas mining probe?(y/n)")) then probe=0
         endif
         if probe<=0 then
-            if _warnings=0 and player.hull=1 then
+            if configflag(con_warnings)=0 and player.hull=1 then
                 if not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) then return 0
             endif
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+addtalent(2,9,1)<=8+mo then
+            if skill_test(player.pilot(location)+add_talent(2,9,1),st_average+mo,"Pilot") then
                 dprint "Your Pilot damaged the ship diving into the dense atmosphere",12
                 player.hull=player.hull-rnd_range(1,2)
                 if p=-20003 then player.hull=player.hull-1
                 display_ship
             endif
             if player.hull>0 then
-                if debug=1 then dprint ""& hydrogenscoop
-                fuel=10+rnd_range(2,7)*hydrogenscoop+addtalent(2,9,3)
+                if debug=1 and _debug=1 then dprint ""& hydrogenscoop
+                fuel=10+rnd_range(2,7)*hydrogenscoop+add_talent(2,9,3)
                 hydrogenscoop-=1
                 if hydrogenscoop<=0 then hydrogenscoop=1
                 if p=-20001 then fuel=fuel+rnd_range(3,11)*hydrogenscoop
@@ -999,12 +1112,12 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
                 dprint "While taking up fuel your ship gets attacked by "&mon(roll),14
                 no_key=keyin
                 noa=1
-                if roll=4 then noa=rnd_range(1,6)+rnd_range(1,6)
+                if roll=4 then noa=rnd_range(1,6) +rnd_range(1,6)
                 if roll=5 then noa=rnd_range(1,3)
                 if roll=6 then noa=rnd_range(1,2)
                 for a=1 to noa
                     en.ty=9
-                    en.mem(a)=makeship(23+roll)
+                    en.mem(a)=make_ship(23+roll)
                 next
                 spacecombat(en,21)
             
@@ -1022,16 +1135,16 @@ function gasgiantfueling(p as short, orbit as short, sys as short) as short
             endif
         else
             'using probe
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)+addtalent(2,9,1)-3+item(probe).v2<=8+mo then probeflag=1
-            if rnd_range(1,100)<38-orbit*2 then probeflag=1
-            if probeflag=1 then 
-                dprint "We lost contact with the probe."
+            if not(skill_test(player.pilot(0)+add_talent(2,9,1)-3+item(probe).v2,st_average+mo,"Pilot")) then item(probe).v1-=1
+            if rnd_range(1,100)<38-orbit*2 then item(probe).v1-=1
+            if item(probe).v1<=0 then 
+                dprint "We lost contact with the probe.",c_yel
                 destroyitem(probe)
             else
-                fuel=10+rnd_range(3,9)+addtalent(2,9,3)
+                fuel=25+rnd_range(3,9)+add_talent(2,9,3)
                 if p=-20001 then fuel=fuel+rnd_range(3,9)
                 if p=-20003 then fuel=fuel+rnd_range(5,15)
-                if fuel>item(probe).v1 then fuel=item(probe).v1
+                if fuel>item(probe).v3 then fuel=item(probe).v3
                 'if player.fuel>player.fuelmax+player.fuelpod then player.fuel=player.fuelmax+player.fuelpod                    
             endif
         endif
@@ -1110,11 +1223,12 @@ function rg_icechunk() as short
 end function
 
 
-function driftingship(a as short)  as short
-    dim as short m,b,c,x,y
+function dock_drifting_ship(a as short)  as short
+    dim as short m,b,c,x,y,debug
     dim p(1024) as _cords
     dim land as _cords
     dim as short test=0
+    debug=1
     m=drifting(a).m
     if a<=3 and rnd_range(1,100)<10+test and player.turn>5 then
         station_event(m)
@@ -1132,43 +1246,59 @@ function driftingship(a as short)  as short
     land.x=p(c).x
     land.y=p(c).y
     land.m=m
+    if _debug=11 then 
+        dprint "Got through dock_drifting_ship"
+        sleep
+    endif
     landing(m,p(c).x,p(c).y,1)
     return 0
 end function
 
-function moverover(pl as short,ship as _cords,li()as short,lastlocalitem as short)  as short
+function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
     dim as integer a,b,c,i,t,ti,x,y
     dim as integer carn,herb,mins,oxy,food,energy,curr,last
     dim as single minebase
     dim as _cords p1,p2,route(1200)
     dim as _cords pp(9)
+    
     t=(player.turn-planets(pl).visited)*10
-    for a=0 to lastitem
-        if item(a).ty=18 and item(a).w.p=0 and item(a).w.s=0 and item(a).w.m=pl then i=a
-    next
-    if i>0 and t>0 then
-        p1.x=item(i).w.x
-        p1.y=item(i).w.y
-        for a=0 to t*item(i).v4
-            curr+=1
-            if curr>last then
-                last=ep_autoexploreroute(route(),p1,item(i).v2,pl,ship,li(),lastlocalitem)
-                curr=1
-            else
-                if last>0 then
-                    item(i).w.x=route(curr).x
-                    item(i).w.y=route(curr).y
+    if _debug=9 then screenset 1,1
+    for i=0 to lastitem
+        if item(i).ty=18 and item(i).w.p=0 and item(i).w.s=0 and item(i).w.m=pl and t>0 then 
+            if _debug=9 then dprint "Moving rover "&i
+            last=0
+            curr=0
+            p1.x=item(i).w.x
+            p1.y=item(i).w.y
+            for a=0 to t*item(i).v4
+                curr+=1
+                if curr>last then
+                    last=ep_autoexploreroute(route(),p1,item(i).v1,pl,li(),lastlocalitem)
+                    curr=1
+                else
+                    if last>0 then
+                        item(i).w.x=route(curr).x
+                        item(i).w.y=route(curr).y
+                    endif
                 endif
+                ep_roverreveal(i)
+                
+                screenset 0,1
+                cls
+                display_planetmap(pl,calcosx(item(i).w.x,planets(pl).depth),1)
+                display_ship(0)
+                if _debug>0 then dprint cords(item(i).w) &" curr :"& curr &" last :"&last
+                flip
+        
+            next
+            if rnd_range(1,150)<planets(pl).atmos*2 then item(i).discovered=0
+            if rnd_range(1,150)<planets(pl).atmos+2 then 
+                item(i)=makeitem(65)
+            else
+                dprint "Receiving the homing signal of a rover on this planet",10
             endif
-            ep_roverreveal(i)
-        next
-        if rnd_range(1,150)<planets(pl).atmos*2 then item(i).discovered=0
-        if rnd_range(1,150)<planets(pl).atmos+2 then 
-            item(i)=makeitem(65)
-        else
-            dprint "Receiving the homing signal of a rover on this planet",10
         endif
-    endif
+    next
     i=0
     for a=0 to lastitem
         if item(a).ty=27 and item(a).w.p=0 and item(a).w.s=0 and item(a).w.m=pl then i=a
@@ -1197,12 +1327,16 @@ function moverover(pl as short,ship as _cords,li()as short,lastlocalitem as shor
         if item(i).v1>item(i).v2 then item(i).v1=item(i).v2
         if rnd_range(1,150)<planets(pl).atmos+2 then item(i)=makeitem(66)
     endif
+    planets(pl).visited=player.turn
     return 0
 end function
 
 function rescue() as short
-    dim as short a,c,dis,beacon,cargo
+    dim as short a,c,dis,beacon,cargo,closest_fleet,dis2
     dim as single b,d
+    dim fname(10) as string
+    
+    gen_fname(fname())
     d=256
     if getinvbytype(9)>0 then
         if askyn("You ran out of fuel. Do you want to use the fuel from the cargo bay?(y/n)",,1) then
@@ -1211,6 +1345,26 @@ function rescue() as short
             return 0
         endif
     endif
+    ranoutoffuel+=1
+    dis2=9999
+    for a=0 to lastfleet
+        if _debug=1 then dprint a &":"& fleet(a).con(1)
+        if fleet(a).con(1)<>0 then 
+            if askyn("This is merchant fleet "&a &". Do you need fuel?(y/n)",,1) then
+                dprint "2 Cr. per ton. We'll deduct it from the agreed upon payment."
+                b=getnumber(0,player.fuelmax,0)
+                player.fuel+=b
+                fleet(a).con(2)-=b*2
+                return 0
+            endif
+        else
+            if distance(fleet(a).c,player.c)<dis2 and faction(0).war(fleet(a).ty)<100 then 
+                closest_fleet=a
+                dis2=distance(fleet(a).c,player.c)
+            endif
+        endif
+    next
+    
     for a=0 to 2
         b=distance(player.c,basis(a).c)
         if b<d then 
@@ -1232,7 +1386,7 @@ function rescue() as short
         if d<5+dis*2 then 
             if faction(0).war(1)<100 then
                 dprint "Station " &c+1 &" answered and sent a retrieval team. You are charged "& int(d*(100-dis*10)) & " Cr.",10
-                player.money=player.money-int(d*(100-dis*10))
+                player.money=player.money-int(d*(100-dis*10))'needs to go below 0
                 player.fuel=10
                 player.c.x=basis(c).c.x
                 player.c.y=basis(c).c.y
@@ -1242,10 +1396,15 @@ function rescue() as short
             endif
         else
             dprint "You are too far out in space....",12
-            if rnd_range(1,100)<5+dis*2 then
+            
+            if rnd_range(1,100)-(10+dis-dis2)<5+dis*2 then
                 dprint "Your distress signal is answered!",10
                 b=rnd_range(1,33)+rnd_range(1,33)+rnd_range(1,33)
-                dprint "A "&shiptypes(rnd_Range(0,16)) &" offers to sell you fuel to get to the nearest station for "& b &" credits per ton. ("& int(disnbase(player.c)*b) &" credits for " &int(disnbase(player.c)) &" tons)."
+                if closest_fleet>0 then
+                    dprint add_a_or_an(fname(fleet(closest_fleet).ty),1)&" offers to sell you fuel to get back to the nearest base for "& b &" Cr. per ton. ("& int(disnbase(player.c)*b) &" credits for " &int(disnbase(player.c)) &" tons)." 
+                else
+                    dprint add_a_or_an(shiptypes(rnd_Range(0,16)),1) &" offers to sell you fuel to get to the nearest station for "& b &" Cr. per ton. ("& int(disnbase(player.c)*b) &" credits for " &int(disnbase(player.c)) &" tons)."
+                endif
                 if askyn("Do you accept the offer?(y/n)") then
                     if player.money>=int(disnbase(player.c)*b) then
                         player.money=player.money-disnbase(player.c)*b
@@ -1287,35 +1446,41 @@ end function
 
 
 function spacestation(st as short) as _ship
-    dim as short a,b,c,d,e,wchance
-    static as short hiringpool,questroll,last
+    dim as short a,b,c,d,e,wchance,inspectionchance
+    static as short hiringpool,last,muddsshop,botsshop,usedshop
     static inv(lstcomit) as _items
     dim quarantine as short
     dim i as _items
-    dim key as string
-    dim text as string
-    dim mtext as string
-    dim dum as _station
+    dim as string key,text,mtext,sn
+    dim dum as _basis
+    set__color(11,0)
     cls
+    basis(st).docked+=1
     comstr=""
     display_ship
+    
     if player.turn>0 then
-        if rnd_range(1,100)<33+faction(0).war(1)+foundsomething and basis(st).company<>3 then
+        if basis(st).company=3 then 
+            inspectionchance=5+faction(0).war(1)+foundsomething
+        else
+            inspectionchance=33+faction(0).war(1)+foundsomething
+        endif
+        if rnd_range(1,100)<inspectionchance then
             dprint "The station commander decides to do a routine check on your cargo hold before allowing you to disembark.",14
             no_key=keyin
             d=0
             for b=1 to 10
                 c=0
-                if player.cargo(b).x=9 and basis(st).company<>1 then c=1 'Embargo
-                if player.cargo(b).x=8 and basis(st).company<>2 then c=1 'Embargo
-                if player.cargo(b).x=7 and basis(st).company<>4 then c=1 'embargo
-                if player.cargo(b).x>1 and player.cargo(b).x<=9 and player.cargo(b).y=0 then c=1 'Stolen
-                if c=1 and rnd_range(1,100)>30+player.shieldedcargo-player.cargo(b).x then
+                if player.cargo(b).x=9 and (basis(st).company<>1 or basis(st).company=3) then c=1 'Embargo
+                if player.cargo(b).x=8 and (basis(st).company<>2 or basis(st).company=3) then c=1 'Embargo
+                if player.cargo(b).x=7 and (basis(st).company<>4 or basis(st).company=3) then c=1 'embargo
+                if player.cargo(b).x>1 and player.cargo(b).x<9 and player.cargo(b).y=0 then c=1 'Stolen
+                if c=1 and rnd_range(1,100)<30-player.equipment(se_CargoShielding)+player.cargo(b).x then
                     d=1
                     if player.cargo(b).y>0 then
-                        dprint "You are informed that there is an import embargo on "& lcase(basis(st).inv(player.cargo(b).x-1).n) &" and that the cargo will be confiscated.",12
+                        dprint "You are informed that there is an import embargo on "& lcase(goodsname(player.cargo(b).x-1)) &" and that the cargo will be confiscated.",12
                     else
-                        dprint "Your cargo of "& basis(st).inv(player.cargo(b).x-1).n &" gets confiscated because it lacks proper documentation.",12
+                        dprint "Your cargo of "& lcase(goodsname(player.cargo(b).x-1)) &" gets confiscated because you lack proper documentation.",12
                     endif
                     player.cargo(b).x=1
                     player.cargo(b).y=0
@@ -1329,18 +1494,20 @@ function spacestation(st as short) as _ship
                 foundsomething+=5
             endif
         endif
-        checkpassenger(st)
-        dprint "Morale change:"&(wage-9-bunk_multi*2)&":"& bunk_multi &":"&(player.h_maxcrew+player.crewpod)*1+player.cryo
+        check_passenger(st)
+        if _debug=1 then dprint "Morale change:"&(wage-9-bunk_multi*2)&":"& bunk_multi &":"&(player.h_maxcrew+player.crewpod)*1+player.cryo
         for b=2 to 128
             if Crew(b).paymod>0 and crew(b).hpmax>0 and crew(b).hp>0 then
                 a=a+Wage*Crew(b).paymod
-                crew(b).morale=crew(b).morale+(Wage-9-bunk_multi*2)+addtalent(1,4,5)
+                crew(b).morale=crew(b).morale+(Wage-9-bunk_multi*2)+add_talent(1,4,5)
                 
             endif
         next
         dprint "You pay your crew "&a &" Cr. in wages"        
         player.money=player.money-a
+        if _debug=1 then dprint "Done"
         player=levelup(player,0)
+        if _debug=1 then dprint "Done"
         if shop_order(st)<>0 and rnd_range(1,100)<33 then
             dprint  "Your ordered "&makeitem(shop_order(st)).desig &" has arrived.",12
             b=rnd_range(1,20)
@@ -1349,8 +1516,11 @@ function spacestation(st as short) as _ship
             shop_order(st)=0
         endif
     endif
+    if _debug=1 then dprint "Done"
     
     ss_sighting(st)
+    if _debug=1 then dprint "Done"
+    
     if basis(st).spy=1 or basis(st).spy=2 then
         if askyn("Do you pay 100 cr. for your informant? (y/n)") then
             player.money=player.money-100
@@ -1366,33 +1536,56 @@ function spacestation(st as short) as _ship
         endif
     endif
     
+    for a=0 to lastfleet
+        if distance(fleet(a).c,basis(st).c)<2 and fleet(a).con(1)=1 and st=fleet(a).con(3) then
+            select case fleet(a).con(2)
+            case is>0
+                dprint "The captain of the merchant convoy thanks you and pays you "& fleet(a).con(2) & " Cr. as promised.",c_gre
+                addmoney(fleet(a).con(2),mt_escorting)
+                if fleet(a).con(4)<0 then fleet(a).con(4)=0
+                fleet(a).con(4)+=1
+                
+            case is<0
+                if askyn("with your fuel costs you actually owe the captain "&abs(fleet(a).con(2)) &"Cr. Do you pay?(y/n)") then
+                    addmoney(fleet(a).con(2),mt_escorting)
+                else
+                    dprint "The captain isn't very pleased."
+                    factionadd(0,fleet(a).ty,1)
+                    fleet(a).con(4)-=1
+                endif
+            case is=0
+                dprint "The captain informs you that your fuelcosts have eaten up your escorting wage."
+            end select
+            fleet(a).con(1)=0
+            fleet(a).con(2)=0
+            fleet(a).con(3)=0
+            
+        endif
+    next
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>600 then
-        b=0
-        for a=1 to 20
-            if makew(a,st)<>0 then 
-                b+=1
-                wsinv(b)=makeweapon(makew(a,st))
-            endif
-        next
+        b=count_and_makeweapons(st)
+        
+        if b<5 and rnd_range(1,100)<15 then 
+            reroll_shops
+            b=count_and_makeweapons(st)
+        endif
     endif
     
-    
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>100 then
-        gainxp(1)
-        player=checkquestcargo(player,st)
+        dprint gainxp(1),c_gre
+        check_questcargo(st)
         'change_prices(st,(player.turn-player.lastvisit.t)\3)
-        questroll=rnd_range(1,100)-10*(crew(1).talents(3))
         for a=0 to 2
             companystats(basis(a).company).rate=0
             for b=0 to 1+(player.turn-player.lastvisit.t)\3
-                companystats(basis(a).company).profit=companystats(basis(a).company).profit+((rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))*companystats(basis(a).company).capital/150)
+                companystats(basis(a).company).profit=companystats(basis(a).company).profit+((rnd_range(1,6) +rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))*companystats(basis(a).company).capital/150)
                 if companystats(basis(a).company).profit>0 then companystats(basis(a).company).rate=companystats(basis(a).company).rate+1
                 if companystats(basis(a).company).profit<0 then companystats(basis(a).company).rate=companystats(basis(a).company).rate-1
             next
-            companystats(basis(a).company).rate=companystats(basis(a).company).rate+(companystats(basis(a).company).capital+companystats(basis(a).company).profit)/10
+            companystats(basis(a).company).rate=companystats(basis(a).company).rate+(companystats(basis(a).company).capital+companystats(basis(a).company).profit)/100
             companystats(basis(a).company).profit=0
-            if companystats(basis(a).company).rate<70 then companystats(basis(a).company).rate=70  
-            if companystats(basis(a).company).rate>500 then companystats(basis(a).company).rate=500  
+            if companystats(basis(a).company).rate<700 then companystats(basis(a).company).rate=700  
+            if companystats(basis(a).company).rate>5000 then companystats(basis(a).company).rate=5000  
         next
         if companystats(basis(st).company).capital<300 then dprint "The spacestation is abuzz with rumors that "&companyname(basis(st).company) &" is in financial difficulties."
         if companystats(basis(st).company).capital<100 then 
@@ -1417,45 +1610,71 @@ function spacestation(st as short) as _ship
         if quarantine>6 then mtext=mtext &"(Quar.)"
         mtext=mtext &"/ Equipment "
         if quarantine>6 then mtext=mtext &"(Quar.)"
-        mtext=mtext &"/ Sickbay / Fuel(" & round_nr((basis(st).inv(9).p/30)*(player.fuelmax+player.fuelpod-player.fuel),2) & "Cr.) & Ammuniton(" & missing_ammo*player.loadout & "Cr.) / "
-        mtext=mtext &"Repair(" &(max_hull(player)-player.hull)*100 & "Cr.) / Hire Crew / Trading "
+        mtext=mtext &"/ Sickbay / Fuel(" & round_str((basis(st).inv(9).p/30)*(player.fuelmax+player.fuelpod-fix(player.fuel)),2) & " Cr, " & (player.fuelmax+player.fuelpod-fix(player.fuel)) & " tons ) & Ammuniton("& missing_ammo*((player.loadout+1)^2) & "Cr.) / "
+        mtext=mtext &"Repair(" &credits(int(max_hull(player)-player.hull)*(basis(st).pricelevel*100*(0.5+0.5*player.armortype))) & "Cr.) / Hire Crew / Trading "
         if quarantine>5 then mtext=mtext &"(Quar.)"
         mtext=mtext &"/ Casino "
         if quarantine>4 then mtext=mtext &"(Quar.)"
         mtext=mtext &"/ Retirement"
         mtext=mtext &"/Leave station"
         display_ship()
-        a=menu(mtext,,,,,1)
+        bg_parent=bg_shiptxt
+        a=menu(bg_shiptxt,mtext,,,,,1)
         if a=1 then 
             if quarantine<8 then
-                company(st,questroll)
+                company(st)
             else
-                dprint "you are under quarantine and not allowed to enter there"
+                dprint "You are under quarantine and not allowed to enter there"
             endif
         endif
         if a=2 then'refit
             if quarantine<9 then
                 do
+                    set__color(11,0)
                     cls
+                    sn=shopname(basis(st).shop(sh_equipment))
+                    usedshop=99
+                    muddsshop=99
+                    botsshop=99
                     display_ship()
-                    b=menu("Refit/Hull/Ships Upgrades & Weapons/Personal Equipment/Exit")
-                    if b=1 then shipyard()            
+                    mtext="Refit/"&shipyardname(basis(st).shop(sh_shipyard))
+                    mtext=mtext &"/"& moduleshopname(basis(st).shop(sh_modules)) &"/" &sn
+                    if basis(st).shop(sh_used)=1 then 
+                        mtext=mtext & "/Used Ships"
+                        usedshop=4
+                    endif
+                    if basis(st).shop(sh_mudds)=1 then 
+                        mtext=mtext & "/Mudds Incredible Bargains"
+                        muddsshop=4+basis(st).shop(sh_used)
+                    endif
+                    if basis(st).shop(sh_bots)=1 then 
+                        mtext=mtext & "/The Bot-bin"
+                        botsshop=4+basis(st).shop(sh_mudds)+basis(st).shop(sh_used)
+                    endif
+                    mtext &= "/Exit"
+                    
+                    b=menu(bg_ship,mtext)
+                    if b=1 then shipyard(basis(st).shop(sh_shipyard))            
                     if b=2 then shipupgrades(st)
                     'if b= then towingmodules
                     if b=3 then 'awayteam equipment
                         do
-                            c=shop(st,1,"Equipment")
+                            c=shop(st,basis(st).pricelevel,sn)
                             display_ship
                         loop until c=-1
+                        set__color(11,0)
                         cls
                     endif
-                loop until b=4
+                    if basis(st).shop(sh_used)=1 and b=usedshop then used_ships
+                    if basis(st).shop(sh_mudds)=1 and b=muddsshop then mudds_shop
+                    if basis(st).shop(sh_bots)=1 and b=botsshop then botsanddrones_shop
+                loop until b=4+basis(st).shop(sh_mudds)+basis(st).shop(sh_bots)+basis(st).shop(sh_used) or b=-1
             else
                 dprint "you are under quarantine and not allowed to enter there"
             endif
         endif
         if a=3 then 
-            player.disease=sickbay()
+            player.disease=sick_bay(,basis(st).company)
             mtext="Station "& st+1 &"/ "
             mtext=mtext & basis(st).repname &" Office "
             if quarantine>6 then mtext=mtext &"(Quar.)"
@@ -1468,7 +1687,7 @@ function spacestation(st as short) as _ship
             mtext=mtext &"/Exit"            
         endif
         if a=4 then refuel(st,round_nr(basis(st).inv(9).p/30,2))
-        if a=5 then repairhull()            
+        if a=5 then repair_hull(basis(st).pricelevel)            
         if a=6 then hiring(st,hiringpool,4)            
         if a=7 then 
             if quarantine<7 then
@@ -1509,6 +1728,7 @@ function spacestation(st as short) as _ship
             endif
         endif
     loop until a=10
+    set__color(11,0)
     cls
     player.lastvisit.s=st
     player.lastvisit.t=player.turn
@@ -1552,8 +1772,10 @@ function move_ship(key as string) as _ship
     if player.c.x>sm_x then player.c.x=sm_x
     if player.c.y>sm_y then player.c.y=sm_y
     if player.c.x<>old.x or player.c.y<>old.y then 
-        if player.towed<>0 then player.fuel-=1
-        if player.towed<>0 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<9 then player.fuel-=1
+        if player.towed<>0 then
+            player.fuel-=1
+            if not(skill_test(player.pilot(0),st_average,"Pilot")) then player.fuel-=1
+        endif
         if spacemap(player.c.x,player.c.y)=-2 then spacemap(player.c.x,player.c.y)=2
         if spacemap(player.c.x,player.c.y)=-3 then spacemap(player.c.x,player.c.y)=3
         if spacemap(player.c.x,player.c.y)=-4 then spacemap(player.c.x,player.c.y)=4
@@ -1561,13 +1783,14 @@ function move_ship(key as string) as _ship
         if spacemap(player.c.x,player.c.y)=-6 then spacemap(player.c.x,player.c.y)=6
         if spacemap(player.c.x,player.c.y)=-7 then spacemap(player.c.x,player.c.y)=7
         if spacemap(player.c.x,player.c.y)=-8 then spacemap(player.c.x,player.c.y)=8
-        if spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 and _warnings=0 then        
+        if (spacemap(old.x,old.y)<2 or spacemap(old.x,old.y)>5) and spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 and configflag(con_warnings)=0 then        
             if not(askyn("Do you really want to enter the gascloud?(y/n)")) then player.c=old
         endif
         if spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 then        
             player.towed=0
-            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>6+spacemap(player.c.x,player.c.y) then
+            if skill_test(player.pilot(0),st_average+spacemap(player.c.x,player.c.y),"Pilot:") then
                 dprint "You succesfully navigate the gascloud",10
+                dprint gainxp(2),c_gre
                 if hydrogenscoop=0 then player.fuel=player.fuel-rnd_range(1,3)
                 fuelcollect+=spacemap(player.c.x,player.c.y)*hydrogenscoop
                 if fuelcollect>5 then
@@ -1577,9 +1800,9 @@ function move_ship(key as string) as _ship
                 endif
             else
                 dam=rnd_range(0,3)+spacemap(player.c.x,player.c.y)
-                if dam>player.shield then
-                    dam=dam-player.shield
-                    dprint "Your Ship is damaged("&dam &")",12
+                if dam>player.shieldside(rnd_range(0,7)) then
+                    dam=dam-player.shieldside(rnd_range(0,7))
+                    dprint "Your Ship is damaged ("&dam &").",12
                     player.hull=player.hull-dam
                     player.fuel=player.fuel-rnd_range(1,5)
                     if player.hull<=0 then player.dead=12
@@ -1602,14 +1825,14 @@ function move_ship(key as string) as _ship
             if (spacemap(player.c.x,player.c.y)>=8 and spacemap(player.c.x,player.c.y)<=10) or (spacemap(player.c.x,player.c.y)>=18 and spacemap(player.c.x,player.c.y)<=20) then
                 if rnd_range(1,100)<15 then
                     dam=rnd_range(0,3)
-                    if dam>player.shield then
+                    if dam>player.shieldside(rnd_range(0,7)) then
                         dam=1
-                        dprint "Your Ship is damaged("&dam &")",12
+                        dprint "Your Ship is damaged ("&dam &").",12
                         player.hull=player.hull-dam
                         player.fuel=player.fuel-rnd_range(1,5)
                         if player.hull<=0 then player.dead=30
                     else
-                        if player.shield>0 then dprint "Your shields are hit, but hold",10
+                        if player.shieldmax>0 then dprint "Your shields are hit, but hold",10
                     endif
                 endif
             endif
@@ -1643,9 +1866,9 @@ function move_ship(key as string) as _ship
                         dprint "Your sensors are damaged."
                         player.sensors-=1
                     case is=7
-                        if player.shield>0 then
-                            dprint "Your shields are damaged."
-                            player.shield-=1
+                        if player.shieldmax>0 then
+                            dprint "Your shieldgenerator is damaged."
+                            player.shieldmax-=1
                         endif
                     case is=8
                         dprint "Time itself seems to speed up"
@@ -1660,12 +1883,12 @@ function move_ship(key as string) as _ship
                             player.c=movepoint(player.c,player.di,,1)
                         next
                     case is=11
-                        if rnd_range(1,100)+player.pilot(0)<10+spacemap(player.c.x,player.c.y) then 
+                        if rnd_range(1,100)<10+spacemap(player.c.x,player.c.y) then 
                             player.c=map(rnd_range(laststar+1,laststar+wormhole)).c
                             dam=rnd_range(1,6)
-                            if dam>player.shield then
+                            if dam>player.shieldmax then
                                 dam=1
-                                dprint "your Ship is damaged("&dam &")",12
+                                dprint "your Ship is damaged ("&dam &").",12
                                 player.hull=player.hull-dam
                                 player.fuel=player.fuel-rnd_range(1,5)
                                 if player.hull<=0 then player.dead=30
@@ -1696,60 +1919,16 @@ function move_ship(key as string) as _ship
                     
                 endif
             endif
-'            player.turn=player.turn-rnd_range(1,6)+rnd_range(1,6)
-'            player.energy=player.energy-rnd_range(1,6)+rnd_range(1,6)
-'            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>7 then
-'                if spacemap(player.c.x,player.c.y)=6 then player.fuel=player.fuel-1
-'                if spacemap(player.c.x,player.c.y)=7 then player.fuel=player.fuel-1.5
-'                if spacemap(player.c.x,player.c.y)=8 then player.fuel=player.fuel-.3
-'                if spacemap(player.c.x,player.c.y)>8 then 
-'                    if a=spacemap(player.c.x,player.c.y)-8 then
-'                        player.fuel=player.fuel-.3
-'                    else
-'                        player.fuel=player.fuel-2.5
-'                    endif
-'                    if rnd_range(1,20)>player.engine then
-'                        player.c=movepoint(player.c,a)
-'                        dprint "Your ship is swept away in a gravitational current!",14
-'                    endif
-'                endif
-'                old=player.c
-'                dprint "You succesfully navigate the anomaly",10
-'            else
-'                dam=rnd_range(0,3)
-'                if dam>player.shield then
-'                    dam=1
-'                    dprint "Your Ship is damaged",12
-'                    player.hull=player.hull-dam
-'                    player.fuel=player.fuel-rnd_range(1,5)
-'                    if player.hull<=0 then player.dead=30
-'                else
-'                    dprint "Your shields are hit, but hold",10
-'                endif
-'            endif
-'            if rnd_range(1,100)+player.pilot(0)<10+spacemap(player.c.x,player.c.y) then 
-'                player.c=movepoint(player.c,5,,1)
-'                if rnd_range(1,100)+player.pilot(0)<10+spacemap(player.c.x,player.c.y) then 
-'                    player.c=map(rnd_range(laststar+1,laststar+wormhole)).c
-'                    dam=rnd_range(1,6)
-'                    if dam>player.shield then
-'                        dam=1
-'                        dprint "your Ship is damaged",12
-'                        player.hull=player.hull-dam
-'                        player.fuel=player.fuel-rnd_range(1,5)
-'                        if player.hull<=0 then player.dead=30
-'                    endif
-'                endif
-'            endif
         endif
         if player.towed>0 then
             drifting(player.towed).x=player.c.x
             drifting(player.towed).y=player.c.y
         endif
     endif
-    if (player.c.x<>old.x or player.c.y<>old.y) and (player.c.x+player.osx<>30 or player.c.y+player.osy<>10) then 
+    if (player.c.x<>old.x or player.c.y<>old.y) then' and (player.c.x+player.osx<>30 or player.c.y+player.osy<>10) then 
         if spacemap(player.c.x,player.c.y)<=5 then player.fuel=player.fuel-player.fueluse
         player.energy+=10
+        if player.cursed>0 and rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) and player.turn mod(50-player.cursed)=0 then player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
     else
         walking=0
     endif
@@ -1757,623 +1936,645 @@ function move_ship(key as string) as _ship
 end function
 
 function explore_space() as short
-    dim as short a,b,d,c,f,fl,pl,x1,y1,x2,y2,lturn,debug
+    dim as short a,b,d,c,f,fl,pl,x1,y1,x2,y2,lturn,debug,osx,osy
     dim as string key,text,allowed
     dim as _cords p1,p2
     dim as short planetcom,driftercom,fleetcom,wormcom
     lturn=0
-    
-    do
-        if debug=8 then dprint "Lastfleet:"&lastfleet
-    lturn+=1
-    if lturn>=5 then
-        player.turn+=1
-        lturn=0
-    endif
-    if show_specials<>0 then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
-    if player.energy<=0 and player.dead=0 then
-        fl=0
-        allowed=key_awayteam & key_ra & key_probe &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
-        allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
-        if debug=11 then allowed=allowed &"ü"
-        for a=0 to 2
-            if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
-                dprint "You are at Spacestation-"& a+1 &". Press "&key_dock &" to dock."
-                allowed=allowed & key_fi
-                if walking<10 then walking=0
-                driftercom=1
+    debug=11
+    if debug=11 and _debug=1 then dprint basis(0).shop(sh_equipment) &":"& basis(1).shop(sh_equipment) &":"& basis(2).shop(sh_equipment)  
+    for a=0 to lastitem
+        for b=0 to lastitem
+            if b<>a then
+                if item(a).id=item(b).id and item(a).ty<>item(b).ty then dprint item(a).desig &";" &item(b).desig
             endif
         next
-        
-        for a=1 to lastfleet
-            if distance(player.c,fleet(a).c)<1.5 then 
-                fl=meet_fleet(a)
-                fleetcom=1
-                exit for
-            endif
-        next    
-        for a=0 to laststar
-            if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
-                planetcom=a+1
-                dPrint "A "&spectralname(map(a).spec)& ". Press "&key_sc &" to scan, "&key_la &" to land, " &key_tala &" to land at a specific spot."
-                if a=piratebase(0) then dprint "Lots of traffic in this system"
-                map(a).discovered=2
-                display_system(a)
-                if walking<10 then walking=0
-            endif
-        next
-        for a=laststar+1 to laststar+wormhole
-            if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
-                dprint "A wormhole. Press "&key_la &" to enter it."
-                wormcom=1
-                if walking<10 then walking=0
-            endif
-        next
+    next
+    for a=1 to 25
+        if player.weapons(a).heat>0 then player.weapons(a).heat=0
+    next
+    if _debug=11 then
         for a=1 to lastdrifting
-            if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 and player.towed<>a then
-                if player.tractor>0 and a>3 then dprint "A "&shiptypes(drifting(a).s)&" is drifting in space here. "&key_dock &" to dock. "&key_tow &" to tow."
-                if player.tractor=0 then dprint "A "&shiptypes(drifting(a).s)&" is drifting in space here. "&key_dock &" to dock."
-                drifting(a).p=1
-                driftercom=1
-                if walking<10 then walking=0
-            endif
+            drifting(a).p=1
         next
-        if fl>0 or _testspacecombat=1 then
-            if fleet(fl).ty=1 and fl>5 then dprint "There is a merchant convoy in sensor range, hailing us. press "&key_fi &" to attack," &key_ra & " to call by radio."
-            if fleet(fl).ty=2 then dprint "There is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
-            if fleet(fl).ty=3 then dprint "There is a company anti pirate patrol in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
-            if fleet(fl).ty=4 then dprint "There is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
-            if fleet(fl).ty=6 then
-                if civ(0).contact=0 then
-                    dprint civfleetdescription(fleet(fl)) &" hailing us. Press "& key_fi &"to attack, " &key_ra & " to call by radio."
-                else
-                    dprint "A "&civ(0).n &" fleet, hailing us. Press "& key_fi &"to attack, " &key_ra & " to call by radio."
-                endif        
-            endif
-            allowed=allowed+key_fi
-            fleetcom=1
+    endif
+    screenset 0,1
+    cls
+    bg_parent=bg_shipstarstxt
+    display_stars(1)
+    display_ship
+    flip
+    screenset 0,1
+    cls
+    bg_parent=bg_shipstarstxt
+    display_stars(1)
+    display_ship
+    flip
+    screenset 0,1
+    if debug=10 and _debug=1 then dprint spdescr(7)
+    do
+        if debug=8 and _debug=1 then dprint "Lastfleet:"&lastfleet
+        lturn+=1
+        if lturn>=5 then
+            player.turn+=1
+            lturn=0
         endif
-        
-        comstr=key_ra &" call by radio;"&key_probe &" launch probe;"&key_comment &" comment;" 
-        if planetcom>0 then comstr=comstr & key_sc &" scan;"& key_la &" land;"& key_tala &" target land;"
-        if fleetcom=1 then comstr=comstr &key_fi &" attack;"
-        if driftercom=1 then comstr=comstr &key_dock &" dock;"&key_tow &" traktor beam;"
-        if wormcom=1 then comstr=comstr &key_la &" enter wormhole"
-        
-        display_ship(1)
-        if planetcom>0 then display_system(planetcom-1)
-        key=keyin(allowed,walking)
-        player=move_ship(key)
-        
-        planetcom=0
-        fleetcom=0
-        driftercom=0
-        wormcom=0
-        comstr=key_ra &" call by radio;"&key_probe &" launch probe;"&key_comment &" comment;" 
-        
-        
-        if debug=11 and key="ü" then
-            dprint fleet(1).mem(1).hull &":"&fleet(2).mem(1).hull &":"&fleet(3).mem(1).hull 
-            lastfleet=8
-            fleet(6)=makealienfleet
-            fleet(6).c=basis(0).c
-            fleet(7)=makealienfleet
-            fleet(7).c=basis(1).c
-            fleet(8)=makealienfleet
-            fleet(8).c=basis(2).c
-        endif
-            
-        if key=key_fi then
+        if show_specials<>0 then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
+        if player.energy<=0 and player.dead=0 then
+            fl=0
+            allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
+            allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
+            if debug=11 and _debug=1 then allowed=allowed &"ü"
             for a=0 to 2
                 if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
-                    if askyn( "Do you really want to attack Spacestation-"& a+1 &")(y/n)") then
-                        factionadd(0,fleet(a+1).ty,20)
-                
-                        playerfightfleet(a+1)
-                        if player.dead=0 then
-                            if fleet(a+1).mem(1).hull<=0 then
-                                dprint "Station "&a+1 &" has been destroyed"
-                                basis(a+1).c.x=-1
-                                fleet(a+1).c.x=-1
-                            endif
-                        endif
-                    endif
+                    dprint "You are at Spacestation-"& a+1 &". Press "&key_dock &" to dock."
+                    allowed=allowed & key_fi
+                    if walking<10 then walking=0
+                    driftercom=1
                 endif
-            next
-            if _testspacecombat=1 then fl=rnd_range(4,lastfleet)
-            if fl>0 then 
-                factionadd(0,fleet(fl).ty,20)
-                
-                playerfightfleet(fl)
-            endif
-        endif
+            next 
             
-        if key=key_walk then
-            key=keyin
-            walking=getdirection(key)
-        endif
-        
-        if key=key_ra then space_radio
-        
-        if key=key_probe then launch_probe
-        
-        if key=key_la or key=key_tala or key=key_sc then
-            pl=-1
+            for a=1 to lastfleet
+                if distance(player.c,fleet(a).c)<1.5 then 
+                    fl=meet_fleet(a)
+                    fleetcom=1
+                    exit for
+                endif
+            next    
             for a=0 to laststar
-                if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
-            next
-            
-            if pl>-1 then
-                if key=key_la or key=key_tala then 
-                    a=getplanet(pl)
-                    if a>0 then
-                        b=map(pl).planets(a)
-                        if isgasgiant(b)=0 and b>0 then
-                            if key=key_la then landing(map(pl).planets(a))
-                            if key=key_tala then targetlanding(map(pl).planets(a))
-                        else
-                            if isgasgiant(b)=0 then
-                                dprint"You don't find anything big enough to land on"
-                            else
-                                gasgiantfueling(b,a,pl)
-                            endif
-                        endif
-                    endif
-                endif    
-                if key=key_sc then scanning()
-                key=""
-            endif
-            pl=-1
-            
-            if abs(spacemap(player.c.x,player.c.y))>=6 and abs(spacemap(player.c.x,player.c.y))<=10 then
-                if askyn("Do you want to scan the anomaly?(y/n)") then
-                    if rnd_range(1,6)+rnd_range(1,6)+player.science(0)>=3+abs(spacemap(player.c.x,player.c.y)) then 
-                        gainxp(4)
-                        ano_money+=1
-                        spacemap(player.c.x,player.c.y)=abs(spacemap(player.c.x,player.c.y))+10
-                        select case spacemap(player.c.x,player.c.y)
-                        case is=16
-                            dprint "This anomaly shortens space."
-                        case is=17
-                            dprint "This anomaly lengthens space."
-                        case is=18
-                            dprint "This anomaly shortnes space, and can damage a ship."
-                        case is=19
-                            dprint "This anomaly lengthens space, and can damage a ship."
-                        case is=20
-                            dprint "This anomaly can damage a ship and is highly unpredictable."
-                        end select
-                    else
-                        dprint "You are unable to identify the anomaly.",c_yel
-                    endif
+                if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
+                    planetcom=a+1
+                    dPrint add_a_or_an(spectralname(map(a).spec),1)&"." & system_text(a) & ". Press "&key_sc &" to scan, "&key_la &" to land, " &key_tala &" to land at a specific spot."
+                    if a=piratebase(0) then dprint "Lots of traffic in this system"
+                    map(a).discovered=2
+                    display_system(a)
+                    if walking<10 then walking=0
                 endif
-            endif
-                    
-            
+            next
             for a=laststar+1 to laststar+wormhole
-                if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
-            next
-            if pl>1 and key=key_la and _warnings=0 then
-                if askyn("Travelling through wormholes can be dangerous. Do you really want to?(y/n)")=0 then pl=0 
-            endif
-            if pl>1 and key=key_la and rnd_range(1,100)<whtravelled then
-                dprint "There is a planet orbiting the wormhole!"
-                if askyn("Shall we try to land on it? (y/n)") then
-                    if whplanet=0 then makewhplanet
-                    pl=0
-                    landing(whplanet)
-                endif
-                whtravelled=101
-            endif
-            if pl>1 and key=key_la then
-                player.towed=0
-                if map(pl).planets(2)=0 and whtravelled<101 then whtravelled+=1
-                map(pl).planets(2)=1
-                if artflag(16)=0 then
-                    b=map(pl).planets(1)
-                else
-                    dprint "Wormhole navigation system engaged!(+/- to choose wormhole, "&key_la &" to select)",10
-                    for c=laststar+1 to laststar+wormhole
-                        map(c).discovered=1
-                    next
-                    do
-                        player.osx=map(pl).c.x-30
-                        player.osy=map(pl).c.y-10
-                        if player.osx<=0 then player.osx=0
-                        if player.osy<=0 then player.osy=0
-                        if player.osx>=sm_x-60 then player.osx=sm_x-60
-                        if player.osy>=sm_y-20 then player.osy=sm_y-20
-                        display_ship
-                        show_stars(2)
-                        
-                            
-                        locate map(pl).c.y+1-player.osy,map(pl).c.x+1-player.osx
-                        set__color( 0,11)
-                        draw_string((map(pl).c.x-player.osx)*_fw1,(map(pl).c.y-player.osy)*_fh1, "o",font1,_col)
-                        if player.c.x-player.osx>=0 and player.c.x-player.osx<=60 and player.c.y-player.osy>=0 and .y-player.osy<=20 then
-                            set__color( _shipcolor,0)
-                            draw_string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1,"@",font1,_col)
-                        endif
-                        d=int(distance(player.c,map(pl).c))
-                        dprint "Wormhole at "&map(pl).c.x &":"& map(pl).c.y &". Distance "&d &" Parsec."
-                        key=keyin
-                        if keyplus(key) then pl=pl-1
-                        if keyminus(key) then pl=pl+1
-                        if pl<laststar+1 then pl=laststar+wormhole
-                        if pl>laststar+wormhole then pl=laststar+1
-                        set__color( 11,0)
-                        cls 
-                    loop until key=key__enter or key=key_la
-                    b=pl
-                endif
-                if map(b).planets(2)=0 then
-                    ano_money+=cint(distance(map(b).c,player.c)*25)
-                endif
-                map(b).planets(2)=1
-                dprint "you travel through the wormhole",10
-                #ifdef _FMODSOUND
-                if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
-                #endif
-                player.osx=player.c.x-30
-                player.osy=player.c.y-10
-                if player.osx<=0 then player.osx=0
-                if player.osy<=0 then player.osy=0
-                if player.osx>=sm_x-60 then player.osx=sm_x-60
-                if player.osy>=sm_y-20 then player.osy=sm_y-20
-                d=0
-                if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)<8+int(distance(player.c,map(b).c)/3) and artflag(13)=0 then d=rnd_range(1,3)
-                player.hull=player.hull-d
-                if player.hull>0 then
-                    wormhole_ani(map(b).c)
-                    if d>0 then dprint "Your ship is damaged ("&d &").",14
-                    display_ship(1)
-                    show_stars(1)
-                    dprint ""
-                else
-                    player.dead=24
-                endif
-            endif
-        endif
-        
-        if key=key_dock then
-            for a=0 to 3
-                if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
-                    if stationroll=0 or player.lastvisit.s<>a then stationroll=rnd_range(1,20)
-                    if faction(0).war(1)+stationroll<100 then
-                        b=rnd_range(1,4)
-                        if faction(0).war(1)>80 then
-                            dprint "You have to beg to get a docking permission, exagerating the sorry state of your ship quite a bit in the process!",14
-                            b=15
-                        endif
-                        if faction(0).war(1)>33 then
-                            if b=1 then dprint "After an unusually long waiting period you get your permission to dock.",14
-                            if b=2 then dprint "The Station commander questions you extensively about your activities before allowing you to dock.",14
-                        endif
-                        if faction(0).war(1)>66 then
-                            if b=1 then dprint "After you dock you overhear a dock worker remark 'I didn't know we were allowing known pirates on the base.' He looks at you fully aware that you heard him.",14
-                            if b=2 then dprint "A patrol boat captain bumps into you snarling 'Pirate scum. Wait till i meet you in space!'",14
-                        endif
-                        player=spacestation(a)
-                        key=""
-                        if _autosave=0 and player.dead=0 then 
-                            screenset 1,1
-                            dprint "Saving game",15
-                            savegame()
-                        endif
-                        set__color( 11,0)
-                        c=0
-                        d=0
-                        for b=0 to 10
-                            if player.cargo(b).x>1 and player.cargo(b).x<7 then
-                                c=c+basis(a).inv(player.cargo(b).x-1).p
-                            endif
-                        next
-                        c=c\15
-                        'dprint "pirate chance:" &c
-                        if c>66 then c=66
-                        ' Pirate agression test
-                        for b=0 to 10
-                            if player.cargo(b).x=7 then 
-                                c=101
-                                d=1
-                            endif
-                        next
-                        if basis(a).spy=1 then c=0
-                        for b=3 to lastfleet
-                            if fleet(b).ty=2 and rnd_range(1,100)<c then
-                                fleet(b).t=8
-                                d=1
-                            else
-                                fleet(b).t=9
-                            endif
-                        next
-                        'see if pirates notice
-                        if d=1 then 
-                            dprint "As you load your Cargo you notice a worker taking notes. When you want to question him he is gone."
-                            no_key=keyin
-                        endif
-                        if player.money<0 and player.dead=0 then
-                            if rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>12 then
-                                dprint "As you leave the docking bay you get a message from the station commander to return to 'solve some financial issues' first. Your pilot grins and heads for the docking bay doors, exceeding savety limits. The doors slam close right behind your ship. As you speed into space you get a radio message from the commander. He calmly explains that there *will* be a fee for that next time you dock."
-                                player.money=player.money-100
-                                faction(0).war(2)-=1
-                                faction(0).war(1)+=1
-                            else
-                                player.dead=2
-                            endif
-                        endif
-                    else
-                        dprint "The station commander closes the bay doors and fires upon you!",12
-                        player.hull=player.hull-rnd_range(1,6)
-                        if player.hull<=0 then player.dead=18
-                        no_key=keyin
-                    endif
+                if player.c.x=map(a).c.x and player.c.y=map(a).c.y then
+                    dprint "A wormhole. Press "&key_la &" to enter it."
+                    wormcom=1
+                    if walking<10 then walking=0
                 endif
             next
-            screenset 1,1
-            show_stars(1)
-        endif
-        
-        if key=key_dock then
             for a=1 to lastdrifting
-                if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 then driftingship(a)
+                if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 and player.towed<>a then
+                    if player.tractor>0 and a>3 then 
+                        dprint add_a_or_an(shiptypes(drifting(a).s),1)&" is drifting in space here. "&key_dock &" to dock, "&key_tow &" to tow."
+                    endif
+                    if player.tractor=0 then 
+                        dprint add_a_or_an(shiptypes(drifting(a).s),1)&" is drifting in space here. "&key_dock &" to dock."
+                    endif
+                    drifting(a).p=1
+                    driftercom=1
+                    if walking<10 then walking=0
+                endif
             next
-        endif
-        
-        if key=key_tow then
-            if player.towed=0 then
-                for a=4 to lastdrifting
-                    if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 then 
-                        if player.tractor>0 then
-                            player.towed=a
-                            dprint "You tow the other ship."
+            if fl>0 or _testspacecombat=1 then
+                if fleet(fl).ty=1 and fl>5 then
+                    if player.turn mod 10=0 then
+                        if fleet(fl).con(1)=0 then
+                            dprint "There is a merchant convoy in sensor range, hailing us. press "&key_fi &" to attack," &key_ra & " to call by radio."
                         else
-                            dprint "You have no tractor beam.",14
+                            dprint "This is merchant convoy "&fl &". reporting no incidents."
+                        endif
+                    endif
+                endif 
+                if fleet(fl).ty=2 then dprint "There is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
+                if fleet(fl).ty=3 then dprint "There is a company anti pirate patrol in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
+                if fleet(fl).ty=4 then dprint "There is a pirate fleet in sensor range, hailing us. press "&key_fi &" to attack, " &key_ra & " to call by radio."
+                if fleet(fl).ty=6 then
+                    if civ(0).contact=0 then
+                        dprint civfleetdescription(fleet(fl)) &" hailing us. Press "& key_fi &"to attack, " &key_ra & " to call by radio."
+                    else
+                        dprint add_a_or_an(civ(0).n,1) &" fleet, hailing us. Press "& key_fi &"to attack, " &key_ra & " to call by radio."
+                    endif        
+                endif
+                allowed=allowed+key_fi
+                fleetcom=1
+            endif
+            
+            comstr=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
+            if planetcom>0 then comstr=comstr & key_sc &" scan;"& key_la &" land;"& key_tala &" target land;"
+            if fleetcom=1 then comstr=comstr &key_fi &" attack;"
+            if driftercom=1 then comstr=comstr &key_dock &" dock;"
+            if wormcom=1 then comstr=comstr &key_la &" enter wormhole"
+            
+            display_ship(1)
+            if planetcom>0 then display_system(planetcom-1)
+            
+            flip
+            'screenset 1,1
+            key=keyin(allowed,walking)
+            player=move_ship(key)
+            
+            planetcom=0
+            fleetcom=0
+            driftercom=0
+            wormcom=0
+            comstr=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
+            
+            
+            if debug=11 and _debug=1 and key="ü" then
+                dprint fleet(1).mem(1).hull &":"&fleet(2).mem(1).hull &":"&fleet(3).mem(1).hull 
+                lastfleet=8
+                fleet(6)=makealienfleet
+                fleet(6).c=basis(0).c
+                fleet(7)=makealienfleet
+                fleet(7).c=basis(1).c
+                fleet(8)=makealienfleet
+                fleet(8).c=basis(2).c
+            endif
+                
+            if key=key_fi then
+                for a=0 to 2
+                    if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
+                        if askyn( "Do you really want to attack Spacestation-"& a+1 &")(y/n)") then
+                            fl=0
+                            factionadd(0,fleet(a+1).ty,20)
+                            playerfightfleet(a+1)
+                            if player.dead=0 then
+                                if fleet(a+1).mem(1).hull<=0 then
+                                    dprint "Station "&a+1 &" has been destroyed"
+                                    basis(a).c.x=-1
+                                    fleet(a).c.x=-1
+                                endif
+                            endif
+                        else
+                            fl=0
                         endif
                     endif
                 next
-            else
-                player.towed=0
-                dprint "You release the other ship."
-            endif
-        endif
-        
-        if key=key_awayteam then
-            screenshot(1)
-            showteam(0)
-            screenshot(2)
-        endif
-        
-        
-        screenset 0,1
-        
-        cls
-                
-        show_stars(1)
-        display_ship(1)
-        dprint ""
-        
-        flip
-        screenset 1,1
-        
-    else
-        player.energy-=player.movepoints(0)
-    endif
-    clearfleetlist
-    
-    if lturn=0 then
-        if frac(player.turn/10)=0 then 
-            lastfleet=lastfleet+1
-            if lastfleet>255 then lastfleet=3
-            fleet(lastfleet)=makefleet(fleet(lastfleet))
-            for a=0 to 2
-                change_prices(a,10)
-            next
-        endif
-        
-        if frac(player.turn/25)=0 then 
-            
-            lastfleet=lastfleet+1
-            if lastfleet>255 then lastfleet=6
-            fleet(lastfleet)=makecivfleet(0)
-            if show_npcs=3 then dprint ""&fleet(lastfleet).ty
-            lastfleet=lastfleet+1
-            if lastfleet>255 then lastfleet=6
-            fleet(lastfleet)=makecivfleet(1)
-            if show_npcs=3 then dprint ""&fleet(lastfleet).ty
-        endif
-        
-        if frac(player.turn/100)=0 and player.turn>5000 and player.questflag(3)=0 then 
-            lastfleet=lastfleet+1
-            if lastfleet>255 then lastfleet=6
-            fleet(lastfleet)=makealienfleet
-            
-        endif
-        if player.turn mod 100=0 then
-            for a=1 to lastquestguy
-                if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
-                if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
-            next
-        endif
-        move_fleets()
-        collide_fleets()
-        move_probes()
-        
-        for a=0 to 2
-            if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
-        next
-        
-        diseaserun(0)
-        if frac(player.turn/5)=0 then cureawayteam(1) 
-        if frac(player.turn/250)=0 then 
-            rerollshops
-        endif
-    endif
-    
-    if player.hull<=0 and player.dead=0 then player.dead=18
-    if player.fuel<=0 and player.dead=0 then rescue()
-    
-    if key=key_save then
-        if askyn("Do you really want to save the game? (y/n)") then player.dead=savegame()
-    endif
-    if key=key_rename then
-        if askyn("Do you want to rename your ship? (y/n)") then
-            set__color( 15,0)
-            draw_string(63*_fw1,0, space(16),font2,_col)
-            key=gettext(63*_fw1/_fw2,0,32,"")
-            if key<>"" then player.desig=key
-            set__color( 11,0)
-            player.turn=player.turn-1
-        endif
-    endif
-    
-    if key=key_comment then 'Name or comment on map
-        dim as short osx
-        osx=p2.x-_mwx/2
-        if osx<0 then osx=0
-        if osx>=60-_mwx then osx=60-_mwx
-    
-        p2.x=player.c.x-player.osx
-        p2.y=player.c.y-player.osy
-        do
-            key=cursor(p2,0,osx)
-            show_stars(1)
-            display_ship(1)
-        loop until key=key__esc or key=key__enter or (asc(ucase(key))>64 and asc(key)<132)
-        set__color( 11,0)
-        
-        b=0
-        if key<>key__esc then
-            for a=1 to lastcom
-                if p2.y=coms(a).c.y-player.osy then
-                    if p2.x>=coms(a).c.x-player.osx and p2.x<=coms(a).c.x-player.osx+coms(a).l then
-                            key=trim(coms(a).t)
-                            b=a
-                            p2.x=coms(a).c.x
-                            p2.y=coms(a).c.y
-                    endif
-                 endif
-            next
-            locate p2.y+1,p2.x+1
-            text=gettext(p2.x*_fw1/_fw2,p2.y*_fh1/_fh2,16,key)
-            text=trim(text)
-            cls
-            show_stars(1)
-            display_ship(1)
-            if b=0 then
-                lastcom=lastcom+1
-                b=lastcom
-            endif
-            if p2.x+player.osx+len(text)>sm_x then p2.x=sm_x-len(text)
-            coms(b).c.x=p2.x+player.osx
-            coms(b).c.y=p2.y+player.osy
-            coms(b).t=text
-            coms(b).l=len(text)
-            dprint " "& b
-        endif
-        b=0
-        for a=1 to lastcom
-            if coms(a).t="" then
-                coms(a)=coms(a+1)
-            else
-                b=b+1
-            endif
-        next
-        cls
-        lastcom=b
-        show_stars(1)
-        display_ship(1)
-    endif 
-    
-    
-    if player.turn mod 10 =0 then clean_station_event
-    
-    if frac(player.turn/500)=0 then 
-        for a=0 to 2
-            colonize_planet(a)
-        next
-        grow_colonies
-    endif
-    
-    for a=0 to laststar
-        if map(a).planets(1)>0 then
-            if planets(map(a).planets(1)).flags(27)=2 then 
-                planets(map(a).planets(1)).death-=1 
-                if planets(map(a).planets(1)).death<=0 then
-                    map(a).planets(1)=0
+                if _testspacecombat=1 then fl=rnd_range(4,lastfleet)
+                if fl>0 then 
+                    factionadd(0,fleet(fl).ty,20)
+                    
+                    playerfightfleet(fl)
                 endif
             endif
+                
+            if key=key_walk then
+                key=keyin
+                walking=getdirection(key)
+            endif
+            
+            if key=key_ra then space_radio
+            
+            if key=key_drop then launch_probe
+            
+            if key=key_la or key=key_tala or key=key_sc then
+                pl=-1
+                for a=0 to laststar
+                    if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
+                next
+                
+                if pl>-1 then
+                    if key=key_la or key=key_tala then 
+                        a=getplanet(pl)
+                        if a>0 then
+                            b=map(pl).planets(a)
+                            if isgasgiant(b)=0 and b>0 then
+                                if key=key_la then landing(map(pl).planets(a))
+                                if key=key_tala then target_landing(map(pl).planets(a))
+                            else
+                                if isgasgiant(b)=0 then
+                                    dprint"You don't find anything big enough to land on"
+                                else
+                                    gasgiant_fueling(b,a,pl)
+                                endif
+                            endif
+                        endif
+                    endif    
+                    if key=key_sc then scanning()
+                    key=""
+                endif
+                pl=-1
+                
+                if key=key_sc and abs(spacemap(player.c.x,player.c.y))>=6 and abs(spacemap(player.c.x,player.c.y))<=10 then
+                    if askyn("Do you want to scan the anomaly?(y/n)") then
+                        if rnd_range(1,100)=1 then player.cursed+=1
+                        if skill_test(player.science(0),st_easy+abs(spacemap(player.c.x,player.c.y)),"Science officer") then 
+                            dprint "You succesfully identified the anomaly!",c_gre
+                            dprint gainxp(4),c_gre
+                            ano_money+=abs(spacemap(player.c.y,player.c.y))/2
+                            spacemap(player.c.x,player.c.y)=abs(spacemap(player.c.x,player.c.y))+10
+                            select case spacemap(player.c.x,player.c.y)
+                            case is=16
+                                dprint "This anomaly shortens space, slightly reducing fuel consumption when travelling through it."
+                            case is=17
+                                dprint "This anomaly lengthens space, slightly increasing fuel consumption when travelling through it."
+                            case is=18
+                                dprint "This anomaly shortens space, slightly reducing fuel consumption while travelling through it. It also is highly charged and can damage a ship."
+                            case is=19
+                                dprint "This anomaly lengthens space, slightly increasing fuel consumption while travelling through it. It also is highly charged and can damage a ship."
+                            case is=20
+                                dprint "This anomaly can damage a ship and is highly unpredictable."
+                            end select
+                        else
+                            dprint "You are unable to identify the anomaly.",c_yel
+                        endif
+                    endif
+                endif
+                        
+                
+                for a=laststar+1 to laststar+wormhole
+                    if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
+                next
+                if pl>1 and key=key_la and configflag(con_warnings)=0 then
+                    if askyn("Travelling through wormholes can be dangerous. Do you really want to?(y/n)")=0 then pl=0 
+                endif
+                if pl>1 and key=key_la and rnd_range(1,100)<whtravelled then
+                    dprint "There is a planet orbiting the wormhole!"
+                    if askyn("Shall we try to land on it? (y/n)") then
+                        if whplanet=0 then makewhplanet
+                        pl=0
+                        landing(whplanet)
+                    endif
+                    whtravelled=101
+                endif
+                if pl>1 and key=key_la then
+                    player.towed=0
+                    if map(pl).planets(2)=0 and whtravelled<101 then whtravelled+=3
+                    map(pl).planets(2)=1
+                    if artflag(16)=0 then
+                        b=map(pl).planets(1)
+                    else
+                        dprint "Wormhole navigation system engaged!(+/- to choose wormhole, "&key_la &" to select)",10
+                        b=wormhole_navigation
+                    endif
+                    if b>0 then
+                    if map(b).planets(2)=0 then
+                        ano_money+=cint(distance(map(b).c,player.c)*10)
+                    endif
+                        map(b).planets(2)=1
+                        dprint "you travel through the wormhole.",10
+                        #ifdef _FMODSOUND
+                        if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
+                        #endif
+                        if rnd_range(1,100)<distance(map(b).c,player.c)+maximum(abs(spacemap(player.c.x,player.c.y)),5) then
+                            add_ano(map(b).c,player.c)
+                        endif
+                        player.osx=player.c.x-_mwx/2
+                        player.osy=player.c.y-10
+                        if player.osx<=0 then player.osx=0
+                        if player.osy<=0 then player.osy=0
+                        if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
+                        if player.osy>=sm_y-20 then player.osy=sm_y-20
+                        d=0
+                        if not(skill_test(player.pilot(0),st_easy+int(distance(player.c,map(b).c)/3),"Pilot")) and artflag(13)=0 then d=rnd_range(1,distance(player.c,map(b).c)/5+1)
+                        player.hull=player.hull-d
+                        if d>0 then dprint "Your ship is damaged ("&d &").",12
+                        if player.hull>0 then
+                            wormhole_ani(map(b).c)
+                            display_ship(1)
+                            display_stars(1)
+                            dprint ""
+                        else
+                            player.dead=24
+                        endif
+                    endif
+                endif
+            endif
+            
+            if key=key_dock then
+                for a=0 to 3
+                    if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
+                        if stationroll=0 or player.lastvisit.s<>a then stationroll=rnd_range(1,20)
+                        if faction(0).war(1)+stationroll<100 then
+                            b=rnd_range(1,4)
+                            if faction(0).war(1)>80 then
+                                dprint "You have to beg to get a docking permission, exagerating the sorry state of your ship quite a bit in the process!",14
+                                b=15
+                            endif
+                            if faction(0).war(1)>33 then
+                                if b=1 then dprint "After an unusually long waiting period you get your permission to dock.",14
+                                if b=2 then dprint "The Station commander questions you extensively about your activities before allowing you to dock.",14
+                            endif
+                            if faction(0).war(1)>66 then
+                                if b=1 then dprint "After you dock you overhear a dock worker remark 'I didn't know we were allowing known pirates on the base.' He looks at you fully aware that you heard him.",14
+                                if b=2 then dprint "A patrol boat captain bumps into you snarling 'Pirate scum. Wait till i meet you in space!'",14
+                            endif
+                            player=spacestation(a)
+                            key=""
+                            if configflag(con_autosave)=0 and player.dead=0 then 
+                                screenset 1,1
+                                dprint "Saving game",15
+                                savegame()
+                            endif
+                            set__color( 11,0)
+                            c=0
+                            d=0
+                            for b=0 to 10
+                                if player.cargo(b).x>1 and player.cargo(b).x<7 then
+                                    c=c+basis(a).inv(player.cargo(b).x-1).p
+                                endif
+                            next
+                            c=c\15
+                            'dprint "pirate chance:" &c
+                            if c>66 then c=66
+                            ' Pirate agression test
+                            for b=0 to 10
+                                if player.cargo(b).x=7 then 
+                                    c=101
+                                    d=1
+                                endif
+                            next
+                            if basis(a).spy=1 then c=0
+                            for b=3 to lastfleet
+                                if fleet(b).ty=2 and rnd_range(1,100)<c then
+                                    fleet(b).t=8
+                                    d=1
+                                else
+                                    fleet(b).t=9
+                                endif
+                            next
+                            'see if pirates notice
+                            if d=1 then 
+                                dprint "As you load your Cargo you notice a worker taking notes. When you want to question him he is gone.",c_yel
+                            endif
+                            if player.money<0 and player.dead=0 then
+                                if skill_test(player.pilot(0),st_hard) then
+                                    dprint "As you leave the docking bay you get a message from the station commander to return to 'solve some financial issues' first. Your pilot grins and heads for the docking bay doors, exceeding savety limits. The doors slam close right behind your ship. As you speed into space you get a radio message from the commander. He calmly explains that there *will* be a fee for that next time you dock.",c_yel
+                                    player.money=player.money-100
+                                    faction(0).war(2)-=1
+                                    faction(0).war(1)+=1
+                                else
+                                    player.dead=2
+                                endif
+                            endif
+                        else
+                            dprint "The station commander closes the bay doors and fires upon you!",12
+                            player.hull=player.hull-rnd_range(1,6)
+                            if player.hull<=0 then player.dead=18
+                            no_key=keyin
+                        endif
+                    endif
+                next
+                screenset 1,1
+                display_stars(1)
+            endif
+            
+            if key=key_dock then
+                for a=1 to lastdrifting
+                    if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 then dock_drifting_ship(a)
+                next
+            endif
+            
+            if key=key_tow then
+                if player.towed=0 then
+                    for a=4 to lastdrifting
+                        if player.c.x=drifting(a).x and player.c.y=drifting(a).y and planets(drifting(a).m).flags(0)=0 then 
+                            if player.tractor>0 then
+                                player.towed=a
+                                dprint "You tow the other ship."
+                            else
+                                dprint "You have no tractor beam.",14
+                            endif
+                        endif
+                    next
+                else
+                    player.towed=0
+                    dprint "You release the other ship."
+                endif
+            endif
+            
+            if key=key_awayteam then
+                screenshot(1)
+                showteam(0)
+                screenshot(2)
+            endif
+            
+            
+            screenset 0,1
+            set__color(11,0)
+            cls
+                    
+            display_stars(1)
+            display_ship(1)
+            dprint ""
+            
+            
+        else
+            player.energy-=player.movepoints(0)
         endif
-    next
-    
-    if make_files=1 and frac(player.turn/10)=0 then
-        f=freefile
-        open "fleets.txt" for append as #f
-        print #f,player.turn
-        for a=1 to lastfleet
-            print #f,a;" ";fleet(a).ty;" ";debug_printfleet(fleet(a))
-        next
-        close #f
-    endif
-    
-    
-    for a=0 to 7
-        for b=0 to 7
-            if faction(a).war(b)>100 then faction(a).war(b)=100 
-            if faction(a).war(b)<0 then faction(a).war(b)=0 
-        next
-    next
-    
-    for a=0 to 7
-        if faction(a).alli<>0 then
-            for b=0 to 7
-                faction(a).war(b)=(faction(a).war(b)+faction(faction(a).alli).war(b))/2
+        
+        clearfleetlist
+        
+        if lturn=0 then
+            if frac(player.turn/10)=0 then 
+                set_fleet(make_fleet)
+                for a=0 to 2
+                    change_prices(a,10)
+                next
+            endif
+            
+            if frac(player.turn/25)=0 then 
+                set_fleet(makecivfleet(0))
+                set_fleet(makecivfleet(1))
+            endif
+            
+            if frac(player.turn/100)=0 and player.turn>5000 and player.questflag(3)=0 then 
+                set_fleet(makealienfleet)
+            endif
+            
+            if player.turn mod 100=0 then
+                for a=1 to lastquestguy
+                    if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
+                    if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
+                next
+            endif
+            move_fleets()
+            collide_fleets()
+            move_probes()
+            
+            for a=0 to 2
+                if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
             next
             
+            diseaserun(0)
+            if frac(player.turn/5)=0 then cureawayteam(1) 
+            if frac(player.turn/250)=0 then reroll_shops
         endif
-    next
-    
-    driftercom=0
-    planetcom=0
-    fleetcom=0
-    wormcom=0
         
-'    if player.pirate_agr>500 then player.pirate_agr=500
-'    if player.pirate_agr<-500 then player.pirate_agr=-500
-'    if player.merchant_agr>500 then player.merchant_agr=500
-'    if player.merchant_agr<-500 then player.merchant_agr=-500
-'    if player.pirate_agr<=0 then
-'        fightmatrix(0,2)=0
-'        fightmatrix(2,0)=0
-'        fightmatrix(0,4)=0
-'        fightmatrix(4,0)=0
-'    endif
-'    if player.pirate_agr>=100 then
-'        fightmatrix(0,2)=1
-'        fightmatrix(2,0)=1
-'        fightmatrix(0,4)=1
-'        fightmatrix(4,0)=1
-'    endif
-'    if player.merchant_agr<=0 then
-'        fightmatrix(0,1)=0
-'        fightmatrix(1,0)=0
-'        fightmatrix(0,3)=0
-'        fightmatrix(3,0)=0
-'    endif
-'    if player.merchant_agr>=100 then
-'        fightmatrix(0,1)=1
-'        fightmatrix(1,0)=1
-'        fightmatrix(0,3)=1
-'        fightmatrix(3,0)=1
-'    endif
-loop until player.dead>0
+        if player.hull<=0 and player.dead=0 then player.dead=18
+        if player.fuel<=0 and player.dead=0 then rescue()
+        
+        if key=key_save then
+            if askyn("Do you really want to save the game? (y/n)") then player.dead=savegame()
+        endif
+        
+        if key=key_rename then
+            if askyn("Do you want to rename your ship? (y/n)") then
+                screenset 1,1
+                set__color( 15,0)
+                draw_string(sidebar+(1+len(trim(player.h_sdesc)))*_fw2 ,0, space(25),font2,_col)
+                key=gettext(sidebar+(1+len(trim(player.h_sdesc)))*_fw2,1,32,"",1)
+                if key<>"" then player.desig=key
+                set__color( 11,0)
+                player.turn=player.turn-1
+            endif
+        endif
+        
+        if key=key_comment then 'Name or comment on map
+            p2.x=player.c.x'-player.osx
+            p2.y=player.c.y'-player.osy
+            
+            osx=player.osx
+            osy=player.osy
+            do
+                
+                player.osx=p2.x-_mwx/2
+                player.osy=p2.y-10
+                if player.osx<=0 then player.osx=0
+                if player.osy<=0 then player.osy=0
+                if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
+                if player.osy>=sm_y-20 then player.osy=sm_y-20
+                osx=player.osx
+                osy=player.osy
+                screenset 0,1
+                cls
+                display_stars(2)
+                display_ship(1)
+                dprint ""
+                flip
+                key=cursor(p2,0,osx,osy)
+                
+                
+            loop until key=key__esc or key=key__enter or (asc(ucase(key))>64 and asc(key)<132)
+            set__color( 11,0)
+            
+            b=0
+            if key<>key__esc then
+                for a=1 to lastcom
+                    if p2.y=coms(a).c.y then
+                        if p2.x>=coms(a).c.x and p2.x<=coms(a).c.x+coms(a).l then
+                                key=trim(coms(a).t)
+                                b=a
+                                p2.x=coms(a).c.x
+                                p2.y=coms(a).c.y
+                        endif
+                     endif
+                next
+                screenset 0,1
+                cls
+                display_stars(2)
+                display_ship(1)
+                dprint ""
+                flip
+                screenset 1,1
+                if asc(key)<65 or asc(key)>122 then key=""
+                text=gettext((p2.x-osx)*_fw1,(p2.y-osy)*_fh1,16,key,1)
+                text=trim(text)
+                set__color(11,0)
+                cls
+                display_stars(1)
+                display_ship(1)
+                if b=0 then
+                    lastcom=lastcom+1
+                    b=lastcom
+                endif
+                if p2.x+player.osx+len(text)>sm_x then p2.x=sm_x-len(text)
+                coms(b).c.x=p2.x
+                coms(b).c.y=p2.y
+                coms(b).t=text
+                coms(b).l=len(text)
+            endif
+            b=0
+            for a=1 to lastcom
+                if coms(a).t="" then
+                    coms(a)=coms(a+1)
+                else
+                    b=b+1
+                endif
+            next
+            set__color(11,0)
+            cls
+            lastcom=b
+            display_stars(1)
+            display_ship(1)
+        endif 
+        
+        if player.turn mod 20=0 then 
+            clean_station_event
+            questroll=rnd_range(1,100)-10*(crew(1).talents(3))
+        endif
+        
+        if player.turn mod 10=0 then
+            for a=1 to player.h_maxweaponslot
+                if player.weapons(a).ROF<0 then 
+                    player.tractor=1
+                    if player.towed>0 and not(skill_test(player.pilot(0),st_easy+player.weapons(a).ROF)) then
+                        dprint "Your tractor beam breaks down",14
+                        player.tractor=0
+                        player.towed=0
+                        player.weapons(a)=makeweapon(0)
+                    endif
+                endif
+            next
+        endif
+
+        
+        if frac(player.turn/500)=0 then 
+            for a=0 to 2
+                colonize_planet(a)
+            next
+            grow_colonies
+            if rnd_range(1,100)<player.turn/1000 then robot_invasion
+        endif
+        
+        for a=0 to laststar
+            if map(a).planets(1)>0 then
+                if planets(map(a).planets(1)).flags(27)=2 then 
+                    planets(map(a).planets(1)).death-=1 
+                    if planets(map(a).planets(1)).death<=0 then
+                        map(a).planets(1)=0
+                    endif
+                endif
+            endif
+        next
+        
+        if make_files=1 and frac(player.turn/10)=0 then
+            f=freefile
+            open "fleets.txt" for append as #f
+            print #f,player.turn
+            for a=1 to lastfleet
+                print #f,a;" ";fleet(a).ty;" ";debug_printfleet(fleet(a))
+            next
+            close #f
+        endif
+        
+        
+        for a=0 to 7
+            for b=0 to 7
+                if faction(a).war(b)>100 then faction(a).war(b)=100 
+                if faction(a).war(b)<0 then faction(a).war(b)=0 
+            next
+        next
+        
+        for a=0 to 7
+            if faction(a).alli<>0 then
+                for b=0 to 7
+                    faction(a).war(b)=(faction(a).war(b)+faction(faction(a).alli).war(b))/2
+                next
+                
+            endif
+        next
+        
+        driftercom=0
+        planetcom=0
+        fleetcom=0
+        wormcom=0
+            
+    
+    loop until player.dead>0
 
     return 0
 end function
 
 
 
-function explore_planet(awayteam as _monster, from as _cords, orbit as short) as _cords
+function explore_planet(from as _cords, orbit as short) as _cords
     dim as single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
      
     dim as short slot,r,deadcounter,ship_landing,loadmonsters,allroll(7),osx
@@ -2381,7 +2582,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     dim as string key,dkey,allowed,text,help
     dim dam as single
     dim as _cords p,p1,p2,p3,nextlanding,old
-    dim as _cords ship,nextmap
+    dim as _cords nextmap
     dim towed as _ship
     dim enemy(255) as _monster
     dim m(255) as single
@@ -2395,6 +2596,8 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     dim spawnmask(1281) as _cords
     dim lsp as short
     dim ti as short
+    
+    bg_parent=bg_awayteamtxt
     'dim localitem(128) as items
     dim li(256) as short
     dim lastlocalitem as short
@@ -2413,18 +2616,32 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     
     dim as short debug=0
 'oob suchen
-    screenset 1,1
+
+    if _debug=11 then
+        dprint "Clearing screen"
+    endif
+    screenset 0,1
+    set__color(11,0)
     cls
     flip
+    set__color(11,0)
     cls
+    
+    if _debug=11 then
+        dprint "Screen cleared"
+    endif
     slot=from.m
+    if _debug=1 then dprint "From:"&from.x &":"& from.y &":"& from.m
     planets(slot).mapstat=2
     deadcounter=0
     awayteam.c=from
-    ship=player.landed
     player.map=slot
-    cls
     lsp=0    
+    location=lc_awayteam
+    
+    if _debug=11 then
+        dprint "make weapons"
+    endif
     
     for a=1 to 20
         if makew(a,1)<>0 then 
@@ -2433,9 +2650,19 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         endif
     next
     
+    if _debug=11 then
+        dprint "Made weapons anyhow"
+    endif
+    
+    if _debug=11 then
+        f=freefile
+        open "tiles.txt" for output as #f
+        print #f,"Hello!"
+    endif
     
     for x=0 to 60
         for y=0 to 20
+            if _debug=11 then print #f,planetmap(x,y,slot)
             if abs(planetmap(x,y,slot))=1 then watermap(x,y)=10
             if abs(planetmap(x,y,slot))=2 then watermap(x,y)=50
             if planets(slot).depth=0 then
@@ -2449,7 +2676,11 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                 planetmap(x,y,slot)=512
             endif
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
-            if abs(planetmap(x,y,slot))=267 then tmap(x,y).desc="A cage. Inside is "&makemonster(1,slot).ldesc
+            if abs(planetmap(x,y,slot))=267 then 
+                enemy(0)=makemonster(1,slot)
+                tmap(x,y).desc="A cage. Inside is "&first_lc(enemy(0).ldesc)
+                enemy(0)=enemy(1) 'Delete monster
+            endif
             mapmask(x,y)=0
             if tmap(x,y).walktru=0 then
                 lsp=lsp+1
@@ -2472,21 +2703,26 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     next
     
     
+    if _debug=11 then
+        close #f
+        dprint "Made tmap"
+        sleep
+    endif
     
     'allowed="12346789ULXFSQRWGCHDO"&key_pickup &key__i
-    allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he
-    allowed=allowed & key_la & key_pickup & key__i & key_ex & key_of & key_co & key_drop & key_gr & key_wait 
-    allowed=allowed & key_portal &key_oxy &key_close & key_report &key_autofire &key_autoexplore
-    comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
-    comstr=comstr & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
-    comstr=comstr & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
+    allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he _
+     & key_la & key_pickup & key_inspect & key_ex & key_of & key_co & key_drop & key_gr & key_wait _
+     & key_portal &key_oxy &key_close & key_report &key_autofire &key_autoexplore
+    comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"_
+     & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"_
+     & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
             
     if rev_map=1 then allowed=allowed &"ä"
     if awayteam.move=2 or awayteam.move=3 then 
         allowed=allowed &key_ju
         comstr=comstr &key_ju &" Jetpackjump;"
     endif
-    if awayteam.move=4 then 
+    if artflag(9)=1 then 
         allowed=allowed &key_te
         comstr=comstr &key_te &" Teleport;"
     endif
@@ -2494,7 +2730,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
     if planets(slot).atmos=0 then planets(slot).atmos=1
     if planets(slot).grav=0 then planets(slot).grav=.5
     
-    if planets(slot).atmos>1 and planets(slot).atmos<8 then 
+    if planets(slot).atmos>1 and planets(slot).atmos<7 then 
         awayteam.helmet=0
         awayteam.oxygen=awayteam.oxymax
     else
@@ -2512,6 +2748,10 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         endif
     next
     
+    if _debug=11 then
+        dprint "Loadmonsters:" &loadmonsters
+        sleep
+    endif
     if loadmonsters=0 then 'No saved status, monsters need to be generated
         c=0
         for a=0 to 16
@@ -2625,7 +2865,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
         for c=0 to 8
         b=(planets(slot).vault(c).h-2)*((planets(slot).vault(c).w-2))
         if b>4 or planets(slot).vault(c).wd(5)=4 then
-            if debug=1 then dprint "Making vault at "&planets(slot).vault(c).x &":"& planets(slot).vault(c).y &":"& planets(slot).vault(c).w &":"& planets(slot).vault(c).h 
+            if debug=1 and _debug=1 then dprint "Making vault at "&planets(slot).vault(c).x &":"& planets(slot).vault(c).y &":"& planets(slot).vault(c).w &":"& planets(slot).vault(c).h 
             if planets(slot).vault(c).wd(16)=99 then specialflag(15)=1
             if planets(slot).vault(c).wd(5)=1 then
                 if b>9 then
@@ -2648,7 +2888,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             if planets(slot).vault(c).wd(5)=2 and planets(slot).vault(c).wd(6)<>0 then
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 d=lastenemy
-                if debug=1 then dprint "lastenemy"&lastenemy
+                if debug=1 and _debug=1 then dprint "lastenemy"&lastenemy
                 lastenemy=lastenemy+b
                 for e=d to lastenemy
                     text=text &d
@@ -2656,20 +2896,20 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                         x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
                         y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
-                    if debug=1 then dprint "Set monster at "&x &":"&y
+                    if debug=1 and _debug=1 then dprint "Set monster at "&x &":"&y
                     if planets(slot).vault(c).wd(6)>0 then 
                         enemy(e)=makemonster(planets(slot).vault(c).wd(6),slot)
                         enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
                     else
                         enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,vismask(),x,y,e)
-                        if debug=1 then dprint "Enemy "&e &" is at "&enemy(e).c.x &":"&enemy(e).c.y
+                        if debug=1 and _debug=1 then dprint "Enemy "&e &" is at "&enemy(e).c.x &":"&enemy(e).c.y
                     endif
                 next
-                if debug=1 then dprint "lastenemy"&lastenemy
+                if debug=1 and _debug=1 then dprint "lastenemy"&lastenemy
             endif
             
             if planets(slot).vault(c).wd(5)=3 then
-                if debug=1 then dprint "lastenemy"&lastenemy
+                if debug=1 and _debug=1 then dprint "lastenemy"&lastenemy
                 b=rnd_range(1,4)+rnd_range(1,4)+planets(slot).depth
                 d=lastenemy
                 lastenemy=lastenemy+b
@@ -2678,11 +2918,11 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
                         x=rnd_range(planets(slot).vault(c).x,planets(slot).vault(c).x+planets(slot).vault(c).w)
                         y=rnd_range(planets(slot).vault(c).y,planets(slot).vault(c).y+planets(slot).vault(c).h)
                     loop until tmap(x,y).walktru=0
-                    if debug=1 then dprint "Set monster at "&x &":"&y
+                    if debug=1 and _debug=1 then dprint "Set monster at "&x &":"&y
                     enemy(e)=makemonster(59,slot)
                     enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,e,1)
                 next
-                if debug=1 then dprint "lastenemy"&lastenemy
+                if debug=1 and _debug=1 then dprint "lastenemy"&lastenemy
             endif
             if planets(slot).vault(c).wd(5)=4 then
                 for x=planets(slot).vault(c).x to planets(slot).vault(c).x+planets(slot).vault(c).w
@@ -2698,7 +2938,7 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
             planets(slot).vault(c)=del_rec
         endif
         next
-    for a=1 to _NoPB
+    for a=0 to _NoPB
         if slot=pirateplanet(a) then
             c=5+rnd_range(1,6)
             for b=lastenemy to lastenemy+c
@@ -2712,8 +2952,12 @@ function explore_planet(awayteam as _monster, from as _cords, orbit as short) as
 endif
     
     
+    if _debug=11 then
+        dprint "Move rovers"
+        sleep
+    endif
     
-    moverover(slot,ship,li(),lastlocalitem)
+    move_rover(slot,li(),lastlocalitem)
     'if planets(slot).colony<>0 then growcolony(slot)
     
     if planets(slot).visited>0 and planets(slot).visited<player.turn then
@@ -2732,13 +2976,14 @@ endif
         next
     
     endif
-    
+        
+    planets(slot).discovered=3
     planets(slot).visited=player.turn    
     if planets(slot).flags(27)=1 then planets(slot).flags(27)=2
     
     if slot=specialplanet(0) and player.towed=4 then
         dprint "The alien generation ship lands next to yours and the insects start exploring and setting up their colony immediately."
-        p=movepoint(ship,5)
+        p=movepoint(player.landed,5)
         'questflag(0)=1
         player.towed=0
         planetmap(p.x,p.y,slot)=269
@@ -2754,21 +2999,33 @@ endif
         
     
     if slot=specialplanet(1) and specialflag(1)=0 then 'apollos planet
-        ship.x=rnd_range(0,60)
-        ship.y=rnd_range(0,20)
+        player.landed=rnd_point
     endif
     
     if slot=specialplanet(2) then
         if specialflag(2)=0 then
+            
             specialflag(2)=1
-            dprint "As you enter the lower atmosphere a powerful energy beam strikes your ship from the surface below! A planetery defense system has detected you! You are already to low to escape into orbit, so the only way to avoid total destruction is an emergency landing! Your vessel slams into the surface!",15
-            player.hull=player.hull-rnd_range(1,6)
+            dprint "As you enter the lower atmosphere a powerful energy beam strikes your ship from the surface below! A planetery defense system has detected you!"
+            a=menu(bg_parent,"Flee into:/Space/Below horizon")
+            if a=1 then
+                if skill_test(player.pilot(location),st_veryhard,"Pilot") then
+                    if skill_test(player.pilot(location),st_veryhard,"Pilot") then 
+                        if skill_test(player.pilot(location),st_veryhard,"Pilot") then 
+                            nextmap.m=-1
+                            return nextmap 
+                        endif
+                    endif
+                endif
+            endif
+            dprint "You are already too low to escape into orbit, so the only way to avoid total destruction is an emergency landing! Your vessel slams into the surface!",15
+            if not(skill_test(player.pilot(location),st_veryhard,"Pilot")) then player.hull=player.hull-rnd_range(1,6)
             if player.hull<=0 then
-                planetmap(ship.x,ship.y,slot)=127+player.h_no
-                tmap(ship.x,ship.y)=tiles(127+player.h_no)
+                planetmap(player.landed.x,player.landed.y,slot)=127+player.h_no
+                tmap(player.landed.x,player.landed.y)=tiles(127+player.h_no)
                 player.landed.m=0
             endif
-            for a=0 to rnd_range(1,6)+rnd_range(1,6)
+            for a=0 to rnd_range(1,6) +rnd_range(1,6)
                 lastenemy=lastenemy+1
                 enemy(lastenemy)=makemonster(15,slot)
                 enemy(lastenemy).hp=-1
@@ -2825,38 +3082,29 @@ endif
     '    
     if savefrom(0).map>0 then
         awayteam=savefrom(0).awayteam
-        ship=savefrom(0).ship
+        player.landed=savefrom(0).ship
         slot=savefrom(0).map
         lastenemy=savefrom(0).lastenemy
         for b=1 to lastenemy
             enemy(b)=savefrom(0).enemy(b)
         next
-        equip_awayteam(player,awayteam,slot)
-        awayteam.oxydep=awayteam.oxydep*planets(slot).grav
+        equip_awayteam(slot)
         savefrom(0)=savefrom(16)
     endif        
-    equip_awayteam(player,awayteam,slot)
+    equip_awayteam(slot)
     
     c=0
     for a=0 to lastitem
-        if item(a).w.m=slot and item(a).w.s=0 then
-            c=c+1
-            if c<=256 then 
-                li(c)=a
-                if item(li(c)).ty=47 then 'Dogtag
-                    lastenemy=lastenemy+1
-                    enemy(lastenemy)=makemonster(15,slot)
-                    enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
-                    enemy(lastenemy).hp=-1
-                    enemy(lastenemy).hpmax=55
-                    enemy(lastenemy).slot=16
-                endif
-                if slot=pirateplanet(0) and item(li(c)).w.p=0 then item(li(c)).w.p=rnd_range(1,lastenemy) 'Pirates get all the goods
-            endif
+        if item(a).ty=47 and item(a).w.m=slot and item(a).w.s=0 then
+            lastenemy=lastenemy+1
+            enemy(lastenemy)=makemonster(15,slot)
+            enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+            enemy(lastenemy).hp=-1
+            enemy(lastenemy).hpmax=55
+            enemy(lastenemy).slot=16
         endif
     next
-    if c>256 then c=256
-    lastlocalitem=c
+    lastlocalitem=make_localitemlist(li(),slot)
     
     lsp=0    
     for x=0 to 60
@@ -2892,7 +3140,7 @@ endif
     
     'outpost trading
     for a=11 to 13
-        planets(slot).flags(a)=planets(slot).flags(a)+rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6)
+        planets(slot).flags(a)=planets(slot).flags(a)+rnd_range(1,6) +rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6)
         if planets(slot).flags(a)<0 then planets(slot).flags(a)+=1 
         if planets(slot).flags(a)>0 then planets(slot).flags(a)-=1 
         if planets(slot).flags(a)<-3 then planets(slot).flags(a)=-3
@@ -2915,14 +3163,19 @@ endif
     if awayteam.c.x>60 then awayteam.c.x=60
     if awayteam.c.y>20 then awayteam.c.y=20
     display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-    ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-    display_awayteam(awayteam, slot, lastenemy, deadcounter, ship, nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
+    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    display_awayteam()
     dprint ""
     '
     ' EXPLORE PLANET
     '
     
     dawn=rnd_range(1,60)
+    
+    if _debug=11 then
+        dprint "moving enemies"
+        sleep
+    endif
     do
         b=0
         for a=1 to lastenemy
@@ -2933,7 +3186,7 @@ endif
         next
     loop until b=0
     
-    if debug=99 then dprint "Death in:" &planets(slot).death &"(in)"
+    if debug=99 and _debug=1 then dprint "Death in:" &planets(slot).death &"(in)"
 
     if planets_flavortext(slot)<>"" then
         dprint planets_flavortext(slot),15
@@ -2947,19 +3200,24 @@ endif
     '***********************
     if no_enemys=1 then lastenemy=0
     
+    if _debug=11 then
+        dprint "Setting screen"
+        sleep
+    endif
     screenset 0,1
-    color 0,0
+    set__color(11,0)
     cls
     display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-    ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-    display_awayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
+    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    display_awayteam()
     flip
-    color 0,0
+    set__color(11,0)
     cls
     display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-    ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-    display_awayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
+    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    display_awayteam()
     flip
+    
     do
         if show_all=1 then
             set__color( 15,0)
@@ -2968,15 +3226,19 @@ endif
         endif
         'dprint "Death"&planets(slot).death
         awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
-        if awayteam.move=4 and  player.teleportload<15 then player.teleportload+=1
+        if artflag(9)=1 and  player.teleportload<15 then player.teleportload+=1
         if awayteam.disease>player.disease then player.disease=awayteam.disease
         if planets(slot).atmos<=1 or planets(slot).atmos>=8 then awayteam.helmet=1
         if (tmap(awayteam.c.x,awayteam.c.y).no=1 or tmap(awayteam.c.x,awayteam.c.y).no=26 or tmap(awayteam.c.x,awayteam.c.y).no=20) and awayteam.hp<=awayteam.nohp*5 then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if tmap(awayteam.c.x,awayteam.c.y).oxyuse<0 then awayteam.oxygen=awayteam.oxygen-tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
         
-        if _warnings=0 and nightday(awayteam.c.x)=1 and nightday(old.x)<>1 then dprint "The sun rises"
-        if _warnings=0 and nightday(awayteam.c.x)=2 and nightday(old.x)<>2 then dprint "The sun sets"
+        adislastenemy=lastenemy
+        adisloctemp=localtemp(awayteam.c.x,awayteam.c.y)
+        adisloctime=nightday(awayteam.c.x)
+        
+        if configflag(con_warnings)=0 and nightday(awayteam.c.x)=1 and nightday(old.x)<>1 then dprint "The sun rises"
+        if configflag(con_warnings)=0 and nightday(awayteam.c.x)=2 and nightday(old.x)<>2 then dprint "The sun sets"
         
         old=awayteam.c
         if walking<>0 then
@@ -2987,7 +3249,7 @@ endif
                 if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                     walking=0
                     dprint "complete."   
-                    key=key__i
+                    key=key_inspect
                 endif
             else
                 if walking<10 then
@@ -2996,7 +3258,7 @@ endif
                 if walking=12 then
                     if currapwp=lastapwp then
                         'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
-                        lastapwp=ep_autoexplore(awayteam,slot,ship,li(),lastlocalitem)
+                        lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
                         currapwp=0
                     endif
                     if lastapwp>0 then
@@ -3023,14 +3285,14 @@ endif
             else
                 dprint "Your security personel want to return to the ship.",14
                 if rnd_range(1,100)<66 then
-                    awayteam.c=movepoint(awayteam.c,nearest(ship,awayteam.c))
+                    awayteam.c=movepoint(awayteam.c,nearest(player.landed,awayteam.c))
                 else
                     awayteam.c=movepoint(awayteam.c,5)
                 endif
             endif
         endif
-        ep_playerhitmonster(awayteam,old,enemy(),lastenemy,vismask(),mapmask())
-        ep_checkmove(awayteam,old,key)
+        ep_playerhitmonster(old,enemy(),lastenemy,vismask(),mapmask())
+        ep_checkmove(old,key)
         
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
         mapmask(awayteam.c.x,awayteam.c.y)=-9
@@ -3039,45 +3301,48 @@ endif
             awayteam.lastaction-=1
             if awayteam.lastaction<0 then awayteam.lastaction=0
             localturn=localturn+1
+            if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
-            if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(awayteam,rnd_range(1,awayteam.hp),1),12
-            ep_tileeffects(awayteam,areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap(),vismask())
-            ep_shipfire(shipfire(),vismask(),enemy(),lastenemy,awayteam)
-            ep_items(awayteam,li(),lastlocalitem,enemy(),lastenemy,localturn,vismask(),ship)
-            walking=alerts(awayteam)
+            if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
+            ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap(),vismask())
+            ep_shipfire(shipfire(),vismask(),enemy(),lastenemy)
+            ep_items(li(),lastlocalitem,enemy(),lastenemy,localturn,vismask())
+            walking=alerts()
             for a=1 to lastenemy
                 if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
             next
-            deadcounter=ep_monstermove(awayteam,enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),nightday())
+            deadcounter=ep_monstermove(enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),nightday())
             if player.dead>0 or awayteam.hp<=0 then 
                 allowed=""
                 awayteam.lastaction=1
             endif
         endif
             
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key__i then nextmap=ep_Portal(awayteam)
+        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_inspect then nextmap=ep_Portal()
         
         if ship_landing>0 and nextmap.m<>0 then ship_landing=1 'Lands immediately if you changed maps
-        if ship_landing>0 then ep_landship(ship_landing, nextlanding, ship, nextmap, vismask(), enemy(),lastenemy)
+        if ship_landing>0 then ep_landship(ship_landing, nextlanding, nextmap, vismask(), enemy(),lastenemy)
         
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
             old=awayteam.c
-            screenset 1,0
-            cls
-            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-            ep_display_clouds(awayteam,cloudmap(),vismask())
-            display_awayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
             screenset 0,1
+            set__color(11,0)
             cls
             display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-            display_awayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
-            ep_display_clouds(awayteam,cloudmap(),vismask())
+            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+            ep_display_clouds(cloudmap(),vismask())
+            display_awayteam()
+            flip
+            set__color(11,0)
+            cls
+            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+            display_awayteam()
+            ep_display_clouds(cloudmap(),vismask())
             
             dprint("")
-            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,ship,localtemp(awayteam.c.x,awayteam.c.y))
-            equip_awayteam(player,awayteam,slot)
+            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
+            equip_awayteam(slot)
             if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
             if awayteam.move=4 then allowed=allowed &key_te
             'displayplanetmap(slot,awayteam.c.x-_mwx/2)
@@ -3087,30 +3352,31 @@ endif
             walking=0
         endif
         
-        ep_planeteffect(awayteam,ship,enemy(),lastenemy,li(),lastlocalitem,shipfire(),sf,lavapoint(),vismask(),localturn,cloudmap())
-        ep_areaeffects(awayteam,areaeffect(),last_ae,lavapoint(),enemy(),lastenemy,li(),lastlocalitem,cloudmap())
-        walking=ep_atship(awayteam,ship)
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li(),enemy(),lastenemy)
-        if key=key__i or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(awayteam,ship,enemy(),lastenemy,li(),lastlocalitem,localturn)
+        ep_planeteffect(enemy(),lastenemy,li(),lastlocalitem,shipfire(),sf,lavapoint(),vismask(),localturn,cloudmap())
+        ep_areaeffects(areaeffect(),last_ae,lavapoint(),enemy(),lastenemy,li(),lastlocalitem,cloudmap())
+        ep_atship()
+        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li(),enemy(),lastenemy)
+        if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(enemy(),lastenemy,li(),lastlocalitem,localturn)
         healawayteam(awayteam,0)
         key=""
         if (player.dead=0 and awayteam.lastaction<=0) or walking<>0 then 
             'Display all stuff
-            screenset 1,0
+            screenset 0,1
+            set__color(11,0)
             cls
             
             
             
             display_planetmap(slot,awayteam.c.x-_mwx/2,0)
-            ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-            ep_display_clouds(awayteam,cloudmap(),vismask())
-            display_awayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x),localtemp(awayteam.c.x,awayteam.c.y))
+            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+            ep_display_clouds(cloudmap(),vismask())
+            display_awayteam()
             
             comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
             comstr=comstr & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
             comstr=comstr & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
             if awayteam.move=2 or awayteam.move=3 then comstr=comstr &key_ju &" Jetpackjump;"
-            if awayteam.move=4 then comstr=comstr &key_te &" Teleport;"
+            if artflag(9)=1 then comstr=comstr &key_te &" Teleport;"
     
             set__color( 11,0)
             osx=calcosx(awayteam.c.x,planets(slot).depth)
@@ -3120,173 +3386,175 @@ endif
             next
             dprint ""
             flip
-            screenset 1,1
+            'screenset 1,1
             
             if nextmap.m=0 then key=(keyin(allowed,walking))
             if rnd_range(1,100)<disease(awayteam.disease).nac then 
                 key=""
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
                 awayteam.lastaction+=2
-            endif         
+            endif 
+            
         else
             if player.dead<>0 then allowed=""
         endif
         
-        if key<>"" then walking=0
-        if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
-        'dprint "mouse.s"&mouse.s
-        if key=key_ex  then ep_examine(awayteam,ship,vismask(),li(),enemy(),lastenemy,lastlocalitem)
-        if key=key_save then
-            if askyn("Do you really want to save the game (y/n?)") then
-               savefrom(0).map=slot
-               savefrom(0).ship=ship
-               savefrom(0).awayteam=awayteam
-               savefrom(0).lastenemy=lastenemy
-               for a=1 to lastenemy
-                   savefrom(0).enemy(a)=enemy(a)
-               next
-               savefrom(0).lastlocalitem=lastlocalitem
-               player.dead=savegame()   
-               'ship.x=-1
+            if key<>"" then walking=0
+            if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
+            'dprint "mouse.s"&mouse.s
+            if key=key_ex  then ep_examine(vismask(),li(),enemy(),lastenemy,lastlocalitem)
+            if key=key_save then
+                if askyn("Do you really want to save the game (y/n?)") then
+                   savefrom(0).map=slot
+                   savefrom(0).ship=player.landed
+                   savefrom(0).awayteam=awayteam
+                   savefrom(0).lastenemy=lastenemy
+                   for a=1 to lastenemy
+                       savefrom(0).enemy(a)=enemy(a)
+                   next
+                   savefrom(0).lastlocalitem=lastlocalitem
+                   player.dead=savegame()   
+                   'ship.x=-1
+                endif
             endif
-        endif
-        if key=key_wait then awayteam.lastaction+=1
-        'dprint awayteam.lastaction &""
-        if awayteam.lastaction<=0 then
-            'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
-            if key=key_drop then ep_dropitem(awayteam,li(),lastlocalitem,enemy(),lastenemy,vismask())
-            if key=key_awayteam then showteam(1)
-            if key=key_report then bioreport(slot)
-            if key=key_close then ep_closedoor(awayteam)
-            if key=key_gr then ep_grenade(awayteam,shipfire(),sf,li(),lastlocalitem)
-            if key=key_fi or key=key_autofire or walking=10 then ep_fire(awayteam,enemy(),lastenemy,vismask(),mapmask(),key,autofire_target)
-            if key=key_ra then ep_radio(awayteam,ship,nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf)
-            if key=key_oxy then ep_helmet(awayteam)
-            if key=key_ju and awayteam.move>=2 then ep_jumppackjump(awayteam)
-            if key=key_la then ep_launch(awayteam,ship,nextmap)
-            if key=key_he then
-                if awayteam.disease>0 then
-                    cureawayteam(0)
-                else
-                    if _chosebest=0 then
-                        c=findbest(11,-1)
-                    else 
-                        c=getitem(-1,11)
-                    endif 
-                    if c>0 then
-                        if item(c).ty<>11 then
-                            dprint "you can't use that."
-                        else
-                            if askyn("Do you want to use the "&item(c).desig &"(y/n)?") then
-                                item(c).v1=healawayteam(awayteam,item(c).v1)
-                                if item(c).v1<=0 then destroyitem(c)
+            if key=key_wait then awayteam.lastaction+=1
+            'dprint awayteam.lastaction &""
+            if awayteam.lastaction<=0 then
+                'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
+                if key=key_drop then ep_dropitem(li(),lastlocalitem,enemy(),lastenemy,vismask())
+                if key=key_awayteam then showteam(1)
+                if key=key_report then bioreport(slot)
+                if key=key_close then ep_closedoor()
+                if key=key_gr then ep_grenade(shipfire(),sf,vismask(),enemy(),lastenemy,li(),lastlocalitem)
+                if key=key_fi or key=key_autofire or walking=10 then ep_fire(enemy(),lastenemy,vismask(),mapmask(),key,autofire_target)
+                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf,vismask(),nightday(),localtemp())
+                if key=key_oxy then ep_helmet()
+                if key=key_ju and awayteam.move>=2 then ep_jumppackjump()
+                if key=key_la then ep_launch(nextmap)
+                if key=key_he then
+                    if awayteam.disease>0 then
+                        cureawayteam(0)
+                    else
+                        if configflag(con_chosebest)=0 then
+                            c=findbest(11,-1)
+                        else 
+                            c=get_item(11)
+                        endif 
+                        if c>0 then
+                            if item(c).ty<>11 then
+                                dprint "you can't use that."
+                            else
+                                if askyn("Do you want to use the "&item(c).desig &"(y/n)?") then
+                                    item(c).v1=healawayteam(awayteam,item(c).v1)
+                                    if item(c).v1<=0 then destroyitem(c)
+                                endif
                             endif
+                        else
+                            dprint "you dont have any medpacks"
                         endif
-                    else
-                        dprint "you dont have any medpacks"
                     endif
                 endif
-            endif
-            if key=key_walk or key=key_autoexplore then 
-                if key<>key_autoexplore then
-                    dprint "Direction? (0 for autoexplore)"
-                    no_key=keyin
-                    walking=getdirection(no_key)
-                else
-                    no_key="0"
-                endif
-                if no_key="0" then 
-                    lastapwp=ep_autoexplore(awayteam,slot,ship,li(),lastlocalitem)
-                    currapwp=0
-                    if lastapwp>-1 then 
-                        walking=12
+                if key=key_walk or key=key_autoexplore then 
+                    if key<>key_autoexplore then
+                        dprint "Direction? (0 for autoexplore)"
+                        no_key=keyin
+                        walking=getdirection(no_key)
                     else
-                        dprint "All explored here."
+                        no_key="0"
+                    endif
+                    if no_key="0" then 
+                        lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
+                        currapwp=0
+                        if lastapwp>-1 then 
+                            walking=12
+                        else
+                            dprint "All explored here."
+                        endif
                     endif
                 endif
-            endif
-            if key=key_co or key=key_of then ep_communicateoffer(key,awayteam,enemy(),lastenemy,li(),lastlocalitem)
-            if key=key_te and awayteam.move=4 then awayteam.c=teleport(awayteam.c,slot) 
-            if key="ä" then
-                for x=0 to 60
-                    for y=0 to 20
-                        planetmap(x,y,slot)=abs(planetmap(x,y,slot))
+                if key=key_co or key=key_of then ep_communicateoffer(key,enemy(),lastenemy,li(),lastlocalitem)
+                if key=key_te and artflag(9)=1 then awayteam.c=teleport(awayteam.c,slot) 
+                if key="ä" then
+                    for x=0 to 60
+                        for y=0 to 20
+                            planetmap(x,y,slot)=abs(planetmap(x,y,slot))
+                        next
                     next
-                next
-                for a=0 to lastportal
-                    if portal(a).from.m=slot then portal(a).discovered=1
-                    if portal(a).dest.m=slot then portal(a).discovered=1
-                next
-                for a=0 to lastlocalitem
-                    item(li(a)).discovered=1
-                next
+                    for a=0 to lastportal
+                        if portal(a).from.m=slot then portal(a).discovered=1
+                        if portal(a).dest.m=slot then portal(a).discovered=1
+                    next
+                    for a=1 to lastlocalitem
+                        item(li(a)).discovered=1
+                    next
+                endif
+                com_sinkheat(player,0)
+                ep_lava(lavapoint(),vismask())
+                lastenemy=ep_spawning(enemy(),lastenemy,spawnmask(),lsp,diesize,vismask(),nightday())
             endif
-            com_sinkheat(player,0)
-            ep_lava(awayteam,lavapoint(),ship,vismask())
-            lastenemy=ep_spawning(enemy(),lastenemy,spawnmask(),lsp,diesize,vismask())
-        endif
-        
-        
-        
-        if lastenemy>255 then lastenemy=255
-        if lastlocalitem>255 then lastlocalitem=255
-        
-        'clean up item list
-        for a=1 to lastlocalitem
-            if item(li(a)).w.s<0 then
-                li(a)=li(lastlocalitem)
-                lastlocalitem=lastlocalitem-1
-            else 
-                if tmap(item(li(a)).w.x,item(li(a)).w.y).no>=175 and tmap(item(li(a)).w.x,item(li(a)).w.y).no<=177 then 
-                    destroyitem(li(a))
+            
+            
+            
+            if lastenemy>255 then lastenemy=255
+            if lastlocalitem>255 then lastlocalitem=255
+            
+            'clean up item list
+            for a=1 to lastlocalitem
+                if item(li(a)).w.s<0 then
                     li(a)=li(lastlocalitem)
                     lastlocalitem=lastlocalitem-1
+                else 
+                    if tmap(item(li(a)).w.x,item(li(a)).w.y).no>=175 and tmap(item(li(a)).w.x,item(li(a)).w.y).no<=177 then 
+                        destroyitem(li(a))
+                        li(a)=li(lastlocalitem)
+                        lastlocalitem=lastlocalitem-1
+                    endif
                 endif
-            endif
-        next
-        if debug=99 then dprint "Death in:"&planets(slot).death
-        ' and the world moves on
-        if frac(localturn/10)=0 then
-            player.turn=player.turn+1
-            for a=1 to lastplanet
-                if planets(a).flags(27)=2 then 
-                    planets(a).death-=1 
-                    if a=slot and planets(a).death<=0 then 
-                        if planets(a).flags(29)=0 then 
-                            player.dead=17
-                        else
-                            player.dead=34
+            next
+            if debug=99 and _debug=1 then dprint "Death in:"&planets(slot).death
+            ' and the world moves on
+            if frac(localturn/10)=0 then
+                player.turn=player.turn+1
+                for a=1 to lastplanet
+                    if planets(a).flags(27)=2 then 
+                        planets(a).death-=1 
+                        if a=slot and planets(a).death<=0 then 
+                            if planets(a).flags(29)=0 then 
+                                player.dead=17
+                            else
+                                player.dead=34
+                            endif
                         endif
                     endif
-                endif
-            next
-            for a=0 to laststar
-                if map(a).planets(1)>0 then
-                    if planets(map(a).planets(1)).flags(27)=2 and planets(map(a).planets(1)).death<=0 then 
-                        map(a).planets(1)=0
+                next
+                for a=0 to laststar
+                    if map(a).planets(1)>0 then
+                        if planets(map(a).planets(1)).flags(27)=2 and planets(map(a).planets(1)).death<=0 then 
+                            map(a).planets(1)=0
+                        endif
                     endif
-                endif
-            next
-
-            diseaserun(1)    
-            equip_awayteam(player,awayteam,slot)
-            move_fleets()
-            if frac(player.turn/250)=0 then rerollshops 
-        endif
-        
+                next
+    
+                diseaserun(1)    
+                equip_awayteam(slot)
+                move_fleets()
+                if frac(player.turn/250)=0 then reroll_shops 
+            endif
         
     loop until awayteam.hp<=0 or nextmap.m<>0 or player.dead<>0
     
     '
     ' END exploring
     
-    for a=0 to lastlocalitem
+    location=lc_onship
+    
+    for a=1 to lastlocalitem
         if item(li(a)).ty=45 and item(li(a)).w.p<9999 and item(li(a)).w.s=0 then 'Alien bomb
             if item(li(a)).v2=1 then
                 p1.x=item(li(a)).w.x
                 p1.y=item(li(a)).w.y
                 item(li(a)).w.p=9999
-                alienbomb(awayteam,li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
+                alienbomb(li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
 
             endif
         endif
@@ -3326,7 +3594,7 @@ endif
     
     if player.dead<>0 then
         player.c=awayteam.c
-        savebones(ship,awayteam.c,1) 'On planet
+        save_bones(1) 'On planet
     endif
     
     if player.dead=0 and planets(slot).atmos>0 and planets(slot).depth=0 and planets(slot).atmos=player.questflag(10) then 
@@ -3384,7 +3652,7 @@ endif
     endif    
     if slot=pirateplanet(0) and awayteam.hp<=0 then player.dead=7
     c=0
-    for a=1 to _NoPB
+    for a=1 to _NoPB 'Did main base earlier
         if slot=pirateplanet(a) then
             for b=1 to lastenemy
                 if enemy(b).hp>0 then
@@ -3427,20 +3695,21 @@ endif
     return nextmap
 end function
 
-function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
-    dim as short a,b,d,e,f,osx
+function alienbomb(c as short,slot as short, enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
+    dim as short a,b,d,e,f,osx,x2
     dim as _cords p,p1 
     p1.x=item(c).w.x
     p1.y=item(c).w.y
     osx=calcosx(awayteam.c.x,planets(slot).depth)
                                         
     for e=0 to item(c).v1*6
-        
+        screenset 0,1
+        display_planetmap(slot,osx,0)
         for x=0 to 60
             for y=0 to 20
                 p.x=x
                 p.y=y
-                f=int(distance(p,p1))
+                f=int(distance(p,p1,1))
                 set__color( 0,0)
                 if f=e  then set__color( 0,1)
                 if f=e+7 then set__color( 236,15)
@@ -3453,10 +3722,13 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
                 if f=e-1 then set__color( 0,0)
                 if f=e-2 then set__color( 0,0)
                 if f>=e-2 and f<=e+7 then
-                    if _tiles=0 then
-                        if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(76+f-e)),pset
+                    x2=x-osx
+                    if x2<0 then x2+=61
+                    if x2>60 then x2-=61
+                    if configflag(con_tiles)=0 then
+                        if x2>=0 and x2<=_mwx then put ((x2)*_tix,y*_tiy),gtiles(gt_no(76+f-e)),trans
                     else
-                        draw string(x*_fw1,y*_fh1), chr(176),,font1,custom,@_col
+                        draw string(x2*_fw1,y*_fh1), chr(176),,font1,custom,@_col
                     endif
                 endif
                 if f<e then
@@ -3476,6 +3748,7 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
                 endif
             next
         next
+        flip
         sleep 50
     next
     
@@ -3483,8 +3756,8 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
         for x=0 to 60
             for y=0 to 20
                 set__color( e,e)
-                if _tiles=0 then
-                    if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(rnd_range(63,66))),pset
+                if configflag(con_tiles)=0 then
+                    'if x-osx>=0 and x-osx<=_mwx then put ((x-osx)*_tix,y*_tiy),gtiles(gt_no(rnd_range(63,66))),pset
                 else
                     draw_string(x*_fw1,y*_fh1, chr(176),font1,_col)
                 endif
@@ -3494,7 +3767,7 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
     next
     
     for e=0 to lastenemy
-        if distance(enemy(e).c,p1)<item(c).v1*5 then enemy(e).hp=enemy(e).hp-item(c).v1*3
+        if distance(enemy(e).c,p1,1)<item(c).v1*5 then enemy(e).hp=enemy(e).hp-item(c).v1*3
     next
     for e=0 to item(c).v1
         if planets(slot).atmos>1 and item(c).v1>1 then
@@ -3503,33 +3776,31 @@ function alienbomb(awayteam as _monster,c as short,slot as short, enemy() as _mo
             if planets(slot).atmos=6 or planets(slot).atmos=12 then planets(slot).atmos=1
         endif
     next
-    for a=0 to lastlocalitem
+    for a=1 to lastlocalitem
         p.x=item(li(a)).w.x
         p.y=item(li(a)).w.y
-        if a=c or (rnd_range(1,100)+item(c).v1>item(li(a)).res and distance(p,p1)<item(c).v1*5) then
+        if a=c or (rnd_range(1,100)+item(c).v1>item(li(a)).res and distance(p,p1,1)<item(c).v1*5) then
             destroyitem(li(a))
             li(a)=li(lastlocalitem)
             lastlocalitem-=1
         endif
     next
-    display_planetmap(slot,awayteam.c.x-_mwx/2,0)          
+    
+    display_planetmap(slot,osx,0)          
                                 
     
     return 0
 end function
 
 
-function grenade(from as _cords,map as short) as _cords
+function grenade(from as _cords,map as short,vismask() as byte,enemy() as _monster,lastenemy as short,li() as short, lastlocalitem as short) as _cords
     dim as _cords target,ntarget
     dim as single dx,dy,x,y,launcher
     dim as short a,ex,r,t,osx
     dim as string key
-    dim p as _cords
+    dim as _cords p,pts(60*20)
     
-    dim as short local_debug=0 
-    osx=from.x-_mwx/2
-    if osx<0 then osx=0
-    if osx>=60-_mwx then osx=60-_mwx
+    dim as short debug=0 
     
     target.x=from.x
     target.y=from.y
@@ -3538,24 +3809,18 @@ function grenade(from as _cords,map as short) as _cords
     x=from.x
     y=from.y
     p=from
-    ntarget=from
     launcher=findbest(17,-2)
-    if local_debug=1 then dprint ""&launcher
+    if debug=1 and _debug=1 then dprint ""&launcher
     if launcher>0 then
         dprint "Choose target"
         do 
-            ntarget=target
-            key=cursor(ntarget,map,osx)
-            if distance(ntarget,from)<5+item(launcher).v1-planets(map).grav then
-                target.x=ntarget.x
-                target.y=ntarget.y
-            endif
+            key=planet_cursor(target,map,osx,1)
+            ep_display(vismask(),enemy(),lastenemy,li(),lastlocalitem,osx)
+            display_awayteam(,osx)
+            key=cursor(target,map,osx,,5+item(launcher).v1-planets(map).grav)
             if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=-1
             if key=key_quit or multikey(SC_ESCAPE) then ex=1    
         loop until ex<>0
-        r=distance(from,target)
-        dx=(target.x-from.x)/r
-        dy=(target.y-from.y)/r
     else
         dprint "Choose direction"
         key=keyin("12346789"&" "&key__esc)
@@ -3601,58 +3866,65 @@ function grenade(from as _cords,map as short) as _cords
         target.x=-1
         target.y=-1
     else
+        if launcher>0 then
+            r=line_in_points(target,from,pts())
+            for a=1 to r
+                if tmap(pts(a).x,pts(a).y).firetru=1 then
+                    return pts(a)
+                endif
+            next
+            return target
+        else
+            
         for a=1 to r
             x=x+dx
             y=y+dy
             t=abs(planetmap(x,y,map))
             if tiles(t).firetru=1 then exit for
         next
-        if x<0 then x=0
+        if planets(map).depth=0 then
+            if x<0 then x=60
+            if x>60 then x=0
+        else
+            if x<0 then x=0
+            if x>60 then x=60
+        endif
         if y<0 then y=0
-        if x>60 then x=60
         if y>20 then y=20
         target.x=x
         target.y=y
+        endif
     endif
-    if local_debug=1 then dprint ""&target.x &":"& target.y
+    if debug=1 and _debug=1 then dprint ""&target.x &":"& target.y
     return target    
 end function
 
 function teleport(from as _cords,map as short) as _cords
     dim target as _cords
-    dim ntarget as _cords
-    dim otarget as _cords
     dim ex as short
     dim key as string
     dim osx as short
-    osx=from.x-_mwx/2
-    if osx<0 then osx=0
-    if osx>=60-_mwx then osx=60-_mwx
     
     if planets(map).teleport<>0 then
         dprint "Something is jamming your teleportation device!",14
         return from
     endif
-    target.x=from.x
-    target.y=from.y
-    ntarget=target
+    if player.teleportload<10 then
+        dprint "The teleportation device still needs some time to recharge!"
+        return from
+    endif
+    target=awayteam.c
     do 
-        key=cursor(ntarget,map,osx)
-        if distance(ntarget,from)<10 then
-            target.x=ntarget.x
-            target.y=ntarget.y
-        endif
+        key=planet_cursor(target,map,osx,1)
+        display_awayteam(,osx)
+        key=cursor(target,map,osx,,10)
         if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=1
         if key=key_quit or multikey(SC_ESCAPE) then ex=-1    
     loop until ex<>0
     if ex=1 then
-        if player.teleportload>=10 then 
             from.x=target.x
             from.y=target.y
             player.teleportload=0
-        else
-            dprint "The teleportation device still needs some time to recharge"
-        endif
     endif
     return from
 end function
@@ -3662,28 +3934,50 @@ function wormhole_ani(target as _cords) as short
     dim as short last,a,c
     last=Line_in_points(target,player.c,p())
     for a=1 to last-1
-        set__color( rnd_range(180,214),rnd_range(170,204))
-        if p(a).x-player.osx>=0 and p(a).x-player.osx<=_mwx and p(a).y-player.osy>=0 and p(a).y-player.osy<=20 then
-            if _tiles=0 then
-                put ((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
-            else
-                draw_string((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1,"@",font1,_col)
-            endif
-            player.di+=1
-            if player.di=5 then player.di=6
-            if player.di>9 then player.di=1 
-            sleep 50
-            for c=0 to laststar+wormhole
-                if map(c).discovered>0 then display_star(c,0)
-            next
+        player.osx=p(a).x-_mwx/2
+        player.osy=p(a).y-10
+        if player.osx<=0 then player.osx=0
+        if player.osy<=0 then player.osy=0
+        if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
+        if player.osy>=sm_y-20 then player.osy=sm_y-20
+        screenset 0,1
+        cls
+        player.di+=1
+        if player.di=5 then player.di=6
+        if player.di>9 then player.di=1 
+        display_stars(2)
+        display_ship
+        dprint ""
+        if configflag(con_tiles)=0 then
+            put ((p(a).x-player.osx)*_fw1,( p(a).y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
         else
-            cls
-            display_ship(1)
-            show_stars(1)
-            dprint ""
+            set__color( _shipcolor,0)
+            draw_string((p(a).x-player.osx)*_fw1,( p(a).y-player.osy)*_fh1,"@",font1,_col)
         endif
+        flip
+        sleep 50
+'        set__color( rnd_range(180,214),rnd_range(170,204))
+'        if p(a).x-player.osx>=0 and p(a).x-player.osx<=_mwx and p(a).y-player.osy>=0 and p(a).y-player.osy<=20 then
+'            if configflag(con_tiles)=0 then
+'                put ((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
+'            else
+'                draw_string((p(a).x-player.osx)*_fw1,(p(a).y-player.osy)*_fh1,"@",font1,_col)
+'            endif
+'            player.di+=1
+'            if player.di=5 then player.di=6
+'            if player.di>9 then player.di=1 
+'            sleep 50
+'            for c=0 to laststar+wormhole
+'                if map(c).discovered>0 then display_star(c,0)
+'            next
+'        else
+'            cls
+'            display_ship(1)
+'            show_stars(1)
+'            dprint ""
+'        endif
     next
-    player.c=p(last-1)
+    player.c=target
     return 0
 end function
 
@@ -3692,15 +3986,71 @@ function scan_all() as short
     return 0
 end function
 
+function wormhole_navigation() as short
+    dim as short c,d,pl,b,i,wi(wormhole)
+    dim as _cords wp(wormhole)
+    dim as string key
+    for c=laststar+1 to laststar+wormhole
+        map(c).discovered=1
+        i+=1
+        wp(i)=map(c).c
+        wi(i)=c
+    next
+    pl=1
+    sort_by_distance(player.c,wp(),wi(),wormhole)
+    do
+        player.osx=map(wi(pl)).c.x-_mwx/2
+        player.osy=map(wi(pl)).c.y-10
+        if player.osx<=0 then player.osx=0
+        if player.osy<=0 then player.osy=0
+        if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
+        if player.osy>=sm_y-20 then player.osy=sm_y-20
+        display_stars(2)
+        display_star(wi(pl),1,1)
+        display_ship
+        
+            
+        set__color( 0,11)
+        
+        if player.c.x-player.osx>=0 and player.c.x-player.osx<=_mwx and player.c.y-player.osy>=0 and .y-player.osy<=20 then
+            if configflag(con_tiles)=0 then
+                put ((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1),stiles(player.di,player.ti_no),trans
+            else
+                set__color( _shipcolor,0)
+                draw_string((player.c.x-player.osx)*_fw1,( player.c.y-player.osy)*_fh1,"@",font1,_col)
+            endif
+        endif
+        d=int(distance(player.c,map(wi(pl)).c))
+        dprint "Wormhole at "&map(wi(pl)).c.x &":"& map(wi(pl)).c.y &". Distance "&d &" Parsec." 
+        key=keyin
+        if keyplus(key) then pl=pl+1
+        if keyminus(key) then pl=pl-1
+        if pl<1 then pl=wormhole
+        if pl>wormhole then pl=1
+        set__color( 11,0)
+        cls 
+    loop until key=key__enter or key=key_la or key=key__esc
+    
+    if key=key__esc then
+        b=-1
+    else
+        b=wi(pl)
+    endif
+    return b
+end function
 
 function space_radio() as short
-    dim as short i,closestfleet,closestdrifter,lc,j
+    dim as short i,closestfleet,closestdrifter,lc,j,disnum,dis
     dim as _cords p
     dim dummy as _monster
     dim du(2) as short
     dim debug as short
+    dim c(25) as _cords
     dim contacts(25) as short
-    dim as string fname(8),text
+    dim as string fname(8),text,dname(2)
+    dname(0)=" (Strong signal)"
+    dname(1)=""
+    dname(2)=" (Weak signal)"
      
     gen_fname(fname())
     
@@ -3708,8 +4058,9 @@ function space_radio() as short
     df=9999
     for i=1 to lastfleet
         if fleet(i).ty=1 or fleet(i).ty=3 or fleet(i).ty=6 or fleet(i).ty=7 then
-            if distance(fleet(i).c,player.c)<player.sensors*2 then
+            if distance(fleet(i).c,player.c)<player.sensors*2 and lc<=25 then
                 lc+=1
+                c(lc)=fleet(i).c
                 contacts(lc)=i
             endif
         endif
@@ -3719,43 +4070,75 @@ function space_radio() as short
         p.x=drifting(i).x
         p.y=drifting(i).y
         if i<=3 or (planets(drifting(i).m).mon_template(0).made=32 and planets(drifting(i).m).flags(0)=0) then
-            if distance(p,player.c)<player.sensors*2 then
+            if distance(p,player.c)<player.sensors*2 and lc<=25 then
                 lc+=1
+                c(lc).x=drifting(i).x
+                c(lc).y=drifting(i).y
                 contacts(lc)=-i 'Drifters are negative
             endif
         endif
     next
-    dprint lc &"=LC"
+    
     if lc>0 then
         if lc=1 then
             i=contacts(lc)
         else
             text="Contact:"
+            
+            sort_by_distance(player.c,c(),contacts(),lc)
             for j=1 to lc
                 if contacts(j)>0 then 
-                    text=text &"/"&fname(fleet(contacts(j)).ty)
+                    dis=cint(distance(player.c,fleet(contacts(j)).c))
+                    select case dis
+                    case 0 to player.sensors*2/3
+                        disnum=0
+                    case player.sensors*2/3 to player.sensors*4/3
+                        disnum=1
+                    case else
+                        disnum=2
+                    end select
+                    
+                    text=text &"/"&fname(fleet(contacts(j)).ty) &dname(disnum) 
                 else
-                    text=text &"/"&shiptypes(drifting(abs(contacts(j))).s)
+                    p.x=drifting(abs(contacts(j))).x
+                    p.y=drifting(abs(contacts(j))).y
+                    dis=cint(distance(player.c,p))
+                    select case dis
+                    case 0 to player.sensors*2/3
+                        disnum=0
+                    case player.sensors*2/3 to player.sensors*4/3
+                        disnum=1
+                    case else
+                        disnum=2
+                    end select
+                    text=text &"/"&shiptypes(drifting(abs(contacts(j))).s)&dname(disnum) 
                 endif
             next
-            i=menu(text,"",0,20-lc)
-            if i<0 then return 0
+            text=text &"/Cancel"
+            i=menu(bg_ship,text,"",0,20-lc)
+            if i=lc+1 then return 0
             i=contacts(i)
         endif
     else
         i=0
         dprint "No contact."
     end if
-    dprint "I="&i
+    if _debug=1 then dprint "I="&i
     select case i
     case is>0
-        if fleet(i).ty=1 and i>5 then dodialog(5,dummy,i)
+        if fleet(i).ty=1 and i>5 then
+            if fleet(i).con(1)=0 then
+                dodialog(5,dummy,i)
+            else
+                dodialog(11,dummy,i)
+            endif
+        endif
         if fleet(i).ty=3 then dodialog(3,dummy,i)
         dummy.lang=fleet(i).ty+26
         dummy.aggr=1
-        if debug=2 then dprint ""&dummy.lang
-        if fleet(i).ty=6 then communicate(dummy,dummy,1,du(),1,1)
-        if fleet(i).ty=7 then communicate(dummy,dummy,1,du(),1,1)
+        if debug=2 and _debug=1 then dprint ""&dummy.lang
+        if fleet(i).ty=6 then communicate(dummy,1,du(),1,1)
+        if fleet(i).ty=7 then communicate(dummy,1,du(),1,1)
         
     case is<0
         i=abs(i)
@@ -3765,7 +4148,7 @@ function space_radio() as short
         endif
         p.x=drifting(i).x
         p.y=drifting(i).y
-        if planets(drifting(i).m).mon_template(0).made=32 and planets(drifting(i).m).flags(0)=0 then 
+        if planets(drifting(i).m).mon_template(0).made=32 and (planets(drifting(i).m).flags(0)=0 and planets(drifting(i).m).atmos>0) then 
             dodialog(4,dummy,-i)
         else
             dprint "They don't answer."
@@ -3778,22 +4161,33 @@ end function
 
 
 function launch_probe() as short
-    dim as short i
-    i=getitem(-1,55)
+    dim as short i,d
+    i=get_item(55)
     if i>0 then
-        show_stars(1)
+        screenset 0,1
+        set__color(11,0)
+        cls
+        display_stars(1)
         display_ship(1)
         dprint "Which direction?"
-        lastprobe+=1
-        if lastprobe>100 then lastprobe=1
-        probe(lastprobe).x=player.c.x
-        probe(lastprobe).y=player.c.y
-        probe(lastprobe).m=i
-        probe(lastprobe).s=getdirection(keyin())
-        probe(lastprobe).p=item(i).v4
-        dprint probe(lastprobe).x &":"&probe(lastprobe).y
-        dprint "Probe Launched"
-        item(i).w.s=0
+        flip
+        d=getdirection(keyin())
+        if d>0 then
+            lastprobe+=1
+            if lastprobe>100 then lastprobe=1
+            probe(lastprobe).x=player.c.x  
+            probe(lastprobe).y=player.c.y
+            probe(lastprobe).m=i 
+            probe(lastprobe).s=d
+            probe(lastprobe).p=item(i).v4
+            dprint probe(lastprobe).x &":"&probe(lastprobe).y
+            dprint "Probe launched."
+            item(i).w.s=0
+        else
+            dprint "Launch cancelled."
+        endif
+    else
+        dprint "You have no probes."
     endif
     return 0
 end function
@@ -3802,66 +4196,89 @@ function move_probes() as short
     dim as short i,x,y,j,navcom,t,d
     
     if lastprobe>0 then
-    navcom=findbest(52,-1)
+    navcom=player.equipment(se_navcom)
     for i=1 to lastprobe
-        
         if probe(i).m>0 then
             probe(i).z-=item(probe(i).m).v5
             if probe(i).z<=0 then
-            probe(i).z+=10
-            for j=laststar+1 to laststar+wormhole
-                if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then 
-                    map(j).discovered=1
-                    if askyn("Do you want to direct the probe into the wormhole?(y/n)") then
-                        if rnd_range(1,6)+rnd_range(1,6)<9 then
-                            t=map(j).planets(1)
-                            d=distance(map(t).c,probe(i))
-                            probe(i).x=map(t).c.x
-                            probe(i).y=map(t).c.y
-                            dprint "The probe traveled " &d &" parsecs to "&map(t).c.x &":"&map(t).c.y &"."
-                            exit for
-                        else
-                            item(probe(i).m).v1=0
+                probe(i).z+=10
+                for j=laststar+1 to laststar+wormhole
+                    if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then 
+                        map(j).discovered=1
+                        if askyn("Do you want to direct the probe into the wormhole?(y/n)") then
+                            if skill_test(player.pilot(0),st_hard) then
+                                t=map(j).planets(1)
+                                d=distance(map(t).c,probe(i))
+                                probe(i).x=map(t).c.x
+                                probe(i).y=map(t).c.y
+                                dprint "The probe traveled " &d &" parsecs to "&map(t).c.x &":"&map(t).c.y &"."
+                                exit for
+                            else
+                                dprint "You lost contact with the probe."
+                                item(probe(i).m).v3=0
+                            endif
                         endif
-                    endif
-                endif
-            next
-            
-            probe(i)=movepoint(probe(i),probe(i).s,,1)
-            item(probe(i).m).v1-=1
-            for x=probe(i).x-1 to probe(i).x+1
-                for y=probe(i).y-1 to probe(i).y+1
-                    if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
-                        if abs(spacemap(x,y))<6 then
-                            spacemap(x,y)=abs(spacemap(x,y))
-                            if spacemap(x,y)=0 and navcom>0 then spacemap(x,y)=1
-                        endif
-                        for j=1 to laststar
-                            if map(j).c.x=x and map(j).c.y=y and map(j).spec<8 then map(j).discovered=1
-                            if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then map(j).discovered=1
-                        next
                     endif
                 next
-            next
-            if abs(spacemap(probe(i).x,probe(i).y))>=6 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>9 then
-                spacemap(x,y)=abs(spacemap(x,y))
-            endif
-
-            for j=1 to lastdrifting
-                if drifting(j).x=probe(i).x and drifting(j).y=probe(i).y then drifting(j).p=1
-            next
-            if spacemap(probe(i).x,probe(i).y)>1 then
-                if rnd_range(1,6)+rnd_range(1,6)+item(probe(i).m).v2<10 then
+            
+                    probe(i)=movepoint(probe(i),probe(i).s,,1)
                     item(probe(i).m).v3-=1
+                    for x=probe(i).x-1 to probe(i).x+1
+                        for y=probe(i).y-1 to probe(i).y+1
+                            if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                                if abs(spacemap(x,y))<6 then
+                                    spacemap(x,y)=abs(spacemap(x,y))
+                                    if spacemap(x,y)=0 and navcom>0 then spacemap(x,y)=1
+                                endif
+                                for j=1 to laststar
+                                    if map(j).c.x=x and map(j).c.y=y and map(j).spec<8 then map(j).discovered=1
+                                    if map(j).c.x=probe(i).x and map(j).c.y=probe(i).y then map(j).discovered=1
+                                next
+                            endif
+                        next
+                    next
+                    if abs(spacemap(probe(i).x,probe(i).y))>=6 and skill_test(player.pilot(0),st_hard) then spacemap(x,y)=abs(spacemap(x,y))
+                    
+
+                    for j=1 to lastdrifting
+                        if drifting(j).x=probe(i).x and drifting(j).y=probe(i).y then drifting(j).p=1
+                    next
+                    if spacemap(probe(i).x,probe(i).y)>1 then
+                        if skill_test(item(probe(i).m).v2,st_average) then item(probe(i).m).v1-=1
+                    endif
                 endif
             endif
-        endif
-        endif
-    next
+            if probe(i).x=player.c.x and probe(i).y=player.c.y then
+                if askyn("Do you want to take the probe on board?(y/n)") then
+                    
+                    item(probe(i).m).v3=item(probe(i).m).v6 'Refuel
+                    item(probe(i).m).w.s=-1 'Refuel
+                    if lastprobe>1 then
+                        probe(i)=probe(lastprobe)
+                    else 
+                        probe(i)=probe(0)
+                    endif
+                    lastprobe-=1
+                    screenset 0,1
+                    set__color(11,0)
+                    cls
+                    display_stars(1)
+                    display_ship
+                    dprint ""
+                    flip
+                endif
+            endif
+        
+        next
         for i=1 to lastprobe
-            if item(probe(i).m).v1<=0 or item(probe(i).m).v2<=0 then
-                dprint "Lost contact with probe at "&probe(i).x &":"&probe(i).y &".",14
-                probe(i)=probe(lastprobe)
+            if item(probe(i).m).v3<=0 or item(probe(i).m).v1<=0 then
+                dprint "Lost contact with probe at "&probe(i).x &":"&probe(i).y &".",c_yel
+                if lastprobe>1 then
+                    probe(i)=probe(lastprobe)
+                else
+                    if _debug<>0 then dprint "Deleting probe "&i
+                    probe(i)=probe(0)
+                endif
                 lastprobe-=1
             endif
         next
@@ -3924,8 +4341,8 @@ function poolandtransferweapons(s1 as _ship,s2 as _ship) as short
         endif
     next
     do
-    cls
         set__color( 15,0)
+        cls
         draw_string(0,0,"New Ship",font2,_col)
         draw_string(35*_fw2,0,"Old Ship",font2,_col)
         for x=0 to 1
@@ -4060,17 +4477,21 @@ function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() a
     return enemy
 end function
 
-function monsterhit(attacker as _monster, defender as _monster) as _monster
+function monsterhit(attacker as _monster, defender as _monster,vis as byte) as _monster
     dim mname as string
     dim text as string
     dim a as short
     dim b as short
     dim noa as short
     dim col as short
-    dim as short local_debug
-    if attacker.stuff(1)=1 and attacker.stuff(2)=1 then mname="flying "
-    mname=mname & attacker.sdesc    
-    text="The "
+    dim as short debug
+    if vis>0 then
+        if attacker.stuff(1)=1 and attacker.stuff(2)=1 then mname="flying "
+        mname=mname & attacker.sdesc    
+        text="The "
+    else 
+        mname="Something"
+    endif
     if distance(attacker.c,defender.c)<1.5 then
         text=text &mname &" attacks :"
     else
@@ -4080,12 +4501,12 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
     noa=attacker.hp\7
     if noa<1 then noa=1
     for a=1 to noa
-        if rnd_range(1,20)-defender.armor\(6*(defender.hp+1))+attacker.weapon>13+defender.move*5 then b=b+1+attacker.weapon
+        if skill_test(-defender.armor\(6*(defender.hp+1))+attacker.weapon,13+defender.move*5) then b=b+1+attacker.weapon
     next
     if b>attacker.weapon+5+noa/2 then b=attacker.weapon+5+noa/2 'max damage    
     if defender.made=0 then 
         if b>0 then
-            text=text & damawayteam(defender,b,,attacker.disease)
+            text=text & damawayteam(b,,attacker.disease)
             col=12
         else
             text=text & " no casualties."
@@ -4096,27 +4517,29 @@ function monsterhit(attacker as _monster, defender as _monster) as _monster
     else
         defender.hp=defender.hp-b 'Monster attacks monster
         if defender.hp<=0 then defender.killedby=attacker.made
-        'if defender.hp<defender.hpmax*0.3 and rnd_range(1,6)+rnd_range(1,6)<defender.intel+defender.diet then defender.aggr=2
     endif
-    if local_debug=1 then dprint "DEBUG MESSAGE dam:"& b
+    if debug=1 and _debug=1 then dprint "DEBUG MESSAGE dam:"& b
     return defender
 end function
 
 function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte, first as short=-1, last as short=-1) as _monster
     dim a as short
     dim b as single
+    dim as single nonlet
     dim c as short
     dim col as short
     dim noa as short
     dim text as string
     dim wtext as string
     dim mname as string
+    dim xpstring as string
     dim SLBonus(255) as byte
+    dim as string echo1,echo2
     dim slbc as byte
-    dim as short slot
+    dim as short slot,xpgained,tacbonus
     slot=player.map
     #ifdef _FMODSOUND
-    if _sound=0 or _sound=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
+    if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
     #endif
     if defender.stuff(2)=1 then mname="flying "
     mname=mname &defender.sdesc
@@ -4127,6 +4550,12 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         noa=last
     endif
     
+    if player.tactic=3 then
+        tacbonus=0
+    else
+        tacbonus=player.tactic
+    endif
+    
     for a=first to noa
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).talents(27)>0 then
             slbc+=1
@@ -4135,42 +4564,62 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     next
     slbc=1
     for a=first to noa
+        if noa-first<=5 then
+            echo2=crew(a).n &" attacks"
+            echo1=crew(a).n &" shoots"
+        endif
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).disease=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             slbc+=1
             if distance(defender.c,attacker.c)>1.5 then
-                if rnd_range(1,20)-player.tactic+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc)>13+defender.move*5 then 
-                    b=b+attacker.secweap(a)+addtalent(3,11,.1)+addtalent(a,26,.1)
-                    if a>5 then gainxp(a) 
+                if skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),13+defender.move*3,echo1) then 
+                    b=b+attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
+                    xpstring=gainxp(a) 
+                    xpgained+=1
                 endif
             else
-                if rnd_range(1,20)-player.tactic+tohit_close(a)+SLBonus(slbc)>13+defender.move*5 then 
-                    b=b+maximum(attacker.secweapc(a),attacker.secweap(a))+addtalent(3,11,.1)+addtalent(a,25,.1)+crew(a).augment(2)/10
-                    if a>5 then gainxp(a)
+                if skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),13+defender.move*3,echo2) then 
+                    b=b+maximum(attacker.secweapc(a),attacker.secweap(a))+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
+                    xpstring=gainxp(a) 
+                    xpgained+=1
                 endif
             endif
         endif
     next
+    if xpgained=1 then dprint xpstring,c_gre
+    if xpgained>1 then dprint xpgained &" crewmembers gained 1 Xp.",c_gre
     text="You attack the "&defender.sdesc &"."
     if distance(defender.c,attacker.c)>1.5 then b=b+1-int(distance(defender.c,attacker.c)/2)
-    b=cint(b)-player.tactic+addtalent(3,10,1)
+    b=cint(b)-player.tactic+add_talent(3,10,1)
     if b<0 then b=0
     if b>0 then
        defender.target=attacker.c
        b=b-defender.armor
-       if b>0 then
-            text=" You hit for " & b &" points of damage." 
-            defender.hp=defender.hp-b
+       if b>0 then 
+            if player.tactic<>3 then
+                text=" You hit for " & b &" points of damage." 
+                defender.hp=defender.hp-b
+            else
+                if defender.stunres<10 then
+                    b=b/2
+                    b=(b*((10-defender.stunres)/10))
+                    text=" You hit for " & b &" nonlethal points of damage." 
+                    defender.hpnonlethal+=b
+                else
+                    b=b/2
+                    defender.hp-=b
+                endif
+            endif
             if defender.hp/defender.hpmax<0.8 then wtext ="The " & mname &" is slightly "&defender.dhurt &" "
             if defender.hp/defender.hpmax<0.5 then wtext ="The " & mname &" is "&defender.dhurt &" "
             if defender.hp/defender.hpmax<0.3 then wtext ="The " & mname &" is badly "&defender.dhurt &" "
             text=text &wtext
             col=10
         else
-            text=text &" You don't penetrate the "&mname &" armor."
+            text=text &" You don't penetrate the "&mname &"s armor."
             col=14 
         endif
     else
-        text=text &" your fire misses. "
+        text=text &" Your fire misses. "
         col=14
     endif
     if defender.hp<=0 then
@@ -4184,7 +4633,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         if defender.slot>=0 then planets(slot).mon_killed(defender.slot)+=1
     else
         if defender.hp=1 and b>0 and defender.aggr<>2 then 
-            if rnd_range(1,6)+rnd_range(1,6)<defender.intel+defender.diet then
+            if rnd_range(1,6) +rnd_range(1,6)<defender.intel+defender.diet then
                 defender.aggr=2
                 text=text &"the " &mname &" is critically hurt and tries to FLEE. "            
                 defender=movemonster(defender, attacker.c, mapmask(),tmap())   
@@ -4212,18 +4661,21 @@ function clear_gamestate() as short
     dim d_ship as _ship
     dim d_map as _stars
     dim d_fleet as _fleet
-    dim d_station as _station
+    dim d_basis as _basis
     dim d_drifter as _driftingship
     dim d_item as _items
     dim d_share as _share
     dim d_company as _company
     dim d_portal as _transfer
+    set__color(15,0)
+    draw string(_screenx/2-7*_fw1,_screeny/2),"Resetting game",,font2,custom,@_col
+    
     player=d_ship
     
     for a=0 to 128
         crew(a)=d_crew
     next
-    
+        
     for a=0 to laststar+wormhole
         map(a)=d_map
     next
@@ -4257,28 +4709,29 @@ function clear_gamestate() as short
     for a=0 to 25000
         item(a)=d_item
     next
-    lastitem=0
+    lastitem=-1
+    
     
     Wage=10
-    basis(0)=d_station
+    basis(0)=d_basis
     basis(0).c.x=50
     basis(0).c.y=20
     basis(0).discovered=1
     basis(0)=makecorp(0)
     
-    basis(1)=d_station
+    basis(1)=d_basis
     basis(1).c.x=10
     basis(1).c.y=25
     basis(1).discovered=1
     basis(1)=makecorp(0)
     
-    basis(2)=d_station
+    basis(2)=d_basis
     basis(2).c.x=75
     basis(2).c.y=10
     basis(2).discovered=1
     basis(2)=makecorp(0)
     
-    basis(3)=d_station
+    basis(3)=d_basis
     basis(3).c.x=-1
     basis(3).c.y=-1
     basis(3).discovered=0
@@ -4309,27 +4762,6 @@ function clear_gamestate() as short
         artflag(a)=0
     next
     
-    for a=0 to 10
-        basis(a).inv(1).n="Food"
-        basis(a).inv(1).v=rnd_range(1,6)+4
-        basis(a).inv(1).p=50
-        
-        basis(a).inv(2).n="Basic Goods"
-        basis(a).inv(2).v=rnd_range(1,7)+3
-        basis(a).inv(2).p=200
-        
-        basis(a).inv(3).n="Tech Goods"
-        basis(a).inv(3).v=rnd_range(1,8)+2
-        basis(a).inv(3).p=500
-        
-        basis(a).inv(4).n="Luxury Goods"
-        basis(a).inv(4).v=rnd_range(1,8)+1
-        basis(a).inv(4).p=1000
-        
-        basis(a).inv(5).n="Weapons"
-        basis(a).inv(5).v=rnd_range(1,8)
-        basis(a).inv(5).p=2500
-    next
     
     for a=0 to 255
         portal(a)=d_portal
@@ -4345,7 +4777,7 @@ ERRORMESSAGE:
 e=err
 text=*ERMN()
 text=mid(text,81) 
-text=__VERSION__ &" Error #"&e &" in "& " "&erl &":" & *ERFN() &" " & text
+text=__VERSION__ &" Error #"&e &" in "&erl &":" & *ERFN() &" " &*ERMN() & text
 f=freefile
 open "error.log" for append as #f
 
@@ -4358,12 +4790,14 @@ print "matthias.mennel@gmail.com"
 set__color( 14,0)
 print text
 sleep
-if attempts=0 then
-    print "Trying to save game"
-    savegame()
-    attempts=26
-else
-    print "Failed to save game."
+if gamerunning=1 then
+    if attempts=0 then
+        print "Trying to save game"
+        savegame()
+        attempts=26
+    else
+        print "Failed to save game."
+    endif
 endif
 print "key to exit"
 sleep

@@ -353,7 +353,7 @@ tiles(47).bgcol=0
 tiles(47).col=219
 tiles(47).desc="rubble"
 tiles(47).seetru=0
-tiles(47).walktru=5
+tiles(47).walktru=2
 tiles(47).firetru=1
 tiles(47).shootable=1
 tiles(47).dr=-1
@@ -1011,6 +1011,44 @@ tiles(108).turnsinto=108
 tiles(108).seetru=1
 tiles(108).firetru=1
 
+tiles(109).tile=asc("#") 'Botbin
+tiles(109).col=10
+tiles(109).gives=59
+tiles(109).hp=25
+tiles(109).dr=1
+tiles(109).hitt="you start to shoot at the Botbin"
+tiles(109).turnsinto=109
+tiles(109).desc="The Bot-Bin 2nd hand bots and drones"
+
+tiles(110).tile=asc("#")
+tiles(110).col=12
+tiles(110).hp=25
+tiles(110).dr=1
+tiles(110).gives=69
+tiles(110).hitt="you start to shoot at the Petshop"
+tiles(110).turnsinto=110
+tiles(110).desc="The Petshop"
+
+tiles(111).tile=asc("#")
+tiles(111).col=12
+tiles(111).hp=25
+tiles(111).dr=1
+tiles(111).gives=74
+tiles(111).hitt="you start to shoot at Beasts of Burden"
+tiles(111).turnsinto=111
+tiles(111).desc="Beasts of Burden"
+
+tiles(112).tile=asc("#")
+tiles(112).col=10
+tiles(112).hp=25
+tiles(112).dr=1
+tiles(112).gives=75
+tiles(112).hitt="you start to shoot at Used Ships"
+tiles(112).turnsinto=112
+tiles(112).desc="Used Ships"
+
+
+
 tiles(126).tile=64 
 tiles(126).col=7
 tiles(126).bgcol=0
@@ -1270,13 +1308,12 @@ tiles(157).dr=-1
 tiles(157).hp=30
 tiles(157).turnsinto=4
 
-
 tiles(158).tile=176
 tiles(158).col=1    
 tiles(158).bgcol=11
 tiles(158).desc="huge block of ice"
 tiles(158).seetru=0
-tiles(158).walktru=5
+tiles(158).walktru=2
 tiles(158).firetru=1
 tiles(158).shootable=1
 tiles(158).dr=1
@@ -1412,6 +1449,14 @@ tiles(178).desc="fuel tank"
 tiles(178).gives=55
 tiles(178).turnsinto=178
 
+tiles(179).tile=asc(".")
+tiles(179).col=4
+tiles(179).desc="spice sand"
+tiles(179).vege=10
+tiles(179).turnsoninspect=3
+tiles(179).hitt="Fermenting gases in the spice sand explode!"
+tiles(179).tohit=5
+tiles(179).dam=10
 
 tiles(181).tile=35
 tiles(181).col=8
@@ -1818,7 +1863,7 @@ tiles(240).turnsinto=84
 
 tiles(241).tile=64
 tiles(241).col=8
-tiles(241).desc="An alien scoutship in good condition"
+tiles(241).desc="An alien scoutship in relatively good condition"
 tiles(241).hides=2
 
 tiles(242).tile=238
@@ -2236,6 +2281,38 @@ tiles(302).hp=25
 tiles(302).dr=1
 tiles(302).hitt="you start to shooting at the omega bioengineering office"
 tiles(302).turnsinto=302
+
+'303 is taken
+
+tiles(304).tile=176
+tiles(304).col=1    
+tiles(304).bgcol=11
+tiles(304).desc="huge block of ice"
+tiles(304).seetru=0
+tiles(304).walktru=5
+tiles(304).firetru=1
+tiles(304).shootable=1
+tiles(304).dr=1
+tiles(304).hp=9
+tiles(304).turnsinto=4
+tiles(304).succt="This icechunk has strange inner parts. Looks almost like organs."
+tiles(304).failt="Your attempt to losen the ice fails"
+
+
+tiles(305).tile=64
+tiles(305).col=8
+tiles(305).desc="An alien scoutship in relatively good condition"
+tiles(305).hides=2
+tiles(305).spawnson=45
+tiles(305).spawntext="A battle robot leaves the ship!"
+tiles(305).spawnswhat=8
+tiles(305).spawnsmax=58
+tiles(304).firetru=1
+tiles(304).shootable=1
+tiles(304).dr=10
+tiles(304).hp=90
+tiles(304).succt="You damage the ancient alien scoutship"
+tiles(304).failt="Your weapons are too weak to seriously damage the ancient alien scoutship."
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210
