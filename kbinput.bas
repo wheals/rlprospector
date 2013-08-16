@@ -116,6 +116,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 else
                     showteam(1)
                 endif
+                return ""
             endif
             
             if key=key_accounting then

@@ -2195,6 +2195,8 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
         if p+offset>lines then offset=lines-p
         if p+offset<1 then offset=1-p
     loop until no_key=key__esc or no_key=" "
+    screenset 0,1
     cls
+    flip
     return 0
 end function

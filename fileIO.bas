@@ -163,6 +163,12 @@ function check_filestructure() as short
         chdir("..")
     endif
     
+    if chdir("summary")=-1 then
+        mkdir("summary")
+    else
+        chdir("..")
+    endif
+    
     if not fileexists("savegames/empty.sav") then
         player.desig="empty"
         savegame()

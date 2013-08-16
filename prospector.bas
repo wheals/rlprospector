@@ -3988,7 +3988,7 @@ function wormhole_travel() as short
         endif
         if b>0 then
         if map(b).planets(2)=0 then
-            ano_money+=cint(distance(map(b).c,player.c)*10)*natural
+            ano_money+=cint(distance(map(b).c,player.c)*5)*natural
         endif
             map(b).planets(2)=1
             dprint "you travel through the wormhole.",10
@@ -4005,7 +4005,7 @@ function wormhole_travel() as short
             if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
             if player.osy>=sm_y-20 then player.osy=sm_y-20
             d=0
-            if not(skill_test(player.pilot(0),st_easy+int(distance(player.c,map(b).c)/10),"Pilot")) and artflag(13)=0 then d=rnd_range(1,distance(player.c,map(b).c)/5+1)
+            if not(skill_test(player.pilot(0),st_easy+int(distance(player.c,map(b).c)/8),"Pilot")) and artflag(13)=0 then d=rnd_range(1,distance(player.c,map(b).c)/5+1)
             player.hull=player.hull-d
             if d>0 then dprint "Your ship is damaged ("&d &").",12
             wormhole_ani(map(b).c)
