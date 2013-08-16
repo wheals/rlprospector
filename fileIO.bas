@@ -2300,36 +2300,37 @@ function savegame() as short
     
     close f
     
-    'Overwrites large save file with compressed save file
-    f=freefile
-    open fname for binary as #f
-    filedata_string = space(LOF(f))
-    get #f,, filedata_string
-    close f
+    'Overwrites large save file with compressed save file. but skills if file is empty
+    if fname<>"savegames/empty.sav" then
+        f=freefile
+        open fname for binary as #f
+        filedata_string = space(LOF(f))
+        get #f,, filedata_string
+        close f
      
-    dim as Integer src_len = len(filedata_string) + 1
-    dest_len = compressBound(src_len)
-    dest = Allocate(dest_len)
-    kill(fname)
+        dim as Integer src_len = len(filedata_string) + 1
+        dest_len = compressBound(src_len)
+        dest = Allocate(dest_len)
+        kill(fname)
     
-    f=freefile
-    open fname for binary as #f
-    compress(dest , @dest_len, StrPtr(filedata_string), src_len)
-    put #f,,names		    '36 bytes
-    put #f,,desig		    '36 bytes
-    put #f,,datestring	    '12 bytes + 1 overhead
-    put #f,,unflags()		'lastspecial + 1 overhead
-    put #f,,artflag()		'lastartifact + 1 overhead
-    put #f,, src_len 'we can use this to know the amount of memory needed when we load - should be 4 bytes long
-    'Putting in the short info the the load game menu
+        f=freefile
+        open fname for binary as #f
+        compress(dest , @dest_len, StrPtr(filedata_string), src_len)
+        put #f,,names		    '36 bytes
+        put #f,,desig		    '36 bytes
+        put #f,,datestring	    '12 bytes + 1 overhead
+        put #f,,unflags()		'lastspecial + 1 overhead
+        put #f,,artflag()		'lastartifact + 1 overhead
+        put #f,, src_len 'we can use this to know the amount of memory needed when we load - should be 4 bytes long
+        'Putting in the short info the the load game menu
     
-    header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring, 
-    'unflags, artflag, src_len, header_len, and 3 bytes of over head for the 3 arrays datestring, unflags, artflag
-    put #f,, header_len
-    put #f,, *dest, dest_len
-    close f
-    Deallocate(dest)
-    
+        header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring, 
+        'unflags, artflag, src_len, header_len, and 3 bytes of over head for the 3 arrays datestring, unflags, artflag
+        put #f,, header_len
+        put #f,, *dest, dest_len
+        close f
+        Deallocate(dest)
+    endif
     'Done with compressed file stuff
     
     set__color( 14,0)
