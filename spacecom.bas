@@ -1751,7 +1751,13 @@ function com_sinkheat(s as _ship,manjets as short) as short
         next
     loop until sink<=0 or heat<=0
     for a=1 to 25
-        if s.weapons(a).reloading>0 then s.weapons(a).reloading-=3
+        if s.weapons(a).reloading>0 then 
+            if s.weapons(a).ammomax>0 then
+                s.weapons(a).reloading-=(3*s.reloading/10)
+            else
+                s.weapons(a).reloading-=3
+            endif
+        endif
         if s.weapons(a).reloading<0 then s.weapons(a).reloading=0
     next
     return 0

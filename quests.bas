@@ -51,7 +51,7 @@ function robot_invasion() as short
         case specialplanet(38)
             battleslost(ft_civ1,ft_ancientaliens)+=5
         end select
-        
+        if _debug>0 then dprint "Robot invasion: "&cords(map(sysfrommap(m)).c)
     endif
     return 0
 end function
@@ -183,7 +183,7 @@ function questguy_newquest(i as short) as short
     dim as short f,j,l,debug
     dim as string w(5),li
     f=freefile
-    'debug=qt_locofgarden
+    'debug=qt_outloan
     open "data/wanthas.csv" for input as #f
     do
         line input #f,li
@@ -559,7 +559,7 @@ function get_other_questguy(i as short,sameplace as byte=0) as short
     dim as short other,j,h
     dim others(15) as short
     for j=1 to lastquestguy
-        if questguy(i).location<>questguy(j).location or sameplace=1 then
+        if i<>j and (questguy(i).location<>questguy(j).location or sameplace=1) then
             h+=1
             others(h)=j
         endif    

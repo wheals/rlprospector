@@ -4189,7 +4189,7 @@ function findartifact(v5 as short) as short
             
             if all_resources_are=0 then
                 if v5=0 then
-                    c=rnd_range(1,23)
+                    c=rnd_range(1,25)
                     if c=2 or c=5 then
                         c=rnd_range(1,10)
                         if c=2 or c=5 then artflag(c)=1
@@ -4200,7 +4200,7 @@ function findartifact(v5 as short) as short
             else
                 c=all_resources_are
             endif
-            if c<0 or c>22 then c=rnd_range(1,23)
+            if c<0 or c>22 then c=rnd_range(1,25)
             if (skill_test(player.science(1),st_veryhard,"Examining artifact") and artflag(c)=0 and c<>2 and c<>5) or all_resources_are>0 then
                 artflag(c)=1                
                 artifact(c)
@@ -4345,6 +4345,15 @@ function artifact(c as short) as short
     
     if c=23 then
         dprint "It's a batch of hull repairing nanobots!"
+    endif
+    
+    if c=24 then
+        dprint "It's an ammo teleportation system!"
+        player.reloading=1
+    endif
+    
+    if c=25 then
+        dprint "It's a wormhole generator!"
     endif
     
     return 0

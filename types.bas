@@ -40,7 +40,7 @@ const show_mapnr=0
 const show_enemyships=0
 const show_mnr=0
 const show_wormholes=0
-const rev_map=1
+const rev_map=0
 const no_enemys=0
 const more_mets=0
 const all_drifters_are=0
@@ -386,6 +386,7 @@ type _ship
     
     armortype as byte=1
     loadout as byte=1
+    reloading as byte=10
     bunking as byte=1
     
     fuelmax as single
@@ -435,6 +436,7 @@ type _ship
     bcol as short
     mcol as short
 end type
+
 
 dim shared foundsomething as integer
 
@@ -1273,6 +1275,7 @@ enum config
     con_gtmwx
     con_classic
     con_showvis
+    con_captainsprite
     con_transitem
     con_onbar
     con_sysmaptiles
@@ -1309,6 +1312,7 @@ configname(con_classic)="classic"
 configname(con_showvis)="showvis"
 configname(con_transitem)="transitem"
 configname(con_onbar)="onbar"
+configname(con_captainsprite)="captainsprite"
 configname(con_sysmaptiles)="sysmaptiles"
 configname(con_customfonts)="customfonts"
 configname(con_chosebest)="chosebest"
@@ -1482,7 +1486,7 @@ dim shared y as short
 dim as single x1,y1,x2,y2
 
 dim shared flag(20) as short
-const lastartifact=23
+const lastartifact=25
 dim shared artflag(lastartifact) as short
 dim key as string
 dim shared zeit as integer
@@ -1679,6 +1683,8 @@ declare function planet_cursor(p as _cords,mapslot as short,byref osx as short,s
 
 declare function start_new_game() as short
 declare function from_savegame(key as string) as string
+declare function wormhole_travel() as short
+
 declare function wormhole_ani(target as _cords) as short
 declare function target_landing(mapslot as short,test as short=0) as short
 declare function landing(mapslot as short,lx as short=0,ly as short=0, test as short=0) as short

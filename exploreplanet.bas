@@ -157,6 +157,7 @@ function ep_atship() as short
     dim as short slot,a
     slot=player.map
     if awayteam.c.y=player.landed.y and awayteam.c.x=player.landed.x and slot=player.landed.m then 
+        location=lc_onship
         dprint "You are at the ship. Press "&key_la &" to launch."
         if awayteam.oxygen<awayteam.oxymax then dprint "Refilling oxygen.",10
         awayteam.oxygen=awayteam.oxymax
@@ -180,6 +181,7 @@ function ep_atship() as short
         alerts()
         return 0
     else 
+        location=lc_awayteam
         'dprint ""&ep_Needs_spacesuit(slot,awayteam.c)
         if ep_Needs_spacesuit(slot,awayteam.c)>0 then
             dam_no_spacesuit(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)))
@@ -2831,6 +2833,7 @@ function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as sh
                 if enemy(a).made<>101 then
                     awayteam.lastaction+=1
                     awayteam.c=old
+                        if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then
         '                if _tiles=0 then
         '                    put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
         '                else
@@ -2884,6 +2887,7 @@ function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as sh
                                 awayteam.lastaction+=1
                             endif                        
                         endif
+                    endif
                 endif
             endif
         endif
@@ -2909,7 +2913,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
     
     
     if configflag(con_tiles)=0 then
-        put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
+        put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
     else
         set__color( _teamcolor,0)
         draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
@@ -2941,7 +2945,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
         p2.y=awayteam.c.y
         do
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
+                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
@@ -2977,7 +2981,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
         a=0
         do 
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),trans
+                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                

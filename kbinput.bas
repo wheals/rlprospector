@@ -110,7 +110,13 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 spacecombat(fleet(rnd_range(6,lastfleet)),9)
             endif
             
-            if key=key_awayteam then showteam(1)
+            if key=key_awayteam then
+                if location=lc_onship then
+                    showteam(0)
+                else
+                    showteam(1)
+                endif
+            endif
             
             if key=key_accounting then
                 textbox(income_expenses,2,2,45,11,1)

@@ -24,10 +24,10 @@ function skill_test(bonus as short,targetnumber as short,echo as string="") as s
     dim as short roll
     roll=rnd_range(1,20)
     if roll+bonus>=targetnumber then
-        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" (Needed "& targetnumber &", rolled "&roll &"+"& bonus &": Success)",c_gre
+        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Success.",c_gre
         return -1
     else
-        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" (Needed "& targetnumber &", rolled "&roll &"+"& bonus &": Failure)",c_red
+        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Failure.",c_red
         return 0
     end if
 end function
@@ -1886,7 +1886,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
     dim message as string
     dim onoff(2) as string
     dim debug as byte
-        
+    
     onoff(0)="On "
     onoff(1)=" - "
     onoff(2)="Off"
@@ -2070,7 +2070,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     
                     'Fixes the auto equip messgae so it does not get over writen Also goign to set the highlighting if needed
                     if skills = "" then
-                        draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
                     elseif augments = "" then
                         set__color( 0,bg)
                         draw string (0,(y+3)*_fh2), space(80),,font2,custom,@_col

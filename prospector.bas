@@ -239,6 +239,10 @@ function start_new_game() as short
     dim i as _items
     dim debug as byte
     debug=126
+    if _debug>0 then
+        artflag(25)=1
+    endif
+    if _debug>0 then dprint "captainssprite:"&configflag(con_captainsprite)
     make_spacemap() 
     if debug=1 and _debug=1 then
         f=freefile
@@ -661,6 +665,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
         
         if player.dead=0 and awayteam.hp>0 then
             do
+                savegame
                 if _debug=1 then dprint "nextmap" & nextmap.m &"x:"&nextmap.x &"y:"&nextmap.y
                 equip_awayteam(slot)
                 nextmap=explore_planet(nextmap,slot)
@@ -1967,6 +1972,7 @@ function explore_space() as short
     screenset 0,1
     cls
     bg_parent=bg_shipstarstxt
+    location=lc_onship
     display_stars(1)
     display_ship
     flip
@@ -1990,6 +1996,7 @@ function explore_space() as short
             fl=0
             allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
             allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
+            if artflag(25)>0 then allowed=allowed &key_te
             if debug=11 and _debug=1 then allowed=allowed &"ü"
             for a=0 to 2
                 if player.c.x=basis(a).c.x and player.c.y=basis(a).c.y then
@@ -2065,8 +2072,8 @@ function explore_space() as short
             if planetcom>0 then comstr=comstr & key_sc &" scan;"& key_la &" land;"& key_tala &" target land;"
             if fleetcom=1 then comstr=comstr &key_fi &" attack;"
             if driftercom=1 then comstr=comstr &key_dock &" dock;"
-            if wormcom=1 then comstr=comstr &key_la &" enter wormhole"
-            
+            if wormcom=1 then comstr=comstr &key_la &" enter wormhole;"
+            if artflag(25)>0 then comstr=comstr &key_te &" wormhole generator"
             display_ship(1)
             if planetcom>0 then display_system(planetcom-1)
             
@@ -2123,6 +2130,10 @@ function explore_space() as short
             if key=key_walk then
                 key=keyin
                 walking=getdirection(key)
+            endif
+            
+            if artflag(25)>0 and key=key_te then
+                wormhole_travel
             endif
             
             if key=key_ra then space_radio
@@ -2183,64 +2194,7 @@ function explore_space() as short
                     endif
                 endif
                         
-                
-                for a=laststar+1 to laststar+wormhole
-                    if player.c.x=map(a).c.x and player.c.y=map(a).c.y then pl=a
-                next
-                if pl>1 and key=key_la and configflag(con_warnings)=0 then
-                    if askyn("Travelling through wormholes can be dangerous. Do you really want to?(y/n)")=0 then pl=0 
-                endif
-                if pl>1 and key=key_la and rnd_range(1,100)<whtravelled then
-                    dprint "There is a planet orbiting the wormhole!"
-                    if askyn("Shall we try to land on it? (y/n)") then
-                        if whplanet=0 then makewhplanet
-                        pl=0
-                        landing(whplanet)
-                    endif
-                    whtravelled=101
-                endif
-                if pl>1 and key=key_la then
-                    player.towed=0
-                    if map(pl).planets(2)=0 and whtravelled<101 then whtravelled+=3
-                    map(pl).planets(2)=1
-                    if artflag(16)=0 then
-                        b=map(pl).planets(1)
-                    else
-                        dprint "Wormhole navigation system engaged!(+/- to choose wormhole, "&key_la &" to select)",10
-                        b=wormhole_navigation
-                    endif
-                    if b>0 then
-                    if map(b).planets(2)=0 then
-                        ano_money+=cint(distance(map(b).c,player.c)*10)
-                    endif
-                        map(b).planets(2)=1
-                        dprint "you travel through the wormhole.",10
-                        #ifdef _FMODSOUND
-                        if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
-                        #endif
-                        if rnd_range(1,100)<distance(map(b).c,player.c)+maximum(abs(spacemap(player.c.x,player.c.y)),5) then
-                            add_ano(map(b).c,player.c)
-                        endif
-                        player.osx=player.c.x-_mwx/2
-                        player.osy=player.c.y-10
-                        if player.osx<=0 then player.osx=0
-                        if player.osy<=0 then player.osy=0
-                        if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
-                        if player.osy>=sm_y-20 then player.osy=sm_y-20
-                        d=0
-                        if not(skill_test(player.pilot(0),st_easy+int(distance(player.c,map(b).c)/3),"Pilot")) and artflag(13)=0 then d=rnd_range(1,distance(player.c,map(b).c)/5+1)
-                        player.hull=player.hull-d
-                        if d>0 then dprint "Your ship is damaged ("&d &").",12
-                        if player.hull>0 then
-                            wormhole_ani(map(b).c)
-                            display_ship(1)
-                            display_stars(1)
-                            dprint ""
-                        else
-                            player.dead=24
-                        endif
-                    endif
-                endif
+                if key=key_la then wormhole_travel()
             endif
             
             if key=key_dock then
@@ -2345,11 +2299,7 @@ function explore_space() as short
                 endif
             endif
             
-            if key=key_awayteam then
-                screenshot(1)
-                showteam(0)
-                screenshot(2)
-            endif
+            if key=key_awayteam then showteam(0)
             
             
             screenset 0,1
@@ -3428,7 +3378,13 @@ endif
             if awayteam.lastaction<=0 then
                 'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
                 if key=key_drop then ep_dropitem(li(),lastlocalitem,enemy(),lastenemy,vismask())
-                if key=key_awayteam then showteam(1)
+                if key=key_awayteam then 
+                    if awayteam.c.x=player.landed.x and awayteam.c.y=player.landed.y and slot=player.landed.m then
+                        showteam(0)
+                    else
+                        showteam(1)
+                    endif
+                endif
                 if key=key_report then bioreport(slot)
                 if key=key_close then ep_closedoor()
                 if key=key_gr then ep_grenade(shipfire(),sf,vismask(),enemy(),lastenemy,li(),lastlocalitem)
@@ -3987,10 +3943,81 @@ function wormhole_ani(target as _cords) as short
     return 0
 end function
 
-function scan_all() as short
+function wormhole_travel() as short
+    dim as short pl,a,near,b,natural
+    dim as single d
+    d=9999
+    natural=1
+    for a=laststar+1 to laststar+wormhole
+        if player.c.x=map(a).c.x and player.c.y=map(a).c.y then 
+            pl=a
+        else
+            if distance(map(map(a).planets(1)).c,player.c)<d then
+                near=a
+                d=distance(map(map(a).planets(1)).c,player.c)
+            endif
+        endif
+    next
     
+    if pl=0 and artflag(25)>0 then 
+        pl=near
+        natural=0 'No anodata for self made WHs
+    endif
+    
+    if pl>1 and configflag(con_warnings)=0 then
+        if askyn("Travelling through wormholes can be dangerous. Do you really want to?(y/n)")=0 then pl=0 
+    endif
+    if pl>1 and rnd_range(1,100)<whtravelled then
+        dprint "There is a planet orbiting the wormhole!"
+        if askyn("Shall we try to land on it? (y/n)") then
+            if whplanet=0 then makewhplanet
+            pl=0
+            landing(whplanet)
+        endif
+        whtravelled=101
+    endif
+    if pl>1 then
+        player.towed=0
+        if map(pl).planets(2)=0 and whtravelled<101 then whtravelled+=3
+        map(pl).planets(2)=1
+        if artflag(16)=0 then
+            b=map(pl).planets(1)
+        else
+            dprint "Wormhole navigation system engaged!(+/- to choose wormhole, "&key_la &" to select)",10
+            b=wormhole_navigation
+        endif
+        if b>0 then
+        if map(b).planets(2)=0 then
+            ano_money+=cint(distance(map(b).c,player.c)*10)*natural
+        endif
+            map(b).planets(2)=1
+            dprint "you travel through the wormhole.",10
+            #ifdef _FMODSOUND
+            if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(5))                    
+            #endif
+            if rnd_range(1,100)<distance(map(b).c,player.c)+maximum(abs(spacemap(player.c.x,player.c.y)),5) then
+                add_ano(map(b).c,player.c)
+            endif
+            player.osx=player.c.x-_mwx/2
+            player.osy=player.c.y-10
+            if player.osx<=0 then player.osx=0
+            if player.osy<=0 then player.osy=0
+            if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
+            if player.osy>=sm_y-20 then player.osy=sm_y-20
+            d=0
+            if not(skill_test(player.pilot(0),st_easy+int(distance(player.c,map(b).c)/10),"Pilot")) and artflag(13)=0 then d=rnd_range(1,distance(player.c,map(b).c)/5+1)
+            player.hull=player.hull-d
+            if d>0 then dprint "Your ship is damaged ("&d &").",12
+            wormhole_ani(map(b).c)
+            display_ship(1)
+            display_stars(1)
+            dprint ""
+            if player.hull<=0 then player.dead=24
+        endif
+    endif
     return 0
 end function
+
 
 function wormhole_navigation() as short
     dim as short c,d,pl,b,i,wi(wormhole)

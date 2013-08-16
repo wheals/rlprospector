@@ -67,7 +67,7 @@ end function
 
 function gethullspecs(t as short,file as string) as _ship
     dim as short f,a,b
-    dim as string word(11)
+    dim as string word(12)
     dim as string l
     dim as _ship n
     f=freefile
@@ -92,7 +92,8 @@ function gethullspecs(t as short,file as string) as _ship
     n.h_maxweaponslot=val(word(8))
     n.h_maxfuel=val(word(9))    
     n.h_sdesc=word(10)
-    n.h_desc=word(11)
+    n.reloading=val(word(11))
+    n.h_desc=word(12)
     return n
 end function
 
@@ -839,7 +840,21 @@ function load_tiles() as short
         draw string (x,y),""&n-1
     next
     if showtiles=1 then sleep
-
+    
+    n=990
+    cls
+    bload "graphics/player.bmp"
+    for y=0 to _tiy*2 step _tiy
+        for x=0 to _tix*2 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1
+            n+=1
+        next
+    next
+    
+    
     n=1000
     cls
     bload "graphics/critters.bmp"
@@ -852,6 +867,7 @@ function load_tiles() as short
             n+=1
         next
     next
+    
     
     n=1500
     cls
@@ -1648,6 +1664,7 @@ function configuration() as short
     dim onoff(1) as string
     dim offon(1) as string
     dim warn(2) as string
+    dim sprite(2) as string
     dim res as string
     dim as short c,d,f,i
     dim oldtiles as byte
@@ -1659,6 +1676,9 @@ function configuration() as short
     warn(2)="High"
     offon(0)=" Off"
     offon(1)=" On "
+    sprite(0)="Brown"
+    sprite(1)="White"
+    sprite(2)=" Red "
     screenshot(1)
     do
         if configflag(con_customfonts)=1 then
@@ -1677,6 +1697,8 @@ function configuration() as short
                 text=text &"/ Main window width(tile mode): "& gt_mwx
             case con_sound
                 text=text &"/ Sound effects :"& warn(configflag(con_sound))
+            case con_captainsprite
+                text=text &"/ Captains sprite:"&sprite(configflag(con_captainsprite))
             case else
                 text=text & configdesc(i) & onoff(configflag(i)) 
             end select
@@ -1684,7 +1706,7 @@ function configuration() as short
         text=text &"/Exit"
         c=menu(bg_randompic,text,,,,1)
         select case c
-        case con_sound
+        case con_sound,con_captainsprite
             configflag(c)+=1
             if configflag(c)>2 then configflag(c)=0
         case con_sound
@@ -1778,16 +1800,19 @@ function load_config() as short
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
                 
+                j=instr(text,":")
+                rhs=right(text,len(text)-j)
+                lhs=left(text,j-1)    
+                
                 for i=con_tiles to con_end-1
-                    j=instr(text,":")
-                    rhs=right(text,len(text)-j)
-                    lhs=left(text,j-1)    
                     if lhs=configname(i) then
                         if val(rhs)=0 or rhs="on" then configflag(i)=0
                         if val(rhs)=1 or rhs="off" then configflag(i)=1
                         print i;":";lhs;":";rhs ;":";configflag(i)
                     endif   
                 next
+                
+                if lhs="captainsprite" then configflag(con_captainsprite)=val(rhs)
                 
                 if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
                 if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
@@ -2381,7 +2406,7 @@ function load_game(filename as string) as short
         if filename <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
             'Starting the uncompress
 
-            open fname for binary as #f
+        open fname for binary as #f
         
             get #f,,names		    '36 bytes
             get #f,,dat 		    '36 bytes

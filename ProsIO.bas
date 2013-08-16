@@ -1012,7 +1012,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 if x<0 then x+=61
                 if x>60 then x-=61
                 if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
-                if x>=0 and x<=_mwx then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(1000)),trans                
+                if x>=0 and x<=_mwx then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans                
                     
             else
                 set__color( _teamcolor,0)
