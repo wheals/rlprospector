@@ -44,7 +44,7 @@ end function
 
 function make_weap_helptext(w as _weap) as string
     dim help as string
-    help=help &"/{15}"&w.desig &"{11} | | "    
+    help=help &"{15}"&w.desig &"{11} | | "    
     if w.made=1 then help=help &"Little more than an airlock to throw your ammo in the general direction of your target. "
     if w.made=2 then help=help &"A chemical explosion propels your warhead towards the enemy. "
     if w.made=3 then help=help &"A bigger version of the popular hand weapon: Your rounds are accelerated to high speeds using electric fields. "
@@ -1170,27 +1170,171 @@ end function
 
 function augment_text(c as _crewmember) as string
     dim augments as string
+    dim number_augments as byte
+    number_augments=0
     
-    if c.augment(1)=1 then augments=augments &"Targeting "
-    if c.augment(1)=2 then augments=augments &"Targeting II "
-    if c.augment(1)=3 then augments=augments &"Targeting III "
-    if c.augment(2)=1 then augments=augments &"Muscle Enh. "
-    if c.augment(2)=2 then augments=augments &"Muscle Enh. II "
-    if c.augment(2)=3 then augments=augments &"Muscle Enh. III "
-    if c.augment(3)>0 then augments=augments &"Imp. Lungs "
-    if c.augment(4)>0 then augments=augments &"Speed Enh. "
-    if c.augment(5)=1 then augments=augments &"Exoskeleton "
-    if c.augment(5)=2 then augments=augments &"Exosceleton II "
-    if c.augment(5)=3 then augments=augments &"Exosceleton III "
-    if c.augment(6)=1 then augments=augments &"Improved Metabolism "
-    if c.augment(6)=2 then augments=augments &"Improved Metabolism II "
-    if c.augment(6)=3 then augments=augments &"Improved Metabolism III "
-    if c.augment(7)>0 then augments=augments &"FloatLegs "
-    if c.augment(8)>0 then augments=augments &"Jetpack "
-    if c.augment(9)>0 then augments=augments &"Chameleon Skin "
-    if c.augment(10)>0 then augments=augments &"Neural Computer "
-    if c.augment(11)>0 then augments=augments &"Loyality Chip "
-    if c.augment(12)>0 then augments=augments &"Synthetic Nerves "
+    if c.augment(1)=1 then number_augments+=1
+    if c.augment(1)=2 then number_augments+=1
+    if c.augment(1)=3 then number_augments+=1
+    if c.augment(2)=1 then number_augments+=1
+    if c.augment(2)=2 then number_augments+=1
+    if c.augment(2)=3 then number_augments+=1
+    if c.augment(3)>0 then number_augments+=1
+    if c.augment(4)>0 then number_augments+=1
+    if c.augment(5)=1 then number_augments+=1
+    if c.augment(5)=2 then number_augments+=1
+    if c.augment(5)=3 then number_augments+=1
+    if c.augment(6)=1 then number_augments+=1
+    if c.augment(6)=2 then number_augments+=1
+    if c.augment(6)=3 then number_augments+=1
+    if c.augment(7)>0 then number_augments+=1
+    if c.augment(8)>0 then number_augments+=1
+    if c.augment(9)>0 then number_augments+=1
+    if c.augment(10)>0 then number_augments+=1
+    if c.augment(11)>0 then number_augments+=1
+    if c.augment(12)>0 then number_augments+=1
+    
+    if c.augment(1)=1 then 
+        augments=augments &"Targeting"
+        if number_augments > 1 then 
+            augments=augments &", "
+            number_augments-=1
+        end if        
+    end if
+    if c.augment(1)=2 then 
+        augments=augments &"Targeting II"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(1)=3 then 
+        augments=augments &"Targeting III"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(2)=1 then 
+        augments=augments &"Muscle Enh."
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(2)=2 then 
+        augments=augments &"Muscle Enh. II"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(2)=3 then 
+        augments=augments &"Muscle Enh. III"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(3)>0 then 
+        augments=augments &"Imp. Lungs"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(4)>0 then 
+        augments=augments &"Speed Enh."
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(5)=1 then 
+        augments=augments &"Exoskeleton"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(5)=2 then 
+        augments=augments &"Exosceleton II"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(5)=3 then 
+        augments=augments &"Exosceleton III"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(6)=1 then 
+        augments=augments &"Improved Metabolism"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(6)=2 then 
+        augments=augments &"Improved Metabolism II"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(6)=3 then 
+        augments=augments &"Improved Metabolism III"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(7)>0 then 
+        augments=augments &"FloatLegs"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(8)>0 then 
+        augments=augments &"Jetpack"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(9)>0 then 
+        augments=augments &"Chameleon Skin"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(10)>0 then 
+        augments=augments &"Neural Computer"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(11)>0 then 
+        augments=augments &"Loyality Chip"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    if c.augment(12)>0 then 
+        augments=augments &"Synthetic Nerves"
+        if number_augments > 1 then  
+            augments=augments &", "
+            number_augments-=1
+        end if 
+    end if
+    
     return augments
 end function
 

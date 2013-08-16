@@ -1886,7 +1886,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
     dim message as string
     dim onoff(2) as string
     dim debug as byte
-    
+        
     onoff(0)="On "
     onoff(1)=" - "
     onoff(2)="Off"
@@ -1894,7 +1894,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
     if p=0 then p=1
     no_key=""
     equip_awayteam(0)
-    lines=fix((_screeny)/(_fh2*4))
+    lines=fix((_screeny)/(_fh2*6)) ' Stops last crew member for disappearing from screen
     lines-=1
     cls
     do
@@ -1995,8 +1995,11 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     draw string (0,y*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+1)*_fh2), space(80),,font2,custom,@_col
                     draw string (0,(y+2)*_fh2), space(80),,font2,custom,@_col
+                    
                     skills=skill_text(crew(b-offset))
                     augments=augment_text(crew(b-offset))
+                    
+                    if augments <> "" then draw string (0,(y+3)*_fh2), space(80),,font2,custom,@_col
                     
                     if skills<>"" then skills=skills &" "
                     set__color( 15,bg)
@@ -2064,7 +2067,23 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     else
                         draw string (55*_fw2,y*_fh2), " XP: -",,font2,custom,@_col
                     endif
-                    draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    
+                    'Fixes the auto equip messgae so it does not get over writen Also goign to set the highlighting if needed
+                    if skills = "" then
+                        draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    elseif augments = "" then
+                        set__color( 0,bg)
+                        draw string (0,(y+3)*_fh2), space(80),,font2,custom,@_col
+                        set__color( 15,bg)
+                        draw string(45*_fw2,(y+3)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    else
+                        set__color( 0,bg)
+                        draw string (0,(y+4)*_fh2), space(80),,font2,custom,@_col
+                        set__color( 15,bg)
+                        draw string(45*_fw2,(y+4)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    endif
+                       
+                        
                     'print space(70-pos)
                     set__color( 15,bg)
                     
@@ -2123,15 +2142,27 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     
                     set__color( 15,bg)
                     draw string (1*_fw2,y*_fh2), skills,,font2,custom,@_col
-                    draw string ((4+len(skills))*_fw2,y*_fh2), augments,,font2,custom,@_col
-                    if crew(b-offset).disease>0 then
-                        set__color( 14,bg)
+                    
+                    
+                    if augments <> "" then 'if we have augments put them below the line for skills as it use to be on the same line
                         y+=1
+                        draw string (1*_fw2,y*_fh2), augments,,font2,custom,@_col
+                    endif
+                    
+                    if crew(b-offset).disease>0 then
+                        y+=1
+                        set__color( 14,bg)
                         draw string (1*_fw2,y*_fh2), "Suffers from "&trim(disease(crew(b-offset).disease).ldesc),,font2,custom,@_col
                     endif
                     'print space(70-pos)
                     
-                    y+=1
+                    'needed to add a space after if the auto equip is moved below skills and augments
+                    if skills <> "" then
+                        y+=3
+                    else
+                        y+=2 'adds extra line between crew members was y+=1
+                    endif
+                        
                     set__color( 11,bg)
                 endif
             endif

@@ -157,7 +157,7 @@ function space_mapbmp() as short
             endif
         next
     endif
-    bsave player.desig &"-map.bmp",img
+    savepng( "summary/" &player.desig &"-map.png", img, 1)
     imagedestroy img
     return 0
 end function
@@ -430,7 +430,7 @@ function postmort_html() as short
         line input #f,lines(ll)
     wend
     close f
-    fname="("&date_string &")" &player.desig &".html"
+    fname="summary/("&date_string &")" &player.desig &".html"
     dprint "saving to "&fname &". Key to continue."
     f=freefile
     open fname for output as f
@@ -438,8 +438,8 @@ function postmort_html() as short
         lines(i)=trim(lines(i))
         if lines(i)="{title}" then lines(i)=player.desig &" mission summary"
         if lines(i)="{screenshots}" then 
-            lines(i)="<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &".bmp" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
-            lines(i)=lines(i)&"<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &"-map.bmp" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
+            lines(i)="<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &".png" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
+            lines(i)=lines(i)&"<div align=" &chr(34) &"middle"&chr(34)&"><img src="&chr(34) &player.desig &"-map.png" &chr(34)&" width="&chr(34) &"80%"&chr(34) &" align="&chr(34)&"middle"&chr(34)&"></div><br>"
         endif
         
         if lines(i)="{ship}" then lines(i)=ship_table

@@ -14,6 +14,11 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include once "fmod.bi"
 #ENDIF
 #include once "ext/graphics/font.bi"
+
+'need for PNG and zipped saves
+#include once "zlib.bi"
+#include once "ext/hash/crc32.bi"
+
 '#include "sdl/sdl.bi"
 '#include once "allegro.bi"
 #include once "file.bi"
@@ -48,6 +53,7 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include once "globals.bas"
 #include once "compcolon.bas"
 #include once "poker.bas"
+
 
 
 on error goto errormessage  

@@ -1892,6 +1892,9 @@ function getfilename() as string
     while a<>""
         if a<>"empty.sav" then
             n(c)=a
+            
+            
+            
             f=freefile
             open "savegames/"&n(c) for binary as #f
             get #f,,b
@@ -2066,6 +2069,11 @@ function savegame() as short
     dim cl as string
     dim unflags(lastspecial) as byte
     dim artifactstr as string*512
+    
+    'Needed for compression
+    dim as Integer dest_len, header_len
+    dim as Ubyte Ptr dest
+    dim filedata_string as string
 
     make_unflags(unflags())
     cl=player.h_sdesc
@@ -2292,6 +2300,38 @@ function savegame() as short
     
     close f
     
+    'Overwrites large save file with compressed save file
+    f=freefile
+    open fname for binary as #f
+    filedata_string = space(LOF(f))
+    get #f,, filedata_string
+    close f
+     
+    dim as Integer src_len = len(filedata_string) + 1
+    dest_len = compressBound(src_len)
+    dest = Allocate(dest_len)
+    kill(fname)
+    
+    f=freefile
+    open fname for binary as #f
+    compress(dest , @dest_len, StrPtr(filedata_string), src_len)
+    put #f,,names		    '36 bytes
+    put #f,,desig		    '36 bytes
+    put #f,,datestring	    '12 bytes + 1 overhead
+    put #f,,unflags()		'lastspecial + 1 overhead
+    put #f,,artflag()		'lastartifact + 1 overhead
+    put #f,, src_len 'we can use this to know the amount of memory needed when we load - should be 4 bytes long
+    'Putting in the short info the the load game menu
+    
+    header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring, 
+    'unflags, artflag, src_len, header_len, and 3 bytes of over head for the 3 arrays datestring, unflags, artflag
+    put #f,, header_len
+    put #f,, *dest, dest_len
+    close f
+    Deallocate(dest)
+    
+    'Done with compressed file stuff
+    
     set__color( 14,0)
     cls
     return back
@@ -2316,6 +2356,12 @@ function load_game(filename as string) as short
     dim text as string
     dim p as _planet
     dim debug as byte
+    
+    'needed to handle the compressed data
+    dim as uByte ptr src, dest
+    dim as Integer src_len, dest_len, header_len
+    dim as string compressed_data
+    
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -2330,6 +2376,45 @@ function load_game(filename as string) as short
         f=freefile
         fname="savegames/"&filename
         print "loading"&fname;
+        
+        if filename <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
+            'Starting the uncompress
+
+            open fname for binary as #f
+        
+            get #f,,names		    '36 bytes
+            get #f,,dat 		    '36 bytes
+            get #f,,datestring	    '12 bytes + 1 overhead
+            get #f,,unflags()		'lastspecial + 1 overhead
+            get #f,,artflag()		'lastartifact + 1 overhead
+        
+            get #f,,dest_len
+            get #f,,header_len
+        
+            src_len = LOF(f)-header_len
+            src = Allocate(src_len)
+            dest = Allocate(dest_len)
+            get #f,,*src, src_len
+            uncompress(dest, @dest_len, src, src_len)
+            close f
+        
+            open fname for binary as #f
+            compressed_data = space(LOF(f))
+            get #f,, compressed_data
+            close f
+        
+            kill(fname)
+        
+            f=freefile
+            open fname for binary as #f
+            put #f,, *dest, dest_len
+            close f
+        endif
+        
+        'Ending uncompress
+        
+        
+        f=freefile
         open fname for binary as #f
         get #f,,names
         get #f,,dat
@@ -2541,7 +2626,15 @@ function load_game(filename as string) as short
         get #f,,foundsomething
         
         close f
-        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then kill(fname)
+        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then 
+            kill(fname)
+        elseif fname<>"savegames/empty.sav" then
+            'need to rewrite our compressed data back
+            kill(fname)
+            open fname for binary as #f
+            put #f,, compressed_data
+            close f
+        endif
         player.lastvisit.s=-1
     else 
         player.desig=filename
@@ -2585,4 +2678,216 @@ function load_game(filename as string) as short
     
     return 0
     
+end function
+
+'Used by savepng
+function bswap(byval n as uinteger) as uinteger
+   
+    return (n and &h000000ff) shl 24 or _
+    (n and &h0000ff00) shl 8  or _
+    (n and &h00ff0000) shr 8  or _
+    (n and &hff000000) shr 24
+   
+end function
+
+'savepng create by counting_pine on the freebasic.net forum
+'Works as a drop in replacement for bsave
+' usage savepng( filename, picture data, 1 for alpha 0 for no alpha)
+function savepng( _
+    byref filename as string = "screenshot.png", _
+    byval image as any ptr = 0, _
+    byval save_alpha as integer = 0) as integer
+   
+   
+    dim as uinteger w, h, depth
+    dim as integer f = freefile()
+    dim as integer e
+   
+    if image <> 0 then
+        if imageinfo( image, w, h, depth ) < 0 then return -1
+        depth *= 8
+    else
+        if screenptr = 0 then return -1
+        screeninfo( w, h, depth )
+    end if
+   
+    if depth <> 32 then save_alpha = 0
+   
+    select case as const depth
+   
+    case 1 to 8
+       
+        scope
+           
+            dim ihdr as struct_ihdr = (bswap(w), bswap(h), 8, 3, 0, 0, 0)
+            dim as uinteger ihdr_crc32 = crc32(IHDR_CRC0, cptr(ubyte ptr, @ihdr), sizeof(ihdr))
+           
+            dim palsize as uinteger = 1 shl depth
+            dim pltesize as uinteger = palsize * 3
+            dim plte(0 to 767) as ubyte
+            dim plte_crc32 as uinteger
+           
+            dim as uinteger l = w + 1
+            dim as uinteger imgsize = l * h
+            dim as uinteger idatsize = imgsize + 11 + 5 * (imgsize \ 16383)
+            dim imgdata(0 to imgsize - 1) as ubyte
+            dim idat(0 to idatsize - 1) as ubyte
+            dim as uinteger idat_crc32
+            dim as uinteger x, y, col, r, g, b
+            dim as uinteger index
+           
+            index = 0
+            for col = 0 to palsize - 1
+                palette get col, r, g, b
+                plte(index) = r : index += 1
+                plte(index) = g : index += 1
+                plte(index) = b : index += 1
+            next col
+           
+            plte_crc32 = crc32(PLTE_CRC0, @plte(0), pltesize)
+           
+            index = 0
+           
+            if image <> 0 then
+                for y = 0 to h - 1
+                    imgdata(index) = 0 : index += 1
+                    for x = 0 to w - 1
+                        col = point(x, y, image)
+                        imgdata(index) = col : index += 1
+                    next x
+                next y
+            else
+                screenlock
+                for y = 0 to h - 1
+                    imgdata(index) = 0 : index += 1
+                    for x = 0 to w - 1
+                        col = point(x, y)
+                        imgdata(index) = col : index += 1
+                    next x
+                next y
+                screenunlock
+            end if
+           
+            if compress2(@idat(0), @idatsize, @imgdata(0), imgsize, 9) then return -1
+            idat_crc32 = crc32(IDAT_CRC0, @idat(0), idatsize)
+           
+            if open (filename for output as #f) then return -1
+           
+            e = put( #f, 1, PNG_HEADER )
+           
+            e orelse= put( #f, , bswap(IHDR_SIZE) )
+            e orelse= put( #f, , "IHDR" )
+            e orelse= put( #f, , ihdr )
+            e orelse= put( #f, , bswap(ihdr_crc32) )
+           
+            e orelse= put( #f, , bswap(pltesize) )
+            e orelse= put( #f, , "PLTE" )
+            e orelse= put( #f, , plte(0), 3 * (1 shl depth) )
+            e orelse= put( #f, , bswap(plte_crc32) )
+           
+            e orelse= put( #f, , bswap(idatsize) )
+            e orelse= put( #f, , "IDAT" )
+            e orelse= put( #f, , idat(0), idatsize )
+            e orelse= put( #f, , bswap(idat_crc32) )
+           
+            e orelse= put( #f, , bswap(0) )
+            e orelse= put( #f, , "IEND" )
+            e orelse= put( #f, , bswap(IEND_CRC0) )
+           
+            close #f
+           
+            return e
+           
+        end scope
+       
+    case 9 to 32
+       
+        scope
+           
+            dim ihdr as struct_ihdr = (bswap(w), bswap(h), 8, iif( save_alpha, 6, 2), 0, 0, 0)
+            dim as uinteger ihdr_crc32 = crc32(IHDR_CRC0, cptr(ubyte ptr, @ihdr), sizeof(ihdr))
+           
+            dim as uinteger l = iif(save_alpha, (w * 4) + 1, (w * 3) + 1)
+            dim as uinteger imgsize = l * h
+            dim as uinteger idatsize = imgsize + 11 + 5 * (imgsize \ 16383)
+            dim imgdata(0 to imgsize - 1) as ubyte
+            dim idat(0 to idatsize - 1) as ubyte
+            dim as uinteger idat_crc32
+            dim as uinteger x, y, col, r, g, b, a
+            dim as uinteger index
+            dim as integer ret
+           
+            index = 0
+           
+            if image <> 0 then
+                for y = 0 to h - 1
+                    imgdata(index) = 0 : index += 1
+                    for x = 0 to w - 1
+                        col = point(x, y, image)
+                        r = col shr 16 and 255
+                        g = col shr 8 and 255
+                        b = col and 255
+                        imgdata(index) = r : index += 1
+                        imgdata(index) = g : index += 1
+                        imgdata(index) = b : index += 1
+                        if save_alpha then
+                            a = col shr 24
+                            imgdata(index) = a : index += 1
+                        end if
+                    next x
+                next y
+            else
+                screenlock
+                for y = 0 to h - 1
+                    imgdata(index) = 0 : index += 1
+                    for x = 0 to w - 1
+                        col = point(x, y)
+                        r = col shr 16 and 255
+                        g = col shr 8 and 255
+                        b = col and 255
+                        imgdata(index) = r : index += 1
+                        imgdata(index) = g : index += 1
+                        imgdata(index) = b : index += 1
+                        if save_alpha then
+                            a = col shr 24
+                            imgdata(index) = a : index += 1
+                        end if
+                    next x
+                next y
+                screenunlock
+            end if
+           
+            if compress2(@idat(0), @idatsize, @imgdata(0), imgsize, 9) then return -1
+            idat_crc32 = crc32(IDAT_CRC0, @idat(0), idatsize)
+           
+            if open (filename for output as #f) then return -1
+           
+            e = put( #f, 1, PNG_HEADER )
+           
+            e orelse= put( #f, , bswap(IHDR_SIZE) )
+            e orelse= put( #f, , "IHDR" )
+            e orelse= put( #f, , ihdr )
+            e orelse= put( #f, , bswap(ihdr_crc32) )
+           
+            e orelse= put( #f, , bswap(idatsize) )
+            e orelse= put( #f, , "IDAT" )
+            e orelse= put( #f, , idat(0), idatsize )
+            e orelse= put( #f, , bswap(idat_crc32) )
+           
+            e orelse= put( #f, , bswap(0) )
+            e orelse= put( #f, , "IEND" )
+            e orelse= put( #f, , bswap(IEND_CRC0) )
+           
+            close #f
+           
+            return e
+           
+        end scope
+       
+    case else
+       
+        return -1
+       
+    end select
+   
 end function

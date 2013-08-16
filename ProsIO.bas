@@ -226,7 +226,7 @@ function settactics() as short
 end function
 
 function screenshot(a as short) as short
-    bsave player.desig &".bmp",0
+    savepng( "summary/" &player.desig &".png", 0, 1)
     return 0
 end function
 

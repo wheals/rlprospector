@@ -81,6 +81,30 @@ const _testspacecombat=0
 const add_tile_each_map=0
 const lastquestguy=15
 
+'PNG Stuff 
+declare function savepng( _
+byref filename as string = "screenshot.png", _
+byval image as any ptr = 0, _
+byval save_alpha as integer = 0) as integer
+
+const PNG_HEADER as string = !"\137PNG\r\n\26\n"
+const IHDR_CRC0 as uinteger = &ha8a1ae0a 'crc32(0, @"IHDR", 4)
+const PLTE_CRC0 as uinteger = &h4ba88955 'crc32(0, @"PLTE", 4)
+const IDAT_CRC0 as uinteger = &h35af061e 'crc32(0, @"IDAT", 4)
+const IEND_CRC0 as uinteger = &hae426082 'crc32(0, @"IEND", 4)
+
+type struct_ihdr field = 1
+    width as uinteger
+    height as uinteger
+    bitdepth as ubyte
+    colortype as ubyte
+    compression as ubyte
+    filter as ubyte
+    interlace as ubyte
+end type
+const IHDR_SIZE as uinteger = sizeof( struct_ihdr )
+
+'Done with png stuff
 
 dim shared as byte _tix=24
 dim shared as byte _tiy=24
