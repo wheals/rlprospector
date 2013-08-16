@@ -859,6 +859,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short,enemy() as _mons
                     item(c).v3=getnumber(1,99,1)
                 endif
             case is=77 
+                display_awayteam()
                 dprint "Where do you want to drop the "&item(c).desig &"?"
                 d=getdirection(keyin)
                 if d<>-1 or 5 then
@@ -915,7 +916,6 @@ function ep_dropitem(li() as short,byref lastlocalitem as short,enemy() as _mons
             end select
             equip_awayteam(slot)
         endif
-        screenshot(2)
     endif
     return 0
 end function
@@ -2913,7 +2913,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
     
     
     if configflag(con_tiles)=0 then
-        put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
+        put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans
     else
         set__color( _teamcolor,0)
         draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
@@ -2945,7 +2945,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
         p2.y=awayteam.c.y
         do
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
+                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
@@ -2981,7 +2981,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,vismask() as byte,mapmas
         a=0
         do 
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
+                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
@@ -4079,7 +4079,7 @@ function ep_gives(awayteam as _monster,vismask() as byte, byref nextmap as _cord
                         dprint "You manage to access a camera at "&awayteam.c.x &":" &awayteam.c.y &"."
                         do 
                             make_vismask(vismask(),awayteam.c,awayteam.sight,slot)
-                            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+                            display_planetmap(slot,calcosx(awayteam.c.x,1),0)
                             ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
                             display_awayteam()
                             dprint ""

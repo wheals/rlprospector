@@ -3118,7 +3118,9 @@ endif
     if awayteam.c.y<0 then awayteam.c.y=0
     if awayteam.c.x>60 then awayteam.c.x=60
     if awayteam.c.y>20 then awayteam.c.y=20
-    display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+    
+    cls
+    display_planetmap(slot,osx,0)
     ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     dprint ""
@@ -3163,13 +3165,13 @@ endif
     screenset 0,1
     set__color(11,0)
     cls
-    display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+    display_planetmap(slot,osx,0)
     ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     flip
     set__color(11,0)
     cls
-    display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+    display_planetmap(slot,osx,0)
     ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     flip
@@ -3284,14 +3286,14 @@ endif
             screenset 0,1
             set__color(11,0)
             cls
-            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+            display_planetmap(slot,osx,0)
             ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
             ep_display_clouds(cloudmap(),vismask())
             display_awayteam()
             flip
             set__color(11,0)
             cls
-            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+            display_planetmap(slot,osx,0)
             ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
             display_awayteam()
             ep_display_clouds(cloudmap(),vismask())
@@ -3321,9 +3323,9 @@ endif
             set__color(11,0)
             cls
             
+            osx=calcosx(awayteam.c.x,planets(slot).depth)
             
-            
-            display_planetmap(slot,awayteam.c.x-_mwx/2,0)
+            display_planetmap(slot,osx,0)
             ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
             ep_display_clouds(cloudmap(),vismask())
             display_awayteam()
@@ -3335,7 +3337,6 @@ endif
             if artflag(9)=1 then comstr=comstr &key_te &" Teleport;"
     
             set__color( 11,0)
-            osx=calcosx(awayteam.c.x,planets(slot).depth)
             for x=0 to 60
                 if x-osx>=0 and x-osx<=_mwx and nightday(x)=1 then draw_string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh2/2,chr(193),Font2,_tcol)
                 if x-osx>=0 and x-osx<=_mwx and nightday(x)=2 then draw_string((x-osx)*_fw1,21*_fh1+(_fh1-_fh2)/2-_fh1/2,chr(193),Font2,_tcol)
@@ -3377,7 +3378,11 @@ endif
             'dprint awayteam.lastaction &""
             if awayteam.lastaction<=0 then
                 'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
-                if key=key_drop then ep_dropitem(li(),lastlocalitem,enemy(),lastenemy,vismask())
+                if key=key_drop then 
+                    ep_dropitem(li(),lastlocalitem,enemy(),lastenemy,vismask())
+                    flip
+                endif
+                
                 if key=key_awayteam then 
                     if awayteam.c.x=player.landed.x and awayteam.c.y=player.landed.y and slot=player.landed.m then
                         showteam(0)
@@ -3436,7 +3441,7 @@ endif
                 endif
                 if key=key_co or key=key_of then ep_communicateoffer(key,enemy(),lastenemy,li(),lastlocalitem)
                 if key=key_te and artflag(9)=1 then awayteam.c=teleport(awayteam.c,slot) 
-                if key="ä" then
+                if _debug>0 and key="ä" then
                     for x=0 to 60
                         for y=0 to 20
                             planetmap(x,y,slot)=abs(planetmap(x,y,slot))
@@ -3545,6 +3550,7 @@ endif
         next
         player.landed.s=planets(slot).depth
         if player.dead=25 then player.landed.s=slot
+        display_awayteam()
         dprint "The awayteam has been destroyed.",12
         if slot=specialplanet(0) then player.dead=8
         if slot=specialplanet(1) then player.dead=9
@@ -3555,8 +3561,10 @@ endif
     endif
     
     if player.dead<>0 then
+        old=player.c
         player.c=awayteam.c
-        save_bones(1) 'On planet
+        save_bones(1)
+        player.c=old'On planet
     endif
     
     if player.dead=0 and planets(slot).atmos>0 and planets(slot).depth=0 and planets(slot).atmos=player.questflag(10) then 

@@ -157,6 +157,7 @@ function space_mapbmp() as short
             endif
         next
     endif
+    if _debug>0 then dprint cords(player.c)
     savepng( "summary/" &player.desig &"-map.png", img, 1)
     imagedestroy img
     return 0
@@ -168,7 +169,7 @@ function death_message() as short
     dim as short b,a,wx,tx
     text=""
     
-    if not fileexists(player.desig &".bmp") then screenshot(3)
+    if not fileexists("summary/"&player.desig &".png") then screenshot(3)
     cls
     background(rnd_range(1,_last_title_pic)&".bmp")
     set__color( 12,0)

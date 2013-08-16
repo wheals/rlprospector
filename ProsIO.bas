@@ -1131,6 +1131,7 @@ function display_comstring(wl as short) as short
 end function
 
 function display_planetmap(a as short,osx as short,bg as byte) as short
+    
     dim x as short
     dim y as short
     dim b as short

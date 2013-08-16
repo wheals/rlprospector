@@ -1907,7 +1907,7 @@ function getfilename() as string
     dim a as string
     dim b as string*36
     dim c as short
-    dim n(20) as string
+    dim n(24) as string
     dim d as string*36
     dim datestring as string*12
     dim ustring as string*512
@@ -1922,6 +1922,7 @@ function getfilename() as string
     a=dir$("savegames/*.sav")
     while a<>""
         if a<>"empty.sav" then
+            c+=1
             n(c)=a
             
             
@@ -1952,13 +1953,12 @@ function getfilename() as string
             else
                 help=help &"|"& trim(list_artifacts(artflags()))
             endif
-            c=c+1
         endif
         a=dir()
     wend    
     text=text &"/Exit"
     c=menu(bg_randompictxt,text,help,2,2)
-    if c>0 then filename=n(c-1)
+    if c>0 then filename=n(c)
     return filename    
 end function
 
