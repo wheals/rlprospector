@@ -64,6 +64,7 @@ function form_alliance(who as short) as short
     ancientskills=battleslost(who,ft_ancientaliens)
     if faction(who).war(0)=0 then 
         dprint "We stand by your side."
+        alliance(who)=1
         return 0
     endif
     if ancientskills=0 then 
@@ -71,8 +72,15 @@ function form_alliance(who as short) as short
         return 0
     endif
     if playerkills>ancientskills then 
-        dprint "We have lost less ships to this so called menace than to you! We are not interested in an alliance."
+        dprint "We have lost less ships to this so called menace than to we have lost to you! We are not interested in an alliance."
         return 0
+    endif
+    if ancientskills*10>faction(who).war(0) then
+        dprint "We stand by your side."
+        alliance(who)=1
+        factionadd(0,who,-100)
+    else
+        dprint "We don't see them as such a dangerous menace."
     endif
     return 0
 end function

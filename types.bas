@@ -456,6 +456,7 @@ function _ship.useammo() as short
     endif
 end function
             
+dim shared alliance(7) as byte
 
 function _ship.diop() as byte
     if this.di=1 then return 9

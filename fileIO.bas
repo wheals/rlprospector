@@ -2139,6 +2139,7 @@ function savegame() as short
     put #f,,piratekills()
     put #f,,farthestexpedition
     put #f,,BonesFlag
+    put #f,,alliance()
     'put #f,,bountyquest()
     for a=1 to 128
         put #f,,crew(a)
@@ -2467,6 +2468,7 @@ function load_game(filename as string) as short
         get #f,,piratekills()
         get #f,,farthestexpedition
         get #f,,BonesFlag
+        get #f,,alliance()
         'get #f,,bountyquest()
         for a=1 to 128
             get #f,,crew(a)

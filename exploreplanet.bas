@@ -2400,8 +2400,7 @@ end function
 function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,enemy() as _monster,lastenemy as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single,nightday() as byte,localtemp() as single) as short
     dim as _cords p,p1,p2,pc
     dim as string text
-    dim as short a,b,slot,debug
-    dim osx as short
+    dim as short a,b,slot,debug,osx,ex
     dim as _weap del
     slot=player.map
     osx=calcosx(awayteam.c.x,planets(slot).depth)
@@ -2542,7 +2541,15 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
             if sf>15 then sf=0
             dprint "Roger. Designate target."
             shipfire(sf).where=awayteam.c
-            text=get_planet_cords(shipfire(sf).where,slot,1)
+            dprint "Choose target"
+            do 
+                text=planet_cursor(shipfire(sf).where,slot,osx,1)
+                ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
+                display_awayteam(,osx)
+                text=cursor(shipfire(sf).where,slot,osx)
+                if text=key__enter then ex=-1
+                if text=key_quit or text=key__esc then ex=1    
+            loop until ex<>0
             if text=key__enter then
                 if pathblock(p2,shipfire(sf).where,slot,1)=0 then
                     dprint "No line of sight to that target."
@@ -3516,8 +3523,6 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     if tmap(awayteam.c.x,awayteam.c.y).gives=32 then  
         dprint "This is the Villa of the Pirate Leader."
         if faction(0).war(2)<=20 then
-            
-            
             reward_bountyquest(1)
             if questroll<25 or _debug=707 then give_bountyquest(1)
             if player.towed<>0 then
@@ -3534,6 +3539,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             endif
             dprint "You sit down for some drinks and discuss your travels."
             planet_bounty()
+        endif
+        if faction(0).war(2)<=60 then
             if askyn("Do you want to challenge him to a duel?(y/n)") then
                 dprint "He accepts. The Anne Bonny launches and awaits you in orbit."
                 no_key=keyin
@@ -3547,7 +3554,11 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                     player.dead=26
                 endif
             endif
-        else
+            if askyn("Do you want to discuss an alliance against the robot ships?(y/n)") then
+                form_alliance(2)
+            endif
+        endif
+        if faction(0).war(2)>60 then
             dprint "He does not want to talk to you"
         endif
     endif
@@ -4371,13 +4382,19 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 if civ(0).phil=2 then dprint "This is the "&civ(0).n &" parliament" 
                 if civ(0).phil=3 then dprint "This is the "&civ(0).n &" leaders home"
                 foreignpolicy(0,0)
+                if askyn("Do you want to negotiate an alliance against the robot ships?(y/n)") then
+                    form_alliance(6)
+                endif
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=312 then
-                if civ(0).phil=1 then dprint "This is the house where the "&civ(1).n & "council meets."
-                if civ(0).phil=2 then dprint "This is the "&civ(1).n &" parliament" 
-                if civ(0).phil=3 then dprint "This is the "&civ(1).n &" leaders home"
+                if civ(1).phil=1 then dprint "This is the house where the "&civ(1).n & "council meets."
+                if civ(1).phil=2 then dprint "This is the "&civ(1).n &" parliament" 
+                if civ(1).phil=3 then dprint "This is the "&civ(1).n &" leaders home"
                 foreignpolicy(1,0)
+                if askyn("Do you want to negotiate an alliance against the robot ships?(y/n)") then
+                    form_alliance(7)
+                endif
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=321 then
