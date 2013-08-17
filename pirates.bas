@@ -1055,7 +1055,7 @@ function update_targetlist()as short
     return 0
 end function
 
-function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,vismask() as byte ,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
+function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
     dim as short l,c
     if x=0 and y=0 then
         do

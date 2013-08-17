@@ -2544,7 +2544,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     dim m(255) as single
     dim as short skill
     dim mapmask(60,20) as byte
-    dim vismask(60,20) as byte
     dim nightday(60) as byte
     dim watermap(60,20) as byte
     dim localtemp(60,20) as single
@@ -2715,7 +2714,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
                 if planets(slot).mon_template(a).made=0 then planets(slot).mon_template(a)=makemonster(1,slot)
                 for d=1 to rnd_range(planets(slot).mon_noamin(a),planets(slot).mon_noamax(a))
                     c+=1
-                    enemy(c)=setmonster(planets(slot).mon_template(a),slot,spawnmask(),lsp,vismask(),,,c,1)
+                    enemy(c)=setmonster(planets(slot).mon_template(a),slot,spawnmask(),lsp,,,c,1)
                     enemy(c).slot=a
                     enemy(c).no=c
                     if enemy(c).faction=0 then enemy(c).faction=8+a
@@ -2773,7 +2772,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
             if rnd_range(1,100)<5 and rnd_range(1,100)<disnbase(player.c) and lastenemy>10 and planets(slot).atmos>1 then
                 lastenemy=lastenemy+1
                 enemy(lastenemy)=makemonster(46,slot)
-                enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+                enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,lastenemy,1)
                 enemy(lastenemy).slot=16
                 enemy(lastenemy).no=lastenemy
                 if rnd_range(1,100)<disnbase(player.c)*2 then placeitem(makeitem(81),enemy(lastenemy).c.x,enemy(lastenemy).c.y,slot)
@@ -2781,7 +2780,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
             if rnd_range(1,100)<26-disnbase(player.c) then 'deadawayteam 
                 lastenemy=lastenemy+1
                 enemy(lastenemy)=makemonster(15,slot)
-                enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+                enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,lastenemy,1)
                 enemy(lastenemy).hp=-1
                 enemy(lastenemy).hpmax=55
                 enemy(lastenemy).slot=16
@@ -2789,13 +2788,13 @@ function explore_planet(from as _cords, orbit as short) as _cords
             endif
             if rnd_range(1,100)<26-distance(player.c,civ(0).home) then
                 lastenemy+=1
-                enemy(lastenemy)=setmonster(civ(0).spec,slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+                enemy(lastenemy)=setmonster(civ(0).spec,slot,spawnmask(),lsp,,,lastenemy,1)
                 enemy(lastenemy).hp=-1
                 enemy(lastenemy).slot=16
             endif
             if rnd_range(1,100)<26-distance(player.c,civ(1).home) then
                 lastenemy+=1
-                enemy(lastenemy)=setmonster(civ(1).spec,slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+                enemy(lastenemy)=setmonster(civ(1).spec,slot,spawnmask(),lsp,,,lastenemy,1)
                 enemy(lastenemy).hp=-1
                 enemy(lastenemy).slot=16
             endif
@@ -2832,7 +2831,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
                         for y=planets(slot).vault(c).y+1 to planets(slot).vault(c).y+planets(slot).vault(c).h-1
                             if a>255 then a=255
                             enemy(a)=makemonster(9,slot)
-                            enemy(a)=setmonster(enemy(a),slot,spawnmask(),lsp,vismask(),x,y,a,1)
+                            enemy(a)=setmonster(enemy(a),slot,spawnmask(),lsp,x,y,a,1)
                             a=a+1
                         next
                     next 
@@ -2855,9 +2854,9 @@ function explore_planet(from as _cords, orbit as short) as _cords
                     if debug=1 and _debug=1 then dprint "Set monster at "&x &":"&y
                     if planets(slot).vault(c).wd(6)>0 then 
                         enemy(e)=makemonster(planets(slot).vault(c).wd(6),slot)
-                        enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,d)
+                        enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,d)
                     else
-                        enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,vismask(),x,y,e)
+                        enemy(e)=setmonster(planets(slot).mon_template(-planets(slot).vault(c).wd(6)),slot,spawnmask(),lsp,x,y,e)
                         if debug=1 and _debug=1 then dprint "Enemy "&e &" is at "&enemy(e).c.x &":"&enemy(e).c.y
                     endif
                 next
@@ -2876,7 +2875,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
                     loop until tmap(x,y).walktru=0
                     if debug=1 and _debug=1 then dprint "Set monster at "&x &":"&y
                     enemy(e)=makemonster(59,slot)
-                    enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,vismask(),x,y,e,1)
+                    enemy(e)=setmonster(enemy(d),slot,spawnmask(),lsp,x,y,e,1)
                 next
                 if debug=1 and _debug=1 then dprint "lastenemy"&lastenemy
             endif
@@ -2885,7 +2884,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
                     for y=planets(slot).vault(c).y to planets(slot).vault(c).y+planets(slot).vault(c).h
                         if tmap(x,y).walktru=0 then
                             lastenemy+=1
-                            enemy(lastenemy)=setmonster(planets(slot).mon_template(abs(planets(slot).vault(c).wd(6))),slot,spawnmask(),lsp,vismask(),x,y,lastenemy)
+                            enemy(lastenemy)=setmonster(planets(slot).mon_template(abs(planets(slot).vault(c).wd(6))),slot,spawnmask(),lsp,x,y,lastenemy)
                         endif    
                     next
                 next
@@ -2899,7 +2898,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
             c=5+rnd_range(1,6)
             for b=lastenemy to lastenemy+c
                 enemy(b)=makemonster(3,slot)
-                enemy(b)=setmonster(enemy(b),slot,spawnmask(),lsp,vismask(),,,b,1)
+                enemy(b)=setmonster(enemy(b),slot,spawnmask(),lsp,,,b,1)
             next
             lastenemy=lastenemy+c
         endif
@@ -3054,7 +3053,7 @@ endif
         if item(a).ty=47 and item(a).w.m=slot and item(a).w.s=0 then
             lastenemy=lastenemy+1
             enemy(lastenemy)=makemonster(15,slot)
-            enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,vismask(),,,lastenemy,1)
+            enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,lastenemy,1)
             enemy(lastenemy).hp=-1
             enemy(lastenemy).hpmax=55
             enemy(lastenemy).slot=16
@@ -3121,7 +3120,7 @@ endif
     
     cls
     display_planetmap(slot,osx,0)
-    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     dprint ""
     '
@@ -3166,13 +3165,13 @@ endif
     set__color(11,0)
     cls
     display_planetmap(slot,osx,0)
-    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     flip
     set__color(11,0)
     cls
     display_planetmap(slot,osx,0)
-    ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (enemy(),lastenemy,li(),lastlocalitem)
     display_awayteam()
     flip
     
@@ -3249,7 +3248,7 @@ endif
                 endif
             endif
         endif
-        ep_playerhitmonster(old,enemy(),lastenemy,vismask(),mapmask())
+        ep_playerhitmonster(old,enemy(),lastenemy,mapmask())
         ep_checkmove(old,key)
         
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
@@ -3262,14 +3261,14 @@ endif
             if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
-            ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap(),vismask())
-            ep_shipfire(shipfire(),vismask(),enemy(),lastenemy)
-            ep_items(li(),lastlocalitem,enemy(),lastenemy,localturn,vismask())
+            ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
+            ep_shipfire(shipfire(),enemy(),lastenemy)
+            ep_items(li(),lastlocalitem,enemy(),lastenemy,localturn)
             walking=alerts()
             for a=1 to lastenemy
                 if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
             next
-            deadcounter=ep_monstermove(enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,vismask(),mapmask(),nightday())
+            deadcounter=ep_monstermove(enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
             if player.dead>0 or awayteam.hp<=0 then 
                 allowed=""
                 awayteam.lastaction=1
@@ -3287,19 +3286,19 @@ endif
             set__color(11,0)
             cls
             display_planetmap(slot,osx,0)
-            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
-            ep_display_clouds(cloudmap(),vismask())
+            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+            ep_display_clouds(cloudmap())
             display_awayteam()
             flip
             set__color(11,0)
             cls
             display_planetmap(slot,osx,0)
-            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
+            ep_display (enemy(),lastenemy,li(),lastlocalitem)
             display_awayteam()
-            ep_display_clouds(cloudmap(),vismask())
+            ep_display_clouds(cloudmap())
             
             dprint("")
-            ep_gives(awayteam,vismask(),nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
+            ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
             equip_awayteam(slot)
             if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
             if awayteam.move=4 then allowed=allowed &key_te
@@ -3310,7 +3309,7 @@ endif
             walking=0
         endif
         
-        ep_planeteffect(enemy(),lastenemy,li(),lastlocalitem,shipfire(),sf,lavapoint(),vismask(),localturn,cloudmap())
+        ep_planeteffect(enemy(),lastenemy,li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
         ep_areaeffects(areaeffect(),last_ae,lavapoint(),enemy(),lastenemy,li(),lastlocalitem,cloudmap())
         ep_atship()
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li(),enemy(),lastenemy)
@@ -3326,8 +3325,8 @@ endif
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             
             display_planetmap(slot,osx,0)
-            ep_display (vismask(),enemy(),lastenemy,li(),lastlocalitem)
-            ep_display_clouds(cloudmap(),vismask())
+            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+            ep_display_clouds(cloudmap())
             display_awayteam()
             
             comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
@@ -3359,7 +3358,7 @@ endif
             if key<>"" then walking=0
             if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
             'dprint "mouse.s"&mouse.s
-            if key=key_ex  then ep_examine(vismask(),li(),enemy(),lastenemy,lastlocalitem)
+            if key=key_ex  then ep_examine(li(),enemy(),lastenemy,lastlocalitem)
             if key=key_save then
                 if askyn("Do you really want to save the game (y/n?)") then
                    savefrom(0).map=slot
@@ -3392,9 +3391,9 @@ endif
                 endif
                 if key=key_report then bioreport(slot)
                 if key=key_close then ep_closedoor()
-                if key=key_gr then ep_grenade(shipfire(),sf,vismask(),enemy(),lastenemy,li(),lastlocalitem)
-                if key=key_fi or key=key_autofire or walking=10 then ep_fire(enemy(),lastenemy,vismask(),mapmask(),key,autofire_target)
-                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf,vismask(),nightday(),localtemp())
+                if key=key_gr then ep_grenade(shipfire(),sf,enemy(),lastenemy,li(),lastlocalitem)
+                if key=key_fi or key=key_autofire or walking=10 then ep_fire(enemy(),lastenemy,mapmask(),key,autofire_target)
+                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf,nightday(),localtemp())
                 if key=key_oxy then ep_helmet()
                 if key=key_ju and awayteam.move>=2 then ep_jumppackjump()
                 if key=key_la then ep_launch(nextmap)
@@ -3456,8 +3455,8 @@ endif
                     next
                 endif
                 com_sinkheat(player,0)
-                ep_lava(lavapoint(),vismask())
-                lastenemy=ep_spawning(enemy(),lastenemy,spawnmask(),lsp,diesize,vismask(),nightday())
+                ep_lava(lavapoint())
+                lastenemy=ep_spawning(enemy(),lastenemy,spawnmask(),lsp,diesize,nightday())
             endif
             
             
@@ -3763,7 +3762,7 @@ function alienbomb(c as short,slot as short, enemy() as _monster,lastenemy as sh
 end function
 
 
-function grenade(from as _cords,map as short,vismask() as byte,enemy() as _monster,lastenemy as short,li() as short, lastlocalitem as short) as _cords
+function grenade(from as _cords,map as short,enemy() as _monster,lastenemy as short,li() as short, lastlocalitem as short) as _cords
     dim as _cords target,ntarget
     dim as single dx,dy,x,y,launcher
     dim as short a,ex,r,t,osx
@@ -3785,7 +3784,7 @@ function grenade(from as _cords,map as short,vismask() as byte,enemy() as _monst
         dprint "Choose target"
         do 
             key=planet_cursor(target,map,osx,1)
-            ep_display(vismask(),enemy(),lastenemy,li(),lastlocalitem,osx)
+            ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
             display_awayteam(,osx)
             key=cursor(target,map,osx,,5+item(launcher).v1-planets(map).grav)
             if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=-1
@@ -4047,7 +4046,7 @@ function wormhole_navigation() as short
         if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
         if player.osy>=sm_y-20 then player.osy=sm_y-20
         display_stars(2)
-        display_star(wi(pl),1,1)
+        display_star(wi(pl),1)
         display_ship
         
             

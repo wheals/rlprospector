@@ -347,7 +347,6 @@ function display_stars(bg as short=0) as short
     dim range as integer
     dim as single dx,dy,l,x1,y1,vis
     dim as short debug
-    dim vismask(sm_x,sm_y) as byte
     if bg<2 then
         player.osx=player.c.x-_mwx/2
         player.osy=player.c.y-10
@@ -356,7 +355,7 @@ function display_stars(bg as short=0) as short
         if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
         if player.osy>=sm_y-20 then player.osy=sm_y-20
     endif
-    make_vismask(vismask(),player.c,player.sensors+5.5-player.sensors/2,-1)
+    make_vismask(player.c,player.sensors+5.5-player.sensors/2,-1)
     navcom=player.equipment(se_navcom)
     for x=player.c.x-1 to player.c.x+1
         for y=player.c.y-1 to player.c.y+1
@@ -666,7 +665,7 @@ function display_stars(bg as short=0) as short
     next
     for a=0 to 2
         if basis(a).c.x>0 and basis(a).c.y>0 then
-            if basis(a).discovered>0 then display_station(a,vismask(basis(a).c.x,basis(a).c.y))
+            if basis(a).discovered>0 then display_station(a)
         endif
     next
     if walking=10 and reveal=1 then
@@ -678,7 +677,7 @@ function display_stars(bg as short=0) as short
 end function
 
 
-function display_star(a as short,vismask as byte,fbg as byte=0) as short
+function display_star(a as short,fbg as byte=0) as short
     dim bg as short
     dim n as short
     dim p as short
@@ -716,18 +715,18 @@ function display_star(a as short,vismask as byte,fbg as byte=0) as short
         if map(a).spec=9 then ano_money+=250
     endif
     if configflag(con_tiles)=0 then
-        if vismask=1 then
+        if vismask(map(a).c.x,map(a).c.y)=1 then
             put (x*_tix,y*_tiy),gtiles(map(a).ti_no),alpha,255
         else
             put (x*_tix,y*_tiy),gtiles(map(a).ti_no),alpha,192
         endif
         if fbg=1 then put (x*_tix,y*_tiy),gtiles(85),trans
-        set__color( 11,0,vismask)
+        set__color( 11,0,vismask(map(a).c.x,map(a).c.y))
         if bg=233 then draw string (x*_tix,y*_tiy),"s",,font2,custom,@_tcol
         if debug=1 and _debug=1 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),""&map(a).discovered,,Font1,custom,@_col
         if debug=5 and _debug=1 then draw string (x*_tix+_tix,y*_tiy),""&map(a).ti_no &":"&map(a).spec,,Font1,custom,@_col
     else        
-        set__color( spectraltype(map(a).spec),bg,vismask)
+        set__color( spectraltype(map(a).spec),bg,vismask(map(a).c.x,map(a).c.y))
         if map(a).spec<8 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"*",,Font1,custom,@_col
         if map(a).spec=8 then     
             set__color( 7,bg)
@@ -750,7 +749,7 @@ function display_star(a as short,vismask as byte,fbg as byte=0) as short
     return 0
 end function
 
-function display_station(a as short,vismask as byte) as short
+function display_station(a as short) as short
     dim as short x,y,debug
     debug=1
     basis(a).discovered=1
@@ -761,7 +760,7 @@ function display_station(a as short,vismask as byte) as short
     if configflag(con_tiles)=1 then
         draw string (x*_fw1,y*_fh1),"S",,Font1,custom,@_col
     else
-        if vismask=1 then
+        if vismask(basis(a).c.x,basis(a).c.y)=1 then
             put ((x)*_tix+1,(y)*_tiy+1),gtiles(44),trans
         else
             put ((x)*_tix+1,(y)*_tiy+1),gtiles(44),alpha,192
@@ -769,7 +768,7 @@ function display_station(a as short,vismask as byte) as short
     endif
     if distance(player.c,basis(a).c)<player.sensors then
         if fleet(a).fighting<>0 then 
-            set__color( c_red,0,vismask)
+            set__color( c_red,0,vismask(basis(a).c.x,basis(a).c.y))
             draw string (x*_fw1,y*_fh1),"x",,Font2,custom,@_col
             if player.turn mod 10=0 then dprint "Station "&a+1 &" is sending a distress signal! They are under attack!",c_red
         endif
@@ -1236,6 +1235,73 @@ function display_planetmap(a as short,osx as short,bg as byte) as short
     return 0
 end function
 
+function display_monsters(enemy() as _monster,lastenemy as short) as short
+    dim as short a,osx,comdead,comalive
+    dim as _cords p
+    osx=calcosx(awayteam.c.x,planets(awayteam.slot).depth)
+    for a=1 to lastenemy
+        if enemy(a).hp<=0 then
+            p.x=enemy(a).c.x
+            p.y=enemy(a).c.y
+            if awayteam.c.x=p.x and awayteam.c.y=p.y and comdead=0 then 
+                comstr=comstr &key_inspect &" Inspect;"
+                comdead=1 'only add it once
+            endif
+            if  p.y>=0 and p.y<=20 then 'vis_test(awayteam.c,p,planets(slot).depth)=-1 and
+                if vismask(p.x,p.y)>0 then
+                    set__color( 12,0)
+                    if configflag(con_tiles)=0 then
+                        if enemy(a).hpmax>0 then put ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(1093)),trans
+                    else
+                        if enemy(a).hpmax>0 then draw string(p.x*_fw1,P.y*_fh1), "%",,font1,custom,@_col
+                    endif
+                endif
+            endif
+        endif
+    next
+    
+    for a=1 to lastenemy
+        if enemy(a).ti_no=-1 then enemy(a).ti_no=rnd_range(0,8)+1500 'Assign sprite range
+        if enemy(a).hp>0 then
+            p=enemy(a).c
+            if comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then 
+                comstr=comstr & key_co &" Chat, " & key_of &" Offer;"
+                comalive=1
+            endif
+            if p.x-osx>=0 and p.x-osx<=_mwx and p.y>=0 and p.y<=20 then                
+                if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
+                    if enemy(a).cmshow=1 then
+                        enemy(a).cmshow=0    
+                        set__color( enemy(a).col,179)
+                    else
+                        set__color( enemy(a).col,0)
+                    endif
+                    if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
+                        if configflag(con_tiles)=0 then
+                            put ((p.x-osx)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
+                        else
+                            draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
+                        endif
+                        if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then 
+                            if configflag(con_tiles)=0 then
+                                set__color(  203,0)
+                                draw string ((p.x-osx)*_tix,P.y*_fh1),"z",,font2,custom,@_tcol
+                            else
+                                set__color(  203,0)
+                                draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
+                            endif
+                        endif
+                        if player.stuff(3)<>2 and enemy(a).sleeping=0 and enemy(a).aggr=0 then walking=0
+                    endif
+                endif
+            endif
+        endif                    
+    next
+    
+    
+    return 0
+end function
+
 
 function display_ship_weapons(m as short=0) as short
     dim as short a,b,bg,wl,ammo,c,empty
@@ -1452,9 +1518,8 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
     return 0
 end function
 
-function dtile(x as short,y as short, tiles as _tile,vismask as byte) as short
+function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
     dim as short col,bgcol
-    locate y+1,x+1,0
     col=tiles.col
     bgcol=tiles.bgcol
     'if tiles.walktru=5 then bgcol=1
@@ -1465,16 +1530,16 @@ function dtile(x as short,y as short, tiles as _tile,vismask as byte) as short
         bgcol=0
     endif
     if configflag(con_tiles)=0 then
-        if vismask=1 then
+        if visible=1 then
             put (x*_tix,y*_tiy),gtiles(gt_no(tiles.ti_no)),pset
         else
             put (x*_tix,y*_tiy),gtiles(gt_no(tiles.ti_no)),alpha,196
         endif
     else
-        if configflag(con_showvis)=0 and vismask>0 and bgcol=0 then 
+        if configflag(con_showvis)=0 and visible>0 and bgcol=0 then 
             bgcol=234
         endif
-        set__color( col,bgcol,vismask)
+        set__color( col,bgcol,visible)
         draw string (x*_fw1,y*_fh1),chr(tiles.tile),,Font1,custom,@_col
     endif
     set__color( 11,0)

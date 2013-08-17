@@ -997,7 +997,7 @@ function com_evaltarget(attacker as _ship,defender as _ship) as short
     return distance(attacker.c,defender.c)*10/defender.hull
 end function
 
-function com_targetlist(list_c() as _cords, list_e() as short, defender as _ship, attacker() as _ship, mines_p() as _cords,mines_v() as short, mines_last as short,vismask() as byte) as short
+function com_targetlist(list_c() as _cords, list_e() as short, defender as _ship, attacker() as _ship, mines_p() as _cords,mines_v() as short, mines_last as short) as short
     dim as short a,last
     for a=1 to 14
         if attacker(a).hull>0 and distance(attacker(a).c,defender.c)<=(defender.sensors+2)*defender.senac and vismask(attacker(a).c.x,attacker(a).c.y)=1 then
@@ -1019,8 +1019,14 @@ function com_targetlist(list_c() as _cords, list_e() as short, defender as _ship
     return last
 end function
 
-function com_vismask(vismask() as byte,c as _cords) as short
+function com_vismask(c as _cords) as short
     dim as short x,y,d,i,mask
+    for x=0 to 60
+        for y=0 to 20
+            vismask(x,y)=0
+        next
+    next
+    
     dim as _cords p,pts(128)
         for x=c.x-20 to c.x+20 
         for y=c.y-20 to c.y+20
@@ -1056,11 +1062,10 @@ function com_display(defender as _ship, attacker() as _ship,  marked as short, e
     dim list_e(128) as short
     dim last as short
     dim debug as byte
-    dim as byte vismask(60,20)
     debug=2
     osx=calcosx(defender.c.x,1)
-    com_vismask(vismask(),player.c)
-    last=com_targetlist(list_c(),list_e(),defender,attacker(),mines_p(),mines_v(),mines_last,vismask())
+    com_vismask(player.c)
+    last=com_targetlist(list_c(),list_e(),defender,attacker(),mines_p(),mines_v(),mines_last)
     senbat =(defender.sensors+2)*defender.senac
     senbat1=(defender.sensors+1)*defender.senac
     senbat2= defender.sensors   *defender.senac
@@ -1262,12 +1267,11 @@ function com_gettarget(defender as _ship, wn as short, attacker() as _ship,marke
     dim list_c(128) as _cords
     dim list_e(128) as short
     dim last as short
-    dim vismask(60,20) as byte
     senbat=(defender.sensors+2)*defender.senac
     senbat1=(defender.sensors+1)*defender.senac
     senbat2=(defender.sensors)*defender.senac
-    com_vismask(vismask(),defender.c)
-    last=com_targetlist(list_c(),list_e(),defender,attacker(),mines_p(),mines_v(),mines_last,vismask())
+    com_vismask(defender.c)
+    last=com_targetlist(list_c(),list_e(),defender,attacker(),mines_p(),mines_v(),mines_last)
     if last=1 then return list_e(1)
     if marked=0 and last>0 then marked=1
     
