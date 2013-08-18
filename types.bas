@@ -29,7 +29,7 @@ Const make_files=0'outputs statistics to txt files
 Const show_all=0
 const show_items=0 'shows entire maps
 const alien_scanner=0
-const start_teleport=1'player has alien scanner
+const start_teleport=0'player has alien scanner
 Const show_critters=0 
 Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0 
@@ -1802,6 +1802,8 @@ declare function clear_gamestate() as short
 declare function planetflags_toship(m as short) as _ship
 declare function can_learn_skill(ci as short,si as short) as short
 declare function form_alliance(who as short) as short
+declare function ask_alliance(who as short) as short
+
 declare function colonize_planet(st as short) as short
 declare function get_com_colon_candidate(st as short) as short
 declare function score_planet(i as short,st as short) as short

@@ -1607,7 +1607,8 @@ tiles(197).turnsinto=197
 tiles(198).tile=asc("#")
 tiles(198).col=2
 tiles(198).desc="Your villa."
-
+tiles(198).gives=132
+tiles(198).turnsinto=198
 
 tiles(200).tile=176
 tiles(200).col=1
@@ -2252,7 +2253,7 @@ tiles(299).bgcol=5
 tiles(299).gives=70
 tiles(299).hp=25
 tiles(299).dr=1
-tiles(299).hitt="you start to shooting at the eridiani explorations office"
+tiles(299).hitt="you start to shoot at the eridiani explorations office"
 tiles(299).turnsinto=299
 
 tiles(300).tile=asc("S") 'TT Office
@@ -2261,7 +2262,7 @@ tiles(300).bgcol=5
 tiles(300).gives=71
 tiles(300).hp=25
 tiles(300).dr=1
-tiles(300).hitt="you start to shooting at the smith heavy industries office"
+tiles(300).hitt="you start to shoot at the smith heavy industries office"
 tiles(300).turnsinto=300
 
 tiles(301).tile=asc("T") 'EE Office
@@ -2270,7 +2271,7 @@ tiles(301).bgcol=5
 tiles(301).gives=72
 tiles(301).hp=25
 tiles(301).dr=1
-tiles(301).hitt="you start to shooting at the triax traders office"
+tiles(301).hitt="you start to shoot at the triax traders office"
 tiles(301).turnsinto=301
 
 tiles(302).tile=asc("O") 'SHI Office
@@ -2279,7 +2280,7 @@ tiles(302).bgcol=5
 tiles(302).gives=73
 tiles(302).hp=25
 tiles(302).dr=1
-tiles(302).hitt="you start to shooting at the omega bioengineering office"
+tiles(302).hitt="you start to shoot at the omega bioengineering office"
 tiles(302).turnsinto=302
 
 '303 is taken

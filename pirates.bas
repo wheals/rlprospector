@@ -219,7 +219,7 @@ function playerfightfleet(f as short) as short
             endif
         next
     next
-    
+    if fleet(f).ty=ft_ancientaliens then alliance(0)=1 'From now on we can build alliances
     spacecombat(fleet(f),spacemap(player.c.x,player.c.y)+ter)
     if player.dead=0 and fleet(f).flag>0 then player.questflag(fleet(f).flag)=2
     if player.dead>0 and fleet(f).ty=5 then player.dead=21

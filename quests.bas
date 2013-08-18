@@ -1,3 +1,25 @@
+function ask_alliance(who as short) as short
+    if alliance(0)=1 then
+        if alliance(who)=1 then
+            select case battleslost(ft_ancientaliens,who)
+            case is>1 
+                dprint "So far we have destroyed "& battleslost(ft_ancientaliens,who)&" robot ships."
+            case 1
+                dprint "So far we have destroyed one robot ship."
+            case 0
+                dprint "So far we have not managed to destroy a robot ship."
+            end select
+        else
+            if askyn("Do you want to discuss an alliance against the robot ships?(y/n)") then
+                form_alliance(who)
+            endif
+        endif
+    endif
+    
+    return 0
+end function
+
+
 function robot_invasion() as short
     dim as short a,pot(1024),lp,m,ad
     dim c as _cords
@@ -57,25 +79,41 @@ function robot_invasion() as short
 end function
 
 function form_alliance(who as short) as short
-    dim as integer playerkills,ancientskills
+    dim as integer playerkills,ancientskills,factionmod,i
     playerkills=battleslost(who,0)
     if who=2 then playerkills+=battleslost(4,0)
     if who=1 then playerkills+=battleslost(3,0)
     ancientskills=battleslost(who,ft_ancientaliens)
+    select case who
+    case 1 'Companies
+        for i=0 to 2
+            if basis(i).company=3 then factionmod+=1
+        next
+        for i=1 to 3
+            factionmod+=questguy(i).friendly(0)
+        next
+    case 2'Pirates
+    case 6,7'Alien civs
+        if civ(who-7).inte>=2 then factionmod+=civ(who-7).inte
+        factionmod=factionmod+(civ(who-7).aggr-2)*3 
+        factionmod=factionmod+(civ(who-7).phil-2)*2 
+    end select
+    
     if faction(who).war(0)=0 then 
         dprint "We stand by your side."
         alliance(who)=1
+        factionadd(0,who,-100)
         return 0
     endif
     if ancientskills=0 then 
         dprint "Alliance against what?"
         return 0
     endif
-    if playerkills>ancientskills then 
+    if playerkills>ancientskills+factionmod then 
         dprint "We have lost less ships to this so called menace than to we have lost to you! We are not interested in an alliance."
         return 0
     endif
-    if ancientskills*10>faction(who).war(0) then
+    if ancientskills*10+factionmod>faction(who).war(0) then
         dprint "We stand by your side."
         alliance(who)=1
         factionadd(0,who,-100)

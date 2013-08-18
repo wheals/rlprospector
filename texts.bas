@@ -20,6 +20,7 @@ function show_standing() as short
     scale(5)=" {12}War{11}"
     for a=1 to 7
         stscore(a)=scale(faction(0).war(a)/20)
+        if alliance(a)>0 then stscore(a)=stscore(a) &" (Alliance member)"
         if debug=1 and _debug=1 then stscore(a)=stscore(a) '& faction(0).war(a)/20 &"-"&faction(0).war(a)
     next
     l=len(stscore(1))+len("Companies:")
@@ -2127,9 +2128,13 @@ end function
 
 function es_part1() as string
     dim t as string
-    dim rent as short
-    dim mpy as single
-    dim pmoney as single
+    dim as single mpy,pmoney
+    dim as short i,allsum,rent
+    
+    for i=1 to 7
+        allsum+=alliance(i)
+    next
+    
     select case player.money
         case is<=0
             t="You retire with a debt of "&credits(player.money) &" Cr."
@@ -2329,7 +2334,7 @@ function es_part1() as string
     
     if player.questflag(3)=2 then
         t=t &" ||During all this time the use of the recovered alien scout ships helps humanity to further reach for the stars. You are near the end of your life as human influence has reached almost every corner of the milkyway galaxy. Finally there are news of a civilization discovered in the magellanic clouds who can equal human prowess in most areas, and even surpass their scientific knowledge in some."
-        if rnd_range(1,100)<66 then
+        if rnd_range(1,100)<66-allsum*10 then
             t=t &" ||  Unfortunately the diplomats can't work out a lasting peace. When you lie on your Deathbed the war for the galaxy still rages on, and propably will for many more centuries to come."
         else
             t=t &" ||  Peacefull relations are established quickly, and a joint project is founded: Launching an expedtition to Andromeda! " 
@@ -2350,6 +2355,13 @@ function es_part1() as string
             endif
         endif
     else
+        if allsum>0 then
+            if rnd_range(1,100)<allsum*20 then
+                t=t &" The alliance you brokered holds and is successful at keeping the robot ships in check.|"
+            else
+                t=t &" The alliance you helped form just isn't big enough to keep the robot ships in check.|"
+            endif
+        endif
         if rnd_range(1,100)<66 then
             t=t &" | During all this, there are more and more reports of mysterious robot ships"_
             &" attacking explorers, settlers and traders in the sector of space you helped to"_

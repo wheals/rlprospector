@@ -659,6 +659,7 @@ function company(st as short) as short
     for b=0 to 4
         c=c+reward(b)
     next
+    c=c+ano_money
     if c=0 then 
         dprint "You have nothing to sell to "& basis(st).repname
     else
@@ -775,6 +776,9 @@ function company(st as short) as short
         reward(8)=0
         no_key=keyin
     endif
+    
+    ask_alliance(1)
+    
     dprint "you leave the company office"
     if m<0 and player.money>0 then factionadd(0,1,-1)
     return 0
@@ -890,7 +894,6 @@ function casino(staked as short=0, st as short=-1) as short
                     for d=1 to rnd_range(1,6)+10
                         num=rnd_range(0,36)
                         col=coltable(num)
-                        locate 15,25
                         set__color( col,0)
                         Draw string (15*_fw1,10*_fh1)," "&num &" ",,font2,custom,@_col
                         sleep d*d*2
@@ -936,9 +939,8 @@ function casino(staked as short=0, st as short=-1) as short
                             endif
                         endif
                         col=coltable(num)
-                        locate 15,25
                         set__color( col,0)
-                        print " "&num &" "
+                        Draw string (15*_fw1,10*_fh1)," "&num &" ",,font2,custom,@_col
                         sleep d*d*2
                     endif
                     if crew(1).talents(5)=1 then
@@ -948,9 +950,8 @@ function casino(staked as short=0, st as short=-1) as short
                         if b=4 and coltable(num)=15 then num=rnd_range(0,36)
                         if b=5 and coltable(num)=12 then num=rnd_range(0,36)                        
                         col=coltable(num)
-                        locate 15,25
                         set__color( col,0)
-                        print " "&num &" "
+                        Draw string (15*_fw1,10*_fh1)," "&num &" ",,font2,custom,@_col
                         sleep d*d*2
                     endif
                     times=0
@@ -2067,7 +2068,7 @@ function custom_ships(where as byte) as short
     dim as _ship s
     do
         nos=count_lines("data/customs.csv")-1
-        men="Custom hulls/Build custom hull/delete custom hull/"
+        men="Custom hulls/Build custom hull/Delete custom hull/"
         des="Nil///"
         a=3
         last=3

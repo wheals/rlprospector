@@ -2784,13 +2784,6 @@ function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as sh
                     awayteam.lastaction+=1
                     awayteam.c=old
                         if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then
-        '                if _tiles=0 then
-        '                    put (awayteam.c.x*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(1000)),pset
-        '                else
-        '                    set__color( _teamcolor,0
-        '                    draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
-        '                endif
-                        if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then
                             b=findworst(26,-1)
                             if b=-1 then b=findworst(29,-1) 'Using traps
                             if b>0 then
@@ -2840,7 +2833,6 @@ function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as sh
                     endif
                 endif
             endif
-        endif
     next
     return 0
 end function
@@ -3520,6 +3512,16 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
         endif
     endif
     
+    if tmap(awayteam.c.x,awayteam.c.y).gives=132 then
+        if alliance(0)=1 and alliance(2)=0 then
+            if askyn("Do you want to order your pirates to join the alliance against the robot ships?(y/n)") then 
+                dprint "We stand by your side."
+                alliance(2)=1
+                factionadd(0,2,-100)
+            endif
+        endif
+    endif
+    
     if tmap(awayteam.c.x,awayteam.c.y).gives=32 then  
         dprint "This is the Villa of the Pirate Leader."
         if faction(0).war(2)<=20 then
@@ -3554,9 +3556,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                     player.dead=26
                 endif
             endif
-            if askyn("Do you want to discuss an alliance against the robot ships?(y/n)") then
-                form_alliance(2)
-            endif
+            ask_alliance(2)
+            
         endif
         if faction(0).war(2)>60 then
             dprint "He does not want to talk to you"
@@ -4382,9 +4383,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 if civ(0).phil=2 then dprint "This is the "&civ(0).n &" parliament" 
                 if civ(0).phil=3 then dprint "This is the "&civ(0).n &" leaders home"
                 foreignpolicy(0,0)
-                if askyn("Do you want to negotiate an alliance against the robot ships?(y/n)") then
-                    form_alliance(6)
-                endif
+                ask_alliance(6)
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=312 then
@@ -4392,9 +4391,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 if civ(1).phil=2 then dprint "This is the "&civ(1).n &" parliament" 
                 if civ(1).phil=3 then dprint "This is the "&civ(1).n &" leaders home"
                 foreignpolicy(1,0)
-                if askyn("Do you want to negotiate an alliance against the robot ships?(y/n)") then
-                    form_alliance(7)
-                endif
+                ask_alliance(7)
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=321 then

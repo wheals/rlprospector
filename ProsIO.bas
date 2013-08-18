@@ -645,7 +645,7 @@ function display_stars(bg as short=0) as short
             
         if (vismask(map(a).c.x,map(a).c.y)=1 and distance(map(a).c,player.c)<=vis) or map(a).discovered>0 then 
             if map(a).discovered=0 and walking<10 then walking=0
-            display_star(a,vismask(map(a).c.x,map(a).c.y))
+            display_star(a)
         endif
     next
     
