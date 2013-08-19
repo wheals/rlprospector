@@ -4085,8 +4085,8 @@ function space_radio() as short
     dim dummy as _monster
     dim du(2) as short
     dim debug as short
-    dim c(25) as _cords
-    dim contacts(25) as short
+    dim c(26) as _cords
+    dim contacts(26) as short
     dim as string fname(8),text,dname(2)
     dname(0)=" (Strong signal)"
     dname(1)=""
