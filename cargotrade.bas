@@ -3669,7 +3669,7 @@ function shop(sh as short,pmod as single,shopn as string) as short
             if paystuff(int(inv(c).price*pmod))=-1 then
                 player.money=player.money+int(inv(c).price*pmod)'Giving back
                 dprint "How many "&inv(c).desigp &" do you want to buy? (Max: " &fix(player.money/(inv(c).price*pmod)) &")"
-                v=getnumber(0,fix(player.money/(inv(c).price*pmod)),1)
+                v=getnumber(0,fix(player.money/(inv(c).price*pmod)),0)
                 if v>0 then
                     if paystuff(inv(c).price*pmod*v)=-1 and v>0 then
                         for a=1 to v
