@@ -1,4 +1,4 @@
-function ep_areaeffects(areaeffect() as _ae,byref last_ae as short,lavapoint() as _cords,enemy() as _monster, lastenemy as short, li() as short, byref lastlocalitem as short,cloudmap() as byte) as short
+function ep_areaeffects(areaeffect() as _ae,byref last_ae as short,lavapoint() as _cords, li() as short, byref lastlocalitem as short,cloudmap() as byte) as short
     dim as short a,b,c,x,y,slot
     dim as _cords p1
     slot=player.map
@@ -429,7 +429,7 @@ function ep_checkmove(byref old as _cords,key as string) as short
     return 0
 end function
 
-function ep_communicateoffer(key as string, enemy() as _monster,lastenemy as short, li() as short,byref lastlocalitem as short) as short
+function ep_communicateoffer(key as string, li() as short,byref lastlocalitem as short) as short
     dim as short a,b,slot,x,y,cm,monster
     dim as _cords p2
     dim as string dkey
@@ -510,7 +510,7 @@ end function
 
             
 
-function ep_display(enemy() as _monster,byref lastenemy as short, li()as short,byref lastlocalitem as short,osx as short=555) as short
+function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) as short
     dim as short a,b,x,y,slot,fg,bg,debug,alp
     dim as byte comitem,comdead,comalive,comportal 
     dim as _cords p,p1,p2
@@ -698,7 +698,7 @@ function ep_display(enemy() as _monster,byref lastenemy as short, li()as short,b
         endif
     next
     
-    display_monsters(enemy(),lastenemy)
+    display_monsters(osx)
     
     if debug=2  and _debug=1 and lastapwp>=0 then
         for b=0 to lastapwp
@@ -738,7 +738,7 @@ function ep_needs_spacesuit(slot as short,c as _cords) as short
     return dam
 end function
 
-function ep_dropitem(li() as short,byref lastlocalitem as short,enemy() as _monster,byref lastenemy as short,vismask() as byte) as short
+function ep_dropitem(li() as short,byref lastlocalitem as short) as short
     dim as short c,d,slot,i
     dim as string text
     dim as _cords ship
@@ -783,7 +783,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short,enemy() as _mons
     endif
     if d=1 then
         c=get_item()
-        ep_display(enemy(),lastenemy,li(),lastlocalitem)
+        ep_display(li(),lastlocalitem)
         display_awayteam(0)
         dprint ""
         if c>=0 then
@@ -864,7 +864,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short,enemy() as _mons
 end function
 
 
-function ep_inspect(enemy() as _monster, lastenemy as short, li() as short,byref lastlocalitem as short,byref localturn as short) as short
+function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn as short) as short
     dim as short a,b,c,slot,skill,js,kit,rep
     dim as _cords p
     dim as _driftingship addship
@@ -1117,7 +1117,7 @@ function ep_inspect(enemy() as _monster, lastenemy as short, li() as short,byref
     return 0
 end function
 
-function ep_items(li() as short, byref lastlocalitem as short,enemy() as _monster,lastenemy as short, localturn as short) as short
+function ep_items(li() as short, byref lastlocalitem as short, localturn as short) as short
     dim as short a,slot,i,x,y,curr,last
     dim as _cords p1,p2,route(1281)
     dim as single dam
@@ -1145,7 +1145,7 @@ function ep_items(li() as short, byref lastlocalitem as short,enemy() as _monste
                         p1.x=item(li(a)).w.x
                         p1.y=item(li(a)).w.y
                         dam=10/(1+distance(awayteam.c,p1))*item(li(a)).v1*10
-                        alienbomb(li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
+                        alienbomb(li(a),slot,li(),lastlocalitem)
                         if dam>0 then dprint damawayteam(dam)
                         if awayteam.hp<=0 then player.dead=29
                         li(a)=li(lastlocalitem)
@@ -1190,7 +1190,7 @@ function ep_items(li() as short, byref lastlocalitem as short,enemy() as _monste
         return 0
 end function
 
-function ep_landship(byref ship_landing as short,nextlanding as _cords,nextmap as _cords,vismask() as byte,enemy() as _monster,lastenemy as short) as short
+function ep_landship(byref ship_landing as short,nextlanding as _cords,nextmap as _cords) as short
     dim as short r,slot,a,d
     slot=player.map
     ship_landing=ship_landing-1
@@ -1272,7 +1272,7 @@ function ep_launch(byref nextmap as _cords) as short
     return 0
 end function
 
-function ep_planeteffect(enemy() as _monster, lastenemy as short,li() as short, byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,localturn as short,cloudmap() as byte) as short
+function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() as _shipfire, byref sf as single,lavapoint() as _cords,localturn as short,cloudmap() as byte) as short
     dim as short slot,a,b,r,debug,x,y
     dim as string text
     static lastmet as short
@@ -1432,7 +1432,7 @@ function ep_planeteffect(enemy() as _monster, lastenemy as short,li() as short, 
     return 0    
 end function
  
-function ep_pickupitem(key as string, byref lastlocalitem as short, li() as short,enemy() as _monster,byref lastenemy as short) as short
+function ep_pickupitem(key as string, byref lastlocalitem as short, li() as short) as short
     dim a as short
     dim text as string
     for a=1 to lastlocalitem
@@ -1810,7 +1810,7 @@ function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as by
     return lsp
 end function
 
-function ep_monstermove(enemy() as _monster, m() as single, byref lastenemy as short, li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
+function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
     dim deadcounter as short
     dim as short a,b,c,slot,ti,f,osx,cmoodto
     dim moa as byte 'monster attack
@@ -2223,7 +2223,7 @@ function ep_monstermove(enemy() as _monster, m() as single, byref lastenemy as s
     return deadcounter
 end function
 
-function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cords,lsp as short, diesize as short,nightday() as byte) as short
+function ep_spawning(spawnmask() as _cords,lsp as short, diesize as short,nightday() as byte) as short
     dim as short a,b,c,x,y,d,slot
     if _spawnoff=1 then return 0
     slot=player.map
@@ -2237,14 +2237,14 @@ function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cord
                     if enemy(c).made=tmap(x,y).spawnswhat and enemy(c).hp>0 then b=b+1
                 next
                 if b<tmap(x,y).spawnsmax then
-                    d=getmonster(enemy(),lastenemy)
+                    d=getmonster()
                     enemy(d)=setmonster(makemonster(tmap(x,y).spawnswhat,slot),slot,spawnmask(),lsp,x,y,d)
                     if vismask(x,y)>0 then dprint tmap(x,y).spawntext,14
                 endif
             endif
             if tmap(x,y).no=304 and nightday(x)=0 then
                 changetile(x,y,slot,4)
-                d=getmonster(enemy(),lastenemy)
+                d=getmonster()
                 enemy(d)=setmonster(makemonster(102,slot),slot,spawnmask(),lsp,x,y,d)
                 if vismask(x,y)>0 then dprint "The iceblock suddenly starts to move."
             endif
@@ -2262,7 +2262,7 @@ function ep_spawning(enemy() as _monster,lastenemy as short,spawnmask() as _cord
     return lastenemy
 end function
 
-function ep_shipfire(shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short) as short
+function ep_shipfire(shipfire() as _shipfire) as short
     dim as short sf2,a,b,c,x,y,r,dam,slot,osx,ani,f,debug,icechunkhole,dambonus,ed
     dim p2 as _cords
     if rnd_range(1,100)<10 and planets(slot).flags(29)>0  then icechunkhole=1
@@ -2397,7 +2397,7 @@ function ep_shipfire(shipfire() as _shipfire,enemy() as _monster,byref lastenemy
     return 0
 end function
 
-function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,enemy() as _monster,lastenemy as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single,nightday() as byte,localtemp() as single) as short
+function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single,nightday() as byte,localtemp() as single) as short
     dim as _cords p,p1,p2,pc
     dim as string text
     dim as short a,b,slot,debug,osx,ex
@@ -2456,7 +2456,7 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
                 dprint "We don't have a satellite in orbit"
             else
                 if instr(text,"LIFE")>0 then
-                    ep_heatmap(enemy(),lastenemy,lavapoint(),5)
+                    ep_heatmap(lavapoint(),5)
                 else
                     a=rnd_range(0,lastlocalitem)
                     if item(li(a)).ty=15 and item(li(a)).w.p=0 and item(li(a)).w.s=0 then
@@ -2544,7 +2544,7 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
             dprint "Choose target"
             do 
                 text=planet_cursor(shipfire(sf).where,slot,osx,1)
-                ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
+                ep_display(li(),lastlocalitem,osx)
                 display_awayteam(,osx)
                 text=cursor(shipfire(sf).where,slot,osx)
                 if text=key__enter then ex=-1
@@ -2632,7 +2632,7 @@ function ep_roverreveal(i as integer) as short
 end function
 
 
-function ep_heatmap(enemy() as _monster,lastenemy as short,lavapoint() as _cords,lastlavapoint as short) as short
+function ep_heatmap(lavapoint() as _cords,lastlavapoint as short) as short
     dim as short map(60,20),heatmap(60,20)
     dim as short x,y,x1,y1,a,sensitivity,dis
     dim as _cords p1,p2
@@ -2714,7 +2714,7 @@ function ep_helmet() as short
 end function
 
 
-function ep_grenade(shipfire() as _shipfire, byref sf as single,enemy() as _monster,lastenemy as short,li() as short ,byref lastlocalitem as short) as short
+function ep_grenade(shipfire() as _shipfire, byref sf as single,li() as short ,byref lastlocalitem as short) as short
     dim as short c,slot,i,launcher,rof
     slot=player.map
     dim as _cords p
@@ -2727,7 +2727,7 @@ function ep_grenade(shipfire() as _shipfire, byref sf as single,enemy() as _mons
     if c>0 then
         if _debug=707 then dprint "throwing "&item(c).desig
         if item(c).ty=7 then
-            p=grenade(awayteam.c,slot,enemy(),lastenemy,li(),lastlocalitem)
+            p=grenade(awayteam.c,slot,li(),lastlocalitem)
             if p.x>=0 then
                 
                 select case item(c).v2
@@ -2773,7 +2773,7 @@ function ep_grenade(shipfire() as _shipfire, byref sf as single,enemy() as _mons
     return 0
 end function
 
-function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as short,mapmask() as byte) as short
+function ep_playerhitmonster(old as _cords, mapmask() as byte) as short
     dim as short a,b,slot
     slot=player.map
     for a=1 to lastenemy
@@ -2837,7 +2837,7 @@ function ep_playerhitmonster(old as _cords, enemy() as _monster, lastenemy as sh
     return 0
 end function
 
-function ep_fire(enemy() as _monster,lastenemy as short,mapmask() as byte,key as string,byref autofire_target as _cords) as short
+function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords) as short
     static autofire_dir as short
     dim enlist(128) as short
     dim shortlist as short
@@ -2906,7 +2906,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,mapmask() as byte,key as
                 endif
             endif
             c=c+1
-            c=ep_fireeffect(p2,slot,c,range,enemy(),lastenemy,mapmask())
+            c=ep_fireeffect(p2,slot,c,range,mapmask())
         loop until c>=range
         if e=0 then sleep 100
         c=0
@@ -2951,7 +2951,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,mapmask() as byte,key as
                     else
                         draw string((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
                     endif
-                    b=ep_fireeffect(wp(b),slot,b,lp,enemy(),lastenemy,mapmask())
+                    b=ep_fireeffect(wp(b),slot,b,lp,mapmask())
                     sleep 15
                 next
             else
@@ -2994,7 +2994,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,mapmask() as byte,key as
                             endif
                             if vismask(wp(b).x,wp(b).y)>0 and b<lp then draw string((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
                             fired(wp(b).x,wp(b).y)=1
-                            b=ep_fireeffect(wp(b),slot,b,lp-1,enemy(),lastenemy,mapmask(),first,last)
+                            b=ep_fireeffect(wp(b),slot,b,lp-1,mapmask(),first,last)
                         endif
                     next
                 endif
@@ -3010,7 +3010,7 @@ function ep_fire(enemy() as _monster,lastenemy as short,mapmask() as byte,key as
     return 0
 end function
 
-function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short,enemy() as _monster, lastenemy as short,  mapmask() as byte, first as short=0,last as short=0) as short
+function ep_fireeffect(p2 as _cords,slot as short, c as short, range as short, mapmask() as byte, first as short=0,last as short=0) as short
     dim as short d,f,x,y,vacc
     dim as single dam
     if first=0 and last=0 then 
@@ -3086,7 +3086,7 @@ function ep_closedoor() as short
     return 0
 end function
 
-function ep_examine(li() as short,enemy() as _monster,lastenemy as short,lastlocalitem as short) as short
+function ep_examine(li() as short,lastlocalitem as short) as short
     dim as _cords p2,p3
     dim as string key,text
     dim as short a,deadcounter,slot,osx,x
@@ -3101,7 +3101,7 @@ function ep_examine(li() as short,enemy() as _monster,lastenemy as short,lastloc
         key=planet_cursor(p2,slot,osx,1)
         key=cursor(p2,slot,osx)
         osx=calcosx(p3.x,planets(slot).depth)
-        ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
+        ep_display(li(),lastlocalitem,osx)
         display_awayteam(,osx)
         
         if p3.x<>p2.x or p3.y<>p2.y then
@@ -3272,7 +3272,7 @@ function ep_crater(li() as short, byref lastlocalitem as short,shipfire() as _sh
 end function
    
 
-function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,enemy() as _monster,byref lastenemy as short,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string, loctemp as single) as short
+function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string, loctemp as single) as short
     dim as short a,b,c,d,e,r,sf,slot,st,debug
     dim as single fuelsell,fuelprice
     dim towed as _ship 
@@ -4036,7 +4036,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                         do 
                             make_vismask(awayteam.c,awayteam.sight,slot)
                             display_planetmap(slot,calcosx(awayteam.c.x,1),0)
-                            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+                            ep_display (li(),lastlocalitem)
                             display_awayteam()
                             dprint ""
                             no_key=keyin

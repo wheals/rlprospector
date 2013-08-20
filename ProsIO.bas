@@ -1235,10 +1235,9 @@ function display_planetmap(a as short,osx as short,bg as byte) as short
     return 0
 end function
 
-function display_monsters(enemy() as _monster,lastenemy as short) as short
-    dim as short a,osx,comdead,comalive
+function display_monsters(osx as short) as short
+    dim as short a,comdead,comalive
     dim as _cords p
-    osx=calcosx(awayteam.c.x,planets(awayteam.slot).depth)
     for a=1 to lastenemy
         if enemy(a).hp<=0 then
             p.x=enemy(a).c.x
@@ -2091,7 +2090,7 @@ function dprint(t as string, col as short=11) as short
 end function    
 
 
-function getmonster(enemy() as _monster, byref lastenemy as short) as short
+function getmonster() as short
     dim as short d,e,c
     d=0
     for c=1 to lastenemy 'find dead that doesnt respawn
