@@ -4098,7 +4098,7 @@ function space_radio() as short
     df=9999
     for i=1 to lastfleet
         if fleet(i).ty=1 or fleet(i).ty=3 or fleet(i).ty=6 or fleet(i).ty=7 then
-            if distance(fleet(i).c,player.c)<player.sensors*2 and lc<=25 then
+            if distance(fleet(i).c,player.c)<player.sensors*2 and lc<25 then
                 lc+=1
                 c(lc)=fleet(i).c
                 contacts(lc)=i
@@ -4110,7 +4110,7 @@ function space_radio() as short
         p.x=drifting(i).x
         p.y=drifting(i).y
         if i<=3 or (planets(drifting(i).m).mon_template(0).made=32 and planets(drifting(i).m).flags(0)=0) then
-            if distance(p,player.c)<player.sensors*2 and lc<=25 then
+            if distance(p,player.c)<player.sensors*2 and lc<25 then
                 lc+=1
                 c(lc).x=drifting(i).x
                 c(lc).y=drifting(i).y
