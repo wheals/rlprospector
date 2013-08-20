@@ -4085,8 +4085,8 @@ function space_radio() as short
     dim dummy as _monster
     dim du(2) as short
     dim debug as short
-    dim c(26) as _cords
-    dim contacts(26) as short
+    dim c(25) as _cords
+    dim contacts(25) as short
     dim as string fname(8),text,dname(2)
     dname(0)=" (Strong signal)"
     dname(1)=""
@@ -4110,7 +4110,7 @@ function space_radio() as short
         p.x=drifting(i).x
         p.y=drifting(i).y
         if i<=3 or (planets(drifting(i).m).mon_template(0).made=32 and planets(drifting(i).m).flags(0)=0) then
-            if distance(p,player.c)<player.sensors*2 and lc<=25 then
+            if distance(p,player.c)<player.sensors*2 and lc<=24 then
                 lc+=1
                 c(lc).x=drifting(i).x
                 c(lc).y=drifting(i).y
