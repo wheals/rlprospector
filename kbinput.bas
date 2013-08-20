@@ -126,27 +126,33 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             endif
             
             if key=key_manual then
-                a=menu(bg_parent,"Help/Manual/Keybindings/Exit","",2,2)
+                a=menu(bg_parent,"Help/Manual/Keybindings/Configuration/Exit","",2,2)
                 if a=1 then manual
                 if a=2 then keybindings
+                if a=3 then configuration
                 return ""
             endif
+            
             if key=key_messages then 
                 messages
                 return ""
             endif
+            
             if key=key_configuration then
                 configuration
                 return ""
             endif
+            
             if key=key_tactics then
                 settactics
                 return ""
             endif
+            
             if key=key_shipstatus then         
                 shipstatus()
                 return ""
             endif
+            
             if key=key_logbook then
                 logbook()
                 return ""
@@ -360,6 +366,7 @@ function getnumber(a as short,b as short, e as short) as short
         c=numfromstr((gettext(p.x,p.y,46,"")))
         if c>b then c=b
         if c<a then c=e
+        if _debug>0 then dprint "LB:"&a &"UB:"& b &"#:"&c
         return c
     else
         
@@ -401,7 +408,7 @@ function getnumber(a as short,b as short, e as short) as short
             if key=key__enter then d=1
             if key=key__esc then d=2
             buffer=buffer+key
-            if len(buffer)>2 then buffer=""
+            if len(buffer)>5 then buffer=""
             if val(buffer)<>0 or buffer="0" then c=val(buffer)
             
             if c>b then c=b

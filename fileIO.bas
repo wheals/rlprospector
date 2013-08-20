@@ -1621,6 +1621,9 @@ function string_towords(word() as string, s as string, break as string, punct as
         word(a)=""
     next
     for a=1 to len(s)
+        if i>ubound(word) then
+            redim word(i)
+        endif
         if mid(s,a,1)=break then
             if debug=1 and _debug=1 then dprint word(i)
             i+=1

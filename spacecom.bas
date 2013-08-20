@@ -458,7 +458,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
     if victory=2 then 
         player.dead=0
         if atts.ty=ft_pirate or atts.ty=ft_pirate2 then combon(8).value+=noenemies
-        battleslost(atts.ty,0)+=1
+        if atts.ty<8 then battleslost(atts.ty,0)+=1
         dprint "All enemy ships fled or destroyed.",c_gre
     endif
     if victory=1 and player.towed<>0 then

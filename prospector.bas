@@ -471,7 +471,7 @@ function start_new_game() as short
         next
         player.money+=6000
     endif
-    
+    if _debug>0 then player.money=10000000
     if debug=2 and _debug=1 then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
     if _debug=1 then player.cursed=1
     just_run=run_until
@@ -4110,7 +4110,7 @@ function space_radio() as short
         p.x=drifting(i).x
         p.y=drifting(i).y
         if i<=3 or (planets(drifting(i).m).mon_template(0).made=32 and planets(drifting(i).m).flags(0)=0) then
-            if distance(p,player.c)<player.sensors*2 and lc<=24 then
+            if distance(p,player.c)<player.sensors*2 and lc<=25 then
                 lc+=1
                 c(lc).x=drifting(i).x
                 c(lc).y=drifting(i).y

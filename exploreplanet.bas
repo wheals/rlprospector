@@ -194,7 +194,7 @@ function ep_autoexplore(slot as short, li() as short,lastlocalitem as short) as 
     dim as short x,y,astarmap(60,20),candidate(60,20),explored,notargets,x1,y1,i
 
     dim d as single
-    dim as _cords p,target,astarpath(1282)
+    dim as _cords p,target,astarpath(1281)
     dim as byte debug=0
     for x=0 to 1024
         apwaypoints(x).x=0
@@ -3099,10 +3099,11 @@ function ep_examine(li() as short,enemy() as _monster,lastenemy as short,lastloc
     do
         p3=p2
         key=planet_cursor(p2,slot,osx,1)
+        key=cursor(p2,slot,osx)
+        osx=calcosx(p3.x,planets(slot).depth)
         ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
         display_awayteam(,osx)
-        key=cursor(p2,slot,osx)
-    
+        
         if p3.x<>p2.x or p3.y<>p2.y then
             if p2.x<0 then p2.x=0
             if p2.y<0 then p2.y=0
