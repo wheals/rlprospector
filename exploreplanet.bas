@@ -194,7 +194,7 @@ function ep_autoexplore(slot as short, li() as short,lastlocalitem as short) as 
     dim as short x,y,astarmap(60,20),candidate(60,20),explored,notargets,x1,y1,i
 
     dim d as single
-    dim as _cords p,target,astarpath(1281)
+    dim as _cords p,target,astarpath(1282)
     dim as byte debug=0
     for x=0 to 1024
         apwaypoints(x).x=0
