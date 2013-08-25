@@ -1129,26 +1129,22 @@ function display_comstring(wl as short) as short
     return 0
 end function
 
-function display_planetmap(a as short,osx as short,bg as byte) as short
+function display_planetmap(slot as short,osx as short,bg as byte) as short
     
     dim x as short
     dim y as short
     dim b as short
     dim x2 as short
     dim debug as byte
-    if planets(a).depth>0 then
-        if osx<0 then osx=0
-        if osx>60-_mwx then osx=60-_mwx
-    endif
-    if _mwx=60 then osx=0
-    
+        
     for x=_mwx to 0 step-1
         for y=0 to 20
             x2=x+osx
             if x2>60 then x2=x2-61
             if x2<0 then x2=x2+61
-            if planetmap(x2,y,a)>0 then
-                dtile(x,y,tiles(planetmap(x2,y,a)),bg)
+            if planetmap(x2,y,slot)>0 then
+                dtile(x,y,tiles(planetmap(x2,y,slot)),bg)
+                if _debug=2508 then draw string(x,y),""&planetmap(x2,y,slot)
             endif
         next
     next
@@ -1160,48 +1156,20 @@ function display_planetmap(a as short,osx as short,bg as byte) as short
 '        draw string (x*_tix,22*_tiy),""&x2
 '    next
     
-    for b=0 to lastportal
-        x=portal(b).from.x-osx
-        if x<0 then x+=61
-        if x>60 then x-=61
-        if x>=0 and x<=_mwx then 
-            if portal(b).from.m=a and portal(b).discovered=1 and portal(b).oneway<2 then
-                if configflag(con_tiles)=0 then
-                    put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
-                    if debug=1 and _debug=1 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
-                else
-                    set__color( portal(b).col,0)
-                    draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
-                endif
-            endif
-        endif
-        x=portal(b).dest.x-osx
-        if x<0 then x+=61
-        if x>60 then x-=61
-        
-        if x>=0 and x<=_mwx then 
-            if portal(b).oneway=0 and portal(b).dest.m=a and portal(b).discovered=1 then
-                if configflag(con_tiles)=0 then
-                    put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
-                else
-                    set__color( portal(b).col,0)
-                    draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
-                endif
-            endif
-        endif
-    next
+    display_portals(slot,osx)
+    
     for b=1 to lastitem
-        if debug=1 and _debug=1 and item(b).w.m=a then dprint b &":"&item(b).w.x-osx &"."&item(b).w.x &"_"& osx
+        if debug=1 and _debug=1 and item(b).w.m=slot then dprint b &":"&item(b).w.x-osx &"."&item(b).w.x &"_"& osx
         x=item(b).w.x-osx
         if x<0 then x+=61
         if x>60 then x-=61
         if x>=0 and x<=_mwx then
-            if item(b).w.m=a and item(b).w.s=0 and item(b).w.p=0 and item(b).discovered=1 then
+            if item(b).w.m=slot and item(b).w.s=0 and item(b).w.p=0 and item(b).discovered=1 then
                 if configflag(con_tiles)=0 then
                     put (x*_tix,item(b).w.y*_tiy),gtiles(gt_no(item(b).ti_no)),alpha,196
                     if debug=1 and _debug=1 then draw string ((item(b).w.x-osx)*_tix,item(b).w.y*_tiy),""& b,,Font1,custom,@_col
                 else            
-                    if item(a).ty<>99 then
+                    if item(b).ty<>99 then
                         set__color( item(b).col,item(b).bgcol)
                         draw string(item(b).w.x*_fw1,item(b).w.y*_fh1),item(b).icon,,Font1,custom,@_col
                     else
@@ -1222,16 +1190,41 @@ function display_planetmap(a as short,osx as short,bg as byte) as short
         next
     endif
     
-    if debugvacuum=1 and _debug=1 then
-        for x=0 to 60
-            for y=0 to 20
-                set__color(c_gre,0)
-                if vacuum(x,y)=1 then set__color(c_red,0) 
-                pset(x,y)
-            next
-        next
+    return 0
+end function
+
+function display_portals(slot as short,osx as short) as short
+    dim as short b,x,debug
+    for b=0 to lastportal
+        x=portal(b).from.x-osx
+        if x<0 then x+=61
+        if x>60 then x-=61
+        if x>=0 and x<=_mwx then 
+            if portal(b).from.m=slot and portal(b).discovered=1 and portal(b).oneway<2 then
+                if configflag(con_tiles)=0 then
+                    put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
+                    if debug=1 and _debug=1 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
+                else
+                    set__color( portal(b).col,0)
+                    draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+                endif
+            endif
+        endif
+        x=portal(b).dest.x-osx
+        if x<0 then x+=61
+        if x>60 then x-=61
         
-    endif
+        if x>=0 and x<=_mwx then 
+            if portal(b).oneway=0 and portal(b).dest.m=slot and portal(b).discovered=1 then
+                if configflag(con_tiles)=0 then
+                    put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
+                else
+                    set__color( portal(b).col,0)
+                    draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+                endif
+            endif
+        endif
+    next
     return 0
 end function
 

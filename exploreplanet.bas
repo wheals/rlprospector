@@ -3097,13 +3097,15 @@ function ep_examine(li() as short,lastlocalitem as short) as short
     p2.x=awayteam.c.x
     p2.y=awayteam.c.y
     do
+        cls
         p3=p2
-        key=planet_cursor(p2,slot,osx,1)
-        key=cursor(p2,slot,osx)
         osx=calcosx(p3.x,planets(slot).depth)
+        make_vismask(awayteam.c,awayteam.sight,slot)
+        display_planetmap(slot,osx,0)
         ep_display(li(),lastlocalitem,osx)
         display_awayteam(,osx)
-        
+        dprint ""
+        key=cursor(p2,slot,osx)
         if p3.x<>p2.x or p3.y<>p2.y then
             if p2.x<0 then p2.x=0
             if p2.y<0 then p2.y=0

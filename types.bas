@@ -1666,12 +1666,12 @@ declare function sort_cards(card() as integer,all as short=0) as short
 declare function poker_next(i as short,p() as _pokerplayer) as short
 declare function poker_winner(p() as _pokerplayer) as short
 declare function highest_pot(p() as _pokerplayer) as short
-
+declare function display_portals(slot as short,osx as short) as short
 declare function save_keyset() as short
 
 dim shared bonesflag as short
 dim shared farthestexpedition as integer
-dim shared enemy() as _monster
+dim shared enemy(255) as _monster
 dim shared lastenemy as short
 declare function findbest_jetpack() as short
 
@@ -1867,7 +1867,7 @@ declare function join_fight(f as short) as short
 declare function shipstatus(heading as short=0) as short
 declare function display_stars(bg as short=0) as short
 declare function display_star(a as short,fbg as byte=0) as short
-declare function display_planetmap(a as short,xos as short,bg as byte) as short
+declare function display_planetmap(slot as short,xos as short,bg as byte) as short
 declare function display_station(a as short) as short
 declare function display_ship(show as byte=0) as short
 declare function display_comstring(wl as short) as short

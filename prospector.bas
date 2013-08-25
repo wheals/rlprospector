@@ -2569,8 +2569,9 @@ function explore_planet(from as _cords, orbit as short) as _cords
     
     dim as short debug=0
 'oob suchen
-    
-    erase enemy
+    for a=1 to 255
+        enemy(a)=enemy(0)
+    next
     lastenemy=0
     
     if _debug=11 then
@@ -2592,6 +2593,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     deadcounter=0
     awayteam.c=from
     player.map=slot
+    osx=calcosx(awayteam.c.x,slot)
     lsp=0    
     location=lc_awayteam
     
