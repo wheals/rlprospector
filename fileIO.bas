@@ -2617,7 +2617,7 @@ function load_game(filename as string) as short
         get #f,,reward()
         print ".";
     
-        get #f,,flag(a)
+        get #f,,flag()
         
         print ".";
         

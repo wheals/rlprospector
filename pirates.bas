@@ -1444,7 +1444,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         case 96 to 100
             enemy.pretty=rnd_range(8,10)
         end select
-        if isgardenworld(map) then tastybonus=5
+        if isgardenworld(map) then tastybonus=3
         if enemy.diet=0 then tastybonus+=1 'Herbivoures are usually better eating
         select case rnd_range(1,100)+tastybonus*5
         case 50 to 75

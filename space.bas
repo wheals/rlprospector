@@ -1279,7 +1279,9 @@ function make_clouds() as short
     for a=0 to 2
         for x=basis(a).c.x-2 to basis(a).c.x+2
             for y=basis(a).c.y-2 to basis(a).c.y+2
-                wmap(x,y)=0
+                if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
+                    wmap(x,y)=0
+                endif
             next
         next
     next
