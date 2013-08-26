@@ -2944,6 +2944,7 @@ end function
 function trading(st as short) as short
     dim a as short
     screenset 1,1
+    check_tasty_pretty_cargo
     if st<3 then
         do
             set__color(11,0)
@@ -3228,6 +3229,35 @@ function getnextfreebay() as short
     next
     return -1
 end function
+
+function check_tasty_pretty_cargo() as short
+    dim as short freebay
+    freebay=getnextfreebay
+    if freebay>0 then
+        if reward(rwrd_pretty)>=100 then
+            dprint "You have collected enough beautiful animal parts to produce a cargo ton of luxury items"
+            if askyn("Do you want to do so?(y/n)") then
+                reward(rwrd_pretty)-=100
+                player.cargo(freebay).x=4
+                player.cargo(freebay).y=0
+                freebay=getnextfreebay
+            endif
+        endif
+    endif
+    
+    if freebay>0 then
+        if reward(rwrd_tasty)>=100 then
+            dprint "You have collected enough tasty animal parts to produce a cargo ton of food!"
+            if askyn("Do you want to do so?(y/n)") then
+                reward(rwrd_tasty)-=100
+                player.cargo(freebay).x=2
+                player.cargo(freebay).y=0
+            endif
+        endif
+    endif
+return 0
+end function
+
 
 function nextemptyc() as short
 dim re as short

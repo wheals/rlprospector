@@ -178,6 +178,7 @@ function ep_atship() as short
                 endif
             endif
         next
+        check_tasty_pretty_cargo
         alerts()
         return 0
     else 
@@ -215,7 +216,7 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
     dim as short candidate(60,20)
     dim as short x,y,explored,notargets,last,i,debug,rollover
     dim as single d2,d
-    dim as _cords target,target2,p,path(1281)
+    dim as _cords target,target2,p,path(1282)
     for x=0 to 60
         for y=0 to 20
             if move<tmap(x,y).walktru then candidate(x,y)=1
@@ -865,11 +866,12 @@ end function
 
 
 function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn as short) as short
-    dim as short a,b,c,slot,skill,js,kit,rep
+    dim as short a,b,c,slot,skill,js,kit,rep,freebay
     dim as _cords p
     dim as _driftingship addship
     slot=player.map
     awayteam.lastaction+=1
+    freebay=getnextfreebay
     b=0
     if _autoinspect=1 and walking=0 and not((tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143) or tmap(awayteam.c.x,awayteam.c.y).no=241) then dprint "You search the area: "&tmap(awayteam.c.x,awayteam.c.y).desc
     if awayteam.c.x=player.landed.x and awayteam.c.y=player.landed.y and awayteam.c.m=player.landed.m then
@@ -1011,8 +1013,13 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
                     if enemy(a).lang=8 then dprint "While this beings biochemistry is no doubt remarkable it does not explain it's extraordinarily long lifespan"
                     if enemy(a).hpmax<0 then enemy(a).hpmax=0
                     if enemy(a).slot>=0 then reward(1)=reward(1)+(10+kit+skill+add_talent(4,14,1)+get_biodata(enemy(a)))/(planets(slot).mon_disected(enemy(a).slot)/2)
+                    if enemy(a).pretty>60 then dprint "Some parts of this creature would make fine luxury items! You store them seperately."
+                    if enemy(a).tasty>60 then dprint "Some parts of this creature would make fine food items! You store them seperately."
+                    reward(rwrd_pretty)+=enemy(a).hpmax*enemy(a).pretty/10
+                    reward(rwrd_tasty)+=enemy(a).hpmax*enemy(a).tasty/10
+                    check_tasty_pretty_cargo
                     enemy(a).hpmax=0
-                    b=1            
+                    b=1   
                     if kit>0 and not(skill_test(maximum(player.doctor(1)/2,player.science(location)),st_average)) then
                         kit=findbest(48,-1)
                         dprint "The autopsy kit is empty",c_yel
@@ -2843,7 +2850,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     dim shortlist as short
     dim wp(80) as _cords
     dim dam as short
-    dim as short first,last,lp,osx
+    dim as short first,last,lp,osx,li(255),lastlocalitem
     dim as short a,b,c,d,e,f,slot
     dim as short scol
     dim as single range
@@ -2852,7 +2859,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     dim text as string
     slot=player.map
     osx=calcosx(awayteam.c.x,planets(slot).depth)
-    
+    lastlocalitem=make_localitemlist(li(),slot)
     
     if configflag(con_tiles)=0 then
         put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans
@@ -2929,6 +2936,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col                
             endif
             p1=p
+            ep_display(li(),lastlocalitem,osx)
             no_key=cursor(p,slot,osx)
             if distance(p,awayteam.c)>range then p=p1
             if no_key=key_te or ucase(no_key)=" " or multikey(SC_ENTER) then a=1

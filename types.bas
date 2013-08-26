@@ -494,6 +494,8 @@ type _monster
     biomod as single
     stunres as byte
     diet as byte
+    tasty as byte
+    pretty as byte
     intel as short
     lang as short
     nocturnal as byte
@@ -1455,6 +1457,20 @@ enum slse
     slse_slaves
 end enum
 
+enum rwrd
+    rwrd_mapdata
+    rwrd_biodata
+    rwrd_resources
+    rwrd_pirates
+    rwrd_artifacts
+    rwrd_5
+    rwrd_piratebase
+    rwrd_6
+    rwrd_pirateoutpost
+    rwrd_tasty
+    rwrd_pretty
+end enum
+
 dim shared standardphrase(sp_last-1,2) as string
 dim shared talent_desc(29) as string
     
@@ -1470,7 +1486,7 @@ dim shared apdiff as short
 dim shared talent_desig(29) as string
 dim shared evkey as event
 'dim shared video as SDL_Surface ptr
-dim shared reward(9) as single
+dim shared reward(11) as single
 dim shared ano_money as short
 
 dim shared baseprice(9) as short
@@ -1715,6 +1731,7 @@ declare function open_file(filename as string) as short
 declare function death_text() as string
 
 declare function merc_dis(fl as short,byref goal as short) as short
+declare function check_tasty_pretty_cargo() as short
 
 declare function show_dotmap(x1 as short, y1 as short) as short
 declare function show_minimap(xx as short,yy as short) as short
