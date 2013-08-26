@@ -1118,7 +1118,7 @@ end function
 
 function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     dim enemy as _monster
-    dim as short d,e,l,mapo,g,r,ahp,debug
+    dim as short d,e,l,mapo,g,r,ahp,debug,prettybonus,tastybonus
     dim as single easy
     static ti(11) as string
     static ch(11) as short
@@ -1330,7 +1330,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=2 then 'Powerful standard critter
         'Postion
-        
         g=rnd_range(0,4)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
@@ -1433,6 +1432,28 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.lang=-1
         if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
         enemy.col=6
+    endif
+    
+    if a=1 or a=2 or a=24 then 'Tasty and pretty for random critters
+        if a=24 then prettybonus=5
+        select case rnd_range(1,100)+prettybonus*5
+        case 50 to 75
+            enemy.pretty=rnd_range(1,10)
+        case 76 to 95
+            enemy.pretty=rnd_range(5,10)
+        case 96 to 100
+            enemy.pretty=rnd_range(8,10)
+        end select
+        if isgardenworld(map) then tastybonus=5
+        if enemy.diet=0 then tastybonus+=1 'Herbivoures are usually better eating
+        select case rnd_range(1,100)+tastybonus*5
+        case 50 to 75
+            enemy.tasty=rnd_range(1,10)
+        case 76 to 95
+            enemy.tasty=rnd_range(5,10)
+        case is >96
+            enemy.tasty=rnd_range(8,10)
+        end select
     endif
     
     if a=3 or a=7 then'Pirate band
