@@ -1751,7 +1751,7 @@ declare function display_stock() as short
 
 declare function calcosx(x as short,wrap as byte) as short
 declare function rg_icechunk() as short
-declare function ep_needs_spacesuit(slot as short,c as _cords) as short
+declare function ep_needs_spacesuit(slot as short,c as _cords,byref reason as string="") as short
 declare function ep_display_clouds(cloudmap() as byte) as short
 declare function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short,li() as short,lastlocalitem as short) as short
 declare function ep_roverreveal(i as integer) as short
@@ -2233,7 +2233,7 @@ declare function sick_bay(st as short=0,obe as short=0) as short
 declare function first_unused(i as short) as short
 declare function item_assigned(i as short) as short
 declare function scroll_bar(offset as short,linetot as short,lineshow as short,winhigh as short, x as short,y as short,col as short) as short
-
+declare function next_item(c as integer) as integer
 'Items
 declare function check_item_filter(t as short,f as short) as short
 declare function item_filter() as short
@@ -2244,7 +2244,7 @@ declare function findbest(t as short,p as short=0, m as short=0,id as short=0) a
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0,nomod as byte=0) as _items
 declare function modify_item(i as _items) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
-declare function get_item(ty as short=0,ty2 as short=0) as short
+declare function get_item(ty as short=0,ty2 as short=0,byref num as short=0) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
 declare function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
 declare function changetile(x as short,y as short,m as short,t as short) as short

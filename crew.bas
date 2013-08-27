@@ -592,7 +592,7 @@ function no_spacesuit(who() as short,byref alle as short=0) as short
                 last+=1
                 who(last)=i
             else
-                alle=0
+                alle=0 'At least one crewmember has a spacesuit
             endif
         endif
     next

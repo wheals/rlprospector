@@ -541,6 +541,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim as short  last,debug
     dim nextmap as _cords
     dim as _monster delaway
+    dim as string reason
     awayteam=delaway
     debug=1
     p.x=lx
@@ -593,7 +594,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                         next
                     next
                     if last>0 then
-                        if askyn("shall we use the landingpad to land?(y/n)") then 
+                        if askyn("Shall we use the landingpad to land?(y/n)") then 
                             p=pwa(rnd_range(1,last))
                             landingpad=5
                         endif
@@ -607,13 +608,13 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             endif
             
             last2=no_spacesuit(who(),alle)
-            if last2>0 and ep_needs_Spacesuit(mapslot,player.landed)<>0 then
+            if last2>0 and ep_needs_Spacesuit(mapslot,player.landed,reason)<>0 then
                 if alle=0 then
-                    if askyn("You will need spacesuits. Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
+                    if askyn("You will need spacesuits ("& reason &"). Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
                         remove_no_spacesuit(who(),last2)
                     endif
                 else
-                    if askyn("You need spacesuits on this planet and don't have any. Shall we abort landing? (y/n)") then return 0
+                    if askyn("You need spacesuits on this planet  ("& reason &") and don't have any. Shall we abort landing? (y/n)") then return 0
                 endif
             endif
             
@@ -2688,7 +2689,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     if planets(slot).atmos=0 then planets(slot).atmos=1
     if planets(slot).grav=0 then planets(slot).grav=.5
     
-    if planets(slot).atmos>1 and planets(slot).atmos<7 then 
+    if planets(slot).atmos>=3 and planets(slot).atmos<=6 then 
         awayteam.helmet=0
         awayteam.oxygen=awayteam.oxymax
     else

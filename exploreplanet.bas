@@ -728,19 +728,29 @@ function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) 
     return 0
 end function
 
-function ep_needs_spacesuit(slot as short,c as _cords) as short
+function ep_needs_spacesuit(slot as short,c as _cords,byref reason as string="") as short
     dim dam as short
     dam=0
-    if planets(slot).atmos=1 or vacuum(c.x,c.y)=1 then dam=10
-    if planets(slot).atmos=2 or planets(slot).atmos=7 or planets(slot).atmos=12 then dam=5
+    if planets(slot).atmos=1 or vacuum(c.x,c.y)=1 then
+        reason="Vacuum, "
+        dam=10
+    endif
+    if planets(slot).atmos=2 or planets(slot).atmos>=7 then 
+        reason &="No oxygen, "
+        dam=5
+    endif
     if planets(slot).atmos>12 then dam+=planets(slot).atmos/2
-    if planets(slot).temp<-60 or planets(slot).temp>60 then dam=dam+abs(planets(slot).temp/60)
+    if planets(slot).temp<-60 or planets(slot).temp>60 then
+        dam=dam+abs(planets(slot).temp/60)
+        reason=reason &"extreme temperatures, "
+    endif
+    if reason<>"" then reason=left(reason,len(reason)-2)
     if dam>50 then dam=50
     return dam
 end function
 
 function ep_dropitem(li() as short,byref lastlocalitem as short) as short
-    dim as short c,d,slot,i
+    dim as short c,d,slot,i,num,j
     dim as string text
     dim as _cords ship
     awayteam.lastaction+=1
@@ -783,7 +793,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short) as short
         endif
     endif
     if d=1 then
-        c=get_item()
+        c=get_item(,,num)
         ep_display(li(),lastlocalitem)
         display_awayteam(0)
         dprint ""
@@ -822,41 +832,52 @@ function ep_dropitem(li() as short,byref lastlocalitem as short) as short
                 endif
             case else
                 dprint "dropping " &item(c).desig &"." 
-                for i=0 to 128
-                    if crew(i).pref_lrweap=item(c).uid then crew(i).pref_lrweap=0
-                    if crew(i).pref_ccweap=item(c).uid then crew(i).pref_ccweap=0
-                    if crew(i).pref_armor=item(c).uid then crew(i).pref_armor=0
-                next
-                
-                item(c).w.x=awayteam.c.x
-                item(c).w.y=awayteam.c.y
-                item(c).w.m=slot
-                item(c).w.s=0
-                item(c).w.p=0
-                if item(c).ty=15 then
-                    reward(2)=reward(2)-item(c).v5
-                    combon(2).value-=item(c).v5
+                if num>1 then
+                    dprint "How many?"
+                    getnumber(1,num,0)
                 endif
-                if item(c).ty=24 and tmap(item(c).w.x,item(c).w.y).no=162 then
-                    dprint("you reconnect the machine to the pipes. you notice the humming sound.")
-                    no_key=keyin
-                    item(c).v1=100
+                if num>0 then
+                    for j=1 to num
+                        if c>=0 then 
+                            for i=0 to 128
+                                if crew(i).pref_lrweap=item(c).uid then crew(i).pref_lrweap=0
+                                if crew(i).pref_ccweap=item(c).uid then crew(i).pref_ccweap=0
+                                if crew(i).pref_armor=item(c).uid then crew(i).pref_armor=0
+                            next
+                            
+                            item(c).w.x=awayteam.c.x
+                            item(c).w.y=awayteam.c.y
+                            item(c).w.m=slot
+                            item(c).w.s=0
+                            item(c).w.p=0
+                            if item(c).ty=15 then
+                                reward(2)=reward(2)-item(c).v5
+                                combon(2).value-=item(c).v5
+                            endif
+                            if item(c).ty=24 and tmap(item(c).w.x,item(c).w.y).no=162 then
+                                dprint("you reconnect the machine to the pipes. you notice the humming sound.")
+                                no_key=keyin
+                                item(c).v1=100
+                            endif
+                            
+                            if item(c).ty=26 or item(c).ty=29 then
+                                reward(1)-=item(c).v3
+                            endif
+                            
+                            if item(c).ty=80 then 'Dropping a tribble
+                                lastenemy+=1
+                                enemy(lastenemy)=makemonster(101,slot)
+                                enemy(lastenemy).slot=16
+                                planets(slot).mon_template(enemy(lastenemy).slot)=enemy(lastenemy)
+                                enemy(lastenemy).c=item(c).w
+                                destroyitem(c)
+                            endif
+                            lastlocalitem=lastlocalitem+1
+                            li(lastlocalitem)=c
+                            c=next_item(c)
+                        endif
+                    next
                 endif
-                
-                if item(c).ty=26 or item(c).ty=29 then
-                    reward(1)-=item(c).v3
-                endif
-                
-                if item(c).ty=80 then 'Dropping a tribble
-                    lastenemy+=1
-                    enemy(lastenemy)=makemonster(101,slot)
-                    enemy(lastenemy).slot=16
-                    planets(slot).mon_template(enemy(lastenemy).slot)=enemy(lastenemy)
-                    enemy(lastenemy).c=item(c).w
-                    destroyitem(c)
-                endif
-                lastlocalitem=lastlocalitem+1
-                li(lastlocalitem)=c
             end select
             equip_awayteam(slot)
         endif
@@ -2711,7 +2732,7 @@ function ep_helmet() as short
         'oxydep
     else                
         'Opening Helmets
-        if planets(slot).atmos>1 and planets(slot).atmos<8 and vacuum(awayteam.c.x,awayteam.c.y)=0 then
+        if planets(slot).atmos>=3 and planets(slot).atmos<=6 and vacuum(awayteam.c.x,awayteam.c.y)=0 then
             awayteam.helmet=0
             awayteam.oxygen=awayteam.oxymax
             dprint "Opening helmets",c_gre

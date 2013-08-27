@@ -3438,6 +3438,19 @@ function display_item_list(inv() as _items, invn() as short, marked as short, l 
     return 0
 end function
 
+function next_item(c as integer) as integer
+    dim i as short
+    for i=0 to lastitem
+        if i<>c then
+            if item(i).w.s<0 and item(i).id=item(c).id and item(i).ty=item(c).ty and item(c).ty<>15 then
+                return i
+            endif
+        endif
+    next
+    return -1
+end function
+    
+
 function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0) as short
     dim as short b,a,set,lastinv,lastinv2,swapflag,tylabel,c,f,debug
     dim as _items inv(ubound(invit))
@@ -3608,7 +3621,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function get_item(ty as short=0,ty2 as short=0) as short
+function get_item(ty as short=0,ty2 as short=0,byref num as short=0) as short
     dim as short last,marked,i,c,debug,j
     dim as _items inv(255)
     dim as short invn(255)
@@ -3674,6 +3687,7 @@ function get_item(ty as short=0,ty2 as short=0) as short
     loop until key=key__enter or key=key__esc
     if key=key__enter then
         if _debug=1 then dprint "dropping "&inv(marked).w.s
+        num=invn(marked)
         return inv(marked).w.s
     else
         return -1
