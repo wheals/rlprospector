@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0
+const _debug=2708
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 

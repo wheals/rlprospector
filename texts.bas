@@ -1799,6 +1799,10 @@ function first_lc(t as string) as string
     return lcase(left(t,1))&right(t,len(t)-1)
 end function
 
+function first_uc(t as string) as string
+    return Ucase(left(t,1))&right(t,len(t)-1)
+end function
+
 function exploration_text_html() as string
     return text_to_html(exploration_text)
 end function

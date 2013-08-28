@@ -2333,6 +2333,8 @@ declare function uniques(unflags() as byte) as string
 declare function talk_culture(c as short) as short
 declare function foreignpolicy(c as short, i as byte) as short
 declare function first_lc(t as string) as string
+declare function first_uc(t as string) as string
+
 
 declare function text_to_html(text as string) as string
 

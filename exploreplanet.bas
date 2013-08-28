@@ -732,11 +732,15 @@ function ep_needs_spacesuit(slot as short,c as _cords,byref reason as string="")
     dim dam as short
     dam=0
     if planets(slot).atmos=1 or vacuum(c.x,c.y)=1 then
-        reason="Vacuum, "
+        reason="vacuum, "
         dam=10
     endif
     if planets(slot).atmos=2 or planets(slot).atmos>=7 then 
-        reason &="No oxygen, "
+        if planets(slot).atmos=2 then
+            reason &= "not enough oxygen, "
+        else
+            reason &="no oxygen, "
+        endif
         dam=5
     endif
     if planets(slot).atmos>12 then dam+=planets(slot).atmos/2
@@ -744,7 +748,7 @@ function ep_needs_spacesuit(slot as short,c as _cords,byref reason as string="")
         dam=dam+abs(planets(slot).temp/60)
         reason=reason &"extreme temperatures, "
     endif
-    if reason<>"" then reason=left(reason,len(reason)-2)
+    if reason<>"" then reason=first_uc(left(reason,len(reason)-2))
     if dam>50 then dam=50
     return dam
 end function
@@ -831,7 +835,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short) as short
                     endif
                 endif
             case else
-                dprint "dropping " &item(c).desig &"." 
+                dprint "Dropping " &item(c).desig &"." 
                 if num>1 then
                     dprint "How many?"
                     getnumber(1,num,0)
