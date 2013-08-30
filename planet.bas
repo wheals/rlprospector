@@ -6949,7 +6949,7 @@ function makeoutpost (slot as short,x1 as short=0, y1 as short=0) as short
     return 0
 end function
 
-function adaptmap(slot as short,enemy()as _monster,byref lastenemy as short) as short
+function adaptmap(slot as short) as short
     dim as short in,start,cur,a,b,c,pyr,hou,i,ti,x,y,vt
     dim houses(2) as short
     dim r as _rect

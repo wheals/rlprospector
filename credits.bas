@@ -1,12 +1,16 @@
-declare function credits(i as single) as string
+declare function credits(i as integer) as string
 declare function cords(c as _cords) as string
 
-function credits(i as single) as string
+function credits(cr as integer) as string
     dim as string t,r,z(12)
-    dim as single fra
+    dim as single fra,tenmillion
     dim  as integer b=1000000
-    dim as byte c,l
-    t=t &abs(int(i))
+    dim as byte c,l,i
+    for i=0 to 12
+        
+    next
+    t="" &abs(int(cr))
+
     for b=1 to len(t)
         z(b)=mid(t,b,1)
     next

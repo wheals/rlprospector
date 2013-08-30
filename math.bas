@@ -490,7 +490,13 @@ function make_vismask(c as _cords, sight as short,m as short) as short
         next
     next
     vismask(c.x,c.y)=1
-            
+    if _debug=2508 then
+        for x=0 to 60
+            for y=0 to 20
+                if vismask(x,y)>0 then pset(x,y)
+            next
+        next
+    endif
 '            if (y>=0 and x>=0 and y<=my and x<=mx) or m>0 then
 '                p.x=x
 '                p.y=y

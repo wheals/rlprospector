@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0
+const _debug=2708
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -541,6 +541,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim as short  last,debug
     dim nextmap as _cords
     dim as _monster delaway
+    dim as string reason
     awayteam=delaway
     debug=1
     p.x=lx
@@ -593,7 +594,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                         next
                     next
                     if last>0 then
-                        if askyn("shall we use the landingpad to land?(y/n)") then 
+                        if askyn("Shall we use the landingpad to land?(y/n)") then 
                             p=pwa(rnd_range(1,last))
                             landingpad=5
                         endif
@@ -607,13 +608,13 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
             endif
             
             last2=no_spacesuit(who(),alle)
-            if last2>0 and ep_needs_Spacesuit(mapslot,player.landed)<>0 then
+            if last2>0 and ep_needs_Spacesuit(mapslot,player.landed,reason)<>0 then
                 if alle=0 then
-                    if askyn("You will need spacesuits. Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
+                    if askyn("You will need spacesuits ("& reason &"). Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") then
                         remove_no_spacesuit(who(),last2)
                     endif
                 else
-                    if askyn("You need spacesuits on this planet and don't have any. Shall we abort landing? (y/n)") then return 0
+                    if askyn("You need spacesuits on this planet  ("& reason &") and don't have any. Shall we abort landing? (y/n)") then return 0
                 endif
             endif
             
@@ -2540,7 +2541,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     dim as _cords p,p1,p2,p3,nextlanding,old
     dim as _cords nextmap
     dim towed as _ship
-    dim enemy(255) as _monster
     dim m(255) as single
     dim as short skill
     dim mapmask(60,20) as byte
@@ -2556,7 +2556,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     'dim localitem(128) as items
     dim li(256) as short
     dim lastlocalitem as short
-    dim lastenemy as short
     dim diesize as short
     dim localturn as short
     dim tb as single
@@ -2571,7 +2570,11 @@ function explore_planet(from as _cords, orbit as short) as _cords
     
     dim as short debug=0
 'oob suchen
-
+    for a=1 to 255
+        enemy(a)=enemy(0)
+    next
+    lastenemy=0
+    
     if _debug=11 then
         dprint "Clearing screen"
     endif
@@ -2591,6 +2594,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     deadcounter=0
     awayteam.c=from
     player.map=slot
+    osx=calcosx(awayteam.c.x,slot)
     lsp=0    
     location=lc_awayteam
     
@@ -2685,7 +2689,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     if planets(slot).atmos=0 then planets(slot).atmos=1
     if planets(slot).grav=0 then planets(slot).grav=.5
     
-    if planets(slot).atmos>1 and planets(slot).atmos<7 then 
+    if planets(slot).atmos>=3 and planets(slot).atmos<=6 then 
         awayteam.helmet=0
         awayteam.oxygen=awayteam.oxymax
     else
@@ -2746,7 +2750,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
         
         if planets(slot).visited=0 and planets(slot).depth=0 and x=0 then 
             combon(0).value+=1
-            adaptmap(slot,enemy(),lastenemy) 
+            adaptmap(slot) 
             lsp=0
             for x=0 to 60
                 for y=0 to 20
@@ -3120,7 +3124,7 @@ endif
     
     cls
     display_planetmap(slot,osx,0)
-    ep_display (enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (li(),lastlocalitem)
     display_awayteam()
     dprint ""
     '
@@ -3165,13 +3169,13 @@ endif
     set__color(11,0)
     cls
     display_planetmap(slot,osx,0)
-    ep_display (enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (li(),lastlocalitem)
     display_awayteam()
     flip
     set__color(11,0)
     cls
     display_planetmap(slot,osx,0)
-    ep_display (enemy(),lastenemy,li(),lastlocalitem)
+    ep_display (li(),lastlocalitem)
     display_awayteam()
     flip
     
@@ -3248,7 +3252,7 @@ endif
                 endif
             endif
         endif
-        ep_playerhitmonster(old,enemy(),lastenemy,mapmask())
+        ep_playerhitmonster(old,mapmask())
         ep_checkmove(old,key)
         
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
@@ -3262,13 +3266,13 @@ endif
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
-            ep_shipfire(shipfire(),enemy(),lastenemy)
-            ep_items(li(),lastlocalitem,enemy(),lastenemy,localturn)
+            ep_shipfire(shipfire())
+            ep_items(li(),lastlocalitem,localturn)
             walking=alerts()
             for a=1 to lastenemy
                 if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
             next
-            deadcounter=ep_monstermove(enemy(),m(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
+            deadcounter=ep_monstermove(m(),li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
             if player.dead>0 or awayteam.hp<=0 then 
                 allowed=""
                 awayteam.lastaction=1
@@ -3278,7 +3282,7 @@ endif
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_inspect then nextmap=ep_Portal()
         
         if ship_landing>0 and nextmap.m<>0 then ship_landing=1 'Lands immediately if you changed maps
-        if ship_landing>0 then ep_landship(ship_landing, nextlanding, nextmap, vismask(), enemy(),lastenemy)
+        if ship_landing>0 then ep_landship(ship_landing, nextlanding, nextmap)
         
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
             old=awayteam.c
@@ -3286,19 +3290,19 @@ endif
             set__color(11,0)
             cls
             display_planetmap(slot,osx,0)
-            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+            ep_display (li(),lastlocalitem)
             ep_display_clouds(cloudmap())
             display_awayteam()
             flip
             set__color(11,0)
             cls
             display_planetmap(slot,osx,0)
-            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+            ep_display (li(),lastlocalitem)
             display_awayteam()
             ep_display_clouds(cloudmap())
             
             dprint("")
-            ep_gives(awayteam,nextmap,shipfire(),enemy(),lastenemy,li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
+            ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
             equip_awayteam(slot)
             if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
             if awayteam.move=4 then allowed=allowed &key_te
@@ -3309,11 +3313,11 @@ endif
             walking=0
         endif
         
-        ep_planeteffect(enemy(),lastenemy,li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
-        ep_areaeffects(areaeffect(),last_ae,lavapoint(),enemy(),lastenemy,li(),lastlocalitem,cloudmap())
+        ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
+        ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
         ep_atship()
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li(),enemy(),lastenemy)
-        if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(enemy(),lastenemy,li(),lastlocalitem,localturn)
+        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li())
+        if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(li(),lastlocalitem,localturn)
         healawayteam(awayteam,0)
         key=""
         if (player.dead=0 and awayteam.lastaction<=0) or walking<>0 then 
@@ -3325,7 +3329,7 @@ endif
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             
             display_planetmap(slot,osx,0)
-            ep_display (enemy(),lastenemy,li(),lastlocalitem)
+            ep_display (li(),lastlocalitem)
             ep_display_clouds(cloudmap())
             display_awayteam()
             
@@ -3358,7 +3362,7 @@ endif
             if key<>"" then walking=0
             if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
             'dprint "mouse.s"&mouse.s
-            if key=key_ex  then ep_examine(li(),enemy(),lastenemy,lastlocalitem)
+            if key=key_ex  then ep_examine(li(),lastlocalitem)
             if key=key_save then
                 if askyn("Do you really want to save the game (y/n?)") then
                    savefrom(0).map=slot
@@ -3378,7 +3382,7 @@ endif
             if awayteam.lastaction<=0 then
                 'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
                 if key=key_drop then 
-                    ep_dropitem(li(),lastlocalitem,enemy(),lastenemy,vismask())
+                    ep_dropitem(li(),lastlocalitem)
                     flip
                 endif
                 
@@ -3391,9 +3395,9 @@ endif
                 endif
                 if key=key_report then bioreport(slot)
                 if key=key_close then ep_closedoor()
-                if key=key_gr then ep_grenade(shipfire(),sf,enemy(),lastenemy,li(),lastlocalitem)
-                if key=key_fi or key=key_autofire or walking=10 then ep_fire(enemy(),lastenemy,mapmask(),key,autofire_target)
-                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,enemy(),lastenemy,shipfire(),lavapoint(),sf,nightday(),localtemp())
+                if key=key_gr then ep_grenade(shipfire(),sf,li(),lastlocalitem)
+                if key=key_fi or key=key_autofire or walking=10 then ep_fire(mapmask(),key,autofire_target)
+                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf,nightday(),localtemp())
                 if key=key_oxy then ep_helmet()
                 if key=key_ju and awayteam.move>=2 then ep_jumppackjump()
                 if key=key_la then ep_launch(nextmap)
@@ -3438,7 +3442,7 @@ endif
                         endif
                     endif
                 endif
-                if key=key_co or key=key_of then ep_communicateoffer(key,enemy(),lastenemy,li(),lastlocalitem)
+                if key=key_co or key=key_of then ep_communicateoffer(key,li(),lastlocalitem)
                 if key=key_te and artflag(9)=1 then awayteam.c=teleport(awayteam.c,slot) 
                 if _debug>0 and key="ä" then
                     for x=0 to 60
@@ -3456,7 +3460,7 @@ endif
                 endif
                 com_sinkheat(player,0)
                 ep_lava(lavapoint())
-                lastenemy=ep_spawning(enemy(),lastenemy,spawnmask(),lsp,diesize,nightday())
+                lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
             endif
             
             
@@ -3520,7 +3524,7 @@ endif
                 p1.x=item(li(a)).w.x
                 p1.y=item(li(a)).w.y
                 item(li(a)).w.p=9999
-                alienbomb(li(a),slot,enemy(),lastenemy,li(),lastlocalitem)
+                alienbomb(li(a),slot,li(),lastlocalitem)
 
             endif
         endif
@@ -3664,7 +3668,7 @@ endif
     return nextmap
 end function
 
-function alienbomb(c as short,slot as short, enemy() as _monster,lastenemy as short, li() as short, byref lastlocalitem as short) as short
+function alienbomb(c as short,slot as short, li() as short, byref lastlocalitem as short) as short
     dim as short a,b,d,e,f,osx,x2
     dim as _cords p,p1 
     p1.x=item(c).w.x
@@ -3762,7 +3766,7 @@ function alienbomb(c as short,slot as short, enemy() as _monster,lastenemy as sh
 end function
 
 
-function grenade(from as _cords,map as short,enemy() as _monster,lastenemy as short,li() as short, lastlocalitem as short) as _cords
+function grenade(from as _cords,map as short,li() as short, lastlocalitem as short) as _cords
     dim as _cords target,ntarget
     dim as single dx,dy,x,y,launcher
     dim as short a,ex,r,t,osx
@@ -3784,7 +3788,7 @@ function grenade(from as _cords,map as short,enemy() as _monster,lastenemy as sh
         dprint "Choose target"
         do 
             key=planet_cursor(target,map,osx,1)
-            ep_display(enemy(),lastenemy,li(),lastlocalitem,osx)
+            ep_display(li(),lastlocalitem,osx)
             display_awayteam(,osx)
             key=cursor(target,map,osx,,5+item(launcher).v1-planets(map).grav)
             if key=key_te or ucase(key)=" " or multikey(SC_ENTER) then ex=-1

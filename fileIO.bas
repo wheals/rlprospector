@@ -2290,14 +2290,11 @@ function savegame() as short
     
     print ".";
     'save pirates
-    for a=0 to 9
-        put #f,,reward(a)
-    next
+    put #f,,reward()
     print ".";
     
-    for a=0 to 20
-        put #f,,flag(a)
-    next
+    put #f,,flag()
+    
     
     
     put #f,,firstwaypoint
@@ -2617,14 +2614,10 @@ function load_game(filename as string) as short
             print ".";
         next
         'save pirates
-        for a=0 to 9
-            get #f,,reward(a)
-            print ".";
-        next
-        
-        for a=0 to 20
-            get #f,,flag(a)
-        next
+        get #f,,reward()
+        print ".";
+    
+        get #f,,flag()
         
         print ".";
         
