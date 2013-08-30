@@ -1448,6 +1448,7 @@ enum stphrase
     sp_gotmoney
     sp_cantpayback
     sp_notenoughmoney
+    sp_gotreport
     sp_last
 end enum
 
@@ -2046,6 +2047,8 @@ declare function add_drifters() as short
 declare function add_special_planets() as short
 declare function add_easy_planets(start as _cords) as short
 declare function add_stars() as short
+declare function add_company_shop(slot as short,mt as short) as short
+
 declare function add_wormholes() as short
 declare function add_event_planets() as short
 declare function add_caves() as short

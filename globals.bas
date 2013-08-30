@@ -29,7 +29,7 @@ function setglobals() as short
     shipyardname(sy_military)="SHI Vessels Division ltd."
     shipyardname(sy_civil)="Eridiani Exploratory Craft ltd."
     shipyardname(sy_pirates)="Lost and Found"
-    shipyardname(sy_blackmarket)="LeOfInCo ltd."
+    shipyardname(sy_blackmarket)="LeOfInCo ltd."'Leago of independant contractors
     
     moduleshopname(ms_energy)="OBE High Energy Research Lab"
     moduleshopname(ms_projectile)="SHI Weapons Division ltd."
@@ -136,7 +136,9 @@ function setglobals() as short
     standardphrase(sp_gotmoney,0)="I have got your money."
     standardphrase(sp_gotmoney,1)="I met 1<CHAR>. He sends you your money."
     standardphrase(sp_gotmoney,2)="I got your money."
-    
+    standardphrase(sp_gotreport,0)="Of course I have information on <COMPANY>. I have this report here."
+    standardphrase(sp_gotreport,1)="There is some interesting things in this report, if you know where to look."
+    standardphrase(sp_gotreport,2)="This report should cover the things you are interested in."
     standardphrase(sp_cantpayback,0)="I would love to pay it back, but I can't at this time."
     standardphrase(sp_cantpayback,1)="Sorry. Don't have enough money to pay it back right now."
     standardphrase(sp_cantpayback,2)="Things haven't been easy lately. I am afraid I can't spare a single credit!"

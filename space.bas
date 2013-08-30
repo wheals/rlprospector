@@ -604,12 +604,17 @@ function add_drifters() as short
     planets(drifting(1).m).mon_template(2)=makemonster(99,drifting(1).m)
     planets(drifting(1).m).mon_noamin(2)=1
     planets(drifting(1).m).mon_noamax(2)=1
+    planets(drifting(1).m).mon_template(3)=makemonster(103,drifting(1).m)
+    planets(drifting(1).m).mon_noamin(3)=1
+    planets(drifting(1).m).mon_noamax(3)=4
+    
     planets(drifting(1).m).flags(29)=5
     planets(drifting(2).m).flags(29)=6
     planets(drifting(3).m).flags(29)=7
     
     planetmap(19,10,drifting(1).m)=-287
-    if rnd_range(1,100)<66 then planetmap(39,13,drifting(1).m)=(298+rnd_range(1,4))*-1
+    if rnd_range(1,100)<66 then add_company_shop(1,4)'company shop
+        
     planetmap(46,18,drifting(1).m)=-222
     for a=1 to rnd_range(2,5) 'Some spacesuits in the starting station
         placeitem(makeitem(320),46,18,drifting(1).m)
@@ -630,8 +635,15 @@ function add_drifters() as short
     planets(drifting(2).m).mon_template(0)=makemonster(88,drifting(2).m)
     planets(drifting(2).m).mon_noamin(0)=3
     planets(drifting(2).m).mon_noamax(0)=6
+    
+    planets(drifting(2).m).mon_template(2)=makemonster(103,drifting(1).m)
+    planets(drifting(2).m).mon_noamin(2)=1
+    planets(drifting(2).m).mon_noamax(2)=4
+
+    
     planetmap(19,10,drifting(2).m)=-287
-    if rnd_range(1,100)<33 then planetmap(39,13,drifting(2).m)=(298+rnd_range(1,4))*-1
+    
+    if rnd_range(1,100)<33 then add_company_shop(2,3)
     
     b=0
     do
@@ -648,9 +660,15 @@ function add_drifters() as short
     planets(drifting(3).m).mon_template(0)=makemonster(88,drifting(3).m)
     planets(drifting(3).m).mon_noamin(0)=3
     planets(drifting(3).m).mon_noamax(0)=6
-    planetmap(19,10,drifting(3).m)=-287
-    if rnd_range(1,100)<33 then planetmap(39,13,drifting(2).m)=(298+rnd_range(1,4))*-1
     
+    planets(drifting(3).m).mon_template(2)=makemonster(103,drifting(1).m)
+    planets(drifting(3).m).mon_noamin(2)=1
+    planets(drifting(3).m).mon_noamax(2)=4
+    
+    
+    
+    planetmap(19,10,drifting(3).m)=-287
+    if rnd_range(1,100)<33 then add_company_shop(3,3)
     drifting(4).x=map(sysfrommap(specialplanet(18))).c.x-5+rnd_range(1,10)
     drifting(4).y=map(sysfrommap(specialplanet(18))).c.y-5+rnd_range(1,10)
     if drifting(4).x<0 then drifting(lastdrifting).x=0
@@ -725,6 +743,29 @@ function add_drifters() as short
     
     return 0
 end function
+
+function add_company_shop(slot as short,mt as short) as short
+    dim as short c
+    c=rnd_range(1,4)
+    planetmap(39,13,drifting(slot).m)=(298+c)*-1
+    select case c
+    case 1 'EE
+        planets(drifting(slot).m).mon_template(mt)=makemonster(86,drifting(slot).m)
+    case 2 'SHI
+        planets(drifting(slot).m).mon_template(mt)=makemonster(71,drifting(slot).m)
+    case 3 'TT
+        planets(drifting(slot).m).mon_template(mt)=makemonster(74,drifting(slot).m)
+    case 4 'OB
+        planets(drifting(slot).m).mon_template(mt)=makemonster(76,drifting(slot).m)
+    end select
+    planets(drifting(slot).m).mon_template(mt).lang=39
+    planets(drifting(slot).m).mon_template(mt).allied=10
+    planets(drifting(slot).m).mon_template(mt).aggr=1
+    planets(drifting(slot).m).mon_noamin(mt)=1
+    planets(drifting(slot).m).mon_noamax(mt)=1
+    return 0
+end function
+    
 
 function add_caves() as short
     dim as short a,b,debug

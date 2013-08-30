@@ -197,7 +197,7 @@ function remove_building(map as short) as short
     for x=0 to 60
         for y=0 to 20
             if isbuilding(x,y,map)=-1 then 
-                if abs(planetmap(x,y,map))>299 then
+                if abs(planetmap(x,y,map))>=299 then
                     p(255).x=x
                     p(255).y=y
                 else

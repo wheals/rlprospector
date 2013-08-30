@@ -742,6 +742,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         if questguy(i).job>=4 and questguy(i).job<=6 then node(1).option(o).answer="Do you want to compare notes with our " & questguyjob(questguy(i).job) & "?"
         if questguy(i).job>=10 and questguy(i).job<=13 then node(1).option(o).answer="Do you have any info on your company?"
         node(1).option(o).no=6
+        if questguy(i).has.type=qt_megacorp then node(6).statement=standardphrase(sp_gotreport,rnd_range(0,2))
         node(6).effekt="GIVEJOBHAS"
         node(6).param(0)=i
     endif
@@ -2791,6 +2792,46 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
             endif
         endif
     endif
+    
+    if e.lang=38 then
+        if e.aggr=0 then dprint "Drop your weapons and surrender!"
+        if e.aggr=2 then dprint "Help!"
+        if e.aggr=1 then 
+            select case rnd_range(1,5)
+            case 1
+                dprint "Just protecting the station sir."
+            case 2
+                dprint "I hope you are enjoying a safe and secure stay."
+            case 3
+                dprint "If I can help you with anything let me know."
+            case 4
+                dprint "I can tell you, this job beats ship security hands down."
+            case 5
+                dprint "Make sure to visit our numerous shops!"
+            end select
+        end if
+    end if
+    
+    if e.lang=39 then
+        if e.aggr=0 then dprint "Drop your weapons and surrender!"
+        if e.aggr=2 then dprint "Help!"
+        if e.aggr=1 then 
+            select case rnd_range(1,5)
+            case 1
+                dprint "Just protecting the company office sir."
+            case 2
+                dprint "I hope you are enjoying a safe and secure stay."
+            case 3
+                dprint "Please use our offices in an orderly manner."
+            case 4
+                dprint "Company security. What is your business?"
+            case 5
+                dprint "Company security coming through. Step aside!"
+            end select
+        end if
+    end if
+    
+    
     return 0
 end function
 

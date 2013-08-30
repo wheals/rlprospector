@@ -4426,6 +4426,49 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         
     endif
     
+    if a=103 then
+        enemy.ti_no=1000
+        enemy.faction=10
+        enemy.allied=0
+        enemy.atcost=rnd_range(7,10)/10
+        enemy.hasoxy=1
+        enemy.weapon=rnd_range(1,3)
+        enemy.range=0.5+enemy.weapon
+        enemy.hp=2+enemy.weapon
+        enemy.sight=rnd_range(2,5)
+        enemy.aggr=1
+        enemy.allied=10
+        enemy.respawns=0
+        enemy.move=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))/10
+        if enemy.move<=0.6 then enemy.move=.7
+        enemy.stuff(1)=rnd_range(0,1)
+        enemy.stuff(2)=rnd_range(0,1)
+        'Looks
+        enemy.biomod=0
+        enemy.col=2
+        enemy.scol=10
+        enemy.tile=asc("H")
+        enemy.sprite=2
+        enemy.dhurt="hurt"
+        enemy.dkill="dies" 
+        enemy.swhat="shoot laser guns "
+        enemy.sdesc="Station security team"
+        enemy.ldesc="a station security team, keeping a watchful eye on visitors"        
+    
+        for l=0 to rnd_range(1,2)
+            enemy.items(l)=-RI_weaponsarmor
+            enemy.itemch(l)=22
+        next
+        enemy.hpmax=enemy.hp
+        enemy.cmmod=4
+        enemy.lang=28
+        enemy.aggr=1
+        enemy.armor=1
+        enemy.move=.8
+    endif
+    
+    
+    
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     
     if easy_fights=1 then
