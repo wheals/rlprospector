@@ -2939,7 +2939,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=302 then
         i.ti_no=2110
-        i.id=301
+        i.id=302
         i.ty=46
         i.icon="'"
         i.col=11

@@ -6503,15 +6503,18 @@ end function
 
 function station_event(m as short) as short
     dim p as _cords
-    dim as short c
+    dim as short c,s,i,j
+    for i=10 to 1 step -1
+        if planets(m).mon_template(i).made=0 and s=0 then s=i
+    next
     planets_flavortext(m)="Something is going on here today."
     select case rnd_range(1,100)
     case is<35 'Good stuff
         select case rnd_range(1,100)
             case 0 to 25
-                planets(m).mon_template(2)=makemonster(98,m)
-                planets(m).mon_noamin(2)=1
-                planets(m).mon_noamax(2)=1
+                planets(m).mon_template(s)=makemonster(98,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
             case 26 to 50
                 planets(m).flags(26)=7
                 planetmap(39,1,m)=-268
@@ -6533,26 +6536,26 @@ function station_event(m as short) as short
         select case rnd_range(1,100)
             case 0 to 20
                 planets(m).flags(26)=1 'Standard Critter loose
-                planets(m).mon_template(2)=makemonster(1,m)
-                planets(m).mon_noamin(2)=1
-                planets(m).mon_noamax(2)=1
+                planets(m).mon_template(s)=makemonster(1,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
             case 21 to 40
                 planets(m).flags(26)=4 'Crawling Shrooms loose
-                planets(m).mon_template(2)=makemonster(34,m)
-                planets(m).mon_noamin(2)=1
-                planets(m).mon_noamax(2)=1
+                planets(m).mon_template(s)=makemonster(34,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
             case 41 to 60
                 planets(m).flags(26)=5 'Pirate band attacking
-                planets(m).mon_template(2)=makemonster(3,m)
-                planets(m).mon_noamin(2)=1
-                planets(m).mon_noamax(2)=3
+                planets(m).mon_template(s)=makemonster(3,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=3
                 p=rnd_point(m,,203)
                 planetmap(p.x,p.y,m)=-67
             case 61 to 80 'Tribble infestation
                 planets(m).flags(26)=12
-                planets(m).mon_template(2)=makemonster(80,m)
-                planets(m).mon_noamin(1)=1
-                planets(m).mon_noamax(1)=1
+                planets(m).mon_template(s)=makemonster(80,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
             case else
                 planets(m).flags(26)=6 'Leak
                 p=rnd_point(m,,243)
@@ -6562,13 +6565,23 @@ function station_event(m as short) as short
     case else 'Neutral Stuff
         c=rnd_range(0,1)
         planets(m).flags(26)=10
-        planets(m).mon_template(2)=civ(c).spec
-        planets(m).mon_noamin(2)=1
-        planets(m).mon_noamax(2)=3
+        planets(m).mon_template(s)=civ(c).spec
+        planets(m).mon_noamin(s)=1
+        planets(m).mon_noamax(s)=3
         p=rnd_point(m,,203)
         
         planetmap(p.x,p.y,m)=-(272+c)
     end select
+    'Clear cache
+    
+    for i=1 to 15 'Look for saved status on this planet
+        if savefrom(i).map=m then
+            for j=i to 14
+                savefrom(j)=savefrom(j+1)
+            next
+            savefrom(15)=savefrom(0)
+        endif
+    next
     'CLEAN UP ROUTINE!!!!
     return 0
 end function

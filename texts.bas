@@ -157,6 +157,7 @@ function death_text() as string
     if player.dead=98 then 
         endstory=es_part1
         textbox (endstory,2,2,_screenx/_fw2-5)
+        text=endstory
     endif
     if player.dead=99 then text="Till next time!"
     return text
@@ -2217,7 +2218,7 @@ function es_part1() as string
     endif
     if player.money>=500 then
         player.money=player.money-500
-        t=t &"|You board the next ship back to civilization, and arive back home with "&player.money &" Credits."
+        t=t &"|You board the next ship back to civilization, and arrive back home with "&credits(player.money) &" Credits."
     else
         t=t &"|You make enough money to live, but not enough to ever get back to civilization."
         

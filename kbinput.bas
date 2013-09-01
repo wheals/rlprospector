@@ -92,11 +92,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             if (asc(key)>=97 and asc(key)<=blocked) then return key
         endif
         if blocked=0 or blocked>=97 then
-            if _debug>0 and key="\Cm" then
-                dprint "merchanttalent:"
-                crew(1).talents(6)=getnumber(0,5,0)
-            endif
-            
+                        
             if _debug>0 and key="\Ci" then
                 dprint "Itemdump"
                 f=freefile
@@ -106,6 +102,23 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 next
                 close #f
             endif
+            
+            if _debug>0 and key="ü" then
+                fleet(255)=makecivfleet(0)
+                dprint "Count:"&fleet(255).count
+            endif
+            
+            if _debug>0 and key="ä" then
+                dprint "Fleetdump"
+                f=freefile
+                open "fleets.csv" for output as #f
+                for i=0 to lastfleet
+                    print #f,i &";"& fleet(i).ty  &";"& fleet(i).count  &";"& cords(fleet(i).c)
+                next
+                close #f
+            endif
+                
+            
             if _debug>0 and key=key_testspacecombat then
                 spacecombat(fleet(rnd_range(6,lastfleet)),9)
             endif
@@ -352,12 +365,10 @@ function gettext(x as short, y as short, ml as short, text as string,pixel as sh
     return text
 end function
 
-function getnumber(a as short,b as short, e as short) as short
+function getnumber(a as integer,b as integer, e as integer) as integer
     dim key as string
     dim buffer as string
-    dim c as short
-    dim d as short
-    dim i as short
+    dim as integer c,d,i
     dim p as _cords
     screenset 1,1
     dprint ""

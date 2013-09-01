@@ -835,6 +835,7 @@ function makecivfleet(slot as short) as _fleet
     s=civ(slot).phil
     if civ(slot).phil=2 and rnd_range(1,100)<50 then s=s+rnd_range(1,2)
     if civ(slot).phil=3 and rnd_range(1,100)<33 then s=s+rnd_range(2,8)
+    if s<1 then s=1
     for p=1 to s
         if rnd_range(0,100)<55-civ(slot).phil*5 then
             f.mem(p)=civ(slot).ship(0)
@@ -4437,7 +4438,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=2+enemy.weapon
         enemy.sight=rnd_range(2,5)
         enemy.aggr=1
-        enemy.allied=10
         enemy.respawns=0
         enemy.move=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))/10
         if enemy.move<=0.6 then enemy.move=.7
@@ -4461,7 +4461,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         next
         enemy.hpmax=enemy.hp
         enemy.cmmod=4
-        enemy.lang=28
+        enemy.lang=38
         enemy.aggr=1
         enemy.armor=1
         enemy.move=.8

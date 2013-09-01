@@ -165,7 +165,7 @@ end function
 
     
 function death_message() as short
-    dim as string text
+    dim as string text,text2
     dim as short b,a,wx,tx
     text=""
     
@@ -173,8 +173,9 @@ function death_message() as short
     cls
     background(rnd_range(1,_last_title_pic)&".bmp")
     set__color( 12,0)
-    text=death_text() 
-    if text<>"" then
+    text=death_text()
+    text2=text
+    if text<>"" and player.dead<>98 then
         set__color( 11,0)
         #ifdef _windows
         gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
@@ -198,7 +199,7 @@ function death_message() as short
     no_key=keyin
     if player.dead<99 then 
         if askyn("Do you want to see the last messages again?(y/n)") then messages
-        high_score()
+        high_score(text2)
     endif
 
     return 0
@@ -231,7 +232,7 @@ function explper() as short
     return int(per)
 end function
 
-function post_mortemII() as short
+function post_mortemII(text as string) as short
     dim as short page,full,half,third,i,x,offset,crewn,bg
     dim as string key,header(4),crewtext,income
     dim as byte unflags(lastspecial)
@@ -331,10 +332,10 @@ function post_mortemII() as short
             
     loop until key=key__esc
     
-    
     if askyn("Do you want to save your mission summary to a file?(y/n)") then
         'configflag(con_tiles)=old_g
-        postmort_html
+        
+        postmort_html(text)
         'configflag(con_tiles)=1
     else
         kill player.desig &".bmp"
@@ -344,81 +345,7 @@ function post_mortemII() as short
     return 0
 end function
 
-
-function post_mortem() as short
-    dim as byte debug=0
-    dim as short a,b,c,d,f
-    dim as short ll,tp,exps,expp,foundspec
-    'dim descr(lastspecial) as string
-    'dim flagst(16) as string
-    dim xx as short
-    dim yy as short
-    dim old_g as short
-    dim expl as integer
-    dim total as integer
-    dim lines(127) as string
-    dim inv(255) as _items
-    dim invn(255) as short
-    dim text as string
-    dim as short set,lastinv   
-    dim as byte unflags(lastspecial)
-    if configflag(con_savescumming=1) then kill("savegames/"&player.desig &".sav")
-    old_g=configflag(con_tiles)
-    configflag(con_tiles)=1
-    'count ioncanons
-    for a=0 to 5
-        if player.weapons(a).made=66 then b=b+1
-    next
-    if b>0 then artflag(4)=b
-    if player.cryo>0 then artflag(8)=player.cryo
-    
-    foundspec=make_unflags(unflags())
-    
-    cls
-    locate 1,20 
-    set__color( 15,0) 
-    #ifdef _windows
-    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
-    #endif
-    draw_string (10,10, player.h_desig & " " &player.desig & " MISSION SUMMARY: " &score() &" pts",titlefont,_col)
-    set__color( 11,0)
-    a=1+cint(textbox(income_expenses,10,2,_screenx/_fw2-20,11)*_fh2/_fh1)
-    b=a+1+cint((textbox(exploration_text ,1,2+a,(_screenx/_fw2)/2-3,11)+a+3)*_fh2/_fh1)
-    c=1+cint((textbox(list_artifacts(artflag()) ,(_screenx/_fw1)/2+1,2+a,(_screenx/_fw2)/2-2,11)+a+3)*_fh2/_fh1)
-    if b>c then 
-        d=b
-    else
-        d=c
-    endif
-    textbox(mission_type,_screenx/(_fw1*2)-15,d+1,30,15)
-    if debug=1 and _debug=1 then
-        f=freefile
-        open "screnstats.txt" for output as #f
-        print #f,a;" ";b;" ";c;" ";_screenx/(_fw1*2)-15
-        close #f
-    endif
-    'sleep 800,1
-    foundspec=make_unflags(unflags())
-    if foundspec>0 then
-        if askyn("Do you want to see a list of remarkable planets you discovered?(y/n)") then
-            cls
-            make_unflags(unflags())
-            textbox(uniques(unflags()),1,2,_screeny/_fw2-2)
-        endif
-    endif
-        
-    if askyn("Do you want to save your mission summary to a file?(y/n)") then
-        configflag(con_tiles)=old_g
-        postmort_html
-        configflag(con_tiles)=1
-    else
-        kill player.desig &".bmp"
-    endif
-    configflag(con_tiles)=old_g
-    return 0
-end function
-
-function postmort_html() as short
+function postmort_html(text as string) as short
     dim as short f,ll,i
     dim as string fname
     dim lines(255) as string
@@ -448,7 +375,7 @@ function postmort_html() as short
         if lines(i)="{uniqueart}" then lines(i)=planet_artifacts_table
         if lines(i)="{achievements}" then lines(i)=acomp_table
         if lines(i)="{equipment}" then lines(i)=items_table
-        
+        if lines(i)="{endstory}" then lines(i)="<table width=" &chr(34) &"80%"&chr(34)& " align=" &chr(34) &"center"&chr(34)& "><tbody><tr><td>"&text_to_html(text) &"</td></tr><tbody></table>"
         print #f,lines(i)
     next
     no_key=keyin
@@ -456,7 +383,7 @@ function postmort_html() as short
     return 0
 end function
 
-function high_score() as short
+function high_score(text as string) as short
     
     dim highscore(11) as _table
     dim in as integer=1
@@ -468,7 +395,7 @@ function high_score() as short
     dim f as integer
     dim a as integer
     dim s as integer
-    dim as short xo,yo
+    dim as short xo,yo,sp
     'open highscore table
     f=freefile
     open "highscore" for binary as f
@@ -476,12 +403,11 @@ function high_score() as short
         get #f,,highscore(a)
     next        
     close f
-    
     'edit highscore table
     rank=1
     if player.desig<>"" then
         
-        post_mortemII
+        post_mortemII(text)
         
         if player.score=0 then 
             s=score()
@@ -530,8 +456,8 @@ function high_score() as short
         else
             set__color( 11,0)
         endif
-        draw_string (5*_fw2+xo,yo+(a*2)*_fh2, a & ".) " & trim(highscore(a+off2).desig) & ", "& highscore(a+off2).points &" pts.:",font2,_col)
-        locate (a*2)+2,2 
+        sp=77-len(a &".)")-len(trim(highscore(a+off2).desig))-len(highscore(a+off2).points &" pts.")
+        draw_string (2*_fw2+xo,yo+(a*2)*_fh2, a & ".) " & trim(highscore(a+off2).desig) & ", "  & space(sp)&credits( highscore(a+off2).points) &" pts." ,font2,_col)
         if a=rank then
             set__color( 14,0)
         else
@@ -540,9 +466,7 @@ function high_score() as short
         draw_string (2*_fw2+xo,yo+(a*2+1)*_fh2, trim(highscore(a+off2).death),font2,_col)
     next
     set__color( 11,0)
-    locate 24,5,0
     if rank>10 then draw_string (2*_fw2+xo,_screeny-yo, highscore(10).points &" Points required to enter highscore. you scored "&s &" Points",font2,_col)
-    locate 25,20,0 
     draw_string (2*_fw2+xo,_screeny-yo/2, "Esc to continue",font2,_col)
     no_key=keyin(key__esc)
     'save highscore table

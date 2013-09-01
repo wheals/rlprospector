@@ -2330,6 +2330,8 @@ function savegame() as short
     
     put #f,,foundsomething
     
+    put #f,,civ()
+    
     close f
     
     'Overwrites large save file with compressed save file. but skills if file is empty
@@ -2654,6 +2656,8 @@ function load_game(filename as string) as short
         next
         
         get #f,,foundsomething
+        
+        if not(eof(f)) then get #f,,civ() 'Just in case
         
         close f
         if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then 

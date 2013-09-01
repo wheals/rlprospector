@@ -229,7 +229,7 @@ function questguy_newquest(i as short) as short
     dim as short f,j,l,debug
     dim as string w(5),li
     f=freefile
-    'debug=qt_outloan
+    debug=5
     open "data/wanthas.csv" for input as #f
     do
         line input #f,li
@@ -737,12 +737,11 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         or (questguy(i).job>=10 and questguy(i).job<=13  and questguy(i).has.type<>qt_megacorp)_
         or questguy(i).job=14 then
         o+=1
-        if questguy(i).job=1 then node(1).option(o).answer="Can I get access for the stations sensors?"
-        if questguy(i).job=14 then node(1).option(o).answer="Can I have an autograph"
+        if questguy(i).job=1 then node(1).option(o).answer="Can I get access to the stations sensors?"
+        if questguy(i).job=14 then node(1).option(o).answer="Can I have an autograph?"
         if questguy(i).job>=4 and questguy(i).job<=6 then node(1).option(o).answer="Do you want to compare notes with our " & questguyjob(questguy(i).job) & "?"
         if questguy(i).job>=10 and questguy(i).job<=13 then node(1).option(o).answer="Do you have any info on your company?"
         node(1).option(o).no=6
-        if questguy(i).has.type=qt_megacorp then node(6).statement=standardphrase(sp_gotreport,rnd_range(0,2))
         node(6).effekt="GIVEJOBHAS"
         node(6).param(0)=i
     endif
@@ -750,12 +749,12 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
     if  questguy(i).flag(7)=0 and (questguy(i).want.type=qt_drug or questguy(i).want.type=qt_anomaly or questguy(i).want.type=qt_biodata) and questguy(i).want.given=1 then
         o+=1
         node(1).option(o).answer="Have you gotten results with your research yet?"
-        node(1).option(o).no=22
-        node(22).effekt="SELLOTHER"
-        node(22).param(1)=1010
-        node(22).param(2)=i
-        node(22).param(3)=0
-        node(22).param(4)=1
+        node(1).option(o).no=23
+        node(23).effekt="SELLOTHER"
+        node(23).param(1)=1010
+        node(23).param(2)=i
+        node(23).param(3)=0
+        node(23).param(4)=1
     endif
         
     for j=1 to lastquestguy
@@ -1571,8 +1570,8 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 dprint "I don't have anything interesting to share."
                 return 0
             endif
-            
-        case else
+        case else 'Company report
+            dprint standardphrase(sp_gotreport,rnd_range(0,2))
             it=makeitem(1006,questguy(p(0)).job-9,questguy(p(0)).friendly(0))
             it.price=50*questguy(p(0)).friendly(0)
         end select
@@ -1581,7 +1580,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             dprint "Of course! "&questguy(p(0)).n &" hands you "&add_a_or_an(it.desig,0) &"."
             placeitem(it,0,0,0,0,-1)
         else
-            if askyn("Do you want to pay "&it.price &" Cr. for the "&it.desig &"?(y/n)") then
+            if askyn("Do you want to pay "&credits(it.price) &" Cr. for the "&it.desig &"?(y/n)") then
                 if paystuff(it.price) then
                     dprint "You buy "&add_a_or_an(it.desig,0) &"."
                     placeitem(it,0,0,0,0,-1) 
@@ -1662,10 +1661,10 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             endif
         endif
     endif
+    
     if effekt="SELLWANT" Then
-        i=has_questguy_want(p(0),t)
         questguy(p(0)).talkedto=2
-        
+        i=has_questguy_want(p(0),t)
         if _debug>0 then dprint "T is "&t &" I is "&i &" p1 is" &p(1) &" p2 is"&p(2)
         if i>0 then
             select case t

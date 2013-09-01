@@ -838,7 +838,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short) as short
                 dprint "Dropping " &item(c).desig &"." 
                 if num>1 then
                     dprint "How many?"
-                    getnumber(1,num,0)
+                    num=getnumber(1,num,0)
                 endif
                 if num>0 then
                     for j=1 to num
@@ -1040,11 +1040,11 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
                     if enemy(a).slot>=0 then reward(1)=reward(1)+(10+kit+skill+add_talent(4,14,1)+get_biodata(enemy(a)))/(planets(slot).mon_disected(enemy(a).slot)/2)
                     if enemy(a).disease=0 then
                         if _debug=2608 then dprint  "Tasty:"&enemy(a).tasty &" Pretty:"&enemy(a).pretty &" Total:"&reward(rwrd_pretty) &":"&reward(rwrd_tasty)
-                        if enemy(a).pretty>6 then dprint "Some parts of this creature would make fine luxury items! You store them seperately."
-                        if enemy(a).tasty>6 then dprint "Some parts of this creature would make fine food items! You store them seperately."
+                        if enemy(a).hpmax*enemy(a).pretty/10>0 then dprint "Some parts of this creature would make fine luxury items! You store them seperately."
+                        if enemy(a).hpmax*enemy(a).tasty/10>0 then dprint "Some parts of this creature would make fine food items! You store them seperately."
                         reward(rwrd_pretty)+=enemy(a).hpmax*enemy(a).pretty/10
                         reward(rwrd_tasty)+=enemy(a).hpmax*enemy(a).tasty/10
-                    check_tasty_pretty_cargo
+                        check_tasty_pretty_cargo
                     endif
                     enemy(a).hpmax=0
                     b=1   

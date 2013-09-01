@@ -759,7 +759,8 @@ function add_company_shop(slot as short,mt as short) as short
         planets(drifting(slot).m).mon_template(mt)=makemonster(76,drifting(slot).m)
     end select
     planets(drifting(slot).m).mon_template(mt).lang=39
-    planets(drifting(slot).m).mon_template(mt).allied=10
+    planets(drifting(slot).m).mon_template(mt).allied=1
+    planets(drifting(slot).m).mon_template(mt).faction=10
     planets(drifting(slot).m).mon_template(mt).aggr=1
     planets(drifting(slot).m).mon_noamin(mt)=1
     planets(drifting(slot).m).mon_noamax(mt)=1

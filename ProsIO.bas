@@ -838,7 +838,8 @@ function display_ship(show as byte=0) as short
         _lines=wl+4
         save_config(configflag(con_tiles))        
         _screeny=_lines*_fh1
-        screenres _screenx,_screeny,8,2,GFX_WINDOWED
+        
+        'screenres _screenx,_screeny,8,2,GFX_WINDOWED
     endif
     draw string(sidebar,(wl+4)*_fh2), "Fuel(" &player.fuelmax+player.fuelpod &"):",,Font2,custom,@_col
     set__color( 11,0)

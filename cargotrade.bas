@@ -1031,10 +1031,10 @@ function casino(staked as short=0, st as short=-1) as short
             endif
             if rnd_range(1,100)<66 and player.money>=0 then
                 if BonesFlag>0 and planets(Bonesflag).visited=0 then
-                    b=rnd_range(1,44)
-                    if rnd_range(1,30)<100 then b=44
+                    b=rnd_range(1,45)
+                    if rnd_range(1,30)<100 then b=1001
                 else
-                    b=rnd_range(1,43)
+                    b=rnd_range(1,45)
                 endif
                 c=rnd_range(0,2)
                 d=rnd_range(1,5)
@@ -1150,8 +1150,12 @@ function casino(staked as short=0, st as short=-1) as short
                 
                 if b=43 then dprint "A scout captain insists: 'There are planets out there where the ice will come after you and kill you! I call them Icetrolls, they freeze during the night, and thaw during the day. Keep in the dark when you are on such a planet.'"
                 
-                if b=44 then dprint "An explorer captain tells a funny story about a captain "& randomgender &" knew, who didn't return from an expedition to a system at "&cords(map(bonesflag).c) &"."
+                if b=44 then dprint "A merchant captain proclaims: 'If you want to avoid pirate attacks, just fly a triax traders flag!' " &first_uc(randomgender) & " is pretty drunk and refuses to elaborate."
                 
+                if b=45 then dprint "A security member tells a sobstory about how his tribble helped him when a friend of his was killed by wildlife on some planet"
+                
+                if b=1001 then dprint "An explorer captain tells a funny story about a captain "& randomgender &" knew, who didn't return from an expedition to a system at "&cords(map(bonesflag).c) &"."
+
                 if b=100 then 
                     if faction(0).war(1)>50 then
                         if askyn ("A seedy looking indivdual approaches you. 'If you are interested I could keep you informed about what the merchants are loading. What do you say? 100 Cr. each time you come here?'(y/n)") then
@@ -3708,9 +3712,9 @@ function shop(sh as short,pmod as single,shopn as string) as short
                             placeitem(inv(c),0,0,0,0,-1)
                         next
                         if v=1 then
-                            dprint "you buy "&add_a_or_an(inv(c).desig,0) & " for "& int(inv(c).price*pmod)&" Cr."
+                            dprint "you buy "&add_a_or_an(inv(c).desig,0) & " for "& credits(int(inv(c).price*pmod))&" Cr."
                         else
-                            dprint "you buy "& v &" "&inv(c).desigp &" for "&int(inv(c).price*pmod*v) &" Cr."
+                            dprint "you buy "& v &" "&inv(c).desigp &" for "&credits(int(inv(c).price*pmod*v)) &" Cr."
                         endif
                     endif
                 endif

@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=2708
+const _debug=0
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -114,7 +114,7 @@ do
             endif
         endif
         if key="2" or key="b" then key=from_savegame(key)
-        if key="3" or key="c" then high_score()
+        if key="3" or key="c" then high_score("")
         if key="4" or key="d" then manual
         if key="5" or key="e" then configuration
         if key="6" or key="f" then keybindings
@@ -136,7 +136,7 @@ do
 '                clear_gamestate
 '            next
 '        endif
-        if _debug=1 then
+        if _debug>0 then
                 if key="t" then
                     a=getnumber(0,10000,0)
                     put(30,0),gtiles(gt_no(a)),pset
@@ -145,18 +145,18 @@ do
                 endif
                 if key="8" then
                     f=freefile
-                    open "itemslist.txt" for output as #f
+                    open "itemslist.csv" for output as #f
                     for b=2 to 10
                         
                         item(0).desig=""
-                        item(0)=makeitem(b)
-                        if item(0).desig<>"" then print #f,item(0).desig &":"&item(0).v1 &":"&item(0).price
+                        item(0)=makeitem(b,,,,1)
+                        if item(0).desig<>"" then print #f,item(0).desig &";"&item(0).v1*10 &";"& item(0).v2 &";"&item(0).price
                     next
                     for b=40 to 47
                         
                         item(0).desig=""
-                        item(0)=makeitem(b)
-                        if item(0).desig<>"" then print #f,item(0).desig &":"&item(0).v1 &":"&item(0).price
+                        item(0)=makeitem(b,,,,1)
+                        if item(0).desig<>"" then print #f,item(0).desig &";"&item(0).v1*10 &";"& item(0).v3 &";"&item(0).price
                     next
                         
                     close #f
@@ -1351,11 +1351,10 @@ function rescue() as short
     gen_fname(fname())
     d=256
     if getinvbytype(9)>0 then
-        if askyn("You ran out of fuel. Do you want to use the fuel from the cargo bay?(y/n)",,1) then
-            removeinvbytype(9,1)
-            player.fuel+=30
-            return 0
-        endif
+        dprint ("You ran out of fuel. You use the fuel from the cargo bay.")
+        removeinvbytype(9,1)
+        player.fuel+=30
+        return 0    
     endif
     ranoutoffuel+=1
     dis2=9999
@@ -1393,7 +1392,6 @@ function rescue() as short
     endif
     if d>0 and d<256 then
         dprint "Fuel tanks empty, sending distress signal!",14
-        locate 1,1
         no_key=keyin
         if d<5+dis*2 then 
             if faction(0).war(1)<100 then
@@ -1449,8 +1447,8 @@ function rescue() as short
                 player.dead=1
             endif
         endif
-        locate 1,1
         no_key=keyin
+        cls
     endif
     return 0
 end function
@@ -2326,9 +2324,12 @@ function explore_space() as short
                 next
             endif
             
-            if frac(player.turn/25)=0 then 
-                set_fleet(makecivfleet(0))
-                set_fleet(makecivfleet(1))
+            if frac(player.turn/250)=0 then 
+                if rnd_range(1,100)<50 then
+                    set_fleet(makecivfleet(0))
+                else
+                    set_fleet(makecivfleet(1))
+                endif
             endif
             
             if frac(player.turn/100)=0 and player.turn>5000 and player.questflag(3)=0 then 

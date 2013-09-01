@@ -926,7 +926,7 @@ type _dialognode
 end type
 
 type _civilisation
-    n as string
+    n as string*16
     home as _cords
     ship(1) as _ship
     item(1) as _items
@@ -1659,7 +1659,7 @@ declare function acomp_table() as string
 declare function sort_items(list() as _items) as short
 declare function items_table() as string
 declare function artifacts_html(artflags() as short) as string
-declare function postmort_html() as short
+declare function postmort_html(text as string) as short
 declare function ship_table() as string
 declare function uniques_html(unflags() as byte) as string
 declare function exploration_text_html() as string
@@ -1963,7 +1963,8 @@ declare function countgasgiants(sys as short) as short
 declare function isasteroidfield(m as short) as short
 declare function countasteroidfields(sys as short) as short
 declare function checkcomplex(map as short,fl as short) as integer
-declare function getnumber(a as short,b as short, e as short) as short
+declare function getnumber(a as integer,b as integer, e as integer) as integer
+
 declare function gettext(x as short, y as short, ml as short, text as string,pixel as short=0) as string
 declare function getdirection(key as string) as short
 declare function keyplus(key as string) as short
@@ -2159,9 +2160,8 @@ declare function explper() as short
 declare function money_text() as string
 declare function exploration_text() as string
 declare function mission_type() as string
-declare function high_score() as short
-declare function post_mortem() as short
-declare function post_mortemII() as short
+declare function high_score(text as string) as short
+declare function post_mortemII(text as string) as short
 declare function score() as integer
 declare function get_death() as string
 
