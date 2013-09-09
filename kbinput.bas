@@ -104,8 +104,8 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             endif
             
             if _debug>0 and key="ü" then
-                fleet(255)=makecivfleet(0)
-                dprint "Count:"&fleet(255).count
+                dprint "Change walls to"
+                planets(player.map).wallset=getnumber(0,11,0)
             endif
             
             if _debug>0 and key="ä" then

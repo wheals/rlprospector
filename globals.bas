@@ -136,7 +136,7 @@ function setglobals() as short
     standardphrase(sp_gotmoney,0)="I have got your money."
     standardphrase(sp_gotmoney,1)="I met 1<CHAR>. He sends you your money."
     standardphrase(sp_gotmoney,2)="I got your money."
-    standardphrase(sp_gotreport,0)="Of course I have information on <COMPANY>. I have this report here."
+    standardphrase(sp_gotreport,0)="Of course I have information on <CORP>. I have this report here."
     standardphrase(sp_gotreport,1)="There is some interesting things in this report, if you know where to look."
     standardphrase(sp_gotreport,2)="This report should cover the things you are interested in."
     standardphrase(sp_cantpayback,0)="I would love to pay it back, but I can't at this time."
@@ -711,6 +711,13 @@ function setglobals() as short
         tiles(a).no=a
         tiles(a).ti_no=100+a
     next
+    
+    tiles(243).ti_no=2500
+    tiles(201).ti_no=2505
+    tiles(202).ti_no=2501
+    tiles(203).ti_no=2502
+    tiles(204).ti_no=2503
+    tiles(205).ti_no=2504
     
     for a=1 to max_maps
         planets(a)=planets(0)

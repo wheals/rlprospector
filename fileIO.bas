@@ -777,6 +777,7 @@ function load_tiles() as short
             n+=1
         next
     next
+    
     n=75
     cls
     bload "graphics/weapons.bmp"
@@ -905,6 +906,17 @@ function load_tiles() as short
     next
     
     
+    n=1750
+    cls
+    bload "graphics/spacestations.bmp"
+    for x=0 to _tix*11 step _tix
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,0)-(x+_tix-1,_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1
+        n+=1
+    next
+    
     n=2001
     cls
     bload "graphics/items.bmp"
@@ -917,7 +929,21 @@ function load_tiles() as short
             n+=1
         next
     next
-
+    
+    
+    n=2500
+    cls
+    bload "graphics/walls.bmp"
+    for y=0 to _tiy*13 step _tiy
+        for x=0 to _tix*8 step _tix
+            gtiles(a)=imagecreate(_tix,_tiy)
+            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+            gt_no(n)=a
+            a+=1
+            n+=1
+        next
+    next
+    
     n=3001
     cls
     bload "graphics/portals.bmp"
@@ -2112,7 +2138,7 @@ function savegame() as short
     make_unflags(unflags())
     cl=player.h_sdesc
     names=player.desig
-    desig="("&cl &", "&player.money &"Cr T:" &player.turn &")"
+    desig="("&cl &", "&credits(player.money) &" Cr, T:" &player.turn &")"
     datestring=date_string
     cls
     back=99

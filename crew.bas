@@ -1152,7 +1152,7 @@ function girlfriends(st as short) as short
     hisher(0)=" her "
     hisher(1)=" his "
     for a=0 to 128
-        if crew(a).hp>0 then
+        if crew(a).hp>0 and crew(a).story(10)<2 then
             'if crew(a).story(9)>0 and crew(a).story(9)<>st+1 and crew(a).story(9)<>st+3 then crew(a).morale-=1
             if crew(a).story(9)=st+1 then 
                 gf+=1

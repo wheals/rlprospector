@@ -750,20 +750,25 @@ function display_star(a as short,fbg as byte=0) as short
 end function
 
 function display_station(a as short) as short
-    dim as short x,y,debug
+    dim as short x,y,debug,t
     debug=1
     basis(a).discovered=1
     x=basis(a).c.x-player.osx
     y=basis(a).c.y-player.osy
+    if a<3 then
+        t=a+3*basis(a).company
+    else
+        t=2+3*basis(a).company
+    endif
     if x<0 or y<0 or x>_mwx or y>20 then return 0
     set__color( 15,0)
     if configflag(con_tiles)=1 then
         draw string (x*_fw1,y*_fh1),"S",,Font1,custom,@_col
     else
         if vismask(basis(a).c.x,basis(a).c.y)=1 then
-            put ((x)*_tix+1,(y)*_tiy+1),gtiles(44),trans
+            put ((x)*_tix+1,(y)*_tiy+1),gtiles(gt_no(1750+t)),trans
         else
-            put ((x)*_tix+1,(y)*_tiy+1),gtiles(44),alpha,192
+            put ((x)*_tix+1,(y)*_tiy+1),gtiles(gt_no(1750+t)),alpha,192
         endif    
     endif
     if distance(player.c,basis(a).c)<player.sensors then
@@ -1144,7 +1149,8 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
             if x2>60 then x2=x2-61
             if x2<0 then x2=x2+61
             if planetmap(x2,y,slot)>0 then
-                dtile(x,y,tiles(planetmap(x2,y,slot)),bg)
+                if tmap(x2,y).no=0 then tmap(x2,y)=tiles(planetmap(x2,y,slot))
+                dtile(x,y,tmap(x2,y),bg)
                 if _debug=2508 then draw string(x,y),""&planetmap(x2,y,slot)
             endif
         next
@@ -1272,6 +1278,7 @@ function display_monsters(osx as short) as short
                     if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if configflag(con_tiles)=0 then
                             put ((p.x-osx)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
+                            if _debug>0 then draw string ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),"m:"&enemy(a).m,,font2,custom,@_tcol
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
@@ -1512,9 +1519,14 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
 end function
 
 function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
-    dim as short col,bgcol
+    dim as short col,bgcol,slot,tino
+    slot=player.map
     col=tiles.col
     bgcol=tiles.bgcol
+    tino=tiles.ti_no
+    if tino>1000 then
+        tino=2500+(tino-2500)+planets(slot).wallset*9
+    endif
     'if tiles.walktru=5 then bgcol=1
     if tiles.col<0 and tiles.bgcol<0 then
         col=col*-1
@@ -1524,9 +1536,9 @@ function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
     endif
     if configflag(con_tiles)=0 then
         if visible=1 then
-            put (x*_tix,y*_tiy),gtiles(gt_no(tiles.ti_no)),pset
+            put (x*_tix,y*_tiy),gtiles(gt_no(tino)),pset
         else
-            put (x*_tix,y*_tiy),gtiles(gt_no(tiles.ti_no)),alpha,196
+            put (x*_tix,y*_tiy),gtiles(gt_no(tino)),alpha,196
         endif
     else
         if configflag(con_showvis)=0 and visible>0 and bgcol=0 then 

@@ -15,167 +15,211 @@ function play_poker(st as short) as short
     endif
     rules.closed=1
     rules.swap=0
-    
     dealer=rnd_range(1,4)
-    for i=1 to 3
-        pi=get_highestrisk_questguy(st)
-        if debug=1 and _debug=1 then dprint ""&pi
-        if pi>0 then
-            p(i).name=questguy(pi).n
-            p(i).risk=questguy(pi).risk
-            p(i).money=questguy(pi).money
-            p(i).in=1
-            questguy(pi).location=-2
-        else
-            p(i).in=1
-            p(i).name=character_name(rnd_range(0,1))
-            p(i).risk=rnd_range(3,9)
-            p(i).money=200+rnd_range(50,440)
-        endif
-        dprint p(i).name &" joins the game."
-    next
-    p(4).in=1
-    for i=1 to 52
-        card(i)=i
-    next
-    card_shuffle(card())
-    
-    dealer=rnd_range(1,4)
-    curcard=1
-    pi=dealer
-    ci=1
-    j=0   
-    for k=1 to 5
-        for i=1 to 4
-            if pi=dealer then j+=1
-            pi=poker_next(pi,p())
-            p(pi).card(k)=card(curcard)
-            curcard+=1
-            draw_poker_table(p(),,,rules)
-            
-            If (ScreenEvent(@evkey)) then speedup=1
-            If speedup=0 then sleep 220
+
+        for i=1 to 3
+            pi=get_highestrisk_questguy(st)
+            if debug=1 and _debug=1 then dprint ""&pi
+            if pi>0 and questguy(pi).money>rules.bet*rules.limit then
+                p(i).name=questguy(pi).n
+                p(i).risk=questguy(pi).risk
+                p(i).money=questguy(pi).money
+                p(i).in=1
+                p(i).qg=pi
+                questguy(pi).location=-2
+            else
+                p(i).in=1
+                p(i).name=character_name(rnd_range(0,1))
+                p(i).risk=rnd_range(3,9)
+                p(i).money=10*rules.bet+rnd_range(50,440)
+            endif
+            dprint p(i).name &" joins the game."
         next
-    next
-    
-    for l=1 to 4
-        sort_cards(p(l).card(),0)
+        do
+        for i=1 to 4
+            p(i).bet=0
+            p(i).pot=0
+            p(i).in=1
+            p(i).fold=0
+            for j=1 to 5
+                p(i).card(j)=0
+            next
+        next
+        p(4).in=1
+        for i=1 to 52
+            card(i)=i
+        next
+        card_shuffle(card())
         
-    next
-    draw_poker_table(p(),,,rules)
-    
-    pi=dealer
-'    for i=1 to 4
-'        if pi=4 then
-'            'Player swap card.
-'            dprint "Do you want to swap a card(1-5,0 for none)"
-'            j=val(keyin)
-'            
-'        else
-'            j=swap_card(p(pi).card())
-'        endif
-'        
-'        p(pi).pot=1
-'        
-'        if j>0 then 
-'            dprint p(pi).name &" swaps card "&j
-'            curcard+=1
-'            p(pi).card(j)=card(curcard)
-'            draw_poker_table(p(),,rules)
-'
-'        endif
-'    next
-    do
-        screenset 0,1
-        cls
-        pi=poker_next(pi,p())
-        draw_poker_table(p(),,,rules)
-        dprint ""
-        if _debug=3 then dprint "pi:"&pi
-        flip
-        if pi>0 then
-            if p(pi).fold=0 and p(pi).in=1 then
-                if pi=4 then
-                    player_eval(p(),pi)
-                    pot=0 
-                    for i=1 to 4
-                        pot+=p(i).pot
-                    next
-                    move=menu(bg_noflip,"Your bet (In pot: "& credits(pot*rules.bet) &":/see(" & (highest_pot(p())-p(4).pot)*rules.bet & "Cr.)/raise(" & (highest_pot(p())+1-p(4).pot)*rules.bet & "Cr.)/fold","",24,2,1)
-                    if move=1 then p(4).bet=highest_pot(p())-p(4).pot
-                    if move=2 then p(4).bet=highest_pot(p())+1-p(4).pot
-                    if move=3 or move=-1 then p(4).fold=1
-                    if not paystuff(p(4).bet*rules.bet) then p(4).bet=0
-                else
-                    player_eval(p(),pi)
-                endif
-                if p(pi).bet=0 then 
-                    p(pi).fold=1
-                    if pi=4 then
-                        dprint "You fold."
-                    else
-                        dprint p(pi).name &" folds."
-                    endif
-                    sleep 250
-                endif
-                if p(pi).bet>0 then
-                    if p(pi).bet+p(pi).pot>rules.limit then p(pi).bet=rules.limit-p(pi).pot
+        dealer=rnd_range(1,4)
+        curcard=1
+        pi=dealer
+        ci=1
+        j=0   
+        for k=1 to 5
+            for i=1 to 4
+                if pi=dealer then j+=1
+                pi=poker_next(pi,p())
+                p(pi).card(k)=card(curcard)
+                curcard+=1
+                draw_poker_table(p(),,,rules)
                 
-                    if p(pi).pot+p(pi).bet>highest_pot(p()) then
-                        if pi=4 then
-                            dprint "You raise."
-                        else
-                            dprint p(pi).name &" raises."
-                        endif
-                    else
-                        if pi=4 then
-                            dprint "You see."
-                        else
-                            dprint p(pi).name &" sees."
-                        endif
-                    endif
-                    p(pi).pot+=p(pi).bet
-                    p(pi).bet=0
-                    sleep 350
-                endif
-            endif
-            if pi=dealer then 
-                winner=poker_winner(p())
-                if winner=0 then
-                    for i=1 to 4
-                        if p(i).fold=0 then p(i).pot=highest_pot(p())
-                    next
-                endif
-            endif
-        endif
-        folded=0
-        for i=1 to 4
-            if p(i).fold=1 then folded+=1
+                If (ScreenEvent(@evkey)) then speedup=1
+                If speedup=0 then sleep 220
+            next
         next
-    loop until winner<>0 or pi=-1 or folded>=3
-    cls
-    draw_poker_table(p(),1,winner,rules)
-    
-    if winner=4 then
-        dprint "You win "&credits((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet) &" Cr.",c_gre
-        addmoney((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet,mt_gambling)
-    endif
-    
-    if winner>0 and winner<4 then dprint "Winner:"&p(winner).name
-    if winner<0 then
-        dprint "Tie"
-        if winner=-3 or winner=-4 then 
-            dprint "You win "&credits((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet/2) &" Cr.",c_gre
-            addmoney((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet/2,mt_gambling)
+        
+        for l=1 to 4
+            sort_cards(p(l).card(),0)
+            p(l).pot=1
+        next
+        
+        if not paystuff(rules.bet) then
+            dprint "You don't have enough money to enter the game."
+            return 0
+        end if
+        
+        
+        draw_poker_table(p(),,,rules)
+        l=crew(1).talents(5)
+        while l>0
+            dprint "Swap cards (1-5,0 to exit)"
+            no_key=keyin("012345")
+            if val(no_key)>0 then
+                p(4).card(val(no_key))=card(curcard)
+                curcard+=1
+                l-=1
+            else
+                l=0
+            endif
+            sort_cards(p(4).card(),0)
+            draw_poker_table(p(),,,rules)
+        wend
+        
+        pi=dealer
+    '    for i=1 to 4
+    '        if pi=4 then
+    '            'Player swap card.
+    '            dprint "Do you want to swap a card(1-5,0 for none)"
+    '            j=val(keyin)
+    '            
+    '        else
+    '            j=swap_card(p(pi).card())
+    '        endif
+    '        
+    '        p(pi).pot=1
+    '        
+    '        if j>0 then 
+    '            dprint p(pi).name &" swaps card "&j
+    '            curcard+=1
+    '            p(pi).card(j)=card(curcard)
+    '            draw_poker_table(p(),,rules)
+    '
+    '        endif
+    '    next
+        do
+            screenset 0,1
+            cls
+            pi=poker_next(pi,p())
+            draw_poker_table(p(),,,rules)
+            dprint ""
+            if _debug=3 then dprint "pi:"&pi
+            flip
+            if pi>0 then
+                if p(pi).fold=0 and p(pi).in=1 then
+                    if pi=4 then
+                        player_eval(p(),pi,rules)
+                        pot=0 
+                        for i=1 to 4
+                            pot+=p(i).pot
+                        next
+                        move=menu(bg_noflip,"Your bet (In pot: "& credits(pot*rules.bet) &"):/see(" & (highest_pot(p())-p(4).pot)*rules.bet & "Cr.)/raise(" & (highest_pot(p())+1-p(4).pot)*rules.bet & "Cr.)/fold","",24,2,1)
+                        if move=1 then p(4).bet=highest_pot(p())-p(4).pot
+                        if move=2 then p(4).bet=highest_pot(p())+1-p(4).pot
+                        if move=3 or move=-1 then p(4).fold=1
+                        if not paystuff(p(4).bet*rules.bet) then p(4).bet=0
+                    else
+                        player_eval(p(),pi,rules)
+                    endif
+                    if p(pi).bet=0 then 
+                        p(pi).fold=1
+                        if pi=4 then
+                            dprint "You fold."
+                        else
+                            dprint p(pi).name &" folds."
+                        endif
+                        sleep 250
+                    endif
+                    if p(pi).bet>0 then
+                        if p(pi).bet+p(pi).pot>rules.limit then p(pi).bet=rules.limit-p(pi).pot
+                    
+                        if p(pi).pot+p(pi).bet>highest_pot(p()) then
+                            if pi=4 then
+                                dprint "You raise."
+                            else
+                                dprint p(pi).name &" raises."
+                            endif
+                        else
+                            if pi=4 then
+                                dprint "You see."
+                            else
+                                dprint p(pi).name &" sees."
+                            endif
+                        endif
+                        p(pi).pot+=p(pi).bet
+                        p(pi).bet=0
+                        sleep 350
+                    endif
+                endif
+                if pi=dealer then 
+                    winner=poker_winner(p())
+                    if winner=0 then
+                        for i=1 to 4
+                            if p(i).fold=0 then p(i).pot=highest_pot(p())
+                        next
+                    endif
+                endif
+            endif
+            folded=0
+            for i=1 to 4
+                if p(i).fold=1 then folded+=1
+            next
+        loop until winner<>0 or pi=-1 or folded>=3
+        cls
+        draw_poker_table(p(),1,winner,rules)
+        
+        for l=1 to 3
+            p(l).money-=(p(l).pot*rules.bet)
+        next 
+        
+        if winner=4 then
+            dprint "You win "&credits((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet) &" Cr.",c_gre
+            addmoney((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet,mt_gambling)
         endif
-    endif
-    if folded<4 then
-        no_key=keyin
-    else
-        dprint "No winner."
-    endif
-    for i=1 to lastquestguy
-        if questguy(i).location=-2 then questguy(i).location=st
+        
+        if winner>0 and winner<4 then 
+            dprint "Winner:"&p(winner).name
+            p(winner).money=p(winner).money+(p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet
+        endif
+        if winner<0 then
+            dprint "Tie"
+            if winner=-3 or winner=-4 then 
+                dprint "You win "&credits((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet/2) &" Cr.",c_gre
+                addmoney((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet/2,mt_gambling)
+            endif
+        endif
+        if folded<4 then
+            no_key=keyin
+        else
+            dprint "No winner."
+        endif
+        loop until not(askyn("Do you want to play another hand?(y/n)"))
+        
+    for i=1 to 4
+        if p(i).qg>0 then
+            questguy(p(i).qg).location=st
+            questguy(p(i).qg).money=p(i).money
+        endif
     next
     return 0
 end function
@@ -194,9 +238,9 @@ end function
 
 
 
-function player_eval(p() as _pokerplayer,i as short) as short
+function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
     dim as _handrank ph(4)
-    dim as short pi(4),j,knowall,flag,pir,debug,stillin
+    dim as short pi(4),j,knowall,flag,pir,debug,stillin,price
     debug=2
     for j=1 to 4
         if p(j).fold=0 then stillin+=1
@@ -207,6 +251,33 @@ function player_eval(p() as _pokerplayer,i as short) as short
     if p(i).fold=0 and p(i).win.rank^2/3*p(i).risk>p(i).pot*2 then p(i).bet+=1 'see
     if p(i).fold=0 and p(i).win.rank^2/3*p(i).risk>p(i).pot*3 then p(i).bet+=1 'raise
     if p(i).win.rank=1 then p(i).bet=0 'Never with just high card
+    if p(i).money<(p(i).pot+p(i).bet)*rules.bet and p(i).bet>0 then
+        'Sell has, else fold
+        dprint p(i).name &" is out of money.",c_yel
+        if p(i).qg>0 then
+            if questguy(p(i).qg).has.given=0 and questguy(p(i).qg).has.it.desig<>"" then 'He is a qg and has not given up his has yet
+                price=(p(i).pot+p(i).bet)*rules.bet-p(i).money
+                if askyn(p(i).name &" offers to sell you "&add_a_or_an(questguy(p(i).qg).has.it.desig,0) &" for " &price &" Cr. (y/n)") then
+                    if paystuff(price) then 
+                        p(i).money+=price
+                        questguy(p(i).qg).friendly(0)+=1
+                        questguy(p(i).qg).money+=price
+                        questguy(p(i).qg).has.given+=1
+                        placeitem(questguy(p(i).qg).has.it,,,,,-1)
+                    else
+                        questguy(p(i).qg).friendly(0)-=1
+                        p(i).bet=0
+                    endif
+                else
+                    p(i).bet=0
+                endif
+            else
+                p(i).bet=0
+            endif
+        else
+            p(i).bet=0
+        endif
+    endif
     return 0
 end function
 
@@ -560,7 +631,7 @@ function draw_poker_table(p() as _pokerplayer,reveal as short=0,winner as short=
         set__color(11,0)
         if p(i).in=1 then
             playerinfo=p(i).name &" (In Pot: "& credits(p(i).pot*r.bet) &" Cr.)"
-            if crew(1).talents(5)>0 and i<4 then playerinfo &= " (Tactic: "& tacticname(p(i).risk) &")"
+            if crew(1).talents(5)>0 and i<4 then playerinfo &= " (Tactic: "& tacticname(p(i).risk) &", "& p(i).money &" Cr.)"
             if _debug<>22 then draw string (x,y+pcards.cardheight),playerinfo,,font2,custom,@_col
             if p(i).fold=0 then
                 for j=1 to 5

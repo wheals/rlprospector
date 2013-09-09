@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0
+const _debug=309
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -138,6 +138,8 @@ do
 '        endif
         if _debug>0 then
                 if key="t" then
+                    screenset 1,1
+                    bload "graphics\spacestations.bmp"
                     a=getnumber(0,10000,0)
                     put(30,0),gtiles(gt_no(a)),pset
                     no_key=keyin
@@ -456,7 +458,7 @@ function start_new_game() as short
         
     endif
     
-    if debug=126 and _debug=1 then
+    if debug=126 and _debug>0 then
         upgradehull(9,player,0)
         player.hull=player.h_maxhull
         player.engine=3
@@ -811,6 +813,11 @@ function scanning() as short
     dim debug as byte
     dim as short plife,li(255),lastlocalitem
     debug=1
+    for x=0 to 60
+        for y=0 to 20
+            tmap(x,y)=tiles(0)
+        next
+    next
     'if getsystem(player)>0 then
     a=getplanet(get_system())
     slot=a
@@ -842,9 +849,11 @@ function scanning() as short
                 if abs(planetmap(x,y,mapslot))=7 then target=target-2 
                 if skill_test(minimum(player.science(0)+1,player.sensors),target) and planetmap(x,y,mapslot)<0 then
                     planetmap(x,y,mapslot)=planetmap(x,y,mapslot)*-1
+                    tmap(x,y)=tiles(planetmap(x,y,mapslot))
                     reward(0)=reward(0)+.4+player.sensors/10
                     reward(7)=reward(7)+planets(mapslot).mapmod
                     scanned=scanned+1
+                    
                 endif
             next
         next
@@ -1798,7 +1807,7 @@ function move_ship(key as string) as _ship
         endif
         if spacemap(player.c.x,player.c.y)>=2 and spacemap(player.c.x,player.c.y)<=5 then        
             player.towed=0
-            if skill_test(player.pilot(0),st_average+spacemap(player.c.x,player.c.y),"Pilot:") then
+            if skill_test(player.pilot(0),st_easy+spacemap(player.c.x,player.c.y),"Pilot:") then
                 dprint "You succesfully navigate the gascloud",10
                 dprint gainxp(2),c_gre
                 if hydrogenscoop=0 then player.fuel=player.fuel-rnd_range(1,3)
@@ -1806,10 +1815,10 @@ function move_ship(key as string) as _ship
                 if fuelcollect>5 then
                     player.fuel+=fuelcollect/5
                     if player.fuel>player.fuelmax then player.fuel=player.fuelmax
-                    fuelcollect=06
+                    fuelcollect=0
                 endif
             else
-                dam=rnd_range(0,3)+spacemap(player.c.x,player.c.y)
+                dam=rnd_range(1,spacemap(player.c.x,player.c.y))
                 if dam>player.shieldside(rnd_range(0,7)) then
                     dam=dam-player.shieldside(rnd_range(0,7))
                     dprint "Your Ship is damaged ("&dam &").",12
@@ -2542,7 +2551,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     dim as _cords p,p1,p2,p3,nextlanding,old
     dim as _cords nextmap
     dim towed as _ship
-    dim m(255) as single
     dim as short skill
     dim mapmask(60,20) as byte
     dim nightday(60) as byte
@@ -2620,6 +2628,8 @@ function explore_planet(from as _cords, orbit as short) as _cords
         print #f,"Hello!"
     endif
     
+    osx=calcosx(awayteam.c.x,planets(slot).depth)
+    
     for x=0 to 60
         for y=0 to 20
             if _debug=11 then print #f,planetmap(x,y,slot)
@@ -2636,6 +2646,11 @@ function explore_planet(from as _cords, orbit as short) as _cords
                 planetmap(x,y,slot)=512
             endif
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
+            if tmap(x,y).ti_no=2505 then 'Ship walls
+                if rnd_range(1,100)<33 then
+                    tmap(x,y).ti_no=2504+rnd_range(1,4)
+                endif
+            endif
             if abs(planetmap(x,y,slot))=267 then 
                 enemy(0)=makemonster(1,slot)
                 tmap(x,y).desc="A cage. Inside is "&first_lc(enemy(0).ldesc)
@@ -3271,9 +3286,9 @@ endif
             ep_items(li(),lastlocalitem,localturn)
             walking=alerts()
             for a=1 to lastenemy
-                if enemy(a).hp>0 then m(a)=m(a)+enemy(a).move
+                if enemy(a).hp>0 then enemy(a).m+=enemy(a).move
             next
-            deadcounter=ep_monstermove(m(),li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
+            deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
             if player.dead>0 or awayteam.hp<=0 then 
                 allowed=""
                 awayteam.lastaction=1
@@ -3287,6 +3302,7 @@ endif
         
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
             old=awayteam.c
+            osx=calcosx(awayteam.c.x,planets(slot).depth)
             screenset 0,1
             set__color(11,0)
             cls
@@ -3294,6 +3310,7 @@ endif
             ep_display (li(),lastlocalitem)
             ep_display_clouds(cloudmap())
             display_awayteam()
+            dprint ("")
             flip
             set__color(11,0)
             cls
@@ -3664,6 +3681,12 @@ endif
     for b=1 to lastenemy
         savefrom(a).enemy(b)=enemy(b)
     next
+    for x=0 to 60
+        for y=0 to 20
+            tmap(x,y)=tiles(0)
+        next
+    next
+    
     'if slot=specialplanet(12) and player.dead<>0 then player.dead=17
     if player.dead<>0 then screenshot(3)
     return nextmap
@@ -4828,6 +4851,7 @@ open "error.log" for append as #f
 
 print #f,text 
 close #f 
+screenset 1,1
 locate 10,10
 set__color( 12,0)
 print "ERROR: Please inform the author and send him the file error.log"

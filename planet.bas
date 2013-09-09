@@ -6047,6 +6047,16 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     planets(m).flags(3)=rnd_range(1,s.h_maxengine)
     planets(m).flags(4)=rnd_range(1,s.h_maxsensors)
     planets(m).flags(5)=rnd_range(0,s.h_maxshield)
+    select case d.s
+    case 20
+        planets(m).wallset=rnd_range(7,9)
+    case 18
+        planets(m).wallset=rnd_range(10,11)
+    case 17,19
+        planets(m).wallset=rnd_range(12,13)
+    case else
+        planets(m).wallset=rnd_range(0,7)
+    end select
     return 0
 end function
 

@@ -309,10 +309,6 @@ function show_quests() as short
             txt=txt &" wants to know the location of a special planet.|"
         case qt_locofgarden'15
             txt=txt &" wants to know the location of an earthlike planet.|"        
-        case qt_locofperson'16
-            txt=txt &" locofperson|"
-        case qt_goodpaying'17
-            txt=txt &" is looking for a good paying job.|"
         case qt_research'18
             txt=txt &" is interested in "&questguy(questguy(a).flag(1)).n &"s research.|"
         case qt_megacorp'19

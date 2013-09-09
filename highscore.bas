@@ -456,7 +456,7 @@ function high_score(text as string) as short
         else
             set__color( 11,0)
         endif
-        sp=77-len(a &".)")-len(trim(highscore(a+off2).desig))-len(highscore(a+off2).points &" pts.")
+        sp=73-len(a &".)")-len(trim(highscore(a+off2).desig))-len(highscore(a+off2).points &" pts.")
         draw_string (2*_fw2+xo,yo+(a*2)*_fh2, a & ".) " & trim(highscore(a+off2).desig) & ", "  & space(sp)&credits( highscore(a+off2).points) &" pts." ,font2,_col)
         if a=rank then
             set__color( 14,0)

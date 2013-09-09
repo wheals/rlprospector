@@ -12,12 +12,12 @@ function make_spacemap() as short
     b=rnd_range(1,_last_title_pic)
     background(b &".bmp")
     
-    set__color 0,0
+    set__color 1,1
     for a=0 to 3
         draw string(_screenx/2-(8*_fw1),_screeny/2-(2-a)*_fh1),space(27),,font1,custom,@_col
         draw string(_screenx/2-(8*_fw1),_screeny/2-(2-a)*_fh1+_fh1/2),space(27),,font1,custom,@_col
     next
-    set__color 15,0
+    set__color 15,1
     draw string(_screenx/2-(6*_fw1),_screeny/2-_fh1),"Generating Sector:",,font1,custom,@_col
     set__color 5,1
     draw string(_screenx/2-(7*_fw1),_screeny/2),string(1,178),,font1,custom,@_col
@@ -918,7 +918,7 @@ function add_questguys() as short
         for j=0 to lastquestguy
             questguy(i).friendly(j)=rnd_range(0,2) '0 hates you, 2 loves you
         next
-        questguy(i).money=rnd_range(1,5)*100
+        questguy(i).money=rnd_range(10,15)*100
         select case questguy(i).job
         case 1
             questguy(i).money+=rnd_range(5,10)*100

@@ -19,7 +19,7 @@ const st_average=12
 const st_hard=14
 const st_veryhard=16
 
-const show_dangerous=0
+const show_dangerous=20
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
@@ -499,7 +499,7 @@ type _monster
     intel as short
     lang as short
     nocturnal as byte
-    
+    m as single
     faction as short
     allied as short
     enemy as short
@@ -605,6 +605,7 @@ type _planet
     comment as string*60
     mapstat as byte
     colflag(16) as byte
+    wallset as byte
 end type
 
 
@@ -1045,7 +1046,7 @@ type _questitem
     generic as byte 'If new is generated, and last one was generic, next one is specific
     motivation as byte
     type as byte
-    whohasit as byte
+    price as integer'Relative price of the QI for the QG
     given as byte
     'id as integer
     it as _items
@@ -1239,8 +1240,6 @@ enum questtype
     qt_locofpirates'12
     qt_locofspecial'13
     qt_locofgarden'14
-    qt_locofperson'15
-    qt_goodpaying'16
     qt_research'17
     qt_megacorp'18
     qt_biodata'19
@@ -1639,7 +1638,7 @@ type _pokerplayer
     in as byte
     declare function firstempty() as short
     win as _handrank
-    
+    qg as short 'Which questguy is this?
 end type
 
 type _pokerrules
@@ -1673,7 +1672,7 @@ declare function income_expenses_html() as string
 declare function play_poker(st as short) as short
 declare function card_shuffle(card() as integer) as short
 
-declare function player_eval(p() as _pokerplayer,i as short) as short
+declare function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
 
 declare function draw_poker_table(p() as _pokerplayer,reveal as short=0, winner as short=0,r as _pokerrules) as short
 declare function better_hand(h1 as _handrank,h2 as _handrank) as short
@@ -1767,7 +1766,7 @@ declare function ep_radio(byref nextlanding as _cords,byref ship_landing as shor
 declare function ep_grenade(shipfire() as _shipfire, byref sf as single,li() as short ,byref lastlocalitem as short) as short
 declare function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords) as short
 declare function ep_playerhitmonster(old as _cords, mapmask() as byte) as short
-declare function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short,  mapmask() as byte,nightday() as byte) as short
+declare function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short,  mapmask() as byte,nightday() as byte) as short
 declare function ep_items(li() as short, byref lastlocalitem as short, localturn as short) as short
 declare function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as byte, byref dawn as single, byref dawn2 as single) as short
 declare function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() as _cords, nightday() as byte, localtemp() as single,cloudmap() as byte) as short

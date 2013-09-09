@@ -229,7 +229,7 @@ function questguy_newquest(i as short) as short
     dim as short f,j,l,debug
     dim as string w(5),li
     f=freefile
-    debug=5
+    
     open "data/wanthas.csv" for input as #f
     do
         line input #f,li
@@ -350,10 +350,11 @@ function make_questitem(i as short,wanthas as short) as short
                 questguy(i).has.motivation=0
             end select
             questguy(i).has.it=rnd_item(RI_WeaponsArmor)
+            questguy(i).has.price=questguy(i).has.it.price
         endif
     endif
        
-    if (*o).type=qt_autograph then 'Autograph	3
+    if (*o).type=qt_autograph then 'Autograph	2
         if wanthas=q_want then
             questguy(i).want.it.ty=57
             questguy(i).flag(1)=rnd_questguy_byjob(14)
@@ -361,6 +362,7 @@ function make_questitem(i as short,wanthas as short) as short
                 questguy(i).want.type=0
             else
                 questguy(i).want.it.v1=questguy(i).flag(1) 
+                questguy(i).want.price=rnd_range(1,10)
             endif
         else
             questguy(i).flag(1)=rnd_questguy_byjob(14)
@@ -368,12 +370,13 @@ function make_questitem(i as short,wanthas as short) as short
                 questguy(i).has.type=0
             else
                 questguy(i).has.it=makeitem(1002,questguy(i).flag(1))
+                questguy(i).has.price=rnd_range(1,10)
             endif
         endif
         
     endif
     
-    if (*o).type=qt_outloan then'Outstanding Loan	4
+    if (*o).type=qt_outloan then'Outstanding Loan	3
         if wanthas=q_want then
             select case questguy(i).money
             case is <=100
@@ -387,25 +390,28 @@ function make_questitem(i as short,wanthas as short) as short
             questguy(i).flag(1)=get_other_questguy(i,1)
             if rnd_range(1,100)<33 then questguy(i).knows(questguy(i).flag(1))=questguy(questguy(i).flag(1)).location
             questguy(questguy(i).flag(1)).loan=rnd_range(1,10)*100
+            questguy(i).want.price=questguy(questguy(i).flag(1)).loan
         else
             
         endif
         
     endif
     
-    if (*o).type=qt_stationimp then'Station improvements	5
+    if (*o).type=qt_stationimp then'Station improvements	4
         if wanthas=q_want then
             questguy(i).flag(1)=get_other_questguy(i)
+            questguy(i).want.price=rnd_range(1,60)*(1+questguy(i).want.motivation)
         else
         endif
         
     endif
         
-    if (*o).type=qt_drug then'Drug	7
+    if (*o).type=qt_drug then'Drug	5
         if wanthas=q_want then
             questguy(i).want.it.ty=60
             questguy(i).want.it.v1=rnd_range(1,6)
             questguy(i).want.it.price=(*o).it.v1*100
+            questguy(i).want.price=(*o).it.v1*100
             
             questguy(i).want.it.desig="Drug "&chr(64+(*o).it.v1)
             questguy(i).want.it.desigp="Drugs "
@@ -416,33 +422,38 @@ function make_questitem(i as short,wanthas as short) as short
         
     endif
     
-    if (*o).type=qt_souvenir then'Souvenir	8
+    if (*o).type=qt_souvenir then'Souvenir	6
         if wanthas=q_want then
             questguy(i).want.it.ty=23
         else
             questguy(i).has.it=makeitem(rnd_range(93,94))
+            questguy(i).has.price=questguy(i).has.it.price
         endif
         
     endif
         
-    if (*o).type=qt_tools then'Tools	9
+    if (*o).type=qt_tools then'Tools	7
         if wanthas=q_want then
         else
             questguy(i).has.it=makeitem(1004,rnd_range(1,6))
+            questguy(i).has.price=questguy(i).has.it.price
         endif
         
     endif
     
-    if (*o).type=qt_showconcept then'Show Concept	10
+    if (*o).type=qt_showconcept then'Show Concept	8
         if wanthas=q_want then
+            questguy(i).want.price=(5-questguy(i).want.motivation)*100
         else
             questguy(i).flag(5)=rnd_questguy_byjob(14)
             questguy(i).has.it=makeitem(1008,questguy(i).flag(5),rnd_range(1,6))
+            questguy(i).has.price=rnd_range(10,100)
         endif
         
     endif
     
-    if (*o).type=qt_stationsensor then'Station Sensor access	11
+    if (*o).type=qt_stationsensor then'Station Sensor access	9
+            questguy(i).want.price=(5-questguy(i).want.motivation)*10
         if wanthas=q_want then
         else
             if questguy(i).location<0 then
@@ -450,10 +461,11 @@ function make_questitem(i as short,wanthas as short) as short
             else
                 questguy(i).has.it=makeitem(1009,questguy(i).location)
             endif
+            questguy(i).has.price=rnd_range(1,10)
         endif
     endif
     
-    if (*o).type=qt_travel then'Alibi	12
+    if (*o).type=qt_travel then'Alibi	10
         do
             questguy(i).flag(12)=rnd_range(0,2)
         loop until questguy(i).flag(12)<>questguy(i).location
@@ -461,7 +473,7 @@ function make_questitem(i as short,wanthas as short) as short
         questguy(i).flag(14)=rnd_range(1,15)
     endif
     
-    if (*o).type=qt_cargo then'Message	13
+    if (*o).type=qt_cargo then'Cargo	11
         if wanthas=q_has then
             questguy(i).flag(1)=rnd_range(1,4)
             do
@@ -505,24 +517,10 @@ function make_questitem(i as short,wanthas as short) as short
             if planets(j).weat>1 then planets(j).weat=0.5
             if planets(j).water<30 then planets(j).water=35
             if planets(j).rot<0.5 or planets(j).rot>1.5 then planets(j).rot=rnd_range(5,15)/10
+            if _debug>0 then dprint "Is garden planet:"&isgardenworld(j)
         endif
     endif
     
-    if (*o).type=qt_locofperson then'Loc of Person	17
-        if wanthas=q_want then
-            questguy(i).flag(5)=get_other_questguy(i)
-        else
-            questguy(i).flag(5)=get_other_questguy(i)
-            questguy(i).knows(questguy(i).flag(5))=1
-        endif
-    endif
-    
-    if (*o).type=qt_goodpaying then'Good paiyng Captain	18
-        if wanthas=q_want then
-        else
-        endif
-        
-    endif
     if (*o).type=qt_research then'Research
         if wanthas=q_want then
             questguy(i).flag(1)=rnd_questguy_byjob(15,i)'If no astro
@@ -812,6 +810,8 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         o+=1
         node(1).option(o).answer="Maybe we can do a trade?"
         node(1).option(o).no=18
+        node(18).param(0)=i
+        node(18).effekt="QGTRADE"
     endif
         
     if findbest(89,-1)>0 then
@@ -1196,19 +1196,10 @@ function has_questguy_want(i as short,byref t as short) as short
     for a=1 to lastquestguy
         if questguy(a).talkedto=1 then 'Player knows
             if questguy(i).knows(a)=0 then 'character doesnt
-                if questguy(i).want.type=qt_goodpaying and questguy(a).job=2 then
-                    t=qt_goodpaying
-                    return a
-                endif
                 if questguy(i).want.type=qt_stationimp and (questguy(a).job=17 or questguy(a).has.type=qt_stationimp) then
                     t=qt_stationimp
                     return a
                 endif
-                if questguy(i).want.type=qt_locofperson and questguy(i).flag(1)=a then
-                    t=qt_locofperson
-                    return a
-                endif
-            
             endif
         endif
     next
@@ -1228,13 +1219,13 @@ function has_questguy_want(i as short,byref t as short) as short
                             next
                         endif
                         if questguy(i).want.type=qt_locofgarden then
-                            if isgardenworld(map(a).planets(b)) then
+                            if isgardenworld(map(a).planets(b))=-1 then
                                 t=qt_locofgarden
                                 return map(a).planets(b)
                             endif
                         endif
                         if questguy(i).want.type=qt_locofspecial then
-                            if is_special(map(a).planets(b)) then
+                            if is_special(map(a).planets(b))=-1 then
                                 t=qt_locofspecial
                                 return map(a).planets(b)
                             endif
@@ -1430,11 +1421,18 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         if word(i)="<DRUG>" and qgindex>0 then
         endif
         if word(i)="<RELATIVE>" and qgindex>0 then word(i)=relative(questguy(qgindex).flag(2))
-        if word(i)="<CORP>" and qgindex>0 then word(i)=companyname(questguy(qgindex).flag(6))
+        if word(i)="<CORP>" and qgindex>0 then 
+            if questguy(qgindex).flag(6)=0 then
+                if  questguy(qgindex).job-9>0 and questguy(qgindex).job-9<=4 then word(i)=companyname(questguy(qgindex).job-9) 
+            else
+                word(i)=companyname(questguy(qgindex).flag(6))
+            endif
+        endif
         if word(i)="<TONS>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(1)
         if word(i)="<DEST>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(12)+1
         if word(i)="<TIME>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(15)
         if word(i)="<PAY>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(13)
+        
         r=r &word(i)
         if len(word(i+1))>1 or ucase(word(i+1))="A" or ucase(word(i+1))="I" then r=r &" "
         
@@ -1546,20 +1544,20 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         select case questguy(p(0)).job
         case is=1
             it=makeitem(1009,questguy(p(0)).location)
-            if questguy(p(0)).friendly(0)>1 then
+            if questguy(p(0)).friendly(0)>1 or questguy(p(0)).want.given>0 then
                 it.price=0
             else
                 it.price=25
             endif
         case is=14
             it=makeitem(1002,p(0))
-            if questguy(p(0)).friendly(0)>0 then
+            if questguy(p(0)).friendly(0)>0 or questguy(p(0)).want.given>0 then
                 it.price=10
             else
                 it.price=0
             endif
         case 4 to 6
-            if questguy(p(0)).friendly(0)=2 and questguy(p(0)).flag(0)=0 then
+            if (questguy(p(0)).friendly(0)=2 or questguy(p(0)).want.given>0) and questguy(p(0)).flag(0)=0 then
                 dprint "Of course!"
                 if questguy(p(0)).job=4 then dprint gainxp(4,urn(0,3,1,0)),c_gre
                 if questguy(p(0)).job=5 then dprint gainxp(3,urn(0,3,1,0)),c_gre
@@ -1668,7 +1666,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         if _debug>0 then dprint "T is "&t &" I is "&i &" p1 is" &p(1) &" p2 is"&p(2)
         if i>0 then
             select case t
-            case qt_stationimp,qt_goodpaying,qt_locofperson
+            case qt_stationimp
                 if questguy(p(0)).want.given=0 then
                     if askyn("Do you want to tell him about "&questguy(i).n &"?(y/n)") then
                         questguy(p(0)).talkedto=3
@@ -1940,6 +1938,23 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         
     endif
     
+    if effekt="QGTRADE" then
+        i=has_questguy_want(p(0),t)
+        if i>0 then 
+            if item(i).price>questguy(p(0)).has.price then
+                if askyn("I would trade my "&questguy(p(0)).has.it.desig &" for your "&item(i).desig &".") then
+                    placeitem(questguy(p(0)).has.it,,,,-1)
+                    item(i)=item(lastitem)
+                    lastitem-=1
+                    questguy(p(0)).want.given+=1
+                endif
+            else
+                dprint "You find nothing to trade."
+            endif
+        else
+            dprint "You find nothing to trade."
+        endif
+    endif
     return 0
 end function
 

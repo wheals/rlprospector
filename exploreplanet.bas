@@ -1845,7 +1845,7 @@ function ep_updatemasks(spawnmask() as _cords,mapmask() as byte,nightday() as by
     return lsp
 end function
 
-function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
+function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
     dim deadcounter as short
     dim as short a,b,c,slot,ti,f,osx,cmoodto
     dim moa as byte 'monster attack
@@ -2050,8 +2050,8 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
             if tb>enemy(a).move and enemy(a).move>0 then
                 tb=enemy(a).move-0.1
             endif
-            m(a)=m(a)-tb
-            if enemy(a).move=-1 then m(a)=0
+            enemy(a).m=enemy(a).m-tb
+            if enemy(a).move=-1 then enemy(a).m=0
             for x=0 to 60
                 for y=0 to 20
                     mapmask(x,y)=0
@@ -2086,9 +2086,9 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
                 endif
             endif
             
-            if enemy(a).sleeping>0 then enemy(a).sleeping-=m(a)
+            if enemy(a).sleeping>0 then enemy(a).sleeping-=enemy(a).m
             
-            while m(a)>0.9 and enemy(a).sleeping<=0 and enemy(a).hpnonlethal<=enemy(a).hp and enemy(a).invis<2
+            while enemy(a).m>0.9 and enemy(a).sleeping<=0 and enemy(a).hpnonlethal<=enemy(a).hp and enemy(a).invis<2
                 x=enemy(a).c.x
                 y=enemy(a).c.y
                 mapmask(enemy(a).c.x,enemy(a).c.y)=0
@@ -2113,7 +2113,7 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
                 endif
                 enemy(a)=movemonster(enemy(a), p1, mapmask(),tmap())
                 mapmask(enemy(a).c.x,enemy(a).c.y)=3
-                m(a)=m(a)-1
+                enemy(a).m=enemy(a).m-1
             wend
             
             if enemy(a).hasoxy=0 and (planets(slot).atmos=1 or vacuum(enemy(a).c.x,enemy(a).c.y)=1) then
@@ -2134,8 +2134,8 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
             if distance(enemy(a).c,awayteam.c)<enemy(a).sight-awayteam.invis/2 then enemy(a).target=awayteam.c                            
         endif    
         if distance(enemy(a).c,awayteam.c)<enemy(a).range and enemy(a).hp>0 then
-            if debug=1 and _debug=1 then text=text &"sl:"&enemy(a).sleeping &"move"&enemy(a).move &"m:"&m(a)
-            if enemy(a).sleeping<=0 and (enemy(a).move=-1 or m(a)>0) then
+            if debug=1 and _debug=1 then text=text &"sl:"&enemy(a).sleeping &"move"&enemy(a).move &"m:"&enemy(a).m
+            if enemy(a).sleeping<=0 and (enemy(a).move=-1 or enemy(a).m>0) then
                 if enemy(a).invis=2 then
                     dprint "A clever "&enemy(a).sdesc &" has been hiding here, waiting for prey!",14
                     enemy(a).invis=0
@@ -2155,13 +2155,13 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
                         pathblock(awayteam.c,enemy(a).c,slot,,enemy(a).scol,,planets(slot).depth)
                         awayteam=monsterhit(enemy(a),awayteam,vismask(enemy(a).c.x,enemy(a).c.y))
                         if debug=1 and _debug=1 then text=text &""&a
-                        m(a)=m(a)-enemy(a).atcost
+                        enemy(a).m=enemy(a).m-enemy(a).atcost
                     endif
                 endif
             endif
         endif
         if enemy(a).nearest>0 and enemy(a).made<>101 then
-            if m(a)>0 and enemy(a).faction<>enemy(enemy(a).nearest).faction and enemy(a).hp>0 and enemy(enemy(a).nearest).hp>0 then
+            if enemy(a).m>0 and enemy(a).faction<>enemy(enemy(a).nearest).faction and enemy(a).hp>0 and enemy(enemy(a).nearest).hp>0 then
                 moa=0
                 if enemy(a).faction>7 or enemy(enemy(a).nearest).faction>7 then 
                     moa=1
@@ -2174,7 +2174,7 @@ function ep_monstermove(m() as single,  li() as short,byref lastlocalitem as sho
                     enemy(a).target=enemy(enemy(a).nearest).c
                     enemy(enemy(a).nearest).target=enemy(a).c
                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 or vismask(enemy(enemy(a).nearest).c.x,enemy(enemy(a).nearest).c.y)>0 then dprint "The "&enemy(a).sdesc &" attacks the "&enemy(enemy(a).nearest).sdesc &"."
-                    m(a)=m(a)-enemy(a).atcost
+                    enemy(a).m-=enemy(a).atcost
                     if enemy(enemy(a).nearest).hp<=0 and enemy(a).diet=4 or rnd_range(1,6)+enemy(a).cmmod<7 then enemy(a).aggr=1
                 endif
             endif
@@ -2858,6 +2858,7 @@ function ep_playerhitmonster(old as _cords, mapmask() as byte) as short
                                 else
                                     dprint "You squeeze past the "&enemy(a).sdesc &"."
                                     swap awayteam.c,enemy(a).c
+                                    enemy(a).m-=2.5
                                     awayteam.lastaction+=1
                                 endif
                             else
@@ -3509,7 +3510,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
     if tmap(awayteam.c.x,awayteam.c.y).gives=28 then              
         dprint "Spaceship fuel for sale"
         if planets(slot).flags(26)=9 then dprint "Due to a fuel shortage the price has been increased."
-        if slot<>pirateplanet(0) or faction(0).war(2)<=0 then
+        if slot<>pirateplanet(0) or faction(0).war(2)<=30 then
             if askyn("Do you want to refuel (" &fuelprice &" Cr. per ton) and reload ammo? (y/n)") then refuel(planets(slot).flags(29),fuelprice)
         else
             dprint "they deny your request"& faction(0).war(2)

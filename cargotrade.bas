@@ -996,11 +996,7 @@ function casino(staked as short=0, st as short=-1) as short
             loop until b=6
         endif
         if a=2 then play_slot_machine
-        if a=3 then 
-            do
-                play_poker(st)
-            loop until not(askyn("Do you want to play another hand?(y/n)"))
-        endif
+        if a=3 then play_poker(st)
         if a=4 then
             drawroulettetable()
             if not paystuff(1) then                 
@@ -1318,8 +1314,8 @@ function check_passenger(st as short) as short
                 t=crew(b).time-player.turn
                 price=crew(b).price+crew(b).bonus*t
                 if price<0 then price=10
-                if t>0 then dprint "Your passenger is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
-                if t<0 then dprint "Your passenger isn't happy at all that " &lcase(heshe(crew(b).story(10)))& " arrived too late.",c_yel
+                if t>0 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
+                if t<0 then dprint crew(b).n &" isn't happy at all that " &lcase(heshe(crew(b).story(10)))& " arrived too late.",c_yel
                 addmoney(price,mt_quest2)
                 dprint heshe(crew(b).story(10)) &" pays you "&credits(price) &" Cr.",c_gre
                 crew(b)=cr
