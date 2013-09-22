@@ -665,7 +665,13 @@ function add_drifters() as short
     planets(drifting(3).m).mon_noamin(2)=1
     planets(drifting(3).m).mon_noamax(2)=4
     
-    
+    if _debug=-1 then
+        drifting(1).s=9
+        drifting(1).m=lastplanet
+        lastplanet+=1
+        make_drifter(drifting(1))
+        deletemonsters(drifting(1).m)
+    endif
     
     planetmap(19,10,drifting(3).m)=-287
     if rnd_range(1,100)<33 then add_company_shop(3,3)

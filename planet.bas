@@ -11,31 +11,6 @@ function deletemonsters(a as short) as short
     return 0
 end function
 
-function space_next_to_wall() as short
-    dim as short x,y,x1,y1
-    for x=0 to 60
-        for y=0 to 20
-            if tmap(x,y).no=200 then
-                vacuum(x,y)=1
-                for x1=x-1 to x+1
-                    for y1=y-1 to y+1
-                        if x1>=0 and x1<=60 and y1>=0 and y1<=20 then
-                            if (tmap(x1,y1).no>=201 and tmap(x1,y1).no<=225) or tmap(x1,y1).no=243 then 
-                                tmap(x,y).walktru=0 
-                                tmap(x,y).desc="Hullsurface"
-                            endif
-                        endif
-                    next
-                next
-            else
-                vacuum(x,y)=0
-            endif
-        next
-    next
-    return 0
-end function
-
-
 function makefinalmap(m as short) as short
     dim as _cords p,p2
     dim as short f,x,y,c,l

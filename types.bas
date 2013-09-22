@@ -19,7 +19,7 @@ const st_average=12
 const st_hard=14
 const st_veryhard=16
 
-const show_dangerous=20
+const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
@@ -1732,6 +1732,7 @@ declare function death_text() as string
 
 declare function merc_dis(fl as short,byref goal as short) as short
 declare function check_tasty_pretty_cargo() as short
+declare function update_tmap(slot as short) as short
 
 declare function show_dotmap(x1 as short, y1 as short) as short
 declare function show_minimap(xx as short,yy as short) as short
@@ -1915,7 +1916,6 @@ declare function sell_alien(sh as short) as short
 declare function skill_test(bonus as short,targetnumber as short,echo as string="") as short
 declare function vege_per(slot as short) as single
 
-declare function space_next_to_wall() as short
 declare function add_ano(p1 as _cords,p2 as _cords,ano as short=0) as short
 declare function makestuffstring(l as short) as string
 declare function levelup(p as _ship,from as short) as _ship

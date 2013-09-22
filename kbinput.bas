@@ -103,9 +103,12 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 close #f
             endif
             
-            if _debug>0 and key="ü" then
-                dprint "Change walls to"
-                planets(player.map).wallset=getnumber(0,11,0)
+            if _debug=-1 and key="ü" then
+                for x=0 to 60
+                    for y=0 to 20
+                        planetmap(x,y,player.map)=abs(planetmap(x,y,player.map))
+                    next
+                next
             endif
             
             if _debug>0 and key="ä" then

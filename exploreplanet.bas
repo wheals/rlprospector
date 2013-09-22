@@ -219,7 +219,7 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
     dim as _cords target,target2,p,path(1282)
     for x=0 to 60
         for y=0 to 20
-            if move<tmap(x,y).walktru then candidate(x,y)=1
+            if move<tmap(x,y).walktru then candidate(x,y)=1 
             if tmap(x,y).onopen<>0 then candidate(x,y)=0 
         next
     next
@@ -228,6 +228,14 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
         rollover=0
     else
         rollover=1
+    endif
+    if _debug>0 then 
+        screenset 1,1
+        for x=0 to 60
+            for y=0 to 20
+                if candidate(x,y)=255 then pset(x,y)
+            next
+        next
     endif
     d2=61*21
     for i=1 to lastlocalitem
@@ -1640,9 +1648,10 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
         tempchange=11-planets(slot).dens*2/orbit
     endif
     for x=0 to 60
-        if nightday(x)=3 then localtemp(x)=localtemp(x)-tempchange
-        if nightday(x)=0 then localtemp(x)=localtemp(x)+tempchange
         for y=0 to 20
+            if nightday(x)=3 then localtemp(x,y)=localtemp(x,y)-tempchange
+            if nightday(x)=0 then localtemp(x,y)=localtemp(x,y)+tempchange
+        
             if x>0 and x<60 and y>0 and y<20 then
                 if tmap(x,y).no=204 or tmap(x,y).no=202 then
                     if vacuum(x-1,y)=1 or vacuum(x+1,y)=1 or vacuum(x,y-1)=1 or vacuum(x,y+1)=1 then vacuum(x,y)=1
@@ -2534,7 +2543,7 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
                 endif
             next
         endif
-        if instr(text,"GET")>0 or instr(text,"COME")>0 or instr(text,"LAND")>0 or instr(text,"RESCUE")>0 then
+        if instr(text,"GET")>0 or instr(text,"COME")>0 or instr(text,"LAND")>0 or instr(text,"RESCUE")>0 or instr(text,"MOVE")>0 or instr(text,"FETCH")>0 then
             if (slot=specialplanet(2) and specialflag(2)<2) or (slot=specialplanet(27) and specialflag(27)=0) or planets(slot).depth>0 then
                 if slot=specialplanet(2) then dprint "We can't start untill we disabled the automatic defense system."
                 if slot=specialplanet(27) then dprint "Can't get her up from this surface. She is stuck."
@@ -2647,22 +2656,18 @@ function ep_roverreveal(i as integer) as short
     dim as single d
     dim as _cords p1
     slot=item(i).w.m
-    for x=item(i).w.x-item(i).v1-3 to item(i).w.x+item(i).v1+3
-        for y=item(i).w.y-item(i).v1-3 to item(i).w.y+item(i).v1+3
-            if x>=0 and y>=0 and x<=60 and y<=20 then
-                p1.x=x
-                p1.y=y
-                d=distance(p1,item(i).w)
-                if pathblock(p1,item(i).w,slot,5)=0 or d<1.5 then
-                    if d<=item(i).v1+1 and planetmap(x,y,slot)<0 then
-                        planetmap(x,y,slot)=planetmap(x,y,slot)*-1
-                        item(i).v6=item(i).v6+0.5*item(i).v3*planets(slot).mapmod
-                    endif
-                endif
+    make_vismask(item(i).w,item(i).v1+3,slot)
+    for x=0 to 60
+        for y=0 to 20
+            if vismask(x,y)>0 and planetmap(x,y,slot)<0 then
+                if _Debug>0 then debug+=1
+                planetmap(x,y,slot)=planetmap(x,y,slot)*-1
+                item(i).v6=item(i).v6+0.5*item(i).v3*planets(slot).mapmod
             endif
         next
     next
     
+    if _debug>0 then dprint "rev:"&debug
     return 0
 end function
 

@@ -1,4 +1,35 @@
 
+
+function update_tmap(slot as short) as short
+    dim as short x,y,x1,y1
+    if slot<0 then return 0
+    for x=0 to 60
+        for y=0 to 20
+            tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
+        next
+    next
+    for x=0 to 60
+        for y=0 to 20
+            if tmap(x,y).no=200 then
+                vacuum(x,y)=1
+                for x1=x-1 to x+1
+                    for y1=y-1 to y+1
+                        if x1>=0 and x1<=60 and y1>=0 and y1<=20 then
+                            if tmap(x1,y1).no<>200 then 
+                                tmap(x,y).walktru=0 
+                                tmap(x,y).desc="Hullsurface"
+                            endif
+                        endif
+                    next
+                next
+            else
+                vacuum(x,y)=0
+            endif
+        next
+    next
+    return 0
+end function
+
 function earthquake(t as _tile,dam as short)as _tile
     dim roll as short
     if t.shootable=1 then
@@ -378,6 +409,7 @@ function display_stars(bg as short=0) as short
     if bg>0 then
         for x=0 to _mwx
             for y=0 to 20
+                ti_no=spacemap(x+player.osx,y+player.osy)
                 set__color( 1,0)
                 if debug=44 and _debug=1 then draw string (x*_fw1,y*_fh1),""&spacemap(x+player.osx,y+player.osy),,FONT1,custom,@_col
                 
@@ -395,15 +427,17 @@ function display_stars(bg as short=0) as short
                     if configflag(con_tiles)=0 then
                         alphav=192
                         if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                        put (x*_fw1+1,y*_fh1+1),gtiles(abs(spacemap(x+player.osx,y+player.osy))+49),alpha,alphav
+                        put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
                     else                        
-                        set__color( rnd_range(48,59),1)
-                        if spacemap(x+player.osx,y+player.osy)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(48,59),1)
-                        if spacemap(x+player.osx,y+player.osy)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(96,107),1)
-                        if spacemap(x+player.osx,y+player.osy)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(144,155),1)
-                        if spacemap(x+player.osx,y+player.osy)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(192,203),1)
+                        if spacemap(x+player.osx,y+player.osy)=2 then color(rgb(0,0,50))
+                        if spacemap(x+player.osx,y+player.osy)=3 then color(rgb(0,0,100))
+                        if spacemap(x+player.osx,y+player.osy)=4 then color(rgb(0,0,150))
+                        if spacemap(x+player.osx,y+player.osy)=5 then color(rgb(0,0,250))
                         draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
                     endif
+                endif
+                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then 
+                    
                 endif
                 if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=20 then
                     ti_no=abs(spacemap(x+player.osx,y+player.osy))

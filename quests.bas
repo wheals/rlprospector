@@ -388,7 +388,7 @@ function make_questitem(i as short,wanthas as short) as short
             end select
                 
             questguy(i).flag(1)=get_other_questguy(i,1)
-            if rnd_range(1,100)<33 then questguy(i).knows(questguy(i).flag(1))=questguy(questguy(i).flag(1)).location
+            if rnd_range(1,100)<33 or questguy(i).location=questguy(j).location then questguy(i).knows(questguy(i).flag(1))=questguy(questguy(i).flag(1)).location
             questguy(questguy(i).flag(1)).loan=rnd_range(1,10)*100
             questguy(i).want.price=questguy(questguy(i).flag(1)).loan
         else
@@ -773,15 +773,16 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             select case questguy(j).want.type
             case qt_outloan 
                 o+=1
-                node(1).option(o).answer=questguy(j).n &" says you owe him money"
+                node(1).option(o).answer=questguy(j).n &" says you owe "& himher(questguy(j).gender) &" money"
                 node(1).option(o).no=30+o
-                if questguy(i).money>=questguy(j).loan then
-                    if questguy(j).loan>0 then
-                        node(30+o).statement="Yes, I know. Can you give it to him?"
+                if questguy(i).money>=questguy(i).loan then
+                    if questguy(i).loan>0 then
+                        node(30+o).statement="Yes, I know. I just didn't find the time to give to " & himher(questguy(j).gender) & ". Can you give it to "& himher(questguy(j).gender) &"?"
                         node(30+o).effekt="EINTREIBEN"
                         node(30+o).param(0)=j
                         node(30+o).option(1).no=1
                     else
+                        if _debug>0 then dprint "J:"&questguy(j).loan &" i:"&questguy(i).money
                         node(30+o).statement="I already paid that back in full!"
                         node(30+o).option(1).no=1
                     endif
@@ -791,7 +792,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             case qt_research
                 if questguy(i).has.type<>qt_research and (questguy(i).want.type<>qt_drug and questguy(i).want.type<>qt_biodata and questguy(i).want.type<>qt_anomaly) then 'Doesn't have a research paper
                     o+=1
-                    node(1).option(o).answer=questguy(j).n &" says he could use your help for <HISHERS> research."
+                    node(1).option(o).answer=questguy(j).n &" says " & heshe(questguy(j).gender)& " could use your help for <HISHERS> research."
                     node(1).option(o).no=30+o
                     node(30+o).statement="I do have some notes on that subject."
                     node(30+o).effekt="SELLOTHER"
@@ -1174,7 +1175,7 @@ function has_questguy_want(i as short,byref t as short) as short
     if cc>1 then
         text="Offer"&cc
         for j=1 to cc
-            if ic(j)=1 then
+            if ic(j)<=1 then
                 text=text &"/" &item(il(j)).desig &" (Est. "&credits(item(il(j)).price) &" Cr.)"
             else
                 text=text &"/" &ic(j) &" " &item(il(j)).desigp &" (Est. "&credits(item(il(j)).price) &" Cr.)"
@@ -1298,7 +1299,7 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
         
         lh=left(node(no).statement,instr(node(no).statement,"<->")-1)
         rh=right(node(no).statement,len(node(no).statement)-2-instr(node(no).statement,"<->"))
-        dprint lh,15
+        dprint lh,11
         if node(no).param(1)>0 and questguy(qgindex).has.given=0 then
             If askyn("I will tell you for "&node(no).param(1)& " Cr. Do you want to pay?(y/n)") then
                 if paystuff(node(no).param(2)) then
@@ -1325,9 +1326,9 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
     endif
     if debug=1 and _debug=1 then dprint "debug!"
     if node(no).effekt="PAYWALL" then
-        dprint adapt_nodetext(rh,e,fl,qgindex),15
+        dprint adapt_nodetext(rh,e,fl,qgindex),11
     else
-        dprint adapt_nodetext(node(no).statement,e,fl,qgindex),15
+        dprint adapt_nodetext(node(no).statement,e,fl,qgindex),11
     endif
     if node(no).effekt<>"" then 
         dialog_effekt(node(no).effekt,node(no).param(),e,fl)
@@ -1534,6 +1535,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             
         endif
     endif
+    
     if effekt="GIVEHAS" then
         placeitem(questguy(p(0)).has.it,0,0,0,0,-1)
         questguy(p(0)).has.given+=1
@@ -1590,8 +1592,9 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     
     if effekt="SELLHAS" then
         it=questguy(p(0)).has.it
-        p(1)=(questguy(p(0)).has.motivation+1)/5
-        price=fix(it.price*p(1))'*((10-questguy(p(0)).friendly(0)-crew(1).talents(2))/10)
+        p(1)=(questguy(p(0)).has.motivation+1)
+        price=fix(it.price*p(1)/5)'*
+        price=fix(it.price*((10-questguy(p(0)).friendly(0)-crew(1).talents(2))/10))
         if price>0 then
             answer=askyn("Do you want to buy "& add_a_or_an(it.desig,0) &" for "& credits(price) &" Cr.(y/n)")
         else
@@ -1797,7 +1800,9 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="EINTREIBEN" then
-        placeitem(makeitem(1007,p(0),questguy(questguy(p(0)).flag(1)).loan),0,0,0,0,-1)
+        it=makeitem(1007,p(0),questguy(questguy(p(0)).flag(1)).loan)
+        dprint questguy(p(0)).n &" hands you "&it.desig &"."
+        placeitem(it,0,0,0,0,-1)
         questguy(p(0)).loan=0
     endif
     

@@ -1927,6 +1927,8 @@ function load_config() as short
         _mwx=60
     endif
     
+    redim spacemap(sm_x,sm_y)
+    redim vismask(sm_x,sm_y)
     return 0
 end function
 
@@ -2683,7 +2685,7 @@ function load_game(filename as string) as short
         
         get #f,,foundsomething
         
-        if not(eof(f)) then get #f,,civ() 'Just in case
+        get #f,,civ()
         
         close f
         if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then 

@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=309
+const _debug=0
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -813,14 +813,10 @@ function scanning() as short
     dim debug as byte
     dim as short plife,li(255),lastlocalitem
     debug=1
-    for x=0 to 60
-        for y=0 to 20
-            tmap(x,y)=tiles(0)
-        next
-    next
     'if getsystem(player)>0 then
     a=getplanet(get_system())
     slot=a
+    update_tmap(slot)
     if a>0 then 
         sys=get_system()
         mapslot=map(sys).planets(a)
@@ -1282,10 +1278,11 @@ function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
     dim as _cords p1,p2,route(1200)
     dim as _cords pp(9)
     
+    update_tmap(pl) 
     t=(player.turn-planets(pl).visited)*10
     if _debug=9 then screenset 1,1
     for i=0 to lastitem
-        if item(i).ty=18 and item(i).w.p=0 and item(i).w.s=0 and item(i).w.m=pl and t>0 then 
+        if item(i).ty=18 and item(i).w.p=0 and item(i).w.s=0 and item(i).w.m=pl and item(i).discovered>0 and t>0 then 
             if _debug=9 then dprint "Moving rover "&i
             last=0
             curr=0
@@ -1294,8 +1291,10 @@ function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
             for a=0 to t*item(i).v4
                 curr+=1
                 if curr>last then
+                    if _debug>0 then dprint "Route:"&last
                     last=ep_autoexploreroute(route(),p1,item(i).v1,pl,li(),lastlocalitem)
                     curr=1
+                    if _debug>0 and last>0 then dprint "Target:"&cords(route(last))
                 else
                     if last>0 then
                         item(i).w.x=route(curr).x
@@ -1303,14 +1302,15 @@ function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
                     endif
                 endif
                 ep_roverreveal(i)
-                
-                screenset 0,1
-                cls
-                display_planetmap(pl,calcosx(item(i).w.x,planets(pl).depth),1)
-                display_ship(0)
-                if _debug>0 then dprint cords(item(i).w) &" curr :"& curr &" last :"&last
-                flip
-        
+                if a mod 10=0 then
+                    screenset 0,1
+                    cls
+                    display_planetmap(pl,calcosx(item(i).w.x,planets(pl).depth),1)
+                    display_ship(0)
+                    
+                    if _debug>0 then dprint cords(item(i).w) &" curr :"& curr &" last :"&last
+                    flip
+                endif
             next
             if rnd_range(1,150)<planets(pl).atmos*2 then item(i).discovered=0
             if rnd_range(1,150)<planets(pl).atmos+2 then 
@@ -2761,8 +2761,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
         for a=1 to lastdrifting
             if drifting(a).m=slot then x=1
         next
-        
-        space_next_to_wall
         
         if planets(slot).visited=0 and planets(slot).depth=0 and x=0 then 
             combon(0).value+=1
