@@ -1615,7 +1615,7 @@ function equip_awayteam(m as short) as short
     dim as single oxytanks,oxy
     dim as short cantswim,cantfly,invisibility
     dim as byte debug=0
-    cmove=awayteam.move
+    cmove=awayteam.movetype
     awayteam.jpfueluse=0
     awayteam.stuff(1)=0
     awayteam.armor=0
@@ -1827,9 +1827,9 @@ function equip_awayteam(m as short) as short
     next
     'dprint ""&awayteam.move
     'count teleportation devices
-    awayteam.move=0
-    if awayteam.move<4 and cantswim<=hovers then awayteam.move=1
-    if awayteam.move<4 and cantfly<=jpacks*1.5+robots*2 then awayteam.move=awayteam.move+2
+    awayteam.movetype=0
+    if awayteam.movetype<4 and cantswim<=hovers then awayteam.movetype=1
+    if awayteam.movetype<4 and cantfly<=jpacks*1.5+robots*2 then awayteam.movetype+=2
     awayteam.carried=cantfly-jpacks-robots*2
     if awayteam.carried<0 then awayteam.carried=0
     if cantfly-jpacks-robots*2>0 then awayteam.jpfueluse=awayteam.jpfueluse+(cantfly-jpacks-robots*2) 'The ones that need to be carried use extra fuel
@@ -1852,6 +1852,7 @@ function equip_awayteam(m as short) as short
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
     'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
     if debug=2 and _debug=1 then dprint awayteam.invis &":"&findbest(46,-1)
+    awayteam.speed=4+awayteam.movetype
     return 0
 end function
 

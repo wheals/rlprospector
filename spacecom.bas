@@ -145,19 +145,16 @@ function spacecombat(byref atts as _fleet,ter as short) as short
         flip
         
         key=""
-        player.energy-=1
-        if player.energy<0 then player.energy=0
-        if debug=9 and _debug=1 then dbugstring="Player:"&player.energy
-        for a=1 to 14
-            attacker(a).energy-=1
-            if attacker(a).energy<0 then attacker(a).energy=0
-            if debug=9 and _debug=1 then dbugstring=dbugstring & " " & a &"-"&attacker(a).energy
+        player.e.tick
+        for d=1 to 14
+            if attacker(d).hull>0 then attacker(d).e.tick
         next
+
         if debug=9 and _debug=1 then dprint dbugstring
         
    '        
         if player.hull>0 then 'playermovement
-            if player.energy<=0 then 
+            if player.e.e=0 then 
                
                 if debug=9 and _debug=1 then dprint ""&f
                 if player.c.x=0 or player.c.y=0 or player.c.x=60 or player.c.y=20 then f=-1
@@ -179,7 +176,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                     case 1
                         player.senac=2
                     end select
-                    player.energy+=1
+                    player.e.add_action(1)
                 endif
                                 
                 if key=key_ra then 
@@ -193,7 +190,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                     if player.manjets=0 then 
                         dprint "You have no manjets"
                     else
-                        player.energy+=1 
+                        player.e.add_action(1)
                         if manjetson=0 then
                             manjetson=1
                             dprint "You turn on your maneuvering jets"
@@ -210,7 +207,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                             player.shieldside(a)=0
                         next
                         shieldshut=1
-                        player.energy+=1
+                        player.e.add_action(1)
                     endif
                 endif
                 
@@ -220,12 +217,12 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                 
                 if key=key_drop then
                     com_dropmine(player,mines_p(),mines_v(),mines_last,attacker())
-                    player.energy+=1
+                    player.e.add_action(1)
                 endif
                 
                 if f<>0 and player.hull>0 then
                     if key=key_sc then
-                        player.energy+=1
+                        player.e.add_action(1)
                         t=com_gettarget(player,w,attacker(),t,e_track_p(),e_track_v(),e_map(),e_last,mines_p(),mines_v(),mines_last)
                         if t>0 then
                             if attacker(t).c.x>30 then 
@@ -241,13 +238,13 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                             if x<1 then x=1
                             if y<1 then y=1
                             textbox(com_shipbox(attacker(t),distance(player.c,attacker(t).c)),x,y,20,15,1)
-                            player.energy+=1
+                            player.e.add_action(1)
                             no_key=keyin
                         endif
                     endif
                     
                     if key=key_fi then
-                        player.energy+=1
+                        player.e.add_action(1)
                         do 
                             if _debug=1 then dprint "W:"&w &" F:"&f &" T:"&t
                             w=com_getweapon()
@@ -256,6 +253,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                                 if com_testweap(player.weapons(w),player.c,attacker(),mines_p(),mines_last,1) then
                                     t=com_gettarget(player,w,attacker(),t,e_track_p(),e_track_v(),e_map(),e_last,mines_p(),mines_v(),mines_last)
                                     if t>0 and t<100 then 
+                                        player.e.add_action(1)
                                         if pathblock(player.c,attacker(t).c,0,2,player.weapons(w).col)=-1 then
                                             attacker(t)=com_fire(attacker(t),player,player.weapons(w),player.gunner(0)+add_talent(3,12,1),distance(player.c,attacker(t).c))
                                             'lastaction(0)=lastaction(0)+1
@@ -346,7 +344,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                                 if player.hull<=0 then no_key=keyin
                             endif
                         endif
-                    if old.x<>player.c.x or old.y<>player.c.y then player.energy=player.energy+10-player.movepoints(manjetson)
+                    if old.x<>player.c.x or old.y<>player.c.y then player.add_move_cost(manjetson)
                 endif      
                 
 '                screenset 0,1
@@ -756,7 +754,7 @@ function com_NPCMove(defender as _ship,attacker() as _ship,e_track_p() as _cords
     com_findtarget(defender,attacker())
     for b=1 to 14 'enemymovement
         if attacker(b).hull>0 then
-            if attacker(b).energy<=0 and attacker(b).engine>0 then
+            if attacker(b).e.e=0 and attacker(b).engine>0 then
                 if attacker(b).target.x<>attacker(b).c.x or attacker(b).target.y<>attacker(b).c.y then
                    attacker(b).di=com_turn(attacker(b).di,com_direction(attacker(b).c,attacker(b).target),attacker(b).turnrate)
                    if debug=1 and _debug=1 then dprint ""&com_direction(attacker(b).c,attacker(b).target)
@@ -766,10 +764,10 @@ function com_NPCMove(defender as _ship,attacker() as _ship,e_track_p() as _cords
                         attacker(b).di=bestaltdir(attacker(b).di,rnd_range(0,1))
                         attacker(b).c=old
                         attacker(b).c=movepoint(attacker(b).c,attacker(b).di)
-                        attacker(b).energy+=1
+                        attacker(b).e.add_action(1)
                    endif         
                    if old.x<>attacker(b).c.x or old.y<>attacker(b).c.y then 
-                        attacker(b).energy=attacker(b).energy+(10-attacker(b).movepoints(0))
+                        attacker(b).add_move_cost(0)
                         e_last=com_add_e_track(attacker(b),e_track_p() ,e_track_v() , e_map() ,e_last)
                    endif
                 endif
@@ -1151,7 +1149,6 @@ function com_display(defender as _ship, attacker() as _ship,  marked as short, e
                         endif
                         put ((attacker(b).c.x-osx)*_tix,attacker(b).c.y*_tiy),stiles(attacker(b).di,attacker(b).ti_no),trans
                         draw_shield(attacker(b),osx)
-                        if debug=2 and _debug=1 then draw string ((attacker(b).c.x-osx)*_fw1+_fw1,attacker(b).c.y*_fh1),cords(attacker(b).target) &"Energy:"&attacker(b).energy,,font2,custom,@_col
                     endif
                     if c=marked then 
                         put ((attacker(b).c.x-osx)*_tix,attacker(b).c.y*_tiy),gtiles(85),trans
@@ -1350,9 +1347,9 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as _weap
         if firefree=1 then
             if w.ammomax=0 then 
                 if w.made=66 then
-                    attacker.energy+=w.dam/2
+                    attacker.e.add_action(w.dam/2)
                 else
-                    attacker.energy+=w.dam '
+                    attacker.e.add_action(w.dam) '
                 endif
             endif
             w.heat=w.heat+w.heatadd*10
@@ -1717,7 +1714,7 @@ function com_regshields(s as _ship) as short
         if r>-1 and shieldreg>0 then
             s.shieldside(r)+=1
             shieldreg-=1
-            s.energy+=1
+            s.e.add_action(1)
         endif
     loop until r=-1 or shieldreg=0
     return 0

@@ -1122,10 +1122,6 @@ function casino(staked as short=0, st as short=-1) as short
                     c=sysfrommap(specialplanet(14))
                     dprint "A well doing merchant tells you that he bought his armed merchantman class ship in a system at coordinates "&cords(map(c).c)&"."
                 endif
-                if b=33 then
-                    c=sysfrommap(specialplanet(2))
-                    dprint "A scout pilot claims that nobody has ever returned from exploring a system at coordinates "&cords(map(c).c) &"."
-                endif
                 if b=34 then
                     c=sysfrommap(specialplanet(27))
                     dprint "A scout pilot claims that nobody has ever returned from exploring a system at coordinates "& cords(map(c).c) &"."
@@ -1144,11 +1140,8 @@ function casino(staked as short=0, st as short=-1) as short
                 
                 if b=42 then dprint "Somebody tells you that the leader of the pirates is choosen in a spaceship duel."
                 
-                if b=43 then dprint "A scout captain insists: 'There are planets out there where the ice will come after you and kill you! I call them Icetrolls, they freeze during the night, and thaw during the day. Keep in the dark when you are on such a planet.'"
                 
                 if b=44 then dprint "A merchant captain proclaims: 'If you want to avoid pirate attacks, just fly a triax traders flag!' " &first_uc(randomgender) & " is pretty drunk and refuses to elaborate."
-                
-                if b=45 then dprint "A security member tells a sobstory about how his tribble helped him when a friend of his was killed by wildlife on some planet"
                 
                 if b=1001 then dprint "An explorer captain tells a funny story about a captain "& randomgender &" knew, who didn't return from an expedition to a system at "&cords(map(bonesflag).c) &"."
 

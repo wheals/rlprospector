@@ -237,6 +237,27 @@ end type
 '    return 0
 'end function
 '
+type _energycounter
+    e as integer
+    declare function add_action(v as integer) as integer
+    declare function tick() as integer
+end type
+
+function _energycounter.add_action(v as integer) as integer
+    e+=v
+    return 0
+end function
+
+function _energycounter.tick() as integer
+    if e>0 then
+        e-=1
+        return 0
+    else
+        e=0
+        return -1
+    end if
+end function
+  
 type _driftingship
     s as short '
     p as short '
@@ -347,6 +368,7 @@ end enum
 
 type _ship
     c as _cords
+    e as _energycounter
     map as short
     osx as short
     osy as short
@@ -355,7 +377,6 @@ type _ship
     turn as integer
     money as integer
     aggr as short
-    energy as short
     desig as string *32
     icon as string *1
     ti_no as uinteger
@@ -366,6 +387,7 @@ type _ship
     declare function diop() as byte
     sensors as short
     engine as short
+    declare function add_move_cost(mjs as short) as short
     declare function movepoints(mjs as short) as short
     declare function pilot(onship as short) as short
     declare function gunner(onship as short) as short
@@ -470,6 +492,11 @@ function _ship.diop() as byte
 end function
 
 type _monster
+    e as _energycounter
+    speed as byte
+    movetype as byte
+    declare function add_move_cost() as short
+    c as _cords
     made as ubyte
     slot as byte
     no as ubyte
@@ -521,7 +548,7 @@ type _monster
     col as ubyte
     dcol as ubyte
     
-    move as single
+    'move as single
     union 
         track as short
         carried as short
@@ -545,7 +572,6 @@ type _monster
     jpfuel as single
     jpfuelmax as single
     jpfueluse as single
-    c as _cords
     target as _cords
     hasoxy as byte
     atcost as single
@@ -554,6 +580,11 @@ type _monster
     items(8) as short
     itemch(8) as short
 end type
+
+function _monster.add_move_cost() as short
+    e.add_action(10-speed)
+    return 0
+end function
 
 type _stars
     c as _cords
@@ -629,16 +660,35 @@ end type
 
 type _fleet
     ty as short 'Type: 1=patrol 2=merchant 3=pirate
+    e as _energycounter
     c as _cords'Coordinates
     t as short 'Number of coordinates of target in targetlist
     fuel as integer
     del as short
     flag as short
     fighting as short
+    declare function speed() as short
     declare function count() as short
+    declare function add_move_cost() as short
     con(15) as short ' Old ship storage con(0)=Nicety of pirates con(1)=Escorting
     mem(15) as _ship 'Actual ship storage
 end type
+
+function _fleet.add_move_cost() as short
+    e.add_action(10-speed)
+    return 0
+end function
+
+function _fleet.speed() as short
+    dim as short i,v
+    v=9
+    for i=1 to 15
+        if mem(i).hull>0 and mem(i).movepoints(0)<v then v=mem(i).movepoints(0)
+    next
+    if v<=0 then v=1
+    return v
+end function
+
 
 function _fleet.count() as short
     dim as short i,c
@@ -884,6 +934,11 @@ function _ship.movepoints(mjs as short) as short
     if mps<=0 then mps=1
     if mps>9 then mps=9
     return mps
+end function
+
+function _ship.add_move_cost(mjs as short) as short
+    e.add_action(10-movepoints(mjs))
+    return 0
 end function
 
 type _share
@@ -2014,6 +2069,7 @@ declare function com_NPCfireweapon(byref defender as _ship, byref attacker as _s
 declare function com_victory(attacker() as _ship) as short
 declare function com_add_e_track(ship as _ship,e_track_p() as _cords,e_track_v() as short, e_map() as byte,e_last as short) as short
 
+declare function get_rumor(i as short=18) as string
 declare function show_standing() as short
 
 declare function date_string() as string

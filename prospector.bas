@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0
+const _debug=0'2609
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -1856,11 +1856,11 @@ function move_ship(key as string) as _ship
                 endif
             endif
             if spacemap(player.c.x,player.c.y)=8 or spacemap(player.c.x,player.c.y)=6 or spacemap(player.c.x,player.c.y)=18 or spacemap(player.c.x,player.c.y)=16 then
-                player.energy-=2
+                player.e.tick
                 player.fuel+=.5
             endif
             if spacemap(player.c.x,player.c.y)=9 or spacemap(player.c.x,player.c.y)=7 or spacemap(player.c.x,player.c.y)=19 or spacemap(player.c.x,player.c.y)=17 then
-                player.energy+=10
+                player.e.add_action(10)
                 player.fuel-=.5
             endif
             if spacemap(player.c.x,player.c.y)=10 or spacemap(player.c.x,player.c.y)=20 or (spacemap(player.c.x,player.c.y)>=6 and rnd_range(1,100)<5) then 
@@ -1891,7 +1891,7 @@ function move_ship(key as string) as _ship
                         endif
                     case is=8
                         dprint "Time itself seems to speed up"
-                        player.energy=player.engine+20-player.engine*2
+                        player.e.add_action(player.engine+20-player.engine*2)
                     case is=9
                         dprint "You have trouble keeping your position"
                         player.di=rnd_range(1,8)
@@ -1946,7 +1946,7 @@ function move_ship(key as string) as _ship
     endif
     if (player.c.x<>old.x or player.c.y<>old.y) then' and (player.c.x+player.osx<>30 or player.c.y+player.osy<>10) then 
         if spacemap(player.c.x,player.c.y)<=5 then player.fuel=player.fuel-player.fueluse
-        player.energy+=10
+        player.add_move_cost(0)
         if player.cursed>0 and rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) and player.turn mod(50-player.cursed)=0 then player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
     else
         walking=0
@@ -2000,7 +2000,7 @@ function explore_space() as short
             lturn=0
         endif
         if show_specials<>0 then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
-        if player.energy<=0 and player.dead=0 then
+        if player.e.tick=-1 and player.dead=0 then
             fl=0
             allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
             allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
@@ -2319,8 +2319,7 @@ function explore_space() as short
             dprint ""
             
             
-        else
-            player.energy-=player.movepoints(0)
+            
         endif
         
         clearfleetlist
@@ -2584,9 +2583,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     next
     lastenemy=0
     
-    if _debug=11 then
-        dprint "Clearing screen"
-    endif
     screenset 0,1
     set__color(11,0)
     cls
@@ -2594,9 +2590,6 @@ function explore_planet(from as _cords, orbit as short) as _cords
     set__color(11,0)
     cls
     
-    if _debug=11 then
-        dprint "Screen cleared"
-    endif
     slot=from.m
     if _debug=1 then dprint "From:"&from.x &":"& from.y &":"& from.m
     planets(slot).mapstat=2
@@ -2693,7 +2686,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
      & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
             
     if rev_map=1 then allowed=allowed &"ä"
-    if awayteam.move=2 or awayteam.move=3 then 
+    if awayteam.movetype=2 or awayteam.movetype=3 then 
         allowed=allowed &key_ju
         comstr=comstr &key_ju &" Jetpackjump;"
     endif
@@ -3168,11 +3161,6 @@ endif
         no_key=keyin
     endif
     if slot=specialplanet(1) and specialflag(1)=0 then dodialog(2,enemy(1),0)
-    '***********************
-    '
-    'Planet Exploration Loop
-    '
-    '***********************
     if no_enemys=1 then lastenemy=0
     
     if _debug=11 then
@@ -3193,6 +3181,13 @@ endif
     display_awayteam()
     flip
     
+    
+    '***********************
+    '
+    'Planet Exploration Loop
+    '
+    '***********************
+    
     do
         if show_all=1 then
             set__color( 15,0)
@@ -3203,7 +3198,7 @@ endif
         awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
         if artflag(9)=1 and  player.teleportload<15 then player.teleportload+=1
         if awayteam.disease>player.disease then player.disease=awayteam.disease
-        if planets(slot).atmos<=1 or planets(slot).atmos>=8 then awayteam.helmet=1
+        if planets(slot).atmos<=1 or planets(slot).atmos>=7 then awayteam.helmet=1
         if (tmap(awayteam.c.x,awayteam.c.y).no=1 or tmap(awayteam.c.x,awayteam.c.y).no=26 or tmap(awayteam.c.x,awayteam.c.y).no=20) and awayteam.hp<=awayteam.nohp*5 then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if tmap(awayteam.c.x,awayteam.c.y).oxyuse<0 then awayteam.oxygen=awayteam.oxygen-tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
@@ -3239,7 +3234,7 @@ endif
                     if lastapwp>0 then
                         currapwp+=1
                         'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
-                        if awayteam.move>=tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).walktru or tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).onopen<>0 then
+                        if awayteam.movetype>=tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).walktru or tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).onopen<>0 then
                             awayteam.c=apwaypoints(currapwp)
                             awayteam.c.m=old.m
                         else
@@ -3261,6 +3256,7 @@ endif
                 dprint "Your security personel want to return to the ship.",14
                 if rnd_range(1,100)<66 then
                     awayteam.c=movepoint(awayteam.c,nearest(player.landed,awayteam.c))
+                    
                 else
                     awayteam.c=movepoint(awayteam.c,5)
                 endif
@@ -3272,10 +3268,9 @@ endif
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
         mapmask(awayteam.c.x,awayteam.c.y)=-9
         
-        if awayteam.lastaction>0 then 
-            awayteam.lastaction-=1
-            if awayteam.lastaction<0 then awayteam.lastaction=0
-            localturn=localturn+1
+        localturn=localturn+1
+            
+        if awayteam.e.tick=-1 then 
             if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
@@ -3283,9 +3278,6 @@ endif
             ep_shipfire(shipfire())
             ep_items(li(),lastlocalitem,localturn)
             walking=alerts()
-            for a=1 to lastenemy
-                if enemy(a).hp>0 then enemy(a).m+=enemy(a).move
-            next
             deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
             if player.dead>0 or awayteam.hp<=0 then 
                 allowed=""
@@ -3320,8 +3312,8 @@ endif
             dprint("")
             ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
             equip_awayteam(slot)
-            if awayteam.move=2 or awayteam.move=3 then allowed=allowed &key_ju
-            if awayteam.move=4 then allowed=allowed &key_te
+            if awayteam.movetype=2 or awayteam.movetype=3 then allowed=allowed &key_ju
+            if awayteam.movetype=4 then allowed=allowed &key_te
             'displayplanetmap(slot,awayteam.c.x-_mwx/2)
             'ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
             'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
@@ -3352,7 +3344,7 @@ endif
             comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
             comstr=comstr & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
             comstr=comstr & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
-            if awayteam.move=2 or awayteam.move=3 then comstr=comstr &key_ju &" Jetpackjump;"
+            if awayteam.movetype=2 or awayteam.movetype=3 then comstr=comstr &key_ju &" Jetpackjump;"
             if artflag(9)=1 then comstr=comstr &key_te &" Teleport;"
     
             set__color( 11,0)
@@ -3415,7 +3407,7 @@ endif
                 if key=key_fi or key=key_autofire or walking=10 then ep_fire(mapmask(),key,autofire_target)
                 if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf,nightday(),localtemp())
                 if key=key_oxy then ep_helmet()
-                if key=key_ju and awayteam.move>=2 then ep_jumppackjump()
+                if key=key_ju and awayteam.movetype>=2 then ep_jumppackjump()
                 if key=key_la then ep_launch(nextmap)
                 if key=key_he then
                     if awayteam.disease>0 then
@@ -4535,7 +4527,11 @@ function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() a
     p1.x=enemy.c.x
     p1.y=enemy.c.y
     
-    if dir2>0 then enemy.c=movepoint(enemy.c,dir2)
+    if dir2>0 then 
+        enemy.c=movepoint(enemy.c,dir2)
+        enemy.add_move_cost
+        enemy.e.e+=tmap(enemy.c.x,enemy.c.y).walktru
+    endif
     if mapmask(enemy.c.x,enemy.c.y)=-9 then
         enemy.c.x=p1.x
         enemy.c.y=p1.y
@@ -4567,7 +4563,7 @@ function monsterhit(attacker as _monster, defender as _monster,vis as byte) as _
     noa=attacker.hp\7
     if noa<1 then noa=1
     for a=1 to noa
-        if skill_test(-defender.armor\(6*(defender.hp+1))+attacker.weapon,13+defender.move*5) then b=b+1+attacker.weapon
+        if skill_test(-defender.armor\(6*(defender.hp+1))+attacker.weapon,13+defender.movetype*5) then b=b+1+attacker.weapon
     next
     if b>attacker.weapon+5+noa/2 then b=attacker.weapon+5+noa/2 'max damage    
     if defender.made=0 then 
@@ -4637,13 +4633,13 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).disease=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             slbc+=1
             if distance(defender.c,attacker.c)>1.5 then
-                if skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),13+defender.move*3,echo1) then 
+                if skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),13+defender.movetype*3,echo1) then 
                     b=b+attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
                     xpstring=gainxp(a) 
                     xpgained+=1
                 endif
             else
-                if skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),13+defender.move*3,echo2) then 
+                if skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),13+defender.movetype*3,echo2) then 
                     b=b+maximum(attacker.secweapc(a),attacker.secweap(a))+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
                     xpstring=gainxp(a) 
                     xpgained+=1

@@ -577,12 +577,6 @@ function display_stars(bg as short=0) as short
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"X",,Font2,custom,@_col
                     endif
                 endif
-                if debug=1024 and _debug=1 then
-                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),""&targetlist(fleet(b).t).x &" :"&targetlist(fleet(b).t).y &"."&fleet(b).mem(0).energy ,,Font2,custom,@_col
-                endif
-                if debug=4 and _debug=1 then
-                    draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),""&fleet(b).mem(0).engine &" No:"& b,,Font2,custom,@_col
-                endif
             endif
         next
     endif
@@ -1064,10 +1058,10 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l+=1
         draw string(sidebar,l*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
         l+=1
-        if awayteam.move=0 then draw string(sidebar,l*_fh2), "Trp.: None",,Font2,custom,@_col
-        if awayteam.move=1 then draw string(sidebar,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
-        if awayteam.move=2 then draw string(sidebar,l*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
-        if awayteam.move=3 then draw string(sidebar,l*_fh2), "Trp.: Jetp&Hover",,Font2,custom,@_col
+        if awayteam.movetype=0 then draw string(sidebar,l*_fh2), "Trp.: None",,Font2,custom,@_col
+        if awayteam.movetype=1 then draw string(sidebar,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
+        if awayteam.movetype=2 then draw string(sidebar,l*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
+        if awayteam.movetype=3 then draw string(sidebar,l*_fh2), "Trp.: Jetp&Hover",,Font2,custom,@_col
         if artflag(9)=1 then 
             l+=1
             draw string(sidebar,l*_fh2), "      Teleport",,Font2,custom,@_col
@@ -1092,7 +1086,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l+=1
         draw string(sidebar,l*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
         
-        if (awayteam.move=2 or awayteam.move=3) and awayteam.hp>0 then
+        if (awayteam.movetype=2 or awayteam.movetype=3) and awayteam.hp>0 then
             set__color( 11,0)
             l+=1
             draw string(sidebar,l*_fh2), "Jetpackfuel:",,Font2,custom,@_col
@@ -1312,7 +1306,7 @@ function display_monsters(osx as short) as short
                     if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if configflag(con_tiles)=0 then
                             put ((p.x-osx)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
-                            if _debug>0 then draw string ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),"m:"&enemy(a).m,,font2,custom,@_tcol
+                            if _debug>0 then draw string ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),"e:"&enemy(a).e.e,,font2,custom,@_tcol
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
