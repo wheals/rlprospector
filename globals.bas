@@ -75,12 +75,12 @@ function setglobals() as short
     piratenames(ST_Floater)="floater"
     piratenames(st_spacestation)="space station"
     
-    tacdes(1)="reckless"
-    tacdes(2)="agressive"
-    tacdes(3)="neutral"
-    tacdes(4)="cautious"
-    tacdes(5)="defensive"
-    tacdes(6)="nonlethal"
+    tacdes(1)="reckless" '-2
+    tacdes(2)="agressive" '-1
+    tacdes(3)="neutral" '0
+    tacdes(4)="cautious" '1
+    tacdes(5)="defensive" '2
+    tacdes(6)="nonlethal" '3
     
     questguyjob(1)="Station Commander"
     questguyjob(2)="Freelancer"

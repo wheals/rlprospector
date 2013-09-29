@@ -392,7 +392,7 @@ function system_text(a as short) as string
     return t
 end function
 
-function randomcritterdescription(enemy as _monster, spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
+function randomcritterdescription(enemy as _monster, spec as short,weight as short,movetype as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
 
     dim as string text
     dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(7),wings(4),horns(4),tails(5)
@@ -604,7 +604,8 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     endif
     
     text=text &" It weighs appr. "&(weight*rnd_range(1,8)*rnd_range(1,10)) &" Kg."
-    if flies=1 then 
+    
+    if movetype=mt_fly then 
         if rnd_range(1,100)<66 then 
             text= text &" It flies using "&wings(rnd_range(1,3)) &"."
         else

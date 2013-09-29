@@ -417,8 +417,11 @@ function display_stars(bg as short=0) as short
                     if configflag(con_tiles)=0 then
                         alphav=192
                         if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                        put (x*_fw1+1,y*_fh1+1),gtiles(50),alpha,alphav
-                        
+                        if (x+player.osx+y+player.osy) mod 2=0 then
+                            put (x*_fw1+1,y*_fh1+1),gtiles(49),alpha,alphav
+                        else
+                            put (x*_fw1+1,y*_fh1+1),gtiles(50),alpha,alphav
+                        endif
                     else
                         draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                     endif
@@ -784,9 +787,9 @@ function display_station(a as short) as short
     x=basis(a).c.x-player.osx
     y=basis(a).c.y-player.osy
     if a<3 then
-        t=a+3*basis(a).company
+        t=a+3*(basis(a).company-1)
     else
-        t=2+3*basis(a).company
+        t=2+3*(basis(a).company-1)
     endif
     if x<0 or y<0 or x>_mwx or y>20 then return 0
     set__color( 15,0)
@@ -999,11 +1002,6 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"Camo",,Font2,Custom,@_col
             xoffset=xoffset+5
         endif
-        locate 22,xoffset
-        if add_talent(-1,24,0)>0 then 
-            draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"Fast",,Font2,Custom,@_col
-            xoffset=xoffset+5
-        endif
         if _autopickup=0 then
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"P",,Font2,Custom,@_col
             xoffset+=1    
@@ -1046,7 +1044,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 if x>60 then x-=61
                 if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x>=0 and x<=_mwx then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans                
-                    
+                if _debug=2609 then draw string(x*_tix,awayteam.c.y*_tiy),"e:"&awayteam.e.e
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
@@ -1066,6 +1064,10 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
             l+=1
             draw string(sidebar,l*_fh2), "      Teleport",,Font2,custom,@_col
         endif
+        l+=1
+        draw string(sidebar,l*_fh2),"Speed: "&awayteam.speed,,Font2,Custom,@_col
+        xoffset=xoffset+8
+        
         l+=1
         draw string(sidebar,l*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
         l+=1

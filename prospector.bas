@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0'2609
+const _debug=0'154'2809'2709
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -147,20 +147,18 @@ do
                 endif
                 if key="8" then
                     f=freefile
-                    open "itemslist.csv" for output as #f
-                    for b=2 to 10
-                        
-                        item(0).desig=""
-                        item(0)=makeitem(b,,,,1)
-                        if item(0).desig<>"" then print #f,item(0).desig &";"&item(0).v1*10 &";"& item(0).v2 &";"&item(0).price
+                    open "monster.csv" for output as #f
+                    print #f,"name;hp;speed;atcost;biodata"
+                    for a=1 to 400
+                        enemy(0)=makemonster(a,1)
+                        if enemy(0).sdesc<>"" then print #f,enemy(0).sdesc &";"& int(enemy(0).hp)  &";"& enemy(0).speed  &";"& enemy(0).atcost &";"&get_biodata(enemy(0))
                     next
-                    for b=40 to 47
-                        
-                        item(0).desig=""
-                        item(0)=makeitem(b,,,,1)
-                        if item(0).desig<>"" then print #f,item(0).desig &";"&item(0).v1*10 &";"& item(0).v3 &";"&item(0).price
+                    close #f
+                    f=freefile
+                    open "tiles.csv" for output as #f
+                    for a=1 to 400
+                        if tiles(a).desc<>"" then print #f,a &";"&tiles(a).desc &";"& tiles(a).movecost
                     next
-                        
                     close #f
                 end if 
                 if key="9" then 
@@ -200,10 +198,6 @@ loop until configflag(con_restart)=1
 fSOUND_close
 #endif
 end
-
-function player_energylimits() as short
-    return 0
-end function
 
 function titlemenu() as short
     dim as short bg 
@@ -3214,7 +3208,7 @@ endif
         if walking<>0 then
             if walking<0 then
                 tmap(awayteam.c.x,awayteam.c.y).hp-=1
-                awayteam.lastaction+=1
+                awayteam.add_move_cost
                 displaytext(loceol.y)=displaytext(loceol.y-1) &"."
                 if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                     walking=0
@@ -3270,21 +3264,23 @@ endif
         
         localturn=localturn+1
             
-        if awayteam.e.tick=-1 then 
-            if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
+        if localturn mod 100=0 then 
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
             if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
-            ep_shipfire(shipfire())
-            ep_items(li(),lastlocalitem,localturn)
-            walking=alerts()
-            deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
-            if player.dead>0 or awayteam.hp<=0 then 
-                allowed=""
-                awayteam.lastaction=1
-            endif
+            com_sinkheat(player,0)
+            ep_lava(lavapoint())
+            lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
         endif
-            
+        
+        ep_shipfire(shipfire())
+        ep_items(li(),lastlocalitem,localturn)
+        walking=alerts()
+        if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
+        deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
+        
+        if player.dead>0 or awayteam.hp<=0 then allowed=""
+        
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_portal or key=key_inspect then nextmap=ep_Portal()
         
         if ship_landing>0 and nextmap.m<>0 then ship_landing=1 'Lands immediately if you changed maps
@@ -3323,12 +3319,11 @@ endif
         
         ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
         ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
-        ep_atship()
         if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li())
         if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(li(),lastlocalitem,localturn)
         healawayteam(awayteam,0)
         key=""
-        if (player.dead=0 and awayteam.lastaction<=0) or walking<>0 then 
+        if (player.dead=0 and awayteam.e.tick=-1) or walking<>0 then 
             'Display all stuff
             screenset 0,1
             set__color(11,0)
@@ -3340,7 +3335,8 @@ endif
             ep_display (li(),lastlocalitem)
             ep_display_clouds(cloudmap())
             display_awayteam()
-            
+            ep_atship()
+        
             comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
             comstr=comstr & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
             comstr=comstr & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
@@ -3360,17 +3356,14 @@ endif
             if rnd_range(1,100)<disease(awayteam.disease).nac then 
                 key=""
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
-                awayteam.lastaction+=2
+                awayteam.e.add_action(50)
             endif 
             
-        else
-            if player.dead<>0 then allowed=""
-        endif
-        
             if key<>"" then walking=0
             if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
-            'dprint "mouse.s"&mouse.s
+            
             if key=key_ex  then ep_examine(li(),lastlocalitem)
+            
             if key=key_save then
                 if askyn("Do you really want to save the game (y/n?)") then
                    savefrom(0).map=slot
@@ -3385,91 +3378,87 @@ endif
                    'ship.x=-1
                 endif
             endif
-            if key=key_wait then awayteam.lastaction+=1
-            'dprint awayteam.lastaction &""
-            if awayteam.lastaction<=0 then
-                'if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,awayteam,lastlocalitem,li())
-                if key=key_drop then 
-                    ep_dropitem(li(),lastlocalitem)
-                    flip
-                endif
+            
+            if key=key_wait then awayteam.add_move_cost
                 
-                if key=key_awayteam then 
-                    if awayteam.c.x=player.landed.x and awayteam.c.y=player.landed.y and slot=player.landed.m then
-                        showteam(0)
-                    else
-                        showteam(1)
-                    endif
-                endif
-                if key=key_report then bioreport(slot)
-                if key=key_close then ep_closedoor()
-                if key=key_gr then ep_grenade(shipfire(),sf,li(),lastlocalitem)
-                if key=key_fi or key=key_autofire or walking=10 then ep_fire(mapmask(),key,autofire_target)
-                if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf,nightday(),localtemp())
-                if key=key_oxy then ep_helmet()
-                if key=key_ju and awayteam.movetype>=2 then ep_jumppackjump()
-                if key=key_la then ep_launch(nextmap)
-                if key=key_he then
-                    if awayteam.disease>0 then
-                        cureawayteam(0)
-                    else
-                        if configflag(con_chosebest)=0 then
-                            c=findbest(11,-1)
-                        else 
-                            c=get_item(11)
-                        endif 
-                        if c>0 then
-                            if item(c).ty<>11 then
-                                dprint "you can't use that."
-                            else
-                                if askyn("Do you want to use the "&item(c).desig &"(y/n)?") then
-                                    item(c).v1=healawayteam(awayteam,item(c).v1)
-                                    if item(c).v1<=0 then destroyitem(c)
-                                endif
-                            endif
-                        else
-                            dprint "you dont have any medpacks"
-                        endif
-                    endif
-                endif
-                if key=key_walk or key=key_autoexplore then 
-                    if key<>key_autoexplore then
-                        dprint "Direction? (0 for autoexplore)"
-                        no_key=keyin
-                        walking=getdirection(no_key)
-                    else
-                        no_key="0"
-                    endif
-                    if no_key="0" then 
-                        lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
-                        currapwp=0
-                        if lastapwp>-1 then 
-                            walking=12
-                        else
-                            dprint "All explored here."
-                        endif
-                    endif
-                endif
-                if key=key_co or key=key_of then ep_communicateoffer(key,li(),lastlocalitem)
-                if key=key_te and artflag(9)=1 then awayteam.c=teleport(awayteam.c,slot) 
-                if _debug>0 and key="ä" then
-                    for x=0 to 60
-                        for y=0 to 20
-                            planetmap(x,y,slot)=abs(planetmap(x,y,slot))
-                        next
-                    next
-                    for a=0 to lastportal
-                        if portal(a).from.m=slot then portal(a).discovered=1
-                        if portal(a).dest.m=slot then portal(a).discovered=1
-                    next
-                    for a=1 to lastlocalitem
-                        item(li(a)).discovered=1
-                    next
-                endif
-                com_sinkheat(player,0)
-                ep_lava(lavapoint())
-                lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
+            if key=key_drop then 
+                ep_dropitem(li(),lastlocalitem)
             endif
+                
+            if key=key_awayteam then 
+                if awayteam.c.x=player.landed.x and awayteam.c.y=player.landed.y and slot=player.landed.m then
+                    showteam(0)
+                else
+                    showteam(1)
+                endif
+            endif
+            
+            if key=key_report then bioreport(slot)
+            
+            if key=key_close then ep_closedoor()
+            
+            if key=key_gr then ep_grenade(shipfire(),sf,li(),lastlocalitem)
+            
+            if key=key_fi or key=key_autofire or walking=10 then ep_fire(mapmask(),key,autofire_target)
+            
+            if key=key_ra then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf,nightday(),localtemp())
+            
+            if key=key_oxy then ep_helmet()
+            
+            if key=key_ju and awayteam.movetype>=2 then ep_jumppackjump()
+            
+            if key=key_la then ep_launch(nextmap)
+            
+            if key=key_he then
+                if awayteam.disease>0 then
+                    cureawayteam(0)
+                else
+                    if configflag(con_chosebest)=0 then
+                        c=findbest(11,-1)
+                    else 
+                        c=get_item(11)
+                    endif 
+                    if c>0 then
+                        if item(c).ty<>11 then
+                            dprint "you can't use that."
+                        else
+                            if askyn("Do you want to use the "&item(c).desig &"(y/n)?") then
+                                item(c).v1=healawayteam(awayteam,item(c).v1)
+                                if item(c).v1<=0 then destroyitem(c)
+                            endif
+                        endif
+                    else
+                        dprint "you dont have any medpacks"
+                    endif
+                endif
+            endif
+            
+            if key=key_walk or key=key_autoexplore then 
+                if key<>key_autoexplore then
+                    dprint "Direction? (0 for autoexplore)"
+                    no_key=keyin
+                    walking=getdirection(no_key)
+                else
+                    no_key="0"
+                endif
+                if no_key="0" then 
+                    lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
+                    currapwp=0
+                    if lastapwp>-1 then 
+                        walking=12
+                    else
+                        dprint "All explored here."
+                    endif
+                endif
+            endif
+            
+            if key=key_co or key=key_of then ep_communicateoffer(key,li(),lastlocalitem)
+            
+            if key=key_te and artflag(9)=1 then awayteam.c=teleport(awayteam.c,slot) 
+            
+        else
+            if player.dead<>0 then allowed=""
+        endif
             
             
             
@@ -3491,7 +3480,7 @@ endif
             next
             if debug=99 and _debug=1 then dprint "Death in:"&planets(slot).death
             ' and the world moves on
-            if frac(localturn/10)=0 then
+            if frac(localturn/500)=0 then
                 player.turn=player.turn+1
                 for a=1 to lastplanet
                     if planets(a).flags(27)=2 then 
@@ -3518,7 +3507,7 @@ endif
                 move_fleets()
                 if frac(player.turn/250)=0 then reroll_shops 
             endif
-        
+            if _debug=2709 then dprint "NM:"&nextmap.m
     loop until awayteam.hp<=0 or nextmap.m<>0 or player.dead<>0
     
     '
@@ -4515,22 +4504,30 @@ function movemonster(enemy as _monster, ac as _cords, mapmask() as byte,tmap() a
             p(a).x=-1
             p(a).y=-1
         endif
-        
-        if (ti>0 and enemy.stuff(ti)=0) then
-            p(a).x=-1
-            p(a).y=-1
+        if ti>0 then
+            select case enemy.movetype
+            case mt_climb
+                if ti=1 or ti=5 then p(a).x=-1
+            case mt_dig
+                if ti=1 then p(a).x=-1
+            case mt_fly2
+                if ti>4 then p(a).x=-1
+            case mt_ethereal
+                'Can move through anything
+            case else
+                if ti>enemy.movetype then p(a).x=-1
+            end select
         endif
     next
-    if p(2).x>=0 and p(2).y>=0 then dir2=bestaltdir(direction,1)
-    if p(3).x>=0 and p(3).y>=0 then dir2=bestaltdir(direction,0)
-    if p(4).x>=0 and p(4).y>=0 then dir2=direction
+    if p(2).x>=0 then dir2=bestaltdir(direction,1)
+    if p(3).x>=0 then dir2=bestaltdir(direction,0)
+    if p(4).x>=0 then dir2=direction
     p1.x=enemy.c.x
     p1.y=enemy.c.y
     
     if dir2>0 then 
         enemy.c=movepoint(enemy.c,dir2)
         enemy.add_move_cost
-        enemy.e.e+=tmap(enemy.c.x,enemy.c.y).walktru
     endif
     if mapmask(enemy.c.x,enemy.c.y)=-9 then
         enemy.c.x=p1.x
@@ -4580,6 +4577,7 @@ function monsterhit(attacker as _monster, defender as _monster,vis as byte) as _
         defender.hp=defender.hp-b 'Monster attacks monster
         if defender.hp<=0 then defender.killedby=attacker.made
     endif
+    attacker.e.add_action(attacker.atcost*10)
     if debug=1 and _debug=1 then dprint "DEBUG MESSAGE dam:"& b
     return defender
 end function
@@ -4599,6 +4597,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim as string echo1,echo2
     dim slbc as byte
     dim as short slot,xpgained,tacbonus
+    
     slot=player.map
     #ifdef _FMODSOUND
     if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
@@ -4695,7 +4694,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         if defender.slot>=0 then planets(slot).mon_killed(defender.slot)+=1
     else
         if defender.hp=1 and b>0 and defender.aggr<>2 then 
-            if rnd_range(1,6) +rnd_range(1,6)<defender.intel+defender.diet then
+            if rnd_range(1,6) +rnd_range(1,6)<defender.intel+defender.diet and defender.speed>0 then
                 defender.aggr=2
                 text=text &"the " &mname &" is critically hurt and tries to FLEE. "            
                 defender=movemonster(defender, attacker.c, mapmask(),tmap())   

@@ -174,6 +174,7 @@ function fixstarmap() as short
     next
     for a=0 to laststar
         map(a).ti_no=map(a).spec+68
+        if map(a).spec=8 then map(a).ti_no=rnd_range(33,38)
         if map(a).spec=10 then map(a).ti_no=89
     next
     return 0

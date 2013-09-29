@@ -234,6 +234,20 @@ function make_spacemap() as short
         close #f
     endif
     
+    if show_space=1 then
+        for a=0 to laststar
+            map(a).discovered=1
+        next
+        for a=0 to lastdrifting
+            drifting(a).p=1
+        next
+        for x=0 to sm_x
+            for y=0 to sm_y
+                if spacemap(x,y)=0 then spacemap(x,y)=1
+                spacemap(x,y)=abs(spacemap(x,y))
+            next
+        next
+    endif
     set__color( 11,0)
     print
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
@@ -440,7 +454,7 @@ function add_special_planets() as short
                     if sys<0 then sys=get_random_system(1)
                 loop until disnbase(map(sys).c)>=25-cc/20 or cc>500
             endif
-        loop until  map(sys).spec<8 
+        loop until map(sys).spec<8 
         mp=getrandomplanet(sys)
         if mp=-1 and a<>18 then 
             mp=rnd_range(1,9)

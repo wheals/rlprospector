@@ -27,6 +27,7 @@ Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0'outputs statistics to txt files
 Const show_all=0
+Const show_space=0
 const show_items=0 'shows entire maps
 const alien_scanner=0
 const start_teleport=0'player has alien scanner
@@ -383,6 +384,7 @@ type _ship
     di as byte
     turnrate as byte
     senac as byte
+    shieldshut as byte
     cursed as byte
     declare function diop() as byte
     sensors as short
@@ -495,6 +497,7 @@ type _monster
     e as _energycounter
     speed as byte
     movetype as byte
+    atcost as byte
     declare function add_move_cost() as short
     c as _cords
     made as ubyte
@@ -526,7 +529,6 @@ type _monster
     intel as short
     lang as short
     nocturnal as byte
-    m as single
     faction as short
     allied as short
     enemy as short
@@ -574,17 +576,10 @@ type _monster
     jpfueluse as single
     target as _cords
     hasoxy as byte
-    atcost as single
-    lastaction as byte
     stuff(16) as single
     items(8) as short
     itemch(8) as short
 end type
-
-function _monster.add_move_cost() as short
-    e.add_action(10-speed)
-    return 0
-end function
 
 type _stars
     c as _cords
@@ -815,6 +810,7 @@ type _tile
     stopwalking as byte
     oxyuse as byte
     locked as byte
+    movecost as ubyte
     seetru as short
     walktru as short
     firetru as short
@@ -891,6 +887,8 @@ type _crewmember
     blad as single
     tohi as single
     armo as single
+    atcost as byte
+    speed as byte 'Unused as of now
     pref_ccweap as uinteger
     pref_lrweap as uinteger
     pref_armor as uinteger
@@ -1124,6 +1122,19 @@ type _questguy
     has as _questitem
     flag(15) as short '0=Compared notes 1=Other 3=System 4=System,6=Corp
 end type
+
+enum movetypes
+    mt_walk
+    mt_hover
+    mt_fly
+    mt_flyandhover
+    mt_teleport
+    mt_climb 'Can move across mountains, but not water (For spiders)
+    mt_dig 'Can move through walls, but not water (For worms)
+    mt_ethereal 'Can move through anything
+    mt_fly2
+end enum
+
 
 dim shared bg_parent as byte
 
@@ -2365,7 +2376,7 @@ declare function dodialog(no as short,e as _monster, fl as short) as short
 declare function node_menu(no as short,node() as _dialognode, e as _monster, fl as short,qgindex as short=0) as short
 declare function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short) as short
 declare function plant_name(ti as _tile) as string
-declare function randomcritterdescription(enemy as _monster, spec as short,weight as short,flies as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
+declare function randomcritterdescription(enemy as _monster, spec as short,weight as short,movetype as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
 declare function give_quest(st as short) as short
 declare function bounty_quest_text() as string
 declare function gen_bountyquests() as short
@@ -2470,3 +2481,12 @@ function set__color(fg as short,bg as short,visible as byte=1) as short
     return 0
 end function
 
+function _monster.add_move_cost() as short
+    dim as short cost
+    cost=10*((10-speed)*planets(player.map).grav)
+    cost+=tmap(c.x,c.y).movecost*5
+    if made=0 and player.tactic=2 then cost-=10 '
+    if cost<=0 then cost=1
+    e.add_action(cost)
+    return 0
+end function

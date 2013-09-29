@@ -161,7 +161,7 @@ function add_talent(cr as short, ta as short, value as single) as single
             if crew(cr).hp>0 and crew(cr).onship=0 then 
                 total+=1
                 value=value+crew(cr).talents(ta)
-                if ta=24 then value=value+crew(cr).augment(4)/5
+                if ta=24 then value=value+crew(cr).augment(4) 'Speed
             endif
         next
         if total=0 then return 0
@@ -789,7 +789,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).baseskill(1)=captainskill
             crew(slot).baseskill(2)=captainskill
             crew(slot).baseskill(3)=captainskill
-            
+            crew(slot).atcost=6
             cat=2
             if equipment_value<1150 then cat+=1
             if player.h_no=2 then cat+=1
@@ -958,6 +958,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=2
             crew(slot).paymod=skill^2
             crew(slot).baseskill(0)=skill
+            crew(slot).atcost=8-skill
         endif
         if a=3 then 'Gunner
             crew(slot).hpmax=skill+1
@@ -966,6 +967,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=3
             crew(slot).paymod=skill^2
             crew(slot).baseskill(1)=skill
+            crew(slot).atcost=5-skill
         endif
         if a=4 then 'SO
             crew(slot).hpmax=skill+1
@@ -974,6 +976,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=4
             crew(slot).paymod=skill^2
             crew(slot).baseskill(2)=skill
+            crew(slot).atcost=8-skill
         endif
         
         if a=5 then 'doctor
@@ -983,6 +986,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=5
             crew(slot).paymod=skill^2
             crew(slot).baseskill(3)=skill
+            crew(slot).atcost=8-skill
         endif
         
         if a=6 then 'green
@@ -991,6 +995,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="@"
             crew(slot).typ=6
             crew(slot).paymod=1
+            crew(slot).atcost=7
             'crew(slot).disease=rnd_range(1,16)
         endif  
         
@@ -1000,6 +1005,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="@"
             crew(slot).typ=7
             crew(slot).paymod=1
+            crew(slot).atcost=6
         endif
         
         if a=8 then 'elite
@@ -1008,6 +1014,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="@"
             crew(slot).typ=8
             crew(slot).paymod=1
+            crew(slot).atcost=5
         endif
         
         if a=9 then 'insect warrior
@@ -1023,6 +1030,7 @@ function add_member(a as short,skill as short) as short
             next
             crew(slot).morale=25000
             crew(slot).story(10)=2
+            crew(slot).atcost=4
         endif
         
         if a=10 then 'cephalopod
@@ -1038,6 +1046,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).story(10)=2
             crew(slot).equips=2'Can use weapons and squidsuit
             if rnd_range(1,100)<15 then placeitem(makeitem(123),0,0,0,0,-1)
+            crew(slot).atcost=5
         endif
         
         if a=11 then
@@ -1051,6 +1060,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).xp=-1
             crew(slot).morale=25000
             crew(slot).story(10)=2
+            crew(slot).atcost=5
         endif
         
         if a=12 then
@@ -1064,6 +1074,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).xp=-1
             crew(slot).morale=25000
             crew(slot).story(10)=2
+            crew(slot).atcost=4
         endif
         
         if a=13 then
@@ -1078,6 +1089,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).morale=25000
             crew(slot).augment(8)=1
             crew(slot).story(10)=2
+            crew(slot).atcost=3
         endif
         
         if a=14 then 'SO
@@ -1092,6 +1104,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).disease=0
             crew(slot).baseskill(2)=3
             crew(slot).story(10)=2
+            crew(slot).atcost=9
         endif
         
         if a=15 then
@@ -1104,6 +1117,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).xp=0
             crew(slot).baseskill(3)=6
             crew(slot).story(10)=1
+            crew(slot).atcost=2
         endif
         
         
@@ -1114,6 +1128,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=14
             crew(slot).talents(27)=1
             crew(slot).paymod=2
+            crew(slot).atcost=4
         endif  
         
         if a=17 then 'green
@@ -1123,6 +1138,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=15
             crew(slot).talents(28)=1
             crew(slot).paymod=2
+            crew(slot).atcost=4
         endif  
         
         if a=18 then 'green
@@ -1132,6 +1148,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=16
             crew(slot).talents(29)=1
             crew(slot).paymod=2
+            crew(slot).atcost=6
         endif  
         crew(slot).hp=crew(slot).hpmax
         if crew(slot).story(10)<2 then 'Is human
@@ -1141,6 +1158,7 @@ function add_member(a as short,skill as short) as short
         'crew(slot).morale=rnd_range(1,5)
         if slot>1 and rnd_range(1,100)<=33 then n(200,1)=gaintalent(slot)
         'if slot=1 and rnd_range(1,100)<=50 then n(200,1)=gaintalent(slot)
+        if crew(slot).atcost<=0 then crew(slot).atcost=1
     endif   
     sort_crew()
     return 0
@@ -1611,7 +1629,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
 end function
 
 function equip_awayteam(m as short) as short
-    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra,robots
+    dim as short a,b,c,wavg,aavg,tdev,jpacks,hovers,cmove,infra,robots,crewcount,atcost,squadlcount
     dim as single oxytanks,oxy
     dim as short cantswim,cantfly,invisibility
     dim as byte debug=0
@@ -1633,13 +1651,18 @@ function equip_awayteam(m as short) as short
     next
     for a=1 to 128 'determine fuel use
         'if crew(a).hp>0 and crew(a).onship=0 then awayteam.hp+=1
-        if crew(a).typ=13 then robots+=1
-        if crew(a).hp>0 and crew(a).onship=0 and jpacks>0 then
-            crew(a).jp=1
-            awayteam.jpfueluse+=1
-            jpacks-=1
-        else
-            crew(a).jp=0
+        if crew(a).hp>0 and crew(a).onship=0 then
+            crewcount+=1
+            if crew(a).typ=13 then robots+=1
+            if crew(a).talents(27)>0 then squadlcount+=1
+            atcost+=crew(a).atcost
+            if jpacks>0 then
+                crew(a).jp=1
+                awayteam.jpfueluse+=1
+                jpacks-=1
+            else
+                crew(a).jp=0
+            endif
         endif
     next
     hovers=0
@@ -1848,11 +1871,14 @@ function equip_awayteam(m as short) as short
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     awayteam.jpfueluse=awayteam.jpfueluse*planets(m).grav
-    awayteam.oxydep=awayteam.oxydep*planets(m).grav
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
-    'dprint "hovers:" & hovers &"Cantswim"&cantswim &" Jetpacks:"&jpacks &"am"&awayteam.move
-    if debug=2 and _debug=1 then dprint awayteam.invis &":"&findbest(46,-1)
-    awayteam.speed=4+awayteam.movetype
+    
+    awayteam.atcost=atcost/crewcount
+    
+    crewcount=crewcount-squadlcount*5
+    if crewcount<0 then crewcount=0
+    awayteam.speed=4+awayteam.movetype+add_talent(-1,24,0)-crewcount/20
+    
     return 0
 end function
 

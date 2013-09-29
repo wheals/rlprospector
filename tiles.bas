@@ -1,3 +1,6 @@
+for a=1 to 512
+    tiles(a).movecost=1
+next
 
 tiles(1).tile=247
 tiles(1).col=17
@@ -9,6 +12,7 @@ tiles(1).hp=50
 tiles(1).dr=-1
 tiles(1).succt="the liquid evaporates"
 tiles(1).turnsinto=12
+tiles(1).movecost=0
 
 tiles(2).tile=247
 tiles(2).col=1
@@ -20,6 +24,7 @@ tiles(2).hp=100
 tiles(2).dr=-1
 tiles(2).succt="the liquid evaporates"
 tiles(2).turnsinto=1
+tiles(2).movecost=0
 
 tiles(3).tile=46
 tiles(3).col=6
@@ -28,10 +33,12 @@ tiles(3).shootable=1
 tiles(3).dr=-1
 tiles(3).hp=5
 tiles(3).turnsinto=4
+tiles(3).movecost=1
 
 tiles(4).tile=46
 tiles(4).col=7
 tiles(4).desc="Rock"
+tiles(4).movecost=1
 
 tiles(5).tile=84
 tiles(5).col=2
@@ -42,6 +49,7 @@ tiles(5).shootable=1
 tiles(5).dr=-1
 tiles(5).hp=3
 tiles(5).turnsinto=3
+tiles(5).movecost=3
 
 tiles(6).tile=84
 tiles(6).col=10
@@ -52,6 +60,7 @@ tiles(6).shootable=1
 tiles(6).dr=-1
 tiles(6).hp=2
 tiles(6).turnsinto=3
+tiles(6).movecost=2
 
 tiles(7).tile=94
 tiles(7).col=215
@@ -65,6 +74,7 @@ tiles(7).dr=100
 tiles(7).hp=100
 tiles(7).succt="You bore some tunnels."
 tiles(7).turnsinto=244
+tiles(7).movecost=5
 
 tiles(8).tile=94
 tiles(8).col=217
@@ -78,6 +88,7 @@ tiles(8).shootable=1
 tiles(8).hp=50
 tiles(8).succt="You bore some tunnels."
 tiles(8).turnsinto=244
+tiles(8).movecost=4
 
 tiles(9).tile=64
 tiles(9).col=11
@@ -125,6 +136,7 @@ tiles(14).shootable=1
 tiles(14).dr=-1
 tiles(14).hp=4
 tiles(14).turnsinto=4
+tiles(14).movecost=2
 
 tiles(16).tile=35
 tiles(16).col=7
@@ -137,6 +149,7 @@ tiles(16).seetru=1
 tiles(16).firetru=1
 tiles(16).locked=2
 tiles(16).hides=2
+tiles(16).movecost=5
 
 tiles(17).tile=67
 tiles(17).col=11
@@ -166,6 +179,7 @@ tiles(20).hp=50
 tiles(20).dr=-1
 tiles(20).succt="the liquid evaporates"
 tiles(20).turnsinto=13
+tiles(20).movecost=0
 
 tiles(21).tile=247
 tiles(21).desc="deep acid"
@@ -181,7 +195,7 @@ tiles(21).hp=100
 tiles(21).dr=-1
 tiles(21).succt="the liquid evaporates"
 tiles(21).turnsinto=20
-
+tiles(21).movecost=0
 
 tiles(22).tile=asc(".")
 tiles(22).desc="red grass"
@@ -201,6 +215,7 @@ tiles(23).shootable=1
 tiles(23).dr=-1
 tiles(23).hp=3
 tiles(23).turnsinto=3
+tiles(23).movecost=3
 
 tiles(24).tile=asc("T")
 tiles(24).col=156
@@ -210,6 +225,7 @@ tiles(24).shootable=1
 tiles(24).dr=-1
 tiles(24).hp=2
 tiles(24).turnsinto=3
+tiles(24).movecost=2
 
 tiles(25).tile=asc("T")
 tiles(25).desc="exotic weeds"
@@ -220,7 +236,7 @@ tiles(25).shootable=1
 tiles(25).dr=-1
 tiles(25).hp=2
 tiles(25).turnsinto=3
-
+tiles(25).movecost=2
 
 tiles(26).tile=247
 tiles(26).desc="amonnia pool"
@@ -246,6 +262,7 @@ tiles(27).succt="You blast holes into the thick ice"
 tiles(27).killt="You blast big holes into the thick ice"
 tiles(27).hp=10
 tiles(27).turnsinto=2
+tiles(27).movecost=2
 
 'Geysers
 tiles(28).tile=147
@@ -256,6 +273,7 @@ tiles(28).dam=1
 tiles(28).hitt="You get sprayed with boiling water!"
 tiles(28).causeaeon=16
 tiles(28).aetype=3
+tiles(28).movecost=5
 
 tiles(29).tile=147
 tiles(29).col=56
@@ -265,6 +283,7 @@ tiles(29).dam=2
 tiles(29).hitt="You get sprayed with boiling acid!"
 tiles(29).causeaeon=8
 tiles(29).aetype=4
+tiles(29).movecost=5
 
 tiles(30).tile=147
 tiles(30).col=63
@@ -274,50 +293,62 @@ tiles(30).dam=1
 tiles(30).hitt="You get sprayed with boiling ammonium!"
 tiles(30).causeaeon=12
 tiles(30).aetype=5
+tiles(30).movecost=5
 
 tiles(31).tile=186 '|
 tiles(31).desc="Street"
 tiles(31).col=15
+tiles(31).movecost=0
 
 tiles(32).tile=205 '-
 tiles(32).desc="Street"
 tiles(32).col=15
+tiles(32).movecost=0
 
 tiles(33).tile=206 '+
 tiles(33).desc="Street"
 tiles(33).col=15
+tiles(33).movecost=0
 
 tiles(34).tile=187
 tiles(34).desc="Street"
 tiles(34).col=15
+tiles(34).movecost=0
 
 tiles(35).tile=188
 tiles(35).desc="Street"
 tiles(35).col=15
+tiles(35).movecost=0
 
 tiles(36).tile=201
 tiles(36).desc="Street"
 tiles(36).col=15
+tiles(36).movecost=0
 
 tiles(37).tile=200
 tiles(37).desc="Street"
 tiles(37).col=15
+tiles(37).movecost=0
 
 tiles(38).tile=185
 tiles(38).desc="Street"
 tiles(38).col=15
+tiles(38).movecost=0
 
 tiles(39).tile=204
 tiles(39).desc="Street"
 tiles(39).col=15
+tiles(39).movecost=0
 
 tiles(40).tile=203
 tiles(40).desc="Street"
 tiles(40).col=15
+tiles(40).movecost=0
 
 tiles(41).tile=202
 tiles(41).desc="Street"
 tiles(41).col=15
+tiles(41).movecost=0
 
 tiles(42).tile=35
 tiles(42).col=15
@@ -327,6 +358,7 @@ tiles(42).firetru=1
 tiles(42).gives=4
 tiles(42).turnsinto=42
 tiles(42).hides=2
+tiles(42).movecost=5
 
 tiles(43).tile=35
 tiles(43).desc="Building"
@@ -336,12 +368,14 @@ tiles(43).firetru=1
 tiles(43).gives=26
 tiles(43).turnsinto=43
 tiles(43).hides=2
+tiles(43).movecost=5
 
 tiles(45).tile=247 'lava
 tiles(45).col=12
 tiles(45).bgcol=0
 tiles(45).desc="Lava"
 tiles(45).stopwalking=1
+tiles(45).movecost=5
 
 tiles(46).tile=111 'cave
 tiles(46).col=7
@@ -469,6 +503,7 @@ tiles(55).succt="Concentrating enough firepower you melt the door a little"
 tiles(55).failt="You dont have enough firepower to damage the door"
 tiles(55).killt="You blast the door open"
 tiles(55).turnsinto=84
+tiles(55).movecost=3
 
 
 tiles(56).tile=84 'Apollos temple
@@ -490,6 +525,7 @@ tiles(56).spawnswhat=5
 tiles(56).spawnsmax=1
 tiles(56).spawntext="Apollo appears unhurt in the temples doors!"
 tiles(56).hides=2
+tiles(56).movecost=3
 
 tiles(57).tile=46
 tiles(57).col=15
@@ -498,6 +534,7 @@ tiles(57).desc="ruins of a temple."
 tiles(57).gives=1
 tiles(57).turnsinto=58
 tiles(57).hides=2
+tiles(57).movecost=3
 
 
 tiles(58).tile=46
@@ -507,6 +544,7 @@ tiles(58).desc="temple ruin"
 tiles(58).gives=0
 tiles(58).turnsinto=0
 tiles(58).hides=2
+tiles(58).movecost=3
 
 
 tiles(59).tile=84 'Leafy tree
@@ -549,6 +587,7 @@ tiles(60).spawnswhat=7
 tiles(60).spawnsmax=5
 tiles(60).spawntext="Some pirates leave their ship"
 tiles(60).hides=2
+tiles(60).movecost=3
 
 
 tiles(61).tile=64
@@ -558,11 +597,13 @@ tiles(61).survivors=33
 tiles(61).resources=66
 tiles(61).turnsinto=62
 tiles(61).hides=2
+tiles(61).movecost=3
 
 tiles(62).tile=64
 tiles(62).col=11
 tiles(62).desc="a stranded ship, beyond repair"
 tiles(62).hides=2
+tiles(62).movecost=3
 
 tiles(63).tile=asc("#")
 tiles(63).col=7
@@ -576,21 +617,25 @@ tiles(63).hitt="You are under fire from ships grade lasers!"
 tiles(63).misst="A ships grade laserbeam sizzles past you! good shot, but a miss!"
 tiles(63).deadt="lunatic firing shiplasers at you"
 tiles(63).hides=2
+tiles(63).movecost=3
 
 tiles(64).tile=asc("#")
 tiles(64).col=7
 tiles(64).desc="A makeshift bunker with a ships laserbank"
 tiles(64).hides=2
+tiles(64).movecost=3
 
 tiles(65)=tiles(60)
 tiles(65).spawnswhat=3
 tiles(65).hides=2
+tiles(65).movecost=3
 
 tiles(66)=tiles(65)
 tiles(66).walktru=0
 tiles(66).gives=3
 tiles(66).turnsinto=65
 tiles(66).hides=2
+tiles(66).movecost=3
 
 tiles(67).tile=64 'priate cruiser, landed
 tiles(67).col=12
@@ -607,11 +652,13 @@ tiles(67).succt="It is slightly dented now"
 tiles(67).failt="Your handwapons arent powerful enough to damage a spaceship"
 tiles(67).killt="That will teach those pirates a lesson!"
 tiles(67).hides=2
+tiles(67).movecost=3
 
 tiles(68).tile=219
 tiles(68).col=8
 tiles(68).bgcol=7
 tiles(68).desc="landing pad"
+tiles(68).movecost=0
 
 tiles(69).tile=asc("B")
 tiles(69).col=17
@@ -622,6 +669,8 @@ tiles(69).firetru=1
 tiles(69).gives=27
 tiles(69).turnsinto=69
 tiles(69).hides=2
+tiles(69).movecost=4
+tiles(69).movecost=3
 
 tiles(70)=tiles(69)
 tiles(70).tile=asc("F")
@@ -689,6 +738,7 @@ tiles(76).hp=30
 tiles(76).turnsinto=47
 tiles(76).seetru=1
 tiles(76).firetru=1
+tiles(76).movecost=4
 
 tiles(78).tile=65
 tiles(78).col=14
@@ -791,6 +841,7 @@ tiles(89).firetru=1
 tiles(89).gives=15
 tiles(89).turnsinto=89
 tiles(89).hides=2
+tiles(89).movecost=3
 '
 ' Signs of civilization
 '
@@ -808,6 +859,7 @@ tiles(90).shootable=1
 tiles(90).dr=-1
 tiles(90).hp=10
 tiles(90).turnsinto=3
+tiles(90).movecost=2
 
 
 tiles(91).tile=asc("O")
@@ -823,6 +875,7 @@ tiles(91).shootable=1
 tiles(91).dr=0
 tiles(91).hp=20
 tiles(91).turnsinto=3
+tiles(91).movecost=2
 
 tiles(92).tile=asc("O")
 tiles(92).col=7
@@ -837,6 +890,7 @@ tiles(92).shootable=1
 tiles(92).dr=1
 tiles(92).hp=30
 tiles(92).turnsinto=3
+tiles(92).movecost=2
 
 tiles(93).tile=asc("O")
 tiles(93).col=4
@@ -852,6 +906,7 @@ tiles(93).shootable=1
 tiles(93).dr=-1
 tiles(93).hp=10
 tiles(93).turnsinto=3
+tiles(93).movecost=2
 
 tiles(94).tile=asc("O")
 tiles(94).col=14
@@ -867,6 +922,7 @@ tiles(94).shootable=1
 tiles(94).dr=0
 tiles(94).hp=20
 tiles(94).turnsinto=3
+tiles(94).movecost=2
 
 tiles(95).tile=asc("O")
 tiles(95).col=7
@@ -882,6 +938,7 @@ tiles(95).shootable=1
 tiles(95).dr=1
 tiles(95).hp=40
 tiles(95).turnsinto=3
+tiles(95).movecost=2
 
 tiles(96).tile=186
 tiles(96).col=4
@@ -890,6 +947,7 @@ tiles(96).shootable=1
 tiles(96).dr=-1
 tiles(96).hp=20
 tiles(96).turnsinto=3
+tiles(96).movecost=2
 
 
 tiles(97).tile=asc(".")
@@ -906,6 +964,7 @@ tiles(98).firetru=1
 tiles(98).gives=17
 tiles(98).turnsinto=98
 tiles(98).hides=2
+tiles(98).movecost=2
 
 tiles(99).tile=35
 tiles(99).desc="Building"
@@ -915,6 +974,7 @@ tiles(99).firetru=1
 tiles(99).gives=16
 tiles(99).turnsinto=76
 tiles(99).hides=2
+tiles(99).movecost=2
 
 tiles(100).tile=asc("#") 'Apollos temple
 tiles(100).col=14
@@ -934,12 +994,14 @@ tiles(100).spawnswhat=8
 tiles(100).spawnsmax=28
 tiles(100).spawntext="A door opens and a defense robot apears!"
 tiles(100).hides=2
+tiles(100).movecost=3
 
 tiles(101).tile=asc("#") 'Apollos temple
 tiles(101).col=14
 tiles(101).bgcol=0
 tiles(101).desc="destroyed factory"
 tiles(101).hides=2
+tiles(101).movecost=3
 
 tiles(102).tile=asc(".")
 tiles(102).col=90
@@ -949,6 +1011,7 @@ tiles(102).shootable=1
 tiles(102).dr=-1
 tiles(102).hp=2
 tiles(102).turnsinto=3
+tiles(102).movecost=2
 
 tiles(103).tile=asc(".")
 tiles(103).col=42
@@ -958,6 +1021,7 @@ tiles(103).shootable=1
 tiles(103).dr=-1
 tiles(103).hp=2
 tiles(103).turnsinto=3
+tiles(103).movecost=2
 
 
 tiles(104).tile=asc(".")
@@ -968,6 +1032,7 @@ tiles(104).shootable=1
 tiles(104).dr=-1
 tiles(104).hp=2
 tiles(104).turnsinto=3
+tiles(104).movecost=2
 
 tiles(105).tile=asc(".")
 tiles(105).col=18
@@ -977,6 +1042,7 @@ tiles(105).shootable=1
 tiles(105).dr=-1
 tiles(105).hp=2
 tiles(105).turnsinto=3
+tiles(105).movecost=2
 
 tiles(106).tile=34
 tiles(106).col=60
@@ -986,6 +1052,7 @@ tiles(106).shootable=1
 tiles(106).dr=-1
 tiles(106).hp=2
 tiles(106).turnsinto=3
+tiles(106).movecost=3
 
 tiles(107).tile=asc("#")
 tiles(107).col=218
@@ -997,6 +1064,7 @@ tiles(107).hp=25
 tiles(107).dr=1
 tiles(107).hitt="you start to shoot up the factory"
 tiles(107).turnsinto=4
+tiles(107).movecost=2
 
 tiles(108).tile=asc("#")
 tiles(108).col=130
@@ -1010,6 +1078,7 @@ tiles(108).hp=30
 tiles(108).turnsinto=108
 tiles(108).seetru=1
 tiles(108).firetru=1
+tiles(108).movecost=3
 
 tiles(109).tile=asc("#") 'Botbin
 tiles(109).col=10
@@ -1019,6 +1088,7 @@ tiles(109).dr=1
 tiles(109).hitt="you start to shoot at the Botbin"
 tiles(109).turnsinto=109
 tiles(109).desc="The Bot-Bin 2nd hand bots and drones"
+tiles(109).movecost=3
 
 tiles(110).tile=asc("#")
 tiles(110).col=12
@@ -1028,6 +1098,7 @@ tiles(110).gives=69
 tiles(110).hitt="you start to shoot at the Petshop"
 tiles(110).turnsinto=110
 tiles(110).desc="The Petshop"
+tiles(110).movecost=3
 
 tiles(111).tile=asc("#")
 tiles(111).col=12
@@ -1037,6 +1108,7 @@ tiles(111).gives=74
 tiles(111).hitt="you start to shoot at Beasts of Burden"
 tiles(111).turnsinto=111
 tiles(111).desc="Beasts of Burden"
+tiles(111).movecost=3
 
 tiles(112).tile=asc("#")
 tiles(112).col=10
@@ -1046,7 +1118,7 @@ tiles(112).gives=75
 tiles(112).hitt="you start to shoot at Used Ships"
 tiles(112).turnsinto=112
 tiles(112).desc="Used Ships"
-
+tiles(112).movecost=3
 
 
 tiles(126).tile=64 
@@ -1055,6 +1127,7 @@ tiles(126).bgcol=0
 tiles(126).desc="An alien spaceship"
 tiles(126).seetru=1
 tiles(126).hides=2
+tiles(126).movecost=3
 
 tiles(127).tile=asc("C")
 tiles(127).col=15
@@ -1066,81 +1139,97 @@ tiles(128).tile=64
 tiles(128).col=11
 tiles(128).desc="A stranded light scout"
 tiles(128).hides=2
+tiles(128).movecost=3
 
 tiles(129).tile=64
 tiles(129).col=11
 tiles(129).desc="A stranded long range fighter"
 tiles(129).hides=2
+tiles(129).movecost=3
 
 tiles(130).tile=64
 tiles(130).col=11
 tiles(130).desc="A stranded light transport"
 tiles(130).hides=2
+tiles(130).movecost=3
 
 tiles(131).tile=64
 tiles(131).col=11
 tiles(131).desc="A stranded troop transport"
 tiles(131).hides=2
+tiles(131).movecost=3
 
 tiles(132).tile=64
 tiles(132).col=11
 tiles(132).desc="A stranded heavy scout"
 tiles(132).hides=2
+tiles(132).movecost=3
 
 tiles(133).tile=64
 tiles(133).col=11
 tiles(133).desc="A stranded cruiser"
 tiles(133).hides=2
+tiles(133).movecost=3
 
 tiles(134).tile=64
 tiles(134).col=11
 tiles(134).desc="A stranded heavy transport"
 tiles(134).hides=2
+tiles(134).movecost=3
 
 tiles(135).tile=64
 tiles(135).col=11
 tiles(135).desc="A stranded dropship"
 tiles(135).hides=2
+tiles(135).movecost=3
 
 tiles(136).tile=64
 tiles(136).col=11
 tiles(136).desc="A stranded explorer"
 tiles(136).hides=2
+tiles(136).movecost=3
 
 tiles(137).tile=64
 tiles(137).col=11
 tiles(137).desc="A stranded destroyer"
 tiles(137).hides=2
+tiles(137).movecost=3
 
 tiles(138).tile=64
 tiles(138).col=11
 tiles(138).desc="A stranded merchantman"
 tiles(138).hides=2
+tiles(138).movecost=3
 
 tiles(139).tile=64
 tiles(139).col=11
 tiles(139).desc="A stranded troop carrier"
 tiles(139).hides=2
+tiles(139).movecost=3
 
 tiles(140).tile=64
 tiles(140).col=11
 tiles(140).desc="A stranded heavy explorer"
 tiles(140).hides=2
+tiles(140).movecost=3
 
 tiles(141).tile=64
 tiles(141).col=11
 tiles(141).desc="A stranded battleship"
 tiles(141).hides=2
+tiles(141).movecost=3
 
 tiles(142).tile=64
 tiles(142).col=11
 tiles(142).desc="A stranded armed merchantman"
 tiles(142).hides=2
+tiles(142).movecost=3
 
 tiles(143).tile=64
 tiles(143).col=11
 tiles(143).desc="A stranded heavy troop carrier"
 tiles(143).hides=2
+tiles(143).movecost=3
 
 tiles(144).tile=35
 tiles(144).col=7
@@ -1152,6 +1241,7 @@ tiles(144).turnsinto=47
 tiles(144).seetru=1
 tiles(144).firetru=1
 tiles(144).hides=2
+tiles(144).movecost=3
 
 tiles(145).tile=34
 tiles(145).col=15
@@ -1161,6 +1251,7 @@ tiles(145).dr=-1
 tiles(145).hp=2
 tiles(145).turnsinto=14
 tiles(145).hides=2
+tiles(145).movecost=3
 
 tiles(146).tile=34
 tiles(146).col=-9
@@ -1182,6 +1273,7 @@ tiles(148).seetru=1
 tiles(148).firetru=1
 tiles(148).locked=2
 tiles(148).hides=2
+tiles(148).movecost=3
 
 tiles(149).tile=asc("@")
 tiles(149).col=7
@@ -1279,7 +1371,7 @@ tiles(155).shootable=1
 tiles(155).dr=-1
 tiles(155).hp=1
 tiles(155).killt="You destroy the tripwire"
-
+tiles(155).movecost=2
 
 tiles(156).tile=asc("+") 'closed door
 tiles(156).col=8
@@ -1307,6 +1399,7 @@ tiles(157).shootable=1
 tiles(157).dr=-1
 tiles(157).hp=30
 tiles(157).turnsinto=4
+tiles(157).movecost=3
 
 tiles(158).tile=176
 tiles(158).col=1    
@@ -1339,6 +1432,7 @@ tiles(160).disease=16
 tiles(161).tile=asc("=")
 tiles(161).col=125
 tiles(161).desc="A shallow pool. the analysis of the liquid shows that it contains all the basic building blocks for life, similiar to a primordeal soup."
+tiles(161).movecost=2
 
 tiles(162).tile=asc("*")
 tiles(162).col=1
@@ -1359,6 +1453,7 @@ tiles(164).firetru=1
 tiles(164).gives=18
 tiles(164).turnsinto=164
 tiles(164).hides=2
+tiles(164).movecost=3
 
 tiles(165).tile=34
 tiles(165).col=121
@@ -1369,6 +1464,7 @@ tiles(165).shootable=1
 tiles(165).dr=-1
 tiles(165).hp=1
 tiles(165).turnsinto=3
+tiles(165).movecost=2
 
 tiles(166).tile=34
 tiles(166).col=121
@@ -1377,7 +1473,7 @@ tiles(166).shootable=1
 tiles(166).dr=-1
 tiles(166).hp=1
 tiles(166).turnsinto=3
-
+tiles(166).movecost=2
 
 tiles(167).tile=asc("C")
 tiles(167).col=15
@@ -1390,16 +1486,19 @@ tiles(168).col=13
 tiles(168).bgcol=6
 tiles(168).walktru=5
 tiles(168).desc="A domeshaped forcefield covers a turret with a disintegrator cannon"
+tiles(168).movecost=4
 
 tiles(169).tile=157
 tiles(169).col=7
 tiles(169).desc="A turret with a disintegrator cannon"
 tiles(169).gives=887
 tiles(169).turnsinto=170
+tiles(169).movecost=3
 
 tiles(170).tile=157
 tiles(170).col=7
 tiles(170).desc="A turret"
+tiles(170).movecost=3
 
 tiles(171).tile=35
 tiles(171).desc="Building"
@@ -1413,6 +1512,7 @@ tiles(171).hp=30
 tiles(171).turnsinto=47
 tiles(171).seetru=1
 tiles(171).firetru=1
+tiles(171).movecost=3
 
 
 tiles(172).tile=asc("T")
@@ -1427,6 +1527,7 @@ tiles(172).hides=2
 tiles(173).tile=asc("@")
 tiles(173).col=56
 tiles(173).desc="A space ship under construction"
+tiles(173).movecost=4
 
 tiles(175).tile=176
 tiles(175).walktru=4
@@ -1457,6 +1558,7 @@ tiles(179).turnsoninspect=3
 tiles(179).hitt="Fermenting gases in the spice sand explode!"
 tiles(179).tohit=5
 tiles(179).dam=10
+tiles(179).movecost=2
 
 tiles(181).tile=35
 tiles(181).col=8
@@ -1474,6 +1576,7 @@ tiles(181).hp=20
 tiles(181).turnsinto=47
 tiles(181).seetru=1
 tiles(181).firetru=1
+tiles(181).movecost=3
 
 tiles(182).tile=35
 tiles(182).col=14
@@ -1486,6 +1589,7 @@ tiles(182).seetru=1
 tiles(182).firetru=1
 tiles(182).locked=2
 tiles(182).hides=2
+tiles(182).movecost=3
 
 
 tiles(183).tile=asc("T")
@@ -1496,6 +1600,7 @@ tiles(183).dr=1
 tiles(183).turnsinto=183
 tiles(183).gives=7
 tiles(183).hides=2
+tiles(183).movecost=3
 
 tiles(184).tile=35
 tiles(184).col=14
@@ -1506,14 +1611,17 @@ tiles(184).seetru=1
 tiles(184).firetru=1
 tiles(184).locked=2
 tiles(184).hides=2
+tiles(184).movecost=3
 
 tiles(185).tile=asc(".")
 tiles(185).col=1
 tiles(185).desc="a dark spongy surface, consisting of long chains of silicone oxygen molecules."
+tiles(185).movecost=4
 
 tiles(186).tile=asc(".")
 tiles(186).col=218
 tiles(186).desc="smooth rock"
+tiles(186).movecost=0
 
 tiles(187).tile=asc("^")
 tiles(187).col=-36
@@ -1566,6 +1674,7 @@ tiles(192).desc="crystal shards"
 tiles(192).gives=40
 tiles(192).turnsinto=4
 tiles(192).hides=2
+tiles(192).movecost=3
 
 tiles(193).tile=asc("^")
 tiles(193).col=-1
@@ -1616,6 +1725,7 @@ tiles(200).bgcol=0
 tiles(200).walktru=2
 tiles(200).desc="space"
 tiles(200).oxyuse=1
+tiles(200).movecost=3
 
 tiles(201).tile=176
 tiles(201).col=7
@@ -1643,11 +1753,13 @@ tiles(203).dr=3
 tiles(203).hp=20
 tiles(203).succt="You damage the door"
 tiles(203).failt="The doors are too strong for you to seriously damage"
+tiles(203).movecost=2
 
 tiles(204).tile=asc("/")
 tiles(204).col=7
 tiles(204).desc="door"
 tiles(204).onclose=205
+tiles(204).movecost=2
 
 tiles(205).tile=asc("+")
 tiles(205).col=7
@@ -2308,12 +2420,17 @@ tiles(305).spawnson=45
 tiles(305).spawntext="A battle robot leaves the ship!"
 tiles(305).spawnswhat=8
 tiles(305).spawnsmax=58
-tiles(304).firetru=1
-tiles(304).shootable=1
-tiles(304).dr=10
-tiles(304).hp=90
-tiles(304).succt="You damage the ancient alien scoutship"
-tiles(304).failt="Your weapons are too weak to seriously damage the ancient alien scoutship."
+tiles(155).dam=-6
+tiles(155).range=5
+tiles(155).tohit=80
+tiles(155).hitt="The ship fires at you as you approach!"
+tiles(305).firetru=1
+tiles(305).shootable=1
+tiles(305).dr=10
+tiles(305).hp=90
+tiles(305).succt="You damage the ancient alien scoutship"
+tiles(305).failt="Your weapons are too weak to seriously damage the ancient alien scoutship."
+tiles(305).movecost=3
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

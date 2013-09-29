@@ -93,7 +93,7 @@ function meet_fleet(f as short)as short
         eris_does
         return 0
     endif
-    if player.turn>lastturncalled+2 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
+    if player.turn>lastturncalled+10 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
         if fleet(f).fighting=0 then
             if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 and fleet(f).ty<>1 then 'Merchants never attack 
                 q=1
@@ -105,6 +105,10 @@ function meet_fleet(f as short)as short
                 if fleet(f).ty=2 and fleet(f).con(15)<rnd_range(1,20) then
                     'Friendly pirates
                     q=friendly_pirates(f)
+                    lastturncalled=player.turn
+                    display_stars(1)
+                    display_ship
+                    return 0
                 endif
             endif
             if q=0 and f>5 then question="There is "&add_a_or_an(fname(fleet(f).ty),0) &" hailing us."
@@ -1216,8 +1220,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.speed<=1 then enemy.speed=1
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then
             if a=1 or rnd_range(1,100)>66 then
-                enemy.stuff(2)=1 'Vögel können fliegen
-                enemy.stuff(1)=1
+                enemy.movetype=mt_fly
             endif
         endif
         'Looks
@@ -1261,9 +1264,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if a=24 and rnd_range(1,100)>50 then g=11
         enemy.tile=ch(g)
         enemy.sprite=261+g
-        if g=1 then enemy.stuff(2)=1 'Spinnen klettern
+        if g=1 then enemy.movetype=mt_climb 'Spinnen klettern
         if g=6 then enemy.intel=enemy.intel+1
-        if g=9 or a=24 then enemy.stuff(1)=1
+        if g=9 or a=24 then enemy.movetype=mt_climb
         if g=10 then enemy.speed+=3
         if rnd_range(1,100)<15-enemy.intel*2 then enemy.disease=rnd_range(1,15)
         enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
@@ -1271,8 +1274,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
         enemy.hpmax=enemy.hp
         enemy.sdesc=ti(g)
-        enemy=randomcritterdescription(enemy,g,enemy.hp/planets(map).grav,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
-        if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,1,planets(map).depth)
+        enemy=randomcritterdescription(enemy,g,enemy.hp/planets(map).grav,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)
+        if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,1,planets(map).depth)
         if rnd_range(1,15)<planets(map).depth then
             enemy.breedson=rnd_range(0,5+planets(map).depth)
         endif
@@ -1352,16 +1355,15 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.diet=1
         enemy.speed=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))
         
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.ti_no=g+750
         enemy.atcost=rnd_range(6,8)
         if enemy.speed<=1 then enemy.speed=1
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then 
-            enemy.stuff(2)=1 'Vögel können fliegen
-            enemy.stuff(1)=1
+            enemy.movetype=mt_fly
             g=1
-            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         else
             if rnd_range(1,100)<33 then
             enemy.hasoxy=1
@@ -1411,7 +1413,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             If planets(map).depth>0 then
                 enemy.stunres=8
                 enemy.ti_no=1054
-                enemy.stuff(5)=1
+                enemy.movetype=mt_dig
                 enemy.track=4
                 enemy.weapon=5
                 enemy.speed=7
@@ -1429,7 +1431,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.lang=-1
-        if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
+        if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
     endif
     
@@ -1476,8 +1478,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.respawns=0
         enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))
         if enemy.speed<=4 then enemy.speed=4
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
@@ -1536,7 +1537,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.lang=4
         enemy.weapon=4
         enemy.range=1.5
-        enemy.hp=rnd_range(20,35)
+        enemy.hp=rnd_range(50,60)
         enemy.armor=2
         enemy.hpmax=enemy.hp
         enemy.aggr=0
@@ -1546,9 +1547,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=14
         enemy.scol=11
         enemy.atcost=rnd_range(3,4)
-        for l=1 to 5
-            enemy.stuff(l)=1
-        next
+        enemy.movetype=mt_ethereal
         enemy.hasoxy=1
         enemy.stunres=4
         enemy.intel=5
@@ -1574,8 +1573,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.respawns=0
         enemy.speed=7
-        enemy.stuff(2)=1 
-        enemy.stuff(1)=1
+        enemy.movetype=mt_fly
         'Looks
         enemy.dhurt="hurt"
         enemy.dkill="dies"
@@ -1682,8 +1680,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.respawns=1
         enemy.breedson=12
         enemy.speed=2
-        enemy.stuff(2)=0 
-        enemy.stuff(1)=1
+        enemy.movetype=mt_climb
         enemy.atcost=rnd_range(6,8)
         'Looks
         enemy.dhurt="hurt"
@@ -1793,7 +1790,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=4
         enemy.intel=5
         enemy.hp=4
-        enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
         if a=88 then 
@@ -1822,9 +1818,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.diet=4 'Resources
         enemy.sight=35
         enemy.pumod=60
-        for l=1 to 5
-            enemy.stuff(l)=1
-        next
+        enemy.movetype=mt_fly
         enemy.atcost=rnd_range(6,8)
         
         enemy.range=rnd_range(1,4)+0.5
@@ -1879,8 +1873,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.speed=(rnd_range(1,5)+rnd_range(1,5)-rnd_range(0,enemy.weapon))
         if enemy.speed<=1 then enemy.speed=1
         if rnd_range(1,100)<(planets(map).atmos-1)*10/planets(map).grav then 
-            enemy.stuff(2)=1 'Vögel können fliegen
-            enemy.stuff(1)=1
+            enemy.movetype=mt_fly
         endif
         'Looks
         enemy.dhurt="hurt"
@@ -1888,10 +1881,10 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.lang=-1
         g=rnd_range(0,4)
         enemy.tile=ch(g)
-        if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
+        if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
         enemy.sdesc=ti(g)
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)
         enemy.sprite=270+g
         enemy.biomod=2.3
     endif
@@ -1936,12 +1929,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.respawns=1
         enemy.speed=(rnd_range(0,4)+rnd_range(0,3)-rnd_range(0,enemy.weapon))
         if enemy.speed<=1 then enemy.speed=1
-        if enemy.tile=22 then enemy.stuff(2)=1 'Spinnen klettern
-        enemy.stuff(1)=0
-        enemy.stuff(2)=0
-        enemy.stuff(3)=0
-        enemy.stuff(4)=0
-        enemy.stuff(5)=0
+        if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         'Looks
         enemy.cmmod=rnd_range(1,2)
         enemy.dhurt="hurt"
@@ -2193,7 +2181,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.stunres=9
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_ethereal
         enemy.aggr=0
         enemy.sight=4
         enemy.dhurt="hurt"
@@ -2230,7 +2218,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.atcost=12
-        enemy.stuff(1)=0
         enemy.col=23
         enemy.speed=3
         enemy.aggr=1
@@ -2258,7 +2245,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.tile=Asc("*")
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
-        enemy.stuff(1)=0
         enemy.col=236
         enemy.aggr=0
         enemy.speed=6
@@ -2316,7 +2302,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
         enemy.hp=enemy.hpmax
-        enemy.stuff(1)=0
         enemy.col=236
         enemy.aggr=0
         enemy.speed=7
@@ -2447,20 +2432,19 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.speed>9 then enemy.speed=9
         if enemy.speed<1 then enemy.speed=1
         enemy.invis=2
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         enemy.atcost=5
         enemy.atcost=rnd_range(6,8)
         if rnd_range(1,100)<(planets(map).atmos-1)*10/planets(map).grav then 
-            enemy.stuff(2)=1 'Vögel können fliegen
-            enemy.stuff(1)=1
+            enemy.movetype=mt_fly
             g=1
-            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         endif
         'Looks
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.lang=-1
-        if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
+        if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
     endif
     
@@ -2528,7 +2512,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
-        enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
         enemy.faction=1
@@ -2600,15 +2583,14 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.diet=1
         enemy.speed=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))/10
         
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.atcost=rnd_range(6,8)
         if enemy.speed>9 then enemy.speed=9
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then 
-            enemy.stuff(2)=1 'Vögel können fliegen
-            enemy.stuff(1)=1
+            enemy.movetype=mt_fly
             g=1
-            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.stuff(2),enemy.pumod,enemy.diet,0,planets(map).depth)        
+            enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         else
             if rnd_range(1,100)<33 then
             select case planets(map).temp
@@ -2656,7 +2638,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             endif
             If planets(map).depth>0 then
                 enemy.ti_no=1054
-                enemy.stuff(5)=1
+                enemy.movetype=mt_dig
                 enemy.track=4
                 enemy.weapon=5
                 enemy.speed=2
@@ -2675,7 +2657,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sdesc="mutated "&enemy.sdesc
         enemy.ldesc="mutated "&enemy.ldesc
         enemy.disease=16
-        if enemy.tile=22 then enemy.stuff(1)=1 'Spinnen klettern
+        if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
     endif
     
@@ -2697,7 +2679,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.armor=rnd_range(0,1)
         enemy.tile=asc("Q")
-        enemy.stuff(1)=1
+        enemy.movetype=mt_hover
         enemy.sprite=277
         enemy.cmmod=15
         enemy.col=rnd_range(180,185)
@@ -2865,7 +2847,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=4
         enemy.hp=4
         enemy.speed=6
-        enemy.stuff(1)=0
         enemy.col=9
         enemy.aggr=1
         enemy.faction=9
@@ -2883,10 +2864,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
-        enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))/10
+        enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))
         if enemy.speed<=5 then enemy.speed=6
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.allied=2
         enemy.intel=5
@@ -2949,8 +2929,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))
         if enemy.speed<=5 then enemy.speed=6
         if enemy.speed>9 then enemy.speed=9
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         enemy.biomod=0
         enemy.col=rnd_range(17,19)
         enemy.scol=10
@@ -3251,7 +3230,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.tile=asc("Z")
         enemy.col=rnd_range(192,197)
         enemy.speed=9
-        enemy.stuff(5)=1
+        enemy.movetype=mt_ethereal
         enemy.hpmax=enemy.hp
         enemy.faction=5
     endif
@@ -3324,9 +3303,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.enemy=1
         enemy.pumod=6
         enemy.atcost=rnd_range(6,8)
-        for l=1 to 5
-            enemy.stuff(l)=1
-        next
+        
+        enemy.movetype=rnd_range(0,2)
         enemy.range=rnd_range(1,4)+0.5
         if enemy.range<=2.5 then
             enemy.scol=11
@@ -3397,8 +3375,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.armor=7
         enemy.hasoxy=1
         enemy.sprite=180
-        enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
-        enemy.stuff(1)=0
+        enemy.hp=24+rnd_range(2,15)+rnd_range(2,15)
+        enemy.hpmax=enemy.hp
         enemy.col=239
         enemy.aggr=0
         enemy.speed=9
@@ -3427,7 +3405,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=1073
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_fly2
         enemy.aggr=0
         enemy.sight=4
         enemy.speed=5
@@ -3451,7 +3429,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=1074
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_fly2
         enemy.aggr=0
         enemy.sight=4
         enemy.speed=5
@@ -3475,7 +3453,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=1075
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_fly2
         enemy.aggr=0
         enemy.sight=4
         enemy.speed=8
@@ -3497,7 +3475,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=1076
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_fly2
         enemy.aggr=0
         enemy.sight=4
         enemy.speed=2
@@ -3521,7 +3499,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=1077
         enemy.hp=rnd_range(30,100)+rnd_range(30,100)
         enemy.atcost=rnd_range(6,8)
-        enemy.stuff(4)=1
+        enemy.movetype=mt_fly2
         enemy.aggr=0
         enemy.sight=4
         enemy.dhurt="hurt"
@@ -3558,7 +3536,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hasoxy=1
         enemy.sprite=180
         enemy.hpmax=14+rnd_range(2,5)+rnd_range(2,5)
-        enemy.stuff(1)=0
         enemy.col=240
         enemy.aggr=0
         enemy.speed=8
@@ -3603,8 +3580,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))
         if enemy.speed<=5 then enemy.speed=6
         if enemy.speed>9 then enemy.speed=9
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=2
@@ -3640,8 +3616,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.intel=5
         enemy.biomod=0
@@ -3689,7 +3664,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
-        enemy.stuff(1)=0
         enemy.col=39
         enemy.aggr=1
     endif
@@ -3709,9 +3683,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.speed=(rnd_range(0,4)+rnd_range(0,3)+rnd_range(0,enemy.weapon))
         if enemy.speed<=5 then enemy.speed=6
         if enemy.speed>9 then enemy.speed=9
-        
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=2
@@ -3749,8 +3721,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=10
@@ -3795,8 +3766,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.speed<=5 then enemy.speed=6
         if enemy.speed>9 then enemy.speed=9
         
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=2
@@ -3834,8 +3804,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.respawns=0
         enemy.intel=5
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=10
@@ -3886,7 +3855,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=1
         enemy.hp=1
-        enemy.stuff(1)=0
         enemy.col=39
         enemy.aggr=1
     endif
@@ -3921,9 +3889,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hasoxy=1
         enemy.sight=35
         enemy.pumod=60
-        for l=1 to 5
-            enemy.stuff(l)=1
-        next
+        enemy.movetype=rnd_range(0,2)
     endif
     
     if a=82 then
@@ -3933,9 +3899,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hasoxy=1
         enemy.sight=35
         enemy.pumod=60
-        for l=1 to 5
-            enemy.stuff(l)=1
-        next
+        enemy.movetype=rnd_range(0,2)
     endif
     
     
@@ -4010,7 +3974,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=4
         enemy.hp=4
-        enemy.stuff(1)=0
         enemy.col=23
         enemy.aggr=1
         enemy.faction=1
@@ -4028,8 +3991,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=2
@@ -4066,8 +4028,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(3,6)
         enemy.aggr=0
         enemy.respawns=0
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=10
@@ -4114,7 +4075,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=24
         enemy.hp=24
         enemy.weapon=1
-        enemy.stuff(1)=0
+        
         enemy.col=23
         enemy.aggr=1
         enemy.faction=5
@@ -4177,7 +4138,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=2
         enemy.faction=9
         enemy.biomod=1
-        enemy.stuff(1)=1
+        enemy.movetype=mt_hover
         enemy.hasoxy=1
     endif
     
@@ -4200,7 +4161,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=1.5
         enemy.dhurt="hurt"
         enemy.dkill="killed"
-        enemy.stuff(1)=1
+        enemy.movetype=mt_hover
         enemy.hasoxy=1
     endif
     
@@ -4225,7 +4186,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=2
         enemy.dhurt="hurt"
         enemy.dkill="killed"
-        enemy.stuff(1)=1
+        enemy.movetype=mt_hover
         enemy.hasoxy=1
     endif
     
@@ -4244,7 +4205,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=1
         enemy.dhurt="hurt"
         enemy.dkill="killed"
-        enemy.stuff(1)=1
+        enemy.movetype=mt_hover
         enemy.hasoxy=1
     endif
     
@@ -4272,7 +4233,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=2
         enemy.dhurt="hurt"
         enemy.dkill="killed"
-        enemy.stuff(2)=1
+        enemy.movetype=mt_fly
     endif
     
     
@@ -4302,7 +4263,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.biomod=5
         enemy.dhurt="hurt"
         enemy.dkill="killed"
-        enemy.stuff(2)=1
+        
+        enemy.movetype=mt_fly
     endif
     
     if a=98 then 'Citizen
@@ -4328,7 +4290,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=7
         enemy.swhat="shoots a disintegrator"
         enemy.scol=12
-        enemy.stuff(1)=0
+        
+        enemy.movetype=rnd_range(0,2)
         enemy.col=23
         enemy.aggr=1
         enemy.items(1)=97
@@ -4357,7 +4320,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=1
         enemy.hp=1
-        enemy.stuff(1)=0
         enemy.col=39
         enemy.aggr=1
         enemy.faction=10
@@ -4384,7 +4346,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sprite=286
         enemy.hpmax=3
         enemy.hp=3
-        enemy.stuff(1)=0
         enemy.col=39
         enemy.aggr=1
     endif
@@ -4449,8 +4410,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.speed<=6 then enemy.speed=7
         if enemy.speed>9 then enemy.speed=9
         
-        enemy.stuff(1)=rnd_range(0,1)
-        enemy.stuff(2)=rnd_range(0,1)
+        enemy.movetype=rnd_range(0,2)
         'Looks
         enemy.biomod=0
         enemy.col=2
