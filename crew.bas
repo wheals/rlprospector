@@ -229,8 +229,8 @@ function healawayteam(byref a as _monster,heal as short) as short
         doc=0
     endif
     do
-    ex=0
-        for b=1 to a.hpmax
+        ex=0
+        for b=1 to 128
             if heal>0 and crew(b).hp<crew(b).hpmax and crew(b).hp>0 then
                 heal=heal-1
                 if h=1 then h=2
@@ -430,14 +430,14 @@ function damawayteam(dam as short, ap as short=0,disease as short=0) as string
             changemoral(-3*killed(b),0)
         endif
     next
-    hpdisplay(awayteam)
+    
     #ifdef _FMODSOUND
     if configflag(con_damscream)=0 then 
         FSOUND_PlaySound(FSOUND_FREE, sound(12))
         sleep 100
     endif
     #endif
-    sleep 50
+    sleep 25
 
     if reequip=1 then equip_awayteam(player.map)
     if local_debug=1 then text=text & " Out:"&dam
@@ -1138,7 +1138,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).typ=15
             crew(slot).talents(28)=1
             crew(slot).paymod=2
-            crew(slot).atcost=4
+            crew(slot).atcost=6
         endif  
         
         if a=18 then 'green
@@ -1877,7 +1877,7 @@ function equip_awayteam(m as short) as short
     
     crewcount=crewcount-squadlcount*5
     if crewcount<0 then crewcount=0
-    awayteam.speed=4+awayteam.movetype+add_talent(-1,24,0)-crewcount/20
+    awayteam.speed=10+awayteam.movetype+add_talent(-1,24,0)-crewcount/20
     
     return 0
 end function

@@ -1,5 +1,5 @@
 'Master debug switch: Do not touch!
-const _debug=0'154'2809'2709
+const _debug=510'154'2809'2709
 
 #DEFINE _WINDOWS
 #DEFINE _FMODSOUND 
@@ -540,6 +540,7 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
     dim as string reason
     awayteam=delaway
     debug=1
+    
     p.x=lx
     p.y=ly
     if lx=0 and ly=0 then p=rnd_point(mapslot,0)
@@ -552,11 +553,16 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
         if mapslot=specialplanet(30) and findbest(89,-1)=-1 then mapslot=specialplanet(29)
         if mapslot=specialplanet(29) then specialflag(30)=1
         if configflag(con_warnings)=0 and player.hull=1 and planets(mapslot).depth=0 then
-            if not askyn("Pilot: 'Are you sure captain? I can't guarantee i get this bucket up again'(Y/N)",14) then return 0
+            if not askyn("Pilot: 'Are you sure captain? I can't guarantee I get this bucket up again'(Y/N)",14) then return 0
         endif
+        if _debug=510 then 
+            dprint sys &","&mapslot
+        endif
+        
         if mapslot>0 then
             set__color(11,0)
             cls
+            
             if planetmap(0,0,mapslot)=0 then makeplanetmap(mapslot,slot,map(sys).spec)
             awayteam.hp=0
             for b=1 to 128
@@ -1299,9 +1305,9 @@ function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
                 if a mod 10=0 then
                     screenset 0,1
                     cls
-                    display_planetmap(pl,calcosx(item(i).w.x,planets(pl).depth),1)
+                    display_planetmap(pl,calcosx(item(i).w.x,planets(pl).depth),0)
                     display_ship(0)
-                    
+                    display_awayteam(1)
                     if _debug>0 then dprint cords(item(i).w) &" curr :"& curr &" last :"&last
                     flip
                 endif
@@ -1754,7 +1760,7 @@ function move_ship(key as string) as _ship
     dim as short a,dam,hydrogenscoop
     dim scoop as single
     static fuelcollect as byte
-    dim old as _cords
+    dim as _cords old,p
     if artflag(23)>0 then
         if player.hull<player.h_maxhull and player.turn mod 10=0 then player.hull+=1
     endif
@@ -1892,9 +1898,11 @@ function move_ship(key as string) as _ship
                         if player.di=5 then player.di=9
                     case is=10
                         dprint "Something catapults you out of the anomaly!"
+                        p=player.c
                         for a=0 to rnd_range(1,6)
-                            player.c=movepoint(player.c,player.di,,1)
+                            p=movepoint(p,player.di,,1)
                         next
+                        wormhole_ani(p)
                     case is=11
                         if rnd_range(1,100)<10+spacemap(player.c.x,player.c.y) then 
                             player.c=map(rnd_range(laststar+1,laststar+wormhole)).c
@@ -2541,8 +2549,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     dim as single dawn,dawn2
     dim as string key,dkey,allowed,text,help
     dim dam as single
-    dim as _cords p,p1,p2,p3,nextlanding,old
-    dim as _cords nextmap
+    dim as _cords p,p1,p2,p3,nextlanding,old,nextmap
     dim towed as _ship
     dim as short skill
     dim mapmask(60,20) as byte
@@ -3204,78 +3211,31 @@ endif
         if configflag(con_warnings)=0 and nightday(awayteam.c.x)=1 and nightday(old.x)<>1 then dprint "The sun rises"
         if configflag(con_warnings)=0 and nightday(awayteam.c.x)=2 and nightday(old.x)<>2 then dprint "The sun sets"
         
-        old=awayteam.c
-        if walking<>0 then
-            if walking<0 then
-                tmap(awayteam.c.x,awayteam.c.y).hp-=1
-                awayteam.add_move_cost
-                displaytext(loceol.y)=displaytext(loceol.y-1) &"."
-                if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
-                    walking=0
-                    dprint "complete."   
-                    key=key_inspect
-                endif
-            else
-                if walking<10 then
-                    awayteam.c=movepoint(awayteam.c,walking)
-                endif
-                if walking=12 then
-                    if currapwp=lastapwp then
-                        'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
-                        lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
-                        currapwp=0
-                    endif
-                    if lastapwp>0 then
-                        currapwp+=1
-                        'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
-                        if awayteam.movetype>=tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).walktru or tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).onopen<>0 then
-                            awayteam.c=apwaypoints(currapwp)
-                            awayteam.c.m=old.m
-                        else
-                            walking=0
-                        endif
-                    else
-                        walking=0
-                    endif
-
-                endif
-            endif
-        else
-            if rnd_range(1,100)<110+countdeadofficers(awayteam.hpmax) then
-                awayteam.c=movepoint(awayteam.c,getdirection(key),3)
-                if getdirection(key)<>0 then
-                    key=""
-                endif
-            else
-                dprint "Your security personel want to return to the ship.",14
-                if rnd_range(1,100)<66 then
-                    awayteam.c=movepoint(awayteam.c,nearest(player.landed,awayteam.c))
-                    
-                else
-                    awayteam.c=movepoint(awayteam.c,5)
-                endif
-            endif
-        endif
-        ep_playerhitmonster(old,mapmask())
-        ep_checkmove(old,key)
-        
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
         mapmask(awayteam.c.x,awayteam.c.y)=-9
         
         localturn=localturn+1
             
         if localturn mod 100=0 then 
-            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
-            if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
             com_sinkheat(player,0)
             ep_lava(lavapoint())
             lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
+            ep_shipfire(shipfire())
+            ep_items(li(),lastlocalitem,localturn)
+            walking=alerts()
+            screenset 0,1
+            set__color(11,0)
+            cls
+            display_planetmap(slot,osx,0)
+            ep_display (li(),lastlocalitem)
+            display_awayteam()
+            ep_display_clouds(cloudmap())
+            
+            dprint("")
+            flip
         endif
         
-        ep_shipfire(shipfire())
-        ep_items(li(),lastlocalitem,localturn)
-        walking=alerts()
         if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
         deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
         
@@ -3297,6 +3257,14 @@ endif
             ep_display_clouds(cloudmap())
             display_awayteam()
             dprint ("")
+            
+            ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
+            equip_awayteam(slot)
+            if awayteam.movetype=2 or awayteam.movetype=3 then allowed=allowed &key_ju
+            if awayteam.movetype=4 then allowed=allowed &key_te
+            'displayplanetmap(slot,awayteam.c.x-_mwx/2)
+            'ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
+            'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
             flip
             set__color(11,0)
             cls
@@ -3306,25 +3274,88 @@ endif
             ep_display_clouds(cloudmap())
             
             dprint("")
-            ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,key,localtemp(awayteam.c.x,awayteam.c.y))
-            equip_awayteam(slot)
-            if awayteam.movetype=2 or awayteam.movetype=3 then allowed=allowed &key_ju
-            if awayteam.movetype=4 then allowed=allowed &key_te
-            'displayplanetmap(slot,awayteam.c.x-_mwx/2)
-            'ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
-            dprint("")
             walking=0
         endif
         
-        ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
-        ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
-        if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li())
-        if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(li(),lastlocalitem,localturn)
-        healawayteam(awayteam,0)
-        key=""
-        if (player.dead=0 and awayteam.e.tick=-1) or walking<>0 then 
-            'Display all stuff
+        
+        if (player.dead=0 and awayteam.e.tick=-1) then 
+            
+            screenset 0,1
+            set__color(11,0)
+            cls
+            display_planetmap(slot,osx,0)
+            ep_display (li(),lastlocalitem)
+            display_awayteam()
+            ep_display_clouds(cloudmap())
+            
+            dprint("")
+            flip
+            if nextmap.m=0 then key=(keyin(allowed,walking))
+            
+            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
+            if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
+            healawayteam(awayteam,0)
+                
+            old=awayteam.c
+            if walking<>0 then
+                if walking<0 then
+                    tmap(awayteam.c.x,awayteam.c.y).hp-=1
+                    awayteam.add_move_cost
+                    displaytext(loceol.y)=displaytext(loceol.y-1) &"."
+                    if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
+                        walking=0
+                        dprint "complete."   
+                        key=key_inspect
+                    endif
+                else
+                    if walking<10 then
+                        awayteam.c=movepoint(awayteam.c,walking)
+                    endif
+                    if walking=12 then
+                        if currapwp=lastapwp then
+                            'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
+                            lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
+                            currapwp=0
+                        endif
+                        if lastapwp>0 then
+                            currapwp+=1
+                            'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
+                            if awayteam.movetype>=tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).walktru or tmap(apwaypoints(currapwp).x,apwaypoints(currapwp).y).onopen<>0 then
+                                awayteam.c=apwaypoints(currapwp)
+                                awayteam.c.m=old.m
+                            else
+                                walking=0
+                            endif
+                        else
+                            walking=0
+                        endif
+    
+                    endif
+                endif
+            else
+                if rnd_range(1,100)<110+countdeadofficers(awayteam.hpmax) then
+                    awayteam.c=movepoint(awayteam.c,getdirection(key),3)
+                    if getdirection(key)<>0 then
+                        key=""
+                    endif
+                else
+                    dprint "Your security personel want to return to the ship.",14
+                    if rnd_range(1,100)<66 then
+                        awayteam.c=movepoint(awayteam.c,nearest(player.landed,awayteam.c))
+                        
+                    else
+                        awayteam.c=movepoint(awayteam.c,5)
+                    endif
+                endif
+            endif
+            ep_playerhitmonster(old,mapmask())
+            ep_checkmove(old,key)
+            ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
+            ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
+            if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li())
+            if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(li(),lastlocalitem,localturn)
+            
+        'Display all stuff
             screenset 0,1
             set__color(11,0)
             cls
@@ -3335,6 +3366,7 @@ endif
             ep_display (li(),lastlocalitem)
             ep_display_clouds(cloudmap())
             display_awayteam()
+                        
             ep_atship()
         
             comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
@@ -3352,7 +3384,6 @@ endif
             flip
             'screenset 1,1
             
-            if nextmap.m=0 then key=(keyin(allowed,walking))
             if rnd_range(1,100)<disease(awayteam.disease).nac then 
                 key=""
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
@@ -4596,13 +4627,19 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim SLBonus(255) as byte
     dim as string echo1,echo2
     dim slbc as byte
-    dim as short slot,xpgained,tacbonus
+    dim as short slot,xpgained,tacbonus,targetnumber
     
     slot=player.map
     #ifdef _FMODSOUND
     if configflag(con_sound)=0 or configflag(con_sound)=2 then FSOUND_PlaySound(FSOUND_FREE, sound(3))
     #endif
-    if defender.stuff(2)=1 then mname="flying "
+    if defender.movetype=mt_fly then 
+        mname="flying "
+        targetnumber=15
+    else
+        targetnumber=12
+    endif
+    targetnumber+=defender.speed/2
     mname=mname &defender.sdesc
     if first=-1 or last=-1 then
         first=0
@@ -4632,13 +4669,13 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
         if crew(a).hp>0 and crew(a).onship=0 and crew(a).disease=0 and distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 then
             slbc+=1
             if distance(defender.c,attacker.c)>1.5 then
-                if skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),13+defender.movetype*3,echo1) then 
+                if skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),targetnumber,echo1) then 
                     b=b+attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
                     xpstring=gainxp(a) 
                     xpgained+=1
                 endif
             else
-                if skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),13+defender.movetype*3,echo2) then 
+                if skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),targetnumber,echo2) then 
                     b=b+maximum(attacker.secweapc(a),attacker.secweap(a))+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
                     xpstring=gainxp(a) 
                     xpgained+=1
@@ -4657,22 +4694,22 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
        b=b-defender.armor
        if b>0 then 
             if player.tactic<>3 then
-                text=" You hit for " & b &" points of damage." 
+                text=text &" You hit for " & b &" points of damage." 
                 defender.hp=defender.hp-b
             else
                 if defender.stunres<10 then
                     b=b/2
                     b=(b*((10-defender.stunres)/10))
-                    text=" You hit for " & b &" nonlethal points of damage." 
+                    text=text &" You hit for " & b &" nonlethal points of damage." 
                     defender.hpnonlethal+=b
                 else
                     b=b/2
                     defender.hp-=b
                 endif
             endif
-            if defender.hp/defender.hpmax<0.8 then wtext ="The " & mname &" is slightly "&defender.dhurt &" "
-            if defender.hp/defender.hpmax<0.5 then wtext ="The " & mname &" is "&defender.dhurt &" "
-            if defender.hp/defender.hpmax<0.3 then wtext ="The " & mname &" is badly "&defender.dhurt &" "
+            if defender.hp/defender.hpmax<0.8 then wtext =" The " & mname &" is slightly "&defender.dhurt &". "
+            if defender.hp/defender.hpmax<0.5 then wtext =" The " & mname &" is "&defender.dhurt &". "
+            if defender.hp/defender.hpmax<0.3 then wtext =" The " & mname &" is badly "&defender.dhurt &". "
             text=text &wtext
             col=10
         else

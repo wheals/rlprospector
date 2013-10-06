@@ -61,12 +61,16 @@ function ep_areaeffects(areaeffect() as _ae,byref last_ae as short,lavapoint() a
                                     if rnd_range(1,100)<15-distance(p1,areaeffect(a).c) then lavapoint(rnd_range(1,5))=p1
                                     if rnd_range(1,100)<3 then 
                                         lastlocalitem=lastlocalitem+1
-                                        lastitem=lastitem+1
-                                        li(lastlocalitem)=lastitem
-                                        item(lastitem)=makeitem(96,-3,-3)
-                                        item(lastitem).w.x=x
-                                        item(lastitem).w.y=y
-                                        item(lastitem).w.m=slot
+                                        if lastlocalitem<=256 then
+                                            lastitem=lastitem+1
+                                            li(lastlocalitem)=lastitem
+                                            item(lastitem)=makeitem(96,-3,-3)
+                                            item(lastitem).w.x=x
+                                            item(lastitem).w.y=y
+                                            item(lastitem).w.m=slot
+                                        else
+                                            lastlocalitem=256
+                                        endif
                                     endif
                                             
                                     for b=1 to lastenemy
@@ -1646,10 +1650,11 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
     else
         tempchange=11-planets(slot).dens*2/orbit
     endif
+    dprint "TC:"&tempchange
     for x=0 to 60
         for y=0 to 20
-            if nightday(x)=3 then localtemp(x,y)=localtemp(x,y)-tempchange
-            if nightday(x)=0 then localtemp(x,y)=localtemp(x,y)+tempchange
+            if nightday(x)=3 then localtemp(x,y)=localtemp(x,y)+tempchange'Day
+            if nightday(x)=0 then localtemp(x,y)=localtemp(x,y)-tempchange'Night
         
             if x>0 and x<60 and y>0 and y<20 then
                 if tmap(x,y).no=204 or tmap(x,y).no=202 then
@@ -1855,7 +1860,7 @@ end function
 
 function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
     dim deadcounter as short
-    dim as short a,b,c,slot,ti,f,osx,cmoodto
+    dim as short a,b,c,slot,ti,f,osx,cmoodto,someonemoved
     dim moa as byte 'monster attack
     dim as _cords p1,p2
     dim as single tb,dam
@@ -1882,7 +1887,12 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
         if enemy(a).c.x>60 then enemy(a).c.x=60
         if enemy(a).c.y>20 then enemy(a).c.x=20
         locate enemy(a).c.y+1,enemy(a).c.x+1
-        if enemy(a).hp>0 then            
+        if enemy(a).hp>0 then
+            if enemy(a).e.tick=-1 then  
+                if enemy(a).sleeping>0 then enemy(a).sleeping-=(1+enemy(a).reg)
+            
+                if enemy(a).sleeping<=0 then
+            someonemoved=1
             'changes mood
             if enemy(a).aggr=1 and enemy(a).made<>101 then
                 if rnd_range(1,100)>(20+enemy(a).diet)*distance(enemy(a).c,awayteam.c) then 
@@ -2097,9 +2107,8 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 endif
             endif
             
-            if enemy(a).sleeping>0 then enemy(a).sleeping-=(1+enemy(a).reg)
             
-            if enemy(a).e.tick=-1 then' enemy(a).m>0.9 and enemy(a).sleeping<=0 and enemy(a).hpnonlethal<=enemy(a).hp and enemy(a).invis<2
+            ' enemy(a).m>0.9 and enemy(a).sleeping<=0 and enemy(a).hpnonlethal<=enemy(a).hp and enemy(a).invis<2
                 x=enemy(a).c.x
                 y=enemy(a).c.y
                 mapmask(enemy(a).c.x,enemy(a).c.y)=0
@@ -2124,11 +2133,12 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 endif
                 if enemy(a).speed>0 then enemy(a)=movemonster(enemy(a), p1, mapmask(),tmap())
                 mapmask(enemy(a).c.x,enemy(a).c.y)=3
-            endif
             
             if enemy(a).hasoxy=0 and (planets(slot).atmos=1 or vacuum(enemy(a).c.x,enemy(a).c.y)=1) then
                 enemy(a).hp=enemy(a).hp-1
                 if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc &" is struggling for air!"
+            endif
+            endif
             endif
         else
             deadcounter=deadcounter+1
@@ -2264,6 +2274,18 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
     next
     if debug=1 and _debug=1 then dprint "Attacked this turn:"&text
     adisdeadcounter=deadcounter
+    if someonemoved=1 then
+        
+        screenset 0,1
+        set__color(11,0)
+        cls
+        display_planetmap(slot,osx,0)
+        ep_display (li(),lastlocalitem)
+        display_awayteam()
+
+        dprint("")
+        flip
+    endif
     return deadcounter
 end function
 
@@ -2570,12 +2592,12 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
                     dprint "We already are at that position."
                     player.landed.m=slot
                 else
-                    ship_landing=distance(p,nextlanding)/2
+                    ship_landing=20*distance(p,nextlanding,1)/2
                     if ship_landing<1 then ship_landing=1
                     if crew(2).onship=lc_onship then
-                        dprint "ETA in "&ship_landing &". See you there."
+                        dprint "ETA in "&int(ship_landing/20) &". See you there."
                     else
-                        dprint "ETA in "&ship_landing &". Putting her down there by remote control."
+                        dprint "ETA in "&int(ship_landing/20) &". Putting her down there by remote control."
                     endif
                 endif
             endif
@@ -2863,7 +2885,7 @@ function ep_playerhitmonster(old as _cords, mapmask() as byte) as short
                                 else
                                     dprint "You squeeze past the "&enemy(a).sdesc &"."
                                     swap awayteam.c,enemy(a).c
-                                    enemy(a).e.add_action(3)
+                                    enemy(a).add_move_cost
                                     awayteam.e.add_action(2)
                                 endif
                             else

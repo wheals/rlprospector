@@ -1,7 +1,7 @@
 function make_localitemlist(li() as short,slot as short) as short
     dim as short i,ll
     for i=0 to lastitem
-        if item(i).w.m=slot and item(i).w.s=0 and ll<=255 then
+        if item(i).w.m=slot and item(i).w.s=0 and ll<=128 then
             if _debug=9 then dprint "ll."&ll
             if _debug=9 and item(i).ty=18 then dprint "Rover " &i & "at "&ll
             ll+=1
@@ -3451,51 +3451,82 @@ function next_item(c as integer) as integer
 end function
     
 
-function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0) as short
-    dim as short b,a,set,lastinv,lastinv2,swapflag,tylabel,c,f,debug
+function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0,noequip as short=0) as short
+    dim as short b,a,set,lastinv,lastinv2,swapflag,tylabel,c,f,debug,equipnum(1024),isequipment
     dim as _items inv(ubound(invit))
     dim as Short invn(ubound(invit))
+    if noequip=1 then
+        noequip=0
+        for a=0 to 128
+            if crew(a).blad>0 then
+                noequip+=1
+                equipnum(noequip)=crew(a).blad
+            endif
+            if crew(a).weap>0 then
+                noequip+=1
+                equipnum(noequip)=crew(a).weap
+            endif
+            if crew(a).armo>0 then
+                noequip+=1
+                equipnum(noequip)=crew(a).armo
+            endif
+
+        next
+        for a=0 to lastitem
+            if item(a).w.s=-2 then 
+                noequip+=1
+                equipnum(noequip)=a
+            endif
+        next
+    endif
+        
     for a=0 to lastitem
         if _debug=1 and ty=67 and item(a).ty=ty then dprint item(a).desig &":"&item(a).w.s
         if item(a).w.s<0 and ((ty=0 and ty2=0 and ty3=0 and ty4=0) or (item(a).ty=ty or item(a).ty=ty2 or item(a).ty=ty3 or item(a).ty=ty4)) then 'Item on ship
             if _debug=1 and ty=67 and item(a).ty=ty then dprint "Adding"&item(a).desig &":"&item(a).w.s
-        
-            set=0
-            if lastinv>0 then
-                for b=1 to lastinv
-                    if a<>inv(b).w.s then
-                        
-                        if inv(b).id=item(a).id and inv(b).ty=item(a).ty and item(a).ty<>15 then
-                           if _debug=1 and ty=67 then dprint "More of same"
-                           invn(b)+=1
-                           if _debug=1 and debug=22 then inv(b).desigp &=a
-                           set=1
-                           if _debug=1 and debug=22 then
-                               f=freefile
-                               open "itemadded.txt" for append as #f
-                               print #f,a &";"& b &";"& item(a).desig  &";"& item(a).id &"invn"&invn(b)&"§"& inv(b).desig
-                               close #f
-                            endif
-                        endif
-                        if item(a).ty=15 then
-                            if inv(b).ty=15 and inv(b).v2=item(a).v2 and inv(b).v1=item(a).v1 then
-                                
-                                invn(b)+=1
-                                set=1
-                            endif
-                        endif
-                    endif
+            if noequip>0 then
+                for b=1 to noequip
+                    if equipnum(b)=a then isequipment=1
                 next
             endif
-            if set=0 then
-                if _debug=1 and ty=67 then dprint "New entry"
-                               
-                lastinv+=1
-                inv(lastinv)=item(a)
-                inv(lastinv).w.s=a
-                invn(lastinv)=1 
-
-               
+            if not(isequipment=1 and noequip=1) then 
+                set=0
+                if lastinv>0 then
+                    for b=1 to lastinv
+                        if a<>inv(b).w.s then
+                            
+                            if inv(b).id=item(a).id and inv(b).ty=item(a).ty and item(a).ty<>15 then
+                               if _debug=1 and ty=67 then dprint "More of same"
+                               invn(b)+=1
+                               if _debug=1 and debug=22 then inv(b).desigp &=a
+                               set=1
+                               if _debug=1 and debug=22 then
+                                   f=freefile
+                                   open "itemadded.txt" for append as #f
+                                   print #f,a &";"& b &";"& item(a).desig  &";"& item(a).id &"invn"&invn(b)&"§"& inv(b).desig
+                                   close #f
+                                endif
+                            endif
+                            if item(a).ty=15 then
+                                if inv(b).ty=15 and inv(b).v2=item(a).v2 and inv(b).v1=item(a).v1 then
+                                    
+                                    invn(b)+=1
+                                    set=1
+                                endif
+                            endif
+                        endif
+                    next
+                endif
+                if set=0 then
+                    if _debug=1 and ty=67 then dprint "New entry"
+                                   
+                    lastinv+=1
+                    inv(lastinv)=item(a)
+                    inv(lastinv).w.s=a
+                    invn(lastinv)=1 
+    
+                   
+                endif
             endif
         endif
         if debug=22 and _debug=1 then
@@ -3621,7 +3652,7 @@ function getrnditem(fr as short,ty as short) as short
     return i
 end function
 
-function get_item(ty as short=0,ty2 as short=0,byref num as short=0) as short
+function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequ as short=0) as short
     dim as short last,marked,i,c,debug,j
     dim as _items inv(255)
     dim as short invn(255)
@@ -3629,7 +3660,7 @@ function get_item(ty as short=0,ty2 as short=0,byref num as short=0) as short
     debug=1
     i=1
     if debug=1 and _debug=1 then dprint "Getting itemlist:ty:"&ty &"ty2"&ty2
-    last=get_item_list(inv(),invn())
+    last=get_item_list(inv(),invn(),,,,,noequ)
     if ty<>0 or ty2<>0 then
         marked=1
         do

@@ -106,7 +106,7 @@ end type
 const IHDR_SIZE as uinteger = sizeof( struct_ihdr )
 
 'Done with png stuff
-
+dim shared as byte someonemoved
 dim shared as byte _tix=24
 dim shared as byte _tiy=24
 dim shared _debugflag(1) as byte
@@ -665,7 +665,7 @@ type _fleet
     declare function speed() as short
     declare function count() as short
     declare function add_move_cost() as short
-    con(15) as short ' Old ship storage con(0)=Nicety of pirates con(1)=Escorting
+    con(15) as short ' Old ship storage con(0)=Nicety of pirates con(1)=Escorting,con(2)=lastbattle
     mem(15) as _ship 'Actual ship storage
 end type
 
@@ -2122,6 +2122,7 @@ declare function add_caves() as short
 declare function add_piratebase() as short
 declare function distribute_stars() as short
 
+
 declare function makefinalmap(m as short) as short
 declare function makecomplex(byref enter as _cords, down as short,blocked as byte=0) as short
 declare function makecomplex2(slot as short,gc1 as _cords, gc2 as _cords, roundedcorners1 as short,roundedcorners2 as short,nocol1 as short,nocol2 as short,doorchance as short,loopchance as short,loopdoor as short,adddoor as short,addloop as short,nosmallrooms as short,culdesacruns as short, t as short) as short
@@ -2294,7 +2295,7 @@ declare function station_goods(st as short,tb as byte) as string
 declare function cargobay(text as string,st as short,sell as byte=0) as string
 declare function getinvbytype(t as short) as short
 declare function removeinvbytype(t as short, am as short) as short
-declare function get_item_list(inv() as _items, invn()as short, ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0) as short
+declare function get_item_list(inv() as _items, invn()as short, ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0,noequip as short=0) as short
 declare function display_item_list(inv() as _items, invn() as short, marked as short, l as short,x as short,y as short) as short
 declare function make_localitemlist(li() as short,slot as short) as short
 
@@ -2313,7 +2314,7 @@ declare function findbest(t as short,p as short=0, m as short=0,id as short=0) a
 declare function makeitem(a as short,mod1 as short=0,mod2 as short=0,prefmin as short=0,nomod as byte=0) as _items
 declare function modify_item(i as _items) as _items
 declare function placeitem(i as _items,x as short=0,y as short=0,m as short=0,p as short=0,s as short=0) as short
-declare function get_item(ty as short=0,ty2 as short=0,byref num as short=0) as short
+declare function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequip as short=0) as short
 declare function buysitems(desc as string,ques as string, ty as short, per as single=1,agrmod as short=0) as short
 declare function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
 declare function changetile(x as short,y as short,m as short,t as short) as short
@@ -2483,9 +2484,9 @@ end function
 
 function _monster.add_move_cost() as short
     dim as short cost
-    cost=10*((10-speed)*planets(player.map).grav)
-    cost+=tmap(c.x,c.y).movecost*5
-    if made=0 and player.tactic=2 then cost-=10 '
+    cost=(20-speed)*planets(player.map).grav
+    cost+=tmap(c.x,c.y).movecost
+    if made=0 and player.tactic=2 then cost-=1 '
     if cost<=0 then cost=1
     e.add_action(cost)
     return 0

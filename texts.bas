@@ -725,7 +725,7 @@ function crew_bio(i as short) as string
     dim t as string
     dim as short a
     dim as byte debug=0
-    if crew(i).typ<=9 then
+    if crew(i).typ<=9 or (crew(i).typ>=14 and crew(i).typ<=16) then
         t="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
         select case crew(i).story(0)
         case is =1

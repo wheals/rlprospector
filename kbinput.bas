@@ -254,7 +254,6 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
     return key
 end function
 
-
 function cursor(target as _cords,map as short,osx as short,osy as short=0,radius as short=0) as string
     dim key as string
     dim as _cords p2
