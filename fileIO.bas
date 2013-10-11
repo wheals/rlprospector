@@ -2736,7 +2736,13 @@ function load_game(filename as string) as short
         
     endif
     
-    
+    if _debug=1110 then
+        f=freefile
+        open "Fleetdump.csv" for output as #f
+        for a=0 to lastfleet
+            print #f,a &";"&fleet(a).ty &";"&fleet(a).fighting
+        next
+    endif
     
     return 0
     

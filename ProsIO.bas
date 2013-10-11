@@ -952,7 +952,7 @@ function display_ship(show as byte=0) as short
     endif
     wl+=6
     
-    display_comstring(wl)
+    comstr.display(wl)
     set__color( 11,0)
     if player.tractor=0 then player.towed=0
     return wl+4
@@ -1137,35 +1137,9 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         draw string(sidebar,l*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
         if debug=1 and _debug=1 then draw string(sidebar,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
     
-        display_comstring(l+2)
+        comstr.display(l+2)
 
         
-    return 0
-end function
-
-
-function display_comstring(wl as short) as short
-    dim as string ws(40)
-    dim as short last,b,start,room,needed,parts
-    static counter as byte
-    counter+=1
-    if comstr="" then return 0
-    last=string_towords(ws(),comstr,";")
-    room=_lines-wl
-    needed=last
-    parts=needed/room
-    if counter>=parts then counter=0
-    if parts>1 then
-        start=(last/parts)*counter
-        last=(last/parts)*(counter+1)
-    endif
-    if last>40 then last=40
-    if start>last then start=last-room
-    if start<0 then start=0
-    for b=start to last
-        set__color(15,0)
-        draw string(sidebar,(b+wl-start)*_fh2),ws(b),,Font2,custom,@_col
-    next
     return 0
 end function
 
@@ -1270,15 +1244,15 @@ function display_portals(slot as short,osx as short) as short
 end function
 
 function display_monsters(osx as short) as short
-    dim as short a,comdead,comalive
+    dim as short a
     dim as _cords p
     for a=1 to lastenemy
         if enemy(a).hp<=0 then
             p.x=enemy(a).c.x
             p.y=enemy(a).c.y
-            if awayteam.c.x=p.x and awayteam.c.y=p.y and comdead=0 then 
-                comstr=comstr &key_inspect &" Inspect;"
-                comdead=1 'only add it once
+            if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comdead=0 then 
+                comstr.t=comstr.t &key_inspect &" Inspect;"
+                comstr.comdead=1 'only add it once
             endif
             if  p.y>=0 and p.y<=20 then 'vis_test(awayteam.c,p,planets(slot).depth)=-1 and
                 if vismask(p.x,p.y)>0 then
@@ -1297,9 +1271,9 @@ function display_monsters(osx as short) as short
         if enemy(a).ti_no=-1 then enemy(a).ti_no=rnd_range(0,8)+1500 'Assign sprite range
         if enemy(a).hp>0 then
             p=enemy(a).c
-            if comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then 
-                comstr=comstr & key_co &" Chat, " & key_of &" Offer;"
-                comalive=1
+            if comstr.comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then 
+                comstr.t=comstr.t & key_co &" Chat, " & key_of &" Offer;"
+                comstr.comalive=1
             endif
             if p.x-osx>=0 and p.x-osx<=_mwx and p.y>=0 and p.y<=20 then                
                 if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
@@ -1312,7 +1286,6 @@ function display_monsters(osx as short) as short
                     if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if configflag(con_tiles)=0 then
                             put ((p.x-osx)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
-                            if _debug>0 then draw string ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),"e:"&enemy(a).e.e,,font2,custom,@_tcol
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif

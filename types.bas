@@ -238,6 +238,8 @@ end type
 '    return 0
 'end function
 '
+
+
 type _energycounter
     e as integer
     declare function add_action(v as integer) as integer
@@ -791,6 +793,29 @@ type _comment
     t as string*32
     l as short
 end type
+
+type _commandstring
+    t as string
+    comdead as byte
+    comalive as byte
+    comportal as byte
+    comitem as byte
+    page as byte
+    counter as byte
+    declare function reset() as short
+    declare function display(wl as short) as short
+end type
+
+function _commandstring.reset() as short
+    t=""
+    comdead=0
+    comalive=0
+    comportal=0
+    comitem=0
+    page=0
+    return 0
+end function
+
 
 type _table
     points as integer
@@ -1540,7 +1565,7 @@ end enum
 dim shared standardphrase(sp_last-1,2) as string
 dim shared talent_desc(29) as string
     
-dim shared comstr as string
+dim shared comstr as _commandstring
 
 dim shared palette_(255) as uinteger
 dim shared _swidth as byte=35'Length of line in a shop
@@ -1954,7 +1979,6 @@ declare function display_star(a as short,fbg as byte=0) as short
 declare function display_planetmap(slot as short,xos as short,bg as byte) as short
 declare function display_station(a as short) as short
 declare function display_ship(show as byte=0) as short
-declare function display_comstring(wl as short) as short
 declare function add_stations() as short
 
 declare function display_ship_weapons(m as short=0) as short
@@ -2048,7 +2072,7 @@ declare function make_alienship(slot as short, t as short) as short
 declare function makecivfleet(slot as short) as _fleet
 declare function civfleetdescription(f as _fleet) as string
 declare function string_towords(word() as string, s as string, break as string, punct as short=0) as short
-declare function set_fleet(fl as _fleet) as short
+declare function set_fleet(fl as _fleet)as short
 
 declare function com_vismask(c as _cords) as short
 declare function com_display(defender as _ship, attacker() as _ship, marked as short, e_track_p() as _cords,e_track_v()as short,e_map() as byte,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short) as short
@@ -2491,3 +2515,29 @@ function _monster.add_move_cost() as short
     e.add_action(cost)
     return 0
 end function
+
+
+function _commandstring.display(wl as short) as short
+    dim as string ws(40)
+    dim as short last,b,start,room,needed,parts
+    counter+=1
+    if comstr.t="" then return 0
+    last=string_towords(ws(),comstr.t,";")
+    room=_lines-wl
+    needed=last
+    parts=needed/room
+    if counter>=parts then counter=0
+    if parts>1 then
+        start=(last/parts)*counter
+        last=(last/parts)*(counter+1)
+    endif
+    if last>40 then last=40
+    if start>last then start=last-room
+    if start<0 then start=0
+    for b=start to last
+        set__color(15,0)
+        draw string(sidebar,(b+wl-start)*_fh2),ws(b),,Font2,custom,@_col
+    next
+    return 0
+end function
+

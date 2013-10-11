@@ -31,8 +31,6 @@ function logbook() as short
         endif
     next
 '    
-    dprint "Press " &key_sc &" or enter to choose system. ESC to exit."
-    
     do
         screenset 0,1
         cls
@@ -76,7 +74,7 @@ function logbook() as short
             next
         next
         
-        
+        dprint "Logbook: Press " &key_sc &" or enter to choose system. ESC to exit.",15
         
         if lobn(curs)>=0 then
             if debug=1 and _debug=1 and key="t" then player.c=lobp(curs)

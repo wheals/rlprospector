@@ -251,6 +251,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
         if just_run>0 then just_run-=1
         if key=key__esc then just_run=0
     endif
+    comstr.reset
     return key
 end function
 

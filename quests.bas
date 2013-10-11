@@ -2011,7 +2011,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
             if e.aggr=1 then
                 if findbest(23,1)<>-1 and rnd_range(1,6)+ rnd_range(1,6)<2*e.intel then
                     if item(findbest(23,-1)).v1=3 then 
-                        dprint "It says 'That doesnt belong to you, give it back!'"
+                        dprint "It says 'That doesn't belong to you, give it back!'"
                         e.cmmod=e.cmmod-rnd_range(1,4)
                     else
                         dprint "It says 'You have pretty things!'"
@@ -3341,17 +3341,17 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                     placeitem(it,0,0,0,0,-1)
                 endif
             else
-               dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+               dprint "The "&e.sdesc &" doesn't want the "& item(a).desig &"."
             endif
         case else
             if item(a).ty=13 and rnd_range(1,6) +rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
-                dprint "The "&e.sdesc &" eats the "& item(a).desig
+                dprint "The "&e.sdesc &" eats the "& item(a).desig &"."
                 e.sleeping=e.sleeping+item(a).v1
                 if e.sleeping>0 then dprint "And falls asleep!"
                 item(a)=item(lastitem)
                 lastitem=lastitem-1
             else
-                dprint "The "&e.sdesc &" doesnt want the "& item(a).desig
+                dprint "The "&e.sdesc &" does'nt want the "& item(a).desig & "."
             endif
         end select
     endif
@@ -3520,7 +3520,10 @@ function give_quest(st as short) as short
                 if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 200 credits. Do you accept? (y/n)" ) then
                     bay=getnextfreebay
                     if bay<=0 then 
-                        if askyn("Do you want to make room for the cargo (losing "& goodsname(player.cargo(1).x-1) &")?(y/n)") then bay=1
+                        if askyn("Do you want to make room for the cargo ?(y/n)") then 
+                            sellgoods(10)
+                            bay=getnextfreebay
+                        endif
                     endif
                     if bay>0 then
                         player.cargo(bay).x=12 'type=specialcargo

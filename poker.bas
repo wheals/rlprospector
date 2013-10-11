@@ -41,11 +41,13 @@ function play_poker(st as short) as short
             p(i).pot=0
             p(i).in=1
             p(i).fold=0
+            p(i).rank=0
             for j=1 to 5
                 p(i).card(j)=0
             next
         next
-        p(4).in=1
+        winner=0
+        
         for i=1 to 52
             card(i)=i
         next
@@ -74,6 +76,7 @@ function play_poker(st as short) as short
             p(l).pot=1
         next
         
+            
         if not paystuff(rules.bet) then
             dprint "You don't have enough money to enter the game."
             return 0
@@ -192,7 +195,8 @@ function play_poker(st as short) as short
             p(l).money-=(p(l).pot*rules.bet)
         next 
         
-        if winner=4 then
+        
+        if winner=4 or (folded=3 and p(4).fold=0) then
             dprint "You win "&credits((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet) &" Cr.",c_gre
             addmoney((p(1).pot+p(2).pot+p(3).pot+p(4).pot)*rules.bet,mt_gambling)
         endif
@@ -627,6 +631,7 @@ function draw_poker_table(p() as _pokerplayer,reveal as short=0,winner as short=
     tacticname(9)="Extremly bold"
     
     display_ship(0)
+    p(4).win=ace_highlo_eval(p(4).card(),0)
     for i=1 to 4
         set__color(11,0)
         if p(i).in=1 then

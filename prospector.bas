@@ -1,8 +1,8 @@
 'Master debug switch: Do not touch!
-const _debug=510'154'2809'2709
+const _debug=0'154'2809'2709
 
 #DEFINE _WINDOWS
-#DEFINE _FMODSOUND 
+'#DEFINE _FMODSOUND 
 '#DEFINE _OSX
 '#define FBEXT_NO_EXTERNAL_LIBS -1
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)    
@@ -1475,7 +1475,7 @@ function spacestation(st as short) as _ship
     set__color(11,0)
     cls
     basis(st).docked+=1
-    comstr=""
+    comstr.reset
     display_ship
     
     if player.turn>0 then
@@ -2078,12 +2078,12 @@ function explore_space() as short
                 fleetcom=1
             endif
             
-            comstr=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
-            if planetcom>0 then comstr=comstr & key_sc &" scan;"& key_la &" land;"& key_tala &" target land;"
-            if fleetcom=1 then comstr=comstr &key_fi &" attack;"
-            if driftercom=1 then comstr=comstr &key_dock &" dock;"
-            if wormcom=1 then comstr=comstr &key_la &" enter wormhole;"
-            if artflag(25)>0 then comstr=comstr &key_te &" wormhole generator"
+            comstr.t=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
+            if planetcom>0 then comstr.t=comstr.t & key_sc &" scan;"& key_la &" land;"& key_tala &" target land;"
+            if fleetcom=1 then comstr.t=comstr.t &key_fi &" attack;"
+            if driftercom=1 then comstr.t=comstr.t &key_dock &" dock;"
+            if wormcom=1 then comstr.t=comstr.t &key_la &" enter wormhole;"
+            if artflag(25)>0 then comstr.t=comstr.t &key_te &" wormhole generator"
             display_ship(1)
             if planetcom>0 then display_system(planetcom-1)
             
@@ -2096,7 +2096,7 @@ function explore_space() as short
             fleetcom=0
             driftercom=0
             wormcom=0
-            comstr=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
+            comstr.t=key_ra &" call by radio;"&key_drop &" launch probe;"&key_comment &" comment;" 
             
             
             if debug=11 and _debug=1 and key="ü" then
@@ -2682,18 +2682,18 @@ function explore_planet(from as _cords, orbit as short) as _cords
     allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he _
      & key_la & key_pickup & key_inspect & key_ex & key_of & key_co & key_drop & key_gr & key_wait _
      & key_portal &key_oxy &key_close & key_report &key_autofire &key_autoexplore
-    comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"_
+    comstr.t=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"_
      & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"_
      & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
             
     if rev_map=1 then allowed=allowed &"ä"
     if awayteam.movetype=2 or awayteam.movetype=3 then 
         allowed=allowed &key_ju
-        comstr=comstr &key_ju &" Jetpackjump;"
+        comstr.t=comstr.t &key_ju &" Jetpackjump;"
     endif
     if artflag(9)=1 then 
         allowed=allowed &key_te
-        comstr=comstr &key_te &" Teleport;"
+        comstr.t=comstr.t &key_te &" Teleport;"
     endif
     
     if planets(slot).atmos=0 then planets(slot).atmos=1
@@ -3203,7 +3203,7 @@ endif
         if (tmap(awayteam.c.x,awayteam.c.y).no=1 or tmap(awayteam.c.x,awayteam.c.y).no=26 or tmap(awayteam.c.x,awayteam.c.y).no=20) and awayteam.hp<=awayteam.nohp*5 then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if tmap(awayteam.c.x,awayteam.c.y).oxyuse<0 then awayteam.oxygen=awayteam.oxygen-tmap(awayteam.c.x,awayteam.c.y).oxyuse
         if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
-        
+                
         adislastenemy=lastenemy
         adisloctemp=localtemp(awayteam.c.x,awayteam.c.y)
         adisloctime=nightday(awayteam.c.x)
@@ -3216,7 +3216,7 @@ endif
         
         localturn=localturn+1
             
-        if localturn mod 100=0 then 
+        if localturn mod 10=0 then 
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
             com_sinkheat(player,0)
             ep_lava(lavapoint())
@@ -3369,11 +3369,11 @@ endif
                         
             ep_atship()
         
-            comstr=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
-            comstr=comstr & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
-            comstr=comstr & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
-            if awayteam.movetype=2 or awayteam.movetype=3 then comstr=comstr &key_ju &" Jetpackjump;"
-            if artflag(9)=1 then comstr=comstr &key_te &" Teleport;"
+            comstr.t=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
+            comstr.t=comstr.t & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
+            comstr.t=comstr.t & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
+            if awayteam.movetype=2 or awayteam.movetype=3 then comstr.t=comstr.t &key_ju &" Jetpackjump;"
+            if artflag(9)=1 then comstr.t=comstr.t &key_te &" Teleport;"
     
             set__color( 11,0)
             for x=0 to 60
@@ -4230,7 +4230,6 @@ function space_radio() as short
             dodialog(4,dummy,-i)
         else
             dprint "They don't answer."
-        
         endif
         
     end select

@@ -2283,48 +2283,51 @@ function buy_engine() as short
             if i>player.h_maxengine then hetxt &= "|This engine is too big for your ship."
             hetxt &="/"
         next
-        hetxt &="special landing struts designed to make landing in all kinds of terrain easier/Special landing struts designed to make landing in all kinds of terrain easier"
+        hetxt &="special landing struts designed to make landing in all kinds of terrain easier/Special landing struts designed to make landing in all kinds of terrain easier."
         hetxt &="/Adds 1 pt to movement"
-        if player.manjets=1 then hetxt &="|You already have these maneuvering jets"
+        if player.manjets=1 then hetxt &="|You already have these maneuvering jets."
         hetxt &="/Add 2 pts to movement"
-        if player.manjets=2 then hetxt &="|You already have these maneuvering jets"
+        if player.manjets=2 then hetxt &="|You already have these maneuvering jets."
         hetxt &="/Adds 3 pts to movement"
-        if player.manjets=3 then hetxt &="|You already have these maneuvering jets"
+        if player.manjets=3 then hetxt &="|You already have these maneuvering jets."
     
         d=menu(bg_parent,metxt,hetxt)
         if d<6 and d<=player.h_maxengine then
-            if d<player.engine then dprint "You already have a better engine"
-            if d=player.engine then dprint "You already have this engine"
+            if d<player.engine then dprint "You already have a better engine."
+            if d=player.engine then dprint "You already have this engine."
             if d>player.engine and d<6 then
                 if paystuff(iprice(d)) then
                     player.engine=d
-                    dprint "You upgrade your engine"
+                    dprint "You upgrade your engine."
                     display_ship()
                     d=6
                 endif
             endif
         else
-            if d<6 then dprint "That engine doesnt fit in your hull"
+            if d<6 then dprint "That engine doesn't fit in your hull."
             if d=6 then 
                 if paystuff(250) then
-                    dprint "You buy all terrain landing gear"
+                    dprint "You buy all terrain landing gear."
                     placeitem(makeitem(75),,,,,-1)
                 endif
             endif
             if d=7 then 
                 if paystuff(500) then
-                    dprint "You buy an improved all terrain landing gear"
+                    dprint "You buy improved all terrain landing gear."
                     placeitem(makeitem(76),,,,,-1)
                 endif
             endif
+            
+            
+            
             if d=8 then
                 if paystuff(250) then
                     if player.manjets<1 then
-                        dprint "You buy Maneuver Jets I"
+                        dprint "You buy Maneuver Jets I."
                         player.manjets=1
                     else
-                        if player.manjets>1 then dprint "you alrealdy have better maneuvering jets"
-                        if player.manjets=1 then dprint "you alrealdy have these maneuvering jets"
+                        if player.manjets>1 then dprint "you alrealdy have better maneuvering jets."
+                        if player.manjets=1 then dprint "you alrealdy have these maneuvering jets."
                         player.money=player.money+250 'Just returning money
                     endif
                 endif
@@ -2333,11 +2336,11 @@ function buy_engine() as short
             if d=9 then
                 if paystuff(500) then
                     if player.manjets<2 then
-                        dprint "You buy Maneuver Jets II"
+                        dprint "You buy Maneuver Jets II."
                         player.manjets=2
                     else
-                        if player.manjets>2 then dprint "you alrealdy have better maneuvering jets"
-                        if player.manjets=2 then dprint "you alrealdy have these maneuvering jets"
+                        if player.manjets>2 then dprint "you alrealdy have better maneuvering jets."
+                        if player.manjets=2 then dprint "you alrealdy have these maneuvering jets."
                         player.money=player.money+500 'returning money
                     endif
                 endif
@@ -2346,11 +2349,11 @@ function buy_engine() as short
             if d=10 then
                 if paystuff(1000) then
                     if player.manjets<3 then
-                        dprint "You buy Maneuver Jets III"
+                        dprint "You buy Maneuver Jets III."
                         player.manjets=3
                     else
-                        if player.manjets>3 then dprint "you alrealdy have better maneuvering jets"
-                        if player.manjets=3 then dprint "you alrealdy have these maneuvering jets"
+                        if player.manjets>3 then dprint "you alrealdy have better maneuvering jets."
+                        if player.manjets=3 then dprint "you alrealdy have these maneuvering jets."
                         player.money=player.money+1000 'Returning money
                     endif
                 endif

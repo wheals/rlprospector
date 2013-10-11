@@ -126,7 +126,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
     screenset 0,1
     cls
     l=display_ship(0)
-    last=string_towords(ws(),comstr,";")
+    last=string_towords(ws(),comstr.t,";")
     for d=1 to last
         set__color(15,0)
         draw string((_mwx+2)*_fw1,(d+l)*_fh2),ws(d),,Font2,custom,@_col
@@ -159,9 +159,9 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                 if player.c.x=0 or player.c.y=0 or player.c.x=60 or player.c.y=20 then f=-1
                 
                 if f<>0 then 
-                    comstr= key_fi &" to fire weapons;"&key_drop &" to drop mines;"&key_sc &" to scan enemy ships;"& key_ra & " to call opponents;" &key_ru & " to run and flee."
+                    comstr.t= key_fi &" to fire weapons;"&key_drop &" to drop mines;"&key_sc &" to scan enemy ships;"& key_ra & " to call opponents;" &key_ru & " to run and flee."
                 else
-                    comstr= key_drop &" to drop mines;"& key_ra & " to call opponents;" &key_ru & " to run and flee."
+                    comstr.t= key_drop &" to drop mines;"& key_ra & " to call opponents;" &key_ru & " to run and flee."
                 endif
                 'set__color( 11,0
                 'draw string(62*_fw1,5*_fh2), "Engine :"&player.engine &" ("&speed(0) &" MP)",,Font2,custom,@_col

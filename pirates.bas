@@ -374,7 +374,7 @@ function decide_if_fight(f1 as short,f2 as short) as short
     
     
     fighting=0
-    
+    if fleet(f1).ty<0 or fleet(f2).ty<0 or fleet(f1).ty>7 or fleet(f2).ty>7 then return 0
     aggr1=faction(fleet(f1).ty).war(fleet(f2).ty)
     aggr2=faction(fleet(f2).ty).war(fleet(f1).ty)
     

@@ -348,9 +348,9 @@ function ep_checkmove(byref old as _cords,key as string) as short
     
     if tmap(awayteam.c.x,awayteam.c.y).locked>0 then
         if not(skill_test(player.science(1)+c,7+tmap(awayteam.c.x,awayteam.c.y).locked,"Science")) then' or (tmap(awayteam.c.x,awayteam.c.y).onopen>0 and tmap(awayteam.c.x,awayteam.c.y).locked=0) then
-        dprint "Your science officer can't bypass the doorlocks"
-        awayteam.c=old
-        walking=0
+            dprint "Your science officer can't bypass the doorlocks"
+            awayteam.c=old
+            walking=0
         endif
     else
         tmap(awayteam.c.x,awayteam.c.y).locked=0
@@ -435,7 +435,7 @@ function ep_checkmove(byref old as _cords,key as string) as short
         endif
     endif
     if old.x=awayteam.c.x and old.y=awayteam.c.y then
-        if walking>0 and walking<10 and walking<>12 then walking=0
+        if walking>0 and walking<10 then walking=0
     else
         awayteam.add_move_cost
         awayteam.e.add_action(tmap(awayteam.c.x,awayteam.c.y).movecost)
@@ -601,9 +601,9 @@ function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) 
         if portal(a).from.m=slot and portal(a).oneway<2 then
             p.x=portal(a).from.x
             p.y=portal(a).from.y
-            if awayteam.c.x=p.x and awayteam.c.y=p.y and comportal=0 then 
-                comstr=comstr &key_portal &" Enter"
-                comportal=1
+            if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comportal=0 then 
+                comstr.t=comstr.t &key_portal &" Enter"
+                comstr.comportal=1
             endif
             if debug=1 and _debug=1 then dprint p.x &":"&p.y
             if vis_test(awayteam.c,p,planets(slot).depth)=-1 then
@@ -626,9 +626,9 @@ function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) 
             if portal(a).dest.m=slot then
                 p.x=portal(a).dest.x
                 p.y=portal(a).dest.y
-                if awayteam.c.x=p.x and awayteam.c.y=p.y and comportal=0 then 
-                    comstr=comstr &key_portal &" Enter"
-                    comportal=1
+                if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comportal=0 then 
+                    comstr.t=comstr.t &key_portal &" Enter"
+                    comstr.comportal=1
                 endif
                 if vis_test(awayteam.c,p,planets(slot).depth)=-1 then
                     if (vismask(portal(a).dest.x,portal(a).dest.y)>0) or portal(a).discovered=1 then
@@ -658,9 +658,9 @@ function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) 
         if item(li(a)).w.m=slot and item(li(a)).w.s=0 and item(li(a)).w.p=0 then
             p.x=item(li(a)).w.x
             p.y=item(li(a)).w.y
-                if awayteam.c.x=p.x and awayteam.c.y=p.y and comitem=0 then 
-                    comstr=comstr &key_pickup &" Pick up;"
-                    comitem=1
+                if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comitem=0 then 
+                    comstr.t=comstr.t &key_pickup &" Pick up;"
+                    comstr.comitem=1
                 endif
             
                 if  (tiles(abs(planetmap(p.x,p.y,slot))).hides=0  or item(li(a)).discovered=1) and ((vismask(item(li(a)).w.x,item(li(a)).w.y)>0)) then
@@ -1650,7 +1650,6 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
     else
         tempchange=11-planets(slot).dens*2/orbit
     endif
-    dprint "TC:"&tempchange
     for x=0 to 60
         for y=0 to 20
             if nightday(x)=3 then localtemp(x,y)=localtemp(x,y)+tempchange'Day
@@ -1802,7 +1801,7 @@ function ep_lava(lavapoint() as _cords) as short
         planetmap(lavapoint(a).x,lavapoint(a).y,slot)=-45
         tmap(lavapoint(a).x,lavapoint(a).y)=tiles(45)
         if vismask(lavapoint(a).x,lavapoint(a).y)>0 then
-            walking=0
+            if walking<11 then walking=0
             planetmap(lavapoint(a).x,lavapoint(a).y,slot)=45
             dprint "The ground breaks open, releasing fountains of lava"                
         endif
@@ -1892,7 +1891,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 if enemy(a).sleeping>0 then enemy(a).sleeping-=(1+enemy(a).reg)
             
                 if enemy(a).sleeping<=0 then
-            someonemoved=1
+                if vismask(enemy(a).c.x,enemy(a).c.y)>0 then someonemoved=1
             'changes mood
             if enemy(a).aggr=1 and enemy(a).made<>101 then
                 if rnd_range(1,100)>(20+enemy(a).diet)*distance(enemy(a).c,awayteam.c) then 
@@ -3523,7 +3522,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
         if slot=pirateplanet(0) then
             if faction(0).war(2)<=30 then
                 if rnd_range(1,100)>10+crew(2).morale+add_talent(1,4,10) then
-                    dprint "Pilot "&crew(2).n &" doesnt want to come out again.",14
+                    dprint "Pilot "&crew(2).n &" doesn't want to come out again.",14
                     crew(2)=crew(0)
                 endif
                 if rnd_range(1,100)>10+crew(3).morale+add_talent(1,4,10) then

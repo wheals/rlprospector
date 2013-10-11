@@ -292,7 +292,7 @@ function rnd_item(t as short) as _items
     endif
     
     if t=RI_ShopExplorationGear then 'specialty shop exploration gear
-        r=rnd_range(1,29)
+        r=rnd_range(1,40)
         if r=1 then i=makeitem(49)
         if r=2 then i=makeitem(50)
         if r=3 then i=makeitem(51)
@@ -322,6 +322,8 @@ function rnd_item(t as short) as _items
         if r=27 then i=makeitem(163)
         if r=28 then i=makeitem(38)
         if r=29 then i=makeitem(30)'Comsat
+        if r>=30 and r<=37 then i=makeitem(1)
+        if r>=38 and r<=40 then i=makeitem(2)
     endif
     
     if t=RI_Kits then
