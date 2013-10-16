@@ -11,13 +11,7 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include once "fmod.bi"
 #ENDIF
 #include once "fbgfx.bi"
-#include "freetype2/freetype.bi"
-'need for PNG and zipped saves
 #include once "zlib.bi"
-'#include once "ext/hash/crc32.bi"
-
-'#include "sdl/sdl.bi"
-'#include once "allegro.bi"
 #include once "file.bi"
 #include "cardobj.bi"
 #include "string.bi"
@@ -50,8 +44,6 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include once "globals.bas"
 #include once "compcolon.bas"
 #include once "poker.bas"
-
-if FT_Init_FreeType(@library)<>0 then dprint "Error init Freetype"
 
 on error goto errormessage  
 
@@ -199,9 +191,6 @@ end
 function titlemenu() as short
     dim as short bg,i
     screenset 1,1
-    if FT_New_Face(library, "c:\windows\fonts\verdana.ttf", 0, @ftfont)<>0 then 
-        dprint "Couldn't find font."
-    endif
     'gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
     bg=rnd_range(1,_last_title_pic)
     background(bg &".bmp")

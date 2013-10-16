@@ -218,10 +218,6 @@ dim shared walking as short
 dim shared itemcat(11) as string
 dim shared shopname(4) as string
 
-Dim Shared As FT_Library library
-Dim Shared As FT_Face ftfont
-
-
 type _cords
     s as short '
     p as short '
@@ -1770,26 +1766,6 @@ declare function play_poker(st as short) as short
 declare function card_shuffle(card() as integer) as short
 
 declare Function font_load_bmp(ByRef _filename As String) As UByte Ptr
-
-
-declare function draw_glyph _
-    ( _
-        ByVal font As FT_Face, _
-        ByVal x As Integer, _
-        ByVal y As Integer, _
-        ByVal col As UInteger _
-    ) as short
-
-declare Function print_text _
-    ( _
-        ByVal x As Integer, _
-        ByVal y As Integer, _
-        ByRef text As String, _
-        ByVal font As FT_Face, _
-        ByVal size As Integer, _
-        ByVal col As UInteger _
-    ) As Integer
-
 
 declare function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
 declare function change_captain_appearance(x as short,y as short) as short
