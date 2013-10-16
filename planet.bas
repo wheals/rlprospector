@@ -5690,7 +5690,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     if d.s=18 then d.g_tile.y=68
     if d.s=17 then d.g_tile.y=48 'Generation Ship
     if d.s=20 then d.g_tile.y=47 'Small station
-    load_map(d.s,lastplanet)  
+    load_map(d.s,lastplanet) 
     planets(m).flags(1)=d.s
     d.start.x=d.x
     d.start.y=d.y
@@ -6032,6 +6032,57 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     case else
         planets(m).wallset=rnd_range(0,7)
     end select
+    
+    if d.s=20 and (rnd_range(1,100)<10 or _debug>0) then
+        from.x=38
+        from.y=1
+        from.m=lastplanet
+        lastplanet+=1
+        dest=from
+        dest.m=lastplanet
+        load_map(d.s,lastplanet)
+        addportal(from,dest,1,asc(">"),"Stairs going down.",9)
+        addportal(dest,from,1,asc(">"),"Stairs going up.",9)
+        a=0
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,lastplanet)=-999 then planetmap(x,y,lastplanet)=-202
+                if planetmap(x,y,lastplanet)=-203 then planetmap(x,y,lastplanet)=-201 
+                if tiles(abs(planetmap(x,y,lastplanet))).gives>0 then planetmap(x,y,lastplanet)=-202 
+                if planetmap(x,y,lastplanet)=-202 and rnd_range(1,100)<50-a*10 and a<5 then 
+                    planetmap(x,y,lastplanet)=-1*(215+a)
+                    a+=1
+                endif
+                if planetmap(x,y,lastplanet)=-202 and rnd_range(1,100)<15 then
+                    planetmap(x,y,lastplanet)=-222
+                    p.x=x
+                    p.y=y
+                    if rnd_range(1,100)<15 then
+                        for a=0 to rnd_range(0,2)
+                            if rnd_range(1,100)<50 then
+                                placeitem(rnd_item(RI_weakstuff),x,y,lastplanet)
+                            else
+                                placeitem(rnd_item(RI_weakweapons),x,y,lastplanet)
+                            endif
+                        next
+                    endif
+                endif
+            next
+        next
+        
+        planets(dest.m)=planets(from.m)
+        deletemonsters(dest.m)
+        
+        for a=12 to 16
+            if rnd_range(1,100)<15 then planets(dest.m).flags(a)=rnd_range(2,3)
+        next
+        
+        if rnd_range(1,100)<10 then
+            planets(dest.m).mon_template(0)=makemonster(1,dest.m)
+            planets(dest.m).mon_noamin(0)=1
+            planets(dest.m).mon_noamax(0)=5
+        endif
+    endif
     return 0
 end function
 

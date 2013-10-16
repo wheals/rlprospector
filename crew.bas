@@ -451,10 +451,12 @@ function gaintalent(slot as short) as string
     roll=rnd_range(1,25)
     ' check if can have it
     if roll<=6 and slot=1 then
-        crew(slot).talents(roll)+=1
-        text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
-        if roll=1 then
-            captainskill=captainskill+1
+        if crew(slot).talents(roll)<3 or roll=1 then
+            crew(slot).talents(roll)+=1
+            text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+            if roll=1 then
+                captainskill=captainskill+1
+            endif
         endif
         'haggler
         'confident
@@ -463,31 +465,31 @@ function gaintalent(slot as short) as string
         'merchant
     endif
     
-    if roll>=7 and roll<=9 and crew(slot).typ=2 then
+    if roll>=7 and roll<=9 and crew(slot).typ=2 and crew(slot).talents(roll)<3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=10 and roll<=13 and crew(slot).typ=3 then
+    if roll>=10 and roll<=13 and crew(slot).typ=3 and crew(slot).talents(roll)<3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=14 and roll<=16 and crew(slot).typ=4 then
+    if roll>=14 and roll<=16 and crew(slot).typ=4 and crew(slot).talents(roll)<3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>=17 and roll<=19 and crew(slot).typ=5 then
+    if roll>=17 and roll<=19 and crew(slot).typ=5 and crew(slot).talents(roll)<3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
     
-    if roll>19 then
+    if roll>19  and crew(slot).talents(roll)<3 then
         crew(slot).talents(roll)+=1
         text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
     endif
-    if roll=20 then 
+    if roll=20 and crew(slot).talents(roll)<3 then 
         crew(slot).hpmax+=1
         crew(slot).hp+=1
     endif
@@ -553,12 +555,13 @@ function levelup(p as _ship,from as short) as _ship
     
         if crew(a).hp>0 and lev(a)=1 then
             levt(crew(a).typ)+=1
-            if crew(a).typ>=6 and crew(a).typ<=7 then
+            select case crew(a).typ
+            case 1 to 5
+                crew(a).baseskill(crew(a).typ-2)+=1
+            case 6,7
                 crew(a).typ+=1
                 if rnd_range(1,100)<crew(a).xp*3 then text=text &gaintalent(a)
-            else
-                if crew(a).typ>1 and crew(a).typ<6 then crew(a).baseskill(crew(a).typ-2)+=1
-            endif
+            end select
             crew(a).hpmax+=1
             crew(a).hp=crew(a).hpmax
             crew(a).xp=0
@@ -758,7 +761,9 @@ function add_member(a as short,skill as short) as short
             crew(slot).story(b)=rnd_range(1,10)
         next
         'crew(slot).story(9)=rnd_range(1,3)
-        crew(slot).n=character_name(crew(slot).story(10)) '0 male 1 female
+        crew(slot).story(3)=configflag(con_captainsprite)
+        crew(slot).story(10)=rnd_range(0,1)
+        crew(slot).n=character_name(crew(slot).story(10)) '0 female 1 male
 '        nameno=(rnd_range(1,ln(1)))
 '        if nameno<=23 then
 '            'female
@@ -818,7 +823,8 @@ function add_member(a as short,skill as short) as short
                 if startingweapon=2 then text=text &"(x)"
                 if startingweapon=2 then help=help &"|currently selected"
                 help=help &"/Start with a missile weapon for your ship. If you change your mind just select again||"&list_inventory
-                
+                text=text &"/Change captain details"
+                help=help &"/Change the appearance and bio details of your captain"
                 for i=1 to 6
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
                     help=help &"/"&talent_desc(i)&"||"&list_inventory 
@@ -831,10 +837,10 @@ function add_member(a as short,skill as short) as short
                     'help=help &"Ship:"&player.h_sdesc
                 next
                 turret=-2
-                rask=21
+                rask=22
                 if player.h_no=2 then
-                    turret=21
-                    rask=22
+                    turret=22
+                    rask=23
                     text=text &"/Additional module(3 pts.)"
                     help=help &"/Pay 3 pts for a module for your fighter ship."
                 endif
@@ -904,29 +910,33 @@ function add_member(a as short,skill as short) as short
                         cat+=1
                     end select
                     dprint "Guaranteed missile weapon"
+                case 8
+                    change_captain_appearance(20,2)
                 case turret
                     if cat>=3 then
                         player.weapons(2)=starting_turret
                         if player.weapons(2).made<>0 then cat-=3
                     endif
                 case else
-                    j=i-7
+                    j=i-8
                     
                     if j>6 then j+=13
-                    crew(slot).talents(j)+=1
-                    cat-=1
-                    dprint "Talent: "&talent_desig(j)
-                    
-                    if i=1 then
-                        captainskill+=2
-                        crew(slot).baseskill(0)+=2
-                        crew(slot).baseskill(1)+=2
-                        crew(slot).baseskill(2)+=2
-                        crew(slot).baseskill(3)+=2
-                    endif
-                    if i=20 then 
-                        crew(slot).hpmax+=1
-                        crew(slot).hp+=1
+                    if crew(slot).talents(j)<3 then
+                        crew(slot).talents(j)+=1
+                        cat-=1
+                        dprint "Talent: "&talent_desig(j)
+                        
+                        if i=1 then
+                            captainskill+=2
+                            crew(slot).baseskill(0)+=2
+                            crew(slot).baseskill(1)+=2
+                            crew(slot).baseskill(2)+=2
+                            crew(slot).baseskill(3)+=2
+                        endif
+                        if i=20 then 
+                            crew(slot).hpmax+=1
+                            crew(slot).hp+=1
+                        endif
                     endif
                 end select
 '                

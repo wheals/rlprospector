@@ -218,6 +218,10 @@ dim shared walking as short
 dim shared itemcat(11) as string
 dim shared shopname(4) as string
 
+Dim Shared As FT_Library library
+Dim Shared As FT_Face ftfont
+
+
 type _cords
     s as short '
     p as short '
@@ -1692,7 +1696,7 @@ dim shared probe(100) as _cords 'm=Item,
 'dim shared as FB.image ptr TITLEFONT
 dim shared as any ptr TITLEFONT
 dim shared as any ptr FONT1,FONT2
-dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2
+dim shared as ubyte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2,_TFH
 
 dim shared endstory as string
 dim shared crew_desig(16) as string
@@ -1739,6 +1743,8 @@ type _pokerrules
     swap as byte
 end type
 
+dim shared pixelsize as integer
+
 declare function make_shipequip(a as short) as _items
 declare function roman(i as integer) as string
 
@@ -1763,7 +1769,30 @@ declare function income_expenses_html() as string
 declare function play_poker(st as short) as short
 declare function card_shuffle(card() as integer) as short
 
+declare Function font_load_bmp(ByRef _filename As String) As UByte Ptr
+
+
+declare function draw_glyph _
+    ( _
+        ByVal font As FT_Face, _
+        ByVal x As Integer, _
+        ByVal y As Integer, _
+        ByVal col As UInteger _
+    ) as short
+
+declare Function print_text _
+    ( _
+        ByVal x As Integer, _
+        ByVal y As Integer, _
+        ByRef text As String, _
+        ByVal font As FT_Face, _
+        ByVal size As Integer, _
+        ByVal col As UInteger _
+    ) As Integer
+
+
 declare function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
+declare function change_captain_appearance(x as short,y as short) as short
 
 declare function draw_poker_table(p() as _pokerplayer,reveal as short=0, winner as short=0,r as _pokerrules) as short
 declare function better_hand(h1 as _handrank,h2 as _handrank) as short
@@ -2066,7 +2095,8 @@ declare function savegame()as short
 declare function load_game(filename as string) as short
 declare function copytile (byval a as short) as _tile
 declare function refuel_f(f as _fleet, st as short) as _fleet
-declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr     
+declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr 
+
 declare function load_tiles() as short
 declare function make_alienship(slot as short, t as short) as short
 declare function makecivfleet(slot as short) as _fleet
@@ -2438,11 +2468,12 @@ declare function es_title(byref pmoney as single) as string
 declare function es_living(byref pmoney as single) as string
 declare function system_text(a as short) as string
 #IFDEF _WINDOWS
-using ext
+'using ext
 #ENDIF
 
-declare function set__color(fg as short,bg as short,visible as byte=1) as short
 dim shared as uinteger _fgcolor_,_bgcolor_ 
+
+declare function set__color(fg as short,bg as short,visible as byte=1) as short
 declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
 
 Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger

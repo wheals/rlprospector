@@ -585,7 +585,7 @@ function load_fonts() as short
     'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT1, 32, 448, _fh1)
     'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT2, 32, 448, _fh2)
     set__color(11,0)
-    
+        
     if configflag(con_customfonts)=0 then
         print "loading font 1"
         font1=load_font(""&_fohi1,_FH1)
@@ -593,6 +593,7 @@ function load_fonts() as short
         print "loading font 2"
         font2=load_font(""&_fohi2,_FH2)
         if debug=1 and _debug=1 then print #f,"Loaded Font 2"
+        titlefont=load_font("26",26)
     else 
         _screenx=1024
         _screeny=768
@@ -620,10 +621,6 @@ function load_fonts() as short
     
     _FW1=_FH1/2+2
     _FW2=_FH2/2+2
-    #ifdef _windows
-    _FW1=gfx.font.gettextwidth(FONT1,"W")
-    _FW2=gfx.font.gettextwidth(FONT2,"W")
-    #endif
     if configflag(con_tiles)=0 then
         _Fw1=_tix
         _Fh1=_tiy
@@ -678,6 +675,48 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
     endif
     return font
 end function
+
+Function font_load_bmp(ByRef _filename As String) As UByte Ptr
+	Dim As UInteger w,h,f=FreeFile
+	Dim As UShort bpp
+	If (Open(_filename, For Binary, Access Read, As #f)<>0)Then
+		Print "Font " + _filename+" not loaded!"
+		Return 0
+	EndIf
+	Get #f,19,w
+	Get #f,23,h
+	Get #f,29,bpp
+	Close #f
+	
+	Dim As UByte Ptr font
+	font=ImageCreate(w,h)
+	BLoad(_filename,font)
+	Dim As UByte Ptr fontheader=Cast(UByte Ptr,font+SizeOf(FB.image))
+	
+	Select Case As Const fontheader[0]
+		Case 0 'standard draw string font buffer
+			fontheader[0]=Point(0,0,font)
+			fontheader[1]=Point(1,0,font)
+			fontheader[2]=Point(2,0,font)
+			For x As Integer=0 To (fontheader[2]-fontheader[1])+1
+				fontheader[3+x]=Point(3+x,0,font)
+			Next x
+		Case 5 'unicode draw string font buffer
+			fontheader[0]=Point(0,0,font)
+			fontheader[1]=Point(1,0,font)
+			fontheader[2]=Point(2,0,font)
+			fontheader[3]=Point(3,0,font)
+			fontheader[4]=Point(4,0,font)
+			Dim As UShort first,last
+			first=((fontheader[1] Shl 4)) Or (fontheader[2])
+			last=((fontheader[3] Shl 4)) Or (fontheader[4])
+			For x As Integer=0 To last-first+1
+				fontheader[5+x]=Point(5+x,0,font)
+			Next x
+	End Select
+	
+	Return font
+End Function
 
 function load_tiles() as short
     dim as short x,y,a,n,sx,sy,showtiles

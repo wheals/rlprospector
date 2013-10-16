@@ -4358,7 +4358,7 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=211 then
-                c=tmap(awayteam.c.x,awayteam.c.y).turnsinto-203
+                c=tmap(awayteam.c.x,awayteam.c.y).turnsinto-203'Flags 12 to 16
                 if planets(slot).flags(c)>1 then
                     if planets(slot).flags(c)=2 then text="Food"
                     if planets(slot).flags(c)=3 then text="Basic goods"

@@ -177,9 +177,7 @@ function death_message() as short
     text2=text
     if text<>"" and player.dead<>98 then
         set__color( 11,0)
-        #ifdef _windows
-        gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
-        #endif
+        
         b=0
         tx=_screenx/_fw1-10
         while len(text)>tx
@@ -253,9 +251,6 @@ function post_mortemII(text as string) as short
     header(2)="c) Ship"
     header(3)="d) Crew ("&crewn &")"
     header(4)="e) Equipment"
-    #ifdef _windows
-    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/_lines*1.5)
-    #endif
     
     bg=rnd_range(1,_last_title_pic)
     income=mission_type &"|{15}" & get_death &"||"&income_expenses
@@ -445,9 +440,6 @@ function high_score(text as string) as short
         draw_string (xo,a,space(80),font2,_col)
     next
     set__color( 15,0)
-    #ifdef _windows
-    gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/15)
-    #endif
     draw_string (2*_fw2+xo,yo/2,"10 MOST SUCCESSFUL MISSIONS",Titlefont,_col)
     
     for a=1 to 10

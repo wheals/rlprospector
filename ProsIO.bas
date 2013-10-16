@@ -1,3 +1,61 @@
+function change_captain_appearance(x as short,y as short) as short
+    dim as short a
+    dim as string text,mf(1)
+    mf(0)="Female"
+    mf(1)="Male"
+    do
+        't="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
+        
+        text="Captain:/Name: "&crew(1).n &"/"
+        if _debug=1310 then text=text &" s10:"&crew(1).story(10)
+        text &= "Gender: "&mf(crew(1).story(10))&"/"
+        text &= "Age: "&18+crew(1).story(6) &"/"
+        text &= "Height: 1."&60+crew(1).story(7) &"/"
+        text &= "Weight: "&50+crew(1).story(8)*4+crew(1).story(7) &"/"
+        text &= "Change outfit/"
+        if awayteam.helmet=0 then
+            text &="close helmet/"
+        else
+            text &="open helmet/"
+        endif
+        text &= "Exit"
+        put (x*_fw1-2-_tix,y*_fh1),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans
+        a=menu(bg_noflip,text,"",x,y)
+        select case a
+        case 1
+            dprint ""
+            crew(1).n=gettext(LocEOL.x,LocEOL.y,16,crew(1).n)
+            dprint "Are you male or female?(m/f)"
+            no_key=keyin
+            if lcase(no_key)="m" then
+                crew(1).story(10)=0
+            else
+                crew(1).story(10)=1
+            endif
+        case 2
+            crew(1).story(10)+=1
+            if crew(1).story(10)>1 then crew(1).story(10)=0
+        case 3
+            dprint ""
+            crew(1).story(6)=getnumber(18,120,20)-18
+            'age
+        case 4
+            'height
+        case 5
+            'weight
+        case 6
+            crew(1).story(3)+=1
+            if crew(1).story(3)>2 then crew(1).story(3)=0
+        case 7
+            if awayteam.helmet=1 then
+                awayteam.helmet=0
+            else
+                awayteam.helmet=1
+            endif
+        end select
+    loop until a=8 or a=-1
+    return 0
+end function
 
 
 function update_tmap(slot as short) as short
@@ -822,7 +880,7 @@ function display_ship(show as byte=0) as short
     dim as byte fw1,fh1
     fw1=11
     #ifdef _windows
-    Fw1=ext.gfx.font.gettextwidth(FONT1,"W")
+    Fw1=_fw1
     #endif
     Fh1=22
     
@@ -1045,7 +1103,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x>=0 and x<=_mwx then 
                     if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
-                    put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans                
+                    put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans                
                     if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
                 endif
                 if _debug=2609 then draw string(x*_tix,awayteam.c.y*_tiy),"e:"&awayteam.e.e
@@ -1824,6 +1882,109 @@ function shipstatus(heading as short=0) as short
     return 0
 end function
 
+function draw_glyph _
+    ( _
+        ByVal font As FT_Face, _
+        ByVal x As Integer, _
+        ByVal y As Integer, _
+        ByVal col As UInteger _
+    ) as short
+
+    Dim As FT_Bitmap Ptr bitmap = @font->glyph->bitmap
+
+    Dim As UByte Ptr source = bitmap->buffer
+    Dim As Integer h = bitmap->rows
+    Dim As Integer pitch = _screenx - bitmap->width
+
+    Dim As UInteger Ptr p = CPtr(UInteger Ptr, ScreenPtr()) + (y * _screeny) + x
+
+    While (h > 0)
+        Dim As Integer w = bitmap->width
+        While (w > 0)
+            '' Doing alpha blending here
+            #define MASK_RB_32 &h00FF00FF
+            #define MASK_G_32  &h0000FF00
+
+            Dim As UInteger srb = col And MASK_RB_32
+            Dim As UInteger sg  = col And MASK_G_32
+
+            Dim As UInteger dcol = p[0]
+            Dim As UInteger drb = dcol And MASK_RB_32
+            Dim As UInteger dg  = dcol And MASK_G_32
+
+            Dim As Integer Alpha = source[0]
+            srb = ((srb - drb) * Alpha) Shr 8
+            sg  = ((sg - dg) * Alpha) Shr 8
+
+            *p = ((drb + srb) And MASK_RB_32) Or ((dg + sg) And MASK_G_32)
+
+            p += 1
+            source += 1
+            w -= 1
+        Wend
+
+        h -= 1
+        p += pitch
+    Wend
+    return 0
+End function
+
+Function print_text _
+    ( _
+        ByVal x As Integer, _
+        ByVal y As Integer, _
+        ByRef text As String, _
+        ByVal font As FT_Face, _
+        ByVal size As Integer, _
+        ByVal col As UInteger _
+    ) As Integer
+    '' Get rid of any alpha channel
+        
+    col = (col Shl 8) Shr 8
+
+    '' Set font size
+    If (FT_Set_Pixel_Sizes(font, size, size) <> 0) Then
+        dprint "Couldn't set size"
+        Return 0
+    End If
+    pixelsize = size
+
+    '' Draw each character
+    Dim As FT_GlyphSlot slot = font->glyph
+    Dim As Integer penx = x
+    Dim As Integer peny = y
+    
+    screenlock
+    
+    For i As Integer = 0 To Len(text) - 1
+        '' Load character index
+        Dim As FT_UInt index = FT_Get_Char_Index(font, text[i])
+
+        '' Load character glyph
+        If (FT_Load_Glyph(font, index, FT_LOAD_DEFAULT) <> 0) Then
+            dprint "Couldnt load glyph"
+            Return 0
+        End If
+
+        '' Render glyph
+        If (FT_Render_Glyph(font->glyph, FT_RENDER_MODE_NORMAL) <> 0) Then
+            dprint "COuldn't render glyph"
+            Return 0
+        End If
+
+        '' Do clipping
+        If ((penx + font->glyph->bitmap_left + font->glyph->bitmap.width) > _screenx) Then Exit For
+        If ((peny - font->glyph->bitmap_top + font->glyph->bitmap.rows) > _screeny) Then Exit For
+        If ((penx + font->glyph->bitmap_left) < 0) Then Exit For
+        If ((peny - font->glyph->bitmap_top) < 0) Then Exit For
+        '' Draw the glyph bitmap to the screen
+        draw_glyph(font, penx + font->glyph->bitmap_left, peny - font->glyph->bitmap_top, col)
+        penx += slot->advance.x Shr 6
+    Next
+    screenunlock
+       
+    Return -1
+End Function
 
 
 
