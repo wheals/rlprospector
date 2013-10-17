@@ -1330,7 +1330,7 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
     if planets(slot).death>0 then 'Exploding planet
         if planets(slot).death=8 then 
             if planets(slot).flags(28)=0 then
-                if crew(4).hp>0 then dprint "Science officer: I wouldn't recommend staying much longer.",15
+                if player.science(0)>0 and planets(slot).depth=0 then dprint "Science officer: I wouldn't recommend staying much longer.",15
             else
                 if player.pilot(0)>0 then dprint "Pilot: I am starting to worry. We are getting pretty deep into the gravity well of this planet."
             endif
@@ -1339,7 +1339,7 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
         endif
         if planets(slot).death=4 and crew(4).hp>0 then 
             if planets(slot).flags(28)=0 then
-                if crew(4).hp>0 then dprint "Science officer: We really should get back to the ship now!",14
+                if player.science(0)>0 and planets(slot).depth=0 then dprint "Science officer: We really should get back to the ship now!",14
             else
                 if player.pilot(0)>0 then dprint "Pilot: This thing is falling faster than I thought. Let's get out of here!",c_yel
             endif
@@ -1348,14 +1348,14 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
         endif
         if planets(slot).death=2 and crew(4).hp>0 then 
             if planets(slot).flags(28)=0 then
-                if crew(4).hp>0 then dprint "Science officer: This planet is about to fall apart! We must leave! NOW!",12
+                if player.science(0)>0 and planets(slot).depth=0 then dprint "Science officer: This planet is about to fall apart! We must leave! NOW!",12
             else
                 if player.pilot(0)>0 then dprint "Pilot: We need to get of this icechunk! Now!",c_red
             endif
             no_key=keyin
             planets(slot).death=planets(slot).death-1
         endif
-        if rnd_range(1,100)<33 then
+        if planets(slot).depth=0 and rnd_range(1,100)<33 then
             if sf>15 then sf=0
             shipfire(sf).where=rnd_point
             shipfire(sf).when=1
@@ -1589,6 +1589,10 @@ function ep_portal() as _cords
                         endif
                     endif
                     nextmap=portal(a).dest
+                    if planets(portal(a).from.m).death>0 then
+                        deleteportal(portal(a).from.m,portal(a).dest.m)
+                        planetmap(nextmap.x,nextmap.y,nextmap.m)=-4
+                    endif
                     'dprint " "&portal(a).dest.m
                 endif
             endif
@@ -1627,6 +1631,10 @@ function ep_portal() as _cords
                         endif
                     endif
                     nextmap=portal(a).from
+                    if planets(portal(a).dest.m).death>0 then
+                        deleteportal(portal(a).from.m,portal(a).dest.m)
+                        planetmap(nextmap.x,nextmap.y,nextmap.m)=-4
+                    endif
                 endif
             endif
         endif
@@ -1859,7 +1867,7 @@ end function
 
 function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
     dim deadcounter as short
-    dim as short a,b,c,slot,ti,f,osx,cmoodto,someonemoved
+    dim as short a,b,c,slot,ti,f,osx,cmoodto,someonemoved,message
     dim moa as byte 'monster attack
     dim as _cords p1,p2
     dim as single tb,dam
@@ -1913,14 +1921,16 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                             endif
                         end select
                         enemy(a).aggr=cmoodto
-                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 then 
+                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then 
                             enemy(a).cmshow=1
+                            message=1
                             if cmoodto=1 then dprint "The "&enemy(a).sdesc &" suddenly seems agressive",14
                             if cmoodto=2 then dprint "The "&enemy(a).sdesc &" suddenly seems afraid",14
                         endif
                         for b=1 to lastenemy
                             if a<>b and enemy(b).hp>0 then 
-                                if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 then 
+                                if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 and message=0 then 
+                                    message=1
                                     enemy(b).aggr=cmoodto
                                     enemy(a).cmshow=1
                                     dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
@@ -1953,7 +1963,10 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 endif
             endif
             if enemy(a).made=102 and nightday(enemy(a).c.x)=3 then
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The icetroll slowly stops moving."
+                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then 
+                    dprint "The icetroll slowly stops moving."
+                    message=1
+                endif
                 changetile(enemy(a).c.x,enemy(a).c.y,slot,304)
                 enemy(a).hp=0
                 enemy(a).hpmax=0
@@ -1993,12 +2006,18 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                             if enemy(a).faction<>enemy(b).faction then
                                 if enemy(a).diet=1 then
                                     enemy(b).hpmax=enemy(b).hpmax-1
-                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc & " eats of the dead "&enemy(b).sdesc &"."
+                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then 
+                                        message=1
+                                        dprint "The "&enemy(a).sdesc & " eats of the dead "&enemy(b).sdesc &"."
+                                    endif
                                 endif
                             else
                                 if rnd_range(1,6)+rnd_range(1,6)<5+enemy(a).intel and enemy(b).killedby=0 then
                                     enemy(a).aggr=0
-                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc & " gets angry looking at the dead "&enemy(b).sdesc &"."
+                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
+                                        message=1
+                                        dprint "The "&enemy(a).sdesc & " gets angry looking at the dead "&enemy(b).sdesc &"."
+                                    endif
                                 endif
                             endif
                         endif
@@ -2008,7 +2027,10 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
             
             if enemy(a).diet=2 and tmap(enemy(a).c.x,enemy(a).c.y).vege>0 then
                 tmap(enemy(a).c.x,enemy(a).c.y).vege=tmap(enemy(a).c.x,enemy(a).c.y).vege-1
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).sdesc & " eats some of the plants growing here."
+                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then 
+                    message=1
+                    dprint "The "&enemy(a).sdesc & " eats some of the plants growing here."
+                endif
             endif
             if enemy(a).diet=3 and enemy(a).aggr=1 then
                 c=-1
@@ -2053,11 +2075,17 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                         next
                     next
                     enemy(a).aggr=1
-                    if skill_test(player.science(location),st_average+planets(slot).dens) then dprint "Recieving radio transmission: 'Returning to ship'"
+                    if skill_test(player.science(location),st_average+planets(slot).dens) and message=0 then
+                        message=1
+                        dprint "Recieving radio transmission: 'Returning to ship'"
+                    endif
                 else
                     enemy(a).target.x=item(li(c)).w.x
                     enemy(a).target.y=item(li(c)).w.y
-                    if skill_test(player.science(location),st_average+planets(slot).dens) then dprint "Recieving radio transmission: 'Going for ore at "&enemy(a).target.x &":"&enemy(a).target.y &"'"
+                    if skill_test(player.science(location),st_average+planets(slot).dens) and message=0 then 
+                        message=1
+                        dprint "Recieving radio transmission: 'Going for ore at "&enemy(a).target.x &":"&enemy(a).target.y &"'"
+                    endif
                 endif
             endif
             
@@ -4394,6 +4422,19 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             for a=1 to lastdrifting
                 if slot=drifting(a).m then c=drifting(a).s
             next
+            
+            if tmap(awayteam.c.x,awayteam.c.y).gives=221 then
+                if askyn("These seem to be the controls of this ship. Do you want to try to use them?(y/n)") then
+                    if skill_test(player.science(1),st_veryhard) then
+                        tmap(awayteam.c.x,awayteam.c.y)=tiles(220)
+                        planetmap(awayteam.c.x,awayteam.c.y,slot)=220
+                    else
+                        dprint "It looks like it started some sort of countdown"
+                        tmap(awayteam.c.x,awayteam.c.y).gives=0
+                        planets(slot).death=5
+                    endif
+                endif
+            endif
             
             if tmap(awayteam.c.x,awayteam.c.y).gives=220 then
                 textbox(shiptypes(planets(slot).flags(1)) &" | | " &makehullbox(planets(slot).flags(1),"data/ships.csv"),3,5,25)

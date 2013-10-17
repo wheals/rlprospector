@@ -1747,6 +1747,7 @@ declare function roman(i as integer) as string
 declare function shares_value() as short
 declare function planet_artifacts_table() as string
 declare function acomp_table() as string
+declare function uid_pos(uid as uinteger) as integer
 
 declare function sort_items(list() as _items) as short
 declare function items_table() as string

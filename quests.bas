@@ -63,6 +63,8 @@ function robot_invasion() as short
         d.y=c.y
         make_drifter(d,dominant_terrain(c.x,c.y,m))
         planets(lastplanet)=planets(m)
+        c=rnd_point(201,lastplanet)
+        planetmap(c.x,c.y,lastplanet)=-306
         select case m
         case specialplanet(10),specialplanet(13),specialplanet(14),specialplanet(20),specialplanet(39),specialplanet(40),specialplanet(41),specialplanet(42),specialplanet(43)
             battleslost(ft_merchant,ft_ancientaliens)+=5

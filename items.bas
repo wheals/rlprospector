@@ -3451,7 +3451,14 @@ function next_item(c as integer) as integer
     next
     return -1
 end function
-    
+
+function uid_pos(uid as uinteger) as integer
+    dim i as integer
+    for i=0 to lastitem
+        if item(i).uid=uid then return i
+    next
+    return 0
+end function
 
 function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as short=0,ty3 as short=0,ty4 as short=0,noequip as short=0) as short
     dim as short b,a,set,lastinv,lastinv2,swapflag,tylabel,c,f,debug,equipnum(1024),isequipment
@@ -3472,7 +3479,18 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
                 noequip+=1
                 equipnum(noequip)=crew(a).armo
             endif
-
+            if crew(a).pref_lrweap>0 then
+                noequip+=1
+                equipnum(noequip)=uid_pos(crew(a).pref_lrweap)
+            endif
+            if crew(a).pref_ccweap>0 then
+                noequip+=1
+                equipnum(noequip)=uid_pos(crew(a).pref_ccweap)
+            endif
+            if crew(a).pref_armor>0 then
+                noequip+=1
+                equipnum(noequip)=uid_pos(crew(a).pref_armor)
+            endif
         next
         for a=0 to lastitem
             if item(a).w.s=-2 then 

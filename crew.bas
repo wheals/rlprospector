@@ -1988,13 +1988,13 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
         
         
         if no_key="s" then
-            sit=get_item()
+            sit=get_item(0,0,0,1)
             if sit>0 then
-                for cl=1 to 128
-                    if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
-                    if crew(cl).pref_ccweap=item(sit).uid then crew(cl).pref_ccweap=0
-                    if crew(cl).pref_armor=item(sit).uid then crew(cl).pref_armor=0
-                next
+'                for cl=1 to 128
+'                    if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
+'                    if crew(cl).pref_ccweap=item(sit).uid then crew(cl).pref_ccweap=0
+'                    if crew(cl).pref_armor=item(sit).uid then crew(cl).pref_armor=0
+'                next
                 if item(sit).ty=2 then 
                     crew(p).pref_lrweap=item(sit).uid
                 endif
@@ -2006,6 +2006,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                 endif
                 equip_awayteam(0)
             endif
+            cls
         endif
         
         if no_key="c" then

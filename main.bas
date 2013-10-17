@@ -5,7 +5,6 @@ const _debug=0'154'2809'2709
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)    
 draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col    
 #endmacro
-#inclib "freetype"
 #IFDEF _FMODSOUND
 #inclib "fmod.dll"
 #include once "fmod.bi"
@@ -189,25 +188,18 @@ fSOUND_close
 end
 
 function titlemenu() as short
-    dim as short bg,i
-    screenset 1,1
-    'gfx.font.loadttf("graphics/plasma01.ttf", TITLEFONT, 32, 128, _screeny/5)
+    dim as short bg
+    dim as any ptr logo
     bg=rnd_range(1,_last_title_pic)
     background(bg &".bmp")
-    set__color(11,0)
-    screenset 1,1
-    draw string(26*i,26),"PROSPECTOR",,titlefont,custom,@_col
+    logo=bmp_load("graphics/prospector.bmp")
+    if logo<>NULL then 
+        set__color(107,0)
+        put (39,69),logo,custom,@_tcol
+    else
+        draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
+    endif
     
-    'draw_string(_screenx/30+4,_screeny/8+12,"PROSPECTOR",TITLEFONT,_tcol)
-'    set__color( 227,0)
-'    draw_string(_screenx/30+3,_screeny/8+9,"PROSPECTOR",TITLEFONT,_tcol)
-'    set__color( 226,0)
-'    draw_string(_screenx/30+2,_screeny/8+6,"PROSPECTOR",TITLEFONT,_tcol)
-'    set__color( 225,0)
-'    draw_string(_screenx/30+1,_screeny/8+3,"PROSPECTOR",TITLEFONT,_tcol)
-'    set__color( 101,0)
-'    draw_string(_screenx/30,_screeny/8,"PROSPECTOR",TITLEFONT,_tcol)
-'
     set__color( 15,0)
     draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__,,FONT2,pset
     draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"a) start new game    ",FONT2,_col)
