@@ -1,6 +1,6 @@
 function play_poker(st as short) as short
     dim card(52) as integer
-    dim as short i,k,x,y,dealer,curcard,j,l,ci,pi,winner,move,debug,speedup,pot,folded
+    dim as short i,k,x,y,dealer,curcard,j,l,ci,pli,winner,move,debug,speedup,pot,folded
     dim p(4) as _pokerplayer
     debug=1
     dim rules as _pokerrules
@@ -18,7 +18,7 @@ function play_poker(st as short) as short
     dealer=rnd_range(1,4)
 
         for i=1 to 3
-            pi=get_highestrisk_questguy(st)
+            pli=get_highestrisk_questguy(st)
             if debug=1 and _debug=1 then dprint ""&pi
             if pi>0 and questguy(pi).money>rules.bet*rules.limit then
                 p(i).name=questguy(pi).n
@@ -55,13 +55,13 @@ function play_poker(st as short) as short
         
         dealer=rnd_range(1,4)
         curcard=1
-        pi=dealer
+        pli=dealer
         ci=1
         j=0   
         for k=1 to 5
             for i=1 to 4
                 if pi=dealer then j+=1
-                pi=poker_next(pi,p())
+                pli=poker_next(pli,p())
                 p(pi).card(k)=card(curcard)
                 curcard+=1
                 draw_poker_table(p(),,,rules)
@@ -99,7 +99,7 @@ function play_poker(st as short) as short
             draw_poker_table(p(),,,rules)
         wend
         
-        pi=dealer
+        pli=dealer
     '    for i=1 to 4
     '        if pi=4 then
     '            'Player swap card.
@@ -123,7 +123,7 @@ function play_poker(st as short) as short
         do
             screenset 0,1
             cls
-            pi=poker_next(pi,p())
+            pli=poker_next(pli,p())
             draw_poker_table(p(),,,rules)
             dprint ""
             if _debug=3 then dprint "pi:"&pi
@@ -244,11 +244,11 @@ end function
 
 function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
     dim as _handrank ph(4)
-    dim as short pi(4),j,knowall,flag,pir,debug,stillin,price
+    dim as short pli(4),j,knowall,flag,pir,debug,stillin,price
     debug=2
     for j=1 to 4
         if p(j).fold=0 then stillin+=1
-        pi(j)=j
+        pli(j)=j
         p(j).win=ace_highlo_eval(p(j).card(),1)
     next
     p(i).bet=0

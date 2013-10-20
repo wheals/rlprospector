@@ -12,10 +12,10 @@ function get_rumor(i as short=18) as string
             return "There are planets out there where the ice will come after you and kill you! I call them Icetrolls, they freeze during the night, and thaw during the day. Keep in the dark when you are on such a planet."
         case 3
         end select
-            
+
     case 3 'Security
         return "My tribble helped me cope when a friend of mine was killed by wildlife on some backwater planet"
-                
+
     case 4 'Science
     case 5 'Gunner
     case 6 'Doctor
@@ -37,9 +37,9 @@ end function
 
 function show_standing() as short
     dim scale(6) as string
-    dim as string facname(8),stscore(7) 
+    dim as string facname(8),stscore(7)
     dim as short a,debug,l
-    
+
     facname(ft_merchant)="Merchants"
     facname(ft_pirate)="Pirates"
     facname(ft_patrol)="Company patrols"
@@ -48,7 +48,7 @@ function show_standing() as short
     facname(ft_civ1)=civ(0).n
     facname(ft_civ2)=civ(1).n
     facname(ft_monster)="Monster"
-    
+
     scale(0)=" {10}Excellent{11}"
     scale(1)=" {10}Friendly{11}"
     scale(2)=" {14}Neutral{11}"
@@ -70,7 +70,7 @@ function show_standing() as short
     if civ(1).contact>0 then scale(6)=scale(6) &" | "&civ(1).n &space(35-l)&stscore(7)
     scale(6)=scale(6)&"||{15}Battles:|{11}"
     for a=1 to 8
-        if battleslost(a,0)>0 then 
+        if battleslost(a,0)>0 then
             l=len(facname(a)& battleslost(a,0))
             scale(6)=scale(6)&" "&facname(a) & ":"&space(26-l)& battleslost(a,0)&"|"
         endif
@@ -82,7 +82,7 @@ end function
 
 function make_weap_helptext(w as _weap) as string
     dim help as string
-    help=help &"{15}"&w.desig &"{11} | | "    
+    help=help &"{15}"&w.desig &"{11} | | "
     if w.made=1 then help=help &"Little more than an airlock to throw your ammo in the general direction of your target. "
     if w.made=2 then help=help &"A chemical explosion propels your warhead towards the enemy. "
     if w.made=3 then help=help &"A bigger version of the popular hand weapon: Your rounds are accelerated to high speeds using electric fields. "
@@ -113,19 +113,19 @@ function make_weap_helptext(w as _weap) as string
     if w.made=97 then help=help &"A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
     if w.made=98 then help=help &"Not the safest way to store fuel. It holds 50 tons"
     if w.made=99 then help=help &"A weapons turret modified to hold an additional ton of cargo."
-    
+
     select case w.made
-    case 6 to 10  
-        help=help &" | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3 
+    case 6 to 10
+        help=help &" | | Damage: "&w.dam &" | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
     case 1 to 5 , 11 to 14
-        help=help &" | | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3 
+        help=help &" | | Range: "&w.range &"\"&w.range*2 &"\" &w.range*3
     end select
     if w.rof>1 then help &="| Rate of Fire: "&w.rof
-    if w.ammomax>0 then help=help &" | Ammuniton: "&w.ammomax 
-    if w.heatadd>0 or w.heatsink>0 then help=help &"| Heat:"&w.heat &"\"&w.heatadd &" Heatsinks: "& w.heatsink        
+    if w.ammomax>0 then help=help &" | Ammuniton: "&w.ammomax
+    if w.heatadd>0 or w.heatsink>0 then help=help &"| Heat:"&w.heat &"\"&w.heatadd &" Heatsinks: "& w.heatsink
     return help
 end function
-    
+
 
 function explored_percentage_string() as string
     dim as short x,y,ex
@@ -146,7 +146,7 @@ function caged_monster_text() as string
     dim as string t
     t="Monsters in cages:"&lastcagedmonster &"|"
     for i=1 to lastcagedmonster
-        t=t &"|"&cagedmonster(i).sdesc  
+        t=t &"|"&cagedmonster(i).sdesc
         if i<lastcagedmonster and cagedmonster(i).c.s<>cagedmonster(i+1).c.s or i=lastcagedmonster then t=t &" in a "&item(cagedmonster(i).c.s).desig &"."
     next
     return t
@@ -167,7 +167,7 @@ function death_text() as string
     if player.dead=9 then text="Apollo convinces you with bare fists and lightningbolts that he in fact is a god"
     if player.dead=10 then text="The robots defending the city are old, but still very well armed and armored. Their long gone masters would have been pleased to learn how easily they repelled the intruders."
     if player.dead=11 then text="The Sandworm swallows the last of your awayteam with one gulp"
-    if player.dead=12 then text="Explosions start rocking your ship as the interstellar gas starts ripping holes into the hull. You try to make a quick run out but you aren't fast enough." 
+    if player.dead=12 then text="Explosions start rocking your ship as the interstellar gas starts ripping holes into the hull. You try to make a quick run out but you aren't fast enough."
     if player.dead=13 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by the merchants escort ships"
     if player.dead=14 then text="You run out of oxygen on an airless world. Your death comes quick"
     if player.dead=15 then text="With horror you watch as the ground cracks open beneath the " &player.desig &" and your ship disappears in a sea of molten lava"
@@ -175,7 +175,7 @@ function death_text() as string
     if player.dead=17 then text="The world around you dissolves into an orgy of flying rock, bright light and fire. Then all is black."
     if player.dead=18 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed while trying to "&space(41)&"ignore the station commanders wishes"
     if player.dead=19 then text="Your pilot crashes the ship into the asteroid. You feel very alone as you drift in your spacesuit among the debris, hoping for someone to pick up your weak distress signal."
-    if player.dead=20 then text="When the monster destroys your ship your only hope is to leave the wreck in your spacesuit. With dread you watch it gobble up the debris while totally ignoring the people it just doomed to freezing among the asteroids."    
+    if player.dead=20 then text="When the monster destroys your ship your only hope is to leave the wreck in your spacesuit. With dread you watch it gobble up the debris while totally ignoring the people it just doomed to freezing among the asteroids."
     if player.dead=21 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an ancient alien ship"
     if player.dead=22 then text="A creaking hull shows that your pilot underestimated the pressure and gravity of this gas giant. Heat rises as you fall deeper and deeper into the atmosphere with ground to hit below. Your ship gets crushed. You are long dead when it eventually gets torn apart by winds and evaporated by the rising heat."
     if player.dead=23 then text="The creatures living here tore your ship to pieces. The winds will do the same with you floating through the storms of the gas giant like a leaf in a hurricane."
@@ -191,7 +191,7 @@ function death_text() as string
     if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
     if player.dead=34 then text="Too late you realize that your ride on the icechunk has brought you too deep into the gas giants atmosphere. Rising pressure squashes you, as the iceblock disintegrates around you."
     if player.dead=35 then text="The dangers of spacecombat are manifold. Flying into your own engine exhaust is one of them."
-    if player.dead=98 then 
+    if player.dead=98 then
         endstory=es_part1
         textbox (endstory,2,2,_screenx/_fw2-5)
         text=endstory
@@ -230,13 +230,13 @@ function plant_name(ti as _tile) as string
     dim pname(7) as string
     dim colors(12) as string
     dim num(5) as string
-    
+
     num(1)="Some"
     num(2)="A few"
     num(3)="Few"
     num(4)="Numerous"
     num(5)="Many"
-    
+
     colors(1)="black"
     colors(2)="white"
     colors(3)="red"
@@ -246,7 +246,7 @@ function plant_name(ti as _tile) as string
     colors(7)="violet"
     colors(8)="purple"
     colors(9)="orange"
-    
+
     pname(1)="mosses"
     pname(2)="ferns"
     pname(3)="conifers"
@@ -254,10 +254,10 @@ function plant_name(ti as _tile) as string
     pname(5)="gnetophytes"
     pname(6)="flowering plants"
     pname(7)="mushrooms"
-    
+
     s=num(rnd_range(1,5))&" interesting " &colors(rnd_range(1,9))&" "&pname(rnd_range(1,7))
     return s
-end function    
+end function
 
 function show_quests() as short
     dim as short a,b,c,d,sys,p
@@ -268,7 +268,7 @@ function show_quests() as short
     txt="{15}Missions: |{11}"
     set__color( 11,0)
     for a=1 to 10
-        if player.cargo(a).x=11 or player.cargo(a).x=12 then 
+        if player.cargo(a).x=11 or player.cargo(a).x=12 then
             b+=1
             dest(b)=player.cargo(a).y+1
         endif
@@ -282,8 +282,8 @@ function show_quests() as short
         next
     endif
     if player.questflag(8)>0 and player.towed<0 then print " Deliver "&add_a_or_an(shiptypes(-player.towed),0) &" hull to Station "&player.questflag(8)+1
-    
-    if player.questflag(7)>0 then 
+
+    if player.questflag(7)>0 then
         sys=sysfrommap(player.questflag(7))
         for d=1 to 9
             if map(sys).planets(d)=player.questflag(7) then p=d
@@ -295,7 +295,7 @@ function show_quests() as short
     if player.questflag(11)=1 then txt=txt & "  Find a missing company battleship"&"|"
     if player.questflag(2)=1 then txt=txt & "  Rescue a company executive from pirates"&"|"
     if player.questflag(12)=1 then txt=txt & "  A small green alien told you about a monster in their mushroom caves."
-    if player.questflag(26)>0 then 
+    if player.questflag(26)>0 then
         sys=player.questflag(26)
         txt=txt & "  Find out what happened to an expedition last reported from "& map(sys).c.x &":"&map(sys).c.y &"."&"|"
     endif
@@ -305,7 +305,7 @@ function show_quests() as short
     txt=txt & bounty_quest_text
     if player.questflag(5)=1 then txt=txt & "  Bring down an unknown alien ship"&"|"
     if player.questflag(6)=1 then txt=txt & "  Bring down an unknown alien ship"&"|"
-    
+
     txt=txt &"|{15}Escorting:{11}|"
     for a=6 to lastfleet
         if fleet(a).con(1)=1 then
@@ -315,7 +315,7 @@ function show_quests() as short
     txt=txt &"|{15}Other:{11}|"
     for a=1 to lastquestguy
         if questguy(a).talkedto=2 then
-        txt=txt &questguy(a).n &", last seen at " 
+        txt=txt &questguy(a).n &", last seen at "
         if questguy(a).location<0 then
             txt=txt &"a small station,"
         else
@@ -345,7 +345,7 @@ function show_quests() as short
         case qt_locofspecial'14
             txt=txt &" wants to know the location of a special planet.|"
         case qt_locofgarden'15
-            txt=txt &" wants to know the location of an earthlike planet.|"        
+            txt=txt &" wants to know the location of an earthlike planet.|"
         case qt_research'18
             txt=txt &" is interested in "&questguy(questguy(a).flag(1)).n &"s research.|"
         case qt_megacorp'19
@@ -358,10 +358,10 @@ function show_quests() as short
             txt=txt &" buys plans for improvised repairs.|"
             'qt_cargo
         end select
-        
+
         endif
     next
-    
+
     textbox(txt,2,2,_mwx*_fw1/_fw2-4,,1)
     display_ship(0)
     no_key=keyin
@@ -404,7 +404,7 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
         w1=4
         w2=1
     endif
-    
+
     if weight<=0 then weight=1
     spec=spec+1
     species(1)="avian"
@@ -419,7 +419,7 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     species(10)="amphibian"
     species(11)="gastropod"
     species(12)="fish"
-    
+
     limbsbyspec(1)=2
     limbsbyspec(2)=8
     limbsbyspec(3)=6
@@ -432,7 +432,7 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     limbsbyspec(10)=4
     limbsbyspec(11)=0
     limbsbyspec(12)=6
-    
+
     eyesbyspec(1)=2
     eyesbyspec(2)=8
     eyesbyspec(3)=4
@@ -445,9 +445,9 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     eyesbyspec(10)=2
     eyesbyspec(11)=2
     eyesbyspec(12)=2
-    
-    
-    
+
+
+
     add=2-rnd_range(1,4)
     nolimbs=rnd_range(limbsbyspec(spec),limbsbyspec(spec)+add)
     if frac(nolimbs/2)<>0 then nolimbs=nolimbs+1
@@ -459,37 +459,37 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     heads(2)="elongated"
     heads(3)="cone shaped"
     heads(4)="flat"
-    
+
     horns(1)="short horns"
     horns(2)="long horns"
     horns(3)="curved horns"
     horns(4)="antlers"
-    
+
     eyes(1)="pit eyes"
     eyes(2)="compound eyes"
     eyes(3)="lens eyes"
     eyes(4)="occeli"
-    
+
     mouths(1)="elongated mouth"
     mouths(2)="small mouth"
     mouths(3)="big mouth"
     mouths(4)="trunk"
-    
+
     necks(1)=""
     necks(2)="long"
     necks(3)="short"
     necks(4)="thick"
-    
+
     bodys(1)="wide"
     bodys(2)="long"
     bodys(3)="thick"
     bodys(4)="thin"
-    
+
     arms(1)="long arms"
     arms(2)="short arms"
     arms(3)="thick arms"
     arms(4)="tentacles"
-    
+
     legs(1)="thin legs"
     legs(2)="short legs"
     legs(3)="tubular legs"
@@ -498,7 +498,7 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     legs(6)="long fins"
     legs(7)="legs with webbed feet"
     legs(8)="skin sacks for water jets"
-    
+
     skin(1)=" fur"
     skin(2)=" scales"
     skin(3)=" leathery skin"
@@ -506,18 +506,18 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     skin(5)=" a chitin shell"
     skin(6)=" feathers"
     skin(7)=" scales"
-    
+
     wings(4)=" Skin flaps"
     wings(3)=" leather wings"
     wings(2)=" feathered wings"
     wings(1)=" an inflatable skin sack"
-    
+
     tails(1)="prehensile tail"
     tails(2)="short tail"
     tails(3)="long tail"
     tails(4)="spiked tail"
     tails(5)="prehensile tail with a stinger"
-    
+
     text=add_a_or_an(species(spec),1) &" with " & add_a_or_an(heads(rnd_range(1,4)),0) &" head, with "
     if noeyes>0 then text=text & noeyes &" "&eyes(rnd_range(1,4))
     if noeyes=0 then text=text &" no eyes"
@@ -528,40 +528,40 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
         enemy.weapon=enemy.weapon+1
     endif
     if spec<>8 then
-        text=text &". "&add_a_or_an(necks(rnd_range(1,4)),1) &" neck leads to " & add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with " 
+        text=text &". "&add_a_or_an(necks(rnd_range(1,4)),1) &" neck leads to " & add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with "
     else
-        text=text &". It has "& add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with " 
-    endif    
+        text=text &". It has "& add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with "
+    endif
     nolegs=rnd_range(1,6)*2
-    if nolegs>nolimbs then 
+    if nolegs>nolimbs then
         nolegs=nolimbs
         nolimbs=0
     else
         nolimbs=nolimbs-nolegs
     endif
-    
+
     noarms=rnd_range(1,6)
     if nolimbs=0 then noarms=0
     if noarms>nolimbs then noarms=nolimbs
-    
+
     if pumod<0 and noarms=0 then noarms=2
     pumod=noarms
     if noarms>0 then
-        text=text & noarms &" "& arms(rnd_range(1,4)) 
+        text=text & noarms &" "& arms(rnd_range(1,4))
     else
         text=text &"no arms"
     endif
-    
+
     if nolegs>0 then
         text=text & " and " & nolegs &" "&legs(rnd_range(1,4)+w1)
     else
         text=text & " and no legs"
     endif
-    
+
     armor=rnd_range(1,6)+w2
     text=text &". Its whole body is covered in"&skin(armor)&"."
     if armor=1 then enemy.col=rnd_range(204,209)
-    if armor=2 then 
+    if armor=2 then
         enemy.col=rnd_range(1,3)
         if enemy.col=1 then enemy.col=78
         if enemy.col=2 then enemy.col=114
@@ -569,19 +569,19 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     endif
     if armor=3 then enemy.col=rnd_range(90,94)
     if armor=4 then enemy.col=rnd_range(156,159)
-    if armor=5 then 
+    if armor=5 then
         enemy.col=rnd_range(215,217)
         enemy.armor+=1
     endif
-    if armor=6 then 
+    if armor=6 then
         enemy.col=rnd_range(74,77)
         enemy.armor+=2
     endif
-    
+
     if armor>6 then armor=6
     enemy.ti_no=800+13*(spec-1)
     enemy.ti_no+=(armor-1)*2
-    
+
     if rnd_range(1,6)<3 then
         if rnd_range(1,6)<3 then
             roll=rnd_range(1,3)
@@ -600,20 +600,20 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
                 enemy.atcost=enemy.atcost-2
                 if enemy.atcost<0 then enemy.atcost=2
             endif
-        endif    
+        endif
     endif
-    
+
     text=text &" It weighs appr. "&(weight*rnd_range(1,8)*rnd_range(1,10)) &" Kg."
-    
-    if movetype=mt_fly then 
-        if rnd_range(1,100)<66 then 
+
+    if movetype=mt_fly then
+        if rnd_range(1,100)<66 then
             text= text &" It flies using "&wings(rnd_range(1,3)) &"."
         else
             text= text &" It flies using "&rnd_range(1,3) & " pairs of "&wings(rnd_range(2,4)) &"."
         endif
     endif
     if diet=1 then text=text &" It is a predator."
-    if diet=2 then 
+    if diet=2 then
         if rnd_range(1,100)<66 then
             text=text &" It is a herbivore."
         else
@@ -654,10 +654,10 @@ function alienname(flag as short) as string
             do
                 cons=CHR(rnd_range(65,90))
             loop until cons<>"A" and cons<>"E" and cons<>"I" and cons<>"O" and cons<>"U"
-            if len(n)>1 then 
+            if len(n)>1 then
                 n=n &lcase(cons)
             else
-                n=n &cons 
+                n=n &cons
             endif
             n=n &"l"
             for b=1 to rnd_range(1,2)
@@ -674,7 +674,7 @@ function alienname(flag as short) as string
             line input #f2,txt(i)
         wend
         close f2
-        
+
         for f=0 to rnd_range(1,3)
             if rnd_range(1,100)<50 then
                 n=n & txt(rnd_range(1,i))
@@ -689,10 +689,10 @@ function alienname(flag as short) as string
                 endif
             endif
         next
-        n=left(n,1)&lcase(mid(n,2,len(n)))    
+        n=left(n,1)&lcase(mid(n,2,len(n)))
     endif
     return n
-end function 
+end function
 
 
 function date_string() as string
@@ -720,7 +720,7 @@ function date_string() as string
     if val(w(0))=12 then w(0)="DEZ"
     return w(1)&"-"&w(0)&"-"&w(2)
 end function
-    
+
 function crew_bio(i as short) as string
     dim t as string
     dim as short a
@@ -743,13 +743,13 @@ function crew_bio(i as short) as string
         t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
         t=t &" ||To hit gun:"&tohit_gun(i) &"|To hit cc:"&tohit_close(i) &"||"
         select case crew(i).morale
-        case is >100 
+        case is >100
             t=t &"Morale :D"
-        case 60 to 100 
+        case 60 to 100
             t=t &"Morale :)"
-        case 40 to 59 
+        case 40 to 59
             t=t &"Morale :/"
-        case is <40  
+        case is <40
             t=t &"Morale :("
         end select
         select case crew(i).story(9)
@@ -758,19 +758,19 @@ function crew_bio(i as short) as string
         case 4 to 6
             t=t &" |Has a wife/husband on station "&crew(i).story(9)-3
         end select
-        
+
         for a=1 to 25
-            if crew(i).talents(a)>0 then 
+            if crew(i).talents(a)>0 then
                 t=t &" | "
                 exit for
             endif
         next
-        
+
         for a=1 to 25
-            if crew(i).talents(a)>0 then t=t &" |"&talent_desc(a) 
+            if crew(i).talents(a)>0 then t=t &" |"&talent_desc(a)
         next
-        if debug=1 and _debug=1 then 
-            if crew(i).story(10)=0 then 
+        if debug=1 and _debug=1 then
+            if crew(i).story(10)=0 then
                 t=t & "W"
             else
                 t=t &"M"
@@ -788,88 +788,111 @@ function alerts() as short
     static wj as short
     if awayteam.oxygen=awayteam.oxymax then wg=0
     if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.movetype=2 then wj=0
-    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then 
+    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then
         dprint ("Reporting oxygen tanks half empty",14)
         wg=1
         for a=1 to wg
-            if configflag(con_sound)=0 or configflag(con_sound)=2 then    
+            if configflag(con_sound)=0 or configflag(con_sound)=2 then
                 #ifdef _FMODSOUND
-                FSOUND_PlaySound(FSOUND_FREE, sound(1))                
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                #endif
+                #ifdef _FBSOUND
+                fbs_Play_Wave(sound(1))
                 #endif
             endif
         next
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then 
+    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then
         dprint ("Oxygen low.",14)
         wg=2
         for a=1 to wg
             if configflag(con_sound=0) or configflag(con_sound)=2 then
                 #ifdef _FMODSOUND
-                FSOUND_PlaySound(FSOUND_FREE, sound(1))   
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                sleep 350
+                #endif
+                #ifdef _FBSOUND
+                fbs_Play_Wave(sound(1))
                 sleep 350
                 #endif
             endif
         next
         walking=0
-        if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)       
+        if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
     if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
         dprint ("Switching to oxygen reserve!",12)
         wg=3
         for a=1 to wg
-            if configflag(con_sound)=0 or configflag(con_sound)=2 then 
+            if configflag(con_sound)=0 or configflag(con_sound)=2 then
                 #ifdef _FMODSOUND
-                FSOUND_PlaySound(FSOUND_FREE, sound(1)) 
+                FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                sleep 350
+                #endif
+                #ifdef _FBSOUND
+                fbs_Play_Wave(sound(1))
                 sleep 350
                 #endif
             endif
         next
         walking=0
-        if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)    
+        if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
     if awayteam.jpfuel<awayteam.jpfuelmax then
-        if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then 
+        if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then
             wj=1
             for a=1 to wj
-                if configflag(con_sound)=0 or configflag(con_sound)=2 then    
+                if configflag(con_sound)=0 or configflag(con_sound)=2 then
                     #ifdef _FMODSOUND
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                    sleep 350
+                    #endif
+                    #ifdef _FBSOUND
+                    fbs_Play_Wave(sound(1))
                     sleep 350
                     #endif
                     if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
-            next  
-            walking=0  
+            next
+            walking=0
             dprint ("Jetpack fuel low",14)
         endif
-        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then 
+        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then
             wj=2
             for a=1 to wj
-                if configflag(con_sound)=0 or configflag(con_sound)=2 then    
+                if configflag(con_sound)=0 or configflag(con_sound)=2 then
                     #ifdef _FMODSOUND
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                    sleep 350
+                    #endif
+                    #ifdef _FBSOUND
+                    fbs_Play_Wave(sound(1))
                     sleep 350
                     #endif
                     if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
-            next   
-            walking=0 
+            next
+            walking=0
             dprint ("Jetpack fuel very low",14)
         endif
-        
-        if awayteam.jpfuel<5 and wj=2 then 
+
+        if awayteam.jpfuel<5 and wj=2 then
             wj=3
         for a=1 to wj
-                if configflag(con_sound)=0 or configflag(con_sound)=2 then    
+                if configflag(con_sound)=0 or configflag(con_sound)=2 then
                     #ifdef _FMODSOUND
-                    FSOUND_PlaySound(FSOUND_FREE, sound(1))                    
+                    FSOUND_PlaySound(FSOUND_FREE, sound(1))
+                    sleep 350
+                    #endif
+                    #ifdef _FBSOUND
+                    fbs_Play_Wave(sound(1))
                     sleep 350
                     #endif
                     if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
                 endif
-            next    
+            next
             dprint ("Switching to jetpack fuel reserve",12)
             walking=0
         endif
@@ -884,8 +907,8 @@ function makehullbox(t as short,file as string) as string
     dim as string box
     s=gethullspecs(t,file)
     box=s.h_desig & "||"
-    if len(s.h_desc)>1 then box=box &s.h_desc 
-    box=box &" | | Hull Max.:"&s.h_maxhull &" | Shield Max.:"&s.h_maxshield &" | Engine Max.:"&s.h_maxengine &" | Sensors Max.:"&s.h_maxsensors 
+    if len(s.h_desc)>1 then box=box &s.h_desc
+    box=box &" | | Hull Max.:"&s.h_maxhull &" | Shield Max.:"&s.h_maxshield &" | Engine Max.:"&s.h_maxengine &" | Sensors Max.:"&s.h_maxsensors
     box=box &" | Crew:"&s.h_maxcrew &" | Cargobays:"&s.h_maxcargo &" | Weapon turrets:" &s.h_maxweaponslot &" | Fuelcapacity:"&s.h_maxfuel &" |"
     return box
 end function
@@ -921,7 +944,7 @@ function cargo_text() as string
             text=text &cc(a) &" tons of "&lcase(cargo(a)) &"|"
         end select
     next
-    
+
     for a=1 to 10
         if player.cargo(a).x=11 or player.cargo(a).x=12 then
             text=text &cargo(player.cargo(a).x)& " for station "&player.cargo(a).y+1 &"|"
@@ -938,7 +961,7 @@ function html_color(c as string, indent as short=0, wid as short=0) as string
     t= "<span style="&chr(34) &" COLOR:"& c &"; font-family:arial;position:relative"
     if indent>0 then t=t &"; left:"&indent &"px"
     if wid>0 then t=t & ";display:inline-block; width:"&wid &"px"
-    t=t & chr(34)& ">" 
+    t=t & chr(34)& ">"
     return t
 end function
 
@@ -950,12 +973,12 @@ function text_to_html(text as string) as string
         w(wcount)=w(wcount)&mid(text,i,1)
         if mid(text,i,1)=" " or mid(text,i,1)="|" or  mid(text,i,1)="}" then wcount+=1
     next
-    
+
     for i=0 to wcount
         if w(i)="|" then w(i)="<br>"
         if Left(trim(w(i)),1)="{" and Right(trim(w(i)),1)="}" then
             c=numfromstr(w(i))
-            if first=1 then 
+            if first=1 then
                 w(i)="</span>"& html_color("rgb(" &RGBA_R(palette_(c))& ","&RGBA_G(palette_(c))& ","&RGBA_B(palette_(c))& ")")
             else
                 w(i)=html_color("rgb(" &RGBA_R(palette_(c))& ","&RGBA_G(palette_(c))& ","&RGBA_B(palette_(c))& ")")
@@ -966,7 +989,7 @@ function text_to_html(text as string) as string
     for i=0 to wcount
         t=t &w(i)
     next
-    
+
     return t
 end function
 
@@ -981,7 +1004,7 @@ function weapon_string() as string
             turrets+=1
         endif
     next
-    
+
     if turrets=1 then weaponstring=weaponstring &"1 empty turret"
     if turrets>1 then weaponstring=weaponstring &turrets &" empty turrets"
     return weaponstring
@@ -989,7 +1012,7 @@ end function
 
 function weapon_text(w as _weap) as string
     dim text as string
-    
+
     if w.desig="" then
         text=""
     else
@@ -999,12 +1022,12 @@ function weapon_text(w as _weap) as string
             if w.shutdown>0 then text="{14}"
             text=text &w.desig &"|"
             if w.reloading=0 and w.shutdown=0 then text=text &"{11}"
-             
+
             if w.ammomax=0 then
-                text=text &" D:"&w.dam 
+                text=text &" D:"&w.dam
             endif
             if w.reloading=0 then
-                text=text &" R:"&w.range &"/"&w.range*2 &"/"&w.range*3 
+                text=text &" R:"&w.range &"/"&w.range*2 &"/"&w.range*3
                 if w.ammomax>0 then text=text &" A:"&w.ammomax &"/"&w.ammo
             else
                 if w.ammomax>0 then
@@ -1093,17 +1116,17 @@ function crew_html(c as _crewmember) as string
         cstring="#FF0000"
     end select
     t=t & html_color(cstring) &c.hpmax &"</span>"& html_color("#ffffff") &"/</span>"& html_color(cstring)&c.hp &"</span>"
-    t=t &" "& html_color("#FFFFFF",,180)&" "& c.n  &"</span>"     
+    t=t &" "& html_color("#FFFFFF",,180)&" "& c.n  &"</span>"
     if c.hp<=0 then
         t=t & html_color ("#FF0000",,100) &" Dead"
     else
-        if c.onship=0 then 
+        if c.onship=0 then
             t=t & html_color("#00FF00",,100) &" Awayteam "
         else
             t=t & html_color("#FFFF00",,100) &" On Ship "
         endif
     endif
-    
+
     t=t & "</span>" & html_color("#FFFFFF",,20) &"XP:"&c.xp &"</span><br> &nbsp;&nbsp;&nbsp;" '
     if c.armo>0 then
         t=t & html_color("#FFFFFF") &item(c.armo).desig &"</span>"
@@ -1117,7 +1140,7 @@ function crew_html(c as _crewmember) as string
         t=t & html_color("#FFFF00")&"None"&"</span>"
     endif
     t=t &", "
-    
+
     if c.blad>0 then
         t=t & html_color("#FFFFFF")&item(c.blad).desig &"</span>"
     else
@@ -1151,7 +1174,7 @@ function crew_text(c as _crewmember) as string
     else
         t="{12}X "
     endif
-    
+
     select case c.hp
     case is=c.hpmax
         cstring="{10}"
@@ -1160,35 +1183,35 @@ function crew_text(c as _crewmember) as string
     case else
         cstring="{12}"
     end select
-    t=t & cstring &c.hpmax &"{15}" &"/"& cstring &c.hp 
-    t=t &" "& "{15}"&" "& space(45-len(t)-len(trim(c.n)))&c.n       
+    t=t & cstring &c.hpmax &"{15}" &"/"& cstring &c.hp
+    t=t &" "& "{15}"&" "& space(45-len(t)-len(trim(c.n)))&c.n
     if c.hp<=0 then
         t=t &"{12} Dead "
     else
-        if c.onship=0 then 
+        if c.onship=0 then
             t=t & "{10} Awayteam "
         else
             t=t & "{14} On Ship "
         endif
     endif
-    
+
     t=t & "{15}XP:"&c.xp &"|"
     if c.armo>0 then
-        t=t & "{11}" &item(c.armo).desig 
+        t=t & "{11}" &item(c.armo).desig
     else
         t=t & "{14}None"
     endif
     t=t &", "
     if c.weap>0 then
-        t=t & "{11}" &item(c.weap).desig 
+        t=t & "{11}" &item(c.weap).desig
     else
         t=t & "{14}None"
     endif
 
     t=t &", "
-    
+
     if c.blad>0 then
-        t=t & "{11}" &item(c.blad).desig 
+        t=t & "{11}" &item(c.blad).desig
     else
         t=t & "{14}None"
     endif
@@ -1200,14 +1223,14 @@ function crew_text(c as _crewmember) as string
     if augments<>"" then t=t &augments
     if skills<>"" or augments<>"" then t=t &"|"
     t=t &"|"
-    
+
     return t
 end function
 
 
 function augment_text(c as _crewmember) as string
     dim augments as string
-    
+
     if c.augment(1)=1 then augments=augments &"Targeting "
     if c.augment(1)=2 then augments=augments &"Targeting II "
     if c.augment(1)=3 then augments=augments &"Targeting III "
@@ -1236,7 +1259,7 @@ function skill_text(c as _crewmember) as string
     dim a as short
     for a=1 to 26
         if c.talents(a)>0 then
-            if skills<>"" then 
+            if skills<>"" then
                 skills=skills &", "&talent_desig(a)&"("&c.talents(a)&")"
             else
                 skills=talent_desig(a)&"("&c.talents(a)&")"
@@ -1255,7 +1278,7 @@ function list_inventory() as string
     dim as _items inv(128)
     dim as short invn(128)
     dim text as string
-    c=get_item_list(inv(),invn()) 
+    c=get_item_list(inv(),invn())
     text="{15}Equipment (Value "&Credits(equipment_value) &" Cr.):{11}"
     for i=1 to c
         select case invn(i)
@@ -1263,7 +1286,7 @@ function list_inventory() as string
             text=text &"| "&invn(i)&" "&inv(i).desigp
         case is=1
             text=text &"| "&inv(i).desig
-        case is<1        
+        case is<1
             text=text &"|{15}"&inv(i).desig &"{11}"
         end select
     next
@@ -1276,9 +1299,9 @@ function list_inventory() as string
 '            draw string (_screenx-(len(trim(inv(i).desig))+3)*_fw2,_screeny-((c-b)*_fh2)),invn(i)&" "&inv(i).desigp,,font2,custom,@_col
 '        case else
 '            draw string (_screenx-len(trim(inv(i).desig))*_fw2,_screeny-((c-b)*_fh2)),inv(i).desig,,font2,custom,@_col
-'        
+'
 '        end select
-    
+
 end function
 
 
@@ -1295,17 +1318,17 @@ function low_morale_message() as short
     next
     average=total/crewmembers
     who=rnd_range(2,crewmembers)
-    if crew(who).story(10)=0 then 
+    if crew(who).story(10)=0 then
         hesheit="she"
         hishersits="hers"
         himselfherself="herself"
     endif
-    if crew(who).story(10)=1 then 
+    if crew(who).story(10)=1 then
         hesheit="he"
         hishersits="his"
         himselfherself="himself"
     endif
-    if crew(who).story(10)=2 then 
+    if crew(who).story(10)=2 then
         hesheit="it"
         hishersits="its"
         himselfherself="itself"
@@ -1317,7 +1340,7 @@ function low_morale_message() as short
                 case is=1
                     dprint crew(who).n &" thinks aloud about 'retiring the captain by plasma rifle'"
                 case is=2
-                    dprint "Somebody has painted a message on an airlock:'Crew to captain: Home is this way.'"    
+                    dprint "Somebody has painted a message on an airlock:'Crew to captain: Home is this way.'"
                 case is=3
                     dprint crew(who).n &" throws his food in your direction."
                 case is=4
@@ -1341,7 +1364,7 @@ function low_morale_message() as short
                 case is=1
                     dprint "A fight breaks out about the quality of the food."
                 case is=2
-                    dprint "You hear "& crew(who).n &" mutter 'Why don't you do it yourself, my captain?' before following your order."    
+                    dprint "You hear "& crew(who).n &" mutter 'Why don't you do it yourself, my captain?' before following your order."
                 case is=3
                     dprint "Your speech on tardiness on duty is met with little interest."
                 case is=4
@@ -1349,7 +1372,7 @@ function low_morale_message() as short
                 case is=5
                     dprint crew(who).n &" states that " & hesheit & " will quit the next time you dock, and that everybody who still has a full set of marbles should join him."
                 case is=6
-                    dprint crew(who).n &" greets you with 'What suicide mission will it be today?'" 
+                    dprint crew(who).n &" greets you with 'What suicide mission will it be today?'"
                 case is=7
                     dprint "A fight breaks out over the away team equipment."
                 case is=8
@@ -1368,7 +1391,7 @@ function low_morale_message() as short
                     dprint crew(who).n &" wishes aloud that he had better equipment... or a better leader."
                 case is=15
                     dprint crew(who).n &" wonders aloud about whether any amount of money could be worth *this*."
-                case is=16    
+                case is=16
                     dprint crew(who).n &" obsessively reviews " & hishersits & " last will and testament."
 
             end select
@@ -1493,24 +1516,24 @@ function income_expenses_html() as string
     l=l+7
     t="<table><tbody><tr><td>"& html_color("#ffffff") &"Income:</span></td><td></td></tr>"
     i=0
-    
+
     if income(i)>0 then t=t &"<tr><td>"& html_color("#ffffff") &desig(i) &"</span></td><td align=right>" & html_color("#00ff00")&credits(income(i))&" Cr.</span></td><td>"& html_color("#00ff00")&"(" &per(i)& "%)</span></div></td></tr>"
     if shares_value>0 then t=t &"<tr><td>"& html_color("#ffffff") &"Stock:</span></td><td align=right>" & html_color("#00ff00")&credits(shares_value)&" Cr.</span></td><td>"& html_color("#00ff00")&"(" &per(mt_last)& "%)</span></div></td></tr>"
-    
+
     for i=1 to mt_last-1
         if income(i)>0 then t=t &"<tr><td>"& html_color("#ffffff") &desig(i) &"</span></td><td align=right>" & html_color("#00ff00")&credits(income(i))&" Cr.</span></td><td>"& html_color("#00ff00")&"(" &per(i)& "%)</span></div></td></tr>"
     next
     t=t &"<tr><td><br>"& html_color("#ffffff") &desig(i) &"</span></td><td align=right><br>" & html_color("#00ff00")&credits(income(i))&" Cr.</div></td></tr>"
-    
+
     ex=player.money-income(mt_last)
     t=t &"<tr><td><br>" & html_color("#ffffff") & "Expenses:</span> </td><td align=right><br>"& html_color("#ff0000") & credits(ex)& " Cr.</span></td></td><td></tr>"
     t=t &"<tr><td><br>" & html_color("#ffffff") & "Revenue:</span></td><td align=right><br>" & html_color("#00ff00")&credits(player.money) &" Cr.</span></td></td><td></tr>"
     t=t &"</tbody></table><br>Equipment value: "& html_color("#00ff00")&credits(equipment_value)&" Cr.</span>"
-    
+
     return t
 end function
 
-    
+
 function income_expenses() as string
     dim text as string
     dim as string desig(mt_last)
@@ -1546,7 +1569,7 @@ function income_expenses() as string
     l=l+7
     text="{15}Income:|"
     if shares_value>0 then text=text &"  {11}"&"Stock" &space(l-len(credits(shares_value))-len("Stock"))&"{" & c_gre &  "}"&credits(shares_value) & " Cr. (" &per(mt_last)& "%)|"
-    
+
     for i=0 to mt_last-1
         if income(i)>0 then text=text &"  {11}"&desig(i) &space(l-len(desig(i))-len(credits(income(i))))&"{" & c_gre &  "}"&credits(income(i)) & " Cr. (" &per(i)& "%)|"
     next
@@ -1554,19 +1577,19 @@ function income_expenses() as string
     ex=player.money-income(mt_last)
     text=text &"|{15}Expenses:|  {"&c_red & "}" & space(l-len(credits(ex)))&credits(ex)&_
     " Cr.|{15}Revenue:|  "&space(l-len(credits(player.money))) &"{11}"&credits(player.money) &" Cr."
-    
+
     return text
 end function
 
 function money_text() as string
     dim text as string
     dim as short b,a
-    
+
     text=text & " | "
     for a=1 to st_last-1
         piratekills(0)+=piratekills(a)
     next
-    if piratekills(0)=0 then 
+    if piratekills(0)=0 then
         text=text &"Did not win any space battles"
     else
         text=text &"Fought "&piratekills(0) &" space battles:|"
@@ -1583,9 +1606,9 @@ function money_text() as string
 '    else
 '        text=Text & "No Pirate ships were destroyed"
 '    endif
-    
+
     text=text & " | "
-    
+
     if pirateplanet(0)=-1 then
         text =text & "Destroyed the Pirates base of operation! |"
     endif
@@ -1593,13 +1616,13 @@ function money_text() as string
     for a=1 to _NoPB
         if pirateplanet(a)=-1 then b=b+1
     next
-    if b=1 then 
+    if b=1 then
         text=text & " Destroyed a pirate outpost. |"
     endif
-    if b>1 then 
+    if b>1 then
         text=text & " Destroyed " & b &" pirate outposts. |"
     endif
-    
+
         'if faction(0).war(1)<=0 then text=text & "Made all money with honest hard work"
         'if player.merchant_agr>0 and player.pirate_agr<50 then text = text & "Found piracy not to be worth the hassle"
         'if player.pirate_agr<=0 and player.merchant_agr>50 then text = text & "Made a name as a bloodthirsty pirate"
@@ -1623,10 +1646,10 @@ end function
 function uniques_html(unflags() as byte) as string
     dim t as string
     dim as short a,platforms,none
-    
-    
+
+
     t= html_color("#ffffff") &"Unique planets discovered:</span><br>"& html_color("#00ffff")
-    
+
     for a=0 to lastspecial
         if unflags(a)=1 then
                 none=1
@@ -1647,17 +1670,17 @@ function uniques_html(unflags() as byte) as string
     if platforms>1 then t=t & platforms &" ancient refueling platforms<br>"
     if platforms=1 then t=t & "An ancient refueling platform<br>"
     if none=0 then t=t & html_color("#ffff00")&"None</span><br>"
-    
+
     return t
-end function    
+end function
 
 function uniques(unflags() as byte) as string
     dim text as string
     dim as short a,platforms,none
 
-    
+
     text= "{15}Unique planets discovered:{11}|"
-    
+
     for a=0 to lastspecial
         if unflags(a)=1 then
                 none=1
@@ -1725,8 +1748,8 @@ function artifacts_html(artflags() as short) as string
     for a=1 to 22
         if artflag(a)>0 then
             if a=2 or a=4 or a=8 or a=14 or a=15 or a=5 then
-                
-                if a=8 then 
+
+                if a=8 then
                     if player.cryo=1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"<br>"
                     if player.cryo>1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"<br>"
                 endif
@@ -1739,7 +1762,7 @@ function artifacts_html(artflags() as short) as string
     if c=0 and sd=0 and hd=0 and ar=0 and ss=0 and bombs=0 and CD=0 and player.cryo=0 then
         flagst(0)=flagst(0) & html_color("#ffff00")&"None</span><br>"
     endif
-    
+
     if sd>1 then flagst(0)=flagst(0) &sd &" ship disintegrators<br>"
     if sd=1 then flagst(0)=flagst(0) &sd &" ship disintegrator<br>"
     if hd>1 then flagst(0)=flagst(0) & hd &" portable disintegrators<br>"
@@ -1752,7 +1775,7 @@ function artifacts_html(artflags() as short) as string
     if bombs>1 then flagst(0)=flagst(0) & bombs &" ancient bombs<br>"
     if CD>0 then flagst(0)=flagst(0) &"Cloaking device<br>"
     if reward(4)>0 then flagst(0)=flagst(0) & reward(4) &" unidentified artifacts<br></span>."
-    return flagst(0)    
+    return flagst(0)
 end function
 
 function list_artifacts(artflags() as short) as string
@@ -1800,8 +1823,8 @@ function list_artifacts(artflags() as short) as string
     for a=1 to 22
         if artflag(a)>0 then
             if a=2 or a=4 or a=8 or a=14 or a=15 or a=5 then
-                
-                if a=8 then 
+
+                if a=8 then
                     if player.cryo=1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"|"
                     if player.cryo>1 then flagst(0)=flagst(0) & player.cryo & flagst(a)&"s|"
                 endif
@@ -1814,7 +1837,7 @@ function list_artifacts(artflags() as short) as string
     if c=0 and sd=0 and hd=0 and ar=0 and ss=0 and bombs=0 and CD=0 and player.cryo=0 then
         flagst(0)=flagst(0) &"      {14} None |"
     endif
-    
+
     flagst(0)="{15}Alien Artifacts {11}|"&flagst(0)
     if sd>1 then flagst(0)=flagst(0) &sd &" ship disintegrators|"
     if sd=1 then flagst(0)=flagst(0) &sd &" ship disintegrator|"
@@ -1828,7 +1851,7 @@ function list_artifacts(artflags() as short) as string
     if bombs>1 then flagst(0)=flagst(0) & bombs &" ancient bombs|"
     if CD>0 then flagst(0)=flagst(0) &"Cloaking device|"
     if reward(4)>0 then flagst(0)=flagst(0) & reward(4) &" unidentified artifacts."
-    return flagst(0)    
+    return flagst(0)
 end function
 
 function first_lc(t as string) as string
@@ -1860,11 +1883,11 @@ function items_table() as string
                 t=t &"&nbsp;"&invn(i)&" "&inv(i).desigp &"<br>"
             case is=1
                 t=t &"&nbsp;"&inv(i).desig &"<br>"
-            case is<1        
+            case is<1
                 t=t & html_color("#ffffff") &inv(i).desig &"</span>"& html_color("#00ffff")&"<br>"
             end select
-        
-            if c>=d and invn(i)>0 then 
+
+            if c>=d and invn(i)>0 then
                 d=c
                 c=1
                 t=t &"</div></td><td valign=" &chr(34)& "top" &chr(34)&"><div>"& html_color("#00ffff")
@@ -1874,8 +1897,8 @@ function items_table() as string
         endif
     next
     t=t &"</span></div></tbody></table>"
-    
-    
+
+
     return t
 end function
 
@@ -1884,7 +1907,7 @@ function exploration_text() as string
     dim text as string
     dim as short a,b,c,xx,yy,exps,expp,expl,tp,total,per,visited,docked,alldockings,wormdis,wormtra
     dim discovered(lastspecial) as short
-    
+
     for a=0 to laststar
         if map(a).discovered>0 then exps=exps+1
         for b=1 to 9
@@ -1903,28 +1926,28 @@ function exploration_text() as string
     next
     for c=0 to lastspecial
         if specialplanet(c)>=0 and specialplanet(c)<=lastplanet then
-            if planets(specialplanet(c)).visited<>0 then discovered(c)=1         
+            if planets(specialplanet(c)).visited<>0 then discovered(c)=1
         endif
     next
     for c=laststar+1 to laststar+wormhole
         if map(c).discovered>0 then wormdis+=1
-        if map(c).planets(2)>0 and map(c).planets(3)=0 then 
+        if map(c).planets(2)>0 and map(c).planets(3)=0 then
             wormtra+=1
             map(map(c).planets(1)).planets(3)=-1 'Dont count twice
         endif
     next
-    
-    text="{15}Exploration log:{11}|"& explored_percentage_string 
+
+    text="{15}Exploration log:{11}|"& explored_percentage_string
     if exps=0 then text=text &"|Discovered no systems and mapped "
     if exps=1 then text=text &"|Discovered {15}" & exps & "{11} system ({15}" &int((exps/laststar)*100) & "%{11}) and mapped "
-    if exps>1 and exps<laststar then text=text &"|Discovered {15}" & exps & "{11} systems ({15}" &int((exps/laststar)*100) & "%{11}) and mapped " 
+    if exps>1 and exps<laststar then text=text &"|Discovered {15}" & exps & "{11} systems ({15}" &int((exps/laststar)*100) & "%{11}) and mapped "
     if exps=laststar then text=text &"|Discovered all systems and mapped "
-    
+
     if expp=0 then  text = text & "{15}none{11} of " &tp &" planets. ({15}" &explper &"{11} %) "
     if expp=1 then  text = text &"{15}"& expp & "{11} of " &tp &" planets. ({15}" &explper &" %{11}) "
     if expp>1 and expp<tp then  text = text &"{15}"& expp & "{11} of " &tp &" planets. ({15}" &explper &" %{11}) "
     if expp=tp then  text = text & expp & "{15}all{11} of " &tp &" planets. ({15}" &explper &" %{11}) "
-    
+
     if wormdis=0 then text=text &"|Didn't discover any wormholes"
     if wormdis=1 then text=text &"|Discovered {15}a{11} wormhole"
     if wormdis>1 and wormdis<wormhole then text=text &"|Discovered {15}" & wormdis & "{11} wormholes"
@@ -1939,7 +1962,7 @@ function exploration_text() as string
         if basis(c).docked>0 then docked+=1
         alldockings+=basis(c).docked
     next
-    
+
     if alldockings=0 then text=text &"|Never docked at a major space station"
     if docked=4 then text=text &"|Docked at all major space stations and helped establish a new one"
     if docked=3 then text=text &"|Docked at all major space stations"
@@ -1959,7 +1982,7 @@ function exploration_text() as string
     for a=0 to 25
         if discovered(a)=1 then b=b+1
     next
-    if b=0 then 
+    if b=0 then
         text=text & "|No remarkable planets discovered."
     endif
     if b>0 then
@@ -1969,12 +1992,12 @@ function exploration_text() as string
             text=text & "|{15}"& b &"{11} remarkable planets discovered."
         endif
     endif
-    
+
     text=text & " |Defeated "
     if player.alienkills=0 then text =text & "no aliens"
     if player.alienkills=1 then text =text & "{15}"&player.alienkills &"{11} alien."
     if player.alienkills>1 then text =text & "{15}"&player.alienkills &"{11} aliens."
-    
+
     if player.deadredshirts=0 and player.dead=98 then text=text & " |Set new safety standards for space exploration by not losing a single crewmember."
     if player.deadredshirts=1 then text=text & " |{12}One{11} casualty among the crew."
     if player.deadredshirts>1 then text=text & " |{12}"& player.deadredshirts &"{11} casualties among the crew."
@@ -1985,7 +2008,7 @@ function mission_type() as string
     dim text as string
     dim per(4) as uinteger
     dim as uinteger i,h,highest
-    
+
     per(0)=income(mt_ress)+income(mt_bio)+income(mt_map)+income(mt_ano)+income(mt_artifacts)
     per(1)=income(mt_trading)+income(mt_quest)+income(mt_bonus)+income(mt_escorting)+income(mt_towed)
     per(2)=income(mt_pirates)
@@ -2003,17 +2026,17 @@ function mission_type() as string
     if h=2 then text &="Pirate hunter|"
     if h=3 then text &="Pirate|"
     if h=4 then text &="Errand boy|"
-   
+
     return text
 end function
 
 
 function shipstatsblock() as string
     dim t as string
-    dim as short c,a,mjs 
+    dim as short c,a,mjs
     c=10
     if player.hull<(player.h_maxhull+player.addhull)/2 then c= 14
-    if player.hull<2 then c=12    
+    if player.hull<2 then c=12
     t= "{15}Hullpoints"
     if player.armortype=1 then t=t &"(Standard)"
     if player.armortype=2 then t=t &"(Laminate)"
@@ -2032,7 +2055,7 @@ function shipstatsblock() as string
         if player.weapons(a).made=89 then mjs+=2
     next
     t = t &"{15}({11}"&player.engine+2-player.h_maxhull\15+mjs &"{15} MP) Sensors:{11}"& player.sensors
-    return t 
+    return t
 end function
 
 function Crewblock() as string
@@ -2051,25 +2074,25 @@ function Crewblock() as string
     dim t as string
     t="{15}Crew Summary |"
     t=t & "{15} | Pilot   :{11}"
-    if player.pilot(0)<=0 then 
+    if player.pilot(0)<=0 then
         t=t &"{12}-"
     else
         t=t &player.pilot(0)
     endif
     t=t & "{15} | Gunner  :{11}"
-    if player.gunner(0)<=0 then 
+    if player.gunner(0)<=0 then
         t=t &"{12}-"
     else
         t=t &player.gunner(0)
     endif
     t=t & "{15} | Science :{11}"
-    if player.science(0)<=0 then 
+    if player.science(0)<=0 then
         t=t &"{12}-"
     else
         t=t &player.science(0)
     endif
     t=t & "{15} | Doctor  :{11}"
-    if player.doctor(0)<=0 then 
+    if player.doctor(0)<=0 then
         t=t &"{12}-"
     else
         t=t &player.doctor(0)
@@ -2086,7 +2109,7 @@ function Crewblock() as string
     if c7>0 then t=t &"{15} | Neoape   :{11}"&c7
     if c8>0 then t=t &"{15} | Robot    :{11}"&c8
     if sick>0 then t=t &"{14}|| Sick:"&sick
-    return t 
+    return t
 end function
 
 function add_a_or_an(t as string,beginning as short) as string
@@ -2097,13 +2120,13 @@ function add_a_or_an(t as string,beginning as short) as string
     if beginning=1 then
         if t2="A" or t2="I" or t2="E" or t2="O" or t2="U" then
             t3="An"
-        else 
+        else
             t3="A"
         endif
-    else         
+    else
         if t2="A" or t2="I" or t2="E" or t2="O" or t2="U" then
             t3="an"
-        else 
+        else
             t3="a"
         endif
     endif
@@ -2126,37 +2149,37 @@ function sellassetts () as string
         retirementassets(2)=0
         return "You have to sell your country manor"
     endif
-    
+
     if retirementassets(3)>0 then
         player.money+=1000
         retirementassets(4)=0
         return "You have to sell your small asteroid base"
     endif
-    
+
     if retirementassets(4)>0 then
         player.money+=2500
         retirementassets(4)=0
         return "You have to sell your asteroid base"
     endif
-    
+
     if retirementassets(5)>0 then
         player.money+=5000
         retirementassets(5)=0
         return "You have to sell your terraformed asteroid"
     endif
-    
+
     if retirementassets(6)>0 then
         player.money+=125000
         retirementassets(6)=0
         return "You have to sell your small planet"
     endif
-    
+
     if retirementassets(7)>0 then
         player.money+=250000
         retirementassets(7)=0
         return "You have to sell your planet"
     endif
-    
+
     if retirementassets(2)>0 then
         player.money+=500000
         retirementassets(2)=0
@@ -2170,20 +2193,20 @@ function es_part1() as string
     dim t as string
     dim as single mpy,pmoney
     dim as short i,allsum,rent
-    
+
     for i=1 to 7
         allsum+=alliance(i)
     next
-    
+
     select case player.money
         case is<=0
             t="You retire with a debt of "&credits(player.money) &" Cr."
         case else
             t="You retire with "&credits(player.money) &" Cr. to your name."
     end select
-    
+
     t = t &" Your ship doesn't have the range to get back to civilization, you need to book a passage on a long range transport ship for that.|"
-    
+
     if player.money<500 then
         t=t & " To get a flight back to civilization you sell your ship."
         player.money=player.money+player.h_price/5
@@ -2201,9 +2224,9 @@ function es_part1() as string
     if player.money<500 then
         t=t &" yet still you don't have enough money to return home."
         if rnd_range(1,6)<=2 then
-            t=t &" To make matters worse you are unable to find a job at the station. " 
+            t=t &" To make matters worse you are unable to find a job at the station. "
             if rnd_range(1,6)<=2 then
-                t=t &" Finally a colonist takes you in as a farm hand." 
+                t=t &" Finally a colonist takes you in as a farm hand."
             else
                 t=t &" You have no other choice but to sign on as security on another freelancer ship."
                 if rnd_range(1,6)<3 then
@@ -2216,36 +2239,36 @@ function es_part1() as string
             endif
         else
             select case rnd_range(1,6)
-            case is =1 
+            case is =1
                 t=t &" You find a job as a janitor."
-            case is =2 
+            case is =2
                 t=t &" You find a job as a waiter."
-            case is =3 
+            case is =3
                 t=t &" You find a job as a cook."
-            case is =4 
+            case is =4
                 t=t &" You find a job as station security."
-            case is =5 
+            case is =5
                 t=t &" You find a job as a station shop assistant."
-            case is =6 
+            case is =6
                 t=t &" You find a job as a traders assistant."
             end select
             select case rnd_range(1,6)
-            case is =1 
+            case is =1
                 t=t &" Unfortunately your employer goes broke before you get your first wage."
                 player.money=player.money+0
-            case is =2 
+            case is =2
                 t=t &" Unfortunately your employer doesn't pay well and rarely on time."
                 player.money=player.money+50
-            case is =3 
+            case is =3
                 t=t &" You get an average wage for your position."
                 player.money=player.money+100
-            case is =4 
+            case is =4
                 t=t &" You get an average wage for your position"
                 player.money=player.money+125
-            case is =5 
+            case is =5
                 t=t &" Luckily you get paid rather well."
                 player.money=player.money+250
-            case is =6 
+            case is =6
                 t=t &" Payment is extraordinary and you wonder why you ever decided to become a freelancer."
                 player.money=player.money+500
             end select
@@ -2256,10 +2279,10 @@ function es_part1() as string
         t=t &"|You board the next ship back to civilization, and arrive back home with "&credits(player.money) &" Credits."
     else
         t=t &"|You make enough money to live, but not enough to ever get back to civilization."
-        
+
         t=t &"|"
         if rnd_range(1,100)<33 then
-            t=t & "You never find a partner to share your life with. Looks like the only love of a captain is his ship." 
+            t=t & "You never find a partner to share your life with. Looks like the only love of a captain is his ship."
         else
             if rnd_range(1,100)<33 then
                 t=t & "You have several relationships but nothing serious. Looks like you are not made for lasting romance."
@@ -2279,9 +2302,9 @@ function es_part1() as string
         t=t & "|"
         return t
     endif
-    
+
     t=t &"||"
-    
+
     mpy=player.money/(20+rnd_range(1,6))
     if mpy<120 and retirementassets(6)=0 and retirementassets(7)=0 and retirementassets(8)=0  then
         if retirementassets(0)>0 then
@@ -2290,32 +2313,32 @@ function es_part1() as string
         else
             t=t &"|Soon all your money is gone and you start looking for a job."
             select case rnd_range(1,6)
-            case is =1 
+            case is =1
                 t=t &" Your second carreer after being an explorer turns out to be that of a shop assistant."
                 mpy=mpy+120
-            case is =2 
+            case is =2
                 t=t &" Your second carreer after being an explorer turns out to be that of an accountant."
                 mpy+=240
-            case is =3 
+            case is =3
                 t=t &" Your second carreer after being an explorer turns out to be with the military."
                 mpy+=200
-            case is =4 
+            case is =4
                 t=t &" Your second carreer after being an explorer turns out to be that of a industrial designer."
                 mpy+=480
-            case is =5 
+            case is =5
                 t=t &" Your second carreer after being an explorer turns out to be in middle management."
                 mpy+=960
-            case is =6 
+            case is =6
                 t=t &" Your second carreer after being an explorer turns out to be that of a freighter captain."
                 mpy+=240
             end select
-            
+
         endif
     endif
-    
+
     t=t &"|"
     if rnd_range(1,100+mpy)<33 then
-        t=t & "You never find a partner to share your life with. Looks like the only love of a captain is his ship." 
+        t=t & "You never find a partner to share your life with. Looks like the only love of a captain is his ship."
     else
         if rnd_range(1,100)<33 then
             t=t & "You have several relationships but nothing serious. Looks like you are not made for lasting romance."
@@ -2344,40 +2367,40 @@ function es_part1() as string
             if retirementassets(1)=1 then t=t &" |Your life insurance finally pays out." 'Life insurance
             if retirementassets(1)>1 then t=t &" |Your life insurances finally pays out." 'Life insurance
         endif
-        
+
         t=t &es_living(pmoney)
         t=t &es_title(pmoney)
-        
+
         if retirementassets(8)>0 then pmoney=pmoney+1000 'Taxing your planet
         mpy=(mpy+pmoney)/2
     endif
-    
+
     if mpy<120 then t=t &" You lead a modest life, with nothing but a small pension and little assets."
-    
+
     if mpy>=120 and mpy<500 then
         t=t &" You lead a life of leasure, you rarely if ever need to take on a job to get through a tight spot."
     endif
-    
+
     if mpy>=500 and mpy<1200 then
         t=t &" You lead a life of leasure, and only work when you want to."
     endif
-    
+
     if mpy>=1200 and mpy<2400 then
         t=t &" You lead a life of leasure and modest luxury."
     endif
-    
+
     if mpy>=2400 and mpy<4800 then
         t=t &" You have enough money to spend the rest of your life in luxury."
     endif
-    
+
     if mpy>=4800 then t=t &" You have more money than you could ever spend."
-    
+
     if player.questflag(3)=2 then
         t=t &" ||During all this time the use of the recovered alien scout ships helps humanity to further reach for the stars. You are near the end of your life as human influence has reached almost every corner of the milkyway galaxy. Finally there are news of a civilization discovered in the magellanic clouds who can equal human prowess in most areas, and even surpass their scientific knowledge in some."
         if rnd_range(1,100)<66-allsum*10 then
             t=t &" ||  Unfortunately the diplomats can't work out a lasting peace. When you lie on your Deathbed the war for the galaxy still rages on, and propably will for many more centuries to come."
         else
-            t=t &" ||  Peacefull relations are established quickly, and a joint project is founded: Launching an expedtition to Andromeda! " 
+            t=t &" ||  Peacefull relations are established quickly, and a joint project is founded: Launching an expedtition to Andromeda! "
             if rnd_range(1,100)<66 then
                 t=t &"|| As you lie on your deathbed you wish you were young enough to join the adventure. But you have led a life, more exciting than most can claim, and the next adventure for you, won't be in space."
             else
@@ -2414,7 +2437,7 @@ function es_part1() as string
             &" That changes when SHI announces that they managed to control a type of automated alien scoutships, that was a threat to exploration and commerce in the sector before."_
             &" Automated exploration becomes standard, and much safer for humans, but you are too old to be part of this new adventure."
         endif
-        t=t &" ||And you finally pass on to the next adventure, one you will never return from."    
+        t=t &" ||And you finally pass on to the next adventure, one you will never return from."
     endif
     t=t &" ||| "&space(_screenx/(_fw2*2)-15)&" T H E  E N D ||"
     return t
@@ -2422,7 +2445,7 @@ end function
 
 function es_living(byref pmoney as single) as string
     dim as string t
-    if retirementassets(9)>0 then 
+    if retirementassets(9)>0 then
         t=t &" |You finally settle down on your very own planet!"
         if pmoney<100 then t=t &" You have to sell some ground to Settlers make ends meet."
         if pmoney>500 then t=t &" Soon you build a nice house on it."
@@ -2431,8 +2454,8 @@ function es_living(byref pmoney as single) as string
         if pmoney>10000 then t=t &" |There is even enough money to terraform one of it's moons, providing a nice place for weekend vacations."
         return t
     endif
-    
-    if retirementassets(8)>0 then 
+
+    if retirementassets(8)>0 then
         t=t &" |You finally settle down on your very own planet! It's a bit barren, but it's yours!"
         if pmoney<100 then t=t &" You have to sell some ground to Settlers make ends meet."
         if pmoney>500 then t=t &" Soon you build a nice house on it."
@@ -2487,7 +2510,7 @@ function es_living(byref pmoney as single) as string
         if pmoney>1000 then t=t &" You are able to equip it with every luxury you could ever dream of."
         return t
     endif
-        
+
 end function
 
 function es_title(byref pmoney as single) as string
@@ -2527,7 +2550,7 @@ function es_title(byref pmoney as single) as string
         pmoney=pmoney+500*landless+100
         return t
     endif
-        
+
     if retirementassets(10)>0 then
         t=t &""
         if landless=0 then t=t &" |You soon find out the title of a Baron isn't worth much without any assets to go with it."
@@ -2535,7 +2558,7 @@ function es_title(byref pmoney as single) as string
         if landless>=5 then t=t &"| You are a Baron, you have impressive holdings. You can add tax income to your already impressive assets!"
         pmoney=pmoney+250*landless
     endif
-    if retirementassets(9)>0 then 
+    if retirementassets(9)>0 then
         t=t &""'adel
         if landless=0 then t=t &" |You soon find out the title of a Lord isn't worth much without any assets to go with it."
         if landless>0 and landless<5 then t=t &"|Your title of Lord and meager holdings allow a tiny tax income."

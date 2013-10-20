@@ -31,10 +31,10 @@ Const show_space=0
 const show_items=0 'shows entire maps
 const alien_scanner=0
 const start_teleport=0'player has alien scanner
-Const show_critters=0 
+Const show_critters=0
 Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
-Const all_resources_are=0 
-const show_allitems=0 
+Const all_resources_are=0
+const show_allitems=0
 const easy_fights=0
 const show_eventp=0 'Show eventplanets
 const show_mapnr=0
@@ -47,7 +47,7 @@ const more_mets=0
 const all_drifters_are=0
 const show_civs=0
 const toggling_filter=0
-const fuel_usage=0 
+const fuel_usage=0
 const run_until=0
 dim shared as short just_run
 const show_eq=0 'Show earthquakes
@@ -65,7 +65,7 @@ const startingmoney=500
 const _spawnoff=0
 const show_moral=0
 const makemoodlog=0
-const xk=chr(255) 
+const xk=chr(255)
 const key__up = xk & "H"
 const key__dn = xk & "P"
 const key__rt= xk & "M"
@@ -82,7 +82,7 @@ const _testspacecombat=0
 const add_tile_each_map=0
 const lastquestguy=15
 
-'PNG Stuff 
+'PNG Stuff
 declare function savepng( _
 byref filename as string = "screenshot.png", _
 byval image as any ptr = 0, _
@@ -260,7 +260,7 @@ function _energycounter.tick() as integer
         return -1
     end if
 end function
-  
+
 type _driftingship
     s as short '
     p as short '
@@ -280,7 +280,7 @@ type _rect
 end type
 
 type _visit
-    s as short 
+    s as short
     t as integer
 end type
 
@@ -302,7 +302,7 @@ end type
 
 
 type _items
-    id as uinteger 
+    id as uinteger
     ti_no as ushort
     uid as uinteger
     w as _cords
@@ -325,7 +325,7 @@ type _items
     vt as _cords'rover target
     res as ubyte
 end type
-    
+
 type _weap
     desig as string*30
     dam as short
@@ -403,18 +403,18 @@ type _ship
     pidoctor as short
     security as short
     disease as byte
-    
+
     manjets as short
-    weapons(25) as _weap  
+    weapons(25) as _weap
     declare function useammo() as short
     hull as short
     hulltype as short
-    
+
     armortype as byte=1
     loadout as byte=1
     reloading as byte=10
     bunking as byte=1
-    
+
     fuelmax as single
     fuel as single
     fueluse as single
@@ -437,7 +437,7 @@ type _ship
     fuelpod as short
     crewpod as short
     addhull as short
-    
+
     dead as short
     killedby as string*64
     shiptype as short
@@ -477,7 +477,7 @@ end function
 function _ship.useammo() as short
     dim as short i,most,where
     for i=0 to 25
-        if weapons(i).ammo>most then 
+        if weapons(i).ammo>most then
             most=weapons(i).ammo
             where=i
         endif
@@ -489,7 +489,7 @@ function _ship.useammo() as short
         return 0
     endif
 end function
-            
+
 dim shared alliance(7) as byte
 
 function _ship.diop() as byte
@@ -544,7 +544,7 @@ type _monster
     enemy as short
     aggr as byte
     killedby as byte
-    
+
     desc as string*127
     sdesc as string*64
     ldesc as string*512
@@ -553,15 +553,15 @@ type _monster
     swhat as string*64
     scol as ubyte
     invis as byte
-    
+
     tile as short
     ti_no as uinteger
     sprite as short
     col as ubyte
     dcol as ubyte
-    
+
     'move as single
-    union 
+    union
         track as short
         carried as short
     end union
@@ -715,7 +715,7 @@ dim shared as string goodsname(9)
 
 const lastgood=9
 
-type _basis 
+type _basis
     c as _cords
     discovered as short
     inv(lastgood) as _goods
@@ -738,7 +738,7 @@ end type
 
 dim shared goods_prices(9,12,12) as single
 dim shared wsinv(20) as _weap
-    
+
 'type _fuel
 '    declare function changeprice() as short
 '    declare function adddemand(volume as short) as short
@@ -758,12 +758,12 @@ dim shared wsinv(20) as _weap
 'end function
 '
 'function _fuel.init(ty as byte) as short
-'    
-'    if ty=1 then 
+'
+'    if ty=1 then
 '        price=1.5
 '        tanksize=500
 '    endif
-'    if ty=2 then 
+'    if ty=2 then
 '        price=1
 '        tanksize=2500
 '    endif
@@ -840,12 +840,12 @@ end type
 
 type _tile
     no as short
-    
+
     tile as short
     ti_no as uinteger
     bgcol as short
     col as short
-    
+
     desc as string*512
     stopwalking as byte
     oxyuse as byte
@@ -856,7 +856,7 @@ type _tile
     firetru as short
     shootable as short 'shooting at it will damage it
     dr as short 'damage reduction
-    hp as short 
+    hp as short
     dam as short
     range as short
     tohit as short
@@ -958,7 +958,7 @@ end function
 function _ship.science(onship as short) as short
     if piscience<>0 then return piscience
     return best_crew(2,h_maxsensors)
-end function    
+end function
 
 function _ship.doctor(onship as short) as short
     if pidoctor<>0 then return pidoctor
@@ -1062,12 +1062,12 @@ Constructor vector (x as Integer, y as Integer)
 End Constructor
 
 Type _sym_matrix
-       
+
         xm As Integer
         vmax as integer
         vmin as integer
         item As Integer Ptr
-       
+
         Declare Function get_ind(x As Integer,y As Integer) As Integer
         Declare Function set_val(x As Integer,y As Integer, v As Integer) As Integer
         Declare Function get_val(x As Integer,y As Integer) As Integer
@@ -1272,40 +1272,40 @@ enum RndItem
     RI_Cage
     RI_WeakWeapons
     RI_WeakStuff
-    
+
 end enum
 
 enum ShipType
     ST_first
-    ST_PFighter                  
-    ST_PCruiser                  
-    ST_PDestroyer                
-    ST_PBattleship               
-    ST_lighttransport                 
-    ST_heavytransport                 
-    ST_merchantman                 
-    ST_armedmerchant                 
-    ST_CFighter                         
-    ST_CEscort                          
-    ST_Cbattleship                         
-    ST_AnneBonny                      
+    ST_PFighter
+    ST_PCruiser
+    ST_PDestroyer
+    ST_PBattleship
+    ST_lighttransport
+    ST_heavytransport
+    ST_merchantman
+    ST_armedmerchant
+    ST_CFighter
+    ST_CEscort
+    ST_Cbattleship
+    ST_AnneBonny
     ST_BlackCorsair
     st_hussar
     st_blackwidow
     st_adder
     ST_civ1
     ST_civ2
-    ST_AlienScoutShip              
-    ST_spacespider                  
-    ST_livingsphere                   
-    ST_symbioticcloud                 
-    ST_hydrogenworm                   
-    ST_livingplasma                   
-    ST_starjellyfish                   
-    ST_cloudshark                      
-    ST_Gasbubble   
+    ST_AlienScoutShip
+    ST_spacespider
+    ST_livingsphere
+    ST_symbioticcloud
+    ST_hydrogenworm
+    ST_livingplasma
+    ST_starjellyfish
+    ST_cloudshark
+    ST_Gasbubble
     ST_cloud
-    ST_Floater     
+    ST_Floater
     st_spacestation
     st_last
 end enum
@@ -1408,7 +1408,7 @@ enum config
 end enum
 
 
-dim shared as string configname(con_end-1)    
+dim shared as string configname(con_end-1)
 dim shared as string configdesc(con_end-1)
 dim shared as byte configflag(con_end-1)
 
@@ -1446,13 +1446,13 @@ configdesc(con_sound)="/ Sound effects:"
 configdesc(con_diagonals)="/ Automatically chose diagonal:"
 configdesc(con_autosale)="/ Always sell all:"
 configdesc(con_startrandom)="/ Start with random ship:"
-configdesc(con_autosave)="/ Autosave on entering station:" 
+configdesc(con_autosave)="/ Autosave on entering station:"
 configdesc(con_minsafe)="/ Minimum safe distance to pirate planets:"
-configdesc(con_anykeyno)="/ Any key counts as no on yes-no questions:" 
-configdesc(con_restart)="/ Return to start menu on death:" 
-configdesc(con_warnings)="/ Navigational Warnings(Gasclouds & 1HP landings):" 
-configdesc(con_tiles)="/ Graphic tiles:" 
-configdesc(con_easy)="/ Easy start:" 
+configdesc(con_anykeyno)="/ Any key counts as no on yes-no questions:"
+configdesc(con_restart)="/ Return to start menu on death:"
+configdesc(con_warnings)="/ Navigational Warnings(Gasclouds & 1HP landings):"
+configdesc(con_tiles)="/ Graphic tiles:"
+configdesc(con_easy)="/ Easy start:"
 configdesc(con_volume)="/ Volume (0-4):"
 configdesc(con_res)="/ Resolution:"
 configdesc(con_showvis)="/ Underlay for visible tiles:"
@@ -1532,7 +1532,7 @@ end enum
 '1 Bio
 '2 ressources
 '3 Pirate ships
-'4 
+'4
 '5 artifact transfer
 '6 Pirate base
 '7 mapsincredits
@@ -1579,7 +1579,7 @@ end enum
 
 dim shared standardphrase(sp_last-1,2) as string
 dim shared talent_desc(29) as string
-    
+
 dim shared comstr as _commandstring
 
 dim shared palette_(255) as uinteger
@@ -1599,7 +1599,7 @@ dim shared baseprice(9) as short
 dim shared avgprice(9) as single
 
 dim shared spectraltype(10) as short
-dim shared spectralname(10) as string 
+dim shared spectralname(10) as string
 dim shared scount(10) as short
 dim shared spectralshrt(10) as string
 
@@ -1656,7 +1656,11 @@ dim shared specialplanettext(lastspecial,1) as string
 dim shared spdescr(lastspecial) as string
 dim shared specialflag(lastspecial) as byte
 dim shared atmdes(16) as string
+#ifdef _FBSOUND
+dim shared sound(12) as integer
+#else
 dim shared sound(12) as integer ptr
+#endif
 dim shared usedship(8) as _cords
 dim shared displaytext(255) as string
 dim shared dtextcol(255) as short
@@ -1733,7 +1737,7 @@ end type
 
 type _pokerplayer
     name as string*16
-    risk as short 
+    risk as short
     bet as byte
     fold as byte
     pot as byte
@@ -2087,7 +2091,7 @@ declare function savegame()as short
 declare function load_game(filename as string) as short
 declare function copytile (byval a as short) as _tile
 declare function refuel_f(f as _fleet, st as short) as _fleet
-declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr 
+declare function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
 
 declare function load_tiles() as short
 declare function make_alienship(slot as short, t as short) as short
@@ -2113,7 +2117,7 @@ declare function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as
 declare function com_detonatemine(d as short,mines_p() as _cords, mines_v() as short, byref mines_last as short, defender as _ship, attacker() as _ship) as short
 declare function com_damship(byref t as _ship, dam as short, col as short) as _ship
 declare function com_mindist(s as _ship) as short
-declare function com_regshields(s as _ship) as short 
+declare function com_regshields(s as _ship) as short
 declare function com_shipbox(s as _ship, di as short) as string
 declare function com_NPCMove(defender as _ship,attacker() as _ship,e_track_p() as _cords,e_track_v() as short,e_map() as byte,byref e_last as short) as short
 declare function com_NPCFire(defender as _ship,attacker() as _ship) as short
@@ -2146,7 +2150,7 @@ declare function artifact(c as short) as short
 'declare function getshipweapon() as short
 declare function getmonster() as short
 declare function findartifact(v5 as short) as short
-    
+
 declare function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) as short
 declare function earthquake(t as _tile,dam as short)as _tile
 declare function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _shipfire,li() as short, byref lastlocalitem as short,spawnmask() as _cords,lsp as short,key as string,loctemp as single) as short
@@ -2181,7 +2185,7 @@ declare function makeroots(slot as short) as short
 declare function makeplanetmap(a as short,orbit as short, spect as short) as short
 declare function modsurface(a as short,o as short) as short
 declare function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as short, froti as short,blocked as short=1) as short
-declare function togglingfilter(slot as short, high as short=1, low as short=2)  as short 
+declare function togglingfilter(slot as short, high as short=1, low as short=2)  as short
 declare function make_special_planet(a as short) as short
 declare function make_drifter(d as _driftingship,bg as short=0,broken as short=0, f as short=0) as short
 declare function make_civilisation(slot as short, m as short) as short
@@ -2234,7 +2238,7 @@ declare function ss_sighting(i as short) as short
 declare function makeweapon(a as short) as _weap
 declare function make_ship(a as short) as _ship
 declare function makemonster(a as short, map as short, forcearms as byte=0) as _monster
-'awayteam as _monster, map as short, spawnmask() as _cords,lsp as short,x as short=0,y as short=0, mslot as short=0) as _monster    
+'awayteam as _monster, map as short, spawnmask() as _cords,lsp as short,x as short=0,y as short=0, mslot as short=0) as _monster
 declare function makecorp(a as short) as _basis
 declare function collide_fleets() as short
 declare function move_fleets() as short
@@ -2244,7 +2248,7 @@ declare function makemerchantfleet() as _fleet
 declare function makepiratefleet(modifier as short=0) as _fleet
 declare function update_targetlist()as short
 declare function bestpilotinfleet(f as _fleet) as short
-declare function add_fleets(target as _fleet, source as _fleet) as _fleet    
+declare function add_fleets(target as _fleet, source as _fleet) as _fleet
 declare function piratecrunch(f as _fleet) as _fleet
 declare function clearfleetlist() as short
 declare function countfleet(ty as short) as short
@@ -2256,7 +2260,7 @@ declare function furthest(list() as _cords,last as short, a as _cords,b as _cord
 
 declare function makequestfleet(a as short) as _fleet
 declare function makealienfleet() as _fleet
-declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster    
+declare function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as short,x as short=0,y as short=0,mslot as short=0,its as short=0) as _monster
 declare function make_aliencolony(slot as short,map as short, popu as short) as short
 
 declare function resolve_fight(f2 as short) as short
@@ -2284,7 +2288,7 @@ declare function girlfriends(st as short) as short
 declare function pay_bonuses(st as short) as short
 declare function check_passenger(st as short) as short
 declare function pirateupgrade() as short
-declare function customize_item() as short 
+declare function customize_item() as short
 declare function findcompany(c as short) as short
 declare function drawroulettetable() as short
 declare function towingmodules() as short
@@ -2463,7 +2467,7 @@ declare function system_text(a as short) as string
 'using ext
 #ENDIF
 
-dim shared as uinteger _fgcolor_,_bgcolor_ 
+dim shared as uinteger _fgcolor_,_bgcolor_
 
 declare function set__color(fg as short,bg as short,visible as byte=1) as short
 declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
@@ -2471,9 +2475,9 @@ declare Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal par
 Function _tcol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
     dim c as uinteger
     c=color
-    if src=0 then 
+    if src=0 then
         return dest
-    else 
+    else
         return _fgcolor_
     endif
 end function
@@ -2481,9 +2485,9 @@ end function
 declare Function _col( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
 
 Function _col( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
-    if src=0 then 
+    if src=0 then
         return _bgcolor_
-    else 
+    else
         return _fgcolor_
     endif
 end function
@@ -2492,15 +2496,15 @@ declare Function _icol( ByVal src As UInteger, byVal dest As UInteger, ByVal par
 
 Function _icol( ByVal src As UInteger, byVal dest As UInteger, ByVal param As Any Ptr ) As UInteger
     'Itemcolor
-    if src=0 then 
+    if src=0 then
         return hiword(color)
-    else 
+    else
         return loword(color)
     endif
 end function
 
 declare function factionadd(a as short,b as short, add as short) as short
-    
+
 #define RGBA_R( c ) ( CUInt( c ) Shr 16 And 255 )
 #define RGBA_G( c ) ( CUInt( c ) Shr  8 And 255 )
 #define RGBA_B( c ) ( CUInt( c )        And 255 )
@@ -2520,7 +2524,7 @@ function set__color(fg as short,bg as short,visible as byte=1) as short
         g=RGBA_G(_fgcolor_)
         b=RGBA_B(_fgcolor_)
         _fgcolor_=RGB(r/2,g/2,b/2)
-        
+
         r=RGBA_R(_bgcolor_)
         g=RGBA_G(_bgcolor_)
         b=RGBA_B(_bgcolor_)

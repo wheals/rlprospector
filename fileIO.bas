@@ -6,7 +6,7 @@ function count_lines(file as string) as short
     dim dummy as string
     f=freefile
     open file for input as #f
-    do 
+    do
         line input #f,dummy
         if len(dummy)>0 then n+=1
     loop until eof(f)
@@ -56,7 +56,7 @@ function character_name(byref gender as byte) as string
     else
         n=fn(fnn) &" "&CHR(rnd_range(65,87))&". " &ln(lnn)
     endif
-    if fnn<=23 then 
+    if fnn<=23 then
         gender=0 'Female
     else
         gender=1 'Male
@@ -77,9 +77,9 @@ function gethullspecs(t as short,file as string) as _ship
         line input #f,l
     next
     close #f
-    
+
     string_towords(word(),l,";")
-    
+
     n.h_no=t
     n.h_desig=word(0)
     n.h_price=val(word(1))
@@ -90,7 +90,7 @@ function gethullspecs(t as short,file as string) as _ship
     n.h_maxcargo=val(word(6))
     n.h_maxcrew=val(word(7))
     n.h_maxweaponslot=val(word(8))
-    n.h_maxfuel=val(word(9))    
+    n.h_maxfuel=val(word(9))
     n.h_sdesc=word(10)
     n.reloading=val(word(11))
     n.h_desc=word(12)
@@ -139,36 +139,36 @@ function delete_custom(pir as short) as short
     return 0
 end function
 
-    
 
-function check_filestructure() as short  
+
+function check_filestructure() as short
     if chdir("data")=-1 then
         set__color(c_yel,0)
         print "Can't find folder 'data'. Try reinstalling the game."
         sleep
         end
-    else 
+    else
         chdir("..")
     endif
-    
+
     if chdir("savegames")=-1 then
         mkdir("savegames")
     else
         chdir("..")
     endif
-    
+
     if chdir("bones")=-1 then
         mkdir("bones")
     else
         chdir("..")
     endif
-    
+
     if chdir("summary")=-1 then
         mkdir("summary")
     else
         chdir("..")
     endif
-    
+
     if not fileexists("savegames/empty.sav") then
         player.desig="empty"
         savegame()
@@ -202,7 +202,7 @@ function load_palette() as short
             if mid(l,j,1)=" " then k+=1
         next
         palette_(i)=RGB(val(w(1)),val(w(2)),val(w(3)))
-        if debug=1 and _debug=1 then 
+        if debug=1 and _debug=1 then
             print w(1);":";w(2);":";w(3)
             print palette_(i)
         endif
@@ -210,9 +210,9 @@ function load_palette() as short
         if debug=2 and _debug=1 then print i;":";
     loop until eof(f)
     close #f
-    
-        
-    
+
+
+
     return 0
 end function
 
@@ -239,6 +239,23 @@ function load_sounds() as short
     sound(11)= FSOUND_Sample_Load(FSOUND_FREE, "data/land.wav", 0, 0, 0)
     sound(12)= FSOUND_Sample_Load(FSOUND_FREE, "data/pain.wav", 0, 0, 0)
     #endif
+    #ifdef _FBSOUND
+    print "Loading sounds:"
+    'fbs_Init(48000,2,11,2048,0)
+    fbs_Init()
+    fbs_Set_MasterVolume(_Volume/2.0)
+    fbs_Load_WAVFile("data/alarm_1.wav",@sound(1))
+    fbs_Load_WAVFile("data/alarm_2.wav",@sound(2))
+    fbs_Load_WAVFile("data/weap_1.wav",@sound(3))
+    fbs_Load_WAVFile("data/weap_2.wav",@sound(4))
+    fbs_Load_WAVFile("data/wormhole.wav",@sound(5))
+    fbs_Load_WAVFile("data/weap_4.wav",@sound(7))
+    fbs_Load_WAVFile("data/weap_3.wav",@sound(8))
+    fbs_Load_WAVFile("data/weap_5.wav",@sound(9))
+    fbs_Load_WAVFile("data/start.wav",@sound(10))
+    fbs_Load_WAVFile("data/land.wav",@sound(11))
+    fbs_Load_WAVFile("data/pain.wav",@sound(12))
+    #endif
     return 0
 end function
 
@@ -246,7 +263,7 @@ function keybindings(allowed as string="") as short
     dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
     dim as _cords cc,ncc
     dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
-    if not fileexists("keybindings.txt") then 
+    if not fileexists("keybindings.txt") then
         save_keyset
     endif
     f=freefile
@@ -254,7 +271,7 @@ function keybindings(allowed as string="") as short
     while not eof(f)
         ls+=1
         line input #f,text2
-        if left(text2,1)<>"#" and len(text2)>0 then                            
+        if left(text2,1)<>"#" and len(text2)>0 then
             if allowed="" or instr(allowed,loadkey(text2))>0 or val(text2)>0 then
                 a+=1
                 lk+=1
@@ -290,7 +307,7 @@ function keybindings(allowed as string="") as short
         next
         for a=1 to lk
             for b=1 to lk
-                if a<>b and nkeys(a)=nkeys(b) then 
+                if a<>b and nkeys(a)=nkeys(b) then
                     colflag(a)=1
                     colflag(b)=1
                 endif
@@ -306,7 +323,7 @@ function keybindings(allowed as string="") as short
         'c=(cc.x-1)*20+cc.y
         if c<1 then c=lk
         if c>lk then c=1
-        
+
         if varn(c)="" then cc=ncc
         screenset 0,1
         set__color( 15,0)
@@ -315,7 +332,7 @@ function keybindings(allowed as string="") as short
             for y=1 to 20
                 if x>1 or y>6 then
                 b+=1
-                if c=b then 
+                if c=b then
                     fg=15
                     bg=5
                     cc.x=x
@@ -330,7 +347,7 @@ function keybindings(allowed as string="") as short
                 endif
                 if colflag(b)=1 then fg=14
                 set__color( fg,bg)
-                
+
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
                 endif
@@ -371,7 +388,7 @@ function keybindings(allowed as string="") as short
         draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
         set__color( 11,0)
         draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
-               
+
         no_key=keyin
         o=c
         if getdirection(no_key)=8 then c-=1
@@ -382,7 +399,7 @@ function keybindings(allowed as string="") as short
         if c>lk then c=1
         'c=(cc.x-1)*20+cc.y
         if varn(c)="" then o=c
-        
+
         if no_key=key__enter and keys(c)<>"" then
             screenset 1,1
             draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
@@ -393,13 +410,13 @@ function keybindings(allowed as string="") as short
             endif
         endif
     loop until no_key=key__esc
-    
+
     for a=1 to lk
-        if keys(a)<>nkeys(a) then 
+        if keys(a)<>nkeys(a) then
             changed=1
         endif
     next
-    
+
     if changed=1 then
         if askyn("Do you want to save changes(y/n)?") then
             f=freefile
@@ -461,9 +478,9 @@ function save_keyset() as short
     print #f,"key_dropitem ="&key_drop
     print #f,"key_inspect ="&key_inspect
     print #f,"key_examine ="&key_ex
-    print #f,"key_radio ="&key_ra 
+    print #f,"key_radio ="&key_ra
     print #f,"key_teleport ="&key_te
-    print #f,"key_jump ="&key_ju 
+    print #f,"key_jump ="&key_ju
     print #f,"key_communicate ="&key_co
     print #f,"key_offer ="&key_of
     print #f,"key_grenade ="&key_gr
@@ -477,7 +494,7 @@ function save_keyset() as short
     print #f,"key_activatesensors ="&key_ac
     print #f,"key_run ="&key_ru
     print #f,"key_togglemanjets ="&key_togglemanjets
-    
+
     print #f,"_tix:24"
     print #f,"_tiy:24"
     print #f,"tilefont:18"
@@ -495,7 +512,7 @@ function load_map(m as short,slot as short)as short
         for x=0 to 60
             for y=0 to 20
                 get #f,,planetmap(x,y,slot)
-                planetmap(x,y,slot)=-planetmap(x,y,slot)                
+                planetmap(x,y,slot)=-planetmap(x,y,slot)
             next
         next
     next
@@ -508,7 +525,7 @@ function count_savegames() as short
     dim as string text
     chdir "savegames"
     text=dir$("*.sav")
-    while text<>""      
+    while text<>""
         text=dir$()
         c=c+1
     wend
@@ -521,12 +538,12 @@ end function
 function load_fonts() as short
     dim as short a,debug,f
     dim as integer depth
-    
+
     if debug=1 and _debug=1 then
         f=freefile
         open "fontlog.txt" for append as #f
     endif
-    if ((not fileexists("graphics/font"&_fohi1 &".bmp")) or (not fileexists("graphics/font"&_fohi2 &".bmp"))) then 
+    if ((not fileexists("graphics/font"&_fohi1 &".bmp")) or (not fileexists("graphics/font"&_fohi2 &".bmp"))) then
         if configflag(con_customfonts)=0 then
             if not fileexists("graphics/ships.bmp") then configflag(con_tiles)=1
             configflag(con_customfonts)=1
@@ -537,11 +554,11 @@ function load_fonts() as short
             print "Couldn't find fonts. Switching to built in font."
             sleep 1500
         else
-        
+
         endif
     endif
     if _lines<25 then _lines=25
-    if configflag(con_tiles)=0 then 
+    if configflag(con_tiles)=0 then
         '_fohi2=10
         _fohi1=26
     endif
@@ -575,7 +592,7 @@ function load_fonts() as short
         _Fw1=_tix
         _Fh1=_tiy
     endif
-    
+
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
@@ -585,7 +602,7 @@ function load_fonts() as short
     'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT1, 32, 448, _fh1)
     'gfx.font.loadttf("graphics/Nouveau_IBM.ttf", FONT2, 32, 448, _fh2)
     set__color(11,0)
-        
+
     if configflag(con_customfonts)=0 then
         print "loading font 1"
         font1=load_font(""&_fohi1,_FH1)
@@ -594,7 +611,7 @@ function load_fonts() as short
         font2=load_font(""&_fohi2,_FH2)
         if debug=1 and _debug=1 then print #f,"Loaded Font 2"
         titlefont=load_font("26",26)
-    else 
+    else
         _screenx=1024
         _screeny=768
         screenres _screenx,_screeny,16,2,GFX_WINDOWED
@@ -605,36 +622,36 @@ function load_fonts() as short
         Font2 = ImageCreate((254-1) * 8, 17,rgba(0,0,0,0),16)
         dim as ubyte ptr p
         ImageInfo( Font1, , ,depth , , p )
-        
+
         p[0] = 0
         p[1] = 24
         p[2] = 254
         For a = 24 To 254
             p[3 + a - 24] = 8
             Draw String Font1, ((a - 24) * 8, 1), Chr(a),rgba(255,255,255,255)
-        Next 
+        Next
         _fh1=16
         _fh2=16
         bsave "F1.bmp",Font1
         font2=font1
     endif
-    
+
     _FW1=_FH1/2+2
     _FW2=_FH2/2+2
     if configflag(con_tiles)=0 then
         _Fw1=_tix
         _Fh1=_tiy
-    endif    
-    
+    endif
+
     if _screeny<>_lines*_fh1 then _screeny=_lines*_fh1
     _textlines=fix((22*_fh1)/_fh2)+fix((_screeny-_fh1*22)/_fh2)-1
     _screenx=_mwx*_fw1+25*_fw2
     screenres _screenx,_screeny,16,2,GFX_ALWAYS_ON_TOP
     screenres _screenx,_screeny,16,2,GFX_WINDOWED
-    
+
     sidebar=(_mwx+1)*_fw1+_fw2
-    
-    if debug=1 and _debug=1 then 
+
+    if debug=1 and _debug=1 then
         print #f,"reset screen size"
         close #f
     endif
@@ -642,7 +659,7 @@ function load_fonts() as short
 end function
 
 
-function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr      
+function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
     Dim as ubyte ptr img
     dim font as ubyte ptr
     Dim As Integer imgwidth,imgheight,i,ff
@@ -665,9 +682,9 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
           i=i+1
         Loop
         Close ff
-        Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet	'Zwischenpuffer in Font kopieren
+        Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet  'Zwischenpuffer in Font kopieren
       End If
-      ImageDestroy (img)	'Zwischenpuffer löschen
+      ImageDestroy (img)    'Zwischenpuffer löschen
     else
         set__color( 14,0)
         print "Loading font graphics/"&fontdir &".bmp failed."
@@ -677,45 +694,45 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
 end function
 
 Function font_load_bmp(ByRef _filename As String) As UByte Ptr
-	Dim As UInteger w,h,f=FreeFile
-	Dim As UShort bpp
-	If (Open(_filename, For Binary, Access Read, As #f)<>0)Then
-		Print "Font " + _filename+" not loaded!"
-		Return 0
-	EndIf
-	Get #f,19,w
-	Get #f,23,h
-	Get #f,29,bpp
-	Close #f
-	
-	Dim As UByte Ptr font
-	font=ImageCreate(w,h)
-	BLoad(_filename,font)
-	Dim As UByte Ptr fontheader=Cast(UByte Ptr,font+SizeOf(FB.image))
-	
-	Select Case As Const fontheader[0]
-		Case 0 'standard draw string font buffer
-			fontheader[0]=Point(0,0,font)
-			fontheader[1]=Point(1,0,font)
-			fontheader[2]=Point(2,0,font)
-			For x As Integer=0 To (fontheader[2]-fontheader[1])+1
-				fontheader[3+x]=Point(3+x,0,font)
-			Next x
-		Case 5 'unicode draw string font buffer
-			fontheader[0]=Point(0,0,font)
-			fontheader[1]=Point(1,0,font)
-			fontheader[2]=Point(2,0,font)
-			fontheader[3]=Point(3,0,font)
-			fontheader[4]=Point(4,0,font)
-			Dim As UShort first,last
-			first=((fontheader[1] Shl 4)) Or (fontheader[2])
-			last=((fontheader[3] Shl 4)) Or (fontheader[4])
-			For x As Integer=0 To last-first+1
-				fontheader[5+x]=Point(5+x,0,font)
-			Next x
-	End Select
-	
-	Return font
+    Dim As UInteger w,h,f=FreeFile
+    Dim As UShort bpp
+    If (Open(_filename, For Binary, Access Read, As #f)<>0)Then
+        Print "Font " + _filename+" not loaded!"
+        Return 0
+    EndIf
+    Get #f,19,w
+    Get #f,23,h
+    Get #f,29,bpp
+    Close #f
+
+    Dim As UByte Ptr font
+    font=ImageCreate(w,h)
+    BLoad(_filename,font)
+    Dim As UByte Ptr fontheader=Cast(UByte Ptr,font+SizeOf(FB.image))
+
+    Select Case As Const fontheader[0]
+        Case 0 'standard draw string font buffer
+            fontheader[0]=Point(0,0,font)
+            fontheader[1]=Point(1,0,font)
+            fontheader[2]=Point(2,0,font)
+            For x As Integer=0 To (fontheader[2]-fontheader[1])+1
+                fontheader[3+x]=Point(3+x,0,font)
+            Next x
+        Case 5 'unicode draw string font buffer
+            fontheader[0]=Point(0,0,font)
+            fontheader[1]=Point(1,0,font)
+            fontheader[2]=Point(2,0,font)
+            fontheader[3]=Point(3,0,font)
+            fontheader[4]=Point(4,0,font)
+            Dim As UShort first,last
+            first=((fontheader[1] Shl 4)) Or (fontheader[2])
+            last=((fontheader[3] Shl 4)) Or (fontheader[4])
+            For x As Integer=0 To last-first+1
+                fontheader[5+x]=Point(5+x,0,font)
+            Next x
+    End Select
+
+    Return font
 End Function
 
 function load_tiles() as short
@@ -798,11 +815,11 @@ function load_tiles() as short
             get (x*16,y*16)-((x+1)*16-1,(y+1)*16-1),shtiles(x,y)
         next
     next
-    
+
     'Clear tile
     gtiles(0)=imagecreate(_tix,_tiy,rgba(0,0,0,255))
-    
-    
+
+
     a=1
     n=1
     cls
@@ -816,7 +833,7 @@ function load_tiles() as short
             n+=1
         next
     next
-    
+
     n=75
     cls
     bload "graphics/weapons.bmp"
@@ -845,7 +862,7 @@ function load_tiles() as short
         n+=1
     next
 
-    
+
     n=101
     cls
     bload "graphics/land.bmp"
@@ -886,7 +903,7 @@ function load_tiles() as short
         draw string (x,y),""&n-1
     next
     if showtiles=1 then sleep
-    
+
     n=990
     cls
     bload "graphics/player.bmp"
@@ -899,8 +916,8 @@ function load_tiles() as short
             n+=1
         next
     next
-    
-    
+
+
     n=1000
     cls
     bload "graphics/critters.bmp"
@@ -913,12 +930,12 @@ function load_tiles() as short
             n+=1
         next
     next
-    
-    
+
+
     n=1500
     cls
     bload "graphics/characters.bmp"
-    
+
     for y=0 to _tiy*1 step _tiy
         for x=0 to _tix*7 step _tix
             gtiles(a)=imagecreate(_tix,_tiy)
@@ -928,12 +945,12 @@ function load_tiles() as short
             n+=1
         next
     next
-    
+
     n=1600
     'Space tiles
     cls
     bload "graphics/planetmap.bmp"
-    
+
     for y=0 to _tiy*4 step _tiy
         for x=0 to _tix*5 step _tix
             gtiles(a)=imagecreate(_tix,_tiy)
@@ -943,8 +960,8 @@ function load_tiles() as short
             n+=1
         next
     next
-    
-    
+
+
     n=1750
     cls
     bload "graphics/spacestations.bmp"
@@ -955,7 +972,7 @@ function load_tiles() as short
         a+=1
         n+=1
     next
-    
+
     n=2001
     cls
     bload "graphics/items.bmp"
@@ -968,8 +985,8 @@ function load_tiles() as short
             n+=1
         next
     next
-    
-    
+
+
     n=2500
     cls
     bload "graphics/walls.bmp"
@@ -982,7 +999,7 @@ function load_tiles() as short
             n+=1
         next
     next
-    
+
     n=3001
     cls
     bload "graphics/portals.bmp"
@@ -1038,8 +1055,8 @@ end function
 '        draw string (24*9,y),""&sy
 '    next
 '    imagedestroy(img)
-'    
-'    
+'
+'
 '    cls
 '    img=bmp_load( "graphics/ships3.bmp")
 '    for y=0 to _tiy*16 step _tiy
@@ -1053,23 +1070,23 @@ end function
 '        draw string (24*10,y),""&sy
 '    next
 '    imagedestroy(img)
-'    
-'    
+'
+'
 '    a=1
 '    n=1
 '    cls
 '    bload("graphics/space.bmp")
-'        
+'
 '    for y=0 to _tiy*6 step _tiy
 '        for x=0 to _tix*15 step _tix
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
+'            a+=1
 '            n+=1
 '        next
 '    next
-'    
+'
 '    n=75
 '    cls
 '    bload "graphics/weapons.bmp"
@@ -1078,7 +1095,7 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
+'        a+=1
 '        n+=1
 '    next
 '    y=_tiy
@@ -1086,10 +1103,10 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
+'        a+=1
 '        n+=1
 '    next
-'    
+'
 '    n=101
 '    imagedestroy(img)
 '    img=0
@@ -1100,11 +1117,11 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get img,(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
-'    
+'
 '    n=750
 '    cls
 '    bload "graphics/critters3.bmp"
@@ -1113,11 +1130,11 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
-'        n+=1 
+'        a+=1
+'        n+=1
 '    next
-'    
-'    
+'
+'
 '    n=800
 '    cls
 '    bload "graphics/critters2.bmp"
@@ -1126,13 +1143,13 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '        draw string (x,y),""&n-1
 '    next
 '    if showtiles=1 then sleep
-'    
+'
 '    n=1000
 '    cls
 '    bload "graphics/critters.bmp"
@@ -1141,8 +1158,8 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
 '    n=2001
@@ -1153,11 +1170,11 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
-'    
+'
 '    n=3001
 '    cls
 '    bload "graphics/portals.bmp"
@@ -1166,10 +1183,10 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
-'        n+=1 
+'        a+=1
+'        n+=1
 '    next
-'    
+'
 '    bload "graphics/missing.bmp"
 '    gtiles(2048)=imagecreate(_tix,_tiy)
 '    get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
@@ -1192,10 +1209,10 @@ end function
 '    image(1)=bmp_load( "graphics/ships2.bmp")
 '    image(2)=bmp_load( "graphics/ships3.bmp")
 '    image(3)=bmp_load( "graphics/space.bmp")
-'    
-'    put (0,0),image(3) 
+'
+'    put (0,0),image(3)
 '    sleep
-'    
+'
 '    for y=0 to _tiy*16 step _tiy
 '        sx=1
 '        sy+=1
@@ -1217,7 +1234,7 @@ end function
 '        next
 '        draw string (24*9,y),""&sy
 '    next
-'    
+'
 '    print ".";
 '    for y=0 to _tiy*16 step _tiy
 '        sx=1
@@ -1229,8 +1246,8 @@ end function
 '        next
 '        draw string (24*10,y),""&sy
 '    next
-'    
-'    
+'
+'
 '    n=75
 '    print ".";
 '    image(4)=bmp_load( "graphics/weapons.bmp")
@@ -1239,7 +1256,7 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get image(4),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
+'        a+=1
 '        n+=1
 '    next
 '    y=_tiy
@@ -1247,11 +1264,11 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get image(4),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
+'        a+=1
 '        n+=1
 '    next
-'    
-'    
+'
+'
 '    a=1
 '    n=1
 '    print ".";
@@ -1260,7 +1277,7 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(3),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
+'            a+=1
 '            n+=1
 '        next
 '    next
@@ -1272,11 +1289,11 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(5),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
-'    
+'
 '    n=750
 '    print ".";
 '    image(6)=bmp_load( "graphics/critters3.bmp")
@@ -1285,11 +1302,11 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get image(6),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
-'        n+=1 
+'        a+=1
+'        n+=1
 '    next
-'    
-'    
+'
+'
 '    n=800
 '    print ".";
 '    image(7)=bmp_load( "graphics/critters2.bmp")
@@ -1298,13 +1315,13 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(7),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '        draw string (x,y),""&n-1
 '    next
 '    if showtiles=1 then sleep
-'    
+'
 '    n=1000
 '    print ".";
 '    image(8)=bmp_load( "graphics/critters.bmp")
@@ -1313,22 +1330,22 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(8),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
-'    
+'
 '    print ".";
 '    image(9)=bmp_load( "graphics/planetmap.bmp")
-'    
+'
 '    n=1500
 '    for y=0 to _tiy*3 step _tiy
 '        for x=0 to _tix*11 step _tix
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(9),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
 '    n=2001
@@ -1339,11 +1356,11 @@ end function
 '            gtiles(a)=imagecreate(_tix,_tiy)
 '            get image(10),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '            gt_no(n)=a
-'            a+=1 
-'            n+=1 
+'            a+=1
+'            n+=1
 '        next
 '    next
-'    
+'
 '    n=3001
 '    print ".";
 '    image(11)=bmp_load( "graphics/portals.bmp")
@@ -1352,10 +1369,10 @@ end function
 '        gtiles(a)=imagecreate(_tix,_tiy)
 '        get image(11),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
 '        gt_no(n)=a
-'        a+=1 
-'        n+=1 
+'        a+=1
+'        n+=1
 '    next
-'    
+'
 '    image(12)=bmp_load( "graphics/missing.bmp")
 '    gtiles(2048)=imagecreate(_tix,_tiy)
 '    get image(12),(x,y)-(x+_tix-1,y+_tiy-1),gtiles(2048)
@@ -1376,7 +1393,7 @@ function randomname() as string
     dim desig as string="NNC - "
     dim suf as string
     f=freefile
-    if (open ("register" for input as f))=0 then 
+    if (open ("register" for input as f))=0 then
         while not(eof(f))
             input #f,lines(count)
             if lines(count)<>"" then count=count+1
@@ -1398,38 +1415,38 @@ function randomname() as string
     count=0
     f=freefile
     if (open (fname for input as f))=0 then
-        do 
+        do
             input #f,lines(count)
             lines(128)="savegames/" & lines(count)&".sav"
             if not(fileexists(lines(128))) then count=count+1
-            
+
         loop until eof(f) or count>127
         ra=rnd_range(0,count)
         'print count;" ";ra;" ";lines(ra)
         'sleep
-        
+
     endif
-        
+
     d=d+1
     if d=0 then d=1
     if d>9999 then d=1
     if d<10 then desig=desig & "0"
     if d<100 then desig=desig & "0"
     if d<1000 then desig=desig & "0"
-     
+
     desig=desig &d &suf
     if lines(ra)<>"" and count>0 then desig=lines(ra)
-    
+
     f=freefile
-    
+
     open "register" for output as f
     print #f,d
     print #f,mask
     print #f,fname
-    
+
     close f
     return desig
-    
+
 end function
 
 function background(fn as string) as short
@@ -1452,19 +1469,19 @@ function background(fn as string) as short
         '' create image with BMP dimensions
         if firstcall<>0 then imagedestroy(img)
         img = ImageCreate( bmpwidth, Abs(bmpheight) )
-    
+
         If img = 0 Then Return 0
         'dst=imagecreate(_screenx,_screeny)
         '' load BMP file into image buffer
         BLoad( fn, img )
         last=fn
     endif
-    x=(_screenx-bmpwidth)/2    
+    x=(_screenx-bmpwidth)/2
     y=(_screeny-bmpheight)/2
     put (x,y),img,pset
     firstcall=1
     Return 0
-    
+
 end function
 
 function load_keyset() as short
@@ -1474,13 +1491,13 @@ function load_keyset() as short
     dim texts(256) as string
     f=freefile
     if fileexists("keybindings.txt") then
-        
+
         open "keybindings.txt" for input as #f
         print "loading keyset";
-        do 
+        do
             b+=1
             line input #f,texts(b)
-            if instr(text,"#")=0 and len(text)>0 then                            
+            if instr(text,"#")=0 and len(text)>0 then
                 a+=1
                 keys(a)=right(text,1)
             endif
@@ -1501,13 +1518,13 @@ function load_keyset() as short
                 endif
             next
         next
-        
+
         close f
-            
+
         for i=1 to b
             print ".";
             text=texts(i)
-            if left(text,1)<>"#" and len(text)>0 then                            
+            if left(text,1)<>"#" and len(text)>0 then
                 lctext=lcase(text)
                 if instr(lctext,"key_nw")>0 then key_nw=loadkey(text)
                 if instr(lctext,"key_north")>0 then key_north=loadkey(text)
@@ -1520,7 +1537,7 @@ function load_keyset() as short
                 if instr(lctext,"key_wait")>0 then key_wait=loadkey(text)
                 if instr(lctext,"key_portal")>0 then key_portal=loadkey(text)
                 if instr(lctext,"key_accounting")>0 then key_accounting=loadkey(text)
-                
+
                 if instr(lctext,"key_manual")>0 then key_manual=loadkey(text)
                 if instr(lctext,"key_messages")>0 then key_messages=loadkey(text)
                 if instr(lctext,"key_configuration")>0 then key_configuration=loadkey(text)
@@ -1538,14 +1555,14 @@ function load_keyset() as short
                 if instr(lctext,"key_quest")>0 then key_quest=loadkey(text)
                 if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
                 if instr(lctext,"key_standing")>0 then key_standing=loadkey(text)
-                
+
                 if instr(lctext,"key_landing")>0 then key_la=loadkey(text)
                 if instr(lctext,"key_scanning")>0 then key_sc=loadkey(text)
                 if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
                 if instr(lctext,"key_rename")>0 then key_rename=loadkey(text)
                 if instr(lctext,"key_targetlanding")>0 then key_tala=loadkey(text)
                 if instr(lctext,"key_togglehpdisplay")>0 then key_togglehpdisplay=loadkey(text)
-                
+
                 if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
                 if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
                 if instr(lctext,"key_inspect")>0 then key_inspect=loadkey(text)
@@ -1562,7 +1579,7 @@ function load_keyset() as short
                 if instr(lctext,"key_heal")>0 then key_he=loadkey(text)
                 if instr(lctext,"key_oxygen")>0 then key_oxy=loadkey(text)
                 if instr(lctext,"key_close")>0 then key_close=loadkey(text)
-                
+
                 if instr(lctext,"key_shield")>0 then key_dropshield=loadkey(text)
                 if instr(lctext,"key_activatesensors")>0 then key_ac=loadkey(text)
                 if instr(lctext,"key_run")>0 then key_ru=loadkey(text)
@@ -1580,7 +1597,7 @@ function load_keyset() as short
         Sleep 1500
         return 1
     endif
-    
+
     return 0
 end function
 
@@ -1598,7 +1615,7 @@ end function
 function numfromstr(t as string) as short
     dim as short a
     dim as string t2
-    for a=1 to len(t) 
+    for a=1 to len(t)
         if val(mid(t,a,1))<>0 or (mid(t,a,1))="0" then t2=t2 &mid(t,a,1)
     next
     return val(t2)
@@ -1607,7 +1624,7 @@ end function
 function load_dialog_quests() as short
     dim as short f,i,j,g
     dim as string l,w(3)
-    
+
     f=open_file("data/dialogquests.csv")
     do
         i+=1
@@ -1617,14 +1634,14 @@ function load_dialog_quests() as short
             next
             line input #f,l
             string_towords(w(),l,";")
-        
+
             questguydialog(i,j,Q_WANT)=w(1)
             questguydialog(i,j,Q_HAS)=w(2)
             questguydialog(i,j,Q_ANSWER)=w(3)
         next
-        
+
     loop until eof(f)
-    
+
     close #f
     f=open_file("data/dialogquests2.csv")
     i=0
@@ -1659,7 +1676,7 @@ function load_dialog(fn as string, n() as _dialognode) as short
             w(g)=""
         next
         g=string_towords(w(),l(j),";")
-        if w(0)<>"" then 
+        if w(0)<>"" then
             node=val(w(0))
             n(node).no=node
             n(node).statement=w(1)
@@ -1713,12 +1730,12 @@ function texttofile(text as string) as string
     outtext="<p>"
     for a=0 to len(text)
         if mid(text,a,1)="|" or mid(text,a,1)="{" then
-            if mid(text,a,1)="|" then 
-                if head=1 then 
+            if mid(text,a,1)="|" then
+                if head=1 then
                     outtext=outtext &"</b>"
                     head=2
                 endif
-                if head=0 then 
+                if head=0 then
                     outtext=outtext &"<b>"
                     head=1
                 endif
@@ -1731,7 +1748,7 @@ function texttofile(text as string) as string
     next
     outtext=outtext &"</p>"
     return outtext
-end function            
+end function
 
 function configuration() as short
     dim text as string
@@ -1774,7 +1791,7 @@ function configuration() as short
             case con_captainsprite
                 text=text &"/ Captains sprite:"&sprite(configflag(con_captainsprite))
             case else
-                text=text & configdesc(i) & onoff(configflag(i)) 
+                text=text & configdesc(i) & onoff(configflag(i))
             end select
         next
         text=text &"/Exit"
@@ -1788,7 +1805,7 @@ function configuration() as short
             if configflag(con_sound)=3 then configflag(con_sound)=0
         case con_volume
             dprint "Select volume (0-4)"
-            _volume=getnumber(0,4,_volume)                        
+            _volume=getnumber(0,4,_volume)
             #ifdef _FMODSOUND
             IF _volume = 0 THEN FSOUND_SetSFXMasterVolume(0)
             IF _volume = 1 THEN FSOUND_SetSFXMasterVolume(63)
@@ -1796,17 +1813,20 @@ function configuration() as short
             IF _volume = 3 THEN FSOUND_SetSFXMasterVolume(190)
             IF _volume = 4 THEN FSOUND_SetSFXMasterVolume(255)
             #endif
+            #ifdef _FBSOUND
+            fbs_Set_MasterVolume(_volume/2.0)
+            #endif
         case con_res
             d=menu(bg_randompic,"Resolution/Tiles/Text/Lines/Classic look: "& onoff(configflag(con_customfonts))&" (overrides if on)/Exit")
-            if d=1 then 
+            if d=1 then
                 dprint "Set graphic font height:(8-28)"
                 _fohi1=Getnumber(8,28,_fohi1)
             endif
-            if d=2 then 
+            if d=2 then
                 dprint "Set text font height:(8-28)"
                 _fohi2=Getnumber(8,28,_fohi2)
             endif
-            if d=3 then 
+            if d=3 then
                 dprint "Number of display lines:"
                 _lines=Getnumber(22,33,_lines)
             endif
@@ -1820,7 +1840,7 @@ function configuration() as short
             endif
             if _fohi2>_fohi1 then _fohi2=_fohi1
             dprint "Resolution will be changed next time you start prospector."
-        case con_gtmwx 
+        case con_gtmwx
             gt_mwx=getnumber(20,60,30)
             dprint "Will be changed next time you start prospector."
         case con_end,-1 'Exit, do nothing
@@ -1832,9 +1852,9 @@ function configuration() as short
                 configflag(c)=1
             end select
         end select
-        
+
     loop until c=con_end or c=-1
-    
+
     screenshot(2)
     save_config(oldtiles)
     return 0
@@ -1863,7 +1883,7 @@ end function
 function load_config() as short
     dim as short f,i,j
     dim as string text,rhs,lhs
-    
+
     if fileexists("config.txt") then
         f=freefile
         open "config.txt" for input as #f
@@ -1873,21 +1893,21 @@ function load_config() as short
             line input #f,text
             if instr(text,"#")=0 and len(text)>1 then
                 text=lcase(text)
-                
+
                 j=instr(text,":")
                 rhs=right(text,len(text)-j)
-                lhs=left(text,j-1)    
-                
+                lhs=left(text,j-1)
+
                 for i=con_tiles to con_end-1
                     if lhs=configname(i) then
                         if val(rhs)=0 or rhs="on" then configflag(i)=0
                         if val(rhs)=1 or rhs="off" then configflag(i)=1
                         print i;":";lhs;":";rhs ;":";configflag(i)
-                    endif   
+                    endif
                 next
-                
+
                 if lhs="captainsprite" then configflag(con_captainsprite)=val(rhs)
-                
+
                 if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
                 if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
                 if instr(text,"_tix")>0 then _tix=numfromstr(text)
@@ -1898,14 +1918,14 @@ function load_config() as short
                 if instr(text,"lines")>0 then _lines=numfromstr(text)
                 if instr(text,"shipcolor")>0 then _shipcolor=numfromstr(text)
                 if instr(text,"teamcolor")>0 then _teamcolor=numfromstr(text)
-                
-                               
+
+
                 if instr(text,"soun")>0 then
                     if instr(text,"0")>0 or instr(text,"on") then configflag(con_sound)=0
                     if instr(text,"1")>0 or instr(text,"of") then configflag(con_sound)=1
                     if instr(text,"2")>0 or instr(text,"high") then configflag(con_sound)=2
                 endif
-                
+
                 if instr(text,"volume")>0 then
                     if instr(text,"0")>0 then _volume=0
                     if instr(text,"1")>0 then _volume=1
@@ -1913,14 +1933,14 @@ function load_config() as short
                     if instr(text,"3")>0 then _volume=3
                     if instr(text,"4")>0 then _volume=4
                 endif
-                
+
                 if instr(text,"rolls")>0 then
                     if instr(text,"0")>0 then configflag(con_showrolls)=0
                     if instr(text,"1")>0 then configflag(con_showrolls)=1
                     if instr(text,"2")>0 then configflag(con_showrolls)=2
                 endif
-              
-            endif                
+
+            endif
         loop until eof(f)
         close #f
     else
@@ -1959,13 +1979,13 @@ function load_config() as short
         save_config(configflag(con_tiles))
         load_config
     endif
-    
+
     if configflag(con_tiles)=0 then
         _mwx=gt_mwx
     else
         _mwx=60
     endif
-    
+
     redim spacemap(sm_x,sm_y)
     redim vismask(sm_x,sm_y)
     return 0
@@ -1994,9 +2014,9 @@ function getfilename() as string
         if a<>"empty.sav" then
             c+=1
             n(c)=a
-            
-            
-            
+
+
+
             f=freefile
             open "savegames/"&n(c) for binary as #f
             get #f,,b
@@ -2016,7 +2036,7 @@ function getfilename() as string
             if ll>20 then
                 help=help &"/ Discovered " & ll &" unique planets"
             else
-                help=help &"/" &trim(uniques(unflags())) 
+                help=help &"/" &trim(uniques(unflags()))
             endif
             if ca>20 then
                 help=help &"| Discovered "& ca &" artifacts"
@@ -2025,11 +2045,11 @@ function getfilename() as string
             endif
         endif
         a=dir()
-    wend    
+    wend
     text=text &"/Exit"
     c=menu(bg_randompictxt,text,help,2,2)
     if c>0 then filename=n(c)
-    return filename    
+    return filename
 end function
 
 function save_bones(t as short) as short
@@ -2067,7 +2087,7 @@ function save_bones(t as short) as short
     bones_item(b).ldesc="The Id-tag of Captain  "&crew(1).n &" of the "&player.desig
     bones_item(b).w.x=team.x
     bones_item(b).w.y=team.y
-            
+
     put #f,,b
     for a=1 to b
         put #f,,bones_item(a)
@@ -2087,7 +2107,7 @@ function load_bones() as short
         f=freefile
         open "bones/"&s for binary as #f
         get #f,,pl
-        if pl.depth=0 then 
+        if pl.depth=0 then
             do
                 sys=get_random_system
                 m=getrandomplanet(sys)
@@ -2099,7 +2119,7 @@ function load_bones() as short
                     if _debug_bones=1 and _debug=1 then planetmap(x,y,m)=-planetmap(x,y,m)
                 next
             next
-            map(sys).discovered=4                
+            map(sys).discovered=4
         else
             sys=rnd_range(1,lastportal)
             m=portal(sys).dest.m
@@ -2170,7 +2190,7 @@ function savegame() as short
     dim cl as string
     dim unflags(lastspecial) as byte
     dim artifactstr as string*512
-    
+
     'Needed for compression
     dim as Integer dest_len, header_len
     dim as Ubyte Ptr dest
@@ -2185,7 +2205,7 @@ function savegame() as short
     back=99
     f=freefile
     fname="savegames/"&player.desig &".sav"
-    
+
     print "Saving "&fname;
     open fname for binary as #f
     print ".";
@@ -2214,25 +2234,25 @@ function savegame() as short
     for a=1 to 128
         put #f,,crew(a)
     next
-    
+
     for a=0 to 7
         put #f,,faction(a)
     next
-    
+
     for a=0 to 9
         put #f,,combon(a)
     next
-    
+
     put #f,,captainskill
     put #f,,wage
-    
+
     for a=0 to 16
         put #f,,retirementassets(a)
     next
-    
+
     print ".";
     for a=0 to 16
-        
+
         put #f,,savefrom(a).awayteam
         put #f,,savefrom(a).lastlocalitem
         put #f,,savefrom(a).lastenemy
@@ -2263,22 +2283,22 @@ function savegame() as short
             put #f,,probe(a)
         next
     endif
-    
+
     for a=1 to 4
         put #f,,companystats(a)
     next
-    
+
     put #f,,alienattacks
-    
+
     put #f,,lastshare
     for a=0 to lastshare
         put #f,,shares(a)
     next
-    
+
     for a=0 to 2
         put #f,,shop_order(a)
     next
-    
+
     for a=0 to 20
         for b=0 to 29
             put #f,,shopitem(a,b)
@@ -2290,27 +2310,27 @@ function savegame() as short
             put #f,,makew(b,a)
         next
     next
-    
+
     put #f,,usedship()
-    
+
     put #f,,lastcagedmonster
     for a=0 to lastcagedmonster
         put #f,,cagedmonster(a)
     next
-    
+
     for x=0 to sm_x
         for y=0 to sm_y
             put #f,,spacemap(x,y)
         next
     next
-    
+
     put #f,,lastdrifting
     if lastdrifting>128 then lastdrifting=128
     for a=1 to lastdrifting
         put #f,,drifting(a)
         print ".";
     next
-    
+
     put #f,,lastportal
     for a=0 to lastportal
         put #f,,portal(a)
@@ -2322,7 +2342,7 @@ function savegame() as short
         put #f,,piratebase(a)
         print ".";
     next
-    
+
     put #f,,lastplanet
     for a=0 to lastplanet
         put #f,,planetmap(0,0,a)
@@ -2340,49 +2360,49 @@ function savegame() as short
         put #f,,specialplanet(a)
         put #f,,specialflag(a)
     next
-    
+
     for a=272 to 279
         put #f,,tiles(a)
     next
-    
+
     print ".";
-    
+
     put #f,,uid
     put #f,,lastitem
     for a=0 to lastitem
         put #f,,item(a)
     next
-    
-    
-    
+
+
+
     print ".";
     'save pirates
     put #f,,reward()
     print ".";
-    
+
     put #f,,flag()
-    
-    
-    
+
+
+
     put #f,,firstwaypoint
     put #f,,lastwaypoint
     for a=0 to lastwaypoint
         put #f,,targetlist(a)
     next
-    
+
     put #f,,lastfleet
     for a=0 to lastfleet
         put #f,,fleet(a)
     next
     print ".";
-    
+
     'save comments
     put #f,,lastcom
     for a=1 to lastcom
         put #f,,coms(a)
         print ".";
     next
-    
+
     for c=0 to 12
         for a=0 to 12
             for b=0 to 8
@@ -2390,17 +2410,17 @@ function savegame() as short
             next
         next
     next
-    
+
     for a=0 to lastquestguy
         put #f,,questguy(a)
     next
-    
+
     put #f,,foundsomething
-    
+
     put #f,,civ()
-    
+
     close f
-    
+
     'Overwrites large save file with compressed save file. but skills if file is empty
     if fname<>"savegames/empty.sav" then
         f=freefile
@@ -2408,24 +2428,24 @@ function savegame() as short
         filedata_string = space(LOF(f))
         get #f,, filedata_string
         close f
-     
+
         dim as Integer src_len = len(filedata_string) + 1
         dest_len = compressBound(src_len)
         dest = Allocate(dest_len)
         kill(fname)
-    
+
         f=freefile
         open fname for binary as #f
         compress(dest , @dest_len, StrPtr(filedata_string), src_len)
-        put #f,,names		    '36 bytes
-        put #f,,desig		    '36 bytes
-        put #f,,datestring	    '12 bytes + 1 overhead
-        put #f,,unflags()		'lastspecial + 1 overhead
-        put #f,,artflag()		'lastartifact + 1 overhead
+        put #f,,names           '36 bytes
+        put #f,,desig           '36 bytes
+        put #f,,datestring      '12 bytes + 1 overhead
+        put #f,,unflags()       'lastspecial + 1 overhead
+        put #f,,artflag()       'lastartifact + 1 overhead
         put #f,, src_len 'we can use this to know the amount of memory needed when we load - should be 4 bytes long
         'Putting in the short info the the load game menu
-    
-        header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring, 
+
+        header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring,
         'unflags, artflag, src_len, header_len, and 3 bytes of over head for the 3 arrays datestring, unflags, artflag
         put #f,, header_len
         put #f,, *dest, dest_len
@@ -2433,7 +2453,7 @@ function savegame() as short
         Deallocate(dest)
     endif
     'Done with compressed file stuff
-    
+
     set__color( 14,0)
     cls
     return back
@@ -2454,16 +2474,16 @@ function load_game(filename as string) as short
     dim names as string*36
     dim datestring as string*12
     dim unflags(lastspecial) as byte
-    
+
     dim text as string
     dim p as _planet
     dim debug as byte
-    
+
     'needed to handle the compressed data
     dim as uByte ptr src, dest
     dim as Integer src_len, dest_len, header_len
     dim as string compressed_data
-    
+
     for a=0 to max_maps
         for x=0 to 60
             for y=0 to 20
@@ -2472,50 +2492,50 @@ function load_game(filename as string) as short
         next
         planets(a)=p
     next
-    
-    
+
+
     if filename<>"" then
         f=freefile
         fname="savegames/"&filename
         print "loading"&fname;
-        
+
         if filename <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
             'Starting the uncompress
 
         open fname for binary as #f
-        
-            get #f,,names		    '36 bytes
-            get #f,,dat 		    '36 bytes
-            get #f,,datestring	    '12 bytes + 1 overhead
-            get #f,,unflags()		'lastspecial + 1 overhead
-            get #f,,artflag()		'lastartifact + 1 overhead
-        
+
+            get #f,,names           '36 bytes
+            get #f,,dat             '36 bytes
+            get #f,,datestring      '12 bytes + 1 overhead
+            get #f,,unflags()       'lastspecial + 1 overhead
+            get #f,,artflag()       'lastartifact + 1 overhead
+
             get #f,,dest_len
             get #f,,header_len
-        
+
             src_len = LOF(f)-header_len
             src = Allocate(src_len)
             dest = Allocate(dest_len)
             get #f,,*src, src_len
             uncompress(dest, @dest_len, src, src_len)
             close f
-        
+
             open fname for binary as #f
             compressed_data = space(LOF(f))
             get #f,, compressed_data
             close f
-        
+
             kill(fname)
-        
+
             f=freefile
             open fname for binary as #f
             put #f,, *dest, dest_len
             close f
         endif
-        
+
         'Ending uncompress
-        
-        
+
+
         f=freefile
         open fname for binary as #f
         get #f,,names
@@ -2542,25 +2562,25 @@ function load_game(filename as string) as short
         for a=1 to 128
             get #f,,crew(a)
         next
-        
+
         for a=0 to 7
             get #f,,faction(a)
         next
-    
+
         for a=0 to 9
             get #f,,combon(a)
-        next        
+        next
 
         get #f,,captainskill
         get #f,,wage
         for a=0 to 16
             get #f,,retirementassets(a)
         next
-        
+
         print ".";
-        
-        
-        
+
+
+
         for a=0 to 16
             get #f,,savefrom(a).awayteam
             get #f,,savefrom(a).lastlocalitem
@@ -2579,35 +2599,35 @@ function load_game(filename as string) as short
             get #f,,map(a)
             print ".";
         next
-                    
+
         for a=0 to 12
             get #f,,basis(a)
             print ".";
         next
-        
+
         get #f,,lastprobe
         if lastprobe>0 then
             for a=1 to lastprobe
                 get #f,,probe(a)
             next
         endif
-        
+
         for a=1 to 4
             get #f,,companystats(a)
         next
-        
+
         get #f,,alienattacks
-        
+
         get #f,,lastshare
         for a=0 to lastshare
             Get #f,,shares(a)
         next
-        
+
         for a=0 to 2
             Get #f,,shop_order(a)
         next
-        
-                    
+
+
         for a=0 to 20
             for b=0 to 29
                 get #f,,shopitem(a,b)
@@ -2619,29 +2639,29 @@ function load_game(filename as string) as short
                 get #f,,makew(b,a)
             next
         next
-        
-        
+
+
         get #f,,usedship()
-        
+
         get #f,,lastcagedmonster
         for a=0 to lastcagedmonster
             get #f,,cagedmonster(a)
         next
-    
-    
-                                        
+
+
+
         for x=0 to sm_x
             for y=0 to sm_y
                 get #f,,spacemap(x,y)
             next
         next
-            
+
         get #f,,lastdrifting
         for a=1 to lastdrifting
             get #f,,drifting(a)
             print ".";
         next
-        
+
         get #f,,lastportal
         for a=0 to lastportal
             get #f,,portal(a)
@@ -2651,7 +2671,7 @@ function load_game(filename as string) as short
             get #f,,pirateplanet(a)
             get #f,,piratebase(a)
         next
-        
+
         get #f,,lastplanet
         for a=0 to lastplanet
             get #f,,planetmap(0,0,a)
@@ -2671,11 +2691,11 @@ function load_game(filename as string) as short
             get #f,,specialflag(a)
             print ".";
         next
-        
-        for a=272 to 279 
+
+        for a=272 to 279
             get #f,,tiles(a)
         next
-        
+
         get #f,,uid
         get #f,,lastitem
         for a=0 to lastitem
@@ -2685,30 +2705,30 @@ function load_game(filename as string) as short
         'save pirates
         get #f,,reward()
         print ".";
-    
+
         get #f,,flag()
-        
+
         print ".";
-        
-        
+
+
         get #f,,firstwaypoint
         get #f,,lastwaypoint
         for a=0 to lastwaypoint
             get #f,,targetlist(a)
         next
-        
+
         get #f,,lastfleet
         for a=0 to lastfleet
             get #f,,fleet(a)
         next
         print ".";
-            
+
         get #f,,lastcom
         for a=1 to lastcom
             get #f,,coms(a)
             print ".";
         next
-            
+
         for c=0 to 12
             for a=0 to 12
                 for b=0 to 8
@@ -2716,18 +2736,18 @@ function load_game(filename as string) as short
                 next
             next
         next
-        
-            
+
+
         for a=0 to lastquestguy
             get #f,,questguy(a)
         next
-        
+
         get #f,,foundsomething
-        
+
         get #f,,civ()
-        
+
         close f
-        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then 
+        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then
             kill(fname)
         elseif fname<>"savegames/empty.sav" then
             'need to rewrite our compressed data back
@@ -2737,7 +2757,7 @@ function load_game(filename as string) as short
             close f
         endif
         player.lastvisit.s=-1
-    else 
+    else
         player.desig=filename
     endif
     cls
@@ -2749,9 +2769,9 @@ function load_game(filename as string) as short
         next
         print #f,player.map
         close #f
-        
+
     endif
-    
+
     if debug=2 and _debug=1 then
         f=freefile
         open "items.csv" for output as #f
@@ -2760,7 +2780,7 @@ function load_game(filename as string) as short
         next
         close #f
     endif
-        
+
     if debug=10 and _debug=1 then
         f=freefile
         open "factions.csv" for output as #f
@@ -2772,9 +2792,9 @@ function load_game(filename as string) as short
             print #f,text
         next
         close #f
-        
+
     endif
-    
+
     if _debug=1110 then
         f=freefile
         open "Fleetdump.csv" for output as #f
@@ -2782,19 +2802,19 @@ function load_game(filename as string) as short
             print #f,a &";"&fleet(a).ty &";"&fleet(a).fighting
         next
     endif
-    
+
     return 0
-    
+
 end function
 
 'Used by savepng
 function bswap(byval n as uinteger) as uinteger
-   
+
     return (n and &h000000ff) shl 24 or _
     (n and &h0000ff00) shl 8  or _
     (n and &h00ff0000) shr 8  or _
     (n and &hff000000) shr 24
-   
+
 end function
 
 'savepng create by counting_pine on the freebasic.net forum
@@ -2804,12 +2824,12 @@ function savepng( _
     byref filename as string = "screenshot.png", _
     byval image as any ptr = 0, _
     byval save_alpha as integer = 0) as integer
-   
-   
+
+
     dim as uinteger w, h, depth
     dim as integer f = freefile()
     dim as integer e
-   
+
     if image <> 0 then
         if imageinfo( image, w, h, depth ) < 0 then return -1
         depth *= 8
@@ -2817,23 +2837,23 @@ function savepng( _
         if screenptr = 0 then return -1
         screeninfo( w, h, depth )
     end if
-   
+
     if depth <> 32 then save_alpha = 0
-   
+
     select case as const depth
-   
+
     case 1 to 8
-       
+
         scope
-           
+
             dim ihdr as struct_ihdr = (bswap(w), bswap(h), 8, 3, 0, 0, 0)
             dim as uinteger ihdr_crc32 = crc32(IHDR_CRC0, cptr(ubyte ptr, @ihdr), sizeof(ihdr))
-           
+
             dim palsize as uinteger = 1 shl depth
             dim pltesize as uinteger = palsize * 3
             dim plte(0 to 767) as ubyte
             dim plte_crc32 as uinteger
-           
+
             dim as uinteger l = w + 1
             dim as uinteger imgsize = l * h
             dim as uinteger idatsize = imgsize + 11 + 5 * (imgsize \ 16383)
@@ -2842,7 +2862,7 @@ function savepng( _
             dim as uinteger idat_crc32
             dim as uinteger x, y, col, r, g, b
             dim as uinteger index
-           
+
             index = 0
             for col = 0 to palsize - 1
                 palette get col, r, g, b
@@ -2850,11 +2870,11 @@ function savepng( _
                 plte(index) = g : index += 1
                 plte(index) = b : index += 1
             next col
-           
+
             plte_crc32 = crc32(PLTE_CRC0, @plte(0), pltesize)
-           
+
             index = 0
-           
+
             if image <> 0 then
                 for y = 0 to h - 1
                     imgdata(index) = 0 : index += 1
@@ -2874,46 +2894,46 @@ function savepng( _
                 next y
                 screenunlock
             end if
-           
+
             if compress2(@idat(0), @idatsize, @imgdata(0), imgsize, 9) then return -1
             idat_crc32 = crc32(IDAT_CRC0, @idat(0), idatsize)
-           
+
             if open (filename for output as #f) then return -1
-           
+
             e = put( #f, 1, PNG_HEADER )
-           
+
             e orelse= put( #f, , bswap(IHDR_SIZE) )
             e orelse= put( #f, , "IHDR" )
             e orelse= put( #f, , ihdr )
             e orelse= put( #f, , bswap(ihdr_crc32) )
-           
+
             e orelse= put( #f, , bswap(pltesize) )
             e orelse= put( #f, , "PLTE" )
             e orelse= put( #f, , plte(0), 3 * (1 shl depth) )
             e orelse= put( #f, , bswap(plte_crc32) )
-           
+
             e orelse= put( #f, , bswap(idatsize) )
             e orelse= put( #f, , "IDAT" )
             e orelse= put( #f, , idat(0), idatsize )
             e orelse= put( #f, , bswap(idat_crc32) )
-           
+
             e orelse= put( #f, , bswap(0) )
             e orelse= put( #f, , "IEND" )
             e orelse= put( #f, , bswap(IEND_CRC0) )
-           
+
             close #f
-           
+
             return e
-           
+
         end scope
-       
+
     case 9 to 32
-       
+
         scope
-           
+
             dim ihdr as struct_ihdr = (bswap(w), bswap(h), 8, iif( save_alpha, 6, 2), 0, 0, 0)
             dim as uinteger ihdr_crc32 = crc32(IHDR_CRC0, cptr(ubyte ptr, @ihdr), sizeof(ihdr))
-           
+
             dim as uinteger l = iif(save_alpha, (w * 4) + 1, (w * 3) + 1)
             dim as uinteger imgsize = l * h
             dim as uinteger idatsize = imgsize + 11 + 5 * (imgsize \ 16383)
@@ -2923,9 +2943,9 @@ function savepng( _
             dim as uinteger x, y, col, r, g, b, a
             dim as uinteger index
             dim as integer ret
-           
+
             index = 0
-           
+
             if image <> 0 then
                 for y = 0 to h - 1
                     imgdata(index) = 0 : index += 1
@@ -2963,38 +2983,38 @@ function savepng( _
                 next y
                 screenunlock
             end if
-           
+
             if compress2(@idat(0), @idatsize, @imgdata(0), imgsize, 9) then return -1
             idat_crc32 = crc32(IDAT_CRC0, @idat(0), idatsize)
-           
+
             if open (filename for output as #f) then return -1
-           
+
             e = put( #f, 1, PNG_HEADER )
-           
+
             e orelse= put( #f, , bswap(IHDR_SIZE) )
             e orelse= put( #f, , "IHDR" )
             e orelse= put( #f, , ihdr )
             e orelse= put( #f, , bswap(ihdr_crc32) )
-           
+
             e orelse= put( #f, , bswap(idatsize) )
             e orelse= put( #f, , "IDAT" )
             e orelse= put( #f, , idat(0), idatsize )
             e orelse= put( #f, , bswap(idat_crc32) )
-           
+
             e orelse= put( #f, , bswap(0) )
             e orelse= put( #f, , "IEND" )
             e orelse= put( #f, , bswap(IEND_CRC0) )
-           
+
             close #f
-           
+
             return e
-           
+
         end scope
-       
+
     case else
-       
+
         return -1
-       
+
     end select
-   
+
 end function

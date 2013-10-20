@@ -5,7 +5,7 @@ function change_captain_appearance(x as short,y as short) as short
     mf(1)="Male"
     do
         't="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
-        
+
         text="Captain:/Name: "&crew(1).n &"/"
         if _debug=1310 then text=text &" s10:"&crew(1).story(10)
         text &= "Gender: "&mf(crew(1).story(10))&"/"
@@ -73,8 +73,8 @@ function update_tmap(slot as short) as short
                 for x1=x-1 to x+1
                     for y1=y-1 to y+1
                         if x1>=0 and x1<=60 and y1>=0 and y1<=20 then
-                            if tmap(x1,y1).no<>200 then 
-                                tmap(x,y).walktru=0 
+                            if tmap(x1,y1).no<>200 then
+                                tmap(x,y).walktru=0
                                 tmap(x,y).desc="Hullsurface"
                             endif
                         endif
@@ -113,32 +113,32 @@ function hpdisplay(a as _monster) as short
         if crew(b).hp>0 and crew(b).onship=0  then a.hp+=1
         if crew(b).hp>0 and crew(b).onship=0 then hp=hp+1
     next
-    
+
     set__color( 15,0)
     draw string(sidebar,0*_fh1),"Status ",,font2,custom,@_col
     set__color( 11,0)
     draw string(sidebar+7*_fw2,0*_fh2),"(",,font2,custom,@_col
-    draw string(sidebar+10*_fw2,0*_fh2),""&a.hpmax &"/",,font2,custom,@_col 
+    draw string(sidebar+10*_fw2,0*_fh2),""&a.hpmax &"/",,font2,custom,@_col
     if a.hp/a.hpmax<.7 then set__color( 14,0)
     if a.hp/a.hpmax<.4 then set__color( 12,0)
     draw string(sidebar+13*_fw2,0*_fh2) ,""&a.hp,,font2,custom,@_col
     set__color( 11,0)
     draw string(sidebar+16*_fw2,0*_fh2), ")",,font2,custom,@_col
-   
+
     for y=2 to 6
         for x=1 to 15
             c=c+1
             if crew(c).hpmax>0 and crew(c).onship=0 then
                 l=y
                 if crew(c).hp>0  then
-                    
+
                     set__color( 14,0)
                     if crew(c).hp=crew(c).hpmax then set__color( 10,0)
                     if crew(c).disease>0 then set__color( 192,0)
                     if _HPdisplay=1 then
-                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col       
+                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col
                     else
-                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),""&crew(c).hp,,font2,custom,@_col       
+                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),""&crew(c).hp,,font2,custom,@_col
                     endif
                 else
                     set__color( 12,0)
@@ -157,24 +157,24 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
     dim as short debug
     debug=1
     draw_border(0)
-      
+
     set__color( 15,0)
     draw string(sidebar,1*_fh2), "Scanning Results:",,font2,custom,@_col
-    
+
     set__color( 11,0)
     draw string(sidebar,2*_fh2), "Planet in orbit " & orbit,,font2,custom,@_col
     draw string(sidebar,3*_fh2), scanned &" km2 scanned",,font2,custom,@_col
     draw string(sidebar,5*_fh2), p.water &"% Liq. Surface",,font2,custom,@_col
     text=atmdes(p.atmos) &" atmosphere"
-    textbox(text,sidebar+_fw2,(7*_fh2),16,11,0,1)    
+    textbox(text,sidebar+_fw2,(7*_fh2),16,11,0,1)
     draw string(sidebar,12*_fh2), "Gravity:"&p.grav &"g",,font2,custom,@_col
     set__color( 10,0)
     if p.grav<1 then draw string(62*_fw1+13*_fw2,12*_fh2), "(Low)",,font2,custom,@_col
     set__color( 14,0)
     if p.grav>1.5 then draw string(62*_fw1+13*_fw2,12*_fh2), "(High)",,font2,custom,@_col
     set__color( 11,0)
-            
-    
+
+
     draw string(sidebar,13*_fh2), "Avg. Temperature",,font2,custom,@_col
     draw string(sidebar+_fw2,14*_fh2), p.temp &" "&chr(248)&"C ",,font2,custom,@_col
     draw string(sidebar+_fw2,15*_fh2), c_to_f(p.temp) &" "&chr(248)&"F ",,font2,custom,@_col
@@ -200,21 +200,21 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
         draw string(sidebar,21*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
         set__color(c_gre,0)
         draw string(sidebar,22*_fh2),"Low",,font2,custom,@_col
-    
+
     case 50 to 80
         set__color(11,0)
         draw string(sidebar,20*_fh2),"Lifeforms:",,font2,custom,@_col
         set__color(c_yel,0)
         draw string(sidebar,21*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
-    
+
     case 81 to 90
         set__color(11,0)
         draw string(sidebar,20*_fh2),"Lifeforms:",,font2,custom,@_col
         draw string(sidebar,21*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
         set__color(c_red,0)
         draw string(sidebar,22*_fh2),"High",,font2,custom,@_col
-    
-    case is>90 
+
+    case is>90
         set__color(11,0)
         draw string(sidebar,19*_fh2),"Lifeforms:",,font2,custom,@_col
         draw string(sidebar,20*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
@@ -224,7 +224,7 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
         set__color(11,0)
         draw string(sidebar,19*_fh2),"Lifeforms:",,font2,custom,@_col
         draw string(sidebar,20*_fh2),p.highestlife*100 &" % probability",,font2,custom,@_col
-        
+
     end select
     return 0
 end function
@@ -307,7 +307,7 @@ function settactics() as short
     next
     text=text &"Exit"
     a=menu(bg_awayteam,text,,,,1)
-    if a<7 then 
+    if a<7 then
         player.tactic=a-3
     endif
     screenshot(2)
@@ -326,7 +326,7 @@ function bioreport(slot as short) as short
     t="Bio Report for /"
     h="/"
     for a=0 to 16
-        if planets(slot).mon_seen(a)>0 or planets(slot).mon_killed(a)>0 or planets(slot).mon_caught(a)>0 then 
+        if planets(slot).mon_seen(a)>0 or planets(slot).mon_killed(a)>0 or planets(slot).mon_caught(a)>0 then
             t=t & planets(slot).mon_template(a).sdesc &"/"
             h=h & " | "&planets(slot).mon_template(a).ldesc &" | | Visual  :"
             if planets(slot).mon_seen(a)>0 then
@@ -363,7 +363,7 @@ function manual() as short
             while len(lines(c))>80
                 text=lines(c)
                 lastspace=80
-                do 
+                do
                     lastspace=lastspace-1
                 loop until mid(text,lastspace,1)=" "
                 lines(c)=left(text,lastspace)
@@ -371,7 +371,7 @@ function manual() as short
                 c=c+1
             wend
             c=c+1
-            
+
         loop until eof(f) or c>512
         close #f
         for a=1 to c
@@ -401,7 +401,7 @@ function manual() as short
             if offset>488 then offset=488
         loop until key=key__esc or key=" "
     else
-        locate 10,10 
+        locate 10,10
         print "Couldnt open readme.txt"
     endif
     cls
@@ -418,7 +418,7 @@ function messages() as short
     set__color( 15,0)
     cls
     for a=1 to ll
-        locate a,1 
+        locate a,1
         set__color( dtextcol(a),0)
         draw string (0,a*_fh2), displaytext(a),,font2,custom,@_col
     next
@@ -451,7 +451,7 @@ function display_stars(bg as short=0) as short
             if x>=0 and y>=0 and x<=sm_x and y<=sm_y then vismask(x,y)=1
         next
     next
-    
+
     for x=player.c.x-10 to player.c.x+10
         for y=player.c.y-10 to player.c.y+10
             if x>=0 and y>=0 and x<=sm_x and y<=sm_y then
@@ -463,15 +463,15 @@ function display_stars(bg as short=0) as short
             endif
         next
     next
-    
+
     if bg>0 then
         for x=0 to _mwx
             for y=0 to 20
                 ti_no=spacemap(x+player.osx,y+player.osy)
                 set__color( 1,0)
                 if debug=44 and _debug=1 then draw string (x*_fw1,y*_fh1),""&spacemap(x+player.osx,y+player.osy),,FONT1,custom,@_col
-                
-                if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then 
+
+                if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then
                     if configflag(con_tiles)=0 then
                         alphav=192
                         if vismask(x+player.osx,y+player.osy)=1 then alphav=255
@@ -484,12 +484,12 @@ function display_stars(bg as short=0) as short
                         draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                     endif
                 endif
-                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then 
+                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
                     if configflag(con_tiles)=0 then
                         alphav=192
                         if vismask(x+player.osx,y+player.osy)=1 then alphav=255
                         put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
-                    else                        
+                    else
                         if spacemap(x+player.osx,y+player.osy)=2 then color(rgb(0,0,50))
                         if spacemap(x+player.osx,y+player.osy)=3 then color(rgb(0,0,100))
                         if spacemap(x+player.osx,y+player.osy)=4 then color(rgb(0,0,150))
@@ -497,13 +497,13 @@ function display_stars(bg as short=0) as short
                         draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
                     endif
                 endif
-                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then 
-                    
+                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
+
                 endif
                 if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=20 then
                     ti_no=abs(spacemap(x+player.osx,y+player.osy))
                     if ti_no>10 then ti_no-=10
-                    if configflag(con_tiles)=0 then 
+                    if configflag(con_tiles)=0 then
                         alphav=192
                         if vismask(x+player.osx,y+player.osy)=1 then alphav=255
                         put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
@@ -514,7 +514,7 @@ function display_stars(bg as short=0) as short
                         if ti_no=9 then set__color( 12,0)
                         if ti_no=10 then set__color( 3,0)
                         draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
-                        
+
                     endif
                 endif
             next
@@ -535,7 +535,7 @@ function display_stars(bg as short=0) as short
             if x-player.osx>=0 and y-player.osy>=0 and x-player.osx<=60 and y-player.osy<=20 and x>=0 and y>=0 and x<=sm_x and y<=sm_y then
                 p.x=x
                 p.y=y
-                if vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then 
+                if vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
                     if spacemap(x,y)<=0 then reveal=1
                     if spacemap(x,y)=0 then spacemap(x,y)=1
                     if spacemap(x,y)=-2 then spacemap(x,y)=2
@@ -549,21 +549,21 @@ function display_stars(bg as short=0) as short
                     if configflag(con_tiles)=1 then
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),".",,Font1,custom,@_col
                     else
-                        
+
                         alphav=192
                         if vismask(x,y)=1 then alphav=255
                         put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(50),alpha,alphav
                     endif
                 endif
-                if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then 
+                if abs(spacemap(x,y))>=2 and abs(spacemap(x,y))<=5 and vismask(x,y)>0  and distance(p,player.c)<player.sensors+0.5 then
                     if configflag(con_tiles)=1 then
                         set__color( rnd_range(48,59),1,vismask(x,y))
                         if spacemap(x,y)=2 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(48,59),1,vismask(x,y))
                         if spacemap(x,y)=3 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(96,107),1,vismask(x,y))
                         if spacemap(x,y)=4 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(144,155),1,vismask(x,y))
                         if spacemap(x,y)=5 and rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8 then set__color( rnd_range(192,203),1,vismask(x,y))
-                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(177),,Font1,custom,@_col 
-                    else                        
+                        draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),chr(177),,Font1,custom,@_col
+                    else
                         alphav=192
                         if vismask(x,y)=1 then alphav=255
                         put ((x-player.osx)*_tix+1,(y-player.osy)*_tiy+1),gtiles(51),alpha,alphav
@@ -574,7 +574,7 @@ function display_stars(bg as short=0) as short
                     endif
                 endif
                 if abs(spacemap(x,y))>=6 and abs(spacemap(x,y)<=17) and vismask(x,y)>0 and distance(p,player.c)<player.sensors+0.5 then
-                    if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8  then 
+                    if (spacemap(x,y)>=6 and spacemap(x,y)<=17) or rnd_range(1,6)+rnd_range(1,6)+player.pilot(0)>8  then
                         if configflag(con_tiles)=0 then
                             alphav=192
                             if vismask(x,y)=1 then alphav=255
@@ -596,7 +596,7 @@ function display_stars(bg as short=0) as short
             endif
         next
     next
-    
+
     if reveal=1 and disnbase(player.c,1)>farthestexpedition then farthestexpedition=disnbase(player.c,1)
 
     a=player.equipment(se_shipdetection)
@@ -606,7 +606,7 @@ function display_stars(bg as short=0) as short
             x=fleet(b).c.x
             y=fleet(b).c.y
             if (vismask(x,y)=1 and (distance(player.c,fleet(b).c)<player.sensors or distance(player.c,fleet(b).c)<2)) or ((debug=4 or debug=1024) and _debug=1) then
-                set__color( 11,0) 
+                set__color( 11,0)
                 if a=1 then 'No Friend Foe
                     set__color( 11,0)
                     if configflag(con_tiles)=0 then
@@ -614,12 +614,12 @@ function display_stars(bg as short=0) as short
                     else
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                     endif
-                    if fleet(b).fighting>0 then  
+                    if fleet(b).fighting>0 then
                         set__color( 12,0)
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"X",,Font2,custom,@_col
                     endif
                 else
-                    
+
                     if configflag(con_tiles)=0 then
                         put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(86),trans
                         if fleet(b).ty=1 or fleet(b).ty=3 then put ((x-player.osx)*_fw1,(y-player.osy)*_fh1),gtiles(67),trans
@@ -632,8 +632,8 @@ function display_stars(bg as short=0) as short
                         if fleet(b).ty=7 then set__color( 8,0)
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"s",,Font1,custom,@_col
                     endif
-                    
-                    if fleet(b).fighting>0 then  
+
+                    if fleet(b).fighting>0 then
                         set__color( 12,0)
                         draw string ((x-player.osx)*_fw1,(y-player.osy)*_fh1),"X",,Font2,custom,@_col
                     endif
@@ -641,7 +641,7 @@ function display_stars(bg as short=0) as short
             endif
         next
     endif
-    
+
     for b=3 to lastfleet
         if fleet(b).ty=10 then 'Eris
             if vismask(fleet(b).c.x,fleet(b).c.y)=1 then
@@ -663,7 +663,7 @@ function display_stars(bg as short=0) as short
         if drifting(x).y>sm_y then drifting(x).y=sm_y
         p.x=drifting(x).x
         p.y=drifting(x).y
-        if drifting(x).x=player.c.x and drifting(x).y=player.c.y and drifting(x).p=0 then 
+        if drifting(x).x=player.c.x and drifting(x).y=player.c.y and drifting(x).p=0 then
             drifting(x).p=1
             walking=0
         endif
@@ -671,7 +671,7 @@ function display_stars(bg as short=0) as short
             set__color( 7,0,vismask(p.x,p.y))
             if drifting(x).s=20 then set__color( 15,0,vismask(p.x,p.y))
             if (a>0 and vismask(p.x,p.y)=1 and distance(player.c,p)<player.sensors) or drifting(x).p>0 then
-                if p.x+1-player.osx>=0 and p.x+1-player.osx<=_mwx+1 and p.y+1-player.osy>=0 and p.y+1-player.osy<=21 then 
+                if p.x+1-player.osx>=0 and p.x+1-player.osx<=_mwx+1 and p.y+1-player.osy>=0 and p.y+1-player.osy<=21 then
                     if configflag(con_tiles)=0 then
                         if drifting(x).g_tile.x=0 or drifting(x).g_tile.x=5 or drifting(x).g_tile.x>9 then drifting(x).g_tile.x=rnd_range(1,4)
                         alphav=192
@@ -682,7 +682,7 @@ function display_stars(bg as short=0) as short
                     endif
                     if debug=111 and _debug=1 then draw string ((p.x-player.osx)*_fw1,(p.y-player.osy)*_fh1),":"&vismask(p.x,p.y),,Font1,custom,@_col
                     if drifting(x).p=0 then walking=0
-                    drifting(x).p=1                
+                    drifting(x).p=1
                 endif
             endif
         endif
@@ -724,27 +724,27 @@ function display_stars(bg as short=0) as short
             draw string ((coms(a).c.x-player.osx)*_fw1,(coms(a).c.y-player.osy)*_fh1),trim(coms(a).t),,Font2,custom,@_tcol
         endif
     next
-    
+
     for a=0 to laststar+wormhole
         if map(a).spec<=7 then
             vis=maximum(player.sensors+.5,(map(a).spec)-2)
         else
             vis=0
         endif
-            
-        if (vismask(map(a).c.x,map(a).c.y)=1 and distance(map(a).c,player.c)<=vis) or map(a).discovered>0 then 
+
+        if (vismask(map(a).c.x,map(a).c.y)=1 and distance(map(a).c,player.c)<=vis) or map(a).discovered>0 then
             if map(a).discovered=0 and walking<10 then walking=0
             display_star(a)
         endif
     next
-    
 
-'    
+
+'
     for a=1 to lastprobe
         x=probe(a).x-player.osx
         y=probe(a).y-player.osy
         if x>=0 and y>=0 and x<=_mwx and y<=20 then
-            if configflag(con_tiles)=0 then 
+            if configflag(con_tiles)=0 then
                put ((x)*_fw1,(y)*_fh1),gtiles(gt_no(2117+probe(a).p)),trans
             else
                 set__color( _shipcolor,0)
@@ -778,13 +778,13 @@ function display_star(a as short,fbg as byte=0) as short
     bg=0
     if spacemap(map(a).c.x,map(a).c.y)>=2 then bg=5
     if spacemap(map(a).c.x,map(a).c.y)=6 then bg=1
-    
+
     if map(a).discovered=2 then bg=1
     for p=1 to 9
         if map(a).planets(p)>0 then
             for n=0 to lastspecial
                 set__color( 11,0)
-                if map(a).planets(p)=specialplanet(n) and planets(map(a).planets(p)).mapstat>0 then 
+                if map(a).planets(p)=specialplanet(n) and planets(map(a).planets(p)).mapstat>0 then
                     bg=233
                 endif
                 if show_specials>0 or (debug=2 and _debug=1) then
@@ -797,7 +797,7 @@ function display_star(a as short,fbg as byte=0) as short
             if planets(map(a).planets(p)).colony<>0 then bg=246
         endif
     next
-    if map(a).discovered<=0 then 
+    if map(a).discovered<=0 then
         player.discovered(map(a).spec)=player.discovered(map(a).spec)+1
         map(a).desig=spectralshrt(map(a).spec)&player.discovered(map(a).spec)&"-"&int(disnbase(map(a).c))&"("&map(a).c.x &":"& map(a).c.y &")"
         map(a).discovered=1
@@ -814,20 +814,20 @@ function display_star(a as short,fbg as byte=0) as short
         if bg=233 then draw string (x*_tix,y*_tiy),"s",,font2,custom,@_tcol
         if debug=1 and _debug=1 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),""&map(a).discovered,,Font1,custom,@_col
         if debug=5 and _debug=1 then draw string (x*_tix+_tix,y*_tiy),""&map(a).ti_no &":"&map(a).spec,,Font1,custom,@_col
-    else        
+    else
         set__color( spectraltype(map(a).spec),bg,vismask(map(a).c.x,map(a).c.y))
         if map(a).spec<8 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"*",,Font1,custom,@_col
-        if map(a).spec=8 then     
+        if map(a).spec=8 then
             set__color( 7,bg)
             draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"o",,Font1,custom,@_col
         endif
-            
-        if map(a).spec=9 then 
+
+        if map(a).spec=9 then
             n=distance(map(a).c,map(map(a).planets(1)).c)/5
             if n<1 then n=1
             if n>6 then n=6
             set__color( 179+n,bg)
-            if fbg=1 then set__color( 179+n,c_gre,1) 
+            if fbg=1 then set__color( 179+n,c_gre,1)
             draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),"o",,Font1,custom,@_col
         endif
         if map(a).spec=10 then
@@ -858,17 +858,17 @@ function display_station(a as short) as short
             put ((x)*_tix+1,(y)*_tiy+1),gtiles(gt_no(1750+t)),trans
         else
             put ((x)*_tix+1,(y)*_tiy+1),gtiles(gt_no(1750+t)),alpha,192
-        endif    
+        endif
     endif
     if distance(player.c,basis(a).c)<player.sensors then
-        if fleet(a).fighting<>0 then 
+        if fleet(a).fighting<>0 then
             set__color( c_red,0,vismask(basis(a).c.x,basis(a).c.y))
             draw string (x*_fw1,y*_fh1),"x",,Font2,custom,@_col
             if player.turn mod 10=0 then dprint "Station "&a+1 &" is sending a distress signal! They are under attack!",c_red
         endif
     endif
     if debug=1 and _debug=1 then draw string (x*_fw1,y*_fh1),""&count_gas_giants_area(basis(a).c,7) &":"& basis(a).inv(9).v ,,Font2,custom,@_col
-             
+
     return 0
 end function
 
@@ -883,21 +883,21 @@ function display_ship(show as byte=0) as short
     Fw1=_fw1
     #endif
     Fh1=22
-    
+
     if player.fuel=player.fuelmax then wg=0
-    
+
     set__color( 15,0)
     if player.equipment(se_navcom)>0 then
         draw string (0,21*_fh1), "Pos:"&player.c.x &":"&player.c.y,, font2,custom,@_col
-            
+
     else
         set__color( 14,0)
         draw string (0,21*_fh1), "No navcomp",, font2,custom,@_col
     endif
-        
+
     draw_border(11)
     set__color( 15,0)
-    draw string(sidebar,0*_fh1),(player.h_sdesc &" "& player.desig),,Font2,custom,@_col 
+    draw string(sidebar,0*_fh1),(player.h_sdesc &" "& player.desig),,Font2,custom,@_col
     set__color( 11,0)
     draw string(sidebar,1*_fh2),"HP:"&space(4) &" "&"SP:"&player.shieldmax &" ",,Font2,custom,@_col
     if player.hull<(player.h_maxhull+player.addhull)/2 then set__color( 14,0)
@@ -916,23 +916,23 @@ function display_ship(show as byte=0) as short
     for a=2 to 128
        if crew(a).hpmax>=1 and crew(a).typ>=6 then player.security+=1
     next
-    
+
     textbox("Pi:" & p & " Gu:" &g &" Sc:" &s &" Dr:"&d &"  Security:"&player.security,sidebar,2*_fh2,(_screenx-sidebar)/_fw2,11,0,1 )
     draw string(sidebar,4*_fh2), "Sensors:"&player.sensors,,Font2,custom,@_col
-    
+
     for a=1 to 5
         if player.weapons(a).made=88 then mjs+=1
         if player.weapons(a).made=89 then mjs+=2
     next
     draw string(sidebar,5*_fh2), "Engine :"&player.engine &" ("&player.movepoints(mjs) &" MP)",,Font2,custom,@_col
     set__color( 15,0)
-    
+
     wl=display_ship_weapons()
     if wl+4>_lines then
         _lines=wl+4
-        save_config(configflag(con_tiles))        
+        save_config(configflag(con_tiles))
         _screeny=_lines*_fh1
-        
+
         'screenres _screenx,_screeny,8,2,GFX_WINDOWED
     endif
     draw string(sidebar,(wl+4)*_fh2), "Fuel(" &player.fuelmax+player.fuelpod &"):",,Font2,custom,@_col
@@ -940,39 +940,45 @@ function display_ship(show as byte=0) as short
     if player.fuel<(player.fuelmax+player.fuelpod)*0.5 then set__color(c_yel,0)
     if player.fuel<(player.fuelmax+player.fuelpod)*0.2 then set__color(c_red,0)
     draw string(sidebar+11*_fw2,(wl+4)*_fh2) ,space(10-len(round_str(player.fuel,1)))&round_str(player.fuel,1) ,,Font2,custom,@_col
-    
-    if player.fuel<(player.fuelmax+player.fuelpod)*0.5 then 
+
+    if player.fuel<(player.fuelmax+player.fuelpod)*0.5 then
         if wg=0 then
-            wg=1 
+            wg=1
             dprint "Fuel low",14
-            if configflag(con_sound)=0 or configflag(con_sound)=2 then 
+            if configflag(con_sound)=0 or configflag(con_sound)=2 then
                 #ifdef _FMODSOUND
-                FSOUND_PlaySound(FSOUND_FREE, sound(2))                                       
+                FSOUND_PlaySound(FSOUND_FREE, sound(2))
                 #endif
-            endif    
+                #ifdef _FBSOUND
+                fbs_Play_Wave(sound(2))
+                #endif
+            endif
             if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
         endif
         set__color( 14,0)
-        
+
     endif
-            
+
     if player.fuel<(player.fuelmax+player.fuelpod)*0.2 then
         if wg=1 then
             wg=2
             dprint "Fuel very low",12
-            if configflag(con_sound)=0 or configflag(con_sound)=2 then 
+            if configflag(con_sound)=0 or configflag(con_sound)=2 then
                 #ifdef _FMODSOUND
                 FSOUND_PlaySound(FSOUND_FREE, sound(2))
                 #endif
+                #ifdef _FBSOUND
+                fbs_Play_Wave(sound(2))
+                #endif
             endif
             if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
- 
+
         endif
         set__color( 12,0)
     endif
-    
+
     if player.turn mod 20=0 then low_morale_message
-    
+
     set__color( 11,0)
     draw string(sidebar,(wl+2)*_fh2),"Credits: "&space(12-len(Credits(player.money)))&Credits(player.money),,Font2,custom,@_col
     draw string(sidebar,(wl+3)*_fh2),"Turns: "&space(14-len(""&player.turn))&player.turn,,Font2,custom,@_col
@@ -980,7 +986,7 @@ function display_ship(show as byte=0) as short
     draw string(sidebar,wl*_fh2), "Cargo",,font2,custom,@_col
     for a=1 to 10
         carg=""
-        if player.cargo(a).x=1 then 
+        if player.cargo(a).x=1 then
             set__color( 8,1)
         else
             set__color( 10,8)
@@ -1009,7 +1015,7 @@ function display_ship(show as byte=0) as short
         endif
     endif
     wl+=6
-    
+
     comstr.display(wl)
     set__color( 11,0)
     if player.tractor=0 then player.towed=0
@@ -1062,11 +1068,11 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         endif
         if _autopickup=0 then
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"P",,Font2,Custom,@_col
-            xoffset+=1    
+            xoffset+=1
         endif
         if _autoinspect=0 then
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"I",,Font2,Custom,@_col
-            xoffset+=1    
+            xoffset+=1
         endif
         if awayteam.helmet=0 then
             draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),"O",,Font2,Custom,@_col
@@ -1076,43 +1082,43 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         xoffset+=2
         draw string(xoffset*_fw2,21*_fh1+(_fh1-_fh2)/2),tacdes(player.tactic+3),,Font2,Custom,@_col
         xoffset=xoffset+len(tacdes(player.tactic+3))
-        
+
         draw_border(xoffset)
         if showshipandteam=1 then
             set__color( 15,0)
             if player.landed.m=map then
-                if planetmap(ship.x,ship.y,map)>0 or player.stuff(3)=2 then    
+                if planetmap(ship.x,ship.y,map)>0 or player.stuff(3)=2 then
                     if configflag(con_tiles)=0 then
                         x=ship.x-osx
                         if _debug=107 then dprint "X="& x &" OSX="& osx &" ship.x="&ship.x
                         if x<0 then x+=61
                         if x>60 then x-=61
-                        if x>=0 and x<=_mwx then put (x*_tix,ship.y*_tiy),stiles(5,player.ti_no),trans                
+                        if x>=0 and x<=_mwx then put (x*_tix,ship.y*_tiy),stiles(5,player.ti_no),trans
                     else
                         set__color( _shipcolor,0)
                         draw string((ship.x)*_fw1,ship.y*_fh1),"@",,Font1,custom,@_col
                     endif
                 endif
-            endif  
-            
+            endif
+
             if configflag(con_tiles)=0 then
                 x=awayteam.c.x-osx
                 if _debug=107 then dprint "ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x<0 then x+=61
                 if x>60 then x-=61
                 if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
-                if x>=0 and x<=_mwx then 
+                if x>=0 and x<=_mwx then
                     if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
-                    put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans                
+                    put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans
                     if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
                 endif
                 if _debug=2609 then draw string(x*_tix,awayteam.c.y*_tiy),"e:"&awayteam.e.e
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,Font1,custom,@_col
-            endif    
+            endif
         endif
-        
+
         l=hpdisplay(awayteam)
         set__color( 11,0)
         l+=1
@@ -1122,14 +1128,14 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         if awayteam.movetype=1 then draw string(sidebar,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
         if awayteam.movetype=2 then draw string(sidebar,l*_fh2), "Trp.: Jetpacks",,Font2,custom,@_col
         if awayteam.movetype=3 then draw string(sidebar,l*_fh2), "Trp.: Jetp&Hover",,Font2,custom,@_col
-        if artflag(9)=1 then 
+        if artflag(9)=1 then
             l+=1
             draw string(sidebar,l*_fh2), "      Teleport",,Font2,custom,@_col
         endif
         l+=1
         draw string(sidebar,l*_fh2),"Speed: "&awayteam.speed,,Font2,Custom,@_col
         xoffset=xoffset+8
-        
+
         l+=1
         draw string(sidebar,l*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
         l+=1
@@ -1149,7 +1155,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         draw string(sidebar,l*_fh2), "Bio Data  :"& cint(reward(1)),,Font2,custom,@_col
         l+=1
         draw string(sidebar,l*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
-        
+
         if (awayteam.movetype=2 or awayteam.movetype=3) and awayteam.hp>0 then
             set__color( 11,0)
             l+=1
@@ -1164,9 +1170,9 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 draw string(sidebar+12*_fw2,l*_fh2), ""&awayteam.jpfuel,,Font2,custom,@_col
             endif
         endif
-        
+
         if player.turn mod 15=0 then low_morale_message
-        
+
         set__color( 11,0)
         l+=1
         draw string(sidebar,l*_fh2),"Oxygen:",,Font2,custom,@_col
@@ -1185,8 +1191,8 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         draw string(sidebar,l*_fh2),"Gravity:" &planets(map).grav,,Font2,custom,@_col
         if len(trim(tmap(awayteam.c.x,awayteam.c.y).desc))<18 then
             l+=1
-            draw string(sidebar,l*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map) 
-        else 
+            draw string(sidebar,l*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map)
+        else
             dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         l+=2
@@ -1194,21 +1200,21 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l+=1
         draw string(sidebar,l*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
         if debug=1 and _debug=1 then draw string(sidebar,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
-    
+
         comstr.display(l+2)
 
-        
+
     return 0
 end function
 
 function display_planetmap(slot as short,osx as short,bg as byte) as short
-    
+
     dim x as short
     dim y as short
     dim b as short
     dim x2 as short
     dim debug as byte
-        
+
     for x=_mwx to 0 step-1
         for y=0 to 20
             x2=x+osx
@@ -1228,9 +1234,9 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
 '        set__color( 15,0
 '        draw string (x*_tix,22*_tiy),""&x2
 '    next
-    
+
     display_portals(slot,osx)
-    
+
     for b=1 to lastitem
         if debug=1 and _debug=1 and item(b).w.m=slot then dprint b &":"&item(b).w.x-osx &"."&item(b).w.x &"_"& osx
         x=item(b).w.x-osx
@@ -1241,7 +1247,7 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
                 if configflag(con_tiles)=0 then
                     put (x*_tix,item(b).w.y*_tiy),gtiles(gt_no(item(b).ti_no)),alpha,196
                     if debug=1 and _debug=1 then draw string ((item(b).w.x-osx)*_tix,item(b).w.y*_tiy),""& b,,Font1,custom,@_col
-                else            
+                else
                     if item(b).ty<>99 then
                         set__color( item(b).col,item(b).bgcol)
                         draw string(item(b).w.x*_fw1,item(b).w.y*_fh1),item(b).icon,,Font1,custom,@_col
@@ -1258,11 +1264,11 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
             if apwaypoints(b).x-osx>=0 and apwaypoints(b).x-osx<=_mwx then
                 set__color( 11,0)
                 draw string((apwaypoints(b).x-osx)*_tix,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
-                
+
             endif
         next
     endif
-    
+
     return 0
 end function
 
@@ -1272,7 +1278,7 @@ function display_portals(slot as short,osx as short) as short
         x=portal(b).from.x-osx
         if x<0 then x+=61
         if x>60 then x-=61
-        if x>=0 and x<=_mwx then 
+        if x>=0 and x<=_mwx then
             if portal(b).from.m=slot and portal(b).discovered=1 and portal(b).oneway<2 then
                 if configflag(con_tiles)=0 then
                     put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
@@ -1286,8 +1292,8 @@ function display_portals(slot as short,osx as short) as short
         x=portal(b).dest.x-osx
         if x<0 then x+=61
         if x>60 then x-=61
-        
-        if x>=0 and x<=_mwx then 
+
+        if x>=0 and x<=_mwx then
             if portal(b).oneway=0 and portal(b).dest.m=slot and portal(b).discovered=1 then
                 if configflag(con_tiles)=0 then
                     put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
@@ -1308,7 +1314,7 @@ function display_monsters(osx as short) as short
         if enemy(a).hp<=0 then
             p.x=enemy(a).c.x
             p.y=enemy(a).c.y
-            if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comdead=0 then 
+            if awayteam.c.x=p.x and awayteam.c.y=p.y and comstr.comdead=0 then
                 comstr.t=comstr.t &key_inspect &" Inspect;"
                 comstr.comdead=1 'only add it once
             endif
@@ -1324,19 +1330,19 @@ function display_monsters(osx as short) as short
             endif
         endif
     next
-    
+
     for a=1 to lastenemy
         if enemy(a).ti_no=-1 then enemy(a).ti_no=rnd_range(0,8)+1500 'Assign sprite range
         if enemy(a).hp>0 then
             p=enemy(a).c
-            if comstr.comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then 
+            if comstr.comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then
                 comstr.t=comstr.t & key_co &" Chat, " & key_of &" Offer;"
                 comstr.comalive=1
             endif
-            if p.x-osx>=0 and p.x-osx<=_mwx and p.y>=0 and p.y<=20 then                
+            if p.x-osx>=0 and p.x-osx<=_mwx and p.y>=0 and p.y<=20 then
                 if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
                     if enemy(a).cmshow=1 then
-                        enemy(a).cmshow=0    
+                        enemy(a).cmshow=0
                         set__color( enemy(a).col,179)
                     else
                         set__color( enemy(a).col,0)
@@ -1347,7 +1353,7 @@ function display_monsters(osx as short) as short
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
-                        if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then 
+                        if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then
                             if configflag(con_tiles)=0 then
                                 set__color(  203,0)
                                 draw string ((p.x-osx)*_tix,P.y*_fh1),"z",,font2,custom,@_tcol
@@ -1360,10 +1366,10 @@ function display_monsters(osx as short) as short
                     endif
                 endif
             endif
-        endif                    
+        endif
     next
-    
-    
+
+
     return 0
 end function
 
@@ -1376,7 +1382,7 @@ function display_ship_weapons(m as short=0) as short
     set__color( 11,0)
     wl=9
     for a=1 to player.h_maxweaponslot
-        if m<>0 and a=m then 
+        if m<>0 and a=m then
             bg=1
         else
             bg=0
@@ -1389,7 +1395,7 @@ function display_ship_weapons(m as short=0) as short
             empty+=1
         endif
     next
-    
+
     if empty>0 then
         set__color(15,0)
         if empty=1 then draw string(sidebar,(8+c)*_fh2), "Empty turret",,Font2,custom,@_col
@@ -1397,7 +1403,7 @@ function display_ship_weapons(m as short=0) as short
         c+=1
     endif
     c+=1
-    if ammo>0 then 
+    if ammo>0 then
         set__color(15,0)
         draw string(sidebar,(8+c)*_fh2), "Loadout ("& ammo &"):",,Font2,custom,@_col
         set__color(11,0)
@@ -1406,8 +1412,8 @@ function display_ship_weapons(m as short=0) as short
         wl+=3
     endif
     set__color( 11,0)
-    
-    
+
+
     wl=wl+c
     return wl
 end function
@@ -1468,7 +1474,7 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
         line (x,y+1)-(x+19*_tix,y+_tiy+5),RGB(0,0,255),B
         'draw string(x,y),bl ,,font1,custom,@_col
         'draw string(x+19*_tix,y),br ,,font1,custom,@_col
-        
+
     else
         draw string(x,y),bl ,,font1,custom,@_col
         draw string (x+_fw2,y+yof), space(25),,font2,custom,@_col
@@ -1491,71 +1497,71 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
         endif
         if hi=a then bg=11
         t=" "
-        
+
         if map(in).planets(a)<>0 then
                 ptile=0
                 alp=255
-                if isgasgiant(map(in).planets(a))<>0 then 
+                if isgasgiant(map(in).planets(a))<>0 then
                     t="O"
-                    if a<6 then 
+                    if a<6 then
                         set__color( 162,bg)
                         ptile=1612
                     endif
-                    if a=1 then 
+                    if a=1 then
                         set__color( 164,bg)
                         ptile=1613
                     endif
-                    if a>5 or map(in).spec=10 then 
+                    if a>5 or map(in).spec=10 then
                         set__color( 63,bg)
                         ptile=1614
                     endif
                 endif
-                if isasteroidfield(map(in).planets(a))<>0 then 
+                if isasteroidfield(map(in).planets(a))<>0 then
                     t=chr(176)
                     set__color( 7,bg)
                     ptile=1608
                 endif
-                if isasteroidfield(map(in).planets(a))=0 and isgasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then 
+                if isasteroidfield(map(in).planets(a))=0 and isgasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then
                     t="o"
                     ptile=1609
-                    
+
                     if planets(map(in).planets(a)).atmos=0 then planets(map(in).planets(a)).atmos=1
-                    if planets(map(in).planets(a)).mapstat=0 then set__color( 7,bg)  
+                    if planets(map(in).planets(a)).mapstat=0 then set__color( 7,bg)
                     if planets(map(in).planets(a)).mapstat=1 then
                         alp=197
-                        if planets(map(in).planets(a)).atmos=1 then 
-                            set__color( 15,bg)      
+                        if planets(map(in).planets(a)).atmos=1 then
+                            set__color( 15,bg)
                             ptile=1616
                         endif
-                        if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then 
+                        if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then
                             set__color( 101,bg)
                             ptile=1619
                         endif
-                        if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then 
+                        if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then
                             set__color( 210,bg)
                             ptile=1622
                         endif
-                        if planets(map(in).planets(a)).atmos>11 then 
+                        if planets(map(in).planets(a)).atmos>11 then
                             set__color( 10,bg)
                             ptile=1625
                         endif
                         if planets(map(in).planets(a)).grav<0.8 then ptile+=1
                         if planets(map(in).planets(a)).grav>1.2 then ptile-=1
                     endif
-                    if planets(map(in).planets(a)).mapstat=2 then  
-                        if planets(map(in).planets(a)).atmos=1 then 
-                            set__color( 8,bg)    
+                    if planets(map(in).planets(a)).mapstat=2 then
+                        if planets(map(in).planets(a)).atmos=1 then
+                            set__color( 8,bg)
                             ptile=1616
                         endif
-                        if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then 
+                        if planets(map(in).planets(a)).atmos>1 and planets(map(in).planets(a)).atmos<7 then
                             set__color(9,bg)
                             ptile=1619
                         endif
-                        if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then 
+                        if planets(map(in).planets(a)).atmos>6 and planets(map(in).planets(a)).atmos<12 then
                             set__color(198,bg)
                             ptile=1622
                         endif
-                        if planets(map(in).planets(a)).atmos>11 then 
+                        if planets(map(in).planets(a)).atmos>11 then
                             set__color( 54,bg)
                             ptile=1625
                         endif
@@ -1566,13 +1572,13 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
             if configflag(con_sysmaptiles)=0 then
                 if ptile>0 then put (x+_tix*(a*1.5+4),y+yof),gtiles(gt_no(ptile)),alpha,alp
                 if bg=11 then put (x+_tix*(a*1.5+4),y+yof),gtiles(gt_no(1610)),trans
-                if spec=1 then 
+                if spec=1 then
                     set__color(11,0)
                     draw string(x+_tix*(a*1.5+4),y+yof),"s",,font2,custom,@_tcol
                 endif
             else
                 draw string(x+_fw2*(a*2+4),y+yof),t,,font2,custom,@_col
-                if spec=1  then 
+                if spec=1  then
                     set__color(11,0)
                     draw string(x+_fw2*(a*2+5),y+yof),"s",,font2,custom,@_tcol
                 endif
@@ -1595,7 +1601,7 @@ function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
     if tiles.col<0 and tiles.bgcol<0 then
         col=col*-1
         bgcol=bgcol*-1
-        col=rnd_range(col,bgcol)    
+        col=rnd_range(col,bgcol)
         bgcol=0
     endif
     if configflag(con_tiles)=0 then
@@ -1605,7 +1611,7 @@ function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
             put (x*_tix,y*_tiy),gtiles(gt_no(tino)),alpha,196
         endif
     else
-        if configflag(con_showvis)=0 and visible>0 and bgcol=0 then 
+        if configflag(con_showvis)=0 and visible>0 and bgcol=0 then
             bgcol=234
         endif
         set__color( col,bgcol,visible)
@@ -1646,7 +1652,7 @@ function get_planet_cords(byref p as _cords,mapslot as short,shteam as byte=0) a
         key=planet_cursor(p,mapslot,osx,shteam)
         key=cursor(p,mapslot,osx)
     loop until key=key__esc or key=key__enter
-    
+
     return key
 end function
 
@@ -1667,9 +1673,9 @@ function planet_cursor(p as _cords,mapslot as short,byref osx as short,shteam as
         dprint cords(p)&": "&"Unknown"
     endif
     flip
-    return key     
+    return key
 end function
-    
+
 function getplanet(sys as short,forcebar as byte=0) as short
     dim as short r,p,a,b
     dim as string text,key
@@ -1690,7 +1696,7 @@ function getplanet(sys as short,forcebar as byte=0) as short
         dprint "Enter to select, arrows to move,ESC to quit"
         if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
         do
-            display_system(sys,,p)        
+            display_system(sys,,p)
             key=""
             key=keyin
             if keyplus(key) or key=key_east or key=key_north then p=nextplan(p,sys)
@@ -1706,7 +1712,7 @@ function getplanet(sys as short,forcebar as byte=0) as short
             if (key=key__enter or key=key_sc or key=key_la) and map(sys).planets(p)<>0 then r=p
         loop until r<>0
         liplanet=r
-        
+
     else
         r=-1
     endif
@@ -1756,7 +1762,7 @@ end function
 '        dprint "Enter to select, arrows to move,ESC to quit"
 '        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
 '        do
-'            displaysystem(sys)       
+'            displaysystem(sys)
 '            if keyplus(key) or a=6 then
 '                do
 '                    p=p+1
@@ -1806,7 +1812,7 @@ end function
 '                if isasteroidfield(map(sys).planets(p))=1 then print chr(176)
 '                set__color( 11,0
 '            endif
-'           
+'
 '            if map(sys).planets(p)<0 then
 '                if map(sys).planets(p)<0 then
 '                    if isgasgiant(map(sys).planets(p))=0 then
@@ -1834,8 +1840,8 @@ end function
 '                planets(map(sys).planets(p)).comment=gettext(p1.x,p1.y,60,planets(map(sys).planets(p)).comment)
 '            endif
 '            a=Getdirection(key)
-'           
-'           
+'
+'
 '            if key="q" or key="Q" or key=key__esc then r=-1
 '            if (key=key__enter or key=key_sc or key=key_la) and map(sys).planets(p)<>0 then r=p
 '        loop until r<>0
@@ -1862,16 +1868,16 @@ function shipstatus(heading as short=0) as short
         cw=(_screenx-16*_fw2)/3.5
         cw=cw/_fw2
         if heading=0 then textbox("{15}Name: {11}"&player.desig &"{15} Type:{11}" &player.h_desig,1,0,40)
-        
+
         textbox(shipstatsblock &"||" & weapon_string &"|" & cargo_text ,1,2,cw)
-        
+
         textbox(crewblock,(2+cw)*_fw2/_fw1,2,16)
-        
+
         textbox(list_artifacts(artflag()),(2+18+cw)*_fw2/_fw1,2,cw)
-        
+
         if heading=0 then
             textbox(list_inventory,(2+18+2*cw)*_fw2/_fw1,2,cw,,,,,offset)
-    
+
             no_key=keyin
             if no_key="+" then offset+=1
             if no_key="-" then offset-=1
@@ -1889,7 +1895,7 @@ function textbox(text as string,x as short,y as short,w as short,_
     dim addt as string
     addt=text
     debug=22
-    
+
     if pixel=0 then
         x=x*_fw1
         y=y*_fh1
@@ -1901,14 +1907,14 @@ function textbox(text as string,x as short,y as short,w as short,_
         words(wcount)=words(wcount)&mid(text,p,1)
         if mid(text,p,1)=" " or mid(text,p,1)="|" or  mid(text,p,1)="}" then wcount+=1
     next
-    if words(wcount)<>"|" and bg<>0 and pixel=0 then 
+    if words(wcount)<>"|" and bg<>0 and pixel=0 then
         wcount+=1
         words(wcount)="|"
     endif
     set__color( fg,bg)
     'Count lines
     for p=0 to wcount
-        if words(p)="|" then 
+        if words(p)="|" then
             linecount+=1
             xw=0
         else
@@ -1922,19 +1928,19 @@ function textbox(text as string,x as short,y as short,w as short,_
     xw=0
     if offset>0 and linecount-offset<maxlines-1 then offset=linecount-maxlines-1
     if offset<0 then offset=0
-    
+
     for p=0 to wcount
-        
+
         if words(p)="|" then 'New line
             if op=0 and lcount-offset>=0  and (lcount-offset)<=maxlines then draw string((x)+xw*_fw2,y+(lcount-offset)*_fh2),space(w-xw),,font2,custom,@_col
             lcount=lcount+1
             xw=0
         endif
-        
+
         if Left(trim(words(p)),1)="{" and Right(trim(words(p)),1)="}" then 'Color
             set__color( numfromstr(words(p)),bg)
         endif
-        
+
         if words(p)<>"|" and not(Left(trim(words(p)),1)="{" and Right(trim(words(p)),1)="}") then 'Print word
             if xw+len(words(p))>w then 'Newline
                 if op=0 and lcount-offset>=0 and (lcount-offset)<=maxlines then draw string((x)+xw*_fw2,y+(lcount-offset)*_fh2),space(w-xw),,font2,custom,@_col
@@ -1945,16 +1951,16 @@ function textbox(text as string,x as short,y as short,w as short,_
             xw=xw+len(words(p))
             if xw>longestline then longestline=xw
         endif
-        
+
         if (lcount-offset)>maxlines then 'Too long
-            if op<>0 then 
+            if op<>0 then
                 op=longestline
                 return lcount
             endif
             set__color( fg,bg)
         endif
     next
-    if linecount>maxlines then 
+    if linecount>maxlines then
         if offset>0 then
             set__color(14,0)
         else
@@ -1969,7 +1975,7 @@ function textbox(text as string,x as short,y as short,w as short,_
         endif
         draw string(x+w*_fw2-_fw2,y+maxlines*_fh2-_fh2),"+",,font2,custom,@_col
         draw string(x+w*_fw2-_fw2,y+maxlines*_fh2),chr(25),,font2,custom,@_col
-        
+
         if debug=1 and _debug=1 then dprint "LC:" &linecount &"ML:"&maxlines
         scroll_bar(offset,linecount,maxlines,maxlines-4,x+w*_fw2-_fw2,y+2*_fh2,14)
     endif
@@ -1990,7 +1996,7 @@ function scroll_bar(offset as short,linetot as short,lineshow as short,winhigh a
         else
             set__color(0,0)
         end if
-            
+
         draw string(x,y+(i)*_fh2),chr(178),,font2,custom,@_col
     next
     return 0
@@ -2005,7 +2011,7 @@ function locEOL() as _cords
     do
         firstline+=1
     loop until firstline*_fh2>=22*_fh1
-    
+
     y=firstline+winh
     for a=firstline+winh to firstline step -1
         if displaytext(a+1)="" then y=a
@@ -2053,7 +2059,7 @@ function dprint(t as string, col as short=11) as short
 '    do
 '        firstline+=1
 '    loop until firstline*_fh2>=22*_fh1
-'    
+'
     if _fh1=_fh2 then
         firstline=22
         winh=_lines-22
@@ -2086,14 +2092,14 @@ function dprint(t as string, col as short=11) as short
         loop until timer>lastcalled+.05
     endif
     lastcalled=timer
-    
+
     'draw string (61*_fw1,firstline*_fh2),"*",,font1,custom,@_col
     'draw string (61*_fw1,(firstline+winh)*_fh2),"*",,font1,custom,@_col
     'find offset
     'if offset=0 then offset=firstline
-    
+
     if text<>"" then
-        while displaytext(curline)<>"" 
+        while displaytext(curline)<>""
             curline+=1
         wend
         for a=0 to len(text)
@@ -2107,14 +2113,14 @@ function dprint(t as string, col as short=11) as short
         next
         for a=0 to b
             if len(displaytext(curline+tlen))+len(words(a))>=winw then
-                displaytext(curline+tlen)=trim(displaytext(curline+tlen))                
+                displaytext(curline+tlen)=trim(displaytext(curline+tlen))
                 tlen+=1
             endif
             displaytext(curline+tlen)=displaytext(curline+tlen)&words(a)
             dtextcol(curline+tlen)=col
         next
-        
-        if curline+tlen>firstline+winh then            
+
+        if curline+tlen>firstline+winh then
             if tlen<winh then
                 scrollup(tlen-1)
             else
@@ -2154,7 +2160,7 @@ function dprint(t as string, col as short=11) as short
     locate 24,1
     set__color( 11,0)
     return 0
-end function    
+end function
 
 
 function getmonster() as short
@@ -2165,8 +2171,8 @@ function getmonster() as short
     next
     if d=0 then
         lastenemy=lastenemy+1
-        d=lastenemy                            
-        if d>255 then 
+        d=lastenemy
+        if d>255 then
             lastenemy=255
             d=255
         endif
@@ -2196,7 +2202,7 @@ end function
 
 
 function changetile(x as short,y as short,m as short,t as short) as short
-    if planetmap(x,y,m)<0 then 
+    if planetmap(x,y,m)<0 then
         planetmap(x,y,m)=abs(t)*-1
     else
         planetmap(x,y,m)=abs(t)
@@ -2207,14 +2213,14 @@ end function
 function copytile (byval a as short) as _tile
     dim r as _tile
     if a<0 then a=-a
-    r.no=tiles(a).no 
+    r.no=tiles(a).no
     r.tile=tiles(a).tile
-    r.desc=tiles(a).desc 
-    r.bgcol=tiles(a).bgcol  
-    r.col=tiles(a).col  
-    r.seetru=tiles(a).seetru 
-    r.walktru=tiles(a).walktru 
-    r.firetru=tiles(a).firetru 
+    r.desc=tiles(a).desc
+    r.bgcol=tiles(a).bgcol
+    r.col=tiles(a).col
+    r.seetru=tiles(a).seetru
+    r.walktru=tiles(a).walktru
+    r.firetru=tiles(a).firetru
     r.shootable=tiles(a).shootable
     r.dr=tiles(a).dr
     r.hp=tiles(a).hp
@@ -2227,6 +2233,6 @@ function copytile (byval a as short) as _tile
     r.gives=tiles(a).gives
     return r
 end function
-    
+
 
 
