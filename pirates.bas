@@ -422,6 +422,7 @@ function ss_sighting(i as short) as short
     debug=1
     if debug=1 and _debug=1 then dprint fn &":"&fn2
     c=11
+    
     if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
         if basis(i).lastsightingturn-player.turn<25 then
             text ="There are some rumors about"

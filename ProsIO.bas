@@ -1374,7 +1374,6 @@ function display_ship_weapons(m as short=0) as short
     set__color( 15,0)
     draw string ((_mwx+1)*_fw1+_fw2,7*_fh2), "Weapons:",,font2,custom,@_col
     set__color( 11,0)
-    player.tractor=0
     wl=9
     for a=1 to player.h_maxweaponslot
         if m<>0 and a=m then 

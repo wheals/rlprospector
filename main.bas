@@ -194,8 +194,7 @@ function titlemenu() as short
     background(bg &".bmp")
     logo=bmp_load("graphics/prospector.bmp")
     if logo<>NULL then 
-        set__color(107,0)
-        put (39,69),logo,custom,@_tcol
+        put (39,69),logo,trans
     else
         draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
     endif
@@ -2454,17 +2453,18 @@ function explore_space() as short
         endif
         
         if player.turn mod 10=0 then
-            for a=1 to player.h_maxweaponslot
-                if player.weapons(a).ROF<0 then 
-                    player.tractor=1
-                    if player.towed>0 and not(skill_test(player.pilot(0),st_easy+player.weapons(a).ROF)) then
-                        dprint "Your tractor beam breaks down",14
-                        player.tractor=0
-                        player.towed=0
-                        player.weapons(a)=makeweapon(0)
-                    endif
+            if player.tractor>0 then
+                if player.towed>0 and not(skill_test(player.pilot(0),st_easy-player.tractor)) then
+                    dprint "Your tractor beam breaks down",14
+                    for a=0 to 25
+                        if player.weapons(a).rof<0 then 
+                            player.weapons(a)=makeweapon(0)
+                            exit for
+                        endif
+                    next
+                    player.towed=0
                 endif
-            next
+            endif        
         endif
 
         
@@ -3221,8 +3221,7 @@ endif
             flip
         endif
         
-        if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
-        deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
+    deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
         
         if player.dead>0 or awayteam.hp<=0 then allowed=""
         
@@ -3339,6 +3338,8 @@ endif
             if old.x<>awayteam.c.x or old.y<>awayteam.c.y or key=key_pickup then ep_pickupitem(key,lastlocalitem,li())
             if key=key_inspect or _autoinspect=0 and (old.x<>awayteam.c.x or old.y<>awayteam.c.y) then ep_inspect(li(),lastlocalitem,localturn)
             
+            if vacuum(awayteam.c.x,awayteam.c.y)=1 and awayteam.helmet=0 then ep_helmet()
+            if vacuum(awayteam.c.x,awayteam.c.y)=0 and vacuum(old.x,old.y)=1 and awayteam.helmet=1 then ep_helmet
         'Display all stuff
             screenset 0,1
             set__color(11,0)

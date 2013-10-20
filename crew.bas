@@ -556,7 +556,7 @@ function levelup(p as _ship,from as short) as _ship
         if crew(a).hp>0 and lev(a)=1 then
             levt(crew(a).typ)+=1
             select case crew(a).typ
-            case 1 to 5
+            case 2 to 5
                 crew(a).baseskill(crew(a).typ-2)+=1
             case 6,7
                 crew(a).typ+=1

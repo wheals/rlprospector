@@ -456,7 +456,7 @@ type _ship
     questflag(31) as short
     discovered(10) as byte
     towed as byte
-    tractor as byte
+    declare function tractor() as byte
     teleportload as byte
     col as short
     bcol as short
@@ -465,6 +465,14 @@ end type
 
 
 dim shared foundsomething as integer
+
+function _ship.tractor() as byte
+    dim as byte i,t
+    for i=0 to 25
+        if weapons(i).rof<0 and weapons(i).rof<t then t=weapons(i).rof
+    next
+    return abs(t)
+end function
 
 function _ship.useammo() as short
     dim as short i,most,where
@@ -801,10 +809,17 @@ type _commandstring
     comportal as byte
     comitem as byte
     page as byte
-    counter as byte
+    lastpage as byte
     declare function reset() as short
     declare function display(wl as short) as short
+    declare function nextpage() as short
 end type
+
+function _commandstring.nextpage() as short
+    page+=1
+    if page>lastpage then page=0
+    return 0
+end function
 
 function _commandstring.reset() as short
     t=""
@@ -2527,17 +2542,15 @@ end function
 
 function _commandstring.display(wl as short) as short
     dim as string ws(40)
-    dim as short last,b,start,room,needed,parts
-    counter+=1
+    dim as short last,b,start,room,needed
     if comstr.t="" then return 0
     last=string_towords(ws(),comstr.t,";")
     room=_lines-wl
     needed=last
-    parts=needed/room
-    if counter>=parts then counter=0
-    if parts>1 then
-        start=(last/parts)*counter
-        last=(last/parts)*(counter+1)
+    lastpage=needed/room
+    if lastpage>1 then
+        start=(last/lastpage)*page
+        last=(last/lastpage)*(page+1)
     endif
     if last>40 then last=40
     if start>last then start=last-room

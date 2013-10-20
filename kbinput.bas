@@ -70,10 +70,10 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                     
                     end select
                 endif            
-                if evkey.type=13 then key=key_quit
             sleep 1
         loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run<>0
         lastkey=key    
+        comstr.nextpage
         if key<>"" then walking=0 
         if _test_disease=1 and key="#" then
             a=getnumber(0,255,0)
