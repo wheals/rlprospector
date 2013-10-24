@@ -624,10 +624,10 @@ type _planet
     mon_template(16) as _monster
     mon_noamin(16) as byte
     mon_noamax(16) as byte
-    mon_killed(16) as byte
-    mon_disected(16) as byte
-    mon_caught(16) as byte
-    mon_seen(16) as byte
+    mon_killed(16) as ubyte
+    mon_disected(16) as ubyte
+    mon_caught(16) as ubyte
+    mon_seen(16) as ubyte
     colony as byte
     colonystats(14) as byte
     vault(8) as _rect
@@ -1974,6 +1974,7 @@ declare function texttofile(text as string) as string
 declare function load_keyset() as short
 declare function load_dialog(fn as string, n() as _dialognode) as short
 declare function get_biodata(e as _monster) as integer
+declare function is_passenger(i as short) as short
 declare function add_passenger(n as string,typ as short, price as short, bonus as short, target as short, ttime as short, gender as short) as short
 
 declare function gen_fname(fname() as string) as short

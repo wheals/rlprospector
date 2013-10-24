@@ -1047,7 +1047,9 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
                     endif
 
                     dprint "Recording biodata: "&enemy(a).ldesc
-                    if enemy(a).slot>=0 then planets(slot).mon_disected(enemy(a).slot)+=1
+                    if enemy(a).slot>=0 then
+                        if planets(slot).mon_disected(enemy(a).slot)<255  then planets(slot).mon_disected(enemy(a).slot)+=1
+                    endif
                     if enemy(a).lang=8 then dprint "While this beings biochemistry is no doubt remarkable it does not explain it's extraordinarily long lifespan"
                     if enemy(a).hpmax<0 then enemy(a).hpmax=0
                     if enemy(a).slot>=0 then reward(1)=reward(1)+(10+kit+skill+add_talent(4,14,1)+get_biodata(enemy(a)))/(planets(slot).mon_disected(enemy(a).slot)/2)
@@ -1873,7 +1875,8 @@ end function
 
 function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() as _cords, lsp as short, mapmask() as byte,nightday() as byte) as short
     dim deadcounter as short
-    dim as short a,b,c,slot,ti,f,osx,cmoodto,someonemoved,message
+    dim as short a,b,c,slot,ti,f,osx,cmoodto,someonemoved
+    dim as byte message(7)
     dim moa as byte 'monster attack
     dim as _cords p1,p2
     dim as single tb,dam
@@ -1927,16 +1930,16 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                             endif
                         end select
                         enemy(a).aggr=cmoodto
-                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
+                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(0)=0 then
                             enemy(a).cmshow=1
-                            message=1
+                            message(0)=1
                             if cmoodto=1 then dprint "The "&enemy(a).sdesc &" suddenly seems agressive",14
                             if cmoodto=2 then dprint "The "&enemy(a).sdesc &" suddenly seems afraid",14
                         endif
                         for b=1 to lastenemy
                             if a<>b and enemy(b).hp>0 then
-                                if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 and message=0 then
-                                    message=1
+                                if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 and message(1)=0 then
+                                    message(1)=1
                                     enemy(b).aggr=cmoodto
                                     enemy(a).cmshow=1
                                     dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
@@ -1969,9 +1972,9 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 endif
             endif
             if enemy(a).made=102 and nightday(enemy(a).c.x)=3 then
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
+                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(2)=0 then
                     dprint "The icetroll slowly stops moving."
-                    message=1
+                    message(2)=1
                 endif
                 changetile(enemy(a).c.x,enemy(a).c.y,slot,304)
                 enemy(a).hp=0
@@ -2012,16 +2015,16 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                             if enemy(a).faction<>enemy(b).faction then
                                 if enemy(a).diet=1 then
                                     enemy(b).hpmax=enemy(b).hpmax-1
-                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
-                                        message=1
+                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(3)=0 then
+                                        message(3)=1
                                         dprint "The "&enemy(a).sdesc & " eats of the dead "&enemy(b).sdesc &"."
                                     endif
                                 endif
                             else
                                 if rnd_range(1,6)+rnd_range(1,6)<5+enemy(a).intel and enemy(b).killedby=0 then
                                     enemy(a).aggr=0
-                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
-                                        message=1
+                                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(4)=0 then
+                                        message(4)=1
                                         dprint "The "&enemy(a).sdesc & " gets angry looking at the dead "&enemy(b).sdesc &"."
                                     endif
                                 endif
@@ -2033,8 +2036,8 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
 
             if enemy(a).diet=2 and tmap(enemy(a).c.x,enemy(a).c.y).vege>0 then
                 tmap(enemy(a).c.x,enemy(a).c.y).vege=tmap(enemy(a).c.x,enemy(a).c.y).vege-1
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message=0 then
-                    message=1
+                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(5)=0 then
+                    message(6)=1
                     dprint "The "&enemy(a).sdesc & " eats some of the plants growing here."
                 endif
             endif
@@ -2081,16 +2084,20 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                         next
                     next
                     enemy(a).aggr=1
-                    if skill_test(player.science(location),st_average+planets(slot).dens) and message=0 then
-                        message=1
-                        dprint "Recieving radio transmission: 'Returning to ship'"
+                    if rnd_range(1,100)<20 then
+                        if skill_test(player.science(location),st_average+planets(slot).dens) and message(6)=0 then
+                            message(6)=1
+                            dprint "Recieving radio transmission: 'Returning to ship'"
+                        endif
                     endif
                 else
                     enemy(a).target.x=item(li(c)).w.x
                     enemy(a).target.y=item(li(c)).w.y
-                    if skill_test(player.science(location),st_average+planets(slot).dens) and message=0 then
-                        message=1
-                        dprint "Recieving radio transmission: 'Going for ore at "&enemy(a).target.x &":"&enemy(a).target.y &"'"
+                    if rnd_range(1,100)<20 then
+                        if skill_test(player.science(location),st_average+planets(slot).dens) and message(7)=0 then
+                            message(7)=1
+                            dprint "Recieving radio transmission: 'Going for ore at "&enemy(a).target.x &":"&enemy(a).target.y &"'"
+                        endif
                     endif
                 endif
             endif

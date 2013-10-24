@@ -204,15 +204,6 @@ function titlemenu() as short
         draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
     endif
 
-    background(bg &".bmp")
-    logo=bmp_load("graphics/prospector.bmp")
-    if logo<>NULL then 
-        set__color(107,0)
-        put (39,69),logo,custom,@_tcol
-    else
-        draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
-    endif
-    
     set__color( 15,0)
     draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__,,FONT2,pset
     draw_string(_screenx-22*_FW2,_screeny-9*_FH2,"a) start new game    ",FONT2,_col)
@@ -975,6 +966,8 @@ function asteroid_mining(slot as short) as short
                 it=makeitem(96,f+slot+165,-2)
             loop until it.ty=15
             it.v5=it.v5+100
+            it.v2=it.v2+100
+            it.desig &=" asteroid"
             if askyn("Science officer: 'There is an asteroid containing a high ammount of "&it.desig &". shall we try to take it aboard?'(y/n)") then
                 display_ship()
                 q=-1
@@ -2351,6 +2344,15 @@ function explore_space() as short
                 for a=1 to lastquestguy
                     if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
                     if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
+                    if questguy(a).want.type=qt_travel then
+                        questguy(a).location=questguy(a).flag(12)
+                        questguy(a).want.given=1
+                    endif
+                    if questguy(a).want.given=1 then questguy(a).want.type=0
+                    if questguy(a).has.given=1 then questguy(a).has.type=0
+                    if questguy(a).has.type=0 or questguy(a).want.type=0 and rnd_range(1,100)<10 then
+                        questguy_newquest(a)
+                    endif
                 next
             endif
             move_fleets()
@@ -2443,7 +2445,7 @@ function explore_space() as short
                     lastcom=lastcom+1
                     b=lastcom
                 endif
-                if p2.x+player.osx+len(text)>sm_x then p2.x=sm_x-len(text)
+                if p2.x*_tix+len(text)*_fw2>sm_x*_tix then p2.x=cint((sm_x*_tix-len(text)*_fw2)/_tix)
                 coms(b).c.x=p2.x
                 coms(b).c.y=p2.y
                 coms(b).t=text
@@ -4639,7 +4641,7 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     dim xpstring as string
     dim SLBonus(255) as byte
     dim as string echo1,echo2
-    dim slbc as byte
+    dim slbc as short
     dim as short slot,xpgained,tacbonus,targetnumber
 
     slot=player.map
@@ -4663,7 +4665,8 @@ function hitmonster(defender as _monster,attacker as _monster,mapmask() as byte,
     else
         noa=last
     endif
-
+    if first<0 then first=0
+    if last>attacker.hpmax then last=attacker.hpmax
     if player.tactic=3 then
         tacbonus=0
     else

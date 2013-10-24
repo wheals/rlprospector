@@ -259,250 +259,6 @@ function load_sounds() as short
     return 0
 end function
 
-function keybindings(allowed as string="") as short
-    dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
-    dim as _cords cc,ncc
-    dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
-    if not fileexists("keybindings.txt") then
-        save_keyset
-    endif
-    f=freefile
-    open "keybindings.txt" for input as #f
-    while not eof(f)
-        ls+=1
-        line input #f,text2
-        if left(text2,1)<>"#" and len(text2)>0 then
-            if allowed="" or instr(allowed,loadkey(text2))>0 or val(text2)>0 then
-                a+=1
-                lk+=1
-                text=text2
-                keys(a)=loadkey(text2)
-                nkeys(a)=keys(a)
-                varn(a)=left(text,len(text)-len(keys(a))-1)
-                expl(a)=right(varn(a),len(varn(a))-4)
-                expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
-            endif
-        else
-            lastcom+=1
-            coml(lastcom)=text2
-            cl(lastcom)=ls
-        endif
-    wend
-    close #f
-    f=freefile
-    open "data/commands.csv" for input as #f
-    a=0
-    cls
-    while not eof(f)
-       line input #f,text2
-
-       a+=1
-       coml(a)=left(text2,instr(text2,";")-1) &" = "
-       comdes(a)=right(text2,len(text2)-instr(text2,";"))
-    wend
-    close #f
-    do
-        for a=1 to lk
-            colflag(a)=0
-        next
-        for a=1 to lk
-            for b=1 to lk
-                if a<>b and nkeys(a)=nkeys(b) then
-                    colflag(a)=1
-                    colflag(b)=1
-                endif
-            next
-        next
-        b=0
-        set__color( 11,0)
-        cls
-        if cc.x<1 then cc.x=1
-        if cc.y<1 then cc.y=1
-        if cc.x>4 then cc.x=4
-        if cc.y>20 then cc.y=20
-        'c=(cc.x-1)*20+cc.y
-        if c<1 then c=lk
-        if c>lk then c=1
-
-        if varn(c)="" then cc=ncc
-        screenset 0,1
-        set__color( 15,0)
-        draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
-        for x=1 to 4
-            for y=1 to 20
-                if x>1 or y>6 then
-                b+=1
-                if c=b then
-                    fg=15
-                    bg=5
-                    cc.x=x
-                    cc.y=y
-                    for d=1 to 99
-                        set__color( 15,0)
-                        if ucase(trim(varn(b)))=ucase(trim(coml(d))) then draw string (5*_fw2,26*_fh2), comdes(d),,FONT2,custom,@_col
-                    next
-                else
-                    fg=11
-                    bg=0
-                endif
-                if colflag(b)=1 then fg=14
-                set__color( fg,bg)
-
-                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
-                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
-                endif
-            next
-        next
-        set__color( 11,0)
-        draw string (5*_fw2,25*_fh2),"\C=Control Yellow: 2 commands bound to same key.",,FONT2,custom,@_col
-        for b=1 to 8
-            set__color( 11,0)
-            if b=1 then
-                draw string (2*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=2 then
-                draw string (4*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=3 then
-                draw string (6*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=4 then
-                draw string (2*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=5 then
-                draw string (6*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=6 then
-                draw string (2*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=7 then
-                draw string (4*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-            if b=8 then
-                draw string (6*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
-            endif
-        next
-        set__color( 15,0)
-        draw string (3*_fw2,4*_fh2),"\|/",,FONT2,custom,@_col
-        draw string (3*_fw2,5*_fh2),"- -",,FONT2,custom,@_col
-        draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
-        set__color( 11,0)
-        draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
-
-        no_key=keyin
-        o=c
-        if getdirection(no_key)=8 then c-=1
-        if getdirection(no_key)=2 then c+=1
-        if getdirection(no_key)=4 then c-=20
-        if getdirection(no_key)=6 then c+=20
-        if c<1 then c=lk
-        if c>lk then c=1
-        'c=(cc.x-1)*20+cc.y
-        if varn(c)="" then o=c
-
-        if no_key=key__enter and keys(c)<>"" then
-            screenset 1,1
-            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
-            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),expl(c),,FONT2,custom,@_col
-            newkey=trim(gettext(((_screenx-75*_fw2)/2)/_fw2+(cc.x-1)*25+len(expl(c)),cc.y+2,3,""))
-            if newkey<>"" and newkey<>nkeys(c) then
-                nkeys(c)=newkey
-            endif
-        endif
-    loop until no_key=key__esc
-
-    for a=1 to lk
-        if keys(a)<>nkeys(a) then
-            changed=1
-        endif
-    next
-
-    if changed=1 then
-        if askyn("Do you want to save changes(y/n)?") then
-            f=freefile
-            open "keybindings.txt" for output as #f
-            lastcom=1
-            b=1
-            for a=1 to lk
-                print #f,varn(a)&" "&nkeys(a)
-            next
-            close #f
-            load_keyset
-        endif
-    endif
-    return 0
-end function
-
-function save_keyset() as short
-    dim f as short
-    f=freefile
-    open "keybindings.txt" for output as #f
-    print #f,"gtmwx=40"
-    print #f,"key_nw = "&key_nw
-    print #f,"key_north = "&key_north
-    print #f,"key_ne = "&key_ne
-    print #f,"key_west = "&key_west
-    print #f,"key_east = "&key_east
-    print #f,"key_sw = " &key_sw
-    print #f,"key_south = "&key_south
-    print #f,"key_se = "&key_se
-    print #f,"key_wait = "&key_wait
-    print #f,"key_portal = "&key_portal
-    print #f,"key_layfire = "&key_layfire
-    print #f,"key_manual = "&key_manual
-    print #f,"key_messages = "&key_messages
-    print #f,"key_configuration = "&key_configuration
-    print #f,"key_autoinspect = "&key_autoinspect
-    print #f,"key_autopickup = "&key_autopickup
-    print #f,"key_shipstatus ="&key_shipstatus
-    print #f,"key_awayteam ="&key_awayteam
-    print #f,"key_togglehpdisplay ="&key_togglehpdisplay
-    print #f,"key_tactics ="&key_tactics
-    print #f,"key_filter ="&key_filter
-    print #f,"key_logbook ="&key_logbook
-    print #f,"key_quest ="&key_quest
-    'print #f,"key_weapons ="&key_weapons
-    print #f,"key_equipment ="&key_equipment
-    print #f,"key_yes ="&key_yes
-    print #f,"key_landing ="&key_la
-    print #f,"key_scanning ="&key_sc
-    print #f,"key_standing ="&key_standing
-    print #f,"key_targetlanding ="&key_tala
-    print #f,"key_dock ="&key_dock
-    print #f,"key_save ="&key_save
-    print #f,"key_quit="&key_quit
-    print #f,"key_rename ="&key_rename
-    print #f,"key_comment ="&key_comment
-    print #f,"key_tow ="&key_tow
-    print #f,"key_pickup ="&key_pickup
-    print #f,"key_dropitem ="&key_drop
-    print #f,"key_inspect ="&key_inspect
-    print #f,"key_examine ="&key_ex
-    print #f,"key_radio ="&key_ra
-    print #f,"key_teleport ="&key_te
-    print #f,"key_jump ="&key_ju
-    print #f,"key_communicate ="&key_co
-    print #f,"key_offer ="&key_of
-    print #f,"key_grenade ="&key_gr
-    print #f,"key_fire ="&key_fi
-    print #f,"key_autofire ="&key_autofire
-    print #f,"key_heal ="&key_he
-    print #f,"key_walk ="&key_walk
-    print #f,"key_oxygen ="&key_oxy
-    print #f,"key_close ="&key_close
-    print #f,"key_dropshield ="&key_dropshield
-    print #f,"key_activatesensors ="&key_ac
-    print #f,"key_run ="&key_ru
-    print #f,"key_togglemanjets ="&key_togglemanjets
-
-    print #f,"_tix:24"
-    print #f,"_tiy:24"
-    print #f,"tilefont:18"
-    print #f,"textfont:16"
-    print #f,"lines:26"
-    close f
-    return 0
-end function
 
 function load_map(m as short,slot as short)as short
     dim as short f,b,x,y
@@ -1483,6 +1239,245 @@ function background(fn as string) as short
     Return 0
 
 end function
+
+function keybindings(allowed as string="") as short
+    dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
+    dim as _cords cc,ncc
+    dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
+    if not fileexists("keybindings.txt") then
+        save_keyset
+    endif
+    f=freefile
+    open "keybindings.txt" for input as #f
+    while not eof(f)
+        ls+=1
+        line input #f,text2
+        if left(text2,1)<>"#" and len(text2)>0 then
+            if allowed="" or instr(allowed,loadkey(text2))>0 or val(text2)>0 then
+                a+=1
+                lk+=1
+                text=text2
+                keys(a)=loadkey(text2)
+                nkeys(a)=keys(a)
+                varn(a)=left(text,len(text)-len(keys(a))-1)
+                expl(a)=right(varn(a),len(varn(a))-4)
+                expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
+            endif
+        else
+            lastcom+=1
+            coml(lastcom)=text2
+            cl(lastcom)=ls
+        endif
+    wend
+    close #f
+    f=freefile
+    open "data/commands.csv" for input as #f
+    a=0
+    cls
+    while not eof(f)
+       line input #f,text2
+
+       a+=1
+       coml(a)=left(text2,instr(text2,";")-1) &" = "
+       comdes(a)=right(text2,len(text2)-instr(text2,";"))
+    wend
+    close #f
+    do
+        for a=1 to lk
+            colflag(a)=0
+        next
+        for a=1 to lk
+            for b=1 to lk
+                if a<>b and nkeys(a)=nkeys(b) then
+                    colflag(a)=1
+                    colflag(b)=1
+                endif
+            next
+        next
+        b=0
+        set__color( 11,0)
+        cls
+        if cc.x<1 then cc.x=1
+        if cc.y<1 then cc.y=1
+        if cc.x>4 then cc.x=4
+        if cc.y>20 then cc.y=20
+        'c=(cc.x-1)*20+cc.y
+        if c<1 then c=lk
+        if c>lk then c=1
+
+        if varn(c)="" then cc=ncc
+        screenset 0,1
+        set__color( 15,0)
+        draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
+        for x=1 to 4
+            for y=1 to 20
+                if x>1 or y>6 then
+                b+=1
+                if c=b then
+                    fg=15
+                    bg=5
+                    cc.x=x
+                    cc.y=y
+                    for d=1 to 99
+                        set__color( 15,0)
+                        if ucase(trim(varn(b)))=ucase(trim(coml(d))) then draw string (5*_fw2,26*_fh2), comdes(d),,FONT2,custom,@_col
+                    next
+                else
+                    fg=11
+                    bg=0
+                endif
+                if colflag(b)=1 then fg=14
+                set__color( fg,bg)
+
+                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
+                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
+                endif
+            next
+        next
+        set__color( 11,0)
+        draw string (5*_fw2,25*_fh2),"\C=Control Yellow: 2 commands bound to same key.",,FONT2,custom,@_col
+        for b=1 to 8
+            set__color( 11,0)
+            if b=1 then
+                draw string (2*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=2 then
+                draw string (4*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=3 then
+                draw string (6*_fw2,(3)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=4 then
+                draw string (2*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=5 then
+                draw string (6*_fw2,(5)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=6 then
+                draw string (2*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=7 then
+                draw string (4*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+            if b=8 then
+                draw string (6*_fw2,(7)*_fh2),nkeys(b),,FONT2,custom,@_col
+            endif
+        next
+        set__color( 15,0)
+        draw string (3*_fw2,4*_fh2),"\|/",,FONT2,custom,@_col
+        draw string (3*_fw2,5*_fh2),"- -",,FONT2,custom,@_col
+        draw string (3*_fw2,6*_fh2),"/|\",,FONT2,custom,@_col
+        set__color( 11,0)
+        draw string (4*_fw2,5*_fh2),"@",,FONT2,custom,@_col
+
+        no_key=keyin
+        o=c
+        if getdirection(no_key)=8 then c-=1
+        if getdirection(no_key)=2 then c+=1
+        if getdirection(no_key)=4 then c-=20
+        if getdirection(no_key)=6 then c+=20
+        if c<1 then c=lk
+        if c>lk then c=1
+        'c=(cc.x-1)*20+cc.y
+        if varn(c)="" then o=c
+
+        if no_key=key__enter and keys(c)<>"" then
+            screenset 1,1
+            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
+            draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),expl(c),,FONT2,custom,@_col
+            newkey=trim(gettext(((_screenx-75*_fw2)/2)/_fw2+(cc.x-1)*25+len(expl(c)),cc.y+2,3,""))
+            if newkey<>"" and newkey<>nkeys(c) then
+                nkeys(c)=newkey
+            endif
+        endif
+    loop until no_key=key__esc
+
+    for a=1 to lk
+        if keys(a)<>nkeys(a) then
+            changed=1
+        endif
+    next
+
+    if changed=1 then
+        if askyn("Do you want to save changes(y/n)?") then
+            f=freefile
+            open "keybindings.txt" for output as #f
+            lastcom=1
+            b=1
+            for a=1 to lk
+                print #f,varn(a)&" "&nkeys(a)
+            next
+            close #f
+            load_keyset
+        endif
+    endif
+    return 0
+end function
+
+function save_keyset() as short
+    dim f as short
+    f=freefile
+    open "keybindings.txt" for output as #f
+    print #f,"key_nw = "&key_nw
+    print #f,"key_north = "&key_north
+    print #f,"key_ne = "&key_ne
+    print #f,"key_west = "&key_west
+    print #f,"key_east = "&key_east
+    print #f,"key_sw = " &key_sw
+    print #f,"key_south = "&key_south
+    print #f,"key_se = "&key_se
+    print #f,"key_wait = "&key_wait
+    print #f,"key_portal = "&key_portal
+    print #f,"key_layfire = "&key_layfire
+    print #f,"key_manual = "&key_manual
+    print #f,"key_messages = "&key_messages
+    print #f,"key_configuration = "&key_configuration
+    print #f,"key_autoinspect = "&key_autoinspect
+    print #f,"key_autopickup = "&key_autopickup
+    print #f,"key_shipstatus ="&key_shipstatus
+    print #f,"key_awayteam ="&key_awayteam
+    print #f,"key_togglehpdisplay ="&key_togglehpdisplay
+    print #f,"key_tactics ="&key_tactics
+    print #f,"key_filter ="&key_filter
+    print #f,"key_logbook ="&key_logbook
+    print #f,"key_quest ="&key_quest
+    'print #f,"key_weapons ="&key_weapons
+    print #f,"key_equipment ="&key_equipment
+    print #f,"key_yes ="&key_yes
+    print #f,"key_landing ="&key_la
+    print #f,"key_scanning ="&key_sc
+    print #f,"key_standing ="&key_standing
+    print #f,"key_targetlanding ="&key_tala
+    print #f,"key_dock ="&key_dock
+    print #f,"key_save ="&key_save
+    print #f,"key_quit="&key_quit
+    print #f,"key_rename ="&key_rename
+    print #f,"key_comment ="&key_comment
+    print #f,"key_tow ="&key_tow
+    print #f,"key_pickup ="&key_pickup
+    print #f,"key_dropitem ="&key_drop
+    print #f,"key_inspect ="&key_inspect
+    print #f,"key_examine ="&key_ex
+    print #f,"key_radio ="&key_ra
+    print #f,"key_teleport ="&key_te
+    print #f,"key_jump ="&key_ju
+    print #f,"key_communicate ="&key_co
+    print #f,"key_offer ="&key_of
+    print #f,"key_grenade ="&key_gr
+    print #f,"key_fire ="&key_fi
+    print #f,"key_autofire ="&key_autofire
+    print #f,"key_heal ="&key_he
+    print #f,"key_walk ="&key_walk
+    print #f,"key_oxygen ="&key_oxy
+    print #f,"key_close ="&key_close
+    print #f,"key_dropshield ="&key_dropshield
+    print #f,"key_activatesensors ="&key_ac
+    print #f,"key_run ="&key_ru
+    print #f,"key_togglemanjets ="&key_togglemanjets
+    close f
+    return 0
+end function
+
 
 function load_keyset() as short
     dim as short f,a,b,c,i,j,li

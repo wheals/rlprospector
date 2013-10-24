@@ -467,7 +467,7 @@ function make_questitem(i as short,wanthas as short) as short
         endif
     endif
     
-    if (*o).type=qt_travel then'Alibi	10
+    if (*o).type=qt_travel then'Alibi	
         do
             questguy(i).flag(12)=rnd_range(0,2)
         loop until questguy(i).flag(12)<>questguy(i).location
@@ -841,7 +841,11 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
     node(1).option(o).answer="Let's have a drink."
     node(1).option(o).no=21
     o+=1
-    node(1).option(o).answer="Bye" 
+    if is_passenger(i) then
+        node(1).option(o).answer="Let's get you to your destination." 
+    else
+        node(1).option(o).answer="Bye" 
+    endif
     if _debug>0 then node(1).option(o).answer="Bye" & o
     node(1).option(o).no=0
     
@@ -852,48 +856,49 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
     node(2).param(1)=i
     
     'Want side
-    node(3).statement=questguydialog(questguy(i).want.type,questguy(i).want.motivation,Q_WANT)
-    node(3).effekt="SELLWANT"
-    node(3).param(0)=i
-    node(3).param(1)=questguy(i).want.motivation+1
-    node(3).option(1).no=1
-    select case questguy(i).want.type
-    case qt_megacorp
-        node(3).param(2)=(questguy(i).want.motivation+1)*5
-    case qt_stationsensor 
-        node(3).param(2)=10*(questguy(i).want.motivation+1)
-    case qt_autograph 
-        node(24).effekt="KNOWOTHER"
-        node(24).param(2)=questguy(i).flag(1)
-        node(24).param(3)=50*(questguy(i).want.motivation+1)
-        node(3).option(1).answer="Do you know where "&questguy(questguy(i).flag(1)).n &" is?"
-        node(3).option(1).no=24
-        node(3).option(2).answer="I see what I can do."
-        node(3).option(2).no=1
-    case qt_outloan
-        node(24).effekt="KNOWOTHER"
-        node(24).param(2)=questguy(i).flag(1)
-        node(3).option(1).answer="Do you know where "&questguy(questguy(i).flag(1)).n &" is?"
-        node(3).option(1).no=24
-        node(3).option(2).answer="I see what I can do."
-        node(3).option(2).no=1
-    case qt_travel
-        node(3).effekt="PASSENGER"
-        questguy(i).flag(15)=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c)
-    case qt_biodata 
-        if reward(1)>0 then
-            node(3).effekt="BUYBIODATA" 
-            node(3).param(0)=i
-            node(3).param(1)=1+questguy(i).want.motivation
-        endif
-    case qt_anomaly
-        if ano_money>0 then
-            node(3).effekt="BUYANOMALY"
-            node(3).param(0)=i
-            node(3).param(1)=1+questguy(i).want.motivation
-        endif
-    end select
-    
+    if questguy(i).want.given=0 then
+        node(3).statement=questguydialog(questguy(i).want.type,questguy(i).want.motivation,Q_WANT)
+        node(3).effekt="SELLWANT"
+        node(3).param(0)=i
+        node(3).param(1)=questguy(i).want.motivation+1
+        node(3).option(1).no=1
+        select case questguy(i).want.type
+        case qt_megacorp
+            node(3).param(2)=(questguy(i).want.motivation+1)*5
+        case qt_stationsensor 
+            node(3).param(2)=10*(questguy(i).want.motivation+1)
+        case qt_autograph 
+            node(24).effekt="KNOWOTHER"
+            node(24).param(2)=questguy(i).flag(1)
+            node(24).param(3)=50*(questguy(i).want.motivation+1)
+            node(3).option(1).answer="Do you know where "&questguy(questguy(i).flag(1)).n &" is?"
+            node(3).option(1).no=24
+            node(3).option(2).answer="I see what I can do."
+            node(3).option(2).no=1
+        case qt_outloan
+            node(24).effekt="KNOWOTHER"
+            node(24).param(2)=questguy(i).flag(1)
+            node(3).option(1).answer="Do you know where "&questguy(questguy(i).flag(1)).n &" is?"
+            node(3).option(1).no=24
+            node(3).option(2).answer="I see what I can do."
+            node(3).option(2).no=1
+        case qt_travel
+            node(3).effekt="PASSENGER"
+            questguy(i).flag(15)=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c)
+        case qt_biodata 
+            if reward(1)>0 then
+                node(3).effekt="BUYBIODATA" 
+                node(3).param(0)=i
+                node(3).param(1)=1+questguy(i).want.motivation
+            endif
+        case qt_anomaly
+            if ano_money>0 then
+                node(3).effekt="BUYANOMALY"
+                node(3).param(0)=i
+                node(3).param(1)=1+questguy(i).want.motivation
+            endif
+        end select
+    endif
     'Has side
     
     if questguy(i).has.given=0 then
@@ -1768,6 +1773,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 addmoney(reward(1)*p(1),mt_bio)
                 questguy(p(0)).want.motivation-=1
                 if questguy(p(0)).want.motivation=-1 then 
+                    questguy(p(0)).want.motivation=0
                     questguy(p(0)).want.given=1
                     questguy(p(0)).talkedto=3
                 endif
@@ -1784,6 +1790,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 addmoney(ano_money*p(1),mt_ano)
                 questguy(p(0)).want.motivation-=1
                 if questguy(p(0)).want.motivation=-1 then 
+                    questguy(p(0)).want.motivation=0
                     questguy(p(0)).want.given=1
                     questguy(p(0)).talkedto=3
                 endif

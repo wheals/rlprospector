@@ -449,7 +449,7 @@ function ss_sighting(i as short) as short
                 endif
             endif
             if fleet(fn).ty=5 then text=text &" a mysterious huge and fast ship with high energy readings."
-            if fleet(fn).ty>5 then
+            if fleet(fn).ty=6 or fleet(fn).ty=7 then
                 s=fleet(fn).ty-6
                 if civ(s).contact=1 then
                     text=text &add_a_or_an(civ(s).n,0) &" ship."
@@ -457,6 +457,8 @@ function ss_sighting(i as short) as short
                     text =text &" a ship of unknown configuration."
                 endif
             endif
+            '8 and 9 are GG and asteroid belt monsters. 
+            if fleet(fn).ty=10 then text=text &" an entity calling herself eris."
         endif
     endif
     if fleet(i).mem(1).hull<300 then

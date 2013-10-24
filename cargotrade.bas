@@ -857,7 +857,7 @@ function casino(staked as short=0, st as short=-1) as short
             if questguy(i).location=st then
                 questguy(i).lastseen=st 'For the quest log
                 localquestguy(leave)=i
-                if debug=1 and _debug=1 then menustring=menustring &st &"(W:"&questguy(i).want.type &" H:" &questguy(i).has.type &")"
+                if debug=1 and _debug=1 then menustring=menustring &st &"(W:"&questguy(i).want.type &" M:" &questguy(i).want.motivation &")"
                 menustring=menustring & questguyjob(questguy(i).job) &" "&questguy(i).n &"/"
                 qgindex(leave)=i
                 leave+=1
@@ -1289,6 +1289,13 @@ function add_passenger(n as string,typ as short, price as short, bonus as short,
     return 0
 end function
 
+function is_passenger(i as short) as short
+    dim as short j
+    for j=2 to 128
+        if crew(j).typ=i+30 then return -1
+    next
+    return 0
+end function
 
 function check_passenger(st as short) as short
     dim as short b,t,price
@@ -1296,7 +1303,7 @@ function check_passenger(st as short) as short
     dim as string heshe(1)
     heshe(0)="She"
     heshe(1)="He"
-    for b=6 to 128
+    for b=2 to 128
         if crew(b).target<>0 then
             if crew(b).target=st+1 then
                 if crew(b).typ>30 then 
