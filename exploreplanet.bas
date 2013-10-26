@@ -933,14 +933,20 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
         endif
 
         if tmap(awayteam.c.x,awayteam.c.y).hp=0 then
+            if tmap(awayteam.c.x,awayteam.c.y).no=241 then
+                b=18
+            else
+                b=tmap(awayteam.c.x,awayteam.c.y).no-127
+            endif
             tmap(awayteam.c.x,awayteam.c.y).hp=15+rnd_range(1,6)+rnd_range(0,tmap(awayteam.c.x,awayteam.c.y).no-128)
-            if skill_test(maximum(player.pilot(1)-1,player.science(1)),st_hard,"Repair ship") then
-                dprint "This ship is beyond repair"
-                if tmap(awayteam.c.x,awayteam.c.y).no=241 then
-                    b=18
-                else
-                    b=tmap(awayteam.c.x,awayteam.c.y).no-127
+            if _debug>0 or skill_test(maximum(player.pilot(1)-1,player.science(1)),st_hard+b/4,"Repair ship") then
+                If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then
+                    walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
+                    dprint "Starting repair"
                 endif
+            else
+                dprint "This ship is beyond repair"
+                
                 changetile(awayteam.c.x,awayteam.c.y,slot,62)
                 tmap(awayteam.c.x,awayteam.c.y)=tiles(62)
                 addship.x=awayteam.c.x
@@ -948,11 +954,8 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
                 addship.m=slot
                 addship.s=b
                 make_drifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot),1)
-            else
-                If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then
-                    walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
-                    dprint "Starting repair"
-                endif
+            
+            
             endif
         endif
         if tmap(awayteam.c.x,awayteam.c.y).hp=1 then

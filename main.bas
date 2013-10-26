@@ -1337,7 +1337,11 @@ function move_rover(pl as short,li()as short,lastlocalitem as short)  as short
         minebase=minebase+planets(pl).atmos
         minebase=minebase+planets(pl).grav
         minebase=minebase+planets(pl).depth
-        minebase=minebase+abs(spacemap(map(sysfrommap(pl)).c.x,map(sysfrommap(pl)).c.y))
+        if sysfrommap(pl)>0 then
+            minebase=minebase+abs(spacemap(map(sysfrommap(pl)).c.x,map(sysfrommap(pl)).c.y))
+        else
+            minebase=minebase+planets(pl).depth
+        endif
         item(i).v1=item(i).v1+0.01*minebase*t*item(i).v3
         if item(i).v1>item(i).v2 then item(i).v1=item(i).v2
         if rnd_range(1,150)<planets(pl).atmos+2 then item(i)=makeitem(66)
@@ -3241,14 +3245,14 @@ endif
             dprint("")
             flip
         endif
-
+        
         deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
 
         if player.dead>0 or awayteam.hp<=0 then allowed=""
 
         if ship_landing>0 and nextmap.m<>0 then ship_landing=1 'Lands immediately if you changed maps
         if ship_landing>0 then ep_landship(ship_landing, nextlanding, nextmap)
-
+        
         if  tmap(awayteam.c.x,awayteam.c.y).resources>0 or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 or  (tmap(awayteam.c.x,awayteam.c.y).no>2 and tmap(awayteam.c.x,awayteam.c.y).gives>0 and player.dead=0 and (awayteam.c.x<>old.x or awayteam.c.y<>old.y))  then
             old=awayteam.c
             osx=calcosx(awayteam.c.x,planets(slot).depth)
@@ -3280,7 +3284,6 @@ endif
             walking=0
         endif
 
-
         if (player.dead=0 and awayteam.e.tick=-1) then
 
             screenset 0,1
@@ -3304,12 +3307,18 @@ endif
                 if walking<0 then
                     tmap(awayteam.c.x,awayteam.c.y).hp-=1
                     awayteam.add_move_cost
-                    displaytext(loceol.y)=displaytext(loceol.y-1) &"."
+                    for a=1 to _lines
+                        if displaytext(a)="" then 
+                            displaytext(a-1)&="."
+                            exit for
+                        endif
+                    next
                     if tmap(awayteam.c.x,awayteam.c.y).hp=1 then
                         walking=0
-                        dprint "complete."
+                        dprint "Complete."
                         key=key_inspect
                     endif
+                    dprint ""
                 else
                     if walking<10 then
                         awayteam.c=movepoint(awayteam.c,walking)
@@ -3395,8 +3404,9 @@ endif
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
                 awayteam.e.add_action(50)
             endif
-
-            if key<>"" then walking=0
+            
+            if key<>"" and walking>0 then walking=0
+            
             if rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
 
             if key=key_ex  then ep_examine(li(),lastlocalitem)
