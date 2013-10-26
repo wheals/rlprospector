@@ -9,6 +9,10 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #inclib "fmod.dll"
 #include once "fmod.bi"
 #ENDIF
+
+#ifdef _FBSOUND
+#include "fbsound.bi"
+#endif
 #include once "fbgfx.bi"
 #include once "zlib.bi"
 #include once "file.bi"
@@ -16,9 +20,6 @@ draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #include "string.bi"
 #include once "types.bas"
 
-#ifdef _FBSOUND
-#include "fbsound.bi"
-#endif
 #include once "tiles.bas"
 'f=freefile
 'open "data/tiles.dat" for binary as #f

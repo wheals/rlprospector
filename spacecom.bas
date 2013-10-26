@@ -1357,7 +1357,7 @@ function com_side(target as _ship,c as _cords) as short
     dim as _cords c2
     dim as short r,di,i
     di=target.di
-    dprint "From:"&c.x &":"&c.y &"target:"&target.c.x &":"&target.c.y
+    if _debug>0 then dprint "From:"&c.x &":"&c.y &"target:"&target.c.x &":"&target.c.y
     while abs(c.x-target.c.x)>1 or abs(c.y-target.c.y)>1
         if c.x>target.c.x then c.x-=1
         if c.y>target.c.y then c.y-=1
@@ -1370,7 +1370,7 @@ function com_side(target as _ship,c as _cords) as short
         if c2.x=c.x and c2.y=c.y then return i
         di=bestaltdir(di,1)
     next
-    dprint "Shouldn't see this."
+    if _debug>0 then dprint "Shouldn't see this."
     return 0
 end function
 

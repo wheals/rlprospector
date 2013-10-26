@@ -240,21 +240,26 @@ function load_sounds() as short
     sound(12)= FSOUND_Sample_Load(FSOUND_FREE, "data/pain.wav", 0, 0, 0)
     #endif
     #ifdef _FBSOUND
+    dim ok as FBSBOOLEAN
     print "Loading sounds:"
     'fbs_Init(48000,2,11,2048,0)
-    fbs_Init()
-    fbs_Set_MasterVolume(_Volume/2.0)
-    fbs_Load_WAVFile("data/alarm_1.wav",@sound(1))
-    fbs_Load_WAVFile("data/alarm_2.wav",@sound(2))
-    fbs_Load_WAVFile("data/weap_1.wav",@sound(3))
-    fbs_Load_WAVFile("data/weap_2.wav",@sound(4))
-    fbs_Load_WAVFile("data/wormhole.wav",@sound(5))
-    fbs_Load_WAVFile("data/weap_4.wav",@sound(7))
-    fbs_Load_WAVFile("data/weap_3.wav",@sound(8))
-    fbs_Load_WAVFile("data/weap_5.wav",@sound(9))
-    fbs_Load_WAVFile("data/start.wav",@sound(10))
-    fbs_Load_WAVFile("data/land.wav",@sound(11))
-    fbs_Load_WAVFile("data/pain.wav",@sound(12))
+    ok=fbs_Init()
+    if ok=true then
+        fbs_Set_MasterVolume(_Volume/2.0)
+        fbs_Load_WAVFile("data/alarm_1.wav",@sound(1))
+        fbs_Load_WAVFile("data/alarm_2.wav",@sound(2))
+        fbs_Load_WAVFile("data/weap_1.wav",@sound(3))
+        fbs_Load_WAVFile("data/weap_2.wav",@sound(4))
+        fbs_Load_WAVFile("data/wormhole.wav",@sound(5))
+        fbs_Load_WAVFile("data/weap_4.wav",@sound(7))
+        fbs_Load_WAVFile("data/weap_3.wav",@sound(8))
+        fbs_Load_WAVFile("data/weap_5.wav",@sound(9))
+        fbs_Load_WAVFile("data/start.wav",@sound(10))
+        fbs_Load_WAVFile("data/land.wav",@sound(11))
+        fbs_Load_WAVFile("data/pain.wav",@sound(12))
+    else
+        print "Error initializing FBsound"
+    endif
     #endif
     return 0
 end function
