@@ -348,13 +348,6 @@ function damawayteam(dam as short, ap as short=0,disease as short=0) as string
             stored(b)=crew(b).hp
         endif
     next
-    if dam>awayteam.armor/(2*last) then
-        dam=dam-awayteam.armor/(2*last)
-        armeff=int(awayteam.armor/(2*last))
-    else
-        armeff=dam-1
-        dam=1
-    endif
     if last>128 then last=128
     cc=0
     do
@@ -445,7 +438,10 @@ function damawayteam(dam as short, ap as short=0,disease as short=0) as string
     #endif
     sleep 25
 
-    if reequip=1 then equip_awayteam(player.map)
+    if reequip=1 then 
+        sort_crew
+        equip_awayteam(player.map)
+    endif
     if local_debug=1 then text=text & " Out:"&dam
     return trim(text)
 end function
@@ -978,7 +974,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="P"
             crew(slot).typ=2
-            crew(slot).paymod=skill^2
+            crew(slot).paymod=skill^2*10
             crew(slot).baseskill(0)=skill
             crew(slot).atcost=8-skill
         endif
@@ -987,7 +983,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="G"
             crew(slot).typ=3
-            crew(slot).paymod=skill^2
+            crew(slot).paymod=skill^2*10
             crew(slot).baseskill(1)=skill
             crew(slot).atcost=5-skill
         endif
@@ -996,7 +992,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="S"
             crew(slot).typ=4
-            crew(slot).paymod=skill^2
+            crew(slot).paymod=skill^2*10
             crew(slot).baseskill(2)=skill
             crew(slot).atcost=8-skill
         endif
@@ -1006,7 +1002,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="D"
             crew(slot).typ=5
-            crew(slot).paymod=skill^2
+            crew(slot).paymod=skill^2*10
             crew(slot).baseskill(3)=skill
             crew(slot).atcost=8-skill
         endif
@@ -1016,7 +1012,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="@"
             crew(slot).typ=6
-            crew(slot).paymod=1
+            crew(slot).paymod=10
             crew(slot).atcost=7
             'crew(slot).disease=rnd_range(1,16)
         endif
@@ -1026,7 +1022,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="@"
             crew(slot).typ=7
-            crew(slot).paymod=1
+            crew(slot).paymod=10
             crew(slot).atcost=6
         endif
 
@@ -1035,7 +1031,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="@"
             crew(slot).typ=8
-            crew(slot).paymod=1
+            crew(slot).paymod=10
             crew(slot).atcost=5
         endif
 
@@ -1044,7 +1040,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=crew(slot).hpmax
             crew(slot).icon="I"
             crew(slot).typ=9
-            crew(slot).paymod=1
+            crew(slot).paymod=10
             crew(slot).n=ucase(chr(rnd_range(97,122)))
             crew(slot).xp=-1
             for c=0 to rnd_range(1,6)+3
@@ -1139,7 +1135,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).xp=0
             crew(slot).baseskill(3)=6
             crew(slot).story(10)=1
-            crew(slot).atcost=2
+            crew(slot).atcost=20
         endif
 
 
@@ -1149,7 +1145,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="L"
             crew(slot).typ=14
             crew(slot).talents(27)=1
-            crew(slot).paymod=2
+            crew(slot).paymod=20
             crew(slot).atcost=4
         endif
 
@@ -1159,7 +1155,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="N"
             crew(slot).typ=15
             crew(slot).talents(28)=1
-            crew(slot).paymod=2
+            crew(slot).paymod=20
             crew(slot).atcost=6
         endif
 
@@ -1169,9 +1165,22 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="M"
             crew(slot).typ=16
             crew(slot).talents(29)=1
-            crew(slot).paymod=2
+            crew(slot).paymod=20
             crew(slot).atcost=6
         endif
+        
+        
+        if a=19 then 'squatter
+            crew(slot).hpmax=1   
+            crew(slot).hp=crew(slot).hpmax
+            crew(slot).icon="@"
+            crew(slot).typ=6
+            crew(slot).paymod=5
+            crew(slot).atcost=8
+            crew(slot).morale=150
+            'crew(slot).disease=rnd_range(1,16)
+        endif
+        
         crew(slot).hp=crew(slot).hpmax
         if crew(slot).story(10)<2 then 'Is human
             crew(slot).story(9)=-1
@@ -1222,6 +1231,16 @@ end function
 
 function sort_crew() as short
     dim as short a,f
+    do
+        f=0
+        for a=player.h_maxcrew to 1  step -1
+            if crew(a).hp<=0 and crew(a+1).hp>0 then
+                f=1 
+                swap crew(a),crew(a+1)
+            endif
+        next
+    loop until f=0
+    
     do
         f=0
         for a=player.h_maxcrew to 1 step -1
@@ -1883,7 +1902,6 @@ function equip_awayteam(m as short) as short
     awayteam.nojp=jpacks*1.5+robots*2
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
-    if findbest(10,-1)>-1 and is_drifter(m)=0 then awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
     if findbest(46,-1)>-1 then awayteam.invis=7
     awayteam.sight=3
     awayteam.light=0
@@ -1913,6 +1931,7 @@ function tohit_close(a as short) as short
 end function
 
 function showteam(from as short, r as short=0,text as string="") as short
+    sort_crew
     return crew_menu(crew(),from,r,text)
 end function
 
@@ -2062,9 +2081,9 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                         set__color( 10,bg)
                         draw string (3*_fw2,y*_fh2), crew(b-offset).icon,,font2,custom,@_col
                         set__color( 15,bg)
-                            if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "Squ.Ld",,font2,custom,@_col
-                            if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Sniper",,font2,custom,@_col
-                            if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Paramd",,font2,custom,@_col
+                            if crew(b-offset).talents(27)>0 then draw string (5*_fw2,y*_fh2), "SquLd",,font2,custom,@_col
+                            if crew(b-offset).talents(28)>0 then draw string (5*_fw2,y*_fh2), "Snipr",,font2,custom,@_col
+                            if crew(b-offset).talents(29)>0 then draw string (5*_fw2,y*_fh2), "Param",,font2,custom,@_col
                             if crew(b-offset).typ=1 then draw string (3*_fw2,y*_fh2), "Captain",,font2,custom,@_col
                             if crew(b-offset).typ=2 then draw string (3*_fw2,y*_fh2), "Pilot  ",,font2,custom,@_col
                             if crew(b-offset).typ=3 then draw string (3*_fw2,y*_fh2), "Gunner ",,font2,custom,@_col
@@ -2098,7 +2117,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
                     draw string ((13+xhp)*_fw2,y*_fh2), ""&crew(b-offset).hp,,font2,custom,@_col
                     set__color( 15,bg)
                     draw string (16*_fw2,y*_fh2), " "&crew(b-offset).n,,font2,custom,@_col
-                    if (crew(b-offset).onship=lc_onship or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
+                    if (crew(b-offset).onship=lc_onship or crew(b-offset).onship=4 or crew(b-offset).disease>0) and crew(b-offset).hp>0 then
                         set__color( 14,bg)
                         draw string (34*_fw2,y*_fh2) ," On ship ",,font2,custom,@_col
                     endif
@@ -2225,7 +2244,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
         endif
         if r=1 then draw string (10,_screeny-_fh2), "installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         'flip
-        textbox(crew_bio(p),_mwx,1,20)
+        textbox(crew_bio(p),_mwx,1,20,15,1)
         screenset 0,1
         no_key=keyin(,1)
         if keyplus(no_key) or getdirection(no_key)=2 then p+=1

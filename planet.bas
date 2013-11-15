@@ -5184,6 +5184,8 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamin(1)=2
         planets(lastplanet).mon_noamax(1)=3
         planets(lastplanet).depth=3
+        planets(lastplanet).temp=20
+        planets(lastplanet).atmos=4
         lastplanet+=1
         makecomplex3(lastplanet,10,0,0,1)
         p=rnd_point(lastplanet-1,0)
@@ -5202,6 +5204,8 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamin(1)=5
         planets(lastplanet).mon_noamax(1)=8
         planets(lastplanet).depth=6
+        planets(lastplanet).temp=20
+        planets(lastplanet).atmos=4
         p1=rnd_point(lastplanet,0)
         planetmap(p1.x,p1.y,lastplanet)=250
     endif
@@ -5262,6 +5266,7 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamax(0)=15
         planets(lastplanet).depth=3
         planets(lastplanet).atmos=4
+        planets(lastplanet).temp=20
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         lastplanet+=1
@@ -5288,6 +5293,7 @@ function make_special_planet(a as short) as short
         
         planets(lastplanet).depth=6
         planets(lastplanet).atmos=4
+        planets(lastplanet).temp=20
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         p1=rnd_point(lastplanet,0)
@@ -5351,6 +5357,7 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamax(1)=15
         planets(lastplanet).depth=3
         planets(lastplanet).atmos=4
+        planets(lastplanet).temp=20
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         
@@ -5385,6 +5392,7 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamax(1)=15
         planets(lastplanet).depth=3
         planets(lastplanet).atmos=4
+        planets(lastplanet).temp=20
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         p2=rnd_point(lastplanet,0)
@@ -5408,6 +5416,7 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamax(1)=15
         planets(lastplanet).depth=3
         planets(lastplanet).atmos=4
+        planets(lastplanet).temp=20
         planets(lastplanet).darkness=1
         planets(lastplanet).grav=.3
         p2=rnd_point(lastplanet,0)
@@ -5439,6 +5448,9 @@ function make_special_planet(a as short) as short
         gc1.y=p1.y
         gc1.m=lastplanet
         addportal(gc,gc1,0,asc(">"),"Stairs",15)
+        planets(lastplanet).temp=20
+        planets(lastplanet).grav=1
+        planets(lastplanet).atmos=4
         planets(lastplanet).mon_template(0)=makemonster(76,lastplanet)
         planets(lastplanet).mon_noamin(0)=10
         planets(lastplanet).mon_noamax(0)=15
@@ -5460,7 +5472,9 @@ function make_special_planet(a as short) as short
         gc1.y=p1.y
         gc1.m=lastplanet
         addportal(gc,gc1,0,asc(">"),"Stairs",15)
-        
+        planets(lastplanet).temp=20
+        planets(lastplanet).grav=1
+        planets(lastplanet).atmos=4
         planets(lastplanet).mon_template(0)=makemonster(76,lastplanet)
         planets(lastplanet).mon_noamin(0)=10
         planets(lastplanet).mon_noamax(0)=15
@@ -5490,11 +5504,11 @@ function make_special_planet(a as short) as short
                 next
             next
             if b=0 then    
-            planets(lastplanet).vault(0).x=p.x
-            planets(lastplanet).vault(0).y=p.y
-            planets(lastplanet).vault(0).w=x1
-            planets(lastplanet).vault(0).h=y1
-            planets(lastplanet).vault(0).wd(5)=3
+                planets(lastplanet).vault(0).x=p.x
+                planets(lastplanet).vault(0).y=p.y
+                planets(lastplanet).vault(0).w=x1
+                planets(lastplanet).vault(0).h=y1
+                planets(lastplanet).vault(0).wd(5)=3
             endif
         next
         planetmap(p.x+x1/2,p.y+y1/2,lastplanet)=257
@@ -5529,7 +5543,6 @@ function make_special_planet(a as short) as short
         next
         if p.x=0 and p.y=0 then p=rnd_point
         planetmap(p.x,p.y,a)=-244
-        
         planets(a).mon_template(0)=makemonster(8,a)
         planets(a).mon_noamin(0)=4
         planets(a).mon_noamax(0)=10
@@ -5655,12 +5668,12 @@ function make_special_planet(a as short) as short
 end function
 
 function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as short=0) as short
-    dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg,ff,fc,wc
+    dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg,ff,fc,wc,i,j,l
     dim as byte retirementshop,antiques,oneway,lockermap(60,20)
     dim as short randomshop(8),lastrandomshop
     dim s as _ship
     dim pods(6,5,1) as short
-    dim p as _cords
+    dim as _cords p,p2
     dim crates(254) as _cords
     dim from as _cords
     dim dest as _cords
@@ -5672,6 +5685,8 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     randomshop(5)=109 'Bot-Bin
     randomshop(6)=98 'Black Market
     lastrandomshop=6 '
+    
+    if _debug=18 then d.s=18
     
     if bg=0 then
         m=d.m
@@ -5778,6 +5793,51 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
             endif
         next
     next
+    
+    
+    if d.s=18 and bg=0 then 'Drifting alien ship
+        for i=1 to rnd_range(4,10)+rnd_range(4,10)            
+            p=rnd_point
+            select case rnd_range(1,9)
+            case 1
+                p.x=0
+                a=6
+                l=15
+            case 2
+                p.x=60
+                a=4
+                l=15
+            case 3 to 6
+                p.y=0
+                a=rnd_range(1,3)
+                l=5
+            case 7 to 9
+                p.y=20
+                a=rnd_range(7,9)
+                l=5
+            end select
+            for j=1 to rnd_range(1+l,5+l)
+                p2=p
+                if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                if rnd_range(1,100)<25 then
+                    p=movepoint(p2,4)
+                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    p=movepoint(p2,6)
+                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    p=movepoint(p2,2)
+                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    p=movepoint(p2,8)
+                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                endif
+                if rnd_range(1,100)<50 then
+                    p=movepoint(p2,a)
+                else
+                    p=movepoint(p2,5)
+                endif
+            next
+        next
+    endif
+    
     
     for x=1 to 59
         for y=1 to 19
@@ -6033,6 +6093,14 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
         planets(m).wallset=rnd_range(0,7)
     end select
     
+    if _Debug=18 then
+        for x=0 to 60
+            for y=0 to 20
+                planetmap(x,y,m)=abs(planetmap(x,y,m))
+            next
+        next
+    endif
+    
     if d.s=20 and (rnd_range(1,100)<10 or _debug>0) then
         from.x=38
         from.y=1
@@ -6071,6 +6139,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
         next
         
         planets(dest.m)=planets(from.m)
+        planets(dest.m).atmos=4
         deletemonsters(dest.m)
         
         for a=12 to 16
@@ -6079,8 +6148,15 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
         
         if rnd_range(1,100)<10 then
             planets(dest.m).mon_template(0)=makemonster(1,dest.m)
+            planets(dest.m).mon_template(0).aggr=0
             planets(dest.m).mon_noamin(0)=1
             planets(dest.m).mon_noamax(0)=5
+        endif
+        
+        if rnd_range(1,100)<50 or _Debug>0 then
+            planets(dest.m).mon_template(1)=makemonster(104,dest.m)
+            planets(dest.m).mon_noamin(1)=1
+            planets(dest.m).mon_noamax(1)=5
         endif
     endif
     return 0

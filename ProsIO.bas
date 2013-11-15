@@ -1,3 +1,7 @@
+function captain_sprite() as short
+    return gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)
+end function
+
 function change_captain_appearance(x as short,y as short) as short
     dim as short a
     dim as string text,mf(1)
@@ -19,7 +23,7 @@ function change_captain_appearance(x as short,y as short) as short
             text &="open helmet/"
         endif
         text &= "Exit"
-        put (x*_fw1-2-_tix,y*_fh1),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans
+        put (x*_fw1-2-_tix,y*_fh1),gtiles(captain_sprite),trans
         a=menu(bg_noflip,text,"",x,y)
         select case a
         case 1
@@ -124,29 +128,36 @@ function hpdisplay(a as _monster) as short
     draw string(sidebar+13*_fw2,0*_fh2) ,""&a.hp,,font2,custom,@_col
     set__color( 11,0)
     draw string(sidebar+16*_fw2,0*_fh2), ")",,font2,custom,@_col
+    
+    y=2
+    x=0
+    c=1
+    do
+        if crew(c).hpmax>0 and crew(c).onship=0 then
+            x+=1
+            l=y
+            if crew(c).hp>0  then
 
-    for y=2 to 6
-        for x=1 to 15
-            c=c+1
-            if crew(c).hpmax>0 and crew(c).onship=0 then
-                l=y
-                if crew(c).hp>0  then
-
-                    set__color( 14,0)
-                    if crew(c).hp=crew(c).hpmax then set__color( 10,0)
-                    if crew(c).disease>0 then set__color( 192,0)
-                    if _HPdisplay=1 then
-                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col
-                    else
-                        draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),""&crew(c).hp,,font2,custom,@_col
-                    endif
+                set__color( 14,0)
+                if crew(c).hp=crew(c).hpmax then set__color( 10,0)
+                if crew(c).disease>0 then set__color( 192,0)
+                if _HPdisplay=1 then
+                    draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),crew(c).icon,,font2,custom,@_col
                 else
-                    set__color( 12,0)
-                    draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2), "X",,font2,custom,@_col
+                    draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2),""&crew(c).hp,,font2,custom,@_col
                 endif
+            else
+                set__color( 12,0)
+                draw string(sidebar+(x-1)*_fw2,(y-1)*_fh2), "X",,font2,custom,@_col
             endif
-        next
-    next
+        endif
+        if x>15 then
+            x=0
+            y+=1
+        endif
+        c+=1
+    loop until c=128 or crew(c).hpmax=0
+        
     return l
 end function
 
@@ -883,7 +894,17 @@ function display_ship(show as byte=0) as short
     Fw1=_fw1
     #endif
     Fh1=22
-
+    
+    
+    if show=1 then
+        if configflag(con_tiles)=0 then
+            put ((player.c.x-player.osx)*_tix-(_tiy-_tix)/2,(player.c.y-player.osy)*_tiy),stiles(player.di,player.ti_no),trans
+        else
+            set__color( _shipcolor,0)
+            draw string ((player.c.x-player.osx)*_fw1,(player.c.y-player.osy)*_fh1),"@",,Font1,custom,@_col
+        endif
+    endif
+    
     if player.fuel=player.fuelmax then wg=0
 
     set__color( 15,0)
@@ -1006,14 +1027,6 @@ function display_ship(show as byte=0) as short
         if player.cargo(a).x=13 then carg= "t"
         draw string(sidebar+(a-1)*_fw2,(wl+1)*_fh2),carg,,font2,custom,@_col
     next
-    if show=1 then
-        if configflag(con_tiles)=0 then
-            put ((player.c.x-player.osx)*_tix-(_tiy-_tix)/2,(player.c.y-player.osy)*_tiy),stiles(player.di,player.ti_no),trans
-        else
-            set__color( _shipcolor,0)
-            draw string ((player.c.x-player.osx)*_fw1,(player.c.y-player.osy)*_fh1),"@",,Font1,custom,@_col
-        endif
-    endif
     wl+=6
 
     comstr.display(wl)
@@ -1109,7 +1122,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x>=0 and x<=_mwx then
                     if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
-                    put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(990+crew(1).story(3)+abs(awayteam.helmet-1)*3*crew(1).story(10)+6*awayteam.helmet)),trans
+                    put (x*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
                     if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
                 endif
                 if _debug=2609 then draw string(x*_tix,awayteam.c.y*_tiy),"e:"&awayteam.e.e
@@ -1122,7 +1135,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l=hpdisplay(awayteam)
         set__color( 11,0)
         l+=1
-        draw string(sidebar,l*_fh2), "Visibility:" &awayteam.sight,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2), "Visibility: " &awayteam.sight,,Font2,custom,@_col
         l+=1
         if awayteam.movetype=0 then draw string(sidebar,l*_fh2), "Trp.: None",,Font2,custom,@_col
         if awayteam.movetype=1 then draw string(sidebar,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
@@ -1136,12 +1149,12 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         draw string(sidebar,l*_fh2),"Speed: "&awayteam.speed,,Font2,Custom,@_col
         xoffset=xoffset+8
 
+        l+=2
+        draw string(sidebar,l*_fh2),"Armor:    "&awayteam.armor,,Font2,custom,@_col
         l+=1
-        draw string(sidebar,l*_fh2), "Armor :"&awayteam.armor,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Firearms: "&awayteam.guns_to,,Font2,custom,@_col
         l+=1
-        draw string(sidebar,l*_fh2),"Firearms :"&awayteam.guns_to,,Font2,custom,@_col
-        l+=1
-        draw string(sidebar,l*_fh2), "Melee :"&awayteam.blades_to,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Melee:    "&awayteam.blades_to,,Font2,custom,@_col
         if player.stuff(3)=2 then
             l+=1
             draw string(sidebar,l*_fh2),"Alien Scanner",,font2,custom,@_col
@@ -1155,19 +1168,26 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         draw string(sidebar,l*_fh2), "Bio Data  :"& cint(reward(1)),,Font2,custom,@_col
         l+=1
         draw string(sidebar,l*_fh2), "Resources :"& cint(reward(2)),,Font2,custom,@_col
-
+        
+        for a=1 to player.h_maxweaponslot
+            if player.weapons(a).heat>0 then
+                l+=2
+                l=l+textbox(trim("{15}"&weapon_text(player.weapons(a))),sidebar,(l)*_fh2,20,,0,1)+1
+            endif
+        next
+        
         if (awayteam.movetype=2 or awayteam.movetype=3) and awayteam.hp>0 then
             set__color( 11,0)
             l+=1
-            draw string(sidebar,l*_fh2), "Jetpackfuel:",,Font2,custom,@_col
+            draw string(sidebar,l*_fh2), "Jetpackfuel: ",,Font2,custom,@_col
             set__color( 10,0)
             if awayteam.jpfuel<awayteam.jpfuelmax*.5 then set__color( 14,0)
             if awayteam.jpfuel<awayteam.jpfuelmax*.3 then set__color( 12,0)
             if awayteam.jpfuel<0 then awayteam.jpfuel=0
             if awayteam.hp>0 then
-                draw string(sidebar+12*_fw2,l*_fh2), ""&int(awayteam.jpfuel/awayteam.hp),,Font2,custom,@_col
+                draw string(sidebar+13*_fw2,l*_fh2), ""&int(awayteam.jpfuel/awayteam.hp),,Font2,custom,@_col
             else
-                draw string(sidebar+12*_fw2,l*_fh2), ""&awayteam.jpfuel,,Font2,custom,@_col
+                draw string(sidebar+13*_fw2,l*_fh2), ""&awayteam.jpfuel,,Font2,custom,@_col
             endif
         endif
 
@@ -1175,20 +1195,20 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
 
         set__color( 11,0)
         l+=1
-        draw string(sidebar,l*_fh2),"Oxygen:",,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Oxygen: ",,Font2,custom,@_col
         set__color( 10,0)
         if awayteam.oxygen<50 then set__color( 14,0)
         if awayteam.oxygen<25 then set__color( 12,0)
         if awayteam.hp>0 then
-            draw string(sidebar+7*_fw2,l*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
+            draw string(sidebar+8*_fw2,l*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
         else
-            draw string(sidebar+7*_fw2,l*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
+            draw string(sidebar+8*_fw2,l*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
         endif
         set__color( 11,0)
         l+=2
-        draw string(sidebar,l*_fh2),"Temp:" &adisloctemp &chr(248)&"C",,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Temp: " &round_nr(adisloctemp,1) &chr(248)&"C",,Font2,custom,@_col
         l+=1
-        draw string(sidebar,l*_fh2),"Gravity:" &planets(map).grav,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Gravity: " &planets(map).grav,,Font2,custom,@_col
         if len(trim(tmap(awayteam.c.x,awayteam.c.y).desc))<18 then
             l+=1
             draw string(sidebar,l*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map)
@@ -1196,9 +1216,9 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
             dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         l+=2
-        draw string(sidebar,l*_fh2),"Credits:" &credits(player.money),,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Credits: " &credits(player.money),,Font2,custom,@_col
         l+=1
-        draw string(sidebar,l*_fh2),"Turn:" &player.turn,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),"Turn: " &player.turn,,Font2,custom,@_col
         if debug=1 and _debug=1 then draw string(sidebar,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
 
         comstr.display(l+2)

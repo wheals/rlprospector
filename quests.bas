@@ -125,6 +125,163 @@ function form_alliance(who as short) as short
     return 0
 end function
 
+function _patrolquest.generate(p as short,maxdis as short,danger as short) as short
+    dim as short i,j,f,d,r
+    status=1
+    lastcord=p
+    cord(1)=player.c
+    for i=2 to p
+        if rnd_range(1,100)<danger then
+            if employer=pirate then
+                if rnd_range(1,100)<50 then
+                    cord(i)=basis(rnd_range(0,2)).c
+                else
+                    r=rnd_range(1,3)
+                    cord(i).x=drifting(r).x
+                    cord(i).y=drifting(r).y
+                endif
+            else
+                cord(i)=map(piratebase(rnd_range(0,2))).c
+            endif
+        else
+            do
+                select case rnd_range(1,100)
+                case 1 to 40
+                    cord(i)=targetlist(rnd_range(1,lastwaypoint))
+                case 1 to 80
+                    cord(i)=map(rnd_range(1,laststar+wormhole)).c
+                case else
+                    cord(i).x=rnd_range(0,sm_x)
+                    cord(i).y=rnd_range(0,sm_y)
+                end select
+                d=distance(cord(1),cord(i))
+            loop until d>=maxdis/2 and d<=maxdis
+            if rnd_range(1,100)<danger then
+                lastfleet+=1
+                if employer=pirate then
+                    if _debug=1111 then dprint "Make patrol"
+                    f=set_fleet(makepatrol)
+                else
+                    if _debug=1111 then dprint "Make pirate"
+                    f=set_fleet(makepiratefleet)
+                endif
+                fleet(f).c=cord(i)
+                'Add enemy fleet at cord(i)
+            endif
+        endif
+    next
+    for i=1 to lastcord
+        for j=1 to lastcord
+            if i<>j and cord(i).x=cord(j).x and cord(i).y=cord(j).y then
+                cord(i).m=1
+            endif
+        next
+    next
+    
+    return 0
+end function
+
+
+function _patrolquest.check() as short 'sets the cord flag if arrived at patrol point, returns -1 if all points were met
+    dim as short i,complete
+    complete=-1
+    for i=2 to lastcord
+        if cord(i).x=player.c.x and cord(i).y=player.c.y then
+            if cord(i).m=0 then dprint "Reached patrol target "&cords(cord(i)) &"."
+            cord(i).m=1
+        endif
+        if cord(i).m=0 then complete=0
+    next
+    return complete
+end function
+
+function _patrolquest.reward() as short
+    dim as short i,sum
+    for i=1 to lastcord-1
+        sum+=distance(cord(i),cord(i+1))
+    next
+    sum=sum*(lastcord^2)
+    return sum
+end function
+
+function _patrolquest.show() as string
+    dim text as string
+    dim as short i,first
+    if status=1 then
+        if check=0 then
+            text=text &"Fly a patrol to "
+            for i=2 to lastcord
+                if cord(i).m=0 then
+                    if first=1 then
+                        if i<lastcord then
+                            text=text &", "
+                        else 
+                            text=text &" and "
+                        endif
+                    endif
+                    text=text &cords(cord(i))
+                    first=1
+                endif
+            next
+            text=text &". |Then return to "&cords(cord(1)) &" to report."
+        else
+            text=text &"Return to "&cords(cord(1)) &" to report."
+        endif
+    endif
+    return text
+end function
+
+function _patrolquest.pay() as short
+    if status=1 and check=-1 and player.c.x=cord(1).x and player.c.y=cord(1).y then
+        if employer=pirate then
+            dprint "The pirate leader gives you "&credits(reward) &" Cr. for completing the patrol."
+        else
+            dprint "The company rep gives you "&credits(reward) &" Cr. for completing the patrol."
+        endif
+        addmoney(reward,mt_quest)
+        status=0
+    endif
+    return 0
+end function
+
+
+function give_patrolquest(employer as short) as short
+    dim as string empname(1)
+    empname(0)="company rep."
+    empname(1)="pirate leader"
+    dim as short j,i
+    j=-1
+    for i=12 to 0 step -1
+        if patrolquest(i).status=0 then j=i 
+    next
+    if j>-1 then
+        if askyn("We could use some help with an easy patrol. Are you interested?(y/n)") then
+            patrolquest(j).generate(rnd_range(2,4),rnd_range(15,20),player.turn/25+10)
+            patrolquest(j).employer=employer
+            dprint patrolquest(j).show &" Upon completion you will get paid "&Credits(patrolquest(j).reward) &" Cr."
+            if _debug=1111 then dprint "Patrol #" &j &", status:"&patrolquest(j).status
+        endif
+    endif
+    if _debug=1111 and j>-1 then
+        for i=0 to 12
+            dprint i &"Status:"&patrolquest(i).status
+        next
+    endif
+    return 0
+end function
+
+function reward_patrolquest() as short
+    dim as string empname(1)
+    empname(0)="company rep."
+    empname(1)="pirate leader"
+    dim as short a
+    for a=0 to 12
+        patrolquest(a).pay
+        if _debug=1111 then dprint "Quest "&a &" pay: "&patrolquest(a).status
+    next
+    return 0
+end function
+
 function give_bountyquest(employer as short) as short
     dim as short i,q,f
     dim as string empname(1),empwant(1)
@@ -2139,21 +2296,21 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                 endif  
             endif
         case else 
-            if e.aggr=0 then dprint "It says 'You food!'"
+            if e.aggr=0 then dprint "The "&e.sdesc &" says: 'You food!'"
             if e.aggr=1 then
                 b=findbest(13,-1)
                 if b>0 then 
-                    if askyn("It says 'Got food?'. Do you want to give it a an anastaethic?") then
+                    if askyn("The "&e.sdesc &" says: 'Got food?'. Do you want to give it a an anastaethic?") then
                         dprint "The "&e.sdesc &" eats the "& item(b).desig
                         e.sleeping=e.sleeping+item(b).v1
                         if e.sleeping>0 then dprint "And falls asleep!"
                         destroyitem(b)
                     endif
                 else
-                    dprint "It says 'Got food?'"
+                    dprint "The "&e.sdesc &" says: 'Got food?'"
                 endif
             endif
-            if e.aggr=2 then dprint "It says 'Me not food!'"
+            if e.aggr=2 then dprint "The "&e.sdesc &" says: 'Me not food!'"
         end select
     endif
     if e.lang=2 then
@@ -2180,19 +2337,19 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
         endif
     endif
     if e.lang=5 then
-        if e.aggr=0 then dprint "'Surrender or be destroyed!'"
-        if e.aggr=1 then dprint "'Found any good ore deposits on this planet?'"
-        if e.aggr=2 then dprint "'The company will hear about this attack!'"
+        if e.aggr=0 then dprint "The "&e.sdesc &" says: 'Surrender or be destroyed!'"
+        if e.aggr=1 then dprint "The "&e.sdesc &" says: 'Found any good ore deposits on this planet?'"
+        if e.aggr=2 then dprint "The "&e.sdesc &" says: 'The company will hear about this attack!'"
     endif
     if e.lang=6 then
-        if e.aggr=0 then dprint "It says: 'Die red-helmet-friend!"
+        if e.aggr=0 then dprint "The "&e.sdesc &" says: 'Die red-helmet-friend!"
         if e.aggr=1 then dodialog(6,e,0)
-        if e.aggr=2 then dprint "It says: 'I surrender!" 
+        if e.aggr=2 then dprint "The "&e.sdesc &" says: 'I surrender!" 
     endif
     if e.lang=7 then
-        if e.aggr=0 then dprint "It says: 'Die blue-helmet-friend!"
+        if e.aggr=0 then dprint "The "&e.sdesc &" says: 'Die blue-helmet-friend!"
         if e.aggr=1 then dodialog(7,e,0)
-        if e.aggr=2 then dprint "It says: 'I surrender!"
+        if e.aggr=2 then dprint "The "&e.sdesc &" says: 'I surrender!"
     endif 
     if e.lang=8 then
         if e.aggr=0 or e.aggr=2 then dprint "It says: 'We haven't harmed you yet you wish to destroy us?'"
@@ -2859,7 +3016,42 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
         end if
     end if
     
-    
+    if e.lang=40 then
+        if e.aggr=0 or e.aggr=2 then dprint "Leave me alone!"
+        if e.aggr=1 then
+            select case rnd_range(1,7)
+            case 1 to 3
+                dprint "I've had some tough luck. Reduced to squatting in the bowels of this station."
+            case 5 to 6
+                dprint "Thing's haven't worked out like i hoped they would."
+            case else
+                dprint "Do you have a credit to spare?"
+                a=menu(bg_awayteamtxt,"Response:/Offer credit/Offer job/Offer advice/Offer nothing")
+                select case a
+                case 1
+                    if player.money>=1 then
+                        player.money-=1
+                        dprint "Thank you very much!"
+                    else
+                        dprint "You realize that you don't have a credit to spare!"
+                    endif
+                case 2
+                    dprint "I won't dissapoint you, I promise!"
+                    if max_security>0 then
+                        e.hp=0
+                        e.hpmax=0
+                        add_member(19,0)
+                    else
+                        dprint "You don't have enough room."
+                    endif
+                    
+                case else
+                    dprint "Well... I'd like to be in your shoes rather than mine as well."
+                end select
+            end select
+        endif
+    endif
+            
     return 0
 end function
 
@@ -3328,6 +3520,14 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
         return 0
     endif
      
+     if (e.lang=40) then
+        lastlocalitem=lastlocalitem+1
+        item(a).w.p=nr
+        item(a).w.s=0
+        li(lastlocalitem)=a     
+        dprint "Thank you so much! I am sure I can find a use for this!"
+        return 0
+    endif
      
      select case e.intel
         case is>6
@@ -3360,7 +3560,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                 item(a)=item(lastitem)
                 lastitem=lastitem-1
             else
-                dprint "The "&e.sdesc &" does'nt want the "& item(a).desig & "."
+                dprint "The "&e.sdesc &" doesn't want the "& item(a).desig & "."
             endif
         end select
     endif
@@ -3451,15 +3651,17 @@ function getunusedplanet() as short
 end function
 
 function give_quest(st as short) as short
-    dim as short a,b,bay, s,pl,car,st2,m,o,m2,o2,x,y
+    dim as short a,b,bay, s,pl,car,st2,m,o,m2,o2,x,y,i,j,f
     dim as _cords p
     static stqroll as short
-    if st<>player.lastvisit.s then stqroll=rnd_range(0,2)
+    if st<>player.lastvisit.s then stqroll=rnd_range(1,20)
     do
         st2=rnd_range(0,2)
     loop until st2<>st
-    a=stqroll
-    if questroll>8 then
+    
+    if _debug=1111 then questroll=14
+    
+    if questroll>16 then
         'standard quest by office
         if basis(st).company=1 then
             do
@@ -3522,40 +3724,39 @@ function give_quest(st as short) as short
         endif
     else
         'other quests
-        a=rnd_range(0,2)
-        if a<>st and player.h_maxcargo>0 then
-            'Deliver package
-            if rnd_range(1,100)<50 or player.questflag(8)<>0 then
-                if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 200 credits. Do you accept? (y/n)" ) then
-                    bay=getnextfreebay
-                    if bay<=0 then 
-                        if askyn("Do you want to make room for the cargo ?(y/n)") then 
-                            sellgoods(10)
-                            bay=getnextfreebay
-                        endif
-                    endif
-                    if bay>0 then
-                        player.cargo(bay).x=12 'type=specialcargo
-                        player.cargo(bay).y=a 'Destination
+        do
+            a=rnd_range(0,2)
+        loop until a<>st
+        if _debug=1111 then stqroll=14
+        select case stqroll
+        case 1 to 3
+            if askyn("The company rep needs some cargo delivered to station "&a+1 &". He is willing to pay 200 credits. Do you accept? (y/n)" ) then
+                bay=getnextfreebay
+                if bay<=0 then 
+                    if askyn("Do you want to make room for the cargo ?(y/n)") then 
+                        sellgoods(10)
+                        bay=getnextfreebay
                     endif
                 endif
-            else
-                b=rnd_range(1,16)
-                if askyn("The company rep needs "&add_a_or_an(shiptypes(b),0) &" hull towed to station "&a+1 &" for refits. He is willing to pay "& b*50 &" Cr. Do you accept(y/n)?") then
-                    if player.tractor=0 then
-                        dprint "You need a tractor beam for this job.",14
-                    else
-                        player.towed=-b
-                        player.questflag(8)=a
-                    endif
+                if bay>0 then
+                    player.cargo(bay).x=12 'type=specialcargo
+                    player.cargo(bay).y=a 'Destination
                 endif
             endif
-        else
-            
-            if st<>player.lastvisit.s then stqroll=rnd_range(1,10)
-            a=stqroll
-            
-            if a=1 and player.questflag(2)=0 then
+        
+        case 4
+            b=rnd_range(1,16)
+            if askyn("The company rep needs "&add_a_or_an(shiptypes(b),0) &" hull towed to station "&a+1 &" for refits. He is willing to pay "& b*50 &" Cr. Do you accept(y/n)?") then
+                if player.tractor=0 then
+                    dprint "You need a tractor beam for this job.",14
+                else
+                    player.towed=-b
+                    player.questflag(8)=a
+                endif
+            endif
+        
+        case 5
+            if player.questflag(2)=0 then
                 dprint "The company rep informs you that one of the local executives has been abducted by pirates. They demand ransom, but it is company policy to not give in to such demands. There is a bounty of 10.000 CR on the pirates, and a bonus of 5000 CR to bring back the exec alive.",15
                 no_key=keyin
                 player.questflag(2)=1
@@ -3570,7 +3771,8 @@ function give_quest(st as short) as short
                 planetmap(rnd_range(0,60),rnd_range(0,20),pl)=-66
             endif
             
-            if a=2 and player.questflag(5)=0 then
+        case 6
+            if player.questflag(5)=0 and player.turn>1000 then
                 dprint "The company rep warns you about a ship that has reportedly been preying on pirates and merchants alike. 'It's fast, it's dangerous, and a confirmed kill is worth 15.000 credits to my company.",15
                 player.questflag(5)=1
                 lastfleet=lastfleet+1
@@ -3581,7 +3783,8 @@ function give_quest(st as short) as short
                 fleet(lastfleet).c.y=rnd_range(0,sm_y)            
             endif
             
-            if a=3 and player.questflag(5)=2 then
+        case 7
+            if player.questflag(5)=2 then
                 dprint "The company rep warns you that there are reports about another ship prowling space of the type you destroyed before. The company again pays 15.000 Credits if you bring it down",15
                 player.questflag(6)=1
                 lastfleet=lastfleet+1
@@ -3594,7 +3797,8 @@ function give_quest(st as short) as short
                 fleet(lastfleet).c.y=rnd_range(0,sm_y)     
             endif
             
-            if a=4 and player.questflag(11)=0 and lastdrifting<128 then
+        case 8
+            if player.questflag(11)=0 and lastdrifting<128 then
                 player.questflag(11)=1
                 x=5-rnd_range(1,10)+map(sysfrommap(specialplanet(27))).c.x
                 y=5-rnd_range(1,10)+map(sysfrommap(specialplanet(27))).c.y
@@ -3626,9 +3830,11 @@ function give_quest(st as short) as short
                 planets_flavortext(m)="No hum from the engines is heard as you enter the Battleship. Emergency lighting bathes the corridors in red light, and the air smells stale."
             endif
             
-            if a>=5 and a<=10 then give_bountyquest(0)
-            
-            if a=10 and player.questflag(26)=0 then
+        case 9 to 14
+            give_bountyquest(0)
+        
+        case 15 to 17
+            if player.questflag(26)=0 then
                 s=get_random_system
                 pl=getrandomplanet(s)
                 if pl>0 then
@@ -3637,8 +3843,20 @@ function give_quest(st as short) as short
                     placeitem(Makeitem(81,1),rnd_range(0,60),rnd_range(0,20),pl)
                 endif
             endif
-            questroll=999
-        endif
+        case 18
+            'Escort
+            if askyn("There is an important delivery for station "&a+1 &". We are looking to enhance security. Would you be interested in flying escort? (y/n)") then
+                f=set_fleet(makemerchantfleet)
+                fleet(f).c=player.c
+                fleet(f).con(1)=1
+                fleet(f).con(3)=a
+                fleet(f).con(2)=distance(player.c,basis(st).c)*50
+                dprint "The captain will pay you "&fleet(f).con(2) & " Cr. when you reach the target."
+            endif
+        
+        case else
+            give_patrolquest(0)
+        end select
     endif
 return questroll
 end function

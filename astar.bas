@@ -181,21 +181,23 @@ function addneighbours(node() as _node, curr as _cords,mx as short,my as short,r
     dim p as _cords
     for x=curr.x-1 to curr.x+1
         for y=curr.y-1 to curr.y+1
-            if (rollover=0 and x>=0 and y>=0 and x<=mx and y<=my) or rollover=1 then
-                p.x=x
-                p.y=y
-                    
-                if rollover=1 then
-                    if p.x<0 then p.x=mx
-                    if p.x>mx then p.x=0
-                    if p.y<0 then p.y=0
-                    if p.y>my then p.y=my
-                endif
-                if node(p.x,p.y).opclo=0  then 
-                    node(p.x,p.y).opclo=1
-                    node(p.x,p.y).parent.x=curr.x
-                    node(p.x,p.y).parent.y=curr.y
-                    node(p.x,p.y).g=node(curr.x,curr.y).g+distance(p,curr,1)+node(p.x,p.y).cost
+            if (y>=0 and y<=my) then
+                if (rollover=0 and x>=0 and y>=0 and x<=mx and y<=my) or rollover=1 then
+                    p.x=x
+                    p.y=y
+                        
+                    if rollover=1 then
+                        if p.x<0 then p.x=mx
+                        if p.x>mx then p.x=0
+                        if p.y<0 then p.y=0
+                        if p.y>my then p.y=my
+                    endif
+                    if node(p.x,p.y).opclo=0  then 
+                        node(p.x,p.y).opclo=1
+                        node(p.x,p.y).parent.x=curr.x
+                        node(p.x,p.y).parent.y=curr.y
+                        node(p.x,p.y).g=node(curr.x,curr.y).g+distance(p,curr,1)+node(p.x,p.y).cost
+                    endif
                 endif
             endif
         next

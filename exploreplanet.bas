@@ -199,14 +199,14 @@ function ep_autoexplore(slot as short, li() as short,lastlocalitem as short) as 
     dim as short x,y,astarmap(60,20),candidate(60,20),explored,notargets,x1,y1,i
 
     dim d as single
-    dim as _cords p,target,astarpath(1282)
+    dim as _cords p,target,astarpath(1284)
     dim as byte debug=0
     for x=0 to 1024
         apwaypoints(x).x=0
         apwaypoints(x).y=0
     next
 
-    lastapwp=ep_autoexploreroute(astarpath(),awayteam.c,awayteam.speed,slot,li(),lastlocalitem)
+    lastapwp=ep_autoexploreroute(astarpath(),awayteam.c,awayteam.movetype,slot,li(),lastlocalitem)
     if lastapwp>0 then
         for i=1 to lastapwp
             apwaypoints(i).x=astarpath(i).x
@@ -216,11 +216,11 @@ function ep_autoexplore(slot as short, li() as short,lastlocalitem as short) as 
     return lastapwp
 end function
 
-function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short,li() as short,lastlocalitem as short) as short
+function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short,li() as short,lastlocalitem as short, rover as short=0) as short
     dim as short candidate(60,20)
     dim as short x,y,explored,notargets,last,i,debug,rollover
     dim as single d2,d
-    dim as _cords target,target2,p,path(1282)
+    dim as _cords target,target2,p,path(1283)
     for x=0 to 60
         for y=0 to 20
             if move<tmap(x,y).walktru then candidate(x,y)=1
@@ -242,30 +242,28 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
         next
     endif
     d2=61*21
-    for i=1 to lastlocalitem
-        if item(li(i)).discovered>0 and candidate(item(li(i)).w.x,item(li(i)).w.y)=255 then
-            if item(li(i)).w.s=0 and item(li(i)).w.p=0 then
-                p.x=item(li(i)).w.x
-                p.y=item(li(i)).w.y
-                if distance(p,start,rollover)<d2 then
-                    d2=distance(p,start)
-                    notargets+=1
-                    target2.x=item(li(i)).w.x
-                    target2.y=item(li(i)).w.y
+    if rover=0 then
+        for i=1 to lastlocalitem
+            if item(li(i)).discovered>0 and candidate(item(li(i)).w.x,item(li(i)).w.y)=255 then
+                if item(li(i)).w.s=0 and item(li(i)).w.p=0 then
+                    p.x=item(li(i)).w.x
+                    p.y=item(li(i)).w.y
+                    if distance(p,start,rollover)<d2 and distance(p,start)>0 then
+                        d2=distance(p,start)
+                        notargets+=1
+                        target2.x=item(li(i)).w.x
+                        target2.y=item(li(i)).w.y
+                    endif
                 endif
             endif
-        endif
-    next
-
+        next
+    endif
+    
     d=61*21
     for x=0 to 60
         for y=0 to 20
             if x<>start.x or y<>start.y then
-                 if candidate(x,y)=255 then
-                 explored=0
-                 if planetmap(x,y,slot)<0 then explored=1
-
-                 if explored=1 then
+                 if candidate(x,y)=255 and planetmap(x,y,slot)<0 then
                     p.x=x
                     p.y=y
                     if distance(p,start,rollover)<d then
@@ -275,11 +273,10 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
                         notargets+=1
                     endif
                 endif
-                endif
             endif
         next
     next
-
+    if _debug>0 then dprint "target 1: "&cords(target)&" d:"&d
     if notargets=0 then
         target.x=player.landed.x
         target.y=player.landed.y
@@ -292,6 +289,7 @@ function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short
     endif
     if target.x=start.x and target.y=start.y then return -1
     last=ep_planetroute(path(),move,start,target,rollover)
+    if _Debug>0 then dprint "Last:"&last
     if last=-1 then return -1
     for i=0 to last
         astarpath(i+1).x=path(i).x
@@ -861,7 +859,7 @@ function ep_dropitem(li() as short,byref lastlocalitem as short) as short
                                 if crew(i).pref_ccweap=item(c).uid then crew(i).pref_ccweap=0
                                 if crew(i).pref_armor=item(c).uid then crew(i).pref_armor=0
                             next
-
+                            if item(c).ty=18 then item(c).v5=0
                             item(c).w.x=awayteam.c.x
                             item(c).w.y=awayteam.c.y
                             item(c).w.m=slot
@@ -939,7 +937,7 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
                 b=tmap(awayteam.c.x,awayteam.c.y).no-127
             endif
             tmap(awayteam.c.x,awayteam.c.y).hp=15+rnd_range(1,6)+rnd_range(0,tmap(awayteam.c.x,awayteam.c.y).no-128)
-            if _debug>0 or skill_test(maximum(player.pilot(1)-1,player.science(1)),st_hard+b/4,"Repair ship") then
+            if skill_test(maximum(player.pilot(1)-1,player.science(1)),st_hard+b/4,"Repair ship")=-1 then
                 If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then
                     walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
                     dprint "Starting repair"
@@ -1172,7 +1170,7 @@ end function
 
 function ep_items(li() as short, byref lastlocalitem as short, localturn as short) as short
     dim as short a,slot,i,x,y,curr,last
-    dim as _cords p1,p2,route(1281)
+    dim as _cords p1,p2,route(1284)
     dim as single dam
     dim as short debug=1
 
@@ -1209,20 +1207,23 @@ function ep_items(li() as short, byref lastlocalitem as short, localturn as shor
 
             if debug=1 and _debug=1 and item(li(a)).ty=18 then dprint "Rover stats:"&item(li(a)).discovered &":"& item(li(a)).w.p &":"& item(li(a)).w.s &":"& item(li(a)).v5
             if item(li(a)).ty=18 and item(li(a)).discovered=1 and item(li(a)).w.p=0 and item(li(a)).w.s>=0  and item(li(a)).v5=0 then 'Rover
+                curr=0
                 p1.x=item(li(a)).w.x
                 p1.y=item(li(a)).w.y
                 for i=1 to item(li(a)).v4
                     curr+=1
                     if item(li(a)).vt.x=-1 then
-                        if curr>last then
-                            last=ep_autoexploreroute(route(),p1,item(li(a)).v2,slot,li(),lastlocalitem)
+                        if curr>=last then
+                            last=ep_autoexploreroute(route(),p1,item(li(a)).v2,slot,li(),lastlocalitem,1)
                             curr=1
+                            if _debug>0 then dprint "last:"&last
                         endif
                     else
                         if item(li(a)).w.x=item(li(a)).vt.x and item(li(a)).w.y=item(li(a)).vt.y then item(li(a)).vt.x=-1
-                        if curr>last then
+                        if curr>=last then
                             last=ep_planetroute(route(),item(li(a)).v2,p1,item(li(a)).vt,planets(slot).depth)
                             curr=1
+                            if _debug>0 then dprint "last:"&last
                         endif
 
                     endif
@@ -1230,7 +1231,7 @@ function ep_items(li() as short, byref lastlocalitem as short, localturn as shor
                         item(li(a)).w.x=route(curr).x
                         item(li(a)).w.y=route(curr).y
                     endif
-
+                    if _debug>0 then dprint "point :"&curr &" "&cords(route(curr))
                     ep_roverreveal(li(a))
                 next
 
@@ -1250,6 +1251,8 @@ function ep_landship(byref ship_landing as short,nextlanding as _cords,nextmap a
     if ship_landing<=0 then
         if vismask(nextlanding.x,nextlanding.y)>0 and nextmap.m=0 then dprint "She is coming in"
         if skill_test(player.pilot(location),st_easy+planets(slot).dens+planets(slot).grav,"Pilot") then
+            dprint gainxp(2),c_gre
+        else
             if vismask(nextlanding.x,nextlanding.y)>0 and nextmap.m=0 then dprint "Hard touchdown!",14
             player.hull=player.hull-1
             player.fuel=player.fuel-2-int(planets(slot).grav)
@@ -1270,8 +1273,6 @@ function ep_landship(byref ship_landing as short,nextlanding as _cords,nextmap a
                 endif
                 no_key=keyin
             endif
-        else
-            dprint gainxp(2),c_gre
         endif
         player.landed.m=slot
         player.landed.x=nextlanding.x
@@ -1367,12 +1368,12 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
             planets(slot).death=planets(slot).death-1
         endif
         if planets(slot).depth=0 and rnd_range(1,100)<33 then
+            sf+=1
             if sf>15 then sf=0
             shipfire(sf).where=rnd_point
             shipfire(sf).when=1
             shipfire(sf).what=10+sf
             player.weapons(shipfire(sf).what)=makeweapon(rnd_range(1,5))
-            sf=sf+1
         endif
 
     endif
@@ -1409,15 +1410,27 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
     if slot=specialplanet(1) and rnd_range(1,100)<33 then
         b=0
         for a=1 to lastenemy
-            if enemy(a).made=5 and enemy(a).hp>0 and enemy(a).aggr=0 then b=1
+            if enemy(a).made=5 and enemy(a).hp>0 and enemy(a).aggr=0 and pathblock(awayteam.c,enemy(a).c,slot) then b=a
         next
-        if b=1 then
+        if b>0 then
+            sf+=1
+            if sf>15 then sf=0
+            shipfire(sf).when=1
+            shipfire(sf).what=10+sf
+            player.weapons(shipfire(sf).what)=makeweapon(6)
+            player.weapons(shipfire(sf).what).dam=rnd_range(1,4)
             if rnd_range(1,6)+ rnd_range(1,6)+2>8 then
                 dprint "Apollo calls down lightning and strikes you, infidel!"
-                dprint damawayteam(1)
+                shipfire(sf).where=awayteam.c
             else
                 dprint "Apollo calls down lightning .... and misses"
+                shipfire(sf).where=movepoint(awayteam.c,5)
+                shipfire(sf).where=movepoint(shipfire(sf).where,5)
+                shipfire(sf).where=movepoint(shipfire(sf).where,5)
             endif
+            while distance(shipfire(sf).where,enemy(b).c)<=cint(player.weapons(shipfire(sf).what).dam/2)
+                shipfire(sf).where=movepoint(shipfire(sf).where,5)
+            wend
         endif
     endif
 
@@ -1768,7 +1781,7 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
     next
 
     if planetmap(awayteam.c.x,awayteam.c.y,slot)=45 then
-        dprint "smoldering lava:" &damawayteam(rnd_range(1,6-awayteam.movetype)),12
+        dprint "Smoldering lava:" &damawayteam(rnd_range(1,6-awayteam.movetype)),12
         if awayteam.hp<=0 then player.dead=16
         player.killedby="lava"
     endif
@@ -2372,7 +2385,10 @@ function ep_spawning(spawnmask() as _cords,lsp as short, diesize as short,nightd
 end function
 
 function ep_shipfire(shipfire() as _shipfire) as short
-    dim as short sf2,a,b,c,x,y,r,dam,slot,osx,ani,f,debug,icechunkhole,dambonus,ed
+    dim as short sf2,a,b,c,x,y,dam,slot,osx,ani,f,debug,icechunkhole,dambonus
+    dim as short dammap(60,20)
+    dim as string txt
+    dim as single r,ed
     dim p2 as _cords
     if rnd_range(1,100)<10 and planets(slot).flags(29)>0  then icechunkhole=1
     if debug=2 and _debug=1 then icechunkhole=1
@@ -2408,93 +2424,104 @@ function ep_shipfire(shipfire() as _shipfire) as short
                         if shipfire(sf2).what>10 then shipfire(sf2).where=movepoint(shipfire(sf2).where,c)
                     next
                 endif
-                r=player.weapons(shipfire(sf2).what).dam/2
+                r=cint(player.weapons(shipfire(sf2).what).dam/2)
                 dam=1
                 if r<1 then r=1
                 if player.weapons(shipfire(sf2).what).ammomax>0 then dambonus=player.loadout
                 for a=1 to player.weapons(shipfire(sf2).what).dam+dambonus
-                    dam=dam+rnd_range(0,2)
+                    dam=dam+rnd_range(1,3)
                 next
                 do
                     ani+=1
+                    for x=shipfire(sf2).where.x-5 to shipfire(sf2).where.x+5
+                        for y=shipfire(sf2).where.y-5 to shipfire(sf2).where.y+5
+                            p2.x=x
+                            p2.y=y
+                            if x>=0 and y>=0 and x<=60 and y<=20 then
+                                if distance(shipfire(sf2).where,p2)<=r then
+                                    dammap(x,y)=dam/(1+distance(shipfire(sf2).where,p2))
+                                    if dammap(x,y)<1 then dammap(x,y)=1
+                                    if configflag(con_tiles)=0 then
+                                        ed=2*distance(p2,shipfire(sf2).where)
+                                        if ani-ed<1 then ed=ani-1
+                                        put((x-osx)*_tix,y*_tiy),gtiles(gt_no(77+ani-ed)),trans
+                                        sleep 5
+                                    else
+                                        if player.weapons(shipfire(sf2).what).ammomax>0 then
+                                            if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
+                                            if distance(shipfire(sf2).where,p2)>0 then set__color( 12,14)
+                                            if distance(shipfire(sf2).where,p2)>1 then set__color( 12,0)
+                                        else
+                                            if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
+                                            if distance(shipfire(sf2).where,p2)>0 then set__color( 11,9)
+                                            if distance(shipfire(sf2).where,p2)>1 then set__color( 9,1)
+                                        endif
+                                        if shipfire(sf2).stun=1 then
+                                            if distance(shipfire(sf2).where,p2)>0 then set__color( 242,244)
+                                            if distance(shipfire(sf2).where,p2)>1 then set__color( 246,248)
+                                        endif
+                                        
+                                        draw string ((x-osx)*_fw1,y*_fh1), chr(178),,Font1,custom,@_col
+                                    endif
+                                endif
+                            endif
+                        next
+                    next
+                    
+                    
+                loop until ani>=8 or configflag(con_tiles)=1
+                                'Deal damage
+                for a=1 to lastenemy
+                    if dammap(enemy(a).c.x,enemy(a).c.y)>0 then
+                        if shipfire(sf2).stun=0 then
+                            enemy(a).hp=enemy(a).hp-dammap(enemy(a).c.x,enemy(a).c.y)
+                            if vismask(enemy(a).c.x,enemy(a).c.y)>0 then txt &= enemy(a).sdesc &" takes " &dammap(enemy(a).c.x,enemy(a).c.y)&" points of damage. "
+                        else
+                            enemy(a).hpnonlethal=enemy(a).hpnonlethal+(dam*((10-enemy(a).stunres)/10))
+                        endif
+                        if enemy(a).hp<=0 then
+                            player.alienkills=player.alienkills+1
+                        endif
+                    endif
+                next
+                            
                 for x=shipfire(sf2).where.x-5 to shipfire(sf2).where.x+5
                     for y=shipfire(sf2).where.y-5 to shipfire(sf2).where.y+5
                         p2.x=x
                         p2.y=y
                         if x>=0 and y>=0 and x<=60 and y<=20 then
-                            if distance(shipfire(sf2).where,p2)<=r then
-                                'Deal damage
-                                for a=1 to lastenemy
-                                    if enemy(a).c.x=x and enemy(a).c.y=y then
-                                        if shipfire(sf2).stun=0 then
-                                            enemy(a).hp=enemy(a).hp-dam
-                                            if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint enemy(a).sdesc &" takes " &dam &" points of damage.",10
-                                        else
-                                            enemy(a).hpnonlethal=enemy(a).hpnonlethal+(dam*((10-enemy(a).stunres)/10))
-                                        endif
-                                        if enemy(a).hp<=0 then
-                                            player.alienkills=player.alienkills+1
-                                        endif
-                                         exit for
-                                    endif
-                                next
-                                if awayteam.c.x=x and awayteam.c.y=y then
-                                    dprint "you got caught in the blast! "
-                                    if shipfire(sf2).stun=0 then dprint damawayteam(dam),12
-                                    if shipfire(sf2).stun=1 then awayteam.e.add_action(150)
+                
+                            if tmap(x,y).shootable>0 and shipfire(sf2).stun=0 and dammap(x,y)>0 then
+                                tmap(x,y).hp=tmap(x,y).hp-dammap(x,y)
+                                if tmap(x,y).succt<>"" and vismask(x,y)>0 then txt =txt & "The "&tmap(x,y).desc &" is damaged. " 
+                                if tmap(x,y).hp<=0 then
+                                    if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=tmap(x,y).turnsinto
+                                    if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-tmap(x,y).turnsinto
+                                    tmap(x,y)=tiles(tmap(x,y).turnsinto)
                                 endif
-                                'Show
-                                locate y+1,x+1
-                                if player.weapons(shipfire(sf2).what).ammomax>0 then
-                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
-                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 12,14)
-                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 12,0)
-                                else
-                                    if x=shipfire(sf2).where.x and y=shipfire(sf2).where.y then set__color( 15,15)
-                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 11,9)
-                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 9,1)
-                                endif
-                                if shipfire(sf2).stun=1 then
-                                    if distance(shipfire(sf2).where,p2)>0 then set__color( 242,244)
-                                    if distance(shipfire(sf2).where,p2)>1 then set__color( 246,248)
-                                endif
-                                if configflag(con_tiles)=0 then
-                                    ed=distance(p2,shipfire(sf2).where)
-                                    if ani-ed<1 then ed=ani-1
-                                    put((x-osx)*_tix,y*_tiy),gtiles(gt_no(77+ani-ed)),trans
-                                else
-                                    draw string ((x-osx)*_fw1,y*_fh1), chr(178),,Font1,custom,@_col
-                                endif
-                                if tmap(x,y).no=3 or tmap(x,y).no=5 or tmap(x,y).no=6 or tmap(x,y).no=10  or tmap(x,y).no=11 or tmap(x,y).no=14 then
-                                    tmap(x,y)=tiles(4)
-                                    if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=4
-                                    if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-4
-                                endif
-                                if tmap(x,y).shootable>0 and shipfire(sf2).stun=0 then
-                                    tmap(x,y).hp=tmap(x,y).hp-dam
-                                    if tmap(x,y).succt<>"" and vismask(x,y)>0 then dprint "The "&tmap(x,y).desc &" is damaged.",12
-                                    if tmap(x,y).hp<=0 then
-                                        if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=tmap(x,y).turnsinto
-                                        if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-tmap(x,y).turnsinto
-                                        tmap(x,y)=tiles(tmap(x,y).turnsinto)
-                                    endif
-                                    if icechunkhole=1 then
-                                        if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=200
-                                        if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-200
-                                        tmap(x,y)=tiles(200)
-                                    endif
+                                if icechunkhole=1 then
+                                    if planetmap(x,y,slot)>0 then planetmap(x,y,slot)=200
+                                    if planetmap(x,y,slot)<0 then planetmap(x,y,slot)=-200
+                                    tmap(x,y)=tiles(200)
                                 endif
                             endif
                         endif
+                    
                     next
                 next
-                sleep 15
-                loop until ani>=8 or configflag(con_tiles)=1
-                sleep 100+distance(awayteam.c,shipfire(sf2).where)*6
+                
+                if dammap(awayteam.c.x,awayteam.c.y)>0 then
+                    txt=txt &"you got caught in the blast! "
+                    if shipfire(sf2).stun=0 then txt = txt & damawayteam(dammap(awayteam.c.x,awayteam.c.y),1) &" "
+                    if shipfire(sf2).stun=1 then awayteam.e.add_action(150)
+                endif
+                
+                dprint txt
                 #ifdef _FMODSOUND
                 if (configflag(con_sound)=0 or configflag(con_sound)=2) and planets(slot).atmos>1 then FSOUND_PlaySound(FSOUND_FREE, sound(4))
                 #endif
                 #ifdef _FBSOUND
+                'sleep 100+distance(awayteam.c,shipfire(sf2).where)*6
                 if (configflag(con_sound)=0 or configflag(con_sound)=2) and planets(slot).atmos>1 then fbs_Play_Wave(sound(4))
                 #endif
             endif
@@ -2512,7 +2539,7 @@ end function
 function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() as short,lastlocalitem as short,shipfire() as _shipfire,lavapoint() as _cords, byref sf as single,nightday() as byte,localtemp() as single) as short
     dim as _cords p,p1,p2,pc
     dim as string text
-    dim as short a,b,slot,debug,osx,ex
+    dim as short a,b,slot,debug,osx,ex,shipweapon
     dim as _weap del
     slot=player.map
     osx=calcosx(awayteam.c.x,planets(slot).depth)
@@ -2651,64 +2678,69 @@ function ep_radio(byref nextlanding as _cords,byref ship_landing as short, li() 
         if instr(text,"FIR")>0 or instr(text,"NUKE")>0 or instr(text,"SHOOT")>0 then
             sf=sf+1
             if sf>15 then sf=0
-            dprint "Roger. Designate target."
-            shipfire(sf).where=awayteam.c
-            dprint "Choose target"
-            do
-                text=planet_cursor(shipfire(sf).where,slot,osx,1)
-                ep_display(li(),lastlocalitem,osx)
-                display_awayteam(,osx)
-                text=cursor(shipfire(sf).where,slot,osx)
-                if text=key__enter then ex=-1
-                if text=key_quit or text=key__esc then ex=1
-            loop until ex<>0
-            if text=key__enter then
-                if pathblock(p2,shipfire(sf).where,slot,1)=0 then
-                    dprint "No line of sight to that target."
-                    shipfire(sf).where.x=-1
-                    shipfire(sf).where.y=-1
-                else
-                    shipfire(sf).when=(distance(awayteam.c,p2)\10)+1
-                    cls
-                    display_ship
-                    shipfire(sf).what=com_getweapon
-                    if shipfire(sf).what<0 then
-                        shipfire(sf).what=6
-                        shipfire(sf).when=-1
-                    endif
-                    if player.weapons(shipfire(sf).what).ammomax=0 and distance(shipfire(sf).where,p2,1)>10 then shipfire(sf).when=-5
-
-                    if player.weapons(shipfire(sf).what).desig="" then shipfire(sf).when=-1
-                    if player.weapons(shipfire(sf).what).ammomax>0 then
-                        if player.useammo=0 then shipfire(sf).when=-2
-                    endif
-                    if player.weapons(shipfire(sf).what).shutdown<>0 then shipfire(sf).when=-3
-                    if player.weapons(shipfire(sf).what).reloading<>0 then shipfire(sf).when=-4
-                    if shipfire(sf).when>0 then
-                        dprint player.weapons(shipfire(sf).what).desig &" fired"
-                        player.weapons(shipfire(sf).what).heat+=player.weapons(shipfire(sf).what).heatadd*25
-                        player.weapons(shipfire(sf).what).reloading=player.weapons(shipfire(sf).what).reload
-                        if not(skill_test(player.gunner(0),player.weapons(shipfire(sf).what).heat/25)) then
-
-                            dprint player.weapons(shipfire(sf).what).desig &" shuts down due to heat."
-                            player.weapons(shipfire(sf).what).shutdown=1
-                            if not(skill_test(player.gunner(location),player.weapons(shipfire(sf).what).heat/20,"Gunner: Shutdown")) then
-                                dprint player.weapons(shipfire(sf).what).desig &" is irreperably damaged."
-                                player.weapons(shipfire(sf).what)=del
+            display_ship(0)
+            shipweapon=com_getweapon
+            if shipweapon>0 then
+                shipfire(sf).where=awayteam.c
+                dprint "Choose target"
+                do
+                    text=planet_cursor(shipfire(sf).where,slot,osx,1)
+                    ep_display(li(),lastlocalitem,osx)
+                    display_awayteam(,osx)
+                    text=cursor(shipfire(sf).where,slot,osx)
+                    if text=key__enter then ex=-1
+                    if text=key_quit or text=key__esc then ex=1
+                loop until ex<>0
+                if text=key__enter then
+                    if pathblock(p2,shipfire(sf).where,slot,1)=0 then
+                        dprint "No line of sight to that target."
+                        shipfire(sf).where.x=-1
+                        shipfire(sf).where.y=-1
+                    else
+                        shipfire(sf).when=(distance(awayteam.c,p2)\10)+1
+                        cls
+                        display_ship
+                        shipfire(sf).what=shipweapon
+                        if shipfire(sf).what<0 then
+                            shipfire(sf).what=6
+                            shipfire(sf).when=-1
+                        endif
+                        if player.weapons(shipfire(sf).what).ammomax=0 and distance(shipfire(sf).where,p2,1)>10 then shipfire(sf).when=-5
+    
+                        if player.weapons(shipfire(sf).what).desig="" then shipfire(sf).when=-1
+                        if player.weapons(shipfire(sf).what).ammomax>0 then
+                            if player.useammo=0 then shipfire(sf).when=-2
+                        endif
+                        if player.weapons(shipfire(sf).what).shutdown<>0 then shipfire(sf).when=-3
+                        if player.weapons(shipfire(sf).what).reloading<>0 then shipfire(sf).when=-4
+                        if shipfire(sf).when>0 then
+                            dprint player.weapons(shipfire(sf).what).desig &" fired"
+                            player.weapons(shipfire(sf).what).heat+=player.weapons(shipfire(sf).what).heatadd*25
+                            player.weapons(shipfire(sf).what).reloading=player.weapons(shipfire(sf).what).reload
+                            if not(skill_test(player.gunner(0),player.weapons(shipfire(sf).what).heat/25)) then
+    
+                                dprint player.weapons(shipfire(sf).what).desig &" shuts down due to heat."
+                                player.weapons(shipfire(sf).what).shutdown=1
+                                if not(skill_test(player.gunner(location),player.weapons(shipfire(sf).what).heat/20,"Gunner: Shutdown")) then
+                                    dprint player.weapons(shipfire(sf).what).desig &" is irreperably damaged."
+                                    player.weapons(shipfire(sf).what)=del
+                                endif
+                            endif
+                        endif
+                        if shipfire(sf).when=-1 then dprint "Fire order canceled"
+                        if shipfire(sf).when=-2 then dprint "I am afraid we are out of ammunition"
+                        if shipfire(sf).when=-3 then dprint "Can't fire that weapon at this time."
+                        if shipfire(sf).when=-5 then dprint "That target is below the horizon."
+                        if shipfire(sf).when=-4 then
+                            if player.weapons(shipfire(sf).what).ammomax=0 then
+                                dprint "That weapon is currently recharging."
+                            else
+                                dprint "That weapon is currently reloading."
                             endif
                         endif
                     endif
-                    if shipfire(sf).when=-1 then dprint "Fire order canceled"
-                    if shipfire(sf).when=-2 then dprint "I am afraid we are out of ammunition"
-                    if shipfire(sf).when=-3 then dprint "Can't fire that weapon at this time."
-                    if shipfire(sf).when=-5 then dprint "That target is below the horizon."
-                    if shipfire(sf).when=-4 then
-                        if player.weapons(shipfire(sf).what).ammomax=0 then
-                            dprint "That weapon is currently recharging."
-                        else
-                            dprint "That weapon is currently reloading."
-                        endif
-                    endif
+                else
+                    dprint "Fire order canceled."
                 endif
             endif
         endif
@@ -2953,7 +2985,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     dim wp(80) as _cords
     dim dam as short
     dim as short first,last,lp,osx,li(255),lastlocalitem
-    dim as short a,b,c,d,e,f,slot
+    dim as short a,b,c,d,e,f,slot,x
     dim as short scol
     dim as single range
     dim fired(60,20) as byte
@@ -2964,7 +2996,10 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     lastlocalitem=make_localitemlist(li(),slot)
 
     if configflag(con_tiles)=0 then
-        put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+abs(awayteam.helmet-1)*3+crew(0).story(10)*3)),trans
+        x=awayteam.c.x-osx
+        if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
+        put (x*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
+        if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
     else
         set__color( _teamcolor,0)
         draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
@@ -2997,7 +3032,9 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
         p2.y=awayteam.c.y
         do
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
+                if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
+                put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
+                if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
@@ -3035,7 +3072,9 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
         a=0
         do
             if configflag(con_tiles)=0 then
-                put ((awayteam.c.x-osx)*_fw1,awayteam.c.y*_fh1),gtiles(gt_no(990+configflag(con_captainsprite)+(abs(awayteam.helmet-1)*3+crew(0).story(10)*3))),trans
+                if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
+                put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
+                if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put ((awayteam.c.x-osx)*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
             else
                 set__color( _teamcolor,0)
                 draw string (awayteam.c.x*_fw1,awayteam.c.y*_fh1),"@",,font1,custom,@_col
@@ -3376,7 +3415,7 @@ function ep_crater(li() as short, byref lastlocalitem as short,shipfire() as _sh
         shipfire(sf).when=1
         shipfire(sf).what=10+sf
         shipfire(sf).where=p1
-        player.weapons(shipfire(sf).what)=makeweapon(1)
+        player.weapons(shipfire(sf).what)=makeweapon(6)
         player.weapons(shipfire(sf).what).ammomax=1 'Sets set__color( to redish
         player.weapons(shipfire(sf).what).dam=r 'Sets set__color( to redish
         if rnd_range(1,100)<33+r then
@@ -3654,7 +3693,14 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
         dprint "This is the Villa of the Pirate Leader."
         if faction(0).war(2)<=20 then
             reward_bountyquest(1)
-            if questroll<25 or _debug=707 then give_bountyquest(1)
+            reward_patrolquest()
+            select case questroll
+            case 10 to 25 
+                give_bountyquest(1)
+            case 1 to 10
+                give_patrolquest(1)
+            end select
+            
             if player.towed<>0 then
                 towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
                 a=towed.h_price

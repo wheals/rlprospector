@@ -1258,13 +1258,12 @@ function keybindings(allowed as string="") as short
         ls+=1
         line input #f,text2
         if left(text2,1)<>"#" and len(text2)>0 then
-            if allowed="" or instr(allowed,loadkey(text2))>0 or val(text2)>0 then
+            if allowed="" or instr(allowed,load_key(text2))>0 or val(text2)>0 then
                 a+=1
                 lk+=1
                 text=text2
-                keys(a)=loadkey(text2)
+                keys(a)=load_key(text2,varn(a))
                 nkeys(a)=keys(a)
-                varn(a)=left(text,len(text)-len(keys(a))-1)
                 expl(a)=right(varn(a),len(varn(a))-4)
                 expl(a)=Ucase(left(expl(a),1))&right(expl(a),len(expl(a))-1)
             endif
@@ -1335,7 +1334,7 @@ function keybindings(allowed as string="") as short
                 set__color( fg,bg)
 
                 draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),space(25),,FONT2,custom,@_col
-                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b) &nkeys(b),,FONT2,custom,@_col
+                draw string ((2*_fw2)+(x-1)*25*_fw2,(y+2)*_fh2),expl(b)& nkeys(b),,FONT2,custom,@_col
                 endif
             next
         next
@@ -1390,7 +1389,8 @@ function keybindings(allowed as string="") as short
             screenset 1,1
             draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),space(25),,FONT2,custom,@_col
             draw string ((2*_fw2)+(cc.x-1)*25*_fw2,(cc.y+2)*_fh2),expl(c),,FONT2,custom,@_col
-            newkey=trim(gettext(((_screenx-75*_fw2)/2)/_fw2+(cc.x-1)*25+len(expl(c)),cc.y+2,3,""))
+            newkey=gettext(2+(cc.x-1)*25+len(expl(c)),cc.y+2,3,"")
+            newkey=trim(newkey)
             if newkey<>"" and newkey<>nkeys(c) then
                 nkeys(c)=newkey
             endif
@@ -1526,66 +1526,66 @@ function load_keyset() as short
             text=texts(i)
             if left(text,1)<>"#" and len(text)>0 then
                 lctext=lcase(text)
-                if instr(lctext,"key_nw")>0 then key_nw=loadkey(text)
-                if instr(lctext,"key_north")>0 then key_north=loadkey(text)
-                if instr(lctext,"key_ne")>0 then key_ne=loadkey(text)
-                if instr(lctext,"key_west")>0 then key_west=loadkey(text)
-                if instr(lctext,"key_east")>0 then key_east=loadkey(text)
-                if instr(lctext,"key_sw")>0 then key_sw=loadkey(text)
-                if instr(lctext,"key_south")>0 then key_south=loadkey(text)
-                if instr(lctext,"key_se")>0 then key_se=loadkey(text)
-                if instr(lctext,"key_wait")>0 then key_wait=loadkey(text)
-                if instr(lctext,"key_portal")>0 then key_portal=loadkey(text)
-                if instr(lctext,"key_accounting")>0 then key_accounting=loadkey(text)
+                if instr(lctext,"key_nw")>0 then key_nw=load_key(text)
+                if instr(lctext,"key_north")>0 then key_north=load_key(text)
+                if instr(lctext,"key_ne")>0 then key_ne=load_key(text)
+                if instr(lctext,"key_west")>0 then key_west=load_key(text)
+                if instr(lctext,"key_east")>0 then key_east=load_key(text)
+                if instr(lctext,"key_sw")>0 then key_sw=load_key(text)
+                if instr(lctext,"key_south")>0 then key_south=load_key(text)
+                if instr(lctext,"key_se")>0 then key_se=load_key(text)
+                if instr(lctext,"key_wait")>0 then key_wait=load_key(text)
+                if instr(lctext,"key_portal")>0 then key_portal=load_key(text)
+                if instr(lctext,"key_accounting")>0 then key_accounting=load_key(text)
 
-                if instr(lctext,"key_manual")>0 then key_manual=loadkey(text)
-                if instr(lctext,"key_messages")>0 then key_messages=loadkey(text)
-                if instr(lctext,"key_configuration")>0 then key_configuration=loadkey(text)
-                if instr(lctext,"key_autopickup")>0 then key_autopickup=loadkey(text)
-                if instr(lctext,"key_autoinspect")>0 then key_autoinspect=loadkey(text)
-                if instr(lctext,"key_shipstatus")>0 then key_shipstatus=loadkey(text)
-                if instr(lctext,"key_save")>0 then key_save=loadkey(text)
-                if instr(lctext,"key_quit")>0 then key_quit=loadkey(text)
-                if instr(lctext,"key_tactics")>0 then key_tactics=loadkey(text)
-                if instr(lctext,"key_filter")>0 then key_filter=loadkey(text)
-                if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
-                if instr(lctext,"key_awayteam")>0 then key_awayteam=loadkey(text)
-                if instr(lctext,"key_logbook")>0 then key_logbook=loadkey(text)
-                if instr(lctext,"key_equipment")>0 then key_equipment=loadkey(text)
-                if instr(lctext,"key_quest")>0 then key_quest=loadkey(text)
-                if instr(lctext,"key_tow")>0 then key_tow=loadkey(text)
-                if instr(lctext,"key_standing")>0 then key_standing=loadkey(text)
+                if instr(lctext,"key_manual")>0 then key_manual=load_key(text)
+                if instr(lctext,"key_messages")>0 then key_messages=load_key(text)
+                if instr(lctext,"key_configuration")>0 then key_configuration=load_key(text)
+                if instr(lctext,"key_autopickup")>0 then key_autopickup=load_key(text)
+                if instr(lctext,"key_autoinspect")>0 then key_autoinspect=load_key(text)
+                if instr(lctext,"key_shipstatus")>0 then key_shipstatus=load_key(text)
+                if instr(lctext,"key_save")>0 then key_save=load_key(text)
+                if instr(lctext,"key_quit")>0 then key_quit=load_key(text)
+                if instr(lctext,"key_tactics")>0 then key_tactics=load_key(text)
+                if instr(lctext,"key_filter")>0 then key_filter=load_key(text)
+                if instr(lctext,"key_comment")>0 then key_comment=load_key(text)
+                if instr(lctext,"key_awayteam")>0 then key_awayteam=load_key(text)
+                if instr(lctext,"key_logbook")>0 then key_logbook=load_key(text)
+                if instr(lctext,"key_equipment")>0 then key_equipment=load_key(text)
+                if instr(lctext,"key_quest")>0 then key_quest=load_key(text)
+                if instr(lctext,"key_tow")>0 then key_tow=load_key(text)
+                if instr(lctext,"key_standing")>0 then key_standing=load_key(text)
 
-                if instr(lctext,"key_landing")>0 then key_la=loadkey(text)
-                if instr(lctext,"key_scanning")>0 then key_sc=loadkey(text)
-                if instr(lctext,"key_comment")>0 then key_comment=loadkey(text)
-                if instr(lctext,"key_rename")>0 then key_rename=loadkey(text)
-                if instr(lctext,"key_targetlanding")>0 then key_tala=loadkey(text)
-                if instr(lctext,"key_togglehpdisplay")>0 then key_togglehpdisplay=loadkey(text)
+                if instr(lctext,"key_landing")>0 then key_la=load_key(text)
+                if instr(lctext,"key_scanning")>0 then key_sc=load_key(text)
+                if instr(lctext,"key_comment")>0 then key_comment=load_key(text)
+                if instr(lctext,"key_rename")>0 then key_rename=load_key(text)
+                if instr(lctext,"key_targetlanding")>0 then key_tala=load_key(text)
+                if instr(lctext,"key_togglehpdisplay")>0 then key_togglehpdisplay=load_key(text)
 
-                if instr(lctext,"key_pickup")>0 then key_pickup=loadkey(text)
-                if instr(lctext,"key_dropitem")>0 then key_drop=loadkey(text)
-                if instr(lctext,"key_inspect")>0 then key_inspect=loadkey(text)
-                if instr(lctext,"key_examine")>0 then key_ex=loadkey(text)
-                if instr(lctext,"key_radio")>0 then key_ra=loadkey(text)
-                if instr(lctext,"key_teleport")>0 then key_te=loadkey(text)
-                if instr(lctext,"key_jump")>0 then key_ju=loadkey(text)
-                if instr(lctext,"key_communicate")>0 then key_co=loadkey(text)
-                if instr(lctext,"key_offer")>0 then key_of=loadkey(text)
-                if instr(lctext,"key_grenade")>0 then key_gr=loadkey(text)
-                if instr(lctext,"key_fire")>0 then key_fi=loadkey(text)
-                if instr(lctext,"key_autofire")>0 then key_autofire=loadkey(text)
-                if instr(lctext,"key_walk")>0 then key_walk=loadkey(text)
-                if instr(lctext,"key_heal")>0 then key_he=loadkey(text)
-                if instr(lctext,"key_oxygen")>0 then key_oxy=loadkey(text)
-                if instr(lctext,"key_close")>0 then key_close=loadkey(text)
+                if instr(lctext,"key_pickup")>0 then key_pickup=load_key(text)
+                if instr(lctext,"key_dropitem")>0 then key_drop=load_key(text)
+                if instr(lctext,"key_inspect")>0 then key_inspect=load_key(text)
+                if instr(lctext,"key_examine")>0 then key_ex=load_key(text)
+                if instr(lctext,"key_radio")>0 then key_ra=load_key(text)
+                if instr(lctext,"key_teleport")>0 then key_te=load_key(text)
+                if instr(lctext,"key_jump")>0 then key_ju=load_key(text)
+                if instr(lctext,"key_communicate")>0 then key_co=load_key(text)
+                if instr(lctext,"key_offer")>0 then key_of=load_key(text)
+                if instr(lctext,"key_grenade")>0 then key_gr=load_key(text)
+                if instr(lctext,"key_fire")>0 then key_fi=load_key(text)
+                if instr(lctext,"key_autofire")>0 then key_autofire=load_key(text)
+                if instr(lctext,"key_walk")>0 then key_walk=load_key(text)
+                if instr(lctext,"key_heal")>0 then key_he=load_key(text)
+                if instr(lctext,"key_oxygen")>0 then key_oxy=load_key(text)
+                if instr(lctext,"key_close")>0 then key_close=load_key(text)
 
-                if instr(lctext,"key_shield")>0 then key_dropshield=loadkey(text)
-                if instr(lctext,"key_activatesensors")>0 then key_ac=loadkey(text)
-                if instr(lctext,"key_run")>0 then key_ru=loadkey(text)
-                if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=loadkey(text)
-                if instr(lctext,"key_yes")>0 then key_yes=loadkey(text)
-                if instr(lctext,"key_extendedkey")>0 then key_extended=loadkey(text)
+                if instr(lctext,"key_shield")>0 then key_dropshield=load_key(text)
+                if instr(lctext,"key_activatesensors")>0 then key_ac=load_key(text)
+                if instr(lctext,"key_run")>0 then key_ru=load_key(text)
+                if instr(lctext,"key_togglemanjets")>0 then key_togglemanjets=load_key(text)
+                if instr(lctext,"key_yes")>0 then key_yes=load_key(text)
+                if instr(lctext,"key_extendedkey")>0 then key_extended=load_key(text)
 
             endif
         next
@@ -1601,12 +1601,13 @@ function load_keyset() as short
     return 0
 end function
 
-function loadkey(byval t2 as string) as string
+function load_key(byval t2 as string,byref n as string="") as string
     dim as short l,i,record
     dim as string t,t3
     t=t2
     for i=1 to len(t)
         if record=1 then t3 &=mid(t,i,1)
+        if record=0 then n &=mid(t,i,1)
         if mid(t,i,1)="=" then record=1
     next
     return trim(t3)
@@ -1986,6 +1987,9 @@ function load_config() as short
         _mwx=60
     endif
 
+    #ifdef _FBSOUND
+    fbs_Set_MasterVolume(_volume/2.0)
+    #endif
     redim spacemap(sm_x,sm_y)
     redim vismask(sm_x,sm_y)
     return 0
@@ -2230,7 +2234,8 @@ function savegame() as short
     put #f,,farthestexpedition
     put #f,,BonesFlag
     put #f,,alliance()
-    'put #f,,bountyquest()
+    put #f,,bountyquest()
+    put #f,,patrolquest()
     for a=1 to 128
         put #f,,crew(a)
     next
@@ -2300,7 +2305,7 @@ function savegame() as short
     next
 
     for a=0 to 20
-        for b=0 to 29
+        for b=0 to 30
             put #f,,shopitem(a,b)
         next
         print ".";
@@ -2558,7 +2563,8 @@ function load_game(filename as string) as short
         get #f,,farthestexpedition
         get #f,,BonesFlag
         get #f,,alliance()
-        'get #f,,bountyquest()
+        get #f,,bountyquest()
+        get #f,,patrolquest()
         for a=1 to 128
             get #f,,crew(a)
         next
@@ -2629,7 +2635,7 @@ function load_game(filename as string) as short
 
 
         for a=0 to 20
-            for b=0 to 29
+            for b=0 to 30
                 get #f,,shopitem(a,b)
             next
             print ".";

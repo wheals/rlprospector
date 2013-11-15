@@ -21,7 +21,7 @@ const st_veryhard=16
 
 const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'13'5'38 'special planets already discovered
+Const Show_specials=1'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -127,7 +127,7 @@ dim shared as byte _hpdisplay=1
 
 dim shared as byte _autoinspect=1
 
-dim shared as byte _volume=9
+dim shared as byte _volume=2
 dim shared as byte _resolution=2
 dim shared as byte _lines=25
 dim shared as byte _textlines
@@ -261,12 +261,7 @@ function _energycounter.tick() as integer
     end if
 end function
 
-type _driftingship
-    s as short '
-    p as short '
-    m as short
-    x as short
-    y as short
+type _driftingship extends _cords
     g_tile as _cords
     start as _cords
 end type
@@ -1135,6 +1130,24 @@ type _bountyquest
     lastseen as _cords
 end type
 
+type _patrolquest
+    status as byte
+    employer as byte
+    enum emp
+        corporate
+        pirate
+    end enum
+    cord(12) as _cords
+    lastcord as byte
+    declare function generate(p as short,maxdis as short,danger as short) as short
+    declare function check() as short
+    declare function reward() as short
+    declare function show() as string
+    declare function pay() as short
+end type
+
+dim shared patrolquest(16) as _patrolquest
+
 type _questitem
     generic as byte 'If new is generated, and last one was generic, next one is specific
     motivation as byte
@@ -1346,12 +1359,12 @@ enum questtype
     qt_locofpirates'12
     qt_locofspecial'13
     qt_locofgarden'14
-    qt_research'17
-    qt_megacorp'18
-    qt_biodata'19
-    qt_anomaly'20
-    qt_juryrig'21
-    qt_cursedship'22
+    qt_research'15
+    qt_megacorp'16
+    qt_biodata'17
+    qt_anomaly'18
+    qt_juryrig'19
+    qt_cursedship'20
 end enum
 
 enum moneytype
@@ -1637,7 +1650,7 @@ next
 dim shared item(25000) as _items
 dim shared lastitem as integer=-1
 dim shared _last_title_pic as byte=14
-dim shared shopitem(20,29) as _items
+dim shared shopitem(20,30) as _items
 dim shared makew(20,5) as byte
 
 dim shared tiles(512) as _tile
@@ -1789,6 +1802,7 @@ declare Function font_load_bmp(ByRef _filename As String) As UByte Ptr
 
 declare function player_eval(p() as _pokerplayer,i as short,rules as _pokerrules) as short
 declare function change_captain_appearance(x as short,y as short) as short
+declare function captain_sprite() as short
 
 declare function draw_poker_table(p() as _pokerplayer,reveal as short=0, winner as short=0,r as _pokerrules) as short
 declare function better_hand(h1 as _handrank,h2 as _handrank) as short
@@ -1838,6 +1852,9 @@ declare function move_probes() as short
 declare function retirement() as short
 declare function no_spacesuit(who() as short,byref alle as short=0) as short
 declare function add_questguys() as short
+declare function give_patrolquest(employer as short) as short
+declare function reward_patrolquest() as short
+
 declare function com_radio(defender as _ship, attacker() as _ship, e_track_p() as _cords,e_track_v() as short,e_map() as byte,e_last as short,mines_p() as _cords,mines_v() as short,mines_last as short)  as short
 declare function draw_shield(ship as _ship,osx as short) as short
 declare function crew_menu(crew() as _crewmember, from as short, r as short=0,text as string="") as short
@@ -1870,7 +1887,7 @@ declare function calcosx(x as short,wrap as byte) as short
 declare function rg_icechunk() as short
 declare function ep_needs_spacesuit(slot as short,c as _cords,byref reason as string="") as short
 declare function ep_display_clouds(cloudmap() as byte) as short
-declare function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short,li() as short,lastlocalitem as short) as short
+declare function ep_autoexploreroute(astarpath() as _cords,start as _cords,move as short, slot as short,li() as short,lastlocalitem as short, rover as short=0) as short
 declare function ep_roverreveal(i as integer) as short
 declare function ep_portal() as _cords
 declare function ep_pickupitem(key as string ,byref lastlocalitem as short,li() as short) as short
@@ -1958,7 +1975,7 @@ declare function load_dialog_quests() as short
 declare function character_name(byref gender as byte) as string
 declare function count_lines(file as string) as short
 declare function delete_custom(pir as short) as short
-declare function loadkey(byval t as string) as string
+declare function load_key(byval t as string,byref n as string="") as string
 declare function check_filestructure() as short
 declare function load_sounds() as short
 declare function load_fonts() as short
@@ -2464,9 +2481,6 @@ declare function sellassetts () as string
 declare function es_title(byref pmoney as single) as string
 declare function es_living(byref pmoney as single) as string
 declare function system_text(a as short) as string
-#IFDEF _WINDOWS
-'using ext
-#ENDIF
 
 dim shared as uinteger _fgcolor_,_bgcolor_
 

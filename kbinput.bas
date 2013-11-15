@@ -27,6 +27,8 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
 '                endif
                 Select Case evkey.type
                     case EVENT_KEY_REPEAT
+                        while screenevent(@evkey)
+                        wend
                         key=lastkey
                     Case (EVENT_KEY_PRESS)
                         if debug =1 then

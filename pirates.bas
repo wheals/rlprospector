@@ -4470,7 +4470,32 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         
     endif
     
+    if a=104 then
+        enemy.ti_no=1001
+        enemy.sdesc="squatter"
+        enemy.ldesc="a poor fellow"
+        enemy.lang=40
+        enemy.dhurt="hurt"
+        enemy.dkill="dies"
+        enemy.cmmod=7
+        enemy.speed=6
+        enemy.pumod=5
+        enemy.sight=4
+        enemy.intel=5
+        enemy.range=1.5
+        enemy.allied=2
+        enemy.enemy=1
+        enemy.atcost=rnd_range(6,12)
+        enemy.hasoxy=1
+        enemy.tile=Asc("H")
+        enemy.sprite=286
+        enemy.hpmax=1
+        enemy.hp=1
+        enemy.col=23
+        enemy.aggr=1
+        enemy.faction=1
     
+    endif
     
     if planets(map).atmos=1 and planets(map).depth=0 then enemy.hasoxy=1
     

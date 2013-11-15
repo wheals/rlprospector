@@ -1,6 +1,6 @@
 function make_spacemap() as short
     dim as short a,f,b,c,d,e,astcou,gascou,x,y,i
-    dim as byte makelog=1
+    dim as byte makelog=0
     dim as _cords p1,p2,p3
     dim as _planet del 
     dim showclouds as byte

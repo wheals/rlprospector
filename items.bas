@@ -177,7 +177,7 @@ function rnd_item(t as short) as _items
         endif
     endif
     
-    if t=RI_Rovers then i=makeitem(rnd_range(50,52))'rovers
+    if t=RI_Rovers then i=makeitem(rnd_range(50,52))'fs
     
     if t=RI_Allbutweapons then 'all but weapons
         select case rnd_range(1,100)
@@ -2244,12 +2244,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
             i.v3=i.v3*1.5
             i.price=i.price*1.2
             i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to " &i.v3 &" tons of fuel"
-            i.id+=100
+            i.id+=110
         else
             i.desig="Sturdy "&i.desig
             i.v1+=1
             i.price=i.price*1.1
-            i.id+=150
+            i.id+=120
         endif
     endif
     if a=106 then
@@ -3674,8 +3674,8 @@ end function
 
 function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequ as short=0) as short
     dim as short last,marked,i,c,debug,j
-    dim as _items inv(255)
-    dim as short invn(255)
+    dim as _items inv(1024)
+    dim as short invn(1024)
     dim as string key,helptext
     debug=1
     i=1

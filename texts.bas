@@ -144,7 +144,7 @@ end function
 function caged_monster_text() as string
     dim i as short
     dim as string t
-    t="Monsters in cages:"&lastcagedmonster &"|"
+    t="Captured lifeforms: "&lastcagedmonster &"|"
     for i=1 to lastcagedmonster
         t=t &"|"&cagedmonster(i).sdesc
         if i<lastcagedmonster and cagedmonster(i).c.s<>cagedmonster(i+1).c.s or i=lastcagedmonster then t=t &" in a "&item(cagedmonster(i).c.s).desig &"."
@@ -311,6 +311,11 @@ function show_quests() as short
         if fleet(a).con(1)=1 then
             txt=txt &"  Escort merchant fleet "&a &" to station "&fleet(a).con(3)+1 &"."&"|"
         endif
+    next
+    txt=txt &"|{15}Patrol:{11}|"
+    for a=0 to 12
+        if _debug=1111 then txt &= patrolquest(a).status &" " 
+        if patrolquest(a).status=1 then txt=txt &"  " &patrolquest(a).show &"|"
     next
     txt=txt &"|{15}Other:{11}|"
     for a=1 to lastquestguy
@@ -1275,8 +1280,8 @@ end function
 
 function list_inventory() as string
     dim as short i,c,b
-    dim as _items inv(128)
-    dim as short invn(128)
+    dim as _items inv(1024)
+    dim as short invn(1024)
     dim text as string
     c=get_item_list(inv(),invn())
     text="{15}Equipment (Value "&Credits(equipment_value) &" Cr.):{11}"

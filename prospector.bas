@@ -1,4 +1,4 @@
 #DEFINE _WINDOWS
-#DEFINE _FMODSOUND 
+#DEFINE _FBSOUND 
 
 #include once "main.bas"

@@ -668,7 +668,7 @@ function company(st as short) as short
         factionadd(1,0,1)
     endif
     
-    if questroll<33 then questroll=give_quest(st)    
+    if questroll<33 or _debug=1011 then questroll=give_quest(st)    
     
     if reward(0)>1 then
         if configflag(con_autosale)=1 then q=askyn("do you want to sell map data? (y/n)")
@@ -732,6 +732,7 @@ function company(st as short) as short
             k=keyin
         endif
     endif
+    reward_patrolquest()    
     if reward(3)>0 then
         if configflag(con_autosale)=1 then q=askyn("do you want to collect your bounty for destroyed pirate ships? (y/n)")
         if q=-1 then
@@ -1186,11 +1187,7 @@ function play_slot_machine() as short
         cls
         display_ship
         dprint "How much do you want to bet(0-100)"
-        if debug=0 and _debug=0 then
-            bet=getnumber(0,100,0)
-        else 
-            bet=100
-        endif
+        bet=getnumber(0,100,0)
         if bet>player.money then bet=0
         if bet>0 then
             player.money=player.money-bet
@@ -1725,6 +1722,7 @@ function used_ships() as short
             desig(i)=s.h_desig
             htext=htext &makehullbox(s.h_no,"data/ships.csv") &"/"
         next
+        mtext=mtext &"Bargain bin/Sell equipment"
         mtext=mtext & "Exit"
         a=menu(bg_ship,mtext,htext,2,2)
         if a>=1 and a<=8 then
@@ -1734,7 +1732,9 @@ function used_ships() as short
                 usedship(a).y=0
             endif
         endif
-    loop until a=9 or a=-1        
+        if a=9 then shop(30,0.8,"Bargain bin")
+        if a=10 then buysitems("","",0,.5)
+    loop until a=11 or a=-1        
     return 0
 end function
 
@@ -2793,7 +2793,9 @@ end function
 function shares_value() as short
     dim as short a,v
     for a=1 to lastshare
-        v+=companystats(shares(a).company).rate
+        if shares(a).company>=0 and shares(a).company<=5 then
+            v+=companystats(shares(a).company).rate
+        endif
     next
     return v
 end function
@@ -3326,7 +3328,9 @@ function change_prices(st as short,etime as short) as short
             basis(st).inv(a).v=10
             change=change-2
         endif
+        
         'market extremes
+        if _debug=1211 then dprint "Change:"&fix(basis(st).inv(a).p*change/10)
         basis(st).inv(a).p=basis(st).inv(a).p+fix(basis(st).inv(a).p*change/10)
         if basis(st).inv(a).p<baseprice(a)/2 then 
             basis(st).inv(a).p=baseprice(a)/2
@@ -4180,11 +4184,26 @@ function reroll_shops() as short
         usedship(i).x=rnd_range(1,12)
         usedship(i).y=rnd_range(0,3)
     next
+    
+    for i=1 to 12
+        select case rnd_range(1,100)
+        case 1 to 50
+            it=rnd_item(RI_weakweapons)
+        case 51 to 90
+            it=rnd_item(RI_weakstuff)
+        case else
+            it=rnd_item(RI_shopexplorationgear)
+        end select
+        it.res=it.res/1.2
+        shopitem(i,30)=it
+    next
+            
+    
     return 0
 end function
 
 function buysitems(desc as string,ques as string, ty as short, per as single=1,aggrmod as short=0) as short
-    dim as integer a,b,answer,price
+    dim as integer a,b,answer,price,really
     dim text as string
     if configflag(con_autosale)=0 then 
         dprint desc & " (autoselling on)"
@@ -4197,20 +4216,21 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
         answer=-1
     endif
     if _debug=1 then dprint "answer:"&answer
-    if  answer=-1 then
+    if answer=-1 then
         if configflag(con_autosale)=1 or ty=0 then
             do
                 set__color(11,0)
                 cls
                 a=get_item()
                 if a>0 then 
-                    if (item(a).ty=ty or ty=0) and item(a).w.s=-1  then
+                    if (item(a).ty=ty or ty=0) and item(a).w.s<0  then
                         if item(a).ty<>26 then
                             price=cint(item(a).price*per)
                         else
                             price=cint(item(a).v1*25*per)
                         endif
                         if configflag(con_autosale)=1 or b=0 then b=askyn("Do you want to sell the "&item(a).desig &" for "& price &" Cr.?(y/n)")             
+                        if item(a).w.s=-2 and b=-1 then b=askyn("The "&item(a).desig &" is in use. do you really want to sell it?(y/n)")
                         if b=-1 then    
                             dprint "you sell the "&item(a).desig &" for " &price & " Cr."
                             addmoney(price,mt_trading)

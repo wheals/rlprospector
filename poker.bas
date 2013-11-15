@@ -6,13 +6,14 @@ function play_poker(st as short) as short
     dim rules as _pokerrules
     pcards.LoadCards("graphics/cards2.bmp")
     p(4).name="You"
-    if st<0 then
-        rules.bet=100
+    select case st
+    case is <0
+        rules.bet=10
         rules.limit=10
-    else
-        rules.bet=50
+    case 0 to 9
+        rules.bet=5
         rules.limit=5
-    endif
+    end select
     rules.closed=1
     rules.swap=0
     dealer=rnd_range(1,4)

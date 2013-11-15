@@ -468,7 +468,7 @@ function setglobals() as short
     goodsname(2)="Basic Goods"
     goodsname(3)="Tech Goods"
     goodsname(4)="Luxury Goods"
-    goodsname(5)="Weapons Parts"
+    goodsname(5)="Weapon Parts"
     goodsname(6)="OBE Narcotics"
     goodsname(7)="SHI Hightech"
     goodsname(8)="EE Computers"
