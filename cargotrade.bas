@@ -1,3 +1,100 @@
+function update_world(location as short) as short
+    dim as short a
+    diseaserun(1)
+    if player.turn mod 60=0 then
+        if artflag(23)>0 and player.hull<player.h_maxhull then player.hull+=1
+        move_fleets()
+        collide_fleets()
+        move_probes()
+        cureawayteam(location)
+        
+        for a=0 to laststar
+            if map(a).planets(1)>0 then
+                if planets(map(a).planets(1)).flags(27)=2 then
+                    planets(map(a).planets(1)).death-=1
+                    if planets(map(a).planets(1)).death<=0 then
+                        map(a).planets(1)=0
+                    endif
+                endif
+            endif
+        next
+        
+    endif
+    
+    if player.turn mod (24*60)=0 then 'Daily
+        for a=0 to 2
+            change_prices(a,10)
+        next
+        
+        for a=0 to 2
+            if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
+        next
+        
+        clean_station_event
+        questroll=rnd_range(1,100)-10*(crew(1).talents(3))
+    
+    endif
+    
+    if player.turn mod (24*60*7)=0 then 'Weekly
+        set_fleet(make_fleet)
+        if rnd_range(1,100)<50 then
+            set_fleet(makecivfleet(0))
+        else
+            set_fleet(makecivfleet(1))
+        endif
+        if player.turn>2*30*24*60 and player.questflag(3)=0 then
+            set_fleet(makealienfleet)
+        endif
+        reroll_shops
+        
+        for a=0 to 2
+            colonize_planet(a)
+        next
+        grow_colonies
+        
+        if player.turn>2*30*24*60 and rnd_range(1,100)<1+cint(player.turn/10000) then robot_invasion
+            
+        for a=1 to lastquestguy
+            if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
+            if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
+            if questguy(a).want.type=qt_travel then
+                questguy(a).location=questguy(a).flag(12)
+                questguy(a).want.given=1
+            endif
+            if questguy(a).want.given=1 then questguy(a).want.type=0
+            if questguy(a).has.given=1 then questguy(a).has.type=0
+            if questguy(a).has.type=0 or questguy(a).want.type=0 and rnd_range(1,100)<10 then
+                questguy_newquest(a)
+            endif
+        next
+        
+    endif
+    
+    return 0
+end function
+
+function scrap_component() as short
+    dim as short w,b
+    if askyn("Do you want to cannibalize the "&tmap(awayteam.c.x,awayteam.c.y).desc &" for parts?(y/n)") then
+        if skill_test(st_average,player.science(0)) then
+            if skill_test(st_hard,player.science(0)) then
+                dprint "You found enough parts for a ton of weapons parts"
+                w=5
+            else
+                dprint "You found enough parts for a ton of techgoods."
+                w=2
+            endif
+            load_quest_cargo(w,1,0)
+        else
+            dprint "You didn't find enough usable parts."
+        endif
+        tmap(awayteam.c.x,awayteam.c.y)=tiles(201)
+        planetmap(awayteam.c.x,awayteam.c.y,awayteam.slot)=201
+        return 1 'Alarm
+    endif
+    return 0 'No Alarm
+end function
+
 function mudds_shop() as short
     dim as short a,b
     dprint "An overweight gentleman greets you 'Welcome to Mudds Incredible Bargains' Do you wish to buy or sell?"
@@ -118,7 +215,7 @@ function pay_bonuses(st as short) as short
     if ano_money>0 then c=1
     if debug=1 and _debug=1 then dprint c &":"& basis(st).company+2
     if c=1 then combon(basis(st).company+2).value+=1
-    combon(7).value=player.turn
+    combon(7).value=player.turn/(7*24*60)
     for a=0 to 8
         if a<3 or a>6 then
             tarval=combon(a).base*(combon(a).rank+1)^2
@@ -129,7 +226,7 @@ function pay_bonuses(st as short) as short
                 If a=0 then dprint "For exploring "&(combon(a).value) &" planets you receive a bonus of "&credits(int(combon(a).rank*factor)) &" Cr.",11
                 If a=1 then dprint "For recording biodata of "&credits(combon(a).value) &" aliens you receive a bonus of "&credits(int(combon(a).rank*factor)) &" Cr.",11
                 If a=2 then dprint "For delivering "&credits(cint(reward(2)*basis(st).resmod*haggle_("up"))) &" Cr. worth of resources you receive a bonus of "&int(combon(a).rank*factor) &" Cr.",11
-                If a=7 and combon(a).rank>1 then dprint "For continued business over "&(combon(a).value) &" time units you receive a bonus of "&credits(int(combon(a).rank*factor)) &" Cr.",11
+                If a=7 and combon(a).rank>1 then dprint "For continued exclusive business over "&(combon(a).value) &" weeks you receive a bonus of "&credits(int(combon(a).rank*factor)) &" Cr.",11
                 If a=8 then dprint "For destroying "&credits(combon(a).value) &" pirate ships you receive a bonus of "&int(combon(a).rank*factor) &" Cr.",11
                 combon(a).value=0
                 addmoney(int(combon(a).rank*factor),mt_bonus)
@@ -627,7 +724,7 @@ function company(st as short) as short
             addmoney(2500,mt_pirates)
         endif
     endif
-    
+    if _debug>0 then dprint  "Towed:"&player.towed
     if player.towed<>0 then
         if player.towed>0 then
             towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
@@ -1017,7 +1114,7 @@ function casino(staked as short=0, st as short=-1) as short
                     t=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(b).c)
                     price=distance(player.c,basis(b).c)*rnd_range(1,20)
                     bonus=rnd_range(1,15)
-                    if askyn("A passenger needs to get to space station "& b+1 &" by turn "& t &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every turn you arrive there earlier. Do you want to take him with you?(y/n)") then
+                    if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every turn you arrive there earlier. Do you want to take him with you?(y/n)") then
                         if max_security>0 then
                             add_passenger("Passenger for S-"& b+1,30,price,bonus,b+1,t,0)
                         else
@@ -1321,8 +1418,8 @@ function check_passenger(st as short) as short
                 t=crew(b).time-player.turn
                 if t<0 then crew(b).morale+=t
                 if rnd_range(1,100)<10 then
-                    if t<0 then dprint crew(b).n &" reminds you that " &lcase(heshe(crew(b).story(10)))& " should have been at station "&crew(b).target & " by turn "&crew(b).time &"."
-                    if t>0 then dprint crew(b).n &" reminds you that " &lcase(heshe(crew(b).story(10)))& " should be at station "&crew(b).target & " by turn "&crew(b).time &"."
+                    if t<0 then dprint crew(b).n &" reminds you that " &lcase(heshe(crew(b).story(10)))& " should have been at station "&crew(b).target & " by "&display_time(crew(b).time) &"."
+                    if t>0 then dprint crew(b).n &" reminds you that " &lcase(heshe(crew(b).story(10)))& " should be at station "&crew(b).target & " by turn "&display_time(crew(b).time) &"."
                 endif
             endif
         endif
@@ -1367,18 +1464,19 @@ function refuel(st as short,price as single) as short
         endif
     endif
     totammo=missing_ammo
-    if totammo*((player.loadout+1)^2)>player.money then totammo=player.money/((player.loadout+1)^2)
+    if totammo*((player.loadout+1)^2)>player.money then totammo=fix(player.money/((player.loadout+1)^2))
     if totammo>0 and player.money>0 then
-        player.money=player.money-totammo*((player.loadout+1)^2)
+        if _debug>0 then dprint totammo &"*"&(player.loadout+1)^2 &"=" &totammo*((player.loadout+1)^2)
         do
             for b=1 to 10
-                if player.weapons(b).ammo<player.weapons(b).ammomax and totammo>0 then
+                if player.weapons(b).ammo<player.weapons(b).ammomax and totammo>0 and player.money>=(player.loadout+1)^2 then
+                    player.money-=(player.loadout+1)^2
                     player.weapons(b).ammo+=1
                     totammo-=1
                 endif
             next
-        loop until totammo=0
-        dprint "You reload ammunition."
+        loop until totammo=0 or player.money<(player.loadout+1)^2
+        dprint "You reload."
     else
         if totammo=0 then
             dprint "Your ammo bins are full."
@@ -1722,8 +1820,7 @@ function used_ships() as short
             desig(i)=s.h_desig
             htext=htext &makehullbox(s.h_no,"data/ships.csv") &"/"
         next
-        mtext=mtext &"Bargain bin/Sell equipment"
-        mtext=mtext & "Exit"
+        mtext=mtext &"Bargain bin/Sell equipment/Exit"
         a=menu(bg_ship,mtext,htext,2,2)
         if a>=1 and a<=8 then
             if buy_ship(a,desig(a),price(a)) then
@@ -3956,7 +4053,7 @@ function reroll_shops() as short
     
     'Engine Sensors Shieldshop
     a=0
-    roll=rnd_range(1,90)+player.turn/250
+    roll=rnd_range(1,90)+player.turn/2500
     if roll>0 then 
         a+=1
         shopitem(a,20)=make_shipequip(1)
@@ -3978,7 +4075,7 @@ function reroll_shops() as short
         shopitem(a,20)=make_shipequip(5)
     endif
     
-    roll=rnd_range(1,90)+player.turn/250
+    roll=rnd_range(1,90)+player.turn/2500
     if roll>0 then 
         a+=1
         shopitem(a,20)=make_shipequip(6)
@@ -4000,7 +4097,7 @@ function reroll_shops() as short
         shopitem(a,20)=make_shipequip(10)
     endif
     
-    roll=rnd_range(1,90)+player.turn/250
+    roll=rnd_range(1,90)+player.turn/2500
     if roll>10 then 
         a+=1
         shopitem(a,20)=make_shipequip(11)
@@ -4081,7 +4178,7 @@ function reroll_shops() as short
         next
         c=16
         for i=16 to 19
-            if rnd_range(1,100)<20+player.turn/100 then
+            if rnd_range(1,100)<20+player.turn/1000 then
                 select case rnd_range(1,100)
                 case 1 to 33
                     makew(c,b)=rnd_range(4,5)

@@ -2804,9 +2804,18 @@ function load_game(filename as string) as short
     if _debug=1110 then
         f=freefile
         open "Fleetdump.csv" for output as #f
-        for a=0 to lastfleet
-            print #f,a &";"&fleet(a).ty &";"&fleet(a).fighting
+        print #f,_NoPB
+        for a=0 to _NoPB
+            print #f,piratebase(a)
         next
+        for a=0 to lastfleet
+            print #f,"Fleet "&fleet(a).ty &":"&cords(fleet(a).c)
+            for b=0 to 15
+                if fleet(a).mem(b).hull>0 then print #f,fleet(a).mem(b).hull
+            next
+        next
+        close #f
+        dprint "Randombase:"&random_piratebase
     endif
 
     return 0

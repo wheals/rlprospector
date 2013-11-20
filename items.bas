@@ -126,13 +126,13 @@ function rnd_item(t as short) as _items
     
     
     if t=RI_Transport then i=makeitem(rnd_range(1,2)) 'transport
-    if t=RI_RangedWeapon then i=makeitem(urn(0,8,2,player.turn/500)+3) 'ranged weapons
-    if t=RI_CCWeapon then i=makeitem(urn(0,7,2,player.turn/500)+40) 'close weapons
+    if t=RI_RangedWeapon then i=makeitem(urn(0,8,2,player.turn/5000)+3) 'ranged weapons
+    if t=RI_CCWeapon then i=makeitem(urn(0,7,2,player.turn/5000)+40) 'close weapons
     if t=RI_Armor then 'Space suits 
-        if rnd_range(1,100)<30-player.turn/500 then
+        if rnd_range(1,100)<30-player.turn/5000 then
             i=makeitem(320)
         else
-            i=makeitem(urn(0,8,2,player.turn/500)+12) 'Armor
+            i=makeitem(urn(0,8,2,player.turn/5000)+12) 'Armor
         endif
     endif
     if t=RI_ShopAliens then 
@@ -709,8 +709,8 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         dprint "Can't make any more items!"
         return i
     endif
-    rate=500-disnbase(player.c)
-    if rate<100 then rate=100'Divisor of turn to determine improved items
+    rate=5000-disnbase(player.c)*10
+    if rate<1000 then rate=1000'Divisor of turn to determine improved items
     uid=uid+1
     i.uid=uid
     i.scanmod=1
@@ -4224,7 +4224,7 @@ function makeweapon(a as short) as _weap
     close #f
     if a=w.made then
         if a>=6 and a<=10 then
-            w.dam=urn(dam+2,dam-1,1,2-(player.turn/1000))
+            w.dam=urn(dam+2,dam-1,1,2-(player.turn/50000))
             if w.dam<1 then w.dam=1
             if w.dam>5 then w.dam=5
             w.desig=w.dam &"0 GJ "&w.desig
@@ -4232,12 +4232,12 @@ function makeweapon(a as short) as _weap
         else
             w.dam=dam
         endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/100) and w.reload>0 then '10 % have lower reload rate
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/5000) and w.reload>0 then '10 % have lower reload rate
             w.desig="IR "&w.desig
             w.reload=w.reload/2
             w.p=w.p*1.2
         endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/100) and w.reload>0 then
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/5000) and w.reload>0 then
             w.desig="IC "&w.desig
             w.heatsink=w.heatsink+2
             w.p=w.p*1.2

@@ -1002,7 +1002,7 @@ function display_ship(show as byte=0) as short
 
     set__color( 11,0)
     draw string(sidebar,(wl+2)*_fh2),"Credits: "&space(12-len(Credits(player.money)))&Credits(player.money),,Font2,custom,@_col
-    draw string(sidebar,(wl+3)*_fh2),"Turns: "&space(14-len(""&player.turn))&player.turn,,Font2,custom,@_col
+    draw string(sidebar,(wl+3)*_fh2),display_time(player.turn),,Font2,custom,@_col
     set__color( 15,0)
     draw string(sidebar,wl*_fh2), "Cargo",,font2,custom,@_col
     for a=1 to 10
@@ -1124,6 +1124,11 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                     if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
                     put (x*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
                     if awayteam.movetype=mt_hover or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy+4),gtiles(gt_no(2001)),trans
+                    
+                    if show_energy=1 then 
+                        set__color(15,0)
+                        draw string ((x)*_tix,awayteam.c.y*_tiy),"E:"&awayteam.e.e,,font2,custom,@_tcol
+                    endif
                 endif
                 if _debug=2609 then draw string(x*_tix,awayteam.c.y*_tiy),"e:"&awayteam.e.e
             else
@@ -1218,7 +1223,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l+=2
         draw string(sidebar,l*_fh2),"Credits: " &credits(player.money),,Font2,custom,@_col
         l+=1
-        draw string(sidebar,l*_fh2),"Turn: " &player.turn,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2),display_time(player.turn),,Font2,custom,@_col
         if debug=1 and _debug=1 then draw string(sidebar,26*_fh2),"life:" &planets(map).life,,Font2,custom,@_col
 
         comstr.display(l+2)
@@ -1381,6 +1386,10 @@ function display_monsters(osx as short) as short
                                 set__color(  203,0)
                                 draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                             endif
+                        endif
+                        if show_energy=1 then 
+                            set__color(15,0)
+                            draw string ((p.x-osx)*_tix,p.y*_tiy),"E:"&enemy(a).e.e,,font2,custom,@_tcol
                         endif
                         if player.stuff(3)<>2 and enemy(a).sleeping=0 and enemy(a).aggr=0 then walking=0
                     endif
@@ -2068,7 +2077,6 @@ function dprint(t as string, col as short=11) as short
     dim firstline as byte
     dim words(4064) as string
     static curline as single
-    static lastcalled as double
     static lastmessage as string
     static lastmessagecount as short
     firstline=fix((22*_fh1)/_fh2)
@@ -2106,12 +2114,6 @@ function dprint(t as string, col as short=11) as short
             lastmessagecount=1
         endif
     endif
-    if lastcalled=0 then lastcalled=timer
-    if delay=1 and t<>"" then
-        do
-        loop until timer>lastcalled+.05
-    endif
-    lastcalled=timer
 
     'draw string (61*_fw1,firstline*_fh2),"*",,font1,custom,@_col
     'draw string (61*_fw1,(firstline+winh)*_fh2),"*",,font1,custom,@_col

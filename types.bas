@@ -7,8 +7,7 @@ using cards
 
 randomize timer
 
-const __VERSION__="0.3"
-
+#include "version.bas"
 const c_red=12
 const c_gre=10
 const c_yel=14
@@ -19,9 +18,11 @@ const st_average=12
 const st_hard=14
 const st_veryhard=16
 
+const show_energy=0
+
 const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=1'13'5'38 'special planets already discovered
+Const Show_specials=0'12'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -114,7 +115,7 @@ dim shared as byte debugvacuum=0
 dim shared as integer fmod_error
 dim shared as byte _NoPB=2
 dim shared as byte wormhole=8
-dim shared as short countpatrol,makepat
+dim shared as short countpatrol,makepat,unattendedtribbles
 
 dim shared as ushort _screenx=800
 dim shared as ushort _screeny=0
@@ -372,7 +373,7 @@ type _ship
     osy as short
     lastpirate as _cords
     landed as _cords
-    turn as integer
+    turn as uinteger
     money as integer
     aggr as short
     desig as string *32
@@ -1938,7 +1939,8 @@ declare function spacecombat(atts as _fleet, ter as short) as short
 declare function spacestation(st as short) as _ship
 declare function buy_weapon(st as short) as short
 declare function buy_engine() as short
-
+declare function update_world(location as short) as short
+declare function robot_invasion() as short
 declare function explore_space() as short
 declare function explore_planet(from as _cords, orbit as short) as _cords
 declare function alienbomb(c as short,slot as short, li() as short, byref lastlocalitem as short) as short
@@ -2087,7 +2089,7 @@ declare function merchant() as single
 declare function sort_by_distance(c as _cords,p() as _cords,l() as short,last as short) as short
 declare function wormhole_navigation() as short
 
-
+declare function random_piratebase() as short
 declare function askyn(q as string,col as short=11,sure as short=0) as short
 declare function randomname() as string
 declare function isgasgiant(m as short) as short
@@ -2168,6 +2170,7 @@ declare function artifact(c as short) as short
 'declare function getshipweapon() as short
 declare function getmonster() as short
 declare function findartifact(v5 as short) as short
+declare function scrap_component() as short
 
 declare function ep_display(li()as short,byref lastlocalitem as short,osx as short=555) as short
 declare function earthquake(t as _tile,dam as short)as _tile

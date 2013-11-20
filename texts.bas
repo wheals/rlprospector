@@ -108,7 +108,7 @@ function make_weap_helptext(w as _weap) as string
     if w.made=92 then help=help &"A large auxillary powerplant feeding energy weapons. | | +2 to energy weapons damage."
     if w.made=93 then help=help &"A second sensor array directly linked to weapons control | | +1 to hit in space combat"
     if w.made=94 then help=help &"A powerfull additional sensor array directly linked to weapons control | | +2 to hit in space combat"
-    if w.made=95 then help=help &"A improved tractor beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes. It is more powerfull and sturdier than the normal Tractor beam."
+    if w.made=95 then help=help &"An improved tractor beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes. It is more powerfull and sturdier than the normal Tractor beam."
     if w.made=96 then help=help &"A beam weapon that can attract and repel mass. Essential for salvage missions and practical for other purposes."
     if w.made=97 then help=help &"A weapons turret modified to provide lving space. Holds up to 10 additional crewmembers"
     if w.made=98 then help=help &"Not the safest way to store fuel. It holds 50 tons"

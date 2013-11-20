@@ -193,6 +193,7 @@ function changemoral(value as short, where as short) as short
             endif
         endif
     next
+    if tribbles>0 then unattendedtribbles=tribbles
     return 0
 end function
 
@@ -1145,7 +1146,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="L"
             crew(slot).typ=14
             crew(slot).talents(27)=1
-            crew(slot).paymod=20
+            crew(slot).paymod=25
             crew(slot).atcost=4
         endif
 
@@ -1155,8 +1156,8 @@ function add_member(a as short,skill as short) as short
             crew(slot).icon="N"
             crew(slot).typ=15
             crew(slot).talents(28)=1
-            crew(slot).paymod=20
-            crew(slot).atcost=6
+            crew(slot).paymod=25
+            crew(slot).atcost=12
         endif
 
         if a=18 then 'green

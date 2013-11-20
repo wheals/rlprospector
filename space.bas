@@ -613,14 +613,14 @@ function add_drifters() as short
     planets_flavortext(drifting(1).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     deletemonsters(drifting(1).m)
     planets(drifting(1).m).mon_template(0)=makemonster(88,drifting(1).m)
-    planets(drifting(1).m).mon_noamin(0)=2
-    planets(drifting(1).m).mon_noamax(0)=6
+    planets(drifting(1).m).mon_noamin(0)=1
+    planets(drifting(1).m).mon_noamax(0)=4
     planets(drifting(1).m).mon_template(2)=makemonster(99,drifting(1).m)
     planets(drifting(1).m).mon_noamin(2)=1
     planets(drifting(1).m).mon_noamax(2)=1
     planets(drifting(1).m).mon_template(3)=makemonster(103,drifting(1).m)
     planets(drifting(1).m).mon_noamin(3)=1
-    planets(drifting(1).m).mon_noamax(3)=4
+    planets(drifting(1).m).mon_noamax(3)=2
     
     planets(drifting(1).m).flags(29)=5
     planets(drifting(2).m).flags(29)=6
@@ -647,12 +647,12 @@ function add_drifters() as short
     deletemonsters(drifting(2).m)
     planets_flavortext(drifting(2).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(2).m).mon_template(0)=makemonster(88,drifting(2).m)
-    planets(drifting(2).m).mon_noamin(0)=3
-    planets(drifting(2).m).mon_noamax(0)=6
+    planets(drifting(2).m).mon_noamin(0)=1
+    planets(drifting(2).m).mon_noamax(0)=4
     
     planets(drifting(2).m).mon_template(2)=makemonster(103,drifting(1).m)
     planets(drifting(2).m).mon_noamin(2)=1
-    planets(drifting(2).m).mon_noamax(2)=4
+    planets(drifting(2).m).mon_noamax(2)=2
 
     
     planetmap(19,10,drifting(2).m)=-287
@@ -672,12 +672,12 @@ function add_drifters() as short
     deletemonsters(drifting(3).m)
     planets_flavortext(drifting(3).m)="A cheerfull sign says 'Welcome! Please enjoy our services'"
     planets(drifting(3).m).mon_template(0)=makemonster(88,drifting(3).m)
-    planets(drifting(3).m).mon_noamin(0)=3
-    planets(drifting(3).m).mon_noamax(0)=6
+    planets(drifting(3).m).mon_noamin(0)=1
+    planets(drifting(3).m).mon_noamax(0)=4
     
     planets(drifting(3).m).mon_template(2)=makemonster(103,drifting(1).m)
     planets(drifting(3).m).mon_noamin(2)=1
-    planets(drifting(3).m).mon_noamax(2)=4
+    planets(drifting(3).m).mon_noamax(2)=2
     
     if _debug=-1 then
         drifting(1).s=9

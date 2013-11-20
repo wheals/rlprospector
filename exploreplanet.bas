@@ -924,7 +924,7 @@ function ep_inspect(li() as short,byref lastlocalitem as short,byref localturn a
     if (tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143) or tmap(awayteam.c.x,awayteam.c.y).no=241 then
         'Jump ship
         if tmap(awayteam.c.x,awayteam.c.y).hp>1 then
-            If askyn("it will take " &tmap(awayteam.c.x,awayteam.c.y).hp & " hours to repair this ship. Do you want to start now? (y/n)") then
+            If askyn("it will take " &display_time(tmap(awayteam.c.x,awayteam.c.y).hp) & " hours to repair this ship. Do you want to start now? (y/n)") then
                 walking=-tmap(awayteam.c.x,awayteam.c.y).hp+1
                 dprint "Starting repair"
             endif
@@ -1448,13 +1448,22 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
     endif
     if sysfrommap(slot)>=0 then
         if (planets(slot).dens<4 and planets(slot).depth=0 and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))+countasteroidfields(sysfrommap(slot))*2-map(sysfrommap(slot)).spec and rnd_range(1,100)<18-planets(slot).atmos-countgasgiants(sysfrommap(slot))) or more_mets=1 then
-            if lastmet>1000 and rnd_range(1,100)<30 or more_mets=1 then
+            if lastmet>1000 and countgasgiants(sysfrommap(slot))=0 and rnd_range(1,100)<countasteroidfields(sysfrommap(slot)) then
+                lastmet=-rnd_range(1,6) 'asteroid shower
+                dprint "Suddenly dozens of meteors illuminate the sky!",14
+            endif
+            if lastmet<0 or (lastmet>1000 and rnd_range(1,100)<30) or more_mets=1 then
                 ep_crater(li(),lastlocalitem,shipfire(),sf)
-                lastmet=0
+                if lastmet<0 then 
+                    lastmet+=1
+                else
+                    lastmet=0
+                endif
             else
                 lastmet+=1
             endif
             if more_mets=1 then dprint ""&lastmet
+            
         endif
     endif
     if cloudmap(awayteam.c.x,awayteam.c.y)>0 and planets(slot).atmos>6 and rnd_range(1,150)<(planets(slot).dens*planets(slot).weat) and slot<>specialplanet(28) then
@@ -1924,47 +1933,47 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 if enemy(a).sleeping>0 then enemy(a).sleeping-=(1+enemy(a).reg)
 
                 if enemy(a).sleeping<=0 then
-                if vismask(enemy(a).c.x,enemy(a).c.y)>0 then someonemoved=1
-            'changes mood
-            if enemy(a).aggr=1 and enemy(a).made<>101 then
-                if rnd_range(1,100)>(20+enemy(a).diet)*distance(enemy(a).c,awayteam.c) then
-                    if rnd_range(1,6)+rnd_range(1,6)>8+enemy(a).diet+awayteam.invis+enemy(a).cmmod and enemy(a).sleeping<1 then
-                        select case enemy(a).diet
-                        case is=1
-                            cmoodto=1
-                        case is=2
-                            if rnd_range(1,100)<50-enemy(a).hp then
-                                cmoodto=2
-                            else
-                                cmoodto=1
-                            endif
-                        case is=3
-                            if rnd_range(1,100)<75-enemy(a).hp then
-                                cmoodto=2
-                            else
-                                cmoodto=1
-                            endif
-                        end select
-                        enemy(a).aggr=cmoodto
-                        if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(0)=0 then
-                            enemy(a).cmshow=1
-                            message(0)=1
-                            if cmoodto=1 then dprint "The "&enemy(a).sdesc &" suddenly seems agressive",14
-                            if cmoodto=2 then dprint "The "&enemy(a).sdesc &" suddenly seems afraid",14
-                        endif
-                        for b=1 to lastenemy
-                            if a<>b and enemy(b).hp>0 then
-                                if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 and message(1)=0 then
-                                    message(1)=1
-                                    enemy(b).aggr=cmoodto
+                    if vismask(enemy(a).c.x,enemy(a).c.y)>0 then someonemoved=1
+                    'changes mood
+                    if enemy(a).aggr=1 and enemy(a).made<>101 then
+                        if rnd_range(1,100)>(20+enemy(a).diet)*distance(enemy(a).c,awayteam.c) then
+                            if rnd_range(1,6)+rnd_range(1,6)>8+enemy(a).diet+awayteam.invis+enemy(a).cmmod and enemy(a).sleeping<1 then
+                                select case enemy(a).diet
+                                case is=1
+                                    cmoodto=1
+                                case is=2
+                                    if rnd_range(1,100)<50-enemy(a).hp then
+                                        cmoodto=2
+                                    else
+                                        cmoodto=1
+                                    endif
+                                case is=3
+                                    if rnd_range(1,100)<75-enemy(a).hp then
+                                        cmoodto=2
+                                    else
+                                        cmoodto=1
+                                    endif
+                                end select
+                                enemy(a).aggr=cmoodto
+                                if vismask(enemy(a).c.x,enemy(a).c.y)>0 and message(0)=0 then
                                     enemy(a).cmshow=1
-                                    dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
+                                    message(0)=1
+                                    if cmoodto=1 then dprint "The "&enemy(a).sdesc &" suddenly seems agressive",14
+                                    if cmoodto=2 then dprint "The "&enemy(a).sdesc &" suddenly seems afraid",14
                                 endif
+                                for b=1 to lastenemy
+                                    if a<>b and enemy(b).hp>0 then
+                                        if enemy(a).faction=enemy(b).faction and vismask(enemy(b).c.x,enemy(b).c.y)>0 and message(1)=0 then
+                                            message(1)=1
+                                            enemy(b).aggr=cmoodto
+                                            enemy(a).cmshow=1
+                                            dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
+                                        endif
+                                    endif
+                                next
                             endif
-                        next
+                        endif
                     endif
-                endif
-            endif
             if enemy(a).aggr=1 then
                 if enemy(a).nocturnal<>0 then
                     if enemy(a).nocturnal=1 then
@@ -2045,6 +2054,16 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                                     endif
                                 endif
                             endif
+                        endif
+                    endif
+                endif
+                if enemy(b).hp>0 then mapmask(enemy(b).c.x,enemy(b).c.y)=b
+                if b<>a and enemy(a).aggr=2 and enemy(a).hp<enemy(a).hpmax and enemy(a).faction=enemy(b).faction then
+                    if distance(enemy(a).c,enemy(b).c)<1.6 then
+                        if rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then
+                            enemy(b).aggr=0
+                            enemy(a).aggr=0
+                            if vismask(enemy(a).c.x,enemy(a).c.y)>0 or vismask(enemy(b).c.x,enemy(b).c.y)>0 then dprint "The "&enemy(a).sdesc &" asks the other "& enemy(b).sdesc &" for help!"
                         endif
                     endif
                 endif
@@ -2135,23 +2154,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                 next
             next
             mapmask(awayteam.c.x,awayteam.c.y)=-9
-            for b=1 to lastenemy
-                if enemy(b).c.x<0 then enemy(b).c.x=0
-                if enemy(b).c.y<0 then enemy(b).c.y=0
-                if enemy(b).c.x>60 then enemy(b).c.x=60
-                if enemy(b).c.y>20 then enemy(b).c.y=20
-                if enemy(b).hp>0 then mapmask(enemy(b).c.x,enemy(b).c.y)=b
-                if b<>a and enemy(a).aggr=2 and enemy(a).hp<enemy(a).hpmax and enemy(a).faction=enemy(b).faction then
-                    if distance(enemy(a).c,enemy(b).c)<1.6 then
-                        if rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel then
-                            enemy(b).aggr=0
-                            enemy(a).aggr=0
-                            if vismask(enemy(a).c.x,enemy(a).c.y)>0 or vismask(enemy(b).c.x,enemy(b).c.y)>0 then dprint "The "&enemy(a).sdesc &" asks the other "& enemy(b).sdesc &" for help!"
-                        endif
-                    endif
-                endif
-            next
-
+            
             if configflag(con_tiles)=0 then
                 'Nothing
             else
@@ -2187,7 +2190,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                     enemy(a).reg=0
                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 then dprint "The "&enemy(a).desc &" regenerates."
                 endif
-                if enemy(a).speed>0 then enemy(a)=movemonster(enemy(a), p1, mapmask(),tmap())
+                if enemy(a).speed>0 and enemy(a).sleeping<=0 and enemy(a).e.e<=0 then enemy(a)=movemonster(enemy(a), p1, mapmask(),tmap())
                 mapmask(enemy(a).c.x,enemy(a).c.y)=3
 
             if enemy(a).hasoxy=0 and (planets(slot).atmos=1 or vacuum(enemy(a).c.x,enemy(a).c.y)=1) then
@@ -2200,7 +2203,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
             deadcounter=deadcounter+1
         endif
 
-    if makemoodlog=1 then close #f
+        if makemoodlog=1 then close #f
 
         if enemy(a).c.x<0 then enemy(a).c.x=0
         if enemy(a).c.y<0 then enemy(a).c.y=0
@@ -2230,7 +2233,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                         pathblock(awayteam.c,enemy(a).c,slot,,enemy(a).scol,,planets(slot).depth)
                         awayteam=monsterhit(enemy(a),awayteam,vismask(enemy(a).c.x,enemy(a).c.y))
                         if debug=1 and _debug=1 then text=text &""&a
-                        enemy(a).e.add_action(enemy(a).atcost*10)
+                        enemy(a).e.add_action(enemy(a).atcost)
                     endif
                 endif
             endif
@@ -2249,7 +2252,7 @@ function ep_monstermove(li() as short,byref lastlocalitem as short,spawnmask() a
                     enemy(a).target=enemy(enemy(a).nearest).c
                     enemy(enemy(a).nearest).target=enemy(a).c
                     if vismask(enemy(a).c.x,enemy(a).c.y)>0 or vismask(enemy(enemy(a).nearest).c.x,enemy(enemy(a).nearest).c.y)>0 then dprint "The "&enemy(a).sdesc &" attacks the "&enemy(enemy(a).nearest).sdesc &"."
-                    enemy(a).e.add_action(enemy(a).atcost*10)
+                    enemy(a).e.add_action(enemy(a).atcost)
                     if enemy(enemy(a).nearest).hp<=0 and enemy(a).diet=4 or rnd_range(1,6)+enemy(a).cmmod<7 then enemy(a).aggr=1
                 endif
             endif
@@ -2967,7 +2970,7 @@ function ep_playerhitmonster(old as _cords, mapmask() as byte) as short
                                     awayteam.e.add_action(2)
                                 endif
                             else
-                                awayteam.e.add_action(awayteam.atcost*10)
+                                awayteam.e.add_action(awayteam.atcost)
                                 enemy(a)=hitmonster(enemy(a),awayteam,mapmask())
                             endif
                         endif
@@ -3025,7 +3028,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     screenset 1,1
 
     if autofire_dir>0 and autofire_dir<>5 then
-        awayteam.e.add_action(awayteam.atcost*10)
+        awayteam.e.add_action(awayteam.atcost)
 
         e=0
         p2.x=awayteam.c.x
@@ -3065,7 +3068,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     endif
 
     if no_key=key_wait then
-        awayteam.e.add_action(awayteam.atcost*10)
+        awayteam.e.add_action(awayteam.atcost)
 
         dprint "Choose target" &range
         p=awayteam.c
@@ -3115,7 +3118,7 @@ function ep_fire(mapmask() as byte,key as string,byref autofire_target as _cords
     endif
 
     if no_key=key_layfire then
-        awayteam.e.add_action(awayteam.atcost*10)
+        awayteam.e.add_action(awayteam.atcost)
         for a=1 to lastenemy
             if vismask(enemy(a).c.x,enemy(a).c.y)>0 and enemy(a).hp>0 and enemy(a).aggr=0 and distance(awayteam.c,enemy(a).c)<=range then
                 if pathblock(awayteam.c,enemy(a).c,slot,1) then
@@ -4374,7 +4377,10 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                                 dprint "This engine is too big for your ship"
                             endif
                         endif
+                    else
+                        b=scrap_component
                     endif
+                    
                 else
                     dprint "An empty engine case."
                 endif
@@ -4395,6 +4401,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                                 dprint "This sensor array is too big for your ship"
                             endif
                         endif
+                    else
+                        b=scrap_component
                     endif
                 else
                     dprint "An empty sensor case."
@@ -4415,6 +4423,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                                 dprint "This shield generator is too big for your ship"
                             endif
                         endif
+                    else
+                        b=scrap_component
                     endif
                 else
                     dprint "An empty shield generator case."
@@ -4446,6 +4456,8 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                             planets(slot).flags(c)=0
                             recalcshipsbays
                         endif
+                    else
+                        b=scrap_component
                     endif
                 endif
             endif

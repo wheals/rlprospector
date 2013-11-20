@@ -2275,7 +2275,7 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
         'Stranded ship
         if rnd_range(1,300)<15-disnbase(player.c)/10+planets(a).grav*10 or (alwaysstranded=1 and _debug>0) then
             p1=rnd_point
-            b=rnd_range(1,100+player.turn/150)
+            b=rnd_range(1,100+player.turn/5000)'!
             c=rnd_range(1,6)
             if c=5 or c=6 then c=1
             d=0

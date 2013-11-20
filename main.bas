@@ -1,6 +1,6 @@
 
 'Master debug switch: Do not touch!
-const _debug=0'1211'154'2809'2709
+const _debug=0
 
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)
 draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
@@ -306,6 +306,7 @@ function start_new_game() as short
         if _debug=1 then placeitem(makeitem(64),,,,,-1)
         if _debug=1 then placeitem(makeitem(64),,,,,-1)
         if _debug=1211 then placeitem(makeitem(30),,,,,-1)
+        if _debug>0 then player.weapons(2)=makeweapon(95)
 '        placeitem(makeitem(250),0,0,0,0,-1)
 '        placeitem(makeitem(162),0,0,0,0,-1)
 '        placeitem(makeitem(162),0,0,0,0,-1)
@@ -1527,7 +1528,9 @@ function spacestation(st as short) as _ship
                 foundsomething+=5
             endif
         endif
+        if _debug>0 then dprint "Towed:"&player.towed
         check_passenger(st)
+        if _debug>0 then dprint "Towed:"&player.towed
         if _debug=1 then dprint "Morale change:"&(wage-9-bunk_multi*2)&":"& bunk_multi &":"&(player.h_maxcrew+player.crewpod)*1+player.cryo
         for b=2 to 128
             if Crew(b).paymod>0 and crew(b).hpmax>0 and crew(b).hp>0 then
@@ -1554,6 +1557,7 @@ function spacestation(st as short) as _ship
     ss_sighting(st)
     if _debug=1 then dprint "Done"
 
+    if _debug>0 then dprint "Towed:"&player.towed
     if basis(st).spy=1 or basis(st).spy=2 then
         if askyn("Do you pay 100 cr. for your informant? (y/n)") then
             player.money=player.money-100
@@ -1595,6 +1599,9 @@ function spacestation(st as short) as _ship
 
         endif
     next
+    
+    if _debug>0 then dprint "Towed1:"&player.towed
+    
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>600 then
         b=count_and_makeweapons(st)
 
@@ -1603,10 +1610,14 @@ function spacestation(st as short) as _ship
             b=count_and_makeweapons(st)
         endif
     endif
+    
+    
+    if _debug>0 then dprint "Towed2:"&player.towed
 
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>100 then
         dprint gainxp(1),c_gre
         check_questcargo(st)
+        if _debug>0 then dprint "Towed3:"&player.towed
         for a=0 to 2
             if (player.turn-player.lastvisit.t)\3>1 then change_prices(a,(player.turn-player.lastvisit.t)\3)
             companystats(basis(a).company).rate=0
@@ -1634,8 +1645,11 @@ function spacestation(st as short) as _ship
         endif
         dividend()
     endif
+    
+    if _debug>0 then dprint "Towed4:"&player.towed
     girlfriends(st)
     hiringpool=rnd_range(1,4)+rnd_range(1,4)+3
+    if _debug>0 then dprint "Towed:"&player.towed
     do
         quarantine=player.disease
         mtext="Station "& st+1 &"/ "
@@ -1775,9 +1789,7 @@ function move_ship(key as string) as _ship
     dim scoop as single
     static fuelcollect as byte
     dim as _cords old,p
-    if artflag(23)>0 then
-        if player.hull<player.h_maxhull and player.turn mod 10=0 then player.hull+=1
-    endif
+    dim as _weap delweap
     hydrogenscoop=0
     for a=1 to player.h_maxweaponslot
         if player.weapons(a).made=85 then hydrogenscoop+=1
@@ -1961,8 +1973,26 @@ function move_ship(key as string) as _ship
         endif
     endif
     if (player.c.x<>old.x or player.c.y<>old.y) then' and (player.c.x+player.osx<>30 or player.c.y+player.osy<>10) then
-        if spacemap(player.c.x,player.c.y)<=5 then player.fuel=player.fuel-player.fueluse
         player.add_move_cost(0)
+        
+        if spacemap(player.c.x,player.c.y)<=5 then player.fuel=player.fuel-player.fueluse
+        if player.tractor>0 and player.towed>0 then
+            if skill_test(player.pilot(0),st_veryeasy-player.tractor+fix(drifting(player.towed).s/4))=0 then
+                if skill_test(player.pilot(0),st_veryeasy-player.tractor+fix(drifting(player.towed).s/4)) then
+                    dprint "You loose connection to your towed ship."
+                    player.towed=0
+                else
+                dprint "Your tractor beam breaks down.",14
+                    for a=0 to 25
+                        if player.weapons(a).rof<0 then 
+                            player.weapons(a)=delweap
+                            exit for
+                        endif
+                    next
+                    player.towed=0
+                endif
+            endif
+        endif
         for a=0 to 12
             if patrolquest(a).status=1 then patrolquest(a).check
         next
@@ -2016,11 +2046,7 @@ function explore_space() as short
     if debug=10 and _debug=1 then dprint spdescr(7)
     do
         if debug=8 and _debug=1 then dprint "Lastfleet:"&lastfleet
-        lturn+=1
-        if lturn>=5 then
-            player.turn+=1
-            lturn=0
-        endif
+        player.turn+=10
         if show_specials<>0 then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
         if player.e.tick=-1 and player.dead=0 then
             fl=0
@@ -2037,7 +2063,7 @@ function explore_space() as short
                 endif
             next
 
-            for a=1 to lastfleet
+            for a=0 to lastfleet
                 if distance(player.c,fleet(a).c)<1.5 then
                     fl=meet_fleet(a)
                     fleetcom=1
@@ -2168,10 +2194,6 @@ function explore_space() as short
             if key=key_walk then
                 key=keyin
                 walking=getdirection(key)
-            endif
-
-            if artflag(25)>0 and key=key_te then
-                wormhole_travel
             endif
 
             if key=key_ra then space_radio
@@ -2335,8 +2357,14 @@ function explore_space() as short
                     player.towed=0
                     dprint "You release the other ship."
                 endif
+                key=""
             endif
-
+            
+            
+            if artflag(25)>0 and key=key_te then
+                wormhole_travel
+            endif
+            
             if key=key_awayteam then showteam(0)
 
 
@@ -2353,54 +2381,7 @@ function explore_space() as short
         endif
 
         clearfleetlist
-
-        if lturn=0 then
-            if frac(player.turn/10)=0 then
-                set_fleet(make_fleet)
-                for a=0 to 2
-                    change_prices(a,10)
-                next
-            endif
-
-            if frac(player.turn/250)=0 then
-                if rnd_range(1,100)<50 then
-                    set_fleet(makecivfleet(0))
-                else
-                    set_fleet(makecivfleet(1))
-                endif
-            endif
-
-            if frac(player.turn/100)=0 and player.turn>5000 and player.questflag(3)=0 then
-                set_fleet(makealienfleet)
-            endif
-
-            if player.turn mod 100=0 then
-                for a=1 to lastquestguy
-                    if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
-                    if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
-                    if questguy(a).want.type=qt_travel then
-                        questguy(a).location=questguy(a).flag(12)
-                        questguy(a).want.given=1
-                    endif
-                    if questguy(a).want.given=1 then questguy(a).want.type=0
-                    if questguy(a).has.given=1 then questguy(a).has.type=0
-                    if questguy(a).has.type=0 or questguy(a).want.type=0 and rnd_range(1,100)<10 then
-                        questguy_newquest(a)
-                    endif
-                next
-            endif
-            move_fleets()
-            collide_fleets()
-            move_probes()
-
-            for a=0 to 2
-                if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
-            next
-
-            diseaserun(0)
-            if frac(player.turn/5)=0 then cureawayteam(1)
-            if frac(player.turn/250)=0 then reroll_shops
-        endif
+        update_world(0)
 
         if player.hull<=0 and player.dead=0 then player.dead=18
         if player.fuel<=0 and player.dead=0 then rescue()
@@ -2499,59 +2480,8 @@ function explore_space() as short
             display_stars(1)
             display_ship(1)
         endif
-
-        if player.turn mod 20=0 then
-            clean_station_event
-            questroll=rnd_range(1,100)-10*(crew(1).talents(3))
-        endif
-
-
-        if player.turn mod 10=0 then
-            if player.tractor>0 then
-                if player.towed>0 and not(skill_test(player.pilot(0),st_easy-player.tractor)) then
-                    dprint "Your tractor beam breaks down",14
-                    for a=0 to 25
-                        if player.weapons(a).rof<0 then 
-                            player.weapons(a)=makeweapon(0)
-                            exit for
-                        endif
-
-                    next
-                    player.towed=0
-                endif
-            endif        
-        endif
-
-
-        if frac(player.turn/500)=0 then
-            for a=0 to 2
-                colonize_planet(a)
-            next
-            grow_colonies
-            if rnd_range(1,100)<player.turn/1000 then robot_invasion
-        endif
-
-        for a=0 to laststar
-            if map(a).planets(1)>0 then
-                if planets(map(a).planets(1)).flags(27)=2 then
-                    planets(map(a).planets(1)).death-=1
-                    if planets(map(a).planets(1)).death<=0 then
-                        map(a).planets(1)=0
-                    endif
-                endif
-            endif
-        next
-
-        if make_files=1 and frac(player.turn/10)=0 then
-            f=freefile
-            open "fleets.txt" for append as #f
-            print #f,player.turn
-            for a=1 to lastfleet
-                print #f,a;" ";fleet(a).ty;" ";debug_printfleet(fleet(a))
-            next
-            close #f
-        endif
-
+        
+        update_world(1)
 
         for a=0 to 7
             for b=0 to 7
@@ -3264,6 +3194,12 @@ endif
         localturn=localturn+1
 
         if localturn mod 10=0 then
+            if planets(slot).depth=0 then
+                player.turn+=2
+            else
+                player.turn+=1
+            endif
+        
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
             ep_lava(lavapoint())
             lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
@@ -3570,33 +3506,8 @@ endif
             next
             if debug=99 and _debug=1 then dprint "Death in:"&planets(slot).death
             ' and the world moves on
-            if frac(localturn/500)=0 then
-                player.turn=player.turn+1
-                for a=1 to lastplanet
-                    if planets(a).flags(27)=2 then
-                        planets(a).death-=1
-                        if a=slot and planets(a).death<=0 then
-                            if planets(a).flags(29)=0 then
-                                player.dead=17
-                            else
-                                player.dead=34
-                            endif
-                        endif
-                    endif
-                next
-                for a=0 to laststar
-                    if map(a).planets(1)>0 then
-                        if planets(map(a).planets(1)).flags(27)=2 and planets(map(a).planets(1)).death<=0 then
-                            map(a).planets(1)=0
-                        endif
-                    endif
-                next
-
-                diseaserun(1)
-                equip_awayteam(slot)
-                move_fleets()
-                if frac(player.turn/250)=0 then reroll_shops
-            endif
+            update_world(0)
+            
             if _debug=2709 then dprint "NM:"&nextmap.m
     loop until awayteam.hp<=0 or nextmap.m<>0 or player.dead<>0
 
@@ -4676,7 +4587,7 @@ function monsterhit(attacker as _monster, defender as _monster,vis as byte) as _
         defender.hp=defender.hp-b 'Monster attacks monster
         if defender.hp<=0 then defender.killedby=attacker.made
     endif
-    attacker.e.add_action(attacker.atcost*10)
+    attacker.e.add_action(attacker.atcost)
     if debug=1 and _debug=1 then dprint "DEBUG MESSAGE dam:"& b
     return defender
 end function

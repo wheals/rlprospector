@@ -256,9 +256,10 @@ function give_patrolquest(employer as short) as short
     next
     if j>-1 then
         if askyn("We could use some help with an easy patrol. Are you interested?(y/n)") then
-            patrolquest(j).generate(rnd_range(2,4),rnd_range(15,20),player.turn/25+10)
+            patrolquest(j).generate(rnd_range(2,4),rnd_range(15,20),player.turn/250+10)'!
             patrolquest(j).employer=employer
             dprint patrolquest(j).show &" Upon completion you will get paid "&Credits(patrolquest(j).reward) &" Cr."
+            questroll=999
             if _debug=1111 then dprint "Patrol #" &j &", status:"&patrolquest(j).status
         endif
     endif
@@ -388,7 +389,7 @@ function questguy_newquest(i as short) as short
     dim as short f,j,l,debug
     dim as string w(5),li
     f=freefile
-    
+    debug=qt_travel
     open "data/wanthas.csv" for input as #f
     do
         line input #f,li
@@ -624,12 +625,12 @@ function make_questitem(i as short,wanthas as short) as short
         endif
     endif
     
-    if (*o).type=qt_travel then'Alibi	
+    if (*o).type=qt_travel then'Travel	
         do
             questguy(i).flag(12)=rnd_range(0,2)
         loop until questguy(i).flag(12)<>questguy(i).location
         questguy(i).flag(13)=distance(player.c,basis(questguy(i).flag(12)).c)*rnd_range(1,10+(*o).motivation)
-        questguy(i).flag(14)=rnd_range(1,15)
+        questguy(i).flag(14)=rnd_range(5,15)
     endif
     
     if (*o).type=qt_cargo then'Cargo	11
@@ -1041,7 +1042,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             node(3).option(2).no=1
         case qt_travel
             node(3).effekt="PASSENGER"
-            questguy(i).flag(15)=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c)
+            questguy(i).flag(15)=120*(player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c))
         case qt_biodata 
             if reward(1)>0 then
                 node(3).effekt="BUYBIODATA" 
@@ -1081,7 +1082,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         if questguy(i).has.type=qt_travel then
             node(4).effekt="PASSENGER"
             node(4).param(0)=i
-            questguy(i).flag(15)=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c)
+            questguy(i).flag(15)=120*(player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c))
             node(4).statement=questguydialog(questguy(i).has.type,questguy(i).has.motivation,Q_HAS)
 
         endif
@@ -1595,7 +1596,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         endif
         if word(i)="<TONS>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(1)
         if word(i)="<DEST>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(12)+1
-        if word(i)="<TIME>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(15)
+        if word(i)="<TIME>" and qgindex>0 then word(i)=""&display_time(questguy(qgindex).flag(15))
         if word(i)="<PAY>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(13)
         
         r=r &word(i)
@@ -1619,7 +1620,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="PASSENGER" then
-        if askyn("Do you want to transport "&questguy(p(0)).n &" to station "&questguy(p(0)).flag(12)+1 &" by turn " &questguy(p(0)).flag(15) &" for " &credits(questguy(p(0)).flag(13))& " Cr.? (y/n)") then
+        if askyn("Do you want to transport "&questguy(p(0)).n &" to station "&questguy(p(0)).flag(12)+1 &" by " &display_time(questguy(p(0)).flag(15)) &" for " &credits(questguy(p(0)).flag(13))& " Cr.? (y/n)") then
             add_passenger(questguy(p(0)).n,30+p(0),questguy(p(0)).flag(13),questguy(p(0)).flag(14),questguy(p(0)).flag(12)+1,questguy(p(0)).flag(15),questguy(p(0)).gender)
             questguy(p(0)).location=-3
         endif
@@ -4063,9 +4064,9 @@ function check_questcargo(st as short) as short
         if player.towed<0 then
             dprint "you deliver the " &shiptypes(-player.towed) &" hull and get paid "&abs(player.towed)*50 &" Cr.",10
             addmoney(abs(player.towed)*50,mt_quest)
+            player.towed=0
+            player.questflag(8)=0
         endif
-        player.towed=0
-        player.questflag(8)=0
     endif
     if undeliverable>0 then
         if askyn("The Station commander offers to buy your cargo for station "& where & " for 10 Cr. per ton(y/n)") then

@@ -615,7 +615,7 @@ function make_fleet() as _fleet
         f=makemerchantfleet
     else
         if configflag(con_easy)=1 or player.turn>250 then 
-            f=makepiratefleet
+            if random_piratebase>0 then f=makepiratefleet
         else
             f=makepatrol
         endif
@@ -633,6 +633,26 @@ function make_fleet() as _fleet
     f.mem(0).engine=e
     if f.mem(0).engine<1 then f.mem(0).engine=1
     return f 
+end function
+
+function random_piratebase() as short
+    dim pot(_NoPB+2) as short
+    dim as short i,l
+    for i=0 to _NoPB
+        if piratebase(i)>0 then
+            l+=1
+            pot(l)=piratebase(i)
+            if i=0 then
+                l+=1
+                pot(l)=piratebase(i)
+            endif
+        endif
+    next
+    if l=0 then
+        return -1
+    else
+        return pot(rnd_range(1,l))
+    endif
 end function
 
 function set_fleet(fl as _fleet) as short
@@ -656,15 +676,12 @@ function makequestfleet(a as short) as _fleet
     dim f as _fleet
     dim as short b,c,i,e
     dim as _cords p1
-    do
-        b=rnd_range(1,_NoPB)
-        c+=1
-    loop until piratebase(b)>0 or c>50
-    if piratebase(b)<0 then
+    b=random_piratebase
+    if b<0 then
         p1.x=rnd_range(0,sm_x)
         p1.y=rnd_range(0,sm_y)
     else
-        p1=map(piratebase(b)).c
+        p1=map(b).c
     endif
     f.c=p1
     if a=5 then
@@ -798,17 +815,12 @@ function makepiratefleet(modifier as short=0) as _fleet
     dim as short maxroll,r,a
     
     dim as short b,c
-    do
-        b=rnd_range(0,_NoPB+1)
-        if b>_NoPB then b=0
-        c=c+1
-    loop until piratebase(b)>0 or c>5
-    if c>5 then return f
+    b=random_piratebase
     f.ty=2
     f.con(15)=rnd_range(1,15)-rnd_range(1,10)-player.turn/1000 'Friendlyness
     f.t=0 'All pirates start with target 9 (random point)
-    f.c=map(piratebase(b)).c
-    maxroll=player.turn/150
+    f.c=map(b).c
+    maxroll=player.turn/1500'!
     if maxroll>60 then maxroll=60
     for a=1 to rnd_range(0,1)+cint(maxroll/20)    
         r=rnd_range(1,maxroll)+modifier
@@ -942,12 +954,7 @@ function piratecrunch(fl as _fleet) as _fleet
     dim as short f,c,d,b,counter
     
     dim p as short
-    do
-        b=rnd_range(0,_NoPB+1)
-        if b>_NoPB then b=0
-        c=c+1
-    loop until piratebase(b)>0 or c>500
-    if c>500 then return r
+    b=random_piratebase
     p=b
     c=0
     b=0
@@ -4507,7 +4514,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if configflag(con_easy)=0 and enemy.hp>0 then
-        easy=player.turn/500
+        easy=player.turn/5000'!
         if easy<.5 then easy=.5
         if easy>1 then easy=1
         enemy.hp=enemy.hp*easy
