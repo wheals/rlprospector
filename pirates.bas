@@ -95,7 +95,7 @@ function meet_fleet(f as short)as short
         eris_does
         return 0
     endif
-    if player.turn>lastturncalled+10 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
+    if player.turn>lastturncalled+50 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
         if fleet(f).fighting=0 then
             if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 and fleet(f).ty<>1 then 'Merchants never attack 
                 q=1
@@ -614,7 +614,7 @@ function make_fleet() as _fleet
     if (countfleet(1)<countfleet(2) or faction(0).war(1)>faction(0).war(2)) or (debug=1 and _debug=1) then 
         f=makemerchantfleet
     else
-        if configflag(con_easy)=1 or player.turn>250 then 
+        if configflag(con_easy)=1 or player.turn>25000 then 
             if random_piratebase>0 then f=makepiratefleet
         else
             f=makepatrol
@@ -817,10 +817,10 @@ function makepiratefleet(modifier as short=0) as _fleet
     dim as short b,c
     b=random_piratebase
     f.ty=2
-    f.con(15)=rnd_range(1,15)-rnd_range(1,10)-player.turn/1000 'Friendlyness
+    f.con(15)=rnd_range(1,15)-rnd_range(1,10)-player.turn/10000 'Friendlyness
     f.t=0 'All pirates start with target 9 (random point)
     f.c=map(b).c
-    maxroll=player.turn/1500'!
+    maxroll=player.turn/15000'!
     if maxroll>60 then maxroll=60
     for a=1 to rnd_range(0,1)+cint(maxroll/20)    
         r=rnd_range(1,maxroll)+modifier
@@ -1796,7 +1796,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
-        enemy.speed=10
+        enemy.speed=8
         enemy.pumod=5
         enemy.sight=4
         enemy.allied=1
@@ -2524,7 +2524,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.enemy=2
         enemy.pumod=5
         enemy.sight=4
-        enemy.speed=10
+        enemy.speed=8
         enemy.range=1.5
         enemy.atcost=rnd_range(6,12)
         enemy.tile=Asc("H")
@@ -3340,7 +3340,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.tile=asc("H")
         enemy.sprite=287
         enemy.col=20
-        enemy.speed=12
+        enemy.speed=10
         enemy.respawns=0
         enemy.faction=1
     endif
@@ -3678,7 +3678,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
-        enemy.speed=8
+        enemy.speed=6
         enemy.intel=5
         enemy.pumod=5
         enemy.sight=4
@@ -3994,7 +3994,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
-        enemy.speed=10
+        enemy.speed=8
         enemy.pumod=5
         enemy.sight=4
         enemy.intel=5
@@ -4096,6 +4096,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=90 then
         enemy.ti_no=1094
+        enemy.stunres=10
+        enemy.biomod=0
         enemy.sdesc="Repair Bot"
         enemy.ldesc="a 30 cm metal sphere. Several arms extrude from it. They end in multipurpose tools. It uses those for movement as well as manipulation."
         enemy.dhurt="damaged"
@@ -4348,7 +4350,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
-        enemy.speed=10
+        enemy.speed=8
         enemy.pumod=5
         enemy.sight=4
         enemy.range=1.5
@@ -4374,7 +4376,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
-        enemy.speed=10
+        enemy.speed=8
         enemy.pumod=5
         enemy.sight=4
         enemy.range=1.5
@@ -4486,7 +4488,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dkill="dies"
         enemy.cmmod=7
         enemy.speed=6
-        enemy.pumod=5
+        enemy.pumod=1
         enemy.sight=4
         enemy.intel=5
         enemy.range=1.5

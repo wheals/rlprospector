@@ -1,6 +1,7 @@
 function ask_alliance(who as short) as short
     if alliance(0)=1 then
         if alliance(who)=1 then
+            dprint "Our progress in battling the robot ships: "
             select case battleslost(ft_ancientaliens,who)
             case is>1 
                 dprint "So far we have destroyed "& battleslost(ft_ancientaliens,who)&" robot ships."
@@ -304,6 +305,7 @@ function give_bountyquest(employer as short) as short
     bountyquest(q).lastseen=fleet(f).c
     bountyquest(q).desig=fleet(f).mem(1).desig
     fleet(f).mem(1).bounty=q
+    questroll=0
     return 0
 end function
 
@@ -1573,7 +1575,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
                 word(i)=drifting(abs(fl)).x &":"& drifting(abs(fl)).y
             endif
         endif
-        if word(i)="<PCORDS>" then word(i)=cords(map(questguy(qgindex).flag(3)).c)&", orbit "& orbitfrommap(questguy(qgindex).flag(4)) & ":"&questguy(qgindex).flag(4) 
+        if word(i)="<PCORDS>" then word(i)=cords(map(questguy(qgindex).flag(3)).c)&", orbit "& orbitfrommap(questguy(qgindex).flag(4))
         if word(i)="<#FL>" then word(i)=""&abs(fl)
         if word(i)="I-<#FL>" then word(i)="IS-"&abs(fl)
         if word(i)="<ITEMWDESC>" and qgindex>0 then word(i)=questguy(qgindex).want.it.ldesc
@@ -1589,7 +1591,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         if word(i)="<RELATIVE>" and qgindex>0 then word(i)=relative(questguy(qgindex).flag(2))
         if word(i)="<CORP>" and qgindex>0 then 
             if questguy(qgindex).flag(6)=0 then
-                if  questguy(qgindex).job-9>0 and questguy(qgindex).job-9<=4 then word(i)=companyname(questguy(qgindex).job-9) 
+                if questguy(qgindex).job-9>0 and questguy(qgindex).job-9<=4 then word(i)=companyname(questguy(qgindex).job-9) 
             else
                 word(i)=companyname(questguy(qgindex).flag(6))
             endif
@@ -1613,7 +1615,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     dim as single fuelprice,fuelsell
     dim as string text
     dim as _ship sh
-    if effekt="CHANGEMOOD" then e.aggr=p(0)
+    if effekt="CHANGEMOOD" then e.aggr=p(1)
     
     if effekt="FRIENDLYCHANGE"  then 
         if rnd_range(1,100)<p(0) and questguy(p(1)).friendly(0)<2 then questguy(p(1)).friendly(0)+=1
@@ -3773,15 +3775,14 @@ function give_quest(st as short) as short
             endif
             
         case 6
-            if player.questflag(5)=0 and player.turn>1000 then
+            if player.questflag(5)=0 and player.turn>3*30*24*60 then
                 dprint "The company rep warns you about a ship that has reportedly been preying on pirates and merchants alike. 'It's fast, it's dangerous, and a confirmed kill is worth 15.000 credits to my company.",15
                 player.questflag(5)=1
                 lastfleet=lastfleet+1
                 fleet(lastfleet).ty=5
                 fleet(lastfleet).mem(1)=make_ship(11)
                 fleet(lastfleet).flag=5
-                fleet(lastfleet).c.x=rnd_range(0,sm_x)            
-                fleet(lastfleet).c.y=rnd_range(0,sm_y)            
+                fleet(lastfleet).c=map(sysfrommap(specialplanet(29))).c            
             endif
             
         case 7

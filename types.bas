@@ -22,7 +22,7 @@ const show_energy=0
 
 const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'12'13'5'38 'special planets already discovered
+Const Show_specials=0'1'12'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -1193,6 +1193,7 @@ end enum
 dim shared bg_parent as byte
 
 enum backgrounds
+    bg_title
     bg_noflip
     bg_ship
     bg_shiptxt
@@ -1872,7 +1873,6 @@ declare function show_dotmap(x1 as short, y1 as short) as short
 declare function show_minimap(xx as short,yy as short) as short
 declare function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as _Cords ,last as short) as short
 
-declare function dam_no_spacesuit(dam as short) as short
 declare function remove_no_spacesuit(who() as short,last as short) as short
 declare function questguy_newloc(i as short) as short
 
@@ -2057,9 +2057,9 @@ declare function levelup(p as _ship,from as short) as _ship
 declare function max_security() as short
 declare function get_freecrewslot() as short
 declare function add_member(a as short,skill as short) as short
-declare function cureawayteam(where as short) as short
-declare function healawayteam(byref a as _monster,heal as short) as short
-declare function damawayteam(dam as short,ap as short=0,dis as short=0) as string
+declare function cure_awayteam(where as short) as short
+declare function heal_awayteam(byref a as _monster,heal as short) as short
+declare function dam_awayteam(dam as short,ap as short=0,dis as short=0) as string
 declare function dplanet(p as _planet,orbit as short, scanned as short,slot as short) as short
 declare function dprint(text as string, col as short=11) as short
 declare function scrollup(b as short) as short

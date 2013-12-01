@@ -1719,6 +1719,11 @@ tiles(198).desc="Your villa."
 tiles(198).gives=132
 tiles(198).turnsinto=198
 
+
+tiles(199).tile=asc(".")
+tiles(199).col=8
+tiles(199).desc="damaged wall"
+
 tiles(200).tile=176
 tiles(200).col=1
 tiles(200).bgcol=0
@@ -1739,7 +1744,7 @@ tiles(201).hp=25
 tiles(201).succt="You damage the wall"
 tiles(201).failt="The walls are too strong for you to seriously damage"
 tiles(201).desc="wall"
-tiles(201).turnsinto=202
+tiles(201).turnsinto=199
 
 tiles(202).tile=asc(".")
 tiles(202).col=8
@@ -1852,8 +1857,8 @@ tiles(225).col=11
 tiles(255).bgcol=1
 tiles(225).desc="cryogenic chamber"
 tiles(225).gives=886
-tiles(255).turnsinto=80
-tiles(255).hides=2
+tiles(225).turnsinto=80
+tiles(225).hides=2
 
 tiles(226).tile=asc("*")
 tiles(226).col=-180
@@ -1997,7 +2002,7 @@ tiles(243).hp=45
 tiles(243).succt="You damage the wall"
 tiles(243).failt="The walls are too strong for you to seriously damage"
 tiles(243).desc="wall"
-tiles(243).turnsinto=202
+tiles(243).turnsinto=199
 
 
 tiles(244).tile=94

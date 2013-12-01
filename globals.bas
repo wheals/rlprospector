@@ -718,7 +718,9 @@ function setglobals() as short
     tiles(203).ti_no=2502
     tiles(204).ti_no=2503
     tiles(205).ti_no=2504
-    
+    tiles(199).ti_no=2509
+    tiles(199).ti_no=2509
+    tiles(199).ti_no=2509
     for a=1 to max_maps
         planets(a)=planets(0)
         planets(a).grav=1

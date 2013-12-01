@@ -21,7 +21,7 @@ function display_time(t as uinteger,form as byte=0) as string
     endif
     if form=0 then
         if d>0 then
-            return "Day: "&d &", "& hs &":"&ms 
+            return "Day "&d &", "& hs &":"&ms 
         else
             return  hs &":"&ms
         endif
@@ -51,7 +51,7 @@ function credits(cr as integer) as string
             t=t &","
         endif
     next
-    if i<0 then t="-"&t
+    if cr<0 then t="-"&t
     return t
 end function
 

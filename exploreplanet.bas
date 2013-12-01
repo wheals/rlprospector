@@ -77,7 +77,7 @@ function ep_areaeffects(areaeffect() as _ae,byref last_ae as short,lavapoint() a
                                         if enemy(b).c.x=x and enemy(b).c.y=y then enemy(b).hp=enemy(b).hp-areaeffect(a).dam+distance(p1,areaeffect(a).c)
                                     next
                                     if x=awayteam.c.x and y=awayteam.c.y and areaeffect(a).dam>distance(p1,areaeffect(a).c) then
-                                        dprint "An Earthquake! "& damawayteam(rnd_range(1,areaeffect(a).dam-distance(p1,areaeffect(a).c))),12
+                                        dprint "An Earthquake! "& dam_awayteam(rnd_range(1,areaeffect(a).dam-distance(p1,areaeffect(a).c))),12
                                         player.killedby="Earthquake"
                                     endif
                                     areaeffect(a).dam=areaeffect(a).rad
@@ -189,7 +189,7 @@ function ep_atship() as short
         location=lc_awayteam
         'dprint ""&ep_Needs_spacesuit(slot,awayteam.c)
         if ep_Needs_spacesuit(slot,awayteam.c)>0 then
-            dam_no_spacesuit(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)))
+            dprint dam_awayteam(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)),5)
         endif
         return 0
     endif
@@ -316,7 +316,7 @@ function ep_checkmove(byref old as _cords,key as string) as short
     dim as short slot,a,b,c,who(128)
     slot=player.map
     if planetmap(awayteam.c.x,awayteam.c.y,slot)=18 then
-        dprint "you get zapped by a forcefield:"&damawayteam(rnd_range(1,6)),12
+        dprint "you get zapped by a forcefield:"&dam_awayteam(rnd_range(1,6)),12
         if awayteam.armor/awayteam.hp<13 then awayteam.c=old
         walking=0
     endif
@@ -372,7 +372,7 @@ function ep_checkmove(byref old as _cords,key as string) as short
             else
                 dprint "Your science officer cant open the door"
                 if rnd_range(1,6)+ rnd_range(1,6)>6 then
-                    dprint "But he sets off an ancient defense mechanism! "&damawayteam(rnd_range(1,6))
+                    dprint "But he sets off an ancient defense mechanism! "&dam_awayteam(rnd_range(1,6))
                     player.killedby="trapped door"
                 endif
                 walking=0
@@ -1197,7 +1197,7 @@ function ep_items(li() as short, byref lastlocalitem as short, localturn as shor
                         p1.y=item(li(a)).w.y
                         dam=10/(1+distance(awayteam.c,p1))*item(li(a)).v1*10
                         alienbomb(li(a),slot,li(),lastlocalitem)
-                        if dam>0 then dprint damawayteam(dam)
+                        if dam>0 then dprint dam_awayteam(dam)
                         if awayteam.hp<=0 then player.dead=29
                         li(a)=li(lastlocalitem)
                         lastlocalitem-=1
@@ -1381,7 +1381,7 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
 
     if slot=specialplanet(8) and rnd_range(1,100)<33 then
         set__color( 11,0)
-        dprint "lightning strikes you "& damawayteam(1),12
+        dprint "lightning strikes you "& dam_awayteam(1),12
         player.killedby="lightning strike"
     endif
 
@@ -1468,9 +1468,9 @@ function ep_planeteffect(li() as short, byref lastlocalitem as short,shipfire() 
     endif
     if cloudmap(awayteam.c.x,awayteam.c.y)>0 and planets(slot).atmos>6 and rnd_range(1,150)<(planets(slot).dens*planets(slot).weat) and slot<>specialplanet(28) then
         if planets(slot).temp<300 then
-            dprint "It's raining sulphuric acid! "&damawayteam(1),14
+            dprint "It's raining sulphuric acid! "&dam_awayteam(1),14
         else
-            dprint "It's raining molten lead! "&damawayteam(1),14
+            dprint "It's raining molten lead! "&dam_awayteam(1),14
         endif
         player.killedby=" hostile environment"
     endif
@@ -1521,6 +1521,7 @@ function ep_pickupitem(key as string, byref lastlocalitem as short, li() as shor
             if item(li(a)).ty<>99 then
                 if _autopickup=1 then text=text &item(li(a)).desig &". "
                 if _autopickup=0 or key=key_pickup then
+                    if _debug=112 then dprint "P:"&item(li(a)).w.p &" m:"&item(li(a)).w.m &" s:"&item(li(a)).w.s &"NO:"&li(a)
                     if item(li(a)).ty=15 then
                         if item(li(a)).v1<5 then text=text &" You pick up the small amount of "&item(li(a)).desig &". "
                         if item(li(a)).v1>=5 and item(li(a)).v1<=10 then text=text &" You pick up the "&item(li(a)).desig &". "
@@ -1531,6 +1532,8 @@ function ep_pickupitem(key as string, byref lastlocalitem as short, li() as shor
                     reward(2)=reward(2)+item(li(a)).v5
                     combon(2).value+=item(li(a)).v5
                     item(li(a)).w.s=-1
+                    item(li(a)).w.m=-0
+                    item(li(a)).w.p=-0
                 endif
                 if item(li(a)).ty=18 then
                     text=text &" You transfer the map data from the rover robot ("&fix(item(li(a)).v6) &"). "
@@ -1714,7 +1717,7 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
                         dam=tmap(x,y).dam
                     endif
                     if rnd_range(1,100)<tmap(x,y).tohit then
-                        dprint tmap(x,y).hitt &" "&  damawayteam(dam),12
+                        dprint tmap(x,y).hitt &" "&  dam_awayteam(dam),12
                     else
                         dprint tmap(x,y).misst,14
                     endif
@@ -1790,7 +1793,7 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
     next
 
     if planetmap(awayteam.c.x,awayteam.c.y,slot)=45 then
-        dprint "Smoldering lava:" &damawayteam(rnd_range(1,6-awayteam.movetype)),12
+        dprint "Smoldering lava:" &dam_awayteam(rnd_range(1,6-awayteam.movetype)),12
         if awayteam.hp<=0 then player.dead=16
         player.killedby="lava"
     endif
@@ -1804,7 +1807,7 @@ function ep_tileeffects(areaeffect() as _ae, byref last_ae as short,lavapoint() 
         tmap(awayteam.c.x,awayteam.c.y).gives=tmap(awayteam.c.x,awayteam.c.y).gives-rnd_range(0,awayteam.hp\5)
         if tmap(awayteam.c.x,awayteam.c.y).hp<=awayteam.hp/3 then dprint "The ice creaks",14
         if tmap(awayteam.c.x,awayteam.c.y).hp<=0 then
-            dprint "...and breaks! "&damawayteam(rnd_range(1,3)),12
+            dprint "...and breaks! "&dam_awayteam(rnd_range(1,3)),12
             tmap(awayteam.c.x,awayteam.c.y)=tiles(2)
             planetmap(awayteam.c.x,awayteam.c.y,slot)=2
         endif
@@ -2365,6 +2368,9 @@ function ep_spawning(spawnmask() as _cords,lsp as short, diesize as short,nightd
                     d=getmonster()
                     enemy(d)=setmonster(makemonster(tmap(x,y).spawnswhat,slot),slot,spawnmask(),lsp,x,y,d)
                     if vismask(x,y)>0 then dprint tmap(x,y).spawntext,14
+                    if _debug>0 then dprint "Spawning: "& b & "<"& tmap(x,y).spawnsmax
+                else
+                    if _debug>0 then dprint "Not Spawning: "& b & ">="& tmap(x,y).spawnsmax
                 endif
             endif
             if tmap(x,y).no=304 and nightday(x)=0 then
@@ -2515,7 +2521,7 @@ function ep_shipfire(shipfire() as _shipfire) as short
                 
                 if dammap(awayteam.c.x,awayteam.c.y)>0 then
                     txt=txt &"you got caught in the blast! "
-                    if shipfire(sf2).stun=0 then txt = txt & damawayteam(dammap(awayteam.c.x,awayteam.c.y),1) &" "
+                    if shipfire(sf2).stun=0 then txt = txt & dam_awayteam(dammap(awayteam.c.x,awayteam.c.y),1) &" "
                     if shipfire(sf2).stun=1 then awayteam.e.add_action(150)
                 endif
                 
@@ -3350,12 +3356,12 @@ function ep_jumppackjump() as short
             next
             awayteam.oxygen=awayteam.oxygen-5
             if rnd_range(1,6)+rnd_range(1,6)+planets(slot).grav>7 then
-                dprint "Crash Landing! " &damawayteam(rnd_range(1,1+planets(slot).grav))
+                dprint "Crash Landing! " &dam_awayteam(rnd_range(1,1+planets(slot).grav))
             else
                 dprint "You land savely"
             endif
         else
-            dprint "you hit the ceiling pretty fast! "&damawayteam(rnd_range(1,1+planets(slot).grav))
+            dprint "you hit the ceiling pretty fast! "&dam_awayteam(rnd_range(1,1+planets(slot).grav))
         endif
     else
         dprint "Not enough jetpack fuel"
@@ -3492,9 +3498,6 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
                 for a=1 to 8
                     basis(9).inv(a).v=rnd_range(1,8-a)
                 next
-            endif
-            if player.lastvisit.s<>tmap(awayteam.c.x,awayteam.c.y).gives+1 or player.turn-player.lastvisit.t>100 then
-                change_prices(tmap(awayteam.c.x,awayteam.c.y).gives+1,(player.turn-player.lastvisit.t)\5)
             endif
             trading(tmap(awayteam.c.x,awayteam.c.y).gives+1)
             player.lastvisit.s=tmap(awayteam.c.x,awayteam.c.y).gives+1
@@ -4560,18 +4563,12 @@ function ep_gives(awayteam as _monster, byref nextmap as _cords, shipfire() as _
             ' Alien Civs
             '
             if tmap(awayteam.c.x,awayteam.c.y).gives=301 then
-                if player.lastvisit.s<>tmap(awayteam.c.x,awayteam.c.y).gives+1 then
-                    change_prices(11,(player.turn-player.lastvisit.t)\5)
-                endif
                 trading(11)
                 player.lastvisit.s=tmap(awayteam.c.x,awayteam.c.y).gives+1
                 factionadd(0,6,-5)
             endif
 
             if tmap(awayteam.c.x,awayteam.c.y).gives=302 then
-                if player.lastvisit.s<>tmap(awayteam.c.x,awayteam.c.y).gives+1 then
-                    change_prices(12,(player.turn-player.lastvisit.t)\5)
-                endif
                 trading(12)
                 player.lastvisit.s=tmap(awayteam.c.x,awayteam.c.y).gives+1
                 factionadd(0,7,-5)

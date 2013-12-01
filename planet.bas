@@ -5818,16 +5818,21 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
             end select
             for j=1 to rnd_range(1+l,5+l)
                 p2=p
-                if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                if (abs(planetmap(p.x,p.y,m))=201 or planetmap(p.x,p.y,m)) and rnd_range(1,100)<50 then planetmap(p.x,p.y,m)=-199
+                if abs(planetmap(p.x,p.y,m))<>203 and abs(planetmap(p.x,p.y,m))<>199 then planetmap(p.x,p.y,m)=-200
                 if rnd_range(1,100)<25 then
                     p=movepoint(p2,4)
-                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    if (abs(planetmap(p.x,p.y,m))=201 or planetmap(p.x,p.y,m)) and rnd_range(1,100)<50 then planetmap(p.x,p.y,m)=-199
+                    if abs(planetmap(p.x,p.y,m))<>203 and abs(planetmap(p.x,p.y,m))<>199 then planetmap(p.x,p.y,m)=-200
                     p=movepoint(p2,6)
-                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    if (abs(planetmap(p.x,p.y,m))=201 or planetmap(p.x,p.y,m)) and rnd_range(1,100)<50 then planetmap(p.x,p.y,m)=-199
+                    if abs(planetmap(p.x,p.y,m))<>203 and abs(planetmap(p.x,p.y,m))<>199 then planetmap(p.x,p.y,m)=-200
                     p=movepoint(p2,2)
-                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    if (abs(planetmap(p.x,p.y,m))=201 or planetmap(p.x,p.y,m)) and rnd_range(1,100)<50 then planetmap(p.x,p.y,m)=-199
+                    if abs(planetmap(p.x,p.y,m))<>203 and abs(planetmap(p.x,p.y,m))<>199 then planetmap(p.x,p.y,m)=-200
                     p=movepoint(p2,8)
-                    if abs(planetmap(p.x,p.y,m))<>203 then planetmap(p.x,p.y,m)=-200
+                    if (abs(planetmap(p.x,p.y,m))=201 or planetmap(p.x,p.y,m)) and rnd_range(1,100)<50 then planetmap(p.x,p.y,m)=-199
+                    if abs(planetmap(p.x,p.y,m))<>203 and abs(planetmap(p.x,p.y,m))<>199 then planetmap(p.x,p.y,m)=-200
                 endif
                 if rnd_range(1,100)<50 then
                     p=movepoint(p2,a)
@@ -8172,6 +8177,7 @@ end function
 function checkcomplex(map as short,fl as short) as integer
     dim result as integer
     dim maps(36) as short
+    dim flags(lastplanet) as byte
     dim as short nextmap,lastmap,foundport,a,b,done
     maps(0)=map
     do
@@ -8179,9 +8185,13 @@ function checkcomplex(map as short,fl as short) as integer
         lastmap=nextmap
         nextmap+=1
         for a=1 to lastportal
-            if portal(a).from.m=maps(lastmap) then maps(nextmap)=portal(a).dest.m
+            if portal(a).from.m=maps(lastmap) and flags(portal(a).dest.m)=0 then 
+                maps(nextmap)=portal(a).dest.m
+                flags(portal(a).dest.m)=1
+            endif
         next
-    loop until maps(nextmap)=0
+        if _debug>0 then dprint "M:"&maps(nextmap)
+    loop until maps(nextmap)=0 or nextmap>35
     
     for a=1 to lastmap
         if maps(a)>0 and planets(maps(a)).genozide=0 then result+=1

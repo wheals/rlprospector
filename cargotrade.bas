@@ -6,7 +6,7 @@ function update_world(location as short) as short
         move_fleets()
         collide_fleets()
         move_probes()
-        cureawayteam(location)
+        cure_awayteam(location)
         
         for a=0 to laststar
             if map(a).planets(1)>0 then
@@ -22,7 +22,7 @@ function update_world(location as short) as short
     endif
     
     if player.turn mod (24*60)=0 then 'Daily
-        for a=0 to 2
+        for a=0 to 12
             change_prices(a,10)
         next
         
@@ -79,10 +79,10 @@ function scrap_component() as short
         if skill_test(st_average,player.science(0)) then
             if skill_test(st_hard,player.science(0)) then
                 dprint "You found enough parts for a ton of weapons parts"
-                w=5
+                w=6
             else
                 dprint "You found enough parts for a ton of techgoods."
-                w=2
+                w=4
             endif
             load_quest_cargo(w,1,0)
         else
@@ -1109,17 +1109,13 @@ function casino(staked as short=0, st as short=-1) as short
             endif
             if rnd_range(1,100)<25-passenger then 'Passenger
                 b=rnd_range(0,2)
-                passenger+=5
+                passenger+=rnd_range(5,25)
                 if b<>st then
                     t=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(b).c)
                     price=distance(player.c,basis(b).c)*rnd_range(1,20)
                     bonus=rnd_range(1,15)
-                    if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every turn you arrive there earlier. Do you want to take him with you?(y/n)") then
-                        if max_security>0 then
-                            add_passenger("Passenger for S-"& b+1,30,price,bonus,b+1,t,0)
-                        else
-                            dprint "You don't have room to take him with you."
-                        endif
+                    if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every day you arrive there earlier. Do you want to take him with you?(y/n)") then
+                        add_passenger("Passenger for S-"& b+1,30,price,bonus,b+1,t,0)
                     endif
                 endif
             endif
@@ -1405,7 +1401,7 @@ function check_passenger(st as short) as short
                     if questguy(crew(b).typ-30).has.type=qt_travel then questguy(crew(b).typ-30).has.given=1 
                     if questguy(crew(b).typ-30).want.type=qt_travel then questguy(crew(b).typ-30).want.given=1 
                 endif
-                t=crew(b).time-player.turn
+                t=(crew(b).time-player.turn)/(60*24)
                 price=crew(b).price+crew(b).bonus*t
                 if price<0 then price=10
                 if t>0 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
@@ -2831,7 +2827,7 @@ function dividend() as short
     dim payout(4) as single
     dim a as short
     for a=0 to lastshare
-        if shares(a).company>0 and shares(a).lastpayed<=player.turn-250 then
+        if shares(a).company>0 and shares(a).lastpayed<=player.turn-3*30*24*60 then '3 months
             payout(shares(a).company)=payout(shares(a).company)+companystats(shares(a).company).rate/100
             shares(a).lastpayed=player.turn
         endif
@@ -3084,12 +3080,14 @@ function showprices(st as short) as short
         set__color( a+8,0)
         if a=0 then 
             set__color( 11,0)
-            draw string (0,a*_fh2),"Turn :",,font2,custom,@_col
+            draw string (0,a*_fh2),"Time :",,font2,custom,@_col
         else
             draw string (0,a*_fh2),goodsname(a) &":",,font2,custom,@_col
         endif
-        for b=0 to 11
-            draw string ((b*5)*_fw2+15*_fw2,a*_fh2),""&goods_prices(a,b,st),,font2,custom,@_col
+        b=0
+        draw string ((b*5)*_fw2+15*_fw2,a*_fh2),display_time(goods_prices(a,b,st)),,font2,custom,@_col
+        for b=1 to 11
+            draw string ((b*5)*_fw2+15*_fw2,a*_fh2),credits(goods_prices(a,b,st)),,font2,custom,@_col
             if goods_prices(a,b,st)>relhigh(a) then relhigh(a)=goods_prices(a,b,st)
             if goods_prices(a,b,st)>highest then highest=goods_prices(a,b,st) 
         next
@@ -3114,6 +3112,7 @@ function showprices(st as short) as short
         next
 
     endif
+    dprint "a: absolute, r: relative, esq to quit."
     no_key=keyin
     if no_key="a" then relative=0
     if no_key="r" then relative=1
@@ -3718,7 +3717,7 @@ function shop(sh as short,pmod as single,shopn as string) as short
             if inv(c).v1<player.engine then dprint "You already have a better engine."
             if inv(c).v1=player.engine then dprint "this engine isn't better than the one you already have."
             if inv(c).v1>player.h_maxengine then dprint "This engine doesn't fit in your ship."
-            if inv(c).v1>player.engine and inv(c).v1<=player.h_maxsensors then
+            if inv(c).v1>player.engine and inv(c).v1<=player.h_maxengine then
                 if paystuff(inv(c).price*pmod) then
                     player.engine=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
@@ -3728,7 +3727,7 @@ function shop(sh as short,pmod as single,shopn as string) as short
             if inv(c).v1<player.shieldmax then dprint "You already have a better shieldgenerator."
             if inv(c).v1=player.shieldmax then dprint "This shield generator isn't better than the one you already have."
             if inv(c).v1>player.h_maxshield then dprint "This shield generator doesn't fit in your ship."
-            if inv(c).v1>player.shieldmax and inv(c).v1<=player.h_maxsensors then
+            if inv(c).v1>player.shieldmax and inv(c).v1<=player.h_maxshield then
                 if paystuff(inv(c).price*pmod) then
                     player.shieldmax=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."

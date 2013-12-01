@@ -3,7 +3,7 @@ function captain_sprite() as short
 end function
 
 function change_captain_appearance(x as short,y as short) as short
-    dim as short a
+    dim as short a,n
     dim as string text,mf(1)
     mf(0)="Female"
     mf(1)="Male"
@@ -40,12 +40,20 @@ function change_captain_appearance(x as short,y as short) as short
             crew(1).story(10)+=1
             if crew(1).story(10)>1 then crew(1).story(10)=0
         case 3
-            dprint ""
+            dprint "Age: "
             crew(1).story(6)=getnumber(18,120,20)-18
             'age
         case 4
+            dprint "Height in cm: "
+            n=getnumber(100,300,180)
+            n=n-160
+            crew(1).story(7)=n
             'height
         case 5
+            dprint "Weight in kg: "
+            n=getnumber(50,500,100)
+            n=(n-50-crew(1).story(7))/4
+            crew(1).story(8)=n
             'weight
         case 6
             crew(1).story(3)+=1
@@ -781,7 +789,7 @@ function display_star(a as short,fbg as byte=0) as short
     dim bg as short
     dim n as short
     dim p as short
-    dim as short x,y,debug
+    dim as short x,y,debug,s
     'debug=2
     x=map(a).c.x-player.osx
     y=map(a).c.y-player.osy
@@ -797,6 +805,7 @@ function display_star(a as short,fbg as byte=0) as short
                 set__color( 11,0)
                 if map(a).planets(p)=specialplanet(n) and planets(map(a).planets(p)).mapstat>0 then
                     bg=233
+                    s=n
                 endif
                 if show_specials>0 or (debug=2 and _debug=1) then
                     if map(a).planets(p)=specialplanet(n) then
@@ -823,6 +832,7 @@ function display_star(a as short,fbg as byte=0) as short
         if fbg=1 then put (x*_tix,y*_tiy),gtiles(85),trans
         set__color( 11,0,vismask(map(a).c.x,map(a).c.y))
         if bg=233 then draw string (x*_tix,y*_tiy),"s",,font2,custom,@_tcol
+        if bg=233 and _debug>0 then draw string (x*_tix,y*_tiy),"s:"&s,,font2,custom,@_tcol
         if debug=1 and _debug=1 then draw string ((map(a).c.x-player.osx)*_fw1,(map(a).c.y-player.osy)*_fh1),""&map(a).discovered,,Font1,custom,@_col
         if debug=5 and _debug=1 then draw string (x*_tix+_tix,y*_tiy),""&map(a).ti_no &":"&map(a).spec,,Font1,custom,@_col
     else
@@ -1387,6 +1397,8 @@ function display_monsters(osx as short) as short
                                 draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                             endif
                         endif
+                        if _debug>0 then draw string ((p.x-osx)*_fw1,P.y*_fh1),"a:"&enemy(a).aggr,,font2,custom,@_tcol
+                            
                         if show_energy=1 then 
                             set__color(15,0)
                             draw string ((p.x-osx)*_tix,p.y*_tiy),"E:"&enemy(a).e.e,,font2,custom,@_tcol
@@ -1404,7 +1416,7 @@ end function
 
 
 function display_ship_weapons(m as short=0) as short
-    dim as short a,b,bg,wl,ammo,c,empty
+    dim as short a,b,bg,wl,ammo,ammomax,c,empty
     dim as string text
     set__color( 15,0)
     draw string ((_mwx+1)*_fw1+_fw2,7*_fh2), "Weapons:",,font2,custom,@_col
@@ -1416,7 +1428,10 @@ function display_ship_weapons(m as short=0) as short
         else
             bg=0
         endif
-        if player.weapons(a).ammomax>0 then ammo+=player.weapons(a).ammo
+        if player.weapons(a).ammomax>0 then 
+            ammo+=player.weapons(a).ammo
+            ammomax+=player.weapons(a).ammomax
+        endif
         text=weapon_text(player.weapons(a))
         if text<>"" then
             c=c+textbox(trim("{15}"&text),sidebar,(8+c)*_fh2,20,,bg,1)+1
@@ -1434,7 +1449,7 @@ function display_ship_weapons(m as short=0) as short
     c+=1
     if ammo>0 then
         set__color(15,0)
-        draw string(sidebar,(8+c)*_fh2), "Loadout ("& ammo &"):",,Font2,custom,@_col
+        draw string(sidebar,(8+c)*_fh2), "Loadout ("& ammomax &"/"&ammo &"):",,Font2,custom,@_col
         set__color(11,0)
         draw string(sidebar,(9+c)*_fh2), ammotypename(player.loadout),,Font2,custom,@_col
         draw string(sidebar,(10+c)*_fh2), "Damage: "&player.loadout+1,,Font2,custom,@_col
@@ -1624,7 +1639,7 @@ function dtile(x as short,y as short, tiles as _tile,visible as byte) as short
     bgcol=tiles.bgcol
     tino=tiles.ti_no
     if tino>1000 then
-        tino=2500+(tino-2500)+planets(slot).wallset*9
+        tino=2500+(tino-2500)+planets(slot).wallset*10
     endif
     'if tiles.walktru=5 then bgcol=1
     if tiles.col<0 and tiles.bgcol<0 then

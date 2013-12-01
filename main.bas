@@ -1,6 +1,6 @@
 
 'Master debug switch: Do not touch!
-const _debug=0
+#include "debug.bas"
 
 #macro draw_string(ds_x,ds_y,ds_text,ds_font,ds_col)
 draw string(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
@@ -61,7 +61,6 @@ check_filestructure
 load_config
 load_fonts
 if configflag(con_tiles)=0 or configflag(con_sysmaptiles)=0 then load_tiles
-cls
 load_keyset
 load_sounds
 load_palette()
@@ -87,15 +86,13 @@ if not fileexists("register") then
 endif
 
 
-
-
-
 do
     setglobals
     do
-        titlemenu
-        key=keyin("1234567abcdefght",3)
-        if key="1" or key="a" then
+        
+        a=menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,20)
+        if a=1 then
+            key="1"
             if count_savegames()>20 then
                 key=""
                 dprint "Too many Savegames, choose one to overwrite",14
@@ -108,11 +105,11 @@ do
                 endif
             endif
         endif
-        if key="2" or key="b" then key=from_savegame(key)
-        if key="3" or key="c" then high_score("")
-        if key="4" or key="d" then manual
-        if key="5" or key="e" then configuration
-        if key="6" or key="f" then keybindings
+        if a=2 then key=from_savegame("2")
+        if a=3 then high_score("")
+        if a=4 then manual
+        if a=5 then configuration
+        if a=6 then keybindings
 '           if key="8" then
 '            dim i as _items
 '            f=freefile
@@ -165,10 +162,10 @@ do
                     next
                 endif
         endif
-    loop until key="1" or key="2" or key="7"  or key="a"  or key="b" or key="g"
+    loop until key="1" or key="2" or a=7
     set__color(11,0)
     cls
-    if key="1" or key="a" then start_new_game
+    if key="1" then start_new_game
 
     if key="1" or key="2" or key="a" or key="b" and player.dead=0 then
         key=""
@@ -197,15 +194,7 @@ end
 function titlemenu() as short
     dim as short bg
     dim as any ptr logo
-    bg=rnd_range(1,_last_title_pic)
-
-    background(bg &".bmp")
-    logo=bmp_load("graphics/prospector.bmp")
-    if logo<>NULL then
-        put (39,69),logo,trans
-    else
-        draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
-    endif
+    
 
     set__color( 15,0)
     draw string(_screenx-22*_FW2,_screeny-10*_FH2),__VERSION__,,FONT2,pset
@@ -227,9 +216,7 @@ function start_new_game() as short
     dim i as _items
     dim debug as byte
     debug=126
-    if _debug>0 then
-        artflag(25)=1
-    endif
+    
     make_spacemap()
     if debug=1 and _debug=1 then
         f=freefile
@@ -303,8 +290,8 @@ function start_new_game() as short
         if _debug=1 then placeitem(makeitem(301),,,,,-1)
         if _debug=1 then placeitem(makeitem(105),,,,,-1)
         if _debug=1 then placeitem(makeitem(64),,,,,-1)
-        if _debug=1 then placeitem(makeitem(64),,,,,-1)
-        if _debug=1 then placeitem(makeitem(64),,,,,-1)
+        if _debug=999 then placeitem(makeitem(301),,,,,-1)
+        if _debug=2411 then placeitem(makeitem(301),,,,,-1)
         if _debug=1211 then placeitem(makeitem(30),,,,,-1)
         if _debug>0 then player.weapons(2)=makeweapon(95)
 '        placeitem(makeitem(250),0,0,0,0,-1)
@@ -475,6 +462,7 @@ function start_new_game() as short
         player.c=map(sysfrommap(specialplanet(show_specials))).c
     endif
     set__color(11,0)
+    if _debug=2411 then player.turn=500000
     if debug=125 and _debug>0 then player.money=3000
     cls
     return 0
@@ -684,8 +672,8 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 set__color(11,0)
                 cls
                 removeequip
-
-                for b=6 to 128
+                c=1
+                for b=2 to 128
                     if crew(b).hp<=0 then
                         crew(b)=crew(0)
                     else
@@ -694,12 +682,12 @@ function landing(mapslot as short,lx as short=0,ly as short=0,test as short=0) a
                 next
                 if c>127 then c=127
 
-                for b=6 to c-1
+                for b=2 to c-1
                     if crew(b).hpmax=0 then
                         swap crew(b),crew(b+1)
                     endif
                 next
-
+                
             loop until nextmap.m=-1 or player.dead<>0
             for c=0 to 127
                 for b=6 to 127
@@ -1393,9 +1381,11 @@ function rescue() as short
                 return 0
             endif
         else
-            if distance(fleet(a).c,player.c)<dis2 and faction(0).war(fleet(a).ty)<100 then
-                closest_fleet=a
-                dis2=distance(fleet(a).c,player.c)
+            if fleet(a).ty<=7 then
+                if distance(fleet(a).c,player.c)<dis2 and faction(0).war(fleet(a).ty)<100 then
+                    closest_fleet=a
+                    dis2=distance(fleet(a).c,player.c)
+                endif
             endif
         endif
     next
@@ -1552,12 +1542,9 @@ function spacestation(st as short) as _ship
             shop_order(st)=0
         endif
     endif
-    if _debug=1 then dprint "Done"
-
+    
     ss_sighting(st)
-    if _debug=1 then dprint "Done"
-
-    if _debug>0 then dprint "Towed:"&player.towed
+    
     if basis(st).spy=1 or basis(st).spy=2 then
         if askyn("Do you pay 100 cr. for your informant? (y/n)") then
             player.money=player.money-100
@@ -1600,8 +1587,6 @@ function spacestation(st as short) as _ship
         endif
     next
     
-    if _debug>0 then dprint "Towed1:"&player.towed
-    
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>600 then
         b=count_and_makeweapons(st)
 
@@ -1611,15 +1596,10 @@ function spacestation(st as short) as _ship
         endif
     endif
     
-    
-    if _debug>0 then dprint "Towed2:"&player.towed
-
     if st<>player.lastvisit.s or player.turn-player.lastvisit.t>100 then
         dprint gainxp(1),c_gre
         check_questcargo(st)
-        if _debug>0 then dprint "Towed3:"&player.towed
         for a=0 to 2
-            if (player.turn-player.lastvisit.t)\3>1 then change_prices(a,(player.turn-player.lastvisit.t)\3)
             companystats(basis(a).company).rate=0
             for b=0 to 1+(player.turn-player.lastvisit.t)\3
                 companystats(basis(a).company).profit=companystats(basis(a).company).profit+((rnd_range(1,6) +rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))*companystats(basis(a).company).capital/10)
@@ -2940,10 +2920,19 @@ endif
 
 
     if slot=specialplanet(1) and specialflag(1)=0 then 'apollos planet
+        lastenemy+=1
+        enemy(lastenemy)=makemonster(5,slot)
+        enemy(lastenemy)=setmonster(enemy(lastenemy),slot,spawnmask(),lsp,,,b,1)
         player.landed=rnd_point
         player.landed.m=slot
+        dodialog(2,enemy(lastenemy),0)
+        if enemy(b).aggr=0 then
+            dprint enemy(lastenemy).sdesc &" doesn't seem pleased with your response."
+        else
+            dprint enemy(lastenemy).sdesc &" does seem pleased with your response."
+        endif
     endif
-
+    
     if slot=specialplanet(2) then
         if specialflag(2)=0 then
 
@@ -3046,6 +3035,7 @@ endif
             enemy(lastenemy).slot=16
         endif
     next
+    
     lastlocalitem=make_localitemlist(li(),slot)
 
     lsp=0
@@ -3136,7 +3126,6 @@ endif
         dprint planets_flavortext(slot),15
         no_key=keyin
     endif
-    if slot=specialplanet(1) and specialflag(1)=0 then dodialog(2,enemy(1),0)
     if no_enemys=1 then lastenemy=0
 
     if _debug=11 then
@@ -3163,7 +3152,7 @@ endif
     'Planet Exploration Loop
     '
     '***********************
-
+    if _debug>0 then dprint enemy(1).sdesc &" "&enemy(1).aggr
     do
         if show_all=1 then
             set__color( 15,0)
@@ -3278,8 +3267,8 @@ endif
                 flip
             endif
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
-            if awayteam.oxygen<0 then dprint "Asphyixaction:"&damawayteam(rnd_range(1,awayteam.hp),1),12
-            healawayteam(awayteam,0)
+            if awayteam.oxygen<0 then dprint "Asphyixaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
+            heal_awayteam(awayteam,0)
 
             old=awayteam.c
             if walking<>0 then
@@ -3437,7 +3426,7 @@ endif
 
             if key=key_he then
                 if awayteam.disease>0 then
-                    cureawayteam(0)
+                    cure_awayteam(0)
                 else
                     if configflag(con_chosebest)=0 then
                         c=findbest(11,-1)
@@ -3449,7 +3438,7 @@ endif
                             dprint "you can't use that."
                         else
                             if askyn("Do you want to use the "&item(c).desig &"(y/n)?") then
-                                item(c).v1=healawayteam(awayteam,item(c).v1)
+                                item(c).v1=heal_awayteam(awayteam,item(c).v1)
                                 if item(c).v1<=0 then destroyitem(c)
                             endif
                         endif
@@ -4575,7 +4564,7 @@ function monsterhit(attacker as _monster, defender as _monster,vis as byte) as _
     if b>attacker.weapon+5+noa/2 then b=attacker.weapon+5+noa/2 'max damage
     if defender.made=0 then
         if b>0 then
-            text=text & damawayteam(b,,attacker.disease)
+            text=text & dam_awayteam(b,,attacker.disease)
             col=12
         else
             text=text & " no casualties."

@@ -1432,7 +1432,7 @@ function make_clouds() as short
     for a=laststar+1 to laststar+wormhole
         last=line_in_points(map(a).c,map(map(a).planets(1)).c,p())
         for i=1 to last
-            if a mod 2=0 then
+            if a mod 2=0 and last2<=1024 then
                 last2+=1
                 pp(last2)=p(i)
             endif
@@ -1458,6 +1458,8 @@ function make_clouds() as short
             'add_ano(map(a).c,map(map(a).planets(1)).c,ano)
         endif
     next
+    
+    if last2>1024 then last2=1024
     
     if _debug=1 then dprint "Last2:"&last2
     for i=1 to last2

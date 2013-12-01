@@ -1049,6 +1049,7 @@ function weapon_text(w as _weap) as string
             if w.shutdown>0 then text=text &"- Shutdown"
         else
             text=w.desig
+            if w.ammomax>0 then text=text &"| A:"&w.ammomax &"/"&w.ammo
         endif
     endif
     return text
@@ -1325,7 +1326,7 @@ function low_morale_message() as short
     who=rnd_range(2,crewmembers)
     if crew(who).story(10)=0 then
         hesheit="she"
-        hishersits="hers"
+        hishersits="her"
         himselfherself="herself"
     endif
     if crew(who).story(10)=1 then
@@ -1433,7 +1434,7 @@ function low_morale_message() as short
                     case is=3
                         dprint crew(who).n &" thinks this will be one of the more profitable hauls."
                     case is=4
-                        dprint crew(who).n &" bores everyone to tears by explaining in depth how " & hesheit & "will invest enough to get a retirement pension out of " & hishersits & " (great) wage."
+                        dprint crew(who).n &" bores everyone to tears by explaining in depth how " & hesheit & " will invest enough to get a retirement pension out of " & hishersits & " (great) wage."
                     case is=5
                         dprint crew(who).n &" asks excitedly what everyone thinks what we are going to find next!"
                     case is=6

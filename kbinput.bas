@@ -510,6 +510,11 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
     dim longest as short
     dim as short ofx,l2,longestbox,longesthelp,backpic,offset
     backpic=rnd_range(1,_last_title_pic)
+    
+    dim as any ptr logo
+    if bg=bg_title then
+        logo=bmp_load("graphics/prospector.bmp")
+    endif
     text=te
     help=he
     b=len(text)
@@ -575,6 +580,13 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
             set__color(15,0)
             cls
             select case bg
+            case bg_title
+                background(backpic &".bmp") 
+                if logo<>NULL then
+                    put (39,69),logo,trans
+                else
+                    draw string(26,26),"PROSPECTOR",,titlefont,custom,@_col
+                endif
             case bg_ship
                 display_ship
             case bg_shiptxt

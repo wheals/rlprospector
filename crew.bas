@@ -85,7 +85,7 @@ function best_crew(skill as short, no as short) as short
     return result
 end function
 
-function cureawayteam(where as short) as short
+function cure_awayteam(where as short) as short
     dim as short bonus,pack,cured,sick,a,biodata
     dim as string text
     if where=0 then 'On planet=0 On Ship=1
@@ -199,7 +199,7 @@ end function
 
 
 
-function healawayteam(byref a as _monster,heal as short) as short
+function heal_awayteam(byref a as _monster,heal as short) as short
     dim as short b,c,ex,fac,h
     static reg as single
     static doc as single
@@ -308,14 +308,14 @@ function diseaserun(onship as short) as short
     return 0
 end function
 
-function damawayteam(dam as short, ap as short=0,disease as short=0) as string
+function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as integer ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus
+    dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus
     dim as short local_debug=0
-    dim target(128) as integer
-    dim stored(128) as integer
-    dim injured(16) as integer
-    dim killed(16) as integer
+    dim target(128) as short
+    dim stored(128) as short
+    dim injured(16) as short
+    dim killed(16) as short
     dim desc(16) as string
     desc(1)="Captain"
     desc(2)="Pilot"
@@ -337,18 +337,27 @@ function damawayteam(dam as short, ap as short=0,disease as short=0) as string
     'ap=2 All on one, carries over
     'ap=3 All on one, no carrying over
     'ap=4 Ignores Armor, Robots immune
-
+    'ap=5 No Spacesuits
     if local_debug=1 then text=text & "in:"&dam
 
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
-    for b=1 to 128
-        if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
-            last+=1
-            target(last)=b
-            stored(b)=crew(b).hp
-        endif
-    next
+    if ap=5 then
+        last=no_spacesuit(target(),b) 'Don't need the b
+        if last=0 then return ""
+        for b=1 to last
+            stored(b)=crew(target(b)).hp
+        next
+    else
+        for b=1 to 128
+            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
+                last+=1
+                target(last)=b
+                stored(b)=crew(b).hp
+            endif
+        next
+    endif
+    
     if last>128 then last=128
     cc=0
     do
@@ -521,7 +530,7 @@ function levelup(p as _ship,from as short) as _ship
     for a=1 to 128
         lev(a)=0
         if _showrolls=1 or debug=1 then crew(a).xp+=10
-        if crew(a).hp>0  then
+        if crew(a).hp>0 and (crew(a).typ>0 and crew(a).typ<8) or (crew(a).typ>=14 and crew(a).typ<=16) then
             roll=rnd_range(1,crew(a).xp)
             if crew(a).xp>0 and (roll+crew(a).augment(10)*2>5+crew(a).hp^2 or debug=1) then
                 lev(a)+=1
@@ -611,67 +620,6 @@ function remove_no_spacesuit(who() as short,last as short) as short
         crew(who(i)).oldonship=crew(who(i)).onship
         crew(who(i)).onship=4
     next
-    return 0
-end function
-
-function dam_no_spacesuit(dam as short) as short
-    dim as short who(128),last,i,w,dead,hurt,debug,deadw,hurtw,hps(128)
-    dim text as string
-    last=no_spacesuit(who())
-    for i=1 to 128
-        if crew(i).hp>0 then hps(i)=crew(i).hp
-    next
-    debug=1
-    if debug=1 and _debug=1 then dprint "Damage"&dam &"last:"&last
-    if last>0 then
-        do
-            w=rnd_range(1,last)
-            crew(who(w)).hp-=1
-            crew(who(w)).morale-=10*bunk_multi
-            if dam<last then
-                who(w)=who(last)
-                if last>1 then last-=1
-            endif
-            dam-=1
-        loop until dam<=0 or last<=1
-        for i=1 to 128
-            if hps(i)>0 then
-                if crew(i).hp<=0 then
-                    dead+=1
-                    deadw=i
-                endif
-                if crew(i).hp>0 and crew(i).hp<hps(i) then
-                    hurt+=1
-                    hurtw=i
-                endif
-            endif
-        next
-
-        if hurt>1 then text=text & hurt & " crewmembers hurt"
-        if hurt=1 then text=text & crew(hurtw).n & " was hurt"
-        if dead>0 then
-            if text<>"" then text=text &", "
-            if dead>1 then text=text & dead & " crewmembers killed"
-            if dead=1 then text=text & crew(deadw).n & " was killed"
-            player.deadredshirts+=dead
-        endif
-        if hurt>0 or dead>0 then
-            #ifdef _FMODSOUND
-            if configflag(con_damscream)=0 then
-                FSOUND_PlaySound(FSOUND_FREE, sound(12))
-                sleep 100
-            endif
-            #endif
-            #ifdef _FBSOUND
-            if configflag(con_damscream)=0 then
-                fbs_Play_Wave(sound(12))
-                sleep 100
-            endif
-            #endif
-            changemoral(-10,0)
-            dprint text &" by extreme environment.",c_red
-        endif
-    endif
     return 0
 end function
 
@@ -1924,7 +1872,7 @@ function equip_awayteam(m as short) as short
 end function
 
 function tohit_gun(a as short) as short
-    return crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*7+add_talent(3,10,1)+add_talent(3,11,1)+add_talent(a,23,1)+player.gunner(1)
+    return crew(a).augment(1)+crew(a).talents(28)*3-crew(a).talents(29)*7+add_talent(3,10,1)+add_talent(3,11,1)+add_talent(a,23,1)+maximum(0,player.gunner(1))
 end function
 
 function tohit_close(a as short) as short

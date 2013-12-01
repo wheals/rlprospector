@@ -2791,7 +2791,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.desigp=i.desig
         i.icon="*"
         i.bgcol=0  
-        roll=rnd_range(1,100+player.turn/100+mod1+mod2)
+        roll=rnd_range(1,100+player.turn/10000+mod1+mod2)
         if roll>125 and mod1>0 and mod2>0 then i=makeitem(99,0,0)
         if make_files=1 then
             f=freefile
@@ -4224,7 +4224,7 @@ function makeweapon(a as short) as _weap
     close #f
     if a=w.made then
         if a>=6 and a<=10 then
-            w.dam=urn(dam+2,dam-1,1,2-(player.turn/50000))
+            w.dam=urn(dam+2,dam-1,1,2-(player.turn/500))
             if w.dam<1 then w.dam=1
             if w.dam>5 then w.dam=5
             w.desig=w.dam &"0 GJ "&w.desig
@@ -4232,12 +4232,12 @@ function makeweapon(a as short) as _weap
         else
             w.dam=dam
         endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/5000) and w.reload>0 then '10 % have lower reload rate
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then '10 % have lower reload rate
             w.desig="IR "&w.desig
             w.reload=w.reload/2
             w.p=w.p*1.2
         endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/5000) and w.reload>0 then
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then
             w.desig="IC "&w.desig
             w.heatsink=w.heatsink+2
             w.p=w.p*1.2
