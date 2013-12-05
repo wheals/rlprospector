@@ -1143,6 +1143,7 @@ function com_getweapon() as short
 '    endif
     do
         display_ship_weapons(m)
+        dprint ""
         no_key=keyin(key__esc & key__enter &key__up &key__lt &key__dn &key__rt &"+-123456789")
         if keyplus(no_key) then m+=1
         if keyminus(no_key) then m-=1

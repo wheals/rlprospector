@@ -162,6 +162,23 @@ do
                     next
                 endif
         endif
+        if a=8 then
+            f=freefile
+            basis(0).company=1
+            open "prices.csv" for output as #f
+            for b=1 to 200
+                change_prices(0,1)
+                key=""
+                for a=1 to 9
+                    key &=basis(0).inv(a).p &";"
+                next
+                for a=1 to 9
+                    key &=basis(0).inv(a).v &";"
+                next
+                print #f,key
+            next
+            close #f
+        endif
     loop until key="1" or key="2" or a=7
     set__color(11,0)
     cls
@@ -2581,6 +2598,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
     for x=0 to 60
         for y=0 to 20
             if _debug=11 then print #f,planetmap(x,y,slot)
+            if _debug=312 then planetmap(x,y,slot)=abs(planetmap(x,y,slot))
             if abs(planetmap(x,y,slot))=1 then watermap(x,y)=10
             if abs(planetmap(x,y,slot))=2 then watermap(x,y)=50
             if planets(slot).depth=0 then
@@ -2624,8 +2642,7 @@ function explore_planet(from as _cords, orbit as short) as _cords
             endif
         next
     next
-
-
+    
     if _debug=11 then
         close #f
         dprint "Made tmap"
@@ -3105,7 +3122,11 @@ endif
     '
 
     dawn=rnd_range(1,60)
-
+    
+    for a=0 to 5
+       ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
+    next
+    
     if _debug=11 then
         dprint "moving enemies"
         sleep

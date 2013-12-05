@@ -19,15 +19,18 @@ function display_time(t as uinteger,form as byte=0) as string
     else
         ms=""&m
     endif
-    if form=0 then
+    select case form
+    case 0
         if d>0 then
             return "Day "&d &", "& hs &":"&ms 
         else
             return  hs &":"&ms
         endif
-    else
+    case 1
         return d &" days, "& h &" hours and "& m &" minutes"
-    endif
+    case 2
+        return ""&d
+    end select
 end function
 
 function credits(cr as integer) as string

@@ -88,6 +88,11 @@ end function
 function cure_awayteam(where as short) as short
     dim as short bonus,pack,cured,sick,a,biodata
     dim as string text
+    for a=0 to 128
+        if crew(a).hp>0 and crew(a).disease>0 then sick+=1
+    next
+    if sick=0 then return 0
+    sick=0
     if where=0 then 'On planet=0 On Ship=1
         if configflag(con_chosebest)=0 then
             pack=findbest(19,-1)

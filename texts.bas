@@ -1362,7 +1362,7 @@ function low_morale_message() as short
                 case is=9
                     dprint crew(who).n &" rants about how there's no adventure out here, only death and horror."
                 case is=10
-                    dprint crew(who).n &" rants about how you're the worst captain ever, and that you couldn't command your way out of a nutsack."
+                    dprint crew(who).n &" rants about how you're the worst captain ever, and that you couldn't command your way out of a wet paper bag."
 
             end select
         case 11 to 20

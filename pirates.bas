@@ -777,8 +777,8 @@ function makepatrol() as _fleet
     f.mem(1)=make_ship(9)
     f.mem(2)=make_ship(7)
     f.mem(3)=make_ship(7)'one company battleship
-    if rnd_range(1,100)>75 then f.mem(4)=make_ship(9)
-    if rnd_range(1,100)>45 then f.mem(5)=make_ship(7)
+    if rnd_range(1,100+player.turn/10000)>75 then f.mem(4)=make_ship(9)
+    if rnd_range(1,100+player.turn/10000)>45 then f.mem(5)=make_ship(7)
     f.c=targetlist(firstwaypoint)
     f.t=firstwaypoint+1
     return f
@@ -4516,7 +4516,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     
     if configflag(con_easy)=0 and enemy.hp>0 then
-        easy=player.turn/5000'!
+        easy=player.turn/50000'!
         if easy<.5 then easy=.5
         if easy>1 then easy=1
         enemy.hp=enemy.hp*easy

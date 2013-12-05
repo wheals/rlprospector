@@ -454,7 +454,7 @@ function setglobals() as short
     baseprice(2)=250
     baseprice(3)=500
     baseprice(4)=750
-    baseprice(5)=1500
+    baseprice(5)=1000
     baseprice(6)=500
     baseprice(7)=500
     baseprice(8)=500

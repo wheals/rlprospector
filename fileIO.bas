@@ -2110,7 +2110,7 @@ function getfilename() as string
     text="Savegames:"
     a=dir$("savegames/*.sav")
     while a<>""
-        if a<>"empty.sav" then
+        if a<>"empty.sav" and c<24 then
             c+=1
             n(c)=a
 
@@ -2147,7 +2147,7 @@ function getfilename() as string
     wend
     text=text &"/Exit"
     c=menu(bg_randompictxt,text,help,2,2)
-    if c>0 then filename=n(c)
+    if c>0 and c<=24 then filename=n(c)
     return filename
 end function
 
@@ -2155,7 +2155,7 @@ function save_bones(t as short) as short
     dim f as integer
     dim as short x,y,a,b
     dim as _cords team
-    dim bones_item(128) as _items
+    dim bones_item(64) as _items
     if _debug_bones=1 then dprint "Saving bones file"
     if is_special(player.landed.m) then return 0
     if is_drifter(player.landed.m) then return 0
@@ -2171,17 +2171,18 @@ function save_bones(t as short) as short
     next
     team=awayteam.c
     for a=0 to lastitem
-        if item(a).w.s=-1 and rnd_range(1,100)<50 then
+        if item(a).w.s=-1 and rnd_range(1,100)<25 then
             b+=1
             item(a).w.s=0
             item(a).w.p=0
-            item(a).w.x=team.x
-            item(a).w.y=team.y
-            if b<=128 then bones_item(b)=item(a)
+            item(a).w.x=player.landed.x
+            item(a).w.y=player.landed.y
+            if rnd_range(1,100)<25 then item(a).w=movepoint(item(a).w,5)
+            if b<=64 then bones_item(b)=item(a)
         endif
     next
     b+=1
-    if b>128 then b=128
+    if b>64 then b=64
     bones_item(b)=makeitem(81)
     bones_item(b).ldesc="The Id-tag of Captain  "&crew(1).n &" of the "&player.desig
     bones_item(b).w.x=team.x
@@ -2895,7 +2896,9 @@ function load_game(filename as string) as short
         close #f
 
     endif
-
+    
+    if _debug=312 then dprint "Bonesflag:"& bonesflag &" "&cords(map(sysfrommap(bonesflag)).c)
+    
     if _debug=1110 then
         f=freefile
         open "Fleetdump.csv" for output as #f

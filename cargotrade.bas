@@ -3085,7 +3085,7 @@ function showprices(st as short) as short
             draw string (0,a*_fh2),goodsname(a) &":",,font2,custom,@_col
         endif
         b=0
-        draw string ((b*5)*_fw2+15*_fw2,a*_fh2),display_time(goods_prices(a,b,st)),,font2,custom,@_col
+        draw string ((b*5)*_fw2+15*_fw2,a*_fh2),display_time(goods_prices(a,b,st),2),,font2,custom,@_col
         for b=1 to 11
             draw string ((b*5)*_fw2+15*_fw2,a*_fh2),credits(goods_prices(a,b,st)),,font2,custom,@_col
             if goods_prices(a,b,st)>relhigh(a) then relhigh(a)=goods_prices(a,b,st)
@@ -3387,55 +3387,64 @@ function change_prices(st as short,etime as short) as short
         demand=0
         for b=1 to etime
             if a<6 then
-                supply=supply+rnd_range(1,8-a)
+                demand=demand+rnd_range(1,6-a/2)
+                if basis(st).inv(a).p>baseprice(a)/2 then
+                    supply=supply+rnd_range(1,6-a/2)
+                else
+                    supply=0
+                endif
                 if basis(st).company=3 then supply+=1
             else
                 if st<=5 then
+                    if a>=6 and a<=8 then 
+                        demand=rnd_range(1,3)
+                        if basis(st).inv(a).p>baseprice(a)/2 then supply=rnd_range(1,3)
+                    endif
                     if basis(st).company=1 and a=8 then 
-                        supply=supply+rnd_range(1,2)
+                        if basis(st).inv(a).p>baseprice(a)/2 then supply+=1
                         demand-=1
                     endif
                     if basis(st).company=2 and a=7 then 
-                        supply=supply+rnd_range(1,2)
+                        if basis(st).inv(a).p>baseprice(a)/2 then supply+=1
                         demand-=1
                     endif
                     if basis(st).company=4 and a=6 then 
-                        supply=supply+rnd_range(1,2)
+                        if basis(st).inv(a).p>baseprice(a)/2 then supply+=1
                         demand-=1
                     endif
                     'TT can't make the stuff
                 else
-                    demand=-4
+                    demand-=4
                     supply=0
                 endif
             endif
-            demand=demand+rnd_range(1,6)
         next
-        change=supply-demand
-        basis(st).inv(a).v=basis(st).inv(a).v+change
         change=demand-supply
-        if change>5 then change=5
-        if change<-5 then change=-5
+        basis(st).inv(a).v=basis(st).inv(a).v-change 'Change inventory
+        if change>3 then change=3
+        if change<-3 then change=-3
         if basis(st).inv(a).v<0 then
             basis(st).inv(a).v=0
-            change=change+2
+            change=change+1
         endif
         if basis(st).inv(a).v>10 then
             basis(st).inv(a).v=10
-            change=change-2
+            change=change-1
         endif
         
+        'if change>0 then basis(st).inv(a).p+=rnd_range(1,3) 
+        'if change<0 then basis(st).inv(a).p-=rnd_range(1,3) 
+        basis(st).inv(a).p=basis(st).inv(a).p+fix(baseprice(a)*change/10)'Change price
+        
         'market extremes
-        if _debug=1211 then dprint "Change:"&fix(basis(st).inv(a).p*change/10)
-        basis(st).inv(a).p=basis(st).inv(a).p+fix(basis(st).inv(a).p*change/10)
         if basis(st).inv(a).p<baseprice(a)/2 then 
             basis(st).inv(a).p=baseprice(a)/2
             basis(st).inv(a).v=basis(st).inv(a).v-rnd_range(1,3)
         endif
         if basis(st).inv(a).v<1 then basis(st).inv(a).v=rnd_range(1,3)
-        if basis(st).inv(a).p>baseprice(a)*2 then 
+        if basis(st).inv(a).p>baseprice(a)*3 then 
             basis(st).inv(a).v=basis(st).inv(a).v+rnd_range(1,3)
-            basis(st).inv(a).p=baseprice(a)*2
+            basis(st).inv(a).p=baseprice(a)*3
         endif
         
     next
