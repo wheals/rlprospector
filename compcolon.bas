@@ -37,6 +37,8 @@ function grow_colonies() as short
         for j=1 to 9
             if map(i).planets(j)>0 then
                 if planets(map(i).planets(j)).colflag(0)>0 then grow_colony(map(i).planets(j))
+                if rnd_range(1,20)<3+planets(map(i).planets(j)).minerals then planets(map(i).planets(j)).flags(22)+=rnd_range(1,3+planets(map(i).planets(j)).minerals)
+                if rnd_range(1,20)<planets(map(i).planets(j)).flags(22) then planets(map(i).planets(j)).flags(22)=0
             endif
         next
     next
@@ -270,12 +272,18 @@ end function
 
 
 function get_com_colon_candidate(st as short) as short
-    dim as short a,b,i,lastcandidate,sys,pla,plascore,block
+    dim as short a,b,c,i,lastcandidate,sys,pla,plascore,block
     dim as short candidate(laststar),sysscore(laststar)
     for a=0 to laststar
         block=-1
         for b=1 to 9
             if map(a).planets(b)>0 then
+                for c=0 to _NOPB
+                    if map(a).planets(b)=piratebase(c) then block=1
+                next
+                for c=0 to lastspecial
+                    if map(a).planets(b)=specialplanet(c) then block=1
+                next
                 if planets(map(a).planets(b)).mapstat<>0 and block=-1 then block=0
                 if planets(map(a).planets(b)).colflag(0)<>0 then block=1
             endif

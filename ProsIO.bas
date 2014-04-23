@@ -73,6 +73,7 @@ end function
 function update_tmap(slot as short) as short
     dim as short x,y,x1,y1
     if slot<0 then return 0
+    erase tmap
     for x=0 to 60
         for y=0 to 20
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
@@ -253,16 +254,16 @@ function mondis(enemy as _monster) as string
     if enemy.hp<=0 then text=text &"A dead "
     text=text &enemy.ldesc
     if enemy.hpnonlethal>enemy.hp and enemy.hp>0 then
-        text =text &" immobilized"
+        text =text &". immobilized."
     else
         if enemy.hpmax=enemy.hp then
-            text=text &" unhurt"
+            text=text &". unhurt."
         else
             if enemy.hp>0 then
                 if enemy.hp<2 then
-                    text=text &" badly hurt"
+                    text=text &". badly hurt."
                 else
-                    text=text &" hurt"
+                    text=text &". hurt."
                 endif
             endif
         endif
@@ -273,10 +274,10 @@ function mondis(enemy as _monster) as string
     if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>11 then enemy.stuff(12)=1
     enemy.stuff(9)=enemy.stuff(10)+enemy.stuff(11)+enemy.stuff(12)
     endif
-    if enemy.stuff(10)=1 then text=text &"(" &enemy.hpmax &"/" &enemy.hp &")"
+    if enemy.stuff(10)=1 then text=text &" (" &enemy.hpmax &"/" &enemy.hp &")"
     if enemy.stuff(11)=1 then text=text &" W:" &enemy.weapon
     if enemy.stuff(12)=1 then text=text &" A:" &enemy.armor
-    if enemy.hp>0 and enemy.aggr=0 then text=text &". it is attacking!"
+    if enemy.hp>0 and enemy.aggr=0 then text=text &" it is attacking!"
     return text
 end function
 
@@ -361,7 +362,6 @@ function bioreport(slot as short) as short
     t=t &"Exit"
     do
     loop until menu(bg_awayteam,t,h)
-    screenshot(2)
     return 0
 end function
 
@@ -1397,8 +1397,9 @@ function display_monsters(osx as short) as short
                                 draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                             endif
                         endif
-                        if _debug>0 then draw string ((p.x-osx)*_fw1,P.y*_fh1),"a:"&enemy(a).aggr,,font2,custom,@_tcol
-                            
+                        if _debug>0 then 
+                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),"faction #" & enemy(a).faction & " NE"&enemy(a).denemy & " NF:" & enemy(a).dfriend &" T:"&cords(enemy(a).target) &" Att:"&enemy(a).attacked ,,font2,custom,@_tcol
+                        endif    
                         if show_energy=1 then 
                             set__color(15,0)
                             draw string ((p.x-osx)*_tix,p.y*_tiy),"E:"&enemy(a).e.e,,font2,custom,@_tcol
@@ -1514,8 +1515,8 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
     set__color( 224,0)
     yof=(_fh1-_fh2)/2
     if configflag(con_sysmaptiles)=0 then
-        line (x,y)-(x+19*_tix,y+_tiy+5),RGB(0,0,0),BF
-        line (x,y+1)-(x+19*_tix,y+_tiy+5),RGB(0,0,255),B
+        line (x,y)-(x+19*_tix,y+_tiy+6),RGB(0,0,0),BF
+        line (x,y+1)-(x+19*_tix,y+_tiy+6),RGB(0,0,255),B
         'draw string(x,y),bl ,,font1,custom,@_col
         'draw string(x+19*_tix,y),br ,,font1,custom,@_col
 
@@ -2246,30 +2247,3 @@ function changetile(x as short,y as short,m as short,t as short) as short
     endif
     return 0
 end function
-
-function copytile (byval a as short) as _tile
-    dim r as _tile
-    if a<0 then a=-a
-    r.no=tiles(a).no
-    r.tile=tiles(a).tile
-    r.desc=tiles(a).desc
-    r.bgcol=tiles(a).bgcol
-    r.col=tiles(a).col
-    r.seetru=tiles(a).seetru
-    r.walktru=tiles(a).walktru
-    r.firetru=tiles(a).firetru
-    r.shootable=tiles(a).shootable
-    r.dr=tiles(a).dr
-    r.hp=tiles(a).hp
-    r.turnsinto=tiles(a).turnsinto
-    r.succt=tiles(a).succt
-    r.failt=tiles(a).failt
-    r.spawnson=tiles(a).spawnson
-    r.spawnswhat=tiles(a).spawnswhat
-    r.spawnsmax=tiles(a).spawnsmax
-    r.gives=tiles(a).gives
-    return r
-end function
-
-
-

@@ -442,7 +442,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
     Get #ff, 23, imgheight
     Close ff
     fh=imgheight
-    img=ImageCreate(imgwidth,imgheight) 'Zwischenpuffer für bmp
+    img=ImageCreate(imgwidth,imgheight) 'Zwischenpuffer fï¿½r bmp
     If img Then
       BLoad ("graphics/font"&fontdir &".bmp",img)
       font=ImageCreate(imgwidth,imgheight+1) 'eigentlicher Font
@@ -457,7 +457,7 @@ function load_font(fontdir as string,byref fh as ubyte) as ubyte ptr
         Close ff
         Put font,(0,1),img,(0,0)-(imgwidth-1,imgheight-1),PSet  'Zwischenpuffer in Font kopieren
       End If
-      ImageDestroy (img)    'Zwischenpuffer löschen
+      ImageDestroy (img)    'Zwischenpuffer lï¿½schen
     else
         set__color( 14,0)
         print "Loading font graphics/"&fontdir &".bmp failed."
@@ -2183,7 +2183,7 @@ function save_bones(t as short) as short
     next
     b+=1
     if b>64 then b=64
-    bones_item(b)=makeitem(81)
+    bones_item(b)=make_item(81)
     bones_item(b).ldesc="The Id-tag of Captain  "&crew(1).n &" of the "&player.desig
     bones_item(b).w.x=team.x
     bones_item(b).w.y=team.y
@@ -2295,7 +2295,7 @@ function savegame() as short
     dim as Integer dest_len, header_len
     dim as Ubyte Ptr dest
     dim filedata_string as string
-
+    dim as short emptyshort
     make_unflags(unflags())
     cl=player.h_sdesc
     names=player.desig
@@ -2332,11 +2332,11 @@ function savegame() as short
     put #f,,alliance()
     put #f,,bountyquest()
     put #f,,patrolquest()
-    for a=1 to 128
+    for a=1 to 255
         put #f,,crew(a)
     next
 
-    for a=0 to 7
+    for a=0 to 8
         put #f,,faction(a)
     next
 
@@ -2439,7 +2439,6 @@ function savegame() as short
     next
     put #f,,_NoPB
     for a=0 to _NoPB
-        put #f,,pirateplanet(a)
         put #f,,piratebase(a)
         print ".";
     next
@@ -2575,7 +2574,7 @@ function load_game(filename as string) as short
     dim names as string*36
     dim datestring as string*12
     dim unflags(lastspecial) as byte
-
+    dim as short emptyshort
     dim text as string
     dim p as _planet
     dim debug as byte
@@ -2661,11 +2660,12 @@ function load_game(filename as string) as short
         get #f,,alliance()
         get #f,,bountyquest()
         get #f,,patrolquest()
-        for a=1 to 128
+        
+        for a=1 to 255
             get #f,,crew(a)
         next
-
-        for a=0 to 7
+    
+        for a=0 to 8
             get #f,,faction(a)
         next
 
@@ -2770,7 +2770,6 @@ function load_game(filename as string) as short
         next
         get #f,,_NoPB
         for a=0 to _NoPB
-            get #f,,pirateplanet(a)
             get #f,,piratebase(a)
         next
 
@@ -2913,7 +2912,7 @@ function load_game(filename as string) as short
             next
         next
         close #f
-        dprint "Randombase:"&random_piratebase
+        dprint "Randombase:"&random_pirate_system
     endif
 
     return 0

@@ -46,7 +46,6 @@ function make_spacemap() as short
     draw string(_screenx/2-7*_fw1,_screeny/2),string(5,178),,font1,custom,@_col
     if makelog=1 then print #f,,"Reroll shops done" &lastitem
     
-    
     add_stars
     draw string(_screenx/2-7*_fw1,_screeny/2),string(6,178),,font1,custom,@_col
     if makelog=1 then print #f,,"add_stars done" &lastitem
@@ -154,11 +153,13 @@ function make_spacemap() as short
         
     endif
     if makelog=1 then print #f,"Making Civs"
+    
     make_civilisation(0,specialplanet(7))
     draw string(_screenx/2-7*_fw1,_screeny/2),string(20,178),,font1,custom,@_col
     
     if makelog=1 then print #f,"makeciv1 done" &lastitem
     make_civilisation(1,specialplanet(46))
+    
     if makelog=1 then print #f,"makeciv2 done" &lastitem
     draw string(_screenx/2-7*_fw1,_screeny/2),string(21,178),,font1,custom,@_col
     
@@ -169,7 +170,6 @@ function make_spacemap() as short
     if findcompany(2)=0 then specialplanet(41)=32767
     if findcompany(3)=0 then specialplanet(42)=32767
     if findcompany(4)=0 then specialplanet(43)=32767
-    
     
     if makelog=1 then print #f,"delete company specials" &lastitem
     
@@ -259,6 +259,10 @@ function make_spacemap() as short
     print "Asteroid belts:";astcou
     print "Gas giants:";gascou
     sleep 1250
+    if _debug>0 then
+        dim key as string
+        key=keyin
+    endif
     return 0
 end function
 
@@ -631,7 +635,7 @@ function add_drifters() as short
         
     planetmap(46,18,drifting(1).m)=-222
     for a=1 to rnd_range(2,5) 'Some spacesuits in the starting station
-        placeitem(makeitem(320),46,18,drifting(1).m)
+        placeitem(make_item(320),46,18,drifting(1).m)
     next
     
     b=0
@@ -849,42 +853,56 @@ function add_caves() as short
 end function
 
 function add_piratebase() as short
-    dim as short a,b,c,d
-    for a=0 to _NoPB
-        lastplanet=lastplanet+1
-        pirateplanet(a)=lastplanet
-        piratebase(a)=get_random_system(,2)
-        if piratebase(a)=-1 then piratebase(a)=rnd_range(0,laststar)
-        map(piratebase(a)).discovered=show_pirates
-        map(piratebase(a)).planets(rnd_range(1,9))=pirateplanet(a)
-        
+    dim list(laststar) as short
+    dim dist(laststar) as single
+    dim as short a,b,c,d,piratesys,found,cc,f
+    for a=1 to laststar
+        if spacemap(map(a).c.x,map(a).c.y)=0 and disnbase(map(a).c)>=5 and map(a).spec<=7 then
+            cc=0
+            for b=1 to 9
+                if is_special(map(a).planets(b)) then cc=1
+            next
+            if cc=0 then
+                c+=1
+                list(c)=a
+                dist(c)=99999
+                for b=1 to lastwaypoint
+                    if distance(targetlist(b),map(a).c)<dist(c) then dist(c)=distance(targetlist(b),map(a).c)
+                next
+            endif
+        endif
     next
-    
-    'print pirateplanet
-    'sleep
-    'lets leave the swapping for debug
-    
-    do
-        c=c+1
-        b=0
-        for a=0 to _nopb
-           if configflag(con_minsafe)=0 and disnbase(map(piratebase(a)).c)<4 then 
-               d=get_random_system(0)
-               if d>=0 then
-                   swap map(piratebase(a)),map(d)
-                   piratebase(a)=d
-               endif
-           endif
-           if abs(spacemap(map(piratebase(a)).c.x,map(piratebase(a)).c.y))>1 then 
-               d=get_random_system(0)
-               if d>=0 then
-                   swap map(piratebase(a)),map(d)
-                   piratebase(a)=d
-               endif
-           endif
-           b=b+disnbase(map(piratebase(a)).c)
+    for a=1 to cc
+        dist(a)=dist(a)-disnbase(map(list(a)).c)
+    next
+    'List = candidates
+    if _debug>0 then 
+        f=freefile
+        open "distances.csv" for output as #f
+        for a=0 to c
+            print #f,a &";" &cint(dist(a)) &";"&cint(disnbase(map(list(a)).c))
         next
-    loop until b>24 or c>255
+        close #f
+    end if
+    
+    for a=0 to _noPB
+        dist(0)=9999
+        if _debug>0 then dprint "C:"&c
+        for b=1 to c
+            if dist(b)<dist(0) and dist(b)>0 then
+                found=b
+                dist(0)=dist(b)
+            endif
+        next
+        lastplanet+=1
+        piratebase(a)=lastplanet
+        map(list(found)).planets(rnd_range(1,9))=lastplanet
+        if _Debug>0 then dprint cords(map(list(found)).c) &":"&dist(found)
+        list(found)=list(c)
+        dist(found)=dist(c)
+        c-=1
+    next
+
     return 0
 end function
 
@@ -952,6 +970,32 @@ function add_questguys() as short
             questguy(i).money-=rnd_range(1,10)*100
             if questguy(i).money<=0 then questguy(i).money=rnd_range(100,300)
         end select' 
+        
+        if rnd_range(1,100)<20 or _debug=2020 then 'talent to share
+            if rnd_range(1,100)<66 then 'Job specific
+                select case questguy(i).job
+                case 1,2
+                    questguy(i).flag(10)=rnd_range(1,6)
+                case 4,15,16,17 'SO
+                    questguy(i).flag(10)=rnd_range(14,16)
+                case 5 'gunner
+                    questguy(i).flag(10)=rnd_range(7,9)
+                case 6
+                    questguy(i).flag(10)=rnd_range(17,19)
+                case 7
+                    questguy(i).flag(10)=6
+                case 10,11,12,13
+                    questguy(i).flag(10)=3
+                case 14
+                    questguy(i).flag(10)=4
+                case else
+                    questguy(i).flag(10)=rnd_range(20,26)
+                end select
+            else
+                questguy(i).flag(10)=rnd_range(20,26)'generic
+            endif
+        endif
+        
         if debug=1 and _debug=1 then 
             print #f,i;"flag 3";questguy(i).flag(3)
             print #f,i;"flag 4";questguy(i).flag(4)
@@ -1745,9 +1789,9 @@ function make_civilisation(slot as short,m as short) as short
             endif
         next
         p1=rnd_point
-        placeitem(makeitem(205,slot),p1.x,p1.y,lastplanet)
-        placeitem(makeitem(201+slot*2),p1.x,p1.y,lastplanet)
-        placeitem(makeitem(202+slot*2),p1.x,p1.y,lastplanet)
+        placeitem(make_item(205,slot),p1.x,p1.y,lastplanet)
+        placeitem(make_item(201+slot*2),p1.x,p1.y,lastplanet)
+        placeitem(make_item(202+slot*2),p1.x,p1.y,lastplanet)
     endif
     if civ(slot).culture(4)=4 then 'slave population
         planets(m).mon_template(2)=makemonster(1,m,1)
@@ -1960,7 +2004,7 @@ function make_alienship(slot as short,t as short) as short
     civ(slot).ship(t).ti_no=25+slot
     wc=2
     cc=1
-    civ(slot).ship(t).weapons(1)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+    civ(slot).ship(t).weapons(1)=make_weapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
     for c=0 to civ(slot).ship(t).hull step 5
         if rnd_range(1,100)<75 then
             civ(slot).ship(t).engine+=1
@@ -1981,7 +2025,7 @@ function make_alienship(slot as short,t as short) as short
         roll=rnd_range(1,100)
         select case roll
         case 0 to chance(1)
-            civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+            civ(slot).ship(t).weapons(wc)=make_weapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
             wc+=1
         case chance(1)+1 to chance(1)+chance(2)
             civ(slot).ship(t).cargo(cc).x=1
@@ -1997,7 +2041,7 @@ function make_alienship(slot as short,t as short) as short
                 cc+=1
             endif
             if civ(slot).inte=3 then
-                civ(slot).ship(t).weapons(wc)=makeweapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
+                civ(slot).ship(t).weapons(wc)=make_weapon(rnd_range(1,civ(slot).tech)+civ(slot).prefweap)
                 wc+=1
             endif
         end select

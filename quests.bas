@@ -40,9 +40,9 @@ function robot_invasion() as short
             if specialplanet(41)=a then ad=1
             if specialplanet(42)=a then ad=1
             if specialplanet(43)=a then ad=1
-            if pirateplanet(0)=a then ad=1
-            if pirateplanet(1)=a then ad=1
-            if pirateplanet(2)=a then ad=1
+            if piratebase(0)=a then ad=1
+            if piratebase(1)=a then ad=1
+            if piratebase(2)=a then ad=1
             if ad=1 then
                 c=rnd_point(a,,305)
                 if c.x>0 then ad=0 'Already invaded
@@ -64,12 +64,14 @@ function robot_invasion() as short
         d.y=c.y
         make_drifter(d,dominant_terrain(c.x,c.y,m))
         planets(lastplanet)=planets(m)
+        planets(m).depth=1
+        planets(m).wallset=rnd_range(12,13)
         c=rnd_point(201,lastplanet)
         planetmap(c.x,c.y,lastplanet)=-306
         select case m
         case specialplanet(10),specialplanet(13),specialplanet(14),specialplanet(20),specialplanet(39),specialplanet(40),specialplanet(41),specialplanet(42),specialplanet(43)
             battleslost(ft_merchant,ft_ancientaliens)+=5
-        case pirateplanet(0),pirateplanet(1),pirateplanet(2)
+        case piratebase(0),piratebase(1),piratebase(2)
             battleslost(ft_pirate,ft_ancientaliens)+=5
         case specialplanet(7)
             battleslost(ft_civ1,ft_ancientaliens)+=5
@@ -142,7 +144,16 @@ function _patrolquest.generate(p as short,maxdis as short,danger as short) as sh
                     cord(i).y=drifting(r).y
                 endif
             else
-                cord(i)=map(piratebase(rnd_range(0,2))).c
+                r=piratebase(rnd_range(0,2))
+                if r>0 then
+                    cord(i)=map(r).c
+                else
+                    do
+                        cord(i).x=rnd_range(0,sm_x)
+                        cord(i).y=rnd_range(0,sm_y)
+                        d=distance(cord(1),cord(i))
+                    loop until d>=maxdis/2 and d<=maxdis
+                endif
             endif
         else
             do
@@ -531,7 +542,7 @@ function make_questitem(i as short,wanthas as short) as short
             if questguy(i).flag(1)=i or questguy(i).flag(1)<1 then
                 questguy(i).has.type=0
             else
-                questguy(i).has.it=makeitem(1002,questguy(i).flag(1))
+                questguy(i).has.it=make_item(1002,questguy(i).flag(1))
                 questguy(i).has.price=rnd_range(1,10)
             endif
         endif
@@ -579,7 +590,7 @@ function make_questitem(i as short,wanthas as short) as short
             questguy(i).want.it.desigp="Drugs "
         else
             
-            questguy(i).has.it=makeitem(1005,rnd_range(1,6))
+            questguy(i).has.it=make_item(1005,rnd_range(1,6))
         endif
         
     endif
@@ -588,7 +599,7 @@ function make_questitem(i as short,wanthas as short) as short
         if wanthas=q_want then
             questguy(i).want.it.ty=23
         else
-            questguy(i).has.it=makeitem(rnd_range(93,94))
+            questguy(i).has.it=make_item(rnd_range(93,94))
             questguy(i).has.price=questguy(i).has.it.price
         endif
         
@@ -597,7 +608,7 @@ function make_questitem(i as short,wanthas as short) as short
     if (*o).type=qt_tools then'Tools	7
         if wanthas=q_want then
         else
-            questguy(i).has.it=makeitem(1004,rnd_range(1,6))
+            questguy(i).has.it=make_item(1004,rnd_range(1,6))
             questguy(i).has.price=questguy(i).has.it.price
         endif
         
@@ -608,7 +619,7 @@ function make_questitem(i as short,wanthas as short) as short
             questguy(i).want.price=(5-questguy(i).want.motivation)*100
         else
             questguy(i).flag(5)=rnd_questguy_byjob(14)
-            questguy(i).has.it=makeitem(1008,questguy(i).flag(5),rnd_range(1,6))
+            questguy(i).has.it=make_item(1008,questguy(i).flag(5),rnd_range(1,6))
             questguy(i).has.price=rnd_range(10,100)
         endif
         
@@ -619,9 +630,9 @@ function make_questitem(i as short,wanthas as short) as short
         if wanthas=q_want then
         else
             if questguy(i).location<0 then
-                questguy(i).has.it=makeitem(1009,rnd_range(0,2))
+                questguy(i).has.it=make_item(1009,rnd_range(0,2))
             else
-                questguy(i).has.it=makeitem(1009,questguy(i).location)
+                questguy(i).has.it=make_item(1009,questguy(i).location)
             endif
             questguy(i).has.price=rnd_range(1,10)
         endif
@@ -631,7 +642,7 @@ function make_questitem(i as short,wanthas as short) as short
         do
             questguy(i).flag(12)=rnd_range(0,2)
         loop until questguy(i).flag(12)<>questguy(i).location
-        questguy(i).flag(13)=distance(player.c,basis(questguy(i).flag(12)).c)*rnd_range(1,10+(*o).motivation)
+        questguy(i).flag(13)=distance(player.c,basis(questguy(i).flag(12)).c)*rnd_range(1,3+(*o).motivation)
         questguy(i).flag(14)=rnd_range(5,15)
     endif
     
@@ -647,7 +658,7 @@ function make_questitem(i as short,wanthas as short) as short
     if (*o).type=qt_locofpirates then'Loc of Pirates	14
         if wanthas=q_want then
         else
-            questguy(i).flag(4)=pirateplanet(rnd_Range(0,_NOPB))
+            questguy(i).flag(4)=piratebase(rnd_Range(0,_NOPB))
             questguy(i).flag(3)=sysfrommap(questguy(i).flag(4))
         endif
         
@@ -693,7 +704,7 @@ function make_questitem(i as short,wanthas as short) as short
             if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(17,i)'Engineer
             if questguy(i).flag(1)=0 then questguy(i).flag(1)=get_other_questguy(i)'SO
         else
-            questguy(i).has.it=makeitem(1010,i)
+            questguy(i).has.it=make_item(1010,i)
         endif
         
     endif
@@ -703,7 +714,7 @@ function make_questitem(i as short,wanthas as short) as short
             do
                 comp=rnd_range(1,4)
             loop until comp<>questguy(i).job-9 or (questguy(i).job<10 or questguy(i).job>14)
-            questguy(i).want.it=makeitem(1006,comp)
+            questguy(i).want.it=make_item(1006,comp)
             questguy(i).flag(6)=comp
         else
             if questguy(i).job>=10 and questguy(i).job<=13 then 
@@ -711,7 +722,7 @@ function make_questitem(i as short,wanthas as short) as short
             else
                 comp=rnd_range(1,4)
             endif
-            questguy(i).has.it=makeitem(1006,comp,rnd_range(1,3))
+            questguy(i).has.it=make_item(1006,comp,rnd_range(1,3))
             
         endif
         
@@ -732,7 +743,7 @@ function make_questitem(i as short,wanthas as short) as short
     if (*o).type=qt_juryrig then'Jury Rig Plans	25
         if wanthas=q_want then
         else
-            (*o).it=makeitem(1011)
+            (*o).it=make_item(1011)
         endif
         
     endif
@@ -997,6 +1008,16 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         endif
     endif
     
+    if questguy(i).flag(10)>0 then
+        o+=1
+        node(1).option(o).answer="Do you know anything about "&talent_desig(questguy(i).flag(10))&"?"
+        node(1).option(o).no=41
+        node(41).effekt="TEACHTALENT"
+        node(41).param(0)=i
+        if questguy(i).friendly(0)=2 then node(41).param(1)=200*haggle_("DOWN")
+        if questguy(i).friendly(0)=1 then node(41).param(1)=500*haggle_("DOWN")
+    endif
+    
     o+=1
     node(1).option(o).answer="Let's have a drink."
     node(1).option(o).no=21
@@ -1044,7 +1065,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             node(3).option(2).no=1
         case qt_travel
             node(3).effekt="PASSENGER"
-            questguy(i).flag(15)=120*(player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c))
+            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(2)).c))
         case qt_biodata 
             if reward(1)>0 then
                 node(3).effekt="BUYBIODATA" 
@@ -1084,7 +1105,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         if questguy(i).has.type=qt_travel then
             node(4).effekt="PASSENGER"
             node(4).param(0)=i
-            questguy(i).flag(15)=120*(player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(questguy(i).flag(2)).c))
+            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(2)).c))
             node(4).statement=questguydialog(questguy(i).has.type,questguy(i).has.motivation,Q_HAS)
 
         endif
@@ -1160,11 +1181,11 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
     node(9).option(1).no=8
     node(10).statement="Last I saw that person on one of the small space stations."
     node(10).option(1).no=8
-    node(11).statement="Last saw that person on station 1"
+    node(11).statement="Last I saw that person on station 1"
     node(11).option(1).no=8
-    node(12).statement="Last saw that person on station 2"
+    node(12).statement="Last I saw that person on station 2"
     node(12).option(1).no=8
-    node(13).statement="Last saw that person on station 3"
+    node(13).statement="Last I saw that person on station 3"
     node(13).option(1).no=8
     node(14).statement="That person must be around here somewhere."
     node(14).option(1).no=8
@@ -1380,7 +1401,7 @@ function has_questguy_want(i as short,byref t as short) as short
                     if planets(map(a).planets(b)).discovered<>0 then
                         if questguy(i).want.type=qt_locofpirates then
                             for c=0 to _nopb
-                                if pirateplanet(c)=map(a).planets(b) then
+                                if piratebase(c)=map(a).planets(b) then
                                     t=qt_locofpirates
                                     return map(a).planets(b)
                                 endif
@@ -1443,7 +1464,7 @@ function has_questguy_want(i as short,byref t as short) as short
     return -1
 end function
 
-function dodialog(no as short,e as _monster, fl as short) as short
+function do_dialog(no as short,e as _monster, fl as short) as short
     dim node(64) as _dialognode
     dim as short last,debug
     last=load_dialog("data/dialog" &no & ".csv",node())
@@ -1460,7 +1481,7 @@ end function
 
 function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,qgindex as short=0) as short
     dim as string text,rh,lh
-    dim as short a,c,flag,debug
+    dim as short a,c,flag,debug,effekt
     debug=1
     if node(no).effekt="PAYWALL" then
         
@@ -1472,6 +1493,7 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
                 if paystuff(node(no).param(2)) then
                     questguy(qgindex).has.given=1
                     if planets(questguy(qgindex).flag(4)).discovered=0 then planets(questguy(qgindex).flag(4)).discovered=1
+                    questguy(qgindex).flag(3)=sysfrommap(questguy(qgindex).flag(4))
                     if map(questguy(qgindex).flag(3)).discovered=0 then 
                         map(questguy(qgindex).flag(3)).discovered=1
                         map(questguy(qgindex).flag(3)).desig=spectralshrt(map(questguy(qgindex).flag(3)).spec)&player.discovered(map(questguy(qgindex).flag(3)).spec)&"-"&int(disnbase(map(questguy(qgindex).flag(3)).c))&cords(map(questguy(qgindex).flag(3)).c) 
@@ -1498,7 +1520,8 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
         dprint adapt_nodetext(node(no).statement,e,fl,qgindex),11
     endif
     if node(no).effekt<>"" then 
-        dialog_effekt(node(no).effekt,node(no).param(),e,fl)
+        effekt=dialog_effekt(node(no).effekt,node(no).param(),e,fl)
+        if effekt=1 then return 1
         if node(no).param(5)>0 then return node(no).param(5)
     endif
     text="You say"
@@ -1686,7 +1709,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 if item(a).ty=2 or item(a).ty=7 or item(a).ty=4 then
                     item(a).w.p=e.no
                     item(a).w.s=0
-                    it=makeitem(96,-1,-3)
+                    it=make_item(96,-1,-3)
                     placeitem(it,0,0,0,0,-1)
                     reward(2)=reward(2)+it.v5
                     dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
@@ -1709,17 +1732,43 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         dprint questguy(p(0)).n &" gives you "& add_a_or_an( questguy(p(0)).has.it.desig,0) &"."
     endif
     
+    if effekt="TEACHTALENT" then
+        if (questguy(p(0)).friendly(0)>=1 or questguy(p(0)).want.given>0 or _debug=2020) and questguy(p(0)).flag(10)>0 then
+            dprint "I think I could teach you a thing or two about that."
+            if askyn("Do you want to learn "&talent_desig(questguy(p(0)).flag(10))&" for " &p(1)& " Cr.?(y/n)") then
+                if paystuff(p(1)) then
+                    if questguy(p(0)).flag(10)<=6 then
+                         a=1
+                    else
+                         a=showteam(0,1,talent_desig(questguy(p(0)).flag(10)))
+                    endif
+                    if _debug=2020 then dprint ""&can_learn_skill(a,questguy(p(0)).flag(10))
+                    if a>0 and can_learn_skill(a,questguy(p(0)).flag(10)) then
+                        dprint "You train long and hard. "& gain_talent(a,questguy(p(0)).flag(10))
+                        questguy(p(0)).flag(10)=0
+                        questguy(p(0)).money+=p(1)
+                    else
+                        if a>0 then dprint crew(a).n &" cant learn "&talent_desig(questguy(p(0)).flag(10)) &"."
+                        player.money+=p(1)
+                    endif
+                endif
+            endif
+        else
+            dprint "I don't think i can teach you anything."
+        endif
+    endif
+    
     if effekt="GIVEJOBHAS" then
         select case questguy(p(0)).job
         case is=1
-            it=makeitem(1009,questguy(p(0)).location)
+            it=make_item(1009,questguy(p(0)).location)
             if questguy(p(0)).friendly(0)>1 or questguy(p(0)).want.given>0 then
                 it.price=0
             else
                 it.price=25
             endif
         case is=14
-            it=makeitem(1002,p(0))
+            it=make_item(1002,p(0))
             if questguy(p(0)).friendly(0)>0 or questguy(p(0)).want.given>0 then
                 it.price=10
             else
@@ -1739,7 +1788,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             endif
         case else 'Company report
             dprint standardphrase(sp_gotreport,rnd_range(0,2))
-            it=makeitem(1006,questguy(p(0)).job-9,questguy(p(0)).friendly(0))
+            it=make_item(1006,questguy(p(0)).job-9,questguy(p(0)).friendly(0))
             it.price=50*questguy(p(0)).friendly(0)
         end select
         it.price=it.price*(1-crew(1).talents(2)/10)
@@ -1777,7 +1826,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="SELLOTHER" then 'p0=who p1=what,p2=mod1,p3=mod2
-        it=makeitem(p(1),p(2),p(3))
+        it=make_item(p(1),p(2),p(3))
         if p(1)=1012 then 'Alibi
             if questguy(p(0)).friendly(0)+questguy(p(0)).friendly(p(2))>=3 then
                 price=0
@@ -1804,8 +1853,8 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             if paystuff(price) then
                 placeitem(it,0,0,0,0,-1)
                 dprint questguy(p(0)).n &" gives you "& add_a_or_an( it.desig,0) &"."
-    
                 if p(4)=1 then questguy(p(0)).flag(7)=1
+                return 1
             endif
         endif
     endif
@@ -1900,7 +1949,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 
                 endif
             end select
-            return 0
+            return 1
         endif
         if i<-20 and t=qt_megacorp then
             i=abs(i)
@@ -1914,16 +1963,16 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="GIVEMESSAGE" then
-        if askyn("Do you want to deliver the message?(y/n)") then placeitem(makeitem(1003,p(0),questguy(p(0)).flag(1)),0,0,0,0,-1)
+        if askyn("Do you want to deliver the message?(y/n)") then placeitem(make_item(1003,p(0),questguy(p(0)).flag(1)),0,0,0,0,-1)
         'dprint questguyquestion(questguy(p(0)).want.type,Q_ANSWER)  
     endif
     
     if effekt="GIVEAUTOGRAPH" then
-        placeitem(makeitem(1002,p(0)),0,0,0,0,-1)
+        placeitem(make_item(1002,p(0)),0,0,0,0,-1)
     endif
     
     if effekt="GIVESACC" then
-        placeitem(makeitem(1009,p(0)),0,0,0,0,-1)
+        placeitem(make_item(1009,p(0)),0,0,0,0,-1)
     endif
         
     if effekt="BUYBIODATA" then
@@ -1969,7 +2018,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="EINTREIBEN" then
-        it=makeitem(1007,p(0),questguy(questguy(p(0)).flag(1)).loan)
+        it=make_item(1007,p(0),questguy(questguy(p(0)).flag(1)).loan)
         dprint questguy(p(0)).n &" hands you "&it.desig &"."
         placeitem(it,0,0,0,0,-1)
         questguy(p(0)).loan=0
@@ -2233,7 +2282,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                                 reward(2)=reward(2)-item(b).v5
                                 lastlocalitem=lastlocalitem+1
                                 li(lastlocalitem)=b
-                                it=makeitem(94)
+                                it=make_item(94)
                                 placeitem(it,0,0,0,0,-1)
                                 dprint "It takes the "&item(b).desig &" and hands you "&it.desig &"."   
                                 e.cmmod=e.cmmod+2
@@ -2251,7 +2300,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                             e.cmmod+=2
                             if rnd_range(1,100)<66 then
                                 dprint "it says 'That was fun! Here take this gift!'"
-                                it=makeitem(94)
+                                it=make_item(94)
                                 placeitem(it,0,0,0,0,-1)
                                 dprint "It hands you "&it.desig &"."   
                             else
@@ -2287,9 +2336,9 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                     dprint "It says 'take this, and let me live!"
                     e.aggr=1
                     if rnd_range(1,100)<66 then
-                        it=makeitem(94)
+                        it=make_item(94)
                     else
-                        it=makeitem(96,-3,-3)
+                        it=make_item(96,-3,-3)
                         reward(2)=reward(2)+it.v5
                     endif
                     placeitem(it,0,0,0,0,-1)
@@ -2336,7 +2385,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
         if (e.aggr=0 or e.aggr=2) and rnd_range(1,100)<50 then
             dprint "Apollo thunders 'Worship me!'"
         else
-            dodialog(2,e,0)
+            do_dialog(2,e,0)
         endif
     endif
     if e.lang=5 then
@@ -2346,22 +2395,22 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
     endif
     if e.lang=6 then
         if e.aggr=0 then dprint "The "&e.sdesc &" says: 'Die red-helmet-friend!"
-        if e.aggr=1 then dodialog(6,e,0)
+        if e.aggr=1 then do_dialog(6,e,0)
         if e.aggr=2 then dprint "The "&e.sdesc &" says: 'I surrender!" 
     endif
     if e.lang=7 then
         if e.aggr=0 then dprint "The "&e.sdesc &" says: 'Die blue-helmet-friend!"
-        if e.aggr=1 then dodialog(7,e,0)
+        if e.aggr=1 then do_dialog(7,e,0)
         if e.aggr=2 then dprint "The "&e.sdesc &" says: 'I surrender!"
     endif 
     if e.lang=8 then
-        if e.aggr=0 or e.aggr=2 then dprint "It says: 'We haven't harmed you yet you wish to destroy us?'"
-        if e.aggr=1 then dodialog(8,e,0)
+        if e.aggr=0 or e.aggr=2 then dprint "It says: 'We haven't harmed you, yet you wish to destroy us?'"
+        if e.aggr=1 then do_dialog(8,e,0)
     endif
     if e.lang=9 then
         if e.aggr=0 then dprint "They snarl and growl."
         if e.aggr=1 then 
-            a=rnd_range(1,6)
+            a=rnd_range(1,5)
             if a=1 then dprint "They ask if you got good booty lately."
             if a=2 then dprint "They ask if you know of any merchant routes."
             if a=3 then dprint "They ask if you know of any good bars here."
@@ -2539,7 +2588,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                 b=findbest(103,-1)
                 if b>0 then
                     if askyn("It says: 'Oh! you have a ceremonial robe? I would be interested in a trade'(y/n)") then
-                        it=makeitem(94)
+                        it=make_item(94)
                         if askyn("Do you want to swap your "&item(b).desig &" for "&add_a_or_an(it.desig,0) &"?(y/n)") then
                             placeitem(it,0,0,0,0,-1)
                             dprint "Thank you very much! We don't know how to make these."
@@ -2585,7 +2634,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                 dprint "'Thank you very much for killing the monster! Take this as a reward!' It hands you a huge heap of random art pieces."
                 player.questflag(12)=3
                 for a=0 to rnd_range(1,6)+ rnd_range(1,6)+ rnd_range(1,6)+3
-                    placeitem(makeitem(93),0,0,0,0,-1)
+                    placeitem(make_item(93),0,0,0,0,-1)
                 next
             endif
             if player.questflag(12)=3 then dprint "Thank you very much for killing the monster!"
@@ -3338,7 +3387,7 @@ function eris_does() as short
                 case 41 to 50
                     dprint "Eris looks at "&crew(a).n &" and starts laughing",15
                     a=rnd_crewmember
-                    dprint gaintalent(a)
+                    dprint gain_talent(a),c_gre
                 case 51 to 60
                     dprint "Eris looks at "&crew(a).n &" and starts laughing",15
                     a=rnd_crewmember
@@ -3479,25 +3528,33 @@ end function
 function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
     dim as short a
     dim it as _items
-    dprint "What do you want to offer the "&e.sdesc &"."
+    dprint "What do you want to offer the "&e.sdesc &"?"
     a=get_item()
     if a>0 then
      if (e.lang=6 or e.lang=7) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
          item(a).w.p=nr
          item(a).w.s=0
-         it=makeitem(96,-1,-3)
+         it=make_item(96,-1,-3)
          placeitem(it,0,0,0,0,-1)
          reward(2)=reward(2)+it.v5
          dprint "The reptile gladly accepts the weapon 'This will help us in eradicating the other side' and hands you some "&it.desig
          return 0
      endif
-     if e.allied>0 and item(a).price>10 then
-        dprint "The "&e.sdesc &" accepts the gift."
-        factionadd(0,e.allied,-5)
-        lastlocalitem=lastlocalitem+1
-        item(a).w.p=nr
-        item(a).w.s=0
-        li(lastlocalitem)=a
+     if e.allied>0 then
+         if item(a).price>100 then
+            dprint "The "&e.sdesc &" accepts the gift."
+            factionadd(0,e.allied,-5)
+            lastlocalitem=lastlocalitem+1
+            item(a).w.p=nr
+            item(a).w.s=0
+            li(lastlocalitem)=a
+            if e.aggr=2 and rnd_range(1,6)+rnd_range(1,6)<e.intel then 
+                e.aggr=1
+            endif
+            return 0
+        else
+            dprint "The "&e.desc &" doesn't want the "&item(a).desig &"."
+        endif
     endif
          
     if e.lang=4 then
@@ -3531,7 +3588,7 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
         dprint "Thank you so much! I am sure I can find a use for this!"
         return 0
     endif
-     
+     dprint "E:"&e.intel
      select case e.intel
         case is>6
             if rnd_range(1,6)+ rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
@@ -3545,9 +3602,9 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                 if e.aggr=1 and rnd_range(1,6) +rnd_range(1,6)<e.intel then
                     dprint "The "&e.sdesc &" gives you something in return."
                     if rnd_range(1,100)<66 then
-                        it=makeitem(94)
+                        it=make_item(94)
                     else
-                        it=makeitem(96,-3,-3)
+                        it=make_item(96,-3,-3)
                         reward(2)=reward(2)+it.v5
                     endif
                     placeitem(it,0,0,0,0,-1)
@@ -3592,7 +3649,7 @@ function rndsentence(e as _monster) as short
     endif
     if aggr=1 then
     r=rnd_range(1,11)
-        if r=1 then dodialog(902,e,0)
+        if r=1 then do_dialog(902,e,0)
         if r=2 then dprint "It says: 'You are not from around, are you?'"
         if r=3 then dprint "It says: 'Do you have a gift for me?'"
         if r=4 then dprint "It says: 'I always wondered if there were other beings out there.'"
@@ -3603,7 +3660,7 @@ function rndsentence(e as _monster) as short
         if r=9 then dprint "It says: 'I always wondered if there were other beings like us up there.'"
         if r=10 then 
             if askyn("It says: 'I pay you 5000 zrongs if you tell me all your technological secrets.' Do you agree? (y/n)") then
-                placeitem(makeitem(88),0,0,0,0,-1)
+                placeitem(make_item(88),0,0,0,0,-1)
                 s="it hands you a bag of local currency while you"
                 if skill_test(player.science(location),st_hard-e.intel,"Science:") then
                     r=rnd_range(1,6)
@@ -3619,7 +3676,7 @@ function rndsentence(e as _monster) as short
                 dprint s
             endif
         endif
-        if r=11 then dodialog(901,e,0)
+        if r=11 then do_dialog(901,e,0)
     endif
     if aggr=2 then
     r=rnd_range(1,7)
@@ -3842,7 +3899,7 @@ function give_quest(st as short) as short
                 if pl>0 then
                     dprint "We haven't heard in a while from a ship that last reported from " & map(s).c.x &":"&map(s).c.y & ". We offer you 500 Cr. if you can find out what hapened to them."
                     player.questflag(26)=pl
-                    placeitem(Makeitem(81,1),rnd_range(0,60),rnd_range(0,20),pl)
+                    placeitem(make_item(81,1),rnd_range(0,60),rnd_range(0,20),pl)
                 endif
             endif
         case 18
@@ -3869,15 +3926,6 @@ function find_passage_quest(m as short, start as _cords, goal as _cords) as shor
     else
     
     endif
-    return 0
-end function
-
-function headhunt_quest(i as short) as short
-    dim as string questtxt
-    dim as _fleet f
-    select case i
-    case 1
-    end select
     return 0
 end function
 

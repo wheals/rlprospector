@@ -1,77 +1,81 @@
-declare function credits(i as integer) as string
-declare function cords(c as _cords) as string
-declare function display_time(t as uinteger,form as byte=0) as string
+Declare Function credits(i As Integer) As String
+Declare Function cords(c As _cords) As String
+Declare Function display_time(t As UInteger,form As Byte=0) As String
 
-function display_time(t as uinteger,form as byte=0) as string
-    dim as uinteger d,h,m
-    dim as string ms,hs
-    h=fix(t/60)
-    d=fix(h/24)
+Function display_time(t As UInteger,form As Byte=0) As String
+    Dim As UInteger d,h,m
+    Dim As String ms,hs
+    h=Fix(t/60)
+    d=Fix(h/24)
     h=h-d*24
     m=t-h*60-d*24*60
-    if h<10 then
+    If h<10 Then
         hs="0"& h
-    else
+    Else
         hs=""& h
-    endif
-    if m<10 then
+    EndIf
+    If m<10 Then
         ms="0"&m
-    else
+    Else
         ms=""&m
-    endif
-    select case form
-    case 0
-        if d>0 then
-            return "Day "&d &", "& hs &":"&ms 
-        else
-            return  hs &":"&ms
-        endif
-    case 1
-        return d &" days, "& h &" hours and "& m &" minutes"
-    case 2
-        return ""&d
-    end select
-end function
+    EndIf
+    Select Case form
+    Case 0
+        If d>0 Then
+            Return "Day "&d &", "& hs &":"&ms 
+        Else
+            Return  hs &":"&ms
+        EndIf
+    Case 1
+        Return d &" days, "& h &" hours and "& m &" minutes"
+    Case 2
+        If d>0 Then
+            Return d &" days"
+        Else
+            Return  hs &":"&ms
+        EndIf
+    End Select
+End Function
 
-function credits(cr as integer) as string
-    dim as string t,r,z(12)
-    dim as single fra,tenmillion
-    dim  as integer b=1000000
-    dim as byte c,l,i
-    for i=0 to 12
+Function credits(cr As Integer) As String
+    Dim As String t,r,z(12)
+    Dim As Single fra,tenmillion
+    Dim  As Integer b=1000000
+    Dim As Byte c,l,i
+    For i=0 To 12
         
-    next
-    t="" &abs(int(cr))
+    Next
+    t="" &Abs(Int(cr))
 
-    for b=1 to len(t)
-        z(b)=mid(t,b,1)
-    next
-    l=len(t)
+    For b=1 To Len(t)
+        z(b)=Mid(t,b,1)
+    Next
+    l=Len(t)
     t=""
-    for b=1 to l
+    For b=1 To l
         t=t &z(b)
-        if l-b=3 or l-b=6 or l-b=9 or l-b=12 then 
+        If l-b=3 Or l-b=6 Or l-b=9 Or l-b=12 Then 
             t=t &","
-        endif
-    next
-    if cr<0 then t="-"&t
-    return t
-end function
+        EndIf
+    Next
+    If cr<0 Then t="-"&t
+    Return t
+End Function
 
-function cords(c as _cords) as string
-    return "("&c.x &":"& c.y &")"
-end function
+Function cords(c As _cords) As String
+    Return "("&c.x &":"& c.y &")"
+End Function
 
-function round_str(i as double,c as short) as string
-    dim as string t
-    dim as single j
-    dim as short digits
+Function round_str(i As Double,c As Short) As String
+    Dim As String t
+    Dim As Single j
+    Dim As Short digits
     t=""&round_nr(i,c)
-    if instr(t,".")>0 then 
-        digits=len(t)-instr(t,".")
-    else
+    If Instr(t,".")>0 Then 
+        digits=Len(t)-Instr(t,".")
+    Else
         t=t &"."
-    endif
-    if digits<c then t= t &string(c-digits,"0")
-    return t
-end function
+    EndIf
+    If digits<c Then t= t &String(c-digits,"0")
+    Return t
+End Function

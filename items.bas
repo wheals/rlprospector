@@ -19,9 +19,9 @@ function rnd_item(t as short) as _items
     debug=1
     if t=RI_Lamps then 
         if rnd_range(1,100)<66 then
-            i=makeitem(28)
+            i=make_item(28)
         else
-            i=makeitem(29)
+            i=make_item(29)
         endif
     endif
     
@@ -39,22 +39,22 @@ function rnd_item(t as short) as _items
     if t=RI_Cage then
         select case rnd_range(1,100)
         case 1 to 50
-            i=makeitem(62)
+            i=make_item(62)
         case 51 to 80
-            i=makeitem(63)
+            i=make_item(63)
         case else
-            i=makeitem(64)
+            i=make_item(64)
         end select
     endif
     
     if t=RI_Tanks then 
         if rnd_range(1,100)<50 then
-            i=makeitem(21)'Air filter
+            i=make_item(21)'Air filter
         else
             if rnd_range(1,100)<66 then
-                i=makeitem(38)'Aux tank Air
+                i=make_item(38)'Aux tank Air
             else
-                i=makeitem(49)'Aux tank JJ
+                i=make_item(49)'Aux tank JJ
             endif
         endif
     endif
@@ -62,19 +62,19 @@ function rnd_item(t as short) as _items
     if t=RI_Artefact then
         select case rnd_range(1,100)
         case 1 to 20
-            i=makeitem(97)
+            i=make_item(97)
         case 21 to 40
-            i=makeitem(98)
+            i=make_item(98)
         case 41 to 50
-            i=makeitem(95)
+            i=make_item(95)
         case 51 to 55
-            i=makeitem(301)
+            i=make_item(301)
         case 55 to 60
-            i=makeitem(302)
+            i=make_item(302)
         case 60 to 89
-            i=makeitem(123)
+            i=make_item(123)
         case else
-            i=makeitem(rnd_range(95,98))
+            i=make_item(rnd_range(95,98))
         end select
     endif
         
@@ -102,7 +102,7 @@ function rnd_item(t as short) as _items
         case 81 to 90
             i=rnd_item(RI_ROBOTS)
         case else
-            i=makeitem(30)
+            i=make_item(30)
         end select
     endif
     
@@ -125,125 +125,125 @@ function rnd_item(t as short) as _items
     endif
     
     
-    if t=RI_Transport then i=makeitem(rnd_range(1,2)) 'transport
-    if t=RI_RangedWeapon then i=makeitem(urn(0,8,2,player.turn/5000)+3) 'ranged weapons
-    if t=RI_CCWeapon then i=makeitem(urn(0,7,2,player.turn/5000)+40) 'close weapons
+    if t=RI_Transport then i=make_item(rnd_range(1,2)) 'transport
+    if t=RI_RangedWeapon then i=make_item(urn(0,8,2,player.turn/5000)+3) 'ranged weapons
+    if t=RI_CCWeapon then i=make_item(urn(0,7,2,player.turn/5000)+40) 'close weapons
     if t=RI_Armor then 'Space suits 
         if rnd_range(1,100)<30-player.turn/5000 then
-            i=makeitem(320)
+            i=make_item(320)
         else
-            i=makeitem(urn(0,8,2,player.turn/5000)+12) 'Armor
+            i=make_item(urn(0,8,2,player.turn/5000)+12) 'Armor
         endif
     endif
     if t=RI_ShopAliens then 
         if rnd_range(1,100)<10 then 
             if rnd_range(1,100)<50 then
-                i=makeitem(rnd_range(78,80))
+                i=make_item(rnd_range(78,80))
             else
-                i=makeitem(rnd_range(82,84))
+                i=make_item(rnd_range(82,84))
             endif
         else
-            i=makeitem(rnd_range(21,39)) 'misc
+            i=make_item(rnd_range(21,39)) 'misc
         endif
     endif
     
     if t=RI_Mining then 'misc2 mining
         if rnd_range(1,100)<50 then
             if rnd_range(1,100)<70 then
-                i=makeitem(22) 'Drill
+                i=make_item(22) 'Drill
             else
-                i=makeitem(23) 'Laser drill
+                i=make_item(23) 'Laser drill
             endif
         else
-            i=makeitem(152) 'Mining Explosives
+            i=make_item(152) 'Mining Explosives
         endif
-        if rnd_range(1,100)<15 then i=makeitem(rnd_range(41,43))
+        if rnd_range(1,100)<15 then i=make_item(rnd_range(41,43))
     endif
     
-    if t=RI_KOdrops then i=makeitem(rnd_range(36,37)) 'Anaesthetics
+    if t=RI_KOdrops then i=make_item(rnd_range(36,37)) 'Anaesthetics
     
     if t=RI_Medpacks then 
         if rnd_range(1,100)<50 then
-            i=makeitem(rnd_range(56,58)) 'meds2
+            i=make_item(rnd_range(56,58)) 'meds2
         else
-            i=makeitem(rnd_range(31,33))
+            i=make_item(rnd_range(31,33))
         endif
     endif
     if t=RI_WEAPONS then 'weapons
         if rnd_range(1,100)<50 then
-            i=makeitem(rnd_range(3,11)) 'Ranged weapons
+            i=make_item(rnd_range(3,11)) 'Ranged weapons
         else
-            i=makeitem(rnd_range(40,47)) 'CC Weapons
+            i=make_item(rnd_range(40,47)) 'CC Weapons
         endif
     endif
     
-    if t=RI_Rovers then i=makeitem(rnd_range(50,52))'fs
+    if t=RI_Rovers then i=make_item(rnd_range(50,52))'fs
     
     if t=RI_Allbutweapons then 'all but weapons
         select case rnd_range(1,100)
             case 1 to 20
-                i=makeitem(rnd_range(1,2))
+                i=make_item(rnd_range(1,2))
             case 21 to 40
-                i=makeitem(rnd_range(15,33))
+                i=make_item(rnd_range(15,33))
             case 41 to 60
-                i=makeitem(rnd_range(50,58))
+                i=make_item(rnd_range(50,58))
             case 61 to 80
-                i=makeitem(rnd_range(21,30))
+                i=make_item(rnd_range(21,30))
             case 80 to 100
-                i=makeitem(rnd_range(70,71))
+                i=make_item(rnd_range(70,71))
             case else
-                i=makeitem(77)
+                i=make_item(77)
         end select 
     endif
     
     if t=RI_Infirmary then
-        i=makeitem(rnd_range(67,69))
+        i=make_item(rnd_range(67,69))
     endif
     
     if t=RI_ROBOTS then
         if rnd_range(1,100)<50 then
-            i=makeitem(RI_Rovers)
+            i=make_item(RI_Rovers)
         else
-            i=makeitem(RI_Miningbots)
+            i=make_item(RI_Miningbots)
         endif
     endif
     
-    if t=RI_LandingGear then i=makeitem(rnd_range(75,76))
+    if t=RI_LandingGear then i=make_item(rnd_range(75,76))
     
-    if t=RI_Probes then i=makeitem(rnd_range(101,102))
+    if t=RI_Probes then i=make_item(rnd_range(101,102))
     
-    if t=RI_Drones then i=makeitem(rnd_range(110,112))
+    if t=RI_Drones then i=make_item(rnd_range(110,112))
     
-    if t=RI_GasProbes then i=makeitem(rnd_range(104,105))
+    if t=RI_GasProbes then i=make_item(rnd_range(104,105))
     
     if t=RI_Mining then
         select case rnd_range(1,100)
         case 1 to 55
-            i=makeitem(152)
+            i=make_item(152)
         case 55 to 85
-            i=makeitem(22)
+            i=make_item(22)
         case else
-            i=makeitem(23)
+            i=make_item(23)
         end select
     endif
     
     if t=RI_Miningbots then
         select case rnd_range(1,100)
         case 1 to 50
-            i=makeitem(53)
+            i=make_item(53)
         case 50 to 80
-            i=makeitem(54)
+            i=make_item(54)
         case else
-            i=makeitem(55)
+            i=make_item(55)
         end select
     endif
         
     if t=RI_ShopSpace or t=RI_Shipequipment then
         r=rnd_range(1,11)
-        if r=1 then i=makeitem(30)'Comsat
+        if r=1 then i=make_item(30)'Comsat
         if r=2 then i=rnd_item(RI_Robots)
         if r=3 then i=rnd_item(RI_Infirmary)
-        if r=4 then i=makeitem(rnd_range(70,71))'Emergency Beacon
+        if r=4 then i=make_item(rnd_range(70,71))'Emergency Beacon
         if r=4 then i=rnd_item(RI_LandingGear)
         if r=5 then i=rnd_item(RI_Probes)
         if r=6 then i=rnd_item(RI_GasProbes)
@@ -257,105 +257,105 @@ function rnd_item(t as short) as _items
     
     if t=RI_AllButWeaponsAndMeds then 'All but weapons and meds
         r=rnd_range(1,32)
-        if r=1 then i=makeitem(1)
-        if r=2 then i=makeitem(2)
-        if r=3 then i=makeitem(21)
-        if r=4 then i=makeitem(22)
-        if r=5 then i=makeitem(23)
-        if r=6 then i=makeitem(24)
-        if r=7 then i=makeitem(25)
-        if r=8 then i=makeitem(26)
-        if r=9 then i=makeitem(27)
-        if r=10 then i=makeitem(28)
-        if r=11 then i=makeitem(29)
-        if r=12 then i=makeitem(30)
-        if r=13 then i=makeitem(38)
-        if r=14 then i=makeitem(39)
-        if r=15 then i=makeitem(48)
-        if r=16 then i=makeitem(49)
-        if r=17 then i=makeitem(50)
-        if r=18 then i=makeitem(51)
-        if r=19 then i=makeitem(52)
-        if r=20 then i=makeitem(53)
-        if r=21 then i=makeitem(54)
-        if r=22 then i=makeitem(55)
-        if r=23 then i=makeitem(59)
-        if r=24 then i=makeitem(60)
-        if r=25 then i=makeitem(70)
-        if r=26 then i=makeitem(71)
-        if r=27 then i=makeitem(72)
-        if r=28 then i=makeitem(73)
-        if r=29 then i=makeitem(77)
-        if r=30 then i=makeitem(100)
-        if r=31 then i=makeitem(101)
-        if r=32 then i=makeitem(102)
+        if r=1 then i=make_item(1)
+        if r=2 then i=make_item(2)
+        if r=3 then i=make_item(21)
+        if r=4 then i=make_item(22)
+        if r=5 then i=make_item(23)
+        if r=6 then i=make_item(24)
+        if r=7 then i=make_item(25)
+        if r=8 then i=make_item(26)
+        if r=9 then i=make_item(27)
+        if r=10 then i=make_item(28)
+        if r=11 then i=make_item(29)
+        if r=12 then i=make_item(30)
+        if r=13 then i=make_item(38)
+        if r=14 then i=make_item(39)
+        if r=15 then i=make_item(48)
+        if r=16 then i=make_item(49)
+        if r=17 then i=make_item(50)
+        if r=18 then i=make_item(51)
+        if r=19 then i=make_item(52)
+        if r=20 then i=make_item(53)
+        if r=21 then i=make_item(54)
+        if r=22 then i=make_item(55)
+        if r=23 then i=make_item(59)
+        if r=24 then i=make_item(60)
+        if r=25 then i=make_item(70)
+        if r=26 then i=make_item(71)
+        if r=27 then i=make_item(72)
+        if r=28 then i=make_item(73)
+        if r=29 then i=make_item(77)
+        if r=30 then i=make_item(100)
+        if r=31 then i=make_item(101)
+        if r=32 then i=make_item(102)
     endif
     
     if t=RI_ShopExplorationGear then 'specialty shop exploration gear
         r=rnd_range(1,40)
-        if r=1 then i=makeitem(49)
-        if r=2 then i=makeitem(50)
-        if r=3 then i=makeitem(51)
-        if r=4 then i=makeitem(52)
-        if r=5 then i=makeitem(53)
-        if r=6 then i=makeitem(54)
-        if r=7 then i=makeitem(55)
-        if r=8 then i=makeitem(75)
-        if r=9 then i=makeitem(76)
-        if r=10 then i=makeitem(77)
-        if r=11 then i=makeitem(78)
-        if r=12 then i=makeitem(79)
-        if r=13 then i=makeitem(80)
-        if r=14 then i=makeitem(83)
-        if r=15 then i=makeitem(84)
-        if r=16 then i=makeitem(85)
-        if r=18 then i=makeitem(100)
-        if r=19 then i=makeitem(101)
-        if r=20 then i=makeitem(102)
-        if r=21 then i=makeitem(103)
-        if r=17 then i=makeitem(104)
-        if r=22 then i=makeitem(22)
-        if r=23 then i=makeitem(23)
-        if r=24 then i=makeitem(62)
-        if r=25 then i=makeitem(63)
-        if r=26 then i=makeitem(162)
-        if r=27 then i=makeitem(163)
-        if r=28 then i=makeitem(38)
-        if r=29 then i=makeitem(30)'Comsat
-        if r>=30 and r<=37 then i=makeitem(1)
-        if r>=38 and r<=40 then i=makeitem(2)
+        if r=1 then i=make_item(49)
+        if r=2 then i=make_item(50)
+        if r=3 then i=make_item(51)
+        if r=4 then i=make_item(52)
+        if r=5 then i=make_item(53)
+        if r=6 then i=make_item(54)
+        if r=7 then i=make_item(55)
+        if r=8 then i=make_item(75)
+        if r=9 then i=make_item(76)
+        if r=10 then i=make_item(77)
+        if r=11 then i=make_item(78)
+        if r=12 then i=make_item(79)
+        if r=13 then i=make_item(80)
+        if r=14 then i=make_item(83)
+        if r=15 then i=make_item(84)
+        if r=16 then i=make_item(85)
+        if r=18 then i=make_item(100)
+        if r=19 then i=make_item(101)
+        if r=20 then i=make_item(102)
+        if r=21 then i=make_item(103)
+        if r=17 then i=make_item(104)
+        if r=22 then i=make_item(22)
+        if r=23 then i=make_item(23)
+        if r=24 then i=make_item(62)
+        if r=25 then i=make_item(63)
+        if r=26 then i=make_item(162)
+        if r=27 then i=make_item(163)
+        if r=28 then i=make_item(38)
+        if r=29 then i=make_item(30)'Comsat
+        if r>=30 and r<=37 then i=make_item(1)
+        if r>=38 and r<=40 then i=make_item(2)
     endif
     
     if t=RI_Kits then
         select case rnd_range(1,100)
         case 1 to 33
-            i=makeitem(82)'Autopsy Kit
+            i=make_item(82)'Autopsy Kit
         case 34 to 66
-            i=makeitem(83)'Botany Kit
+            i=make_item(83)'Botany Kit
         case else
-            i=makeitem(84)'Ship Repair
+            i=make_item(84)'Ship Repair
         end select
     endif
     
     if t=RI_ShopWeapons then 'Weapons
         select case rnd_range(1,100)
             case is<33 
-                i=makeitem(rnd_range(3,20)) 'Guns and Armor
+                i=make_item(rnd_range(3,20)) 'Guns and Armor
             case is>90 
                 if rnd_range(1,100)<50 then
                     if rnd_range(1,100)<66 then
-                        i=makeitem(rnd_range(106,107))' Small Grenades
+                        i=make_item(rnd_range(106,107))' Small Grenades
                     else
-                        i=makeitem(rnd_range(24,25))'grenades
+                        i=make_item(rnd_range(24,25))'grenades
                     endif
                 else
-                    i=makeitem(rnd_range(59,61))'Mines
+                    i=make_item(rnd_range(59,61))'Mines
                 endif
             case else
                 if rnd_range(1,100)<90 then
-                    i=makeitem(rnd_range(40,47))'CC weapons
+                    i=make_item(rnd_range(40,47))'CC weapons
                 else
-                    i=makeitem(48)'Grenade launcher
+                    i=make_item(48)'Grenade launcher
                 endif
         end select
     endif
@@ -363,53 +363,53 @@ function rnd_item(t as short) as _items
     if t=RI_WeaponsArmor then 'Weapons or armor
         select case rnd_range(1,100)
         case is<33
-            i=makeitem(rnd_range(3,11))
+            i=make_item(rnd_range(3,11))
         case is>66
-            i=makeitem(rnd_range(40,47))
+            i=make_item(rnd_range(40,47))
         case else
-            i=makeitem(rnd_range(12,20))
+            i=make_item(rnd_range(12,20))
         end select        
     endif
     
     if t=RI_WeakStuff then 'Starting equipment Weak stuff
         select case rnd_range(1,78)
         case 1 to 5 
-            i=makeitem(21,,,,1)'1 Airfilters
+            i=make_item(21,,,,1)'1 Airfilters
         case 5 to 9 
-            i=makeitem(24,,,,1)'2 Grenade
+            i=make_item(24,,,,1)'2 Grenade
         case 10 to 20 
-            i=makeitem(26,,,,1)'3 Binocs
+            i=make_item(26,,,,1)'3 Binocs
         case 21 to 30 
-            i=makeitem(28,,,,1)'4 Lamp
+            i=make_item(28,,,,1)'4 Lamp
         case 31 to 38 
-            i=makeitem(31,,,,1)'5 Medpack
+            i=make_item(31,,,,1)'5 Medpack
         case 39 to 42 
-            i=makeitem(34,,,,1)'6 Lockpicks
+            i=make_item(34,,,,1)'6 Lockpicks
         case 43 to 47 
-            i=makeitem(36,,,,1)'7 Anaesthtics
+            i=make_item(36,,,,1)'7 Anaesthtics
         case 48 to 53 
-            i=makeitem(38,,,,1)'8 Ox tank
+            i=make_item(38,,,,1)'8 Ox tank
         case 54 to 55 
-            i=makeitem(56,,,,1)'9 Disease Kit
+            i=make_item(56,,,,1)'9 Disease Kit
         case 56 to 58 
-            i=makeitem(70,,,,1)'10 em beacon
+            i=make_item(70,,,,1)'10 em beacon
         case 59 to 65 
-            i=makeitem(78,,,,1)'11 Flash grenade
+            i=make_item(78,,,,1)'11 Flash grenade
         case 65 to 69
             select case rnd_range(1,3)
             case is=1
-                i=makeitem(82,,,,1)'12 Autopsy kit
+                i=make_item(82,,,,1)'12 Autopsy kit
             case is=2
-                i=makeitem(83,,,,1)'13 Botany Kit
+                i=make_item(83,,,,1)'13 Botany Kit
             case is=3
-                i=makeitem(84,,,,1)'14 SR Kit
+                i=make_item(84,,,,1)'14 SR Kit
             end select
         case 70 to 72
-            i=makeitem(31,,,,1)'5 Medpack
+            i=make_item(31,,,,1)'5 Medpack
         case 72 to 74
-            i=makeitem(106,,,,1)'15 Grenade
+            i=make_item(106,,,,1)'15 Grenade
         case 75 to 78
-            i=makeitem(152,,,,1)'Mining explosives
+            i=make_item(152,,,,1)'Mining explosives
         end select
         
     endif
@@ -418,13 +418,13 @@ function rnd_item(t as short) as _items
     if t=RI_WeakWeapons then 'weak weapons and armor
         select case rnd_range(1,100)
         case 1 to 30
-            i=makeitem(urn(0,4,1,0)+3,,,,1)
+            i=make_item(urn(0,4,1,0)+3,,,,1)
         case 31 to 50
-            i=makeitem(urn(0,4,1,0)+40,,,,1)
+            i=make_item(urn(0,4,1,0)+40,,,,1)
         case 51 to 80
-            i=makeitem(urn(0,2,1,0)+12,,,,1)
+            i=make_item(urn(0,2,1,0)+12,,,,1)
         case else
-            i=makeitem(320)
+            i=make_item(320)
         end select
     end if
     
@@ -629,13 +629,13 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
     i.w.s=s
     i.discovered=show_allitems
     dim a as short
-    if lastitem<25000 then 'Noch platz für neues
+    if lastitem<25000 then 'Noch platz fï¿½r neues
         lastitem=lastitem+1
         item(lastitem)=i
         item(lastitem).uid=lastitem
         return lastitem
     else
-        for a=0 to lastitem 'Überschreibe erstes item das nicht im schiff und keine ressource
+        for a=0 to lastitem 'ï¿½berschreibe erstes item das nicht im schiff und keine ressource
             item(a).uid=a
             if item(a).w.s>=0 and item(a).ty<>15 then
                 item(a)=i
@@ -702,7 +702,7 @@ function check_item_filter(t as short,f as short) as short
     return r
 end function
 
-function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0,nomod as byte=0) as _items
+function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0,nomod as byte=0) as _items
     dim i as _items
     dim as short f,roll,target,rate
     if uid=4294967295 then 
@@ -913,13 +913,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=15
         i.bgcol=0
         i.v1=1
-        i.price=25
+        i.v3=150
+        i.price=20
         i.res=10
     endif
     
     if a=12 then
         i.ti_no=2012
-        i.id=12
+        i.id=13
         i.ty=3
         i.desig="ballistic suit"
         i.desigp="ballistic suits"
@@ -928,13 +929,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
         i.bgcol=0
         i.v1=3
+        i.v3=200
         i.price=75
         i.res=25
     endif
     
     if a=13 then
         i.ti_no=2013
-        i.id=13
+        i.id=14
         i.ty=3
         i.desig="full ballistic suit"
         i.desigp="full ballistic suits"
@@ -943,13 +945,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
         i.bgcol=0
         i.v1=4
+        i.v3=200
         i.price=175
         i.res=25
     endif
     
     if a=14 then
         i.ti_no=2014
-        i.id=14
+        i.id=15
         i.ty=3
         i.desig="protective suit"
         i.desigp="protective suits"
@@ -958,13 +961,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
         i.bgcol=0
         i.v1=5
+        i.v3=200
         i.price=300
         i.res=25
     endif
     
     if a=15 then
         i.ti_no=2015
-        i.id=15
+        i.id=16
         i.ty=3
         i.desig="full protective suit"
         i.desigp="full protective suits"
@@ -973,13 +977,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
         i.bgcol=0
         i.v1=6
+        i.v3=200
         i.price=450
         i.res=25
     endif
     
     if a=16 then
         i.ti_no=2016
-        i.id=16
+        i.id=17
         i.ty=3
         i.desig="fullerene suit"
         i.desigp="fullerene suits"
@@ -988,13 +993,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=14
         i.bgcol=0
         i.v1=7
+        i.v3=250
         i.price=625
         i.res=25
     endif
     
     if a=17 then
         i.ti_no=2017
-        i.id=17
+        i.id=18
         i.ty=3
         i.desig="combat armor"
         i.desigp="sets of combat armor"
@@ -1003,13 +1009,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=6
         i.bgcol=0
         i.v1=8
+        i.v3=300
         i.price=825
         i.res=45
     endif
     
     if a=18 then
         i.ti_no=2018
-        i.id=18
+        i.id=19
         i.ty=3
         i.desig="heavy combat armor"
         i.desigp="sets of heavy combat armor"
@@ -1018,13 +1025,14 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=6
         i.bgcol=0
         i.v1=9
+        i.v3=300
         i.price=1050
         i.res=45
     endif
     
     if a=19 then   
         i.ti_no=2019              
-        i.id=19
+        i.id=20
         i.ty=3
         i.desig="p. Forcefield"
         i.desigp="p. forcefields"
@@ -1033,19 +1041,21 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=2
         i.bgcol=0
         i.v1=11
+        i.v3=400
         i.price=1300
         i.res=65
     endif    
          
     if a=20 then
         i.ti_no=2020
-        i.id=20
+        i.id=21
         i.ty=3
         i.desig="layered p. forcefield"
         i.desigp="layered p. forcefields"
         i.ldesc="The ultimate in protective equipment. Several layered forcefields surround the wearer." 
         i.icon="&"
         i.col=6
+        i.v3=400
         i.bgcol=0
         i.v1=13
         i.price=1575
@@ -1055,12 +1065,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=21 then
         i.ti_no=2021
-        i.id=21
+        i.id=22
         i.ty=17
-        i.desig="imp. air filter"
-        i.desigp="imp. air filters"
+        i.desig="improved air filter"
+        i.desigp="improved air filters"
         i.ldesc="Normal spacesuits have their own oxygen tank. Improved air filters attempt to supplement that with whatever is found in the surrounding atmosphere."
-        i.icon="§"
+        i.icon="ï¿½"
         i.col=14
         i.v1=.3
         i.bgcol=0
@@ -1085,7 +1095,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=22 then
         i.ti_no=2022
-        i.id=22
+        i.id=23
         i.ty=5
         i.desig="mining drill"
         i.desigp="mining drills"
@@ -1115,7 +1125,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=23 then
         i.ti_no=2023
-        i.id=23
+        i.id=24
         i.ty=5
         i.desig="laser drill"
         i.desigp="laser drills"
@@ -1134,7 +1144,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
                 i.v1=6
                 i.price=3000
             else
-                i.id=123
+                i.id=125
                 i.desig="weak "&i.desig
                 i.desigp="weak "&i.desigp
                 i.v1=4
@@ -1145,7 +1155,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=24 then
         i.ti_no=2024
-        i.id=24
+        i.id=25
         i.ty=7
         i.desig="grenade"
         i.desigp="grenades"
@@ -1159,7 +1169,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=25 then
         i.ti_no=2025
-        i.id=25
+        i.id=26
         i.ty=7
         i.desig="fusion grenade"
         i.desigp="fusion grenades"
@@ -1173,7 +1183,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=26 then
         i.ti_no=2026
-        i.id=26
+        i.id=27
         i.ty=8
         i.desig="set of binoculars"
         i.desigp="sets of binoculars"
@@ -1202,7 +1212,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=27 then
         i.ti_no=2027
-        i.id=27
+        i.id=28
         i.ty=8
         i.desig="portable sensorset"
         i.desigp="portable sensorsets"
@@ -1231,7 +1241,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=28 then
         i.ti_no=2028
-        i.id=28
+        i.id=29
         i.ty=9
         i.desig="helmet lamp"
         i.desigp="helmet lamps"
@@ -1261,7 +1271,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=29 then
         i.ti_no=2029
-        i.id=29
+        i.id=30
         i.ty=9
         i.desig="flood light"
         i.desigp="flood lights"
@@ -1290,7 +1300,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=30 then
         i.ti_no=2030
-        i.id=30
+        i.id=31
         i.ty=10
         i.desig="communication satellite"
         i.desigp="communication satellites"
@@ -1304,7 +1314,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=31 then
         i.ti_no=2031
-        i.id=31
+        i.id=32
         i.ty=11
         i.desig="medpack"
         i.desigp="medpacks"
@@ -1320,7 +1330,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=32 then
         i.ti_no=2032
-        i.id=32
+        i.id=33
         i.ty=11
         i.desig="medpack II"
         i.desigp="medpacks II"
@@ -1336,7 +1346,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=33 then
         i.ti_no=2033
-        i.id=33
+        i.id=34
         i.ty=11
         i.desig="medpack III"
         i.desigp="medpacks III"
@@ -1351,7 +1361,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=34 then
         i.ti_no=2034
-        i.id=34
+        i.id=35
         i.ty=12
         i.desig="mechanical lockpicks"
         i.desigp=i.desig
@@ -1366,7 +1376,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=35 then
         i.ti_no=2035
-        i.id=35
+        i.id=36
         i.ty=12
         i.desig="electronic lockpicks"
         i.desigp=i.desig
@@ -1380,7 +1390,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=36 then
         i.ti_no=2036
-        i.id=36
+        i.id=37
         i.ty=13
         i.desig="anaesthetics"
         i.desigp="anaesthetics"
@@ -1394,7 +1404,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=37 then
         i.ti_no=2037
-        i.id=37
+        i.id=38
         i.ty=13
         i.desig="strong anaesthetics"
         i.desigp="strong anaesthetics"
@@ -1408,7 +1418,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=38 then
         i.ti_no=2038
-        i.id=38
+        i.id=39
         i.ty=14
         i.desig="aux. oxygen tank"
         i.desigp="aux. oxygen tanks"
@@ -1437,7 +1447,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=39 then
         i.ti_no=2039
-        i.id=39
+        i.id=40
         i.ty=16
         i.desig="seismograph"
         i.desigp="seismographs"
@@ -1450,7 +1460,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=40 then
         i.ti_no=2040
-        i.id=40
+        i.id=41
         i.ty=4
         i.desig="combat knife"
         i.desigp="combat knifes"
@@ -1465,7 +1475,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=41 then
         i.ti_no=2041
-        i.id=41
+        i.id=42
         i.ty=4
         i.desig="combat blade"
         i.desigp="combat blades"
@@ -1480,7 +1490,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=42 then
         i.ti_no=2042
-        i.id=42
+        i.id=43
         i.ty=4
         i.desig="vibro knife"
         i.desigp="vibro knives"
@@ -1495,7 +1505,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
 
     if a=43 then
         i.ti_no=2043
-        i.id=43
+        i.id=44
         i.ty=4
         i.desig="vibro blade"
         i.desigp="vibro blades"
@@ -1510,7 +1520,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=44 then
         i.ti_no=2044
-        i.id=44
+        i.id=45
         i.ty=4
         i.desig="vibro sword"
         i.desigp="vibro swords"
@@ -1525,7 +1535,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=45 then
         i.ti_no=2045
-        i.id=45
+        i.id=46
         i.ty=4
         i.desig="mono blade"
         i.desigp="mono blades"
@@ -1541,7 +1551,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
      
     if a=46 then
         i.ti_no=2046
-        i.id=46
+        i.id=47
         i.ty=4
         i.desig="mono sword"
         i.desigp="mono swords"
@@ -1556,7 +1566,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=47 then
         i.ti_no=2047
-        i.id=47
+        i.id=48
         i.ty=4
         i.desig="combat gloves"
         i.desigp="combat gloves"
@@ -1572,7 +1582,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=48 then
         i.ti_no=2048
-        i.id=48
+        i.id=49
         i.ty=17
         i.desig="grenade launcher"
         i.desigp="grenade launchers"
@@ -1605,7 +1615,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=49 then
         i.ti_no=2049
-        i.id=49
+        i.id=50
         i.ty=28
         i.v1=25
         i.desig="aux jetpack tanks"
@@ -1620,18 +1630,17 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=50 then
         i.ti_no=2050
-        i.id=50
+        i.id=51
         i.ty=18
         i.desig="simple rover"
         i.desigp="simple rovers"
         i.ldesc="A small wheeled robot to collect map data autonomously. To use a rover drop it on a planet and collect it later"
         i.icon="X"
         i.col=192
-        i.discovered=1
         i.v1=2
-        i.v2=0
+        i.v2=1
         i.v3=.5
-        i.v4=1 'Speed
+        i.v4=2'Speed
         i.vt.x=-1
         i.vt.y=-1
         i.price=200
@@ -1640,18 +1649,17 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=51 then
         i.ti_no=2051
-        i.id=51
+        i.id=52
         i.ty=18
         i.desig="rover"
         i.desigp="rovers"
         i.ldesc="A small robot with 4 legs and decent sensors to collect map data autonomously. It can also operate under water. To use a rover drop it on a planet and collect it later"
         i.icon="X"
         i.col=204
-        i.discovered=1
         i.v1=3
-        i.v2=1
+        i.v2=2
         i.v3=.7
-        i.v4=2
+        i.v4=3
         i.vt.x=-1
         i.vt.y=-1
         i.price=400
@@ -1660,18 +1668,17 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=52 then
         i.ti_no=2052
-        i.id=52
+        i.id=53
         i.ty=18
         i.desig="improved rover"
         i.desigp="improved rovers"
         i.ldesc="A small robot with 6 legs, jets for flying short distances, and good sensors. It is used to collect map data autonomously. It can also operate under water and climb mountains. To use a rover drop it on a planet and collect it later"
         i.icon="X"
-        i.discovered=1
         i.col=14
         i.v1=4
-        i.v2=2
+        i.v2=3
         i.v3=1
-        i.v4=3
+        i.v4=4
         i.vt.x=-1
         i.vt.y=-1
         i.price=600
@@ -1680,14 +1687,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=53 then
         i.ti_no=2053
-        i.id=53
+        i.id=54
         i.ty=27
         i.desig="simple mining robot"
         i.desigp="simple mining robot"
         i.ldesc="A small stationary robot, extracting small deposits and traces of ore from its immediate surroundings, autonomously. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
         i.col=54
-        i.discovered=1
         i.v1=0
         i.v2=100
         i.v3=.25
@@ -1699,14 +1705,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=54 then
         i.ti_no=2054
-        i.id=54
+        i.id=55
         i.ty=27
         i.desig="mining robot"
         i.desigp="mining robot"
         i.ldesc="A small stationary robot, extracting and drilling small deposits and traces of ore from its surroundings, autonomously. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
         i.col=60
-        i.discovered=1
         i.v1=0
         i.v2=250
         i.v3=.5
@@ -1718,13 +1723,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=55 then
         i.ti_no=2055
-        i.id=55
+        i.id=56
         i.ty=27
         i.desig="improved mining robot"
         i.desigp="improved mining robot"
         i.ldesc="A small stationary robot drilling for ore autonomously, collecting small deposits and traces of ore from the ground and atmosphere. To use a mining bot drop it on a planet and collect it later"
         i.icon="X"
-        i.discovered=1
         i.col=66
         i.v1=0
         i.v2=500
@@ -1737,7 +1741,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=56 then
         i.ti_no=2056
-        i.id=56
+        i.id=57
         i.ty=19
         i.desig="disease kit I"
         i.desigp="disease kits I"
@@ -1746,13 +1750,13 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=1
         i.bgcol=15
         i.v1=2
-        i.price=50
+        i.price=15
     endif
     
     
     if a=57 then
         i.ti_no=2057
-        i.id=57
+        i.id=58
         i.ty=19
         i.desig="disease kit II"
         i.desigp="disease kits II"
@@ -1761,12 +1765,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=1
         i.bgcol=15
         i.v1=4
-        i.price=100
+        i.price=25
     endif
     
     if a=58 then
         i.ti_no=2058
-        i.id=58
+        i.id=59
         i.ty=19
         i.desig="disease kit III"
         i.desigp="disease kits III"
@@ -1775,12 +1779,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=1
         i.bgcol=15
         i.v1=6
-        i.price=150
+        i.price=50
     endif
     
     if a=59 then
         i.ti_no=2059
-        i.id=59
+        i.id=60
         i.ty=21
         i.desig="conventional mine"
         i.desigp="conventional mines"
@@ -1793,10 +1797,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         
     if a=60 then
         i.ti_no=2060
-        i.id=60
+        i.id=61
         i.ty=21
-        i.desig="imp. mine"
-        i.desigp="imp. mines"
+        i.desig="improved mine"
+        i.desigp="improved mines"
         i.ldesc="A simple, small explosive device, triggered by proximity, blasting into the direction of the target."
         i.icon="'"
         i.col=13
@@ -1806,7 +1810,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=61 then
         i.ti_no=2061
-        i.id=61
+        i.id=62
         i.ty=22
         i.desig="stun mine"
         i.desigp="stun mines"
@@ -1819,7 +1823,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=62 then
         i.ti_no=2062
-        i.id=62
+        i.id=63
         i.ty=26
         i.desig="cage"
         i.desigp="cages"
@@ -1833,7 +1837,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=63 then
         i.ti_no=2063
-        i.id=63
+        i.id=64
         i.ty=26
         i.desig="stasis field"
         i.desigp="stasis fields"
@@ -1848,7 +1852,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=64 then
         i.ti_no=2064
-        i.id=64
+        i.id=65
         i.ty=26
         i.desig="improved stasis field"
         i.desigp="improved stasis fields"
@@ -1862,7 +1866,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=65 then
         i.ti_no=2065
-        i.id=65
+        i.id=66
         i.ty=20
         i.desig="debris from a destroyed rover"
         i.desigp="debris from destroyed rovers"
@@ -1874,7 +1878,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=66 then
         i.ti_no=2066
-        i.id=65
+        i.id=67
         i.ty=20
         i.desig="debris from a destroyed mining robot"
         i.desigp="debris from destroyed mining robots"
@@ -1886,7 +1890,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=67 then
         i.ti_no=2067
-        i.id=67
+        i.id=68
         i.ty=21
         i.desig="basic Infirmary"
         i.desigp="basic Infirmary"
@@ -1902,7 +1906,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=68 then
         i.ti_no=2068
-        i.id=68
+        i.id=69
         i.ty=21
         i.desig="infirmary"
         i.desigp="infirmary"
@@ -1918,7 +1922,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=69 then
         i.ti_no=2069
-        i.id=69
+        i.id=70
         i.ty=21
         i.desig="advanced Infirmary"
         i.desigp="advanced Infirmary"
@@ -1933,7 +1937,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=70 then
         i.ti_no=2070
-        i.id=70
+        i.id=71
         i.ty=36
         i.desig="emergency beacon"
         i.desigp="emergency beacons"
@@ -1947,7 +1951,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=71 then
         i.ti_no=2071
-        i.id=71
+        i.id=72
         i.ty=36
         i.desig="imp. Emergency beacon"
         i.desigp="imp. emergency beacons"
@@ -1961,12 +1965,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=72 then
         i.ti_no=2072
-        i.id=72
+        i.id=73
         i.ty=40
         i.desig="anti-ship mine"
         i.desigp="anti-ship mines"
         i.ldesc="a small device that explodes when in immediate vicinity of a ship"
-        i.icon="ö"
+        i.icon="ï¿½"
         i.col=7
         i.v1=5
         i.v2=3
@@ -1977,12 +1981,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=73 then
         i.ti_no=2073
-        i.id=73
+        i.id=74
         i.ty=40
         i.desig="anti-ship mine MKII"
         i.desigp="anti-ship mines MKII"
         i.ldesc="a small device that explodes when in immediate vicinity of a ship"
-        i.icon="ö"
+        i.icon="ï¿½"
         i.col=7
         i.v1=10
         i.v2=4
@@ -1993,12 +1997,12 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=74 then
         i.ti_no=2074
-        i.id=74
+        i.id=75
         i.ty=40
         i.desig="improvised mine"
         i.desigp="improvised mines"
         i.ldesc="a small device that explodes when in immediate vicinity of a ship"
-        i.icon="ö"
+        i.icon="ï¿½"
         i.col=7
         i.v1=3
         i.v2=2
@@ -2009,7 +2013,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=75 then
         i.ti_no=2075
-        i.id=75
+        i.id=76
         i.ty=41
         i.desig="AT landing gear"
         i.desigp="AT Landing gears"
@@ -2024,7 +2028,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=76 then
         i.ti_no=2076
-        i.id=76
+        i.id=77
         i.ty=41
         i.desig="Imp. AT landing gear"
         i.desigp="Imp. AT Landing gears"
@@ -2038,7 +2042,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=77 then 
         i.ti_no=2077
-        i.id=77
+        i.id=78
         i.ty=42
         i.desig="Ground penetrating radar"
         i.desigp="Ground penetrating radars"
@@ -2049,9 +2053,11 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
             
             if rnd_range(1,100)+player.turn/rate<60 then
                 i.v1=3
+                i.id+=222
                 i.desig="Good ground penetrating radar"
                 i.desigp="Good ground penetrating radars"
             else
+                i.id+=223
                 i.v1=4
                 i.desig="Great ground penetrating radar"
                 i.desigp="Great ground penetrating radars"
@@ -2065,10 +2071,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=78 then 
         i.ti_no=2111
-        i.id=78
+        i.id=79
         i.ty=7
-        i.desig="flash grenade"
-        i.desigp="flash grenades"
+        i.desig="Flash grenade"
+        i.desigp="Flash grenades"
         i.ldesc="Produces a bright light that illuminates an area."
         i.v1=0
         i.v2=1
@@ -2081,10 +2087,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=79 then 
         i.ti_no=2112
-        i.id=79
+        i.id=80
         i.ty=7
-        i.desig="stun grenade"
-        i.desigp="stun grenades"
+        i.desig="Stun grenade"
+        i.desigp="Stun grenades"
         i.ldesc="A non-lethal explosive device used to temporarily disorient an enemy's senses. It is designed to produce a blinding flash of light and loud noise without causing permanent injury."
         i.v1=3
         i.v2=2
@@ -2097,10 +2103,10 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=80 then 
         i.ti_no=2112
-        i.id=80
+        i.id=81
         i.ty=7
-        i.desig="Imp. Stun Grenade"
-        i.desigp="Imp. Stun Grenades"
+        i.desig="Improved stun grenade"
+        i.desigp="Improved stun grenades"
         i.ldesc=""
         i.v1=5
         i.v2=2
@@ -2112,7 +2118,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     if a=81 then
         i.ti_no=2113
-        i.id=81
+        i.id=82
         i.ty=47
         i.desig="Id Tag"
         i.desigp="Id Tags"
@@ -2128,7 +2134,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=82 then
         i.ti_no=2114
         i.ty=48
-        i.id=82
+        i.id=83
         i.desig="Autopsy kit"
         i.desigp="Autopsy kits"
         i.ldesc="Tools for analyzing alien corpses"
@@ -2136,18 +2142,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=0
         i.bgcol=15
         i.icon="+"
-        i.price=250
+        i.price=25
         if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<50 then
                 i.desig="Small autopsy kit"
                 i.desigp="Small autopsy kits"
                 i.v1=15
-                i.price=200
+                i.id+=100
+                i.price=20
             else
+                i.id+=110
                 i.desig="Good autopsy kit"
                 i.desigp="Good autopsy kits"
                 i.v1=25
-                i.price=300
+                i.price=30
             endif
         endif
     endif
@@ -2155,7 +2163,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=83 then
         i.ti_no=2115
         i.ty=49
-        i.id=83
+        i.id=84
         i.desig="Botany kit"
         i.desigp="Botany kits"
         i.ldesc="A kit containing tools for advanced plant analysis"
@@ -2163,18 +2171,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=4
         i.bgcol=15
         i.icon="+"
-        i.price=250
+        i.price=25
         if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<50 then
                 i.desig="Small botany kit"
                 i.desigp="Small botany kits"
                 i.v1=15
-                i.price=200
+                i.id+=100
+                i.price=20
             else
+                i.id+=110
                 i.desig="Good botany kit"
                 i.desigp="Good botany kits"
                 i.v1=25
-                i.price=300
+                i.price=30
             endif
         endif
     endif
@@ -2183,7 +2193,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     if a=84 then
         i.ti_no=2116
         i.ty=50
-        i.id=84
+        i.id=85
         i.desig="Ship repair kit"
         i.desigp="Ship repair kits"
         i.ldesc="A kit containing tools for ship repair"
@@ -2191,18 +2201,20 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=4
         i.bgcol=15
         i.icon="+"
-        i.price=500
+        i.price=50
         if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<50 then
                 i.desig="Small ship repair kit"
                 i.desigp="Small ship repair kits"
+                i.id+=100
                 i.v1=1
-                i.price=250
+                i.price=25
             else
                 i.desig="Good ship repair kit"
                 i.desigp="Good ship repair kits"
+                i.id+=101
                 i.v1=3
-                i.price=750
+                i.price=75
             endif
         endif
     endif
@@ -2792,7 +2804,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="*"
         i.bgcol=0  
         roll=rnd_range(1,100+player.turn/10000+mod1+mod2)
-        if roll>125 and mod1>0 and mod2>0 then i=makeitem(99,0,0)
+        if roll>125 and mod1>0 and mod2>0 then i=make_item(99,0,0)
         if make_files=1 then
             f=freefile
             open "artrolls.txt" for append as #f
@@ -2823,6 +2835,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.icon="&"
         i.col=11
         i.v1=8
+        i.v2=200
         i.res=120
         i.price=250
     endif
@@ -2856,6 +2869,7 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
         i.col=10
         i.bgcol=0
         i.v1=15
+        i.v2=500
         i.res=120
         i.price=19000
     endif  
@@ -3097,27 +3111,30 @@ function makeitem(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=0
     
     i.discovered=show_items
     
+    if i.ty=2 then
+        i.price=i.v1*250+(i.v1-0.1)*250
+        if i.v2>0 then i.price=i.price*(10+(i.v2/2))/10
+        if i.v3>0 then i.price=i.price*(10+i.v3)/10
+    endif
+    if i.ty=4 then
+        i.price=i.v1*100+(i.v1-0.1)*100
+        if i.v3>0 then i.price=i.price*(i.v3/20)
+    endif
+    
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
-    if nomod=0 and a<>320 then i=modify_item(i) 'Never modify standard spacesuits
+    if a=320 then return i 'Never modify standard spacesuits
+    i=modify_item(i,nomod)
     return i
     
 end function
 
-function equipment_value() as integer
-    dim i as short
-    dim as integer m
-    for i=0 to lastitem
-        if item(i).w.s<0 then m+=item(i).price
-    next
-    return m
-end function
-
-function modify_item(i as _items) as _items
+function modify_item(i as _items,nomod as byte) as _items
     dim as short a,rate
     rate=500-disnbase(player.c)
     if rate<100 then rate=100
     a=i.id
-    if i.id>=12 and i.id<=18 and rnd_range(1,100)<10+player.turn/rate then
+    if i.id>=13 and i.id<=19 and nomod=0 then
+        if rnd_range(1,100)<10+player.turn/rate then
         if rnd_range(1,100)<50+player.turn/rate then
             i.desig="thick "&i.desig
             i.desigp="thick "&i.desigp
@@ -3133,10 +3150,12 @@ function modify_item(i as _items) as _items
                 i.price=i.price*0.8
             endif
         endif
+        endif
+        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
     
-    if i.id>=12 and i.id<=20 then
-        if rnd_range(1,100)<10+player.turn/rate then
+    if i.id>=13 and i.id<=21 then
+        if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<66 then
                 i.desig="camo "&i.desig
                 i.desigp="camo "&i.desigp
@@ -3151,7 +3170,7 @@ function modify_item(i as _items) as _items
                 i.price=i.price*1.25
             endif
         endif
-        if rnd_range(1,100)<15+player.turn/rate then
+        if rnd_range(1,100)<15+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<75 then
                 i.desig="sturdy "&i.desig
                 i.desigp="sturdy "&i.desigp
@@ -3169,8 +3188,16 @@ function modify_item(i as _items) as _items
         i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
     
+    if i.ty=3 or i.ty=103 then
+        if rnd_range(1,100)<15+player.turn/rate and nomod=0 then
+            i.v3=i.v3*1.1
+            i.price=i.price*1.1
+        endif
+        i.ldesc=i.ldesc &"|Oxygen: "&i.v3
+    endif
+    
     if i.id>=3 and i.id<=11 then
-        if rnd_range(1,100)<10+player.turn/rate then
+        if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50 then
                 if rnd_range(1,100)+player.turn/rate<75 then
                     i.desig="balanced "&i.desig
@@ -3220,7 +3247,7 @@ function modify_item(i as _items) as _items
     endif
     
     if i.id=1 then
-        if rnd_range(1,100)<20+player.turn/rate then
+        if rnd_range(1,100)<20+player.turn/rate  and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<50 then
                 i.desig="small "&i.desig
                 i.desigp="small "&i.desigp
@@ -3240,7 +3267,7 @@ function modify_item(i as _items) as _items
     
     
     if i.id=2 then
-        if rnd_range(1,100)<20+player.turn/rate then
+        if rnd_range(1,100)<20+player.turn/rate  and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<50 then
                 i.id=211
                 i.desig="efficient "&i.desig
@@ -3259,7 +3286,7 @@ function modify_item(i as _items) as _items
         endif
     endif
     if i.id>=40 and i.id<=47 then
-        if rnd_range(1,100)<10+player.turn/rate then
+        if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50 then
                 if rnd_range(1,100)+player.turn/rate<75 then
                     i.desig="balanced "&i.desig
@@ -3290,7 +3317,7 @@ function modify_item(i as _items) as _items
                 endif
             endif
         endif
-        if rnd_range(1,100)<15+player.turn/rate then
+        if rnd_range(1,100)<15+player.turn/rate and nomod=0 then
             if rnd_range(1,100)+player.turn/rate<75 then
                 i.desig="sturdy "&i.desig
                 i.desigp="sturdy "&i.desigp
@@ -3307,7 +3334,7 @@ function modify_item(i as _items) as _items
     endif
     
     if i.id=49 then 'tanks
-        if rnd_range(1,100)<30+player.turn/rate then
+        if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50+player.turn/rate then
                 i.id=i.id+100
                 i.desig="big "&i.desig
@@ -3324,7 +3351,7 @@ function modify_item(i as _items) as _items
         endif
     endif
     if i.id=97 then
-        if rnd_range(1,100)<33+player.turn/rate then
+        if rnd_range(1,100)<33+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50 then
                 if rnd_range(1,100)+player.turn/rate<50 then
                     i.desig="balanced "&i.desig
@@ -3359,7 +3386,7 @@ function modify_item(i as _items) as _items
     
     endif
     if i.id=98 or i.id=523 then 
-        if rnd_range(1,100)<30+player.turn/rate then
+        if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<5+player.turn/rate then
                 if rnd_range(1,100)<50+player.turn/rate then
                     i.desig="thick "&i.desig
@@ -3381,7 +3408,71 @@ function modify_item(i as _items) as _items
     return i
 end function
 
+function make_weapon(a as short) as _weap
+    'w.made &";"&w.desig &";" &w.range &";"& w.ammo &";"&w.ammomax &";"& w.ecmmod &";"& w.p &";"
+    '& w.col &";"& w.heat &";"& w.heatsink &";"& w.heatadd
 
+    dim as _weap w,w2
+    dim as string l
+    dim as string word(15)
+    dim as short f,i,t,j,dam
+    f=freefile
+    open "data/weapons.csv" for input as #f
+    do
+        w=w2
+        line input #f,l
+        j=0
+        for t=0 to len(l)
+            if mid(l,t,1)=";" then
+                j+=1
+            else
+                word(j)=word(j) &mid(l,t,1)
+            endif
+        next
+        w.made=val(word(0))
+        w.desig=trim(word(1))
+        dam=val(word(2))
+        w.range=val(word(3))
+        w.ammo=val(word(4))
+        w.ammomax=val(word(5))
+        w.ROF=val(word(6))
+        w.ecmmod=val(word(7))
+        w.p=val(word(8))
+        w.col=val(word(9))
+        w.heat=val(word(10))
+        w.heatsink=val(word(11))
+        w.heatadd=val(word(12))
+        w.reload=val(word(13))
+        for t=0 to 13
+            word(t)=""
+        next
+    loop until w.made=a or eof(f)
+    close #f
+    if a=w.made then
+        if a>=6 and a<=10 then
+            w.dam=urn(dam+2,dam-1,1,2-(player.turn/50000))
+            if w.dam<1 then w.dam=1
+            if w.dam>5 then w.dam=5
+            w.desig=w.dam &"0 GJ "&w.desig
+            w.p=(w.dam*250+((w.dam-1)*250))*(1+w.range/5)
+        else
+            w.dam=dam
+        endif
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then '10 % have lower reload rate
+            w.desig="IR "&w.desig
+            w.reload=w.reload/2
+            w.p=w.p*1.2
+        endif
+        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then
+            w.desig="IC "&w.desig
+            w.heatsink=w.heatsink+2
+        endif
+        w.p=w.p+w.heatsink*250
+        return w
+    else 
+        return w2 'return empty weapon instead of last if not found
+    endif
+end function
 
 function removeequip() as short
     dim a as short
@@ -3523,7 +3614,7 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
                                if _debug=1 and debug=22 then
                                    f=freefile
                                    open "itemadded.txt" for append as #f
-                                   print #f,a &";"& b &";"& item(a).desig  &";"& item(a).id &"invn"&invn(b)&"§"& inv(b).desig
+                                   print #f,a &";"& b &";"& item(a).desig  &";"& item(a).id &"invn"&invn(b)&"ï¿½"& inv(b).desig
                                    close #f
                                 endif
                             endif
@@ -4135,6 +4226,15 @@ function lowest_by_id(id as short) as short
     return best
 end function
 
+function equipment_value() as integer
+    dim i as short
+    dim as integer m
+    for i=0 to lastitem
+        if item(i).w.s<0 then m+=item(i).price
+    next
+    return m
+end function
+
 function count_items(i as _items) as short
     dim as short j,r
     for j=0 to lastitem
@@ -4157,14 +4257,14 @@ function better_item(i1 as _items,i2 as _items) as short
     return 0
 end function
 
-function count_and_makeweapons(st as short) as short
+function count_and_make_weapons(st as short) as short
     dim as short a,b,flag
     
     b=0
     for a=1 to 20
         if makew(a,st)<>0 then 
             b+=1
-            wsinv(b)=makeweapon(makew(a,st))
+            wsinv(b)=make_weapon(makew(a,st))
         endif
     next
     
@@ -4179,73 +4279,6 @@ function count_and_makeweapons(st as short) as short
     loop until flag=0
     
     return b
-end function
-
-
-function makeweapon(a as short) as _weap
-    'w.made &";"&w.desig &";" &w.range &";"& w.ammo &";"&w.ammomax &";"& w.ecmmod &";"& w.p &";"
-    '& w.col &";"& w.heat &";"& w.heatsink &";"& w.heatadd
-
-    dim as _weap w,w2
-    dim as string l
-    dim as string word(15)
-    dim as short f,i,t,j,dam
-    f=freefile
-    open "data/weapons.csv" for input as #f
-    do
-        w=w2
-        line input #f,l
-        j=0
-        for t=0 to len(l)
-            if mid(l,t,1)=";" then
-                j+=1
-            else
-                word(j)=word(j) &mid(l,t,1)
-            endif
-        next
-        w.made=val(word(0))
-        w.desig=trim(word(1))
-        dam=val(word(2))
-        w.range=val(word(3))
-        w.ammo=val(word(4))
-        w.ammomax=val(word(5))
-        w.ROF=val(word(6))
-        w.ecmmod=val(word(7))
-        w.p=val(word(8))
-        w.col=val(word(9))
-        w.heat=val(word(10))
-        w.heatsink=val(word(11))
-        w.heatadd=val(word(12))
-        w.reload=val(word(13))
-        for t=0 to 13
-            word(t)=""
-        next
-    loop until w.made=a or eof(f)
-    close #f
-    if a=w.made then
-        if a>=6 and a<=10 then
-            w.dam=urn(dam+2,dam-1,1,2-(player.turn/500))
-            if w.dam<1 then w.dam=1
-            if w.dam>5 then w.dam=5
-            w.desig=w.dam &"0 GJ "&w.desig
-            w.p=(w.dam+w.range)^2*250
-        else
-            w.dam=dam
-        endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then '10 % have lower reload rate
-            w.desig="IR "&w.desig
-            w.reload=w.reload/2
-            w.p=w.p*1.2
-        endif
-        if rnd_range(1,100)-(w.dam-dam)*3<minimum(25,player.turn/50000) and w.reload>0 then
-            w.desig="IC "&w.desig
-            w.heatsink=w.heatsink+2
-            w.p=w.p*1.2
-        endif
-        return w
-    else 
-        return w2 'return empty weapon instead of last if not found
-    endif
 end function
 
 function findartifact(v5 as short) as short
@@ -4309,11 +4342,11 @@ function artifact(c as short) as short
         f=menu(bg_awayteam,text)
             if player.weapons(f).desig<>"" then 
                 if askyn("do you want to replace that weapon? (y/n)") then 
-                    player.weapons(f)=makeweapon(66)
+                    player.weapons(f)=make_weapon(66)
                     f=d
                 endif
             else
-                player.weapons(f)=makeweapon(66)
+                player.weapons(f)=make_weapon(66)
                 f=d
             endif
         loop until f=d
@@ -4358,7 +4391,7 @@ function artifact(c as short) as short
     endif 
     if c=12 then
         dprint "It's a ships cloaking device!"
-        placeitem(makeitem(87),0,0,0,-1)
+        placeitem(make_item(87),0,0,0,-1)
         
     endif
     
@@ -4368,13 +4401,13 @@ function artifact(c as short) as short
     
     if c=14 then
         dprint "It's a powerful ancient bomb!"
-        placeitem(makeitem(301),0,0,0,0,-1)
+        placeitem(make_item(301),0,0,0,0,-1)
         artflag(14)=0
     endif
     
     if c=15 then
         dprint "It's a portable cloaking device!"
-        placeitem(makeitem(302),0,0,0,0,-1)
+        placeitem(make_item(302),0,0,0,0,-1)
     endif
     
     if c=16 then

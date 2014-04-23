@@ -11,7 +11,7 @@ function setglobals() as short
         companystats(a).capital=25000
         companystats(a).profit=0
         companystats(a).rate=0
-        companystats(a).shares=100
+        companystats(a).shares=50
     next
     
     bountyquestreason(1)="for repeated acts of piracy."
@@ -142,13 +142,7 @@ function setglobals() as short
     standardphrase(sp_cantpayback,0)="I would love to pay it back, but I can't at this time."
     standardphrase(sp_cantpayback,1)="Sorry. Don't have enough money to pay it back right now."
     standardphrase(sp_cantpayback,2)="Things haven't been easy lately. I am afraid I can't spare a single credit!"
-    
-    itemcat(1)="Transport:"
-    itemcat(2)="Ranged weapons:"
-    itemcat(3)="Armor:"
-    itemcat(4)="Closecombat weapons:"
-    itemcat(5)="Micellaneous:"
-    
+       
     itemcat(0)="None"
     itemcat(1)="Transport"
     itemcat(2)="Ranged Weapons"

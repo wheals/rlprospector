@@ -1,6 +1,9 @@
 function update_world(location as short) as short
-    dim as short a
+    dim as short a,b
+    if _debug=2412 then dprint "Loc:"&location
     diseaserun(1)
+    clearfleetlist
+    
     if player.turn mod 60=0 then
         if artflag(23)>0 and player.hull<player.h_maxhull then player.hull+=1
         move_fleets()
@@ -21,7 +24,7 @@ function update_world(location as short) as short
         
     endif
     
-    if player.turn mod (24*60)=0 then 'Daily
+    if player.turn mod (24*60)=0 or location=2 then 'Daily,loc2=forced
         for a=0 to 12
             change_prices(a,10)
         next
@@ -29,10 +32,10 @@ function update_world(location as short) as short
         for a=0 to 2
             if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
         next
-        
+        if location=1 then trouble_with_tribbles
         clean_station_event
         questroll=rnd_range(1,100)-10*(crew(1).talents(3))
-    
+        if _debug=2412 then dprint "QUestroll_"&questroll
     endif
     
     if player.turn mod (24*60*7)=0 then 'Weekly
@@ -63,9 +66,24 @@ function update_world(location as short) as short
             endif
             if questguy(a).want.given=1 then questguy(a).want.type=0
             if questguy(a).has.given=1 then questguy(a).has.type=0
-            if questguy(a).has.type=0 or questguy(a).want.type=0 and rnd_range(1,100)<10 then
+            if (questguy(a).has.type=0 or questguy(a).want.type=0) and rnd_range(1,100)<10 then
                 questguy_newquest(a)
             endif
+        next
+        for b=0 to 2
+            a=basis(b).company
+            companystats(a).profit=companystats(a).profit+(rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))
+            if companystats(a).profit>0 then 
+                companystats(a).profit=(companystats(a).profit+rnd_range(0,1))*(companystats(a).capital/50)
+            else
+                companystats(a).profit=companystats(a).profit*(companystats(a).capital/50)
+            endif
+            companystats(a).capital=companystats(a).capital+companystats(a).profit
+            companystats(a).rate=companystats(a).capital/companystats(a).shares
+            if companystats(a).profit>0 then companystats(a).rate+=1'rnd_range(1,6)
+            if companystats(a).profit<=0 then companystats(a).rate-=1'rnd_range(1,6)
+            companystats(a).profit=0
+            if companystats(a).capital>50000 then companystats(a).capital=50000
         next
         
     endif
@@ -207,7 +225,7 @@ function botsanddrones_shop() as short
 end function
 
 function pay_bonuses(st as short) as short
-    dim as integer a,tarval,debug,c
+    dim as uinteger a,tarval,debug,c
     dim as single factor
     for a=0 to 3
         if reward(a)>0 then c=1
@@ -424,7 +442,7 @@ function upgradehull(t as short,byref s as _ship,forced as short=0) as short
         
         if s.security>s.h_maxcrew+player.crewpod+player.cryo then
             s.security=s.h_maxcrew
-            for a=s.h_maxcrew+player.crewpod+player.cryo to 128
+            for a=s.h_maxcrew+player.crewpod+player.cryo to 255
                 crew(a)=d
             next
         endif
@@ -445,13 +463,13 @@ function company(st as short) as short
     dim as short b,c,q,complete
     dim m as integer
     dim as single a
-    dim as string s,k
+    dim as string s
     dim towed as _ship
     dim p as _cords
     display_ship(0)
     m=player.money
     if configflag(con_autosale)=0 then q=-1
-    dprint "you enter the administrator's office"                    
+    dprint "you enter the company office"                    
     reward_bountyquest(0)
     if player.questflag(1)=1 then
         if basis(st).repname="Omega Bioengineering" then
@@ -471,35 +489,30 @@ function company(st as short) as short
         factionadd(0,1,-15)
         addmoney(15000,mt_quest)
         player.questflag(2)=4
-        no_key=keyin
     endif
     if player.questflag(2)=3 then
         dprint "The Company Rep congratulates you on a job well done and pays you 10,000 Cr.",10
         factionadd(0,1,-15)
         addmoney(10000,mt_quest)
         player.questflag(2)=4
-        no_key=keyin
     endif
     if player.questflag(3)=1 then
         dprint "After some negotiations you convince the company rep to buy the secret of controling the alien ships for ... 1,000,000 CR!",10
         factionadd(0,1,-15)
         addmoney(1000000,mt_artifacts)
         player.questflag(3)=2
-        no_key=keyin
     endif
     if player.questflag(5)=2 then
         dprint "The Company Rep congratulates you on a job well done and pays you 15,000 Cr.",10
         factionadd(0,1,-15)
         addmoney(15000,mt_quest)
         player.questflag(5)=3
-        no_key=keyin
     endif 
     if player.questflag(6)=2 then
         dprint "The Company Rep congratulates you on a job well done and pays you 15,000 Cr.",10
         factionadd(0,1,-15)
         addmoney(15000,mt_quest)
         player.questflag(6)=3
-        no_key=keyin
     endif
     if player.questflag(7)>0 and basis(st).company=1 and planets(player.questflag(7)).flags(21)=1 then
         addmoney(1000,mt_map)
@@ -593,7 +606,8 @@ function company(st as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" the secret of Eridiani Explorations Drug business?(y/n)") then
                 dprint "The Rep pays 10,000 Cr. for your the information"
-                companystats(1).capital=companystats(1).capital-500
+                companystats(1).capital=companystats(1).capital-15000
+                if companystats(1).capital<0 then companystats(1).capital=0
                 player.questflag(21)=2
                 addmoney(10000,mt_blackmail)
             endif
@@ -612,7 +626,8 @@ function company(st as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" the secret of Smith Heavy Industries slave business?(y/n)") then
                 dprint "The Rep pays 10,000 Cr. for your the information"
-                companystats(2).capital=companystats(2).capital-500
+                companystats(2).capital=companystats(2).capital-15000
+                if companystats(2).capital<0 then companystats(2).capital=0
                 player.questflag(22)=2
                 addmoney(10000,mt_blackmail)
             endif
@@ -630,7 +645,8 @@ function company(st as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" your information on Triax Traders agreement with pirates?(y/n)") then
                 dprint "The Rep pays 10,000 Cr. for your the information"
-                companystats(3).capital=companystats(3).capital-500
+                companystats(3).capital=companystats(3).capital-15000
+                if companystats(3).capital<0 then companystats(3).capital=0
                 player.questflag(23)=3
                 addmoney(10000,mt_blackmail)
             endif
@@ -648,7 +664,8 @@ function company(st as short) as short
         else
             if askyn("Do you want to sell "&companyname(basis(st).company) &" the secret of Omega Bioengineerings experiments?(y/n)") then
                 dprint "The Rep pays 10,000 Cr. for your the information"
-                companystats(4).capital=companystats(4).capital-500
+                companystats(4).capital=companystats(4).capital-15000
+                if companystats(4).capital<0 then companystats(4).capital=0
                 player.questflag(24)=2
                 addmoney(10000,mt_blackmail)
             endif
@@ -760,12 +777,14 @@ function company(st as short) as short
     if c=0 then 
         dprint "You have nothing to sell to "& basis(st).repname
     else
-        companystats(basis(st).company).profit=companystats(basis(st).company).profit+c
+        companystats(basis(st).company).profit=companystats(basis(st).company).profit+1
         dprint basis(st).repname &":"
         factionadd(1,0,1)
     endif
     
     if questroll<33 or _debug=1011 then questroll=give_quest(st)    
+    
+    pay_bonuses(st)
     
     if reward(0)>1 then
         if configflag(con_autosale)=1 then q=askyn("do you want to sell map data? (y/n)")
@@ -792,11 +811,8 @@ function company(st as short) as short
             endif
             reward(0)=0
             reward(7)=0
-            k=keyin
         endif
     endif
-    
-    pay_bonuses(st)
     
     if reward(1)>0 then
         if configflag(con_autosale)=1 then q=askyn("do you want to sell bio data? (y/n)")
@@ -816,7 +832,6 @@ function company(st as short) as short
                 endif
                 if item(a).ty=29 and item(a).w.s<0 then item(a).v1=0
             next
-            k=keyin
         endif
     endif
     if reward(2)>0 then
@@ -826,7 +841,6 @@ function company(st as short) as short
             addmoney(cint(reward(2)*basis(st).resmod*(1+0.1*crew(1).talents(2))),mt_ress)
             reward(2)=0
             destroy_all_items_at(15,-1)
-            k=keyin
         endif
     endif
     reward_patrolquest()    
@@ -836,7 +850,6 @@ function company(st as short) as short
             dprint "You recieve "&credits(cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2)))) &" Cr. as bounty for destroyed pirate ships."
             addmoney(cint(reward(3)*basis(st).pirmod*(1+0.1*crew(1).talents(2))),mt_pirates)
             reward(3)=0
-            no_key=keyin
         endif
     endif
     if ano_money>0 then
@@ -859,20 +872,17 @@ function company(st as short) as short
             dprint basis(st).repname &" pays " &credits(m) &" credits for the alien curiosity"
             addmoney(m,mt_artifacts)
             reward(4)=0
-            no_key=keyin
         endif
     endif
     if reward(6)>1 then
         dprint "The Company pays you 50,000 Cr. for eliminating the pirate threat in this sector!"
         addmoney(50000,mt_pirates)
         reward(6)=-1
-        no_key=keyin
     endif
     if reward(8)>0 then
         dprint "The Company pays "&credits(reward(8)) &" Cr. for destroying pirate outposts"
         addmoney(reward(8),mt_pirates)
         reward(8)=0
-        no_key=keyin
     endif
     
     ask_alliance(1)
@@ -1381,7 +1391,7 @@ end function
 
 function is_passenger(i as short) as short
     dim as short j
-    for j=2 to 128
+    for j=2 to 255
         if crew(j).typ=i+30 then return -1
     next
     return 0
@@ -1393,7 +1403,7 @@ function check_passenger(st as short) as short
     dim as string heshe(1)
     heshe(0)="She"
     heshe(1)="He"
-    for b=2 to 128
+    for b=2 to 255
         if crew(b).target<>0 then
             if crew(b).target=st+1 then
                 if crew(b).typ>30 then 
@@ -1405,6 +1415,7 @@ function check_passenger(st as short) as short
                 price=crew(b).price+crew(b).bonus*t
                 if price<0 then price=10
                 if t>0 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
+                if t=0 then dprint crew(b).n &" is happy to have arrived on time."
                 if t<0 then dprint crew(b).n &" isn't happy at all that " &lcase(heshe(crew(b).story(10)))& " arrived too late.",c_yel
                 addmoney(price,mt_quest2)
                 dprint heshe(crew(b).story(10)) &" pays you "&credits(price) &" Cr.",c_gre
@@ -1673,7 +1684,7 @@ function sick_bay(st as short=0,obe as short=0) as short
         if a=2 then
             'if player.disease>0 then price=price+10*player.disease
             price=0
-            for b=1 to 128
+            for b=1 to 255
                 if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
                     price=price+5*crew(b).disease-st*3
                 endif
@@ -1682,7 +1693,7 @@ function sick_bay(st as short=0,obe as short=0) as short
             if price>0 then
                 if askyn("Treatment will cost "&price &" Cr. Do you want the treatment to begin?") then
                     if paystuff(price) then
-                        for b=0 to 128
+                        for b=1 to 255
                             if crew(b).disease>0 and crew(b).hp>0 and crew(b).hpmax>0 then
                                 cured+=1
                                 crew(b).disease=0
@@ -1817,7 +1828,7 @@ function used_ships() as short
             htext=htext &makehullbox(s.h_no,"data/ships.csv") &"/"
         next
         mtext=mtext &"Bargain bin/Sell equipment/Exit"
-        a=menu(bg_ship,mtext,htext,2,2)
+        a=menu(bg_shiptxt,mtext,htext,2,2)
         if a>=1 and a<=8 then
             if buy_ship(a,desig(a),price(a)) then
                 usedship(a).x=yourshiphull
@@ -2408,13 +2419,13 @@ function buy_engine() as short
             if d=6 then 
                 if paystuff(250) then
                     dprint "You buy all terrain landing gear."
-                    placeitem(makeitem(75),,,,,-1)
+                    placeitem(make_item(75),,,,,-1)
                 endif
             endif
             if d=7 then 
                 if paystuff(500) then
                     dprint "You buy improved all terrain landing gear."
-                    placeitem(makeitem(76),,,,,-1)
+                    placeitem(make_item(76),,,,,-1)
                 endif
             endif
             
@@ -2481,7 +2492,7 @@ function starting_turret() as _weap
     '1,6,84,85,87,88,90,93,96-99
     m="Choose turret:/"
     for i=1 to 11
-        weapon(i)=makeweapon(ws(i))
+        weapon(i)=make_weapon(ws(i))
         m=m &weapon(i).desig &"/"
         help=help &make_weap_helptext(weapon(i))
     next
@@ -2555,7 +2566,7 @@ function buy_weapon(st as short) as short
                             wsinv(d)=wsinv(d+1)
                             makew(d,st)=makew(d+1,st)
                         next
-                        wsinv(last)=makeweapon(0)
+                        wsinv(last)=make_weapon(0)
                         makew(last,st)=0
                     endif
                 endif
@@ -3591,7 +3602,7 @@ function recalcshipsbays() as short
     player.crewpod=0
     soll=player.h_maxcargo
     for a=1 to 10
-        if a>player.h_maxweaponslot then player.weapons(a)=makeweapon(-1)
+        if a>player.h_maxweaponslot then player.weapons(a)=make_weapon(-1)
         if player.weapons(a).desig="Cargo Bay" then soll=soll+1
         if player.weapons(a).desig="Fuel Tank" then player.fuelpod=player.fuelpod+50
         if trim(player.weapons(a).desig)="Crew Quarters" then player.crewpod=player.crewpod+10
@@ -3630,7 +3641,7 @@ function recalcshipsbays() as short
     for c=6 to player.h_maxcrew+player.crewpod+player.cryo
         if crew(c).hp<>0 then player.security=c
     next
-    for c=5+player.cryo+(player.h_maxcrew+player.crewpod-5)*2+1 to 128
+    for c=5+player.cryo+(player.h_maxcrew+player.crewpod-5)*2+1 to 255
         crew(c)=del
     next    
     player.addhull=0
@@ -3848,7 +3859,7 @@ function place_shop_order(sh as short) as short
     bestmatch=9999
     f+=1
     for a=1 to 80
-        i=makeitem(a)
+        i=make_item(a)
         i.desig=ucase(i.desig)
         l=len(i.desig)
         w=""
@@ -3872,7 +3883,7 @@ function place_shop_order(sh as short) as short
         endif
     next
     if bestmatch<0.2 then
-        i=makeitem(candidate)
+        i=make_item(candidate)
         if askyn("Do you want to order "&add_a_or_an(i.desig,0) &"? (y/n)") then
             shop_order(sh)=candidate
             dprint "I can't say for certain when it will arive, but it should be here soon."
@@ -4011,10 +4022,10 @@ function reroll_shops() as short
                 endif
             endif
             if i=4 then 'Colony I
-                if b=19 then it=makeitem(97)'Disintegrator
-                if b=18 then it=makeitem(98)'adaptive bodyarmor
+                if b=19 then it=make_item(97)'Disintegrator
+                if b=18 then it=make_item(98)'adaptive bodyarmor
                 if b<17 then
-                    it=makeitem(RI_Standardshop)
+                    it=make_item(RI_Standardshop)
                 endif
             endif
             if i=6 then 'Black market
@@ -4022,14 +4033,14 @@ function reroll_shops() as short
             endif
             if i=7 then 'Mudds
                 if b=1 then 
-                    it=makeitem(250)
+                    it=make_item(250)
                 else
-                    it=makeitem(rnd_range(1,80))
+                    it=make_item(rnd_range(1,80))
                 endif
             endif
             if i=5 or (i>7 and i<21) then
                 if a<=3 then
-                    it=makeitem(31+a)
+                    it=make_item(31+a)
                 endif
                 it=rnd_item(RI_StandardShop)
             endif
@@ -4136,32 +4147,32 @@ function reroll_shops() as short
     
     for b=50 to 55 
         if rnd_range(1,100)<77 then
-            shopitem(c,25)=makeitem(b)
+            shopitem(c,25)=make_item(b)
             c+=1
         endif
     next
     if rnd_range(1,100)<77 then 
         c+=1
-        shopitem(c,25)=makeitem(30)'Comsat
+        shopitem(c,25)=make_item(30)'Comsat
     endif
     
     for b=100 to 102
         if rnd_range(1,100)<77 then
-            shopitem(c,25)=makeitem(b,,25)
+            shopitem(c,25)=make_item(b,,25)
             c+=1
         endif
     next
     
     for b=104 to 105
         if rnd_range(1,100)<77 then
-            shopitem(c,25)=makeitem(b)
+            shopitem(c,25)=make_item(b)
             c+=1
         endif
     next
     
     for b=110 to 112
         if rnd_range(1,100)<77 then
-            shopitem(c,25)=makeitem(b,,25)
+            shopitem(c,25)=make_item(b,,25)
             c+=1
         endif
     next
@@ -4248,39 +4259,39 @@ function reroll_shops() as short
     for b=26 to 29
         i=0
         i+=1
-        shopitem(i,b)=makeitem(75)
+        shopitem(i,b)=make_item(75)
         if rnd_range(1,100)<50 then
            i+=1
-           shopitem(i,b)=makeitem(76)
+           shopitem(i,b)=make_item(76)
         endif
         
         i+=1
-        shopitem(i,b)=makeitem(104)
+        shopitem(i,b)=make_item(104)
         if rnd_range(1,100)<25 then
            i+=1
-           shopitem(i,b)=makeitem(105)
+           shopitem(i,b)=make_item(105)
         endif
         
         i+=1
-        shopitem(i,b)=makeitem(100)
+        shopitem(i,b)=make_item(100)
         if rnd_range(1,100)<75 then
            i+=1
-           shopitem(i,b)=makeitem(101)
+           shopitem(i,b)=make_item(101)
         endif
         if rnd_range(1,100)<25 then
            i+=1
-           shopitem(i,b)=makeitem(102)
+           shopitem(i,b)=make_item(102)
         endif
         
         i+=1
-        shopitem(i,b)=makeitem(110)
+        shopitem(i,b)=make_item(110)
         if rnd_range(1,100)<75 then
            i+=1
-           shopitem(i,b)=makeitem(111)
+           shopitem(i,b)=make_item(111)
         endif
         if rnd_range(1,100)<25 then
            i+=1
-           shopitem(i,b)=makeitem(112)
+           shopitem(i,b)=make_item(112)
         endif
         
         'sort_items(shopitem(,b))

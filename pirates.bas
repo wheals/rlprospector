@@ -199,11 +199,12 @@ function join_fight(f as short) as short
         factionadd(0,fleet(f).ty,15)
         factionadd(0,fleet(f2).ty,-25)
     endif
-    dprint "You join the fight on the side of the "&fname(side) & "f" &fleet(f).mem(1).aggr & "f2" & fleet(f2).mem(1).aggr & ".",c_yel
+    dprint "You join the fight on the side of the "&fname(side) &".",c_yel
     fleet(f)=add_fleets(fleet(f),fleet(f2))
     playerfightfleet(f)
     if player.dead=0 then
         dprint "The " & fname(side) & " hails your ship and thank you for your help in the battle.",c_gre
+        fleet(f).ty=side
     endif
     return 0
 end function
@@ -615,7 +616,7 @@ function make_fleet() as _fleet
         f=makemerchantfleet
     else
         if configflag(con_easy)=1 or player.turn>25000 then 
-            if random_piratebase>0 then f=makepiratefleet
+            if random_pirate_system>0 then f=makepiratefleet
         else
             f=makepatrol
         endif
@@ -635,16 +636,16 @@ function make_fleet() as _fleet
     return f 
 end function
 
-function random_piratebase() as short
+function random_pirate_system() as short
     dim pot(_NoPB+2) as short
     dim as short i,l
     for i=0 to _NoPB
         if piratebase(i)>0 then
             l+=1
-            pot(l)=piratebase(i)
+            pot(l)=sysfrommap(piratebase(i))
             if i=0 then
                 l+=1
-                pot(l)=piratebase(i)
+                pot(l)=sysfrommap(piratebase(i))
             endif
         endif
     next
@@ -676,7 +677,7 @@ function makequestfleet(a as short) as _fleet
     dim f as _fleet
     dim as short b,c,i,e
     dim as _cords p1
-    b=random_piratebase
+    b=random_pirate_system
     if b<0 then
         p1.x=rnd_range(0,sm_x)
         p1.y=rnd_range(0,sm_y)
@@ -815,7 +816,7 @@ function makepiratefleet(modifier as short=0) as _fleet
     dim as short maxroll,r,a
     
     dim as short b,c
-    b=random_piratebase
+    b=random_pirate_system
     f.ty=2
     f.con(15)=rnd_range(1,15)-rnd_range(1,10)-player.turn/10000 'Friendlyness
     f.t=0 'All pirates start with target 9 (random point)
@@ -954,7 +955,7 @@ function piratecrunch(fl as _fleet) as _fleet
     dim as short f,c,d,b,counter
     
     dim p as short
-    b=random_piratebase
+    b=random_pirate_system
     p=b
     c=0
     b=0
@@ -1033,16 +1034,15 @@ end function
 
 function update_targetlist()as short
     static lastcalled as short
-    dim b as short
-    b=rnd_range(0,_NoPB+1)
-    if b>_NoPB then b=0
-    if piratebase(b)<0 then return 0
+    dim as short b,piratesys
+    piratesys=random_pirate_system
+    if piratesys<0 then return 0
     targetlist(1).x=player.c.x
     targetlist(1).y=player.c.y
     if frac(lastcalled/25)=0 then
-        targetlist(0).x=map(piratebase(b)).c.x-30+rnd_range(0,60)
-        targetlist(0).y=map(piratebase(b)).c.y-10+rnd_range(0,20)
-        targetlist(2)=map(piratebase(b)).c
+        targetlist(0).x=map(piratesys).c.x-30+rnd_range(0,60)
+        targetlist(0).y=map(piratesys).c.y-10+rnd_range(0,20)
+        targetlist(2)=map(piratesys).c
         targetlist(3).x=rnd_range(0,sm_x)
         targetlist(3).y=rnd_range(0,sm_y)
         targetlist(4).x=rnd_range(0,sm_x)
@@ -1085,18 +1085,21 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
     if y=0 then y=spawnmask(l).y
     enemy.c.x=x
     enemy.c.y=y  
-    if rnd_range(1,100)<50 then
+    
+    select case rnd_range(1,100)
+    case 1 to 25
         enemy.hpmax=cint(enemy.hpmax*1.1)
-    else
+    case 75 to 100
         enemy.hpmax=cint(enemy.hpmax*.9)
-    endif
+    end select
+    
     if enemy.hpmax<0 then enemy.hpmax=1
     if enemy.hp>0 then enemy.hp=enemy.hpmax
     if its>0 then
         for l=0 to 8
             if rnd_range(1,100)<enemy.itemch(l) and enemy.items(l)<>0 then
                 if enemy.items(l)>0 then
-                    placeitem(makeitem(enemy.items(l)),x,y,map,mslot,0)
+                    placeitem(make_item(enemy.items(l)),x,y,map,mslot,0)
                 else
                     placeitem(rnd_item(-enemy.items(l)),x,y,map,mslot,0)
                 endif
@@ -1110,6 +1113,7 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
             enemy.aggr=1
         endif
     endif
+    if _debug>0 then dprint "put a "&enemy.sdesc &" at "&cords(enemy.c) 
     return enemy
 end function
 
@@ -1788,7 +1792,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
         
     if a=14 or a=88 then
-        enemy.faction=1 'Citizen
+        enemy.faction=8 'Citizen
         enemy.ti_no=-1
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
@@ -1812,7 +1816,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=23
         enemy.aggr=1
         if a=88 then 
-            enemy.faction=10
+            enemy.faction=8
             enemy.allied=0
             enemy.aggr=1
             enemy.lang=34
@@ -2384,7 +2388,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         e=rnd_range(1,100)
 '        if e<20 then
 '            d=rnd_range(3,9)
-'            enemy.ldesc="A dead member of the crew of this ship. He has a " & makeitem(d).desig &" between his legs, firm in his hands. His head is missing."
+'            enemy.ldesc="A dead member of the crew of this ship. He has a " & make_item(d).desig &" between his legs, firm in his hands. His head is missing."
 '            enemy.items(0)=d
 '            enemy.itemch(0)=100
 '        endif
@@ -2511,7 +2515,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=39 then 'Citizen
         enemy.ti_no=-1
-        enemy.faction=1
+        enemy.faction=8
         enemy.hasoxy=1
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
@@ -3309,7 +3313,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
 
     If a=57 then 'Armed Citizen
         enemy.ti_no=1513
-        enemy.faction=1
+        enemy.faction=8
         enemy.sight=5
         enemy.sdesc="armed citizen"
         enemy.ldesc="a gruff human pioneer hardened by living away from civilization"
@@ -3670,7 +3674,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=73 then 'Citizen
         enemy.ti_no=1509
-        enemy.faction=1
+        enemy.faction=8
         enemy.intel=-1 'Should make them not ally with the guards
         enemy.sdesc="worker"
         enemy.ldesc="a sullen looking very thin worker"
@@ -3869,7 +3873,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.ti_no=1510
         endif
         
-        enemy.faction=1
+        enemy.faction=8
         enemy.intel=5 'Should make them not ally with the guards
         enemy.sdesc="scientist"
         enemy.ldesc="a busy looking scientist"
@@ -3987,6 +3991,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=85 then 'Citizen
+        enemy.faction=8
         enemy.ti_no=-1
         enemy.sdesc="citizen"
         enemy.ldesc="a friendly human pioneer"
@@ -4135,7 +4140,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.armor=16
         enemy.lang=-3
         enemy.sight=9
-        enemy.atcost=3
+        enemy.atcost=4
         enemy.range=5
         enemy.weapon=10
         if enemy.weapon<0 then enemy.weapon=0
@@ -4171,7 +4176,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.aggr=0
         enemy.speed=12
-        enemy.atcost=3
+        enemy.atcost=5
         enemy.weapon=1
         enemy.range=2
         enemy.sight=2
@@ -4191,7 +4196,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.aggr=0
         enemy.speed=11
-        enemy.atcost=3
+        enemy.atcost=5
         enemy.weapon=1
         enemy.armor=3
         enemy.range=2
@@ -4214,7 +4219,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.aggr=0
         enemy.speed=10
-        enemy.atcost=3
+        enemy.atcost=5
         enemy.weapon=1
         enemy.armor=5
         enemy.range=3.4
@@ -4239,6 +4244,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         enemy.faction=10
         enemy.aggr=2
+        enemy.atcost=9
         enemy.speed=14
         enemy.sight=3
         enemy.biomod=1
@@ -4307,6 +4313,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=98 then 'Citizen
+        enemy.faction=8
         enemy.ti_no=1515
         enemy.sdesc="prospector"
         enemy.ldesc="a rich prospector"
@@ -4337,12 +4344,11 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.itemch(1)=115
         enemy.items(2)=98
         enemy.itemch(2)=115
-        enemy.faction=10
     endif
     
     if a=99 then 'Citizen
         enemy.ti_no=1086
-        enemy.faction=10
+        enemy.faction=8
         enemy.intel=5 'Should make them not ally with the guards
         enemy.sdesc="scientist"
         enemy.ldesc="a busy looking scientist"
@@ -4362,13 +4368,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=1
         enemy.col=39
         enemy.aggr=1
-        enemy.faction=10
     endif
     
     
     if a=100 then 'Citizen
         enemy.ti_no=1086
-        enemy.faction=1
+        enemy.faction=8
         enemy.intel=5 'Should make them not ally with the guards
         enemy.sdesc="scientist"
         enemy.ldesc="a busy looking scientist"
@@ -4435,7 +4440,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=103 then
         enemy.ti_no=1000
-        enemy.faction=10
+        enemy.faction=8
         enemy.allied=0
         enemy.atcost=rnd_range(7,10)
         enemy.hasoxy=1
@@ -4472,7 +4477,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.lang=38
         enemy.aggr=1
         enemy.armor=1
-        
+        enemy.diet=5'Critters who are fighting
         enemy.speed=(rnd_range(0,14)+rnd_range(0,13)+rnd_range(0,enemy.weapon))
         if enemy.speed<11 then enemy.speed=11
         if enemy.speed>14 then enemy.speed=14
@@ -4502,7 +4507,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=1
         enemy.col=23
         enemy.aggr=1
-        enemy.faction=1
+        enemy.faction=8
     
     endif
     
@@ -4597,7 +4602,7 @@ dim as short c,b
         income(mt_startcash)=startingmoney
         p.loadout=0
         p.engine=1
-        p.weapons(1)=makeweapon(1)
+        p.weapons(1)=make_weapon(1)
         p.lastvisit.s=-1
     endif
     
@@ -4615,7 +4620,7 @@ dim as short c,b
         p.desig="Pirate Fighter"
         p.icon="F"
         p.money=200
-        p.weapons(1)=makeweapon(7)
+        p.weapons(1)=make_weapon(7)
         p.col=12
         p.bcol=0
         p.mcol=14
@@ -4637,9 +4642,9 @@ dim as short c,b
         p.desig="Pirate Cruiser"
         p.icon="C"
         p.money=1000
-        p.weapons(3)=makeweapon(7)       
-        p.weapons(1)=makeweapon(7)
-        p.weapons(2)=makeweapon(2)
+        p.weapons(3)=make_weapon(7)       
+        p.weapons(1)=make_weapon(7)
+        p.weapons(2)=make_weapon(2)
         p.col=12
         p.bcol=0
         p.mcol=14
@@ -4665,10 +4670,10 @@ dim as short c,b
         p.icon="D"
         p.money=3000
         
-        p.weapons(1)=makeweapon(8)
-        p.weapons(2)=makeweapon(3)
-        p.weapons(3)=makeweapon(1)
-        p.weapons(4)=makeweapon(8)       
+        p.weapons(1)=make_weapon(8)
+        p.weapons(2)=make_weapon(3)
+        p.weapons(3)=make_weapon(1)
+        p.weapons(4)=make_weapon(8)       
         
         p.col=12
         p.bcol=0
@@ -4696,12 +4701,12 @@ dim as short c,b
         p.money=5000
         p.equipment(se_ecm)=1
                
-        p.weapons(1)=makeweapon(9)
-        p.weapons(2)=makeweapon(9)
-        p.weapons(3)=makeweapon(4)
-        p.weapons(4)=makeweapon(3)
-        p.weapons(5)=makeweapon(3)
-        p.weapons(6)=makeweapon(9)
+        p.weapons(1)=make_weapon(9)
+        p.weapons(2)=make_weapon(9)
+        p.weapons(3)=make_weapon(4)
+        p.weapons(4)=make_weapon(3)
+        p.weapons(5)=make_weapon(3)
+        p.weapons(6)=make_weapon(9)
         
         p.col=12
         p.bcol=0
@@ -4750,7 +4755,7 @@ dim as short c,b
                 p.cargo(b).x=rnd_range(2,6)
             next
             p.desig="heavy transport"
-            p.weapons(1)=makeweapon(1)
+            p.weapons(1)=make_weapon(1)
             p.icon="T"
             p.ti_no=23
         endif
@@ -4770,7 +4775,7 @@ dim as short c,b
             for b=4 to 5
                 p.cargo(b).x=rnd_range(2,6)
             next
-            p.weapons(1)=makeweapon(2)
+            p.weapons(1)=make_weapon(2)
             p.desig="merchantman"
             p.icon="m"
             p.ti_no=24
@@ -4791,8 +4796,8 @@ dim as short c,b
             for b=5 to 6
                 p.cargo(b).x=rnd_range(2,6)
             next
-            p.weapons(2)=makeweapon(2)
-            p.weapons(3)=makeweapon(2)
+            p.weapons(2)=make_weapon(2)
+            p.weapons(3)=make_weapon(2)
             p.desig="armed merchantman"
             p.icon="M"
             p.ti_no=25
@@ -4802,7 +4807,7 @@ dim as short c,b
         'Merchant
         p.c.x=60
         p.c.y=rnd_range(0,20)
-        p.weapons(0)=makeweapon(1)
+        p.weapons(0)=make_weapon(1)
         
         p.money=0
         p.security=20
@@ -4823,9 +4828,9 @@ dim as short c,b
         p.pipilot=4
         p.pigunner=3
         p.engine=3
-        p.weapons(3)=makeweapon(7)
-        p.weapons(1)=makeweapon(1)
-        p.weapons(2)=makeweapon(1)
+        p.weapons(3)=make_weapon(7)
+        p.weapons(1)=make_weapon(1)
+        p.weapons(2)=make_weapon(1)
         p.desig="Escort"
         p.icon="E"
         p.ti_no=26
@@ -4846,21 +4851,21 @@ dim as short c,b
         p.sensors=5
         p.hull=30
         p.shieldmax=3
-        p.pipilot=1
-        p.pigunner=7
+        p.pipilot=3
+        p.pigunner=5
         p.engine=5
         p.desig="Anne Bonny"
         p.icon="A"
         p.ti_no=27
         p.money=15000
-        
+        p.loadout=3
         p.equipment(se_ecm)=2
-        p.weapons(6)=makeweapon(9)       
-        p.weapons(1)=makeweapon(9)
-        p.weapons(2)=makeweapon(10)
-        p.weapons(3)=makeweapon(5)
-        p.weapons(4)=makeweapon(5)
-        p.weapons(5)=makeweapon(5)
+        p.weapons(6)=make_weapon(9)       
+        p.weapons(1)=make_weapon(9)
+        p.weapons(2)=make_weapon(10)
+        p.weapons(3)=make_weapon(5)
+        p.weapons(4)=make_weapon(5)
+        p.weapons(5)=make_weapon(5)
         p.col=8
         p.bcol=0
         p.mcol=10
@@ -4889,10 +4894,10 @@ dim as short c,b
         p.money=0
         
         p.equipment(se_ecm)=1
-        p.weapons(4)=makeweapon(7)       
-        p.weapons(1)=makeweapon(7)
-        p.weapons(2)=makeweapon(7)
-        p.weapons(3)=makeweapon(3)
+        p.weapons(4)=make_weapon(7)       
+        p.weapons(1)=make_weapon(7)
+        p.weapons(2)=make_weapon(7)
+        p.weapons(3)=make_weapon(3)
         p.col=10
         p.bcol=0
         p.mcol=12
@@ -4917,12 +4922,12 @@ dim as short c,b
         
         p.equipment(se_ecm)=1
         
-        p.weapons(6)=makeweapon(7)       
-        p.weapons(1)=makeweapon(7)
-        p.weapons(2)=makeweapon(7)
-        p.weapons(3)=makeweapon(3)
-        p.weapons(4)=makeweapon(3)
-        p.weapons(5)=makeweapon(1)
+        p.weapons(6)=make_weapon(7)       
+        p.weapons(1)=make_weapon(7)
+        p.weapons(2)=make_weapon(7)
+        p.weapons(3)=make_weapon(3)
+        p.weapons(4)=make_weapon(3)
+        p.weapons(5)=make_weapon(1)
         p.col=4
         p.bcol=0
         p.mcol=14
@@ -4940,20 +4945,21 @@ dim as short c,b
         p.c.x=rnd_range(0,60)
         p.c.y=rnd_range(0,20)
         p.sensors=6
-        p.hull=15
+        p.hull=35
         p.shieldmax=4
         p.pipilot=4
-        p.pigunner=2
+        p.pigunner=3
         p.engine=5
         p.desig="Ancient Alien Ship"
         p.icon="8"
         p.ti_no=30
         
         p.equipment(se_ecm)=3
-        p.weapons(1)=makeweapon(66)
-        p.weapons(2)=makeweapon(3)
-        p.weapons(3)=makeweapon(3)
-        p.loadout=5
+        p.weapons(1)=make_weapon(66)
+        p.weapons(2)=make_weapon(66)
+        p.weapons(3)=make_weapon(3)
+        p.weapons(4)=make_weapon(3)
+        p.loadout=4
         p.col=7
         p.bcol=0
         p.mcol=14
@@ -4972,7 +4978,7 @@ dim as short c,b
         p.desig="Fighter"
         p.icon="F"
         p.ti_no=31
-        p.weapons(1)=makeweapon(7)
+        p.weapons(1)=make_weapon(7)
         p.col=10
         p.bcol=0
         p.mcol=14
@@ -4994,7 +5000,7 @@ dim as short c,b
         p.desig="crystal spider"
         p.col=11
         p.mcol=1
-        p.weapons(1)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
         p.turnrate=3
     endif
     
@@ -5013,9 +5019,9 @@ dim as short c,b
         p.desig="living sphere"
         p.col=8
         p.mcol=1
-        p.weapons(1)=makeweapon(101)
-        p.weapons(2)=makeweapon(102)
-        p.weapons(3)=makeweapon(102)
+        p.weapons(1)=make_weapon(101)
+        p.weapons(2)=make_weapon(102)
+        p.weapons(3)=make_weapon(102)
         p.turnrate=3
     endif
     
@@ -5034,8 +5040,8 @@ dim as short c,b
         p.desig="symbiotic cloud"
         p.col=14
         p.mcol=1
-        p.weapons(1)=makeweapon(101)
-        p.weapons(2)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
+        p.weapons(2)=make_weapon(101)
         p.turnrate=3
     endif
     
@@ -5055,7 +5061,7 @@ dim as short c,b
         p.desig="hydrogen worm"
         p.col=121
         p.mcol=1
-        p.weapons(1)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
         p.turnrate=1
     endif
     
@@ -5075,7 +5081,7 @@ dim as short c,b
         p.desig="living plasma"
         p.col=11
         p.mcol=14
-        p.weapons(1)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
         p.turnrate=3
     endif
     
@@ -5093,9 +5099,9 @@ dim as short c,b
         p.desig="starjellyfish"
         p.col=11
         p.mcol=14
-        p.weapons(1)=makeweapon(101)
-        p.weapons(2)=makeweapon(101)
-        p.weapons(3)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
+        p.weapons(2)=make_weapon(101)
+        p.weapons(3)=make_weapon(101)
         p.turnrate=2
     endif
     
@@ -5114,7 +5120,7 @@ dim as short c,b
         p.ti_no=43
         p.col=205
         p.mcol=1
-        p.weapons(1)=makeweapon(101)
+        p.weapons(1)=make_weapon(101)
         p.turnrate=3
     endif
     
@@ -5132,7 +5138,7 @@ dim as short c,b
         p.desig="Gasbubble"
         p.col=203
         p.mcol=1
-        p.weapons(1)=makeweapon(103)
+        p.weapons(1)=make_weapon(103)
         p.turnrate=3
     endif
     
@@ -5151,8 +5157,8 @@ dim as short c,b
         p.desig="Floater"
         p.col=138
         p.mcol=1
-        p.weapons(1)=makeweapon(104)
-        p.weapons(2)=makeweapon(104)
+        p.weapons(1)=make_weapon(104)
+        p.weapons(2)=make_weapon(104)
         p.turnrate=1
     endif
     
@@ -5171,10 +5177,10 @@ dim as short c,b
         p.ti_no=34
         p.money=5000
         p.equipment(se_ecm)=1
-        p.weapons(2)=makeweapon(7)
-        p.weapons(3)=makeweapon(3)
-        p.weapons(4)=makeweapon(3)
-        p.weapons(5)=makeweapon(1)
+        p.weapons(2)=make_weapon(7)
+        p.weapons(3)=make_weapon(3)
+        p.weapons(4)=make_weapon(3)
+        p.weapons(5)=make_weapon(1)
         p.col=4
         p.bcol=0
         p.mcol=14
@@ -5200,8 +5206,8 @@ dim as short c,b
         p.money=2500
         
         p.equipment(se_ecm)=1
-        p.weapons(1)=makeweapon(7)
-        p.weapons(2)=makeweapon(7)
+        p.weapons(1)=make_weapon(7)
+        p.weapons(2)=make_weapon(7)
         p.col=4
         p.bcol=0
         p.mcol=14
@@ -5226,8 +5232,8 @@ dim as short c,b
         p.money=2500
         
         p.equipment(se_ecm)=1
-        p.weapons(1)=makeweapon(8)
-        p.weapons(2)=makeweapon(13)
+        p.weapons(1)=make_weapon(8)
+        p.weapons(2)=make_weapon(13)
         p.col=4
         p.bcol=0
         p.mcol=14
@@ -5252,12 +5258,12 @@ dim as short c,b
         p.icon="S"
         p.ti_no=46
         p.col=15
-        p.weapons(1)=makeweapon(7)
-        p.weapons(2)=makeweapon(7)
-        p.weapons(3)=makeweapon(7)
-        p.weapons(4)=makeweapon(3)
-        p.weapons(5)=makeweapon(3)
-        p.weapons(6)=makeweapon(3)
+        p.weapons(1)=make_weapon(7)
+        p.weapons(2)=make_weapon(7)
+        p.weapons(3)=make_weapon(7)
+        p.weapons(4)=make_weapon(3)
+        p.weapons(5)=make_weapon(3)
+        p.weapons(6)=make_weapon(3)
         p.turnrate=1
         p.loadout=3
     endif
@@ -5275,8 +5281,8 @@ dim as short c,b
         p.desig="LRF Striker"
         p.icon="F"
         p.ti_no=31
-        p.weapons(1)=makeweapon(3)
-        p.weapons(2)=makeweapon(3)
+        p.weapons(1)=make_weapon(3)
+        p.weapons(2)=make_weapon(3)
         p.loadout=2
         p.col=10
         p.bcol=0
@@ -5298,8 +5304,8 @@ dim as short c,b
         p.desig="LRF Lightning"
         p.icon="F"
         p.ti_no=31
-        p.weapons(1)=makeweapon(8)
-        p.weapons(2)=makeweapon(8)
+        p.weapons(1)=make_weapon(8)
+        p.weapons(2)=make_weapon(8)
         p.col=10
         p.bcol=0
         p.mcol=14
@@ -5319,10 +5325,10 @@ dim as short c,b
         p.pipilot=4
         p.pigunner=5
         p.engine=5
-        p.weapons(4)=makeweapon(89)
-        p.weapons(3)=makeweapon(8)
-        p.weapons(1)=makeweapon(3)
-        p.weapons(2)=makeweapon(3)
+        p.weapons(4)=make_weapon(89)
+        p.weapons(3)=make_weapon(8)
+        p.weapons(1)=make_weapon(3)
+        p.weapons(2)=make_weapon(3)
         p.desig="EC Kursk"
         p.icon="E"
         p.ti_no=26
@@ -5350,10 +5356,10 @@ dim as short c,b
         p.money=0
         
         p.equipment(se_ecm)=2
-        p.weapons(4)=makeweapon(8)       
-        p.weapons(1)=makeweapon(8)
-        p.weapons(2)=makeweapon(8)
-        p.weapons(3)=makeweapon(5)
+        p.weapons(4)=make_weapon(8)       
+        p.weapons(1)=make_weapon(8)
+        p.weapons(2)=make_weapon(8)
+        p.weapons(3)=make_weapon(5)
         p.col=10
         p.bcol=0
         p.mcol=12
@@ -5378,11 +5384,11 @@ dim as short c,b
         p.money=0
         
         p.equipment(se_ecm)=2
-        p.weapons(1)=makeweapon(9)       
-        p.weapons(2)=makeweapon(9)
-        p.weapons(3)=makeweapon(9)
-        p.weapons(4)=makeweapon(89)
-        p.weapons(5)=makeweapon(89)
+        p.weapons(1)=make_weapon(9)       
+        p.weapons(2)=make_weapon(9)
+        p.weapons(3)=make_weapon(9)
+        p.weapons(4)=make_weapon(89)
+        p.weapons(5)=make_weapon(89)
         p.col=10
         p.bcol=0
         p.mcol=12

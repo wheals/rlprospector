@@ -711,10 +711,6 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
                 endif
                 sleep delay
             endif
-            if blocktype=4 then
-                locate y+1,x+1
-                print "*"
-            endif
         endif
         if blocktype=2 then
             if combatmap(x,y)=7 or combatmap(x,y)=8 then

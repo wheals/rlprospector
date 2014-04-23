@@ -9,10 +9,13 @@ function play_poker(st as short) as short
     select case st
     case is <0
         rules.bet=10
-        rules.limit=10
+        rules.limit=5
     case 0 to 9
         rules.bet=5
         rules.limit=5
+    case 10
+        rules.bet=50
+        rules.limit=10
     end select
     rules.closed=1
     rules.swap=0
@@ -216,7 +219,7 @@ function play_poker(st as short) as short
         else
             dprint "No winner."
         endif
-        loop until not(askyn("Do you want to play another hand?(y/n)"))
+    loop until not(askyn("Do you want to play another hand?(y/n)"))
         
     for i=1 to 4
         if p(i).qg>0 then
@@ -668,7 +671,10 @@ function draw_poker_table(p() as _pokerplayer,reveal as short=0,winner as short=
             if (reveal=1 and p(i).fold=0) or i=4 then 
                 set__color(15,0)
                 if i=winner then set__color(c_gre,0)
-                if p(i).fold=0 then draw string (x,y+pcards.cardheight/2-_fh2/2)," ("& handname(p(i).win.rank) &")",,font2,custom,@_col
+                if p(i).fold=0 then 
+                    draw string (x,y+pcards.cardheight/2-_fh2/2),space(18),,font2,custom,@_col
+                    draw string (x,y+pcards.cardheight/2-_fh2/2)," ("& handname(p(i).win.rank) &")",,font2,custom,@_col
+                endif
             endif
             x=0
             y=y+pcards.cardheight+_fh2+2

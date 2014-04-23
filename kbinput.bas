@@ -200,6 +200,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             
         endif
         if key=key_autoinspect then
+            screenset 1,1
             select case _autoinspect
                 case is =0
                     _autoinspect=1
@@ -211,6 +212,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             key=""     
         endif
         if key=key_autopickup then
+            screenset 1,1
             select case _autopickup
                 case is =0
                     _autopickup=1
@@ -222,6 +224,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             key=""     
         endif       
         if key=key_togglehpdisplay then
+            screenset 1,1
             select case _HPdisplay
                 case is =0
                     _HPdisplay=1
@@ -633,7 +636,6 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
             else
                 set__color( 11,0)
             endif
-            locate y+a,x
             draw string(x*_fw1,y*_fh1+a*_fh2),shrt(a) &") "& lines(a),,font2,custom,@_col
         next
         

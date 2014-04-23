@@ -296,8 +296,8 @@ function show_quests() as short
     if player.questflag(2)=1 then txt=txt & "  Rescue a company executive from pirates"&"|"
     if player.questflag(12)=1 then txt=txt & "  A small green alien told you about a monster in their mushroom caves."
     if player.questflag(26)>0 then
-        sys=player.questflag(26)
-        txt=txt & "  Find out what happened to an expedition last reported from "& map(sys).c.x &":"&map(sys).c.y &"."&"|"
+        sys=sysfrommap(player.questflag(26))
+        txt=txt & "  Find out what happened to an expedition last reported from "&cords( map(sys).c)&"."&"|"
     endif
     set__color( 15,0)
     txt=txt & "|{15}Headhunting:{11}"&"|"
@@ -1615,12 +1615,12 @@ function money_text() as string
 
     text=text & " | "
 
-    if pirateplanet(0)=-1 then
+    if piratebase(0)=-1 then
         text =text & "Destroyed the Pirates base of operation! |"
     endif
     b=0
     for a=1 to _NoPB
-        if pirateplanet(a)=-1 then b=b+1
+        if piratebase(a)=-1 then b=b+1
     next
     if b=1 then
         text=text & " Destroyed a pirate outpost. |"
@@ -2530,7 +2530,7 @@ function es_title(byref pmoney as single) as string
         t=t &""
         if landless=0 then t=t &" |You soon find out the title of a Duke is worth quite a bit even without any assets to go with it. People pay you to show up at their events and give speeches, and want to elect you to high local government positions. "
         if landless>0 and landless<5 then t=t &"|You have power, you have prestige. You are a bit poor for a duke, but few can oppose you."
-        if landless>=5 then t=t &"|You are a rich, powerful duke. What you say is law in your community. And that community is pretty large. Nobody can oppose politically or economically"
+        if landless>=5 then t=t &"|You are a rich, powerful duke. What you say is law in your community. And that community is pretty large. Nobody can oppose you politically or economically"
         pmoney=pmoney+5000*(landless+1)
         return t
     endif
