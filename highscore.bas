@@ -157,7 +157,6 @@ function space_mapbmp() as short
             endif
         next
     endif
-    if _debug>0 then dprint cords(player.c)
     savepng( "summary/" &player.desig &"-map.png", img, 1)
     imagedestroy img
     return 0

@@ -241,6 +241,46 @@ End Type
 '
 
 
+type _index
+    index(60,20,128) as short
+    last(60,20) as short
+    declare function add(v as short,c as _cords) as short
+    declare function remove(v as short,c as _cords) as short
+    declare function move(v as short,oc as _cords,nc as _cords) as short
+    declare function del() as short
+end type
+
+function _index.del() as short
+    erase index,last
+    return 0
+end function
+
+function _index.add(v as short,c as _cords) as short
+    last(c.x,c.y)+=1
+    index(c.x,c.y,last(c.x,c.y))=v
+    return 0
+end function
+
+function _index.remove(v as short, c as _cords) as short
+    dim j as short
+    for j=1 to last(c.x,c.y)
+        if index(c.x,c.y,j)=v then
+            index(c.x,c.y,j)=index(c.x,c.y,last(c.x,c.y))
+            last(c.x,c.y)-=1
+        endif
+    next
+    return 0
+end function
+
+function _index.move(v as short,oc as _cords,nc as _cords) as short
+    remove(v,oc)
+    add(v,nc)
+    return 0
+end function
+
+dim shared itemindex as _index
+dim shared portalindex as _index
+
 Type _energycounter
     e As Integer
     Declare Function add_action(v As Integer) As Integer
@@ -498,6 +538,15 @@ function _ship.ammo() as short
 end function
 
 Dim Shared alliance(7) As Byte
+
+dim shared logfile as short
+
+
+if _debug=2704 then
+    logfile=freefile
+    open "exploreplanet.log" for append as logfile
+    print #logfile,"Start"
+endif
 
 Function _ship.diop() As Byte
     If this.di=1 Then Return 9
@@ -1905,6 +1954,7 @@ Declare Function urn(min As Short, max As Short,mult As Short,bonus As Short) As
 Declare Function rarest_good() As Short
 Declare Function display_stock() As Short
 
+declare function gets_entry(x as short,y as short, slot as short) as short
 Declare Function ep_friendfoe(i As Short,j As Short) As Short
 Declare Function calcosx(x As Short,wrap As Byte) As Short
 Declare Function rg_icechunk() As Short 
@@ -2129,7 +2179,7 @@ Declare Function paystuff(price As Integer) As Integer
 Declare Function shop(sh As Short,pmod As Single, shopn As String) As Short
 Declare Function mondis(enemy As _monster) As String
 Declare Function getfilename() As String
-Declare Function savegame()As Short
+Declare Function savegame(crash as short=0)As Short
 Declare Function load_game(filename As String) As Short
 Declare Function refuel_f(f As _fleet, st As Short) As _fleet
 Declare Function load_font(fontdir As String,ByRef fh As UByte) As UByte Ptr
@@ -2171,6 +2221,9 @@ Declare Function com_NPCfireweapon(ByRef defender As _ship, ByRef attacker As _s
 Declare Function com_victory(attacker() As _ship) As Short
 Declare Function com_add_e_track(ship As _ship,e_track_p() As _cords,e_track_v() As Short, e_map() As Byte,e_last As Short) As Short
 
+declare function display_item(i as integer,osx as short,slot as short) as short
+declare function display_portal(b as short,slot as short,osx as short) as short
+
 Declare Function get_rumor(i As Short=18) As String
 Declare Function show_standing() As Short
 
@@ -2193,7 +2246,7 @@ Declare Function getmonster() As Short
 Declare Function findartifact(v5 As Short) As Short
 Declare Function scrap_component() As Short
 
-Declare Function ep_planetmenu(slot As Short,shipfire() As _shipfire,li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
+Declare Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfire,li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
 Declare Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) As Short
 Declare Function earthquake(t As _tile,dam As Short)As _tile
 Declare Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _shipfire,li() As Short, ByRef lastlocalitem As Short,spawnmask() As _cords,lsp As Short,Key As String,loctemp As Single) As Short
@@ -2390,7 +2443,7 @@ Declare Function getinvbytype(t As Short) As Short
 Declare Function removeinvbytype(t As Short, am As Short) As Short
 Declare Function get_item_list(inv() As _items, invn()As Short, ty As Short=0,ty2 As Short=0,ty3 As Short=0,ty4 As Short=0,noequip As Short=0) As Short
 Declare Function display_item_list(inv() As _items, invn() As Short, marked As Short, l As Short,x As Short,y As Short) As Short
-Declare Function make_localitemlist(li() As Short,slot As Short) As Short
+Declare Function make_locallist(li() As Short,slot As Short) As Short
 
 Declare Function sick_bay(st As Short=0,obe As Short=0) As Short
 Declare Function first_unused(i As Short) As Short

@@ -105,7 +105,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 close #f
             endif
             
-            if _debug=-1 and key="ü" then
+            if _debug=-1 and key="ï¿½" then
                 for x=0 to 60
                     for y=0 to 20
                         planetmap(x,y,player.map)=abs(planetmap(x,y,player.map))
@@ -113,7 +113,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
                 next
             endif
             
-            if _debug>0 and key="ä" then
+            if _debug>0 and key="ï¿½" then
                 dprint "Fleetdump"
                 f=freefile
                 open "fleets.csv" for output as #f
@@ -284,7 +284,6 @@ function cursor(target as _cords,map as short,osx as short,osy as short=0,radius
         endif
     endif
     if map<=0 then border=1
-    if _debug=707 then dprint "EO:"&eo
     'dprint ""&planetmap(target.x,target.y,map)
     if map>0 then
         if planetmap(target.x,target.y,map)<0 then
@@ -385,7 +384,6 @@ function getnumber(a as integer,b as integer, e as integer) as integer
         c=numfromstr((gettext(p.x,p.y,46,"")))
         if c>b then c=b
         if c<a then c=e
-        if _debug>0 then dprint "LB:"&a &"UB:"& b &"#:"&c
         return c
     else
         

@@ -887,7 +887,6 @@ function add_piratebase() as short
     
     for a=0 to _noPB
         dist(0)=9999
-        if _debug>0 then dprint "C:"&c
         for b=1 to c
             if dist(b)<dist(0) and dist(b)>0 then
                 found=b
@@ -897,7 +896,6 @@ function add_piratebase() as short
         lastplanet+=1
         piratebase(a)=lastplanet
         map(list(found)).planets(rnd_range(1,9))=lastplanet
-        if _Debug>0 then dprint cords(map(list(found)).c) &":"&dist(found)
         list(found)=list(c)
         dist(found)=dist(c)
         c-=1
@@ -1025,7 +1023,6 @@ function gen_bountyquests() as short
         bountyquest(i).ship=val(w(1))
         bountyquest(i).reward=val(w(2))
         bountyquest(i).reason=rnd_range(1,3)+3*bountyquest(i).employer
-        if _debug=707 then dprint i &":"&w(0) &":"&w(1) &":"&w(2)
     loop until eof(f)
     close #f
     return 0
@@ -1505,7 +1502,6 @@ function make_clouds() as short
     
     if last2>1024 then last2=1024
     
-    if _debug=1 then dprint "Last2:"&last2
     for i=1 to last2
         for a=1 to last2
             if i<>a then

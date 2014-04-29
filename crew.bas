@@ -773,12 +773,12 @@ function add_member(a as short,skill as short) as short
                     'help=help &"Ship:"&player.h_sdesc
                 next
                 turret=-2
-                rask=21
-                changeap=22
+                rask=22
+                changeap=23
                 if player.h_no=2 then
-                    turret=22
-                    rask=23
-                    changeap=24
+                    turret=23
+                    rask=24
+                    changeap=25
                     text=text &"/Additional module(3 pts.)"
                     help=help &"/Pay 3 pts for a module for your fighter ship."
                 endif

@@ -1,4 +1,17 @@
-Function ep_planetmenu(slot As Short,shipfire() As _shipfire,li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
+function gets_entry(x as short,y as short, slot as short) as short
+    if planetmap(x,y,slot)<0 then return 0
+    If tmap(x,y).no<2 then return 0
+    if tmap(x,y).gives>=69 and tmap(x,y).gives<=75 then return -1
+    if tmap(x,y).gives=66 or tmap(x,y).gives=67 then return -1
+    if tmap(x,y).gives=59 or tmap(x,y).gives=60 then return -1
+    if tmap(x,y).gives=55 then return -1
+    if tmap(x,y).gives>=44 and tmap(x,y).gives<=46 then return -1
+    if tmap(x,y).gives>=13 and tmap(x,y).gives<=31 then return -1
+    if tmap(x,y).gives>=4 and tmap(x,y).gives<=8 then return -1
+    return 0
+end function
+    
+Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfire,li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
     Dim As Short x,y,entry,launch,explore,a
     Dim As _cords mgcords(24),nextmap
     Dim As String text,Key
@@ -6,7 +19,7 @@ Function ep_planetmenu(slot As Short,shipfire() As _shipfire,li() As Short,ByRef
     text="Facilities"
     For x=0 To 60
         For y=0 To 20
-            If tmap(x,y).no>2 And tmap(x,y).gives>=4 And tmap(x,y).gives<240 And planetmap(x,y,slot)>0 And entry<23 Then
+            if gets_entry(x,y,slot)=-1 and entry<23 then
                 entry+=1
                 mgcords(entry).x=x
                 mgcords(entry).y=y
@@ -71,7 +84,7 @@ Function ep_planetmenu(slot As Short,shipfire() As _shipfire,li() As Short,ByRef
                 ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,Key,loctemp)
             End Select
         Loop Until a=-1 Or a=launch Or a=explore
-        If a=explore Then awayteam.c=player.landed
+        If a=explore Then awayteam.c=entrycords
     EndIf
     Return nextmap
 End Function
@@ -139,7 +152,7 @@ Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() A
                                     If planetmap(x,y,slot)<0 Then planetmap(x,y,slot)=-tmap(x,y).no
                                     If rnd_range(1,100)<15-distance(p1,areaeffect(a).c) Then lavapoint(rnd_range(1,5))=p1
                                     If rnd_range(1,100)<3 Then
-                                        lastlocalitem=lastlocalitem+1
+                                        lastlocalitem+=1
                                         If lastlocalitem<=256 Then
                                             lastitem=lastitem+1
                                             li(lastlocalitem)=lastitem
@@ -147,6 +160,7 @@ Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() A
                                             item(lastitem).w.x=x
                                             item(lastitem).w.y=y
                                             item(lastitem).w.m=slot
+                                            itemindex.add(lastitem,item(lastitem).w)
                                         Else
                                             lastlocalitem=256
                                         EndIf
@@ -322,7 +336,7 @@ Function ep_autoexploreroute(astarpath() As _cords,start As _cords,move As Short
     EndIf
     d2=61*21
     If rover=0 Then
-        For i=1 To lastlocalitem
+        For i=1 To lastlocalitem'Can't look up location
             If item(li(i)).discovered>0 And candidate(item(li(i)).w.x,item(li(i)).w.y)=255 Then
                 If item(li(i)).w.s=0 And item(li(i)).w.p=0 Then
                     p.x=item(li(i)).w.x
@@ -355,7 +369,6 @@ Function ep_autoexploreroute(astarpath() As _cords,start As _cords,move As Short
             EndIf
         Next
     Next
-    If _debug>0 Then dprint "target 1: "&cords(target)&" d:"&d
     If notargets=0 Then
         if rover=0 then
             target.x=player.landed.x
@@ -374,7 +387,6 @@ Function ep_autoexploreroute(astarpath() As _cords,start As _cords,move As Short
     EndIf
     If target.x=start.x And target.y=start.y Then Return -1
     last=ep_planetroute(path(),move,start,target,rollover)
-    If _Debug>0 Then dprint "Last:"&last
     If last=-1 Then Return -1
     For i=0 To last
         astarpath(i+1).x=path(i).x
@@ -608,12 +620,12 @@ End Function
 
 
 Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) As Short
-    Dim As Short a,b,x,y,slot,fg,bg,debug,alp
+    Dim As Short a,b,x,y,slot,fg,bg,debug,alp,x2
     Dim As Byte comitem,comdead,comalive,comportal
     Dim As _cords p,p1,p2
     slot=player.map
     If osx=555 Then osx=calcosx(awayteam.c.x,planets(slot).depth)
-    If _debug=1 Then dprint awayteam.c.x &":"& awayteam.c.y
+    
     If disease(awayteam.disease).bli>0 Then
         x=awayteam.c.x
         y=awayteam.c.y
@@ -623,9 +635,8 @@ Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) 
     EndIf
     ' Stuff on ground
     make_vismask(awayteam.c,awayteam.sight,slot)
-
-
-    For a=1 To lastlocalitem
+    
+    For a=1 To lastlocalitem'Cant use index because unseen grenades burn out too
         If item(li(a)).ty=7 And item(li(a)).v2=1 Then 'flash grenade
             item(li(a)).v1-=1
             p2=item(li(a)).w
@@ -652,7 +663,7 @@ Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) 
             EndIf
         EndIf
     Next
-
+        
     For x=0 To _mwx
         For y=0 To 20
             p.x=x+osx
@@ -675,152 +686,31 @@ Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) 
                 Else
                     dtile(x,y,tmap(p.x,y),vismask(p.x,y))
                 EndIf
-            EndIf
-
-        Next
-    Next
-
-    For a=0 To lastportal
-        If portal(a).from.m=slot And portal(a).oneway<2 Then
-            p.x=portal(a).from.x
-            p.y=portal(a).from.y
-            If awayteam.c.x=p.x And awayteam.c.y=p.y And comstr.comportal=0 Then
-                comstr.t=comstr.t &key_portal &" Enter"
-                comstr.comportal=1
-            EndIf
-            If debug=1 And _debug=1 Then dprint p.x &":"&p.y
-            If vis_test(awayteam.c,p,planets(slot).depth)=-1 Then
-                    If (vismask(portal(a).from.x,portal(a).from.y)>0) Or portal(a).discovered=1 Then
-                        If portal(a).discovered=0 Then walking=0
-                        portal(a).discovered=1
-                        If configflag(con_tiles)=0 Then
-                            x=portal(a).from.x-osx
-                            If x<0 Then x+=61
-                            If x>60 Then x-=61
-                            Put (x*_tix,portal(a).from.y*_tiy),gtiles(gt_no(portal(a).ti_no)),trans
-                        Else
-                            set__color( portal(a).col,0)
-                            Draw String(portal(a).from.x*_fw1,portal(a).from.y*_fh1),Chr(portal(a).tile),,Font1,custom,@_col
-                        EndIf
-                EndIf
-            EndIf
-        EndIf
-        If portal(a).oneway=0 Then
-            If portal(a).dest.m=slot Then
-                p.x=portal(a).dest.x
-                p.y=portal(a).dest.y
-                If awayteam.c.x=p.x And awayteam.c.y=p.y And comstr.comportal=0 Then
+            endif
+            
+            a=0
+            if portalindex.last(p.x,p.y)>0 then 
+                display_portal(portalindex.index(p.x,p.y,1),slot,osx)
+                If portal(a).from.m=slot And portal(a).oneway<2 and awayteam.c.x=portal(a).from.x And awayteam.c.y=portal(a).from.y And comstr.comportal=0 Then
+                    comstr.t=comstr.t &key_portal &" Enter"
+                    comstr.comportal=1
+                endif
+                If portal(a).oneway=0 and portal(a).dest.m=slot and awayteam.c.x=portal(a).dest.x And awayteam.c.y=portal(a).dest.y And comstr.comportal=0 Then
                     comstr.t=comstr.t &key_portal &" Enter"
                     comstr.comportal=1
                 EndIf
-                If vis_test(awayteam.c,p,planets(slot).depth)=-1 Then
-                    If (vismask(portal(a).dest.x,portal(a).dest.y)>0) Or portal(a).discovered=1 Then
-                            If portal(a).discovered=0 Then walking=0
-                            portal(a).discovered=1
-                            If configflag(con_tiles)=0 Then
-                                If vismask(p.x,p.y)=0 Then
-                                    alp=197
-                                Else
-                                    alp=255
-                                EndIf
-                                x=portal(a).dest.x-osx
-                                If x<0 Then x+=61
-                                If x>60 Then x-=61
-                                Put (x*_tix,portal(a).dest.y*_tiy),gtiles(gt_no(portal(a).ti_no)),alpha,alp
-                            Else
-                                set__color( portal(a).col,0)
-                                Draw String(portal(a).dest.x*_fw1,portal(a).dest.y*_fh1),Chr(portal(a).tile),,Font1,custom,@_col
-                            EndIf
-                        EndIf
-                    EndIf
-                EndIf
-        EndIf
+            endif
+        
+            if itemindex.last(p.x,p.y)>0 then
+                for b=1 to itemindex.last(p.x,p.y)
+                    display_item(itemindex.index(p.x,p.y,b),osx,slot)
+                next
+            endif
+        Next
     Next
-
-    For a=1 To lastlocalitem
-        If item(li(a)).w.m=slot And item(li(a)).w.s=0 And item(li(a)).w.p=0 Then
-            p.x=item(li(a)).w.x
-            p.y=item(li(a)).w.y
-                If awayteam.c.x=p.x And awayteam.c.y=p.y And comstr.comitem=0 Then
-                    comstr.t=comstr.t &key_pickup &" Pick up;"
-                    comstr.comitem=1
-                EndIf
-
-                If  (tiles(Abs(planetmap(p.x,p.y,slot))).hides=0  Or item(li(a)).discovered=1) And ((vismask(item(li(a)).w.x,item(li(a)).w.y)>0)) Then
-                    If item(li(a)).discovered=0 And walking<11 Then walking=0
-                    item(li(a)).discovered=1
-                    If tiles(Abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).walktru>0 And item(li(a)).bgcol=0 Then
-                        bg=tiles(Abs(planetmap(item(li(a)).w.x,item(li(a)).w.y,slot))).col
-                    Else
-                        If item(li(a)).bgcol>=0 Then bg=item(li(a)).bgcol
-                    EndIf
-                    If item(li(a)).col>0 Then
-                        fg=item(li(a)).col
-                    Else
-                        fg=rnd_range(Abs(item(li(a)).col),Abs(item(li(a)).bgcol))
-                    EndIf
-                    set__color( fg,bg)
-                    If configflag(con_tiles)=0 Then
-                        p.x=item(li(a)).w.x
-                        p.y=item(li(a)).w.y
-                        If vismask(p.x,p.y)=0 Then
-                            alp=197
-                        Else
-                            alp=255
-                        EndIf
-                        x=item(li(a)).w.x-osx
-                        If x<0 Then x+=61
-                        If x>60 Then x-=61
-                        Put (x*_tix,item(li(a)).w.y*_tiy),gtiles(gt_no(item(li(a)).ti_no)),alpha,alp
-                        If _debug=1 Then Draw String(x*_tix,item(li(a)).w.y*_tiy),item(li(a)).w.p &":"&item(li(a)).w.m,,font1,custom,@_tcol'REMOVE
-                    Else
-                        If configflag(con_transitem)=1 Then
-                            Draw String(p.x*_fw1,P.y*_fh1), item(li(a)).ICON,,font1,custom,@_col
-                        Else
-                            If item(li(a)).bgcol<=0 Then
-                                set__color( 241,0)
-                                Draw String(p.x*_fw1-1,P.y*_fh1), item(li(a)).ICON,,font1,custom,@_tcol
-                                Draw String(p.x*_fw1+1,P.y*_fh1), item(li(a)).ICON,,font1,custom,@_tcol
-                                Draw String(p.x*_fw1,P.y*_fh1+1), item(li(a)).ICON,,font1,custom,@_tcol
-                                Draw String(p.x*_fw1,P.y*_fh1-1), item(li(a)).ICON,,font1,custom,@_tcol
-                                set__color( fg,bg)
-                                Draw String(p.x*_fw1,P.y*_fh1), item(li(a)).ICON,,font1,custom,@_tcol
-                            Else
-                                Draw String(p.x*_fw1,P.y*_fh1), item(li(a)).ICON,,font1,custom,@_col
-                            EndIf
-                        EndIf
-                    EndIf
-                 EndIf
-
-        EndIf
-    Next
-
+    
     display_monsters(osx)
-
-    If debug=2  And _debug=1 And lastapwp>=0 Then
-        For b=0 To lastapwp
-            If apwaypoints(b).x-osx>=0 And apwaypoints(b).x-osx<=_mwx Then
-                set__color( 11,0)
-                Draw String((apwaypoints(b).x-osx)*_tix,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
-                If tmap(apwaypoints(b).x,apwaypoints(b).y).onopen<>0 Then
-                    Draw String((apwaypoints(b).x-osx)*_tix+_fw1,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
-                EndIf
-            EndIf
-        Next
-    EndIf
-    If debug=2 And _debug=1 Then
-        For x=0 To 60
-            For y=0 To 20
-                If x-osx>=0 And x-osx<=_mwx Then
-
-                    If tmap(x,y).onopen<>0 Then
-                        Draw String((x-osx)*_tix+_fw1,y*_tiy),"9",,Font1,custom,@_col
-                    EndIf
-                EndIf
-            Next
-        Next
-    EndIf
-
+    
     Return 0
 End Function
 
@@ -908,6 +798,7 @@ Function ep_dropitem(li() As Short,ByRef lastlocalitem As Short) As Short
                     item(c).w.p=0
                     lastlocalitem+=1
                     li(lastlocalitem)=c
+                    itemindex.add(c,awayteam.c)
                     item(c).v2=1
                     dprint "What time do you want to set it to?"
                     item(c).v3=getnumber(1,99,1)
@@ -972,8 +863,9 @@ Function ep_dropitem(li() As Short,ByRef lastlocalitem As Short) As Short
                                 enemy(lastenemy).c=item(c).w
                                 destroyitem(c)
                             EndIf
-                            lastlocalitem=lastlocalitem+1
+                            lastlocalitem+=1
                             li(lastlocalitem)=c
+                            itemindex.add(c,awayteam.c)
                             c=next_item(c)
                         EndIf
                     Next
@@ -1037,8 +929,8 @@ Function ep_inspect(li() As Short,ByRef lastlocalitem As Short,ByRef localturn A
                 addship.m=slot
                 addship.s=b
                 make_drifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot),1)
-            
-            
+                lastlocalitem=make_locallist(li(),slot)'To add the portal to the list
+
             EndIf
         EndIf
         If tmap(awayteam.c.x,awayteam.c.y).hp=1 Then
@@ -1140,7 +1032,7 @@ Function ep_inspect(li() As Short,ByRef lastlocalitem As Short,ByRef localturn A
                     If enemy(a).hpmax<0 Then enemy(a).hpmax=0
                     If enemy(a).slot>=0 Then reward(1)=reward(1)+(10+kit+skill+add_talent(4,14,1)+get_biodata(enemy(a)))/(planets(slot).mon_disected(enemy(a).slot)/2)
                     If enemy(a).disease=0 Then
-                        If _debug=2608 Then dprint  "Tasty:"&enemy(a).tasty &" Pretty:"&enemy(a).pretty &" Total:"&reward(rwrd_pretty) &":"&reward(rwrd_tasty)
+                        
                         If enemy(a).hpmax*enemy(a).pretty/10>0 Then dprint "Some parts of this creature would make fine luxury items! You store them seperately."
                         If enemy(a).hpmax*enemy(a).tasty/10>0 Then dprint "Some parts of this creature would make fine food items! You store them seperately."
                         reward(rwrd_pretty)+=enemy(a).hpmax*enemy(a).pretty/10
@@ -1270,6 +1162,7 @@ Function ep_items(li() As Short, ByRef lastlocalitem As Short, localturn As Shor
                     item(li(a)).w.p=0
                     item(li(a)).w.m=slot
                     item(li(a)).w.s=0
+                    itemindex.add(li(a),item(li(a)).w)
                 EndIf
             EndIf
 
@@ -1284,6 +1177,7 @@ Function ep_items(li() As Short, ByRef lastlocalitem As Short, localturn As Shor
                         alienbomb(li(a),slot,li(),lastlocalitem)
                         If dam>0 Then dprint dam_awayteam(dam)
                         If awayteam.hp<=0 Then player.dead=29
+                        itemindex.remove(a,p1)
                         li(a)=li(lastlocalitem)
                         lastlocalitem-=1
                     EndIf
@@ -1534,7 +1428,7 @@ Function ep_planeteffect(li() As Short, ByRef lastlocalitem As Short,shipfire() 
         player.killedby=" hostile environment"
     EndIf
 
-    If planets(slot).atmos>11 And rnd_range(1,100)<planets(slot).atmos*2 And frac(localturn/10)=0 Then
+    If planets(slot).atmos>11 And rnd_range(1,100)<planets(slot).atmos*2 And frac(localturn/20)=0 Then
         a=getrnditem(-2,0)
         If a>0 Then
             If rnd_range(1,100)>item(a).res Then
@@ -1549,7 +1443,7 @@ Function ep_planeteffect(li() As Short, ByRef lastlocalitem As Short,shipfire() 
                 EndIf
             EndIf
         EndIf
-        For a=1 To lastlocalitem
+        For a=1 To lastlocalitem 'Corrosion need to go through all
             If item(li(a)).ty<20 Then
                 If item(li(a)).w.s=0 And rnd_range(1,100)>item(li(a)).res Then item(li(a)).res-=25
                 If item(li(a)).res<=0 Then item(li(a)).w.p=9999
@@ -1575,12 +1469,12 @@ End Function
 Function ep_pickupitem(Key As String, ByRef lastlocalitem As Short, li() As Short) As Short
     Dim a As Short
     Dim text As String
-    For a=1 To lastlocalitem
+    For a=1 to lastlocalitem 'Pickup, could look up but not worth it
         If item(li(a)).w.p=0 And item(li(a)).w.s=0 And item(li(a)).w.x=awayteam.c.x And item(li(a)).w.y=awayteam.c.y Then
             If item(li(a)).ty<>99 Then
                 If _autopickup=1 Then text=text &item(li(a)).desig &". "
                 If _autopickup=0 Or Key=key_pickup Then
-                    If _debug=112 Then dprint "P:"&item(li(a)).w.p &" m:"&item(li(a)).w.m &" s:"&item(li(a)).w.s &"NO:"&li(a)
+                    
                     If item(li(a)).ty=15 Then
                         If item(li(a)).v1<5 Then text=text &" You pick up the small amount of "&item(li(a)).desig &". "
                         If item(li(a)).v1>=5 And item(li(a)).v1<=10 Then text=text &" You pick up the "&item(li(a)).desig &". "
@@ -1648,9 +1542,16 @@ Function ep_portal() As _cords
     Dim As _cords nextmap
     Dim As _cords p
     slot=player.map
-    For a=0 To lastportal
-        If portal(a).from.m=slot Then
-            If awayteam.c.x=portal(a).from.x And awayteam.c.y=portal(a).from.y Then
+    if portalindex.last(awayteam.c.x,awayteam.c.y)>0 then a=portalindex.index(awayteam.c.x,awayteam.c.y,1)
+        
+        If portal(a).oneway=2 And portal(a).from.m=slot Then
+            If awayteam.c.x=0 Or awayteam.c.x=60 Or awayteam.c.y=0 Or awayteam.c.y=20 Then
+                If askyn("Do you want to leave the area?(y/n)") Then nextmap=portal(a).dest
+                return nextmap
+            EndIf
+        EndIf
+        
+        If portal(a).from.m=slot and portal(a).oneway<2 Then
                 If askyn(portal(a).desig &" Enter?(y/n)") Then
                     dprint "going through."
                     'walking=-1
@@ -1690,7 +1591,7 @@ Function ep_portal() As _cords
                     EndIf
                     'dprint " "&portal(a).dest.m
                 EndIf
-            EndIf
+            
         EndIf
         If portal(a).oneway=0 And portal(a).dest.m=slot Then
             If awayteam.c.x=portal(a).dest.x And awayteam.c.y=portal(a).dest.y Then
@@ -1733,12 +1634,7 @@ Function ep_portal() As _cords
                 EndIf
             EndIf
         EndIf
-        If portal(a).oneway=2 And portal(a).from.m=slot Then
-            If awayteam.c.x=0 Or awayteam.c.x=60 Or awayteam.c.y=0 Or awayteam.c.y=20 Then
-                If askyn("Do you want to leave the area?(y/n)") Then nextmap=portal(a).dest
-            EndIf
-        EndIf
-    Next
+    
     Return nextmap
 End Function
 
@@ -1864,12 +1760,14 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
 
     If (tmap(awayteam.c.x,awayteam.c.y).no=260 Or tmap(awayteam.c.x,awayteam.c.y).no=27) And player.dead=0 Then
         tmap(awayteam.c.x,awayteam.c.y).gives=tmap(awayteam.c.x,awayteam.c.y).gives-rnd_range(0,awayteam.hp\5)
-        If tmap(awayteam.c.x,awayteam.c.y).hp<=awayteam.hp/3 Then dprint "The ice creaks",14
-        If tmap(awayteam.c.x,awayteam.c.y).hp<=0 Then
-            dprint "...and breaks! "&dam_awayteam(rnd_range(1,3)),12
-            tmap(awayteam.c.x,awayteam.c.y)=tiles(2)
-            planetmap(awayteam.c.x,awayteam.c.y,slot)=2
-        EndIf
+        if awayteam.movetype=mt_walk then
+            If tmap(awayteam.c.x,awayteam.c.y).hp<=awayteam.hp/3 Then dprint "The ice creaks",14
+            If tmap(awayteam.c.x,awayteam.c.y).hp<=0 Then
+                dprint "...and breaks! "&dam_awayteam(rnd_range(1,3)),12
+                tmap(awayteam.c.x,awayteam.c.y)=tiles(2)
+                planetmap(awayteam.c.x,awayteam.c.y,slot)=2
+            EndIf
+        endif
     EndIf
 
     Return 0
@@ -1992,7 +1890,7 @@ End Function
 
 Function ep_nearest(i As Short,li() As Short,lastlocalitem As Short) As Short
     Dim As Single d,dd,d2,dd2,ddd,d3,x,y
-    Dim As Short j
+    Dim As Short j,k
     d=9999       
     dd=9999
     ddd=9999
@@ -2038,17 +1936,28 @@ Function ep_nearest(i As Short,li() As Short,lastlocalitem As Short) As Short
     enemy(i).ddead=dd
     dd=9999
     enemy(i).nearestitem=0
-    For j=1 To lastlocalitem
-        If item(li(j)).w.p=0 And item(li(j)).w.s=0 and (item(li(j)).ty<>21 and item(li(j)).ty<>22 and item(li(j)).ty<>29) Then
-            if enemy(i).diet<>4 or item(li(j)).ty=15 then
-                d2=distance(enemy(i).c,item(li(j)).w)
-                If d2<dd Then
-                    enemy(i).nearestitem=li(j)
-                    dd=d2
-                EndIf
+    for x=enemy(i).c.x-enemy(i).sight to enemy(i).c.x+enemy(i).sight
+        for y=enemy(i).c.y-enemy(i).sight to enemy(i).c.y+enemy(i).sight
+            if x>=0 and y>=0 and x<=60 and y<=20 then
+                if itemindex.last(x,y)>0 then
+                    for k=1 to itemindex.last(x,y)
+                        j=itemindex.index(x,y,k)
+        
+                        If item(li(j)).w.p=0 And item(li(j)).w.s=0 and (item(li(j)).ty<>21 and item(li(j)).ty<>22 and item(li(j)).ty<>29) Then
+                            if enemy(i).diet<>4 or item(li(j)).ty=15 then
+                                d2=distance(enemy(i).c,item(li(j)).w)
+                                If d2<dd Then
+                                    enemy(i).nearestitem=li(j)
+                                    dd=d2
+                                EndIf
+                            endif
+                        endif
+                    next
+                endif
             endif
-        EndIf 
+        next
     Next    
+    
     enemy(i).ditem=dd
     if enemy(i).diet=4 and enemy(i).nearestitem=0 then
         enemy(i).pickup=-1
@@ -2111,7 +2020,7 @@ Function ep_changemood(i As Short,message() As Byte) As Short
 End Function
 
 Function ep_monsterupdate(i As Short,li() as short,lastlocalitem as short, spawnmask() as _cords,lsp as short,mapmask() As Byte,nightday() As Byte,message() As Byte) As Short
-    Dim As Short slot,b
+    Dim As Short slot,b,j
     slot=awayteam.slot
     mapmask(enemy(i).c.x,enemy(i).c.y)=i
     
@@ -2181,44 +2090,47 @@ Function ep_monsterupdate(i As Short,li() as short,lastlocalitem as short, spawn
             If enemy(i).sleeping<=0 And enemy(i).invis=3 Then enemy(i).invis=0
         EndIf
     EndIf
-    For b=1 To lastlocalitem
-       'if debug=120 then dprint b &";"& item(li(b)).w.s
-        If item(li(b)).w.x=enemy(i).c.x And item(li(b)).w.y=enemy(i).c.y And enemy(i).hp>0 And item(li(b)).w.s=0 And item(li(b)).w.p<>9999 Then
-            Select Case item(li(b)).ty
-            Case 21 Or 22
-                item(li(b)).w.p=9999
-                If item(li(b)).ty=21 Then enemy(i).hp=enemy(i).hp-rnd_range(1,item(li(b)).v1)
-                If item(li(b)).ty=22 Then enemy(i).sleeping=enemy(i).sleeping+rnd_range(1,item(li(b)).v1)
-                If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then
-                    Locate item(li(b)).w.y+1,item(li(b)).w.x+1
-                    set__color( item(li(b)).col,1)
-                    Draw String (item(li(b)).w.x*_fw1,item(li(b)).w.y*_fh1), Chr(176),,font2,custom,@_col
-                    dprint "The mine explodes under the "&enemy(i).sdesc &"!"
-                EndIf
-            Case 29 'Monster steps on Trap
-                If item(li(b)).v1<item(li(b)).v2 Then
-                    If rnd_range(1,6)+rnd_range(1,6)+item(li(b)).v2-enemy(i).hp/2-enemy(i).intel>0 And enemy(i).intel<5 Then
-                        'caught
-                        item(li(b)).v3=50*enemy(i).biomod+CInt(2*enemy(i).biomod*(enemy(i).hpmax^2)/3)'reward
-                        item(li(b)).v1+=1
-                        item(li(b)).ldesc = item(li(b)).ldesc & " | "&enemy(i).sdesc
-                        If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" gets caught in the trap."
-                        enemy(i)=enemy(lastenemy)
-                        lastenemy-=1
-                    Else
-                        'evaded
-                        If rnd_range(1,6)+rnd_range(1,6)+item(li(b)).v2-enemy(i).hp/2-enemy(i).intel<0 Then'
-                            'monster destroys trap
-                            If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" notices the trap and destroys it."
-                            item(li(b)).w.p=9999
+    if itemindex.last(enemy(i).c.x,enemy(i).c.y)>0 then
+        for j=1 to itemindex.last(enemy(i).c.x,enemy(i).c.y)
+            b=itemindex.index(enemy(i).c.x,enemy(i).c.y,j)
+        'if debug=120 then dprint b &";"& item(li(b)).w.s
+            If item(b).w.x=enemy(i).c.x And item(b).w.y=enemy(i).c.y And enemy(i).hp>0 And item(b).w.s=0 And item(b).w.p<>9999 Then
+                Select Case item(b).ty
+                Case 21 Or 22
+                    item(b).w.p=9999
+                    If item(b).ty=21 Then enemy(i).hp=enemy(i).hp-rnd_range(1,item(li(b)).v1)
+                    If item(b).ty=22 Then enemy(i).sleeping=enemy(i).sleeping+rnd_range(1,item(b).v1)
+                    If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then
+                        set__color( item(b).col,1)
+                        Draw String (item(b).w.x*_fw1,item(b).w.y*_fh1), Chr(176),,font2,custom,@_col
+                        dprint "The mine explodes under the "&enemy(i).sdesc &"!"
+                    EndIf
+                Case 29 'Monster steps on Trap
+                    If item(b).v1<item(b).v2 Then
+                        If rnd_range(1,6)+rnd_range(1,6)+item(b).v2-enemy(i).hp/2-enemy(i).intel>0 And enemy(i).intel<5 Then
+                            'caught
+                            item(b).v3=50*enemy(i).biomod+CInt(2*enemy(i).biomod*(enemy(i).hpmax^2)/3)'reward
+                            item(b).v1+=1
+                            item(b).ldesc = item(b).ldesc & " | "&enemy(i).sdesc
+                            If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" gets caught in the trap."
+                            enemy(i)=enemy(lastenemy)
+                            lastenemy-=1
                         Else
-                            If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" notices the trap."
+                            'evaded
+                            If rnd_range(1,6)+rnd_range(1,6)+item(li(b)).v2-enemy(i).hp/2-enemy(i).intel<0 Then'
+                                'monster destroys trap
+                                If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" notices the trap and destroys it."
+                                item(b).w.p=9999
+                            Else
+                                If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" notices the trap."
+                            EndIf
                         EndIf
                     EndIf
-                EndIf
-            end select
-        endif
-    next
+                end select
+            endif
+        next
+    endif
+    
     if enemy(i).invis=2 and enemy(i).aggr=0 and distance(enemy(i).c,awayteam.c)<2 then
         enemy(i).invis=0
         dprint "A clever "&enemy(i).sdesc &" has been hiding here, waiting for prey!",c_yel
@@ -2331,7 +2243,7 @@ Function ep_monstermove(li() As Short,ByRef lastlocalitem As Short,spawnmask() A
                         endif
                     EndIf
                     
-                    if _debug>0 then dprint "EPU:"&enemy(i).pickup
+                    
                     
                     
                 EndIf
@@ -2600,7 +2512,7 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, li() 
         If Instr(text,"ROVER")>0 Then
             If debug=1 And _debug=1 Then dprint "Contacting Rover"
             b=0
-            For a=1 To lastlocalitem
+            For a=1 To lastlocalitem 'Looking for Rover
                 If item(li(a)).ty=18 And item(li(a)).w.p=0 And item(li(a)).w.s=0 Then b=li(a)
             Next
             If debug=1  And _debug=1 Then dprint b &" Rover found."
@@ -2619,7 +2531,10 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, li() 
                     If Instr(text,"TARGET")>0 Then
                         dprint "Get target for rover:"
                         text=get_planet_cords(p1,slot)
-                        If text=key__enter Then item(b).vt=p1
+                        If text=key__enter Then 
+                            item(b).v5=0
+                            item(b).vt=p1
+                        endif
                         text=""
                     EndIf
                     If Instr(text,"POSITI")>0 Or Instr(text,"WHERE")>0 Then
@@ -2808,9 +2723,11 @@ Function ep_roverreveal(i As Integer,li() as short,lastlocalitem as short) As Sh
                 If _Debug>0 Then debug+=1
                 planetmap(x,y,slot)=planetmap(x,y,slot)*-1
                 item(i).v6=item(i).v6+0.5*item(i).v3*planets(slot).mapmod
-                for j=1 to lastlocalitem
-                    if vismask(item(li(j)).w.x,item(li(j)).w.y)>0 then item(li(j)).discovered=1
-                next
+                if itemindex.last(x,y)>0 then
+                    for j=1 to itemindex.last(x,y)
+                        item(li(itemindex.index(x,y,j))).discovered=1
+                    next
+                endif
             EndIf
         Next
     Next
@@ -2822,30 +2739,34 @@ function ep_rovermove(a as short,li() as short,lastlocalitem as short, slot as s
     dim as short i,curr,last               
     p1.x=item(li(a)).w.x
     p1.y=item(li(a)).w.y
-    if _debug=707 then dprint "moving "&item(li(a)).desig &" Move:"&item(li(a)).v2
+    
     For i=1 To item(li(a)).v4
         curr+=1
         If item(li(a)).vt.x=-1 Then
             If curr>=last Then
                 last=ep_autoexploreroute(route(),p1,item(li(a)).v2,slot,li(),lastlocalitem,1)
                 curr=1
-                If _debug>0 Then dprint "last:"&last
+                
                 if last=-1 then exit for
             EndIf
         Else
-            If item(li(a)).w.x=item(li(a)).vt.x And item(li(a)).w.y=item(li(a)).vt.y Then item(li(a)).vt.x=-1
-            If curr>=last Then
-                last=ep_planetroute(route(),item(li(a)).v2,p1,item(li(a)).vt,planets(slot).depth)
-                curr=1
-                If _debug>0 Then dprint "last:"&last
-            EndIf
-
+            If item(li(a)).w.x=item(li(a)).vt.x And item(li(a)).w.y=item(li(a)).vt.y Then 
+                item(li(a)).vt.x=-1
+                item(li(a)).v5=1
+                return 0
+            else
+                If curr>=last Then
+                    last=ep_planetroute(route(),item(li(a)).v2,p1,item(li(a)).vt,planets(slot).depth)
+                    curr=1
+                EndIf
+            endif
         EndIf
-        If last>0 Then
+        If last>0 and curr<=last Then
+            itemindex.move(li(a),item(li(a)).w,route(curr))
             item(li(a)).w.x=route(curr).x
             item(li(a)).w.y=route(curr).y
         EndIf
-        If _debug>0 Then dprint "point :"&curr &" "&cords(route(curr))
+        
         ep_roverreveal(li(a),li(),lastlocalitem)
     Next
     return 0
@@ -2944,7 +2865,7 @@ Function ep_grenade(shipfire() As _shipfire, ByRef sf As Single,li() As Short ,B
     EndIf
     launcher=findbest(17,-1)
     If c>0 Then
-        If _debug=707 Then dprint "throwing "&item(c).desig
+        
         If item(c).ty=7 Then
             p=grenade(awayteam.c,slot,li(),lastlocalitem)
             If p.x>=0 Then
@@ -2978,6 +2899,7 @@ Function ep_grenade(shipfire() As _shipfire, ByRef sf As Single,li() As Short ,B
                     item(c).w.y=p.y
                     lastlocalitem+=1
                     li(lastlocalitem)=c
+                    itemindex.add(c,item(c).w)
                 End Select
             Else
                 dprint "canceled"
@@ -3012,7 +2934,7 @@ Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
                                         lastcagedmonster+=1
                                         cagedmonster(lastcagedmonster)=enemy(a)
                                         cagedmonster(lastcagedmonster).c.s=b
-                                        'if _debug=1 then dprint "reward"&(50)&"*"&(enemy(a).stunres/2)&"*"&enemy(a).biomod &"+cint("&2*enemy(a).biomod*(enemy(a).hpmax^2)/3
+                                        '
                                         reward(1)=reward(1)+get_biodata(enemy(a))
                                         item(b).v3+=get_biodata(enemy(a))
                                         enemy(a).hp=0
@@ -3077,7 +2999,7 @@ Function ep_fire(mapmask() As Byte,Key As String,ByRef autofire_target As _cords
     Dim text As String
     slot=player.map
     osx=calcosx(awayteam.c.x,planets(slot).depth)
-    lastlocalitem=make_localitemlist(li(),slot)
+    lastlocalitem=make_locallist(li(),slot)
 
     If configflag(con_tiles)=0 Then
         x=awayteam.c.x-osx
@@ -3364,14 +3286,16 @@ Function ep_examine(li() As Short,lastlocalitem As Short) As Short
                     If p2.x=portal(a).dest.x And p2.y=portal(a).dest.y And slot=portal(a).dest.m And portal(a).oneway=0 Then text= text &portal(a).desig &". "
                     If debug=9 And _debug=1 And p2.x=portal(a).from.x And p2.y=portal(a).from.y And slot=portal(a).from.m Then text=text &a &":"&portal(a).from.m &"dest:"& portal(a).dest.m &":"& portal(a).dest.x &":"& portal(a).dest.y &"oneway:"&portal(a).oneway
                 Next
-
-                For a=1 To lastlocalitem
-                    If item(li(a)).w.x=p2.x And item(li(a)).w.y=p2.y And item(li(a)).w.p=0 And item(li(a)).w.s=0 Then
-                        text=text & item(li(a)).desig & ". "
-                        'if show_all=1 then text=text &"("&item(li(a)).w.x &" "&item(li(a)).w.y &" "&item(li(a)).w.p &" "&localitem(a).w.s &" "&localitem(a).w.m &")"
-                    EndIf
-                Next
-
+                
+                if itemindex.last(p2.x,p2.y)>0 then
+                    For a=1 To itemindex.last(p2.x,p2.y)
+                        If item(li(a)).w.p=0 And item(li(a)).w.s=0 Then
+                            text=text & item(li(a)).desig & ". "
+                            'if show_all=1 then text=text &"("&item(li(a)).w.x &" "&item(li(a)).w.y &" "&item(li(a)).w.p &" "&localitem(a).w.s &" "&localitem(a).w.m &")"
+                        EndIf
+                    Next
+                endif
+                
                 For a=1 To lastenemy
                     If enemy(a).c.x=p2.x And enemy(a).c.y=p2.y And enemy(a).hpmax>0 Then
                         If enemy(a).hp>0 Then
@@ -3502,13 +3426,14 @@ Function ep_crater(li() As Short, ByRef lastlocalitem As Short,shipfire() As _sh
         player.weapons(shipfire(sf).what).ammomax=1 'Sets set__color( to redish
         player.weapons(shipfire(sf).what).dam=r 'Sets set__color( to redish
         If rnd_range(1,100)<33+r Then
-            lastlocalitem=lastlocalitem+1
+            lastlocalitem+=1
             lastitem=lastitem+1
             li(lastlocalitem)=lastitem
             item(lastitem)=make_item(96,-3,b\3)
             item(lastitem).w.x=p1.x
             item(lastitem).w.y=p1.y
             item(lastitem).w.m=player.landed.m
+            itemindex.add(lastitem,item(lastitem).w)
             If rnd_range(1,100)<=2 Then
                 planetmap(p1.x,p1.y,player.landed.m)=-191
                 tmap(p1.x,p1.y)=tiles(191)
@@ -3630,7 +3555,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                 item(a).v5+=10
                 item(a).v2+=10
                 minprice+=item(a).v5
-                If _Debug>0 Then dprint item(a).desig &minprice
+                
             Next
             minprice=10+CInt(minprice*(5/(5+disnbase(player.c))))
             If askyn("The miners are willing to sell some ore for "&credits(minprice)&" Cr. Do you want to buy it? (y/n)") Then

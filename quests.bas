@@ -78,7 +78,6 @@ function robot_invasion() as short
         case specialplanet(38)
             battleslost(ft_civ1,ft_ancientaliens)+=5
         end select
-        if _debug>0 then dprint "Robot invasion: "&cords(map(sysfrommap(m)).c)
     endif
     return 0
 end function
@@ -171,10 +170,8 @@ function _patrolquest.generate(p as short,maxdis as short,danger as short) as sh
             if rnd_range(1,100)<danger then
                 lastfleet+=1
                 if employer=pirate then
-                    if _debug=1111 then dprint "Make patrol"
                     f=set_fleet(makepatrol)
                 else
-                    if _debug=1111 then dprint "Make pirate"
                     f=set_fleet(makepiratefleet)
                 endif
                 fleet(f).c=cord(i)
@@ -272,7 +269,6 @@ function give_patrolquest(employer as short) as short
             patrolquest(j).employer=employer
             dprint patrolquest(j).show &" Upon completion you will get paid "&Credits(patrolquest(j).reward) &" Cr."
             questroll=999
-            if _debug=1111 then dprint "Patrol #" &j &", status:"&patrolquest(j).status
         endif
     endif
     if _debug=1111 and j>-1 then
@@ -290,7 +286,6 @@ function reward_patrolquest() as short
     dim as short a
     for a=0 to 12
         patrolquest(a).pay
-        if _debug=1111 then dprint "Quest "&a &" pay: "&patrolquest(a).status
     next
     return 0
 end function
@@ -690,7 +685,7 @@ function make_questitem(i as short,wanthas as short) as short
             if planets(j).weat>1 then planets(j).weat=0.5
             if planets(j).water<30 then planets(j).water=35
             if planets(j).rot<0.5 or planets(j).rot>1.5 then planets(j).rot=rnd_range(5,15)/10
-            if _debug>0 then dprint "Is garden planet:"&isgardenworld(j)
+            
         endif
     endif
     
@@ -955,7 +950,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
                         node(30+o).param(0)=j
                         node(30+o).option(1).no=1
                     else
-                        if _debug>0 then dprint "J:"&questguy(j).loan &" i:"&questguy(i).money
+                        
                         node(30+o).statement="I already paid that back in full!"
                         node(30+o).option(1).no=1
                     endif
@@ -1498,7 +1493,7 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
                         map(questguy(qgindex).flag(3)).discovered=1
                         map(questguy(qgindex).flag(3)).desig=spectralshrt(map(questguy(qgindex).flag(3)).spec)&player.discovered(map(questguy(qgindex).flag(3)).spec)&"-"&int(disnbase(map(questguy(qgindex).flag(3)).c))&cords(map(questguy(qgindex).flag(3)).c) 
                     endif
-                    if _debug=33 then dprint "Map "&questguy(qgindex).flag(3) &" is now discovered "&cords(map(questguy(qgindex).flag(3)).c)
+                    
                 else
                     return 0 'Not enough moneys
                 endif
@@ -1742,7 +1737,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                     else
                          a=showteam(0,1,talent_desig(questguy(p(0)).flag(10)))
                     endif
-                    if _debug=2020 then dprint ""&can_learn_skill(a,questguy(p(0)).flag(10))
+                    
                     if a>0 and can_learn_skill(a,questguy(p(0)).flag(10)) then
                         dprint "You train long and hard. "& gain_talent(a,questguy(p(0)).flag(10))
                         questguy(p(0)).flag(10)=0
@@ -1882,7 +1877,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     if effekt="SELLWANT" Then
         questguy(p(0)).talkedto=2
         i=has_questguy_want(p(0),t)
-        if _debug>0 then dprint "T is "&t &" I is "&i &" p1 is" &p(1) &" p2 is"&p(2)
+        
         if i>0 then
             select case t
             case qt_stationimp

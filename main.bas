@@ -100,6 +100,15 @@ EndIf
 
 Do
     setglobals
+    if _debug=2704 then
+        f=Freefile
+        Open "tiles.csv" For Output As #f
+        For a=1 To 400
+            If tiles(a).gives>0 Then Print #f,a &";"&tiles(a).desc &";"& tiles(a).gives
+        Next
+        Close #f
+    End If
+
     Do
         
         a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1)
@@ -161,7 +170,7 @@ Do
                     f=Freefile
                     Open "tiles.csv" For Output As #f
                     For a=1 To 400
-                        If tiles(a).desc<>"" Then Print #f,a &";"&tiles(a).desc &";"& tiles(a).movecost
+                        If tiles(a).gives>0 Then Print #f,a &";"&tiles(a).desc &";"& tiles(a).gives
                     Next
                     Close #f
                 End If
@@ -636,7 +645,6 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
             roll=landingpad+player.pilot(0)+add_talent(2,8,1)
             landinggear=findbest(41,-1)
             If landinggear>0 And landingpad=0 Then roll=roll+item(landinggear).v1
-            If _debug=321 Then dprint "Density:"&planets(mapslot).dens
             target=planets(mapslot).dens+2*planets(mapslot).grav^2
             If mapslot<>specialplanet(2) And Test=0 Then
                 If skill_test(roll,target,"Pilot") Then
@@ -688,13 +696,16 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
         If player.dead=0 And awayteam.hp>0 Then
             
             Do
+                if _debug=2704 then print #freefile,"outerloop1"
                 savegame
-                If _debug=1 Then dprint "nextmap" & nextmap.m &"x:"&nextmap.x &"y:"&nextmap.y
+                if _debug=2704 then print #freefile,"outerloop2"
                 equip_awayteam(slot)
+                if _debug=2704 then print #freefile,"outerloop3"
                 nextmap=explore_planet(nextmap,slot)
+                if _debug=2704 then print #freefile,"outerloop4"
                 set__color(11,0)
-                Cls
                 removeequip
+                if _debug=2704 then print #freefile,"outerloop5"
                 c=1
                 For b=2 To 255
                     If crew(b).hp<=0 Then
@@ -711,6 +722,7 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
                     EndIf
                 Next
                 
+                if _debug=2704 then print #freefile,"outerloop6:"&nextmap.m
             Loop Until nextmap.m=-1 Or player.dead<>0
             For c=0 To 127
                 For b=6 To 127
@@ -854,8 +866,7 @@ Function scanning() As Short
             'makefinalmap(mapslot)
         EndIf
         If planets(mapslot).mapstat=0 Then planets(mapslot).mapstat=1
-        lastlocalitem=make_localitemlist(li(),mapslot)
-        If _debug=9 Then dprint "moving rovers."
+        lastlocalitem=make_locallist(li(),mapslot)
         move_rover(mapslot,li(),lastlocalitem)
 
         For x=60 To 0 Step -1
@@ -982,7 +993,7 @@ Function asteroid_mining(slot As Short) As Short
     roll=rnd_range(1,100)
     slot=slot-rnd_range(1,10)
     player.fuel=player.fuel-1
-    If skill_test(player.pilot(0),st_hard,"Pilot") Then player.fuel=player.fuel-rnd_range(1,3)
+    If not(skill_test(player.pilot(0),st_hard,"Pilot")) Then player.fuel=player.fuel-rnd_range(1,3)
     If (slot<-11 And slot>-13) Or (slot<-51 And slot>-54)  Then
         dprint "you have discovered a dwarf planet among the asteroids!",10
         no_key=keyin
@@ -1125,7 +1136,7 @@ Function gasgiant_fueling(p As Short, orbit As Short, sys As Short) As Short
             If configflag(con_warnings)=0 And player.hull=1 Then
                 If Not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) Then Return 0
             EndIf
-            If skill_test(player.pilot(location)+add_talent(2,9,1),st_average+mo,"Pilot") Then
+            If not(skill_test(player.pilot(location)+add_talent(2,9,1),st_average+mo,"Pilot")) Then
                 dprint "Your Pilot damaged the ship diving into the dense atmosphere",12
                 player.hull=player.hull-rnd_range(1,2)
                 If p=-20003 Then player.hull=player.hull-1
@@ -1367,7 +1378,6 @@ Function rescue() As Short
     ranoutoffuel+=1
     dis2=9999
     For a=0 To lastfleet
-        If _debug=1 Then dprint a &":"& fleet(a).con(1)
         If fleet(a).con(1)<>0 Then
             If askyn("This is merchant fleet "&a &". Do you need fuel?(y/n)",,1) Then
                 dprint "2 Cr. per ton. We'll deduct it from the agreed upon payment."
@@ -1514,10 +1524,7 @@ Function spacestation(st As Short) As _ship
                 foundsomething+=5
             EndIf
         EndIf
-        If _debug>0 Then dprint "Towed:"&player.towed
         check_passenger(st)
-        If _debug>0 Then dprint "Towed:"&player.towed
-        If _debug=1 Then dprint "Morale change:"&(wage-9-bunk_multi*2)&":"& bunk_multi &":"&(player.h_maxcrew+player.crewpod)*1+player.cryo
         For b=2 To 255
             If Crew(b).paymod>0 And crew(b).hpmax>0 And crew(b).hp>0 Then
                 a=a+Wage*(Crew(b).paymod/10)
@@ -1527,9 +1534,7 @@ Function spacestation(st As Short) As _ship
         Next
         dprint "You pay your crew "&a &" Cr. in wages"
         player.money=player.money-a
-        If _debug=1 Then dprint "Done"
         player=levelup(player,0)
-        If _debug=1 Then dprint "Done"
         If shop_order(st)<>0 And rnd_range(1,100)<33 Then
             dprint  "Your ordered "&make_item(shop_order(st)).desig &" has arrived.",12
             b=rnd_range(1,20)
@@ -1611,10 +1616,8 @@ Function spacestation(st As Short) As _ship
         dividend()
     EndIf
     
-    If _debug>0 Then dprint "Towed4:"&player.towed
     girlfriends(st)
     hiringpool=rnd_range(1,4)+rnd_range(1,4)+3
-    If _debug>0 Then dprint "Towed:"&player.towed
     Do
         quarantine=player.disease
         mtext="Station "& st+1 &"/ "
@@ -1980,7 +1983,7 @@ Function explore_space() As Short
         For b=0 To lastitem
             If b<>a Then
                 If item(a).id=item(b).id And item(a).ty<>item(b).ty Then 
-                    dprint item(a).desig &";" &item(b).desig
+                    dprint item(a).desig &";" &item(b).desig &item(a).id
                     'item(a).id+=1
                 EndIf
             EndIf
@@ -2015,7 +2018,7 @@ Function explore_space() As Short
         If show_specials<>0 Then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
         If player.e.tick=-1 And player.dead=0 Then
             fl=0
-            allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk
+            allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk &key_wait
             allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
             If artflag(25)>0 Then allowed=allowed &key_te
             If debug=11 And _debug=1 Then allowed=allowed &"�"
@@ -2160,7 +2163,11 @@ Function explore_space() As Short
                 Key=keyin
                 walking=getdirection(Key)
             EndIf
-
+            
+            if key=key_wait then
+                player.add_move_cost(0)
+            endif
+            
             If Key=key_ra Then space_radio
 
             If Key=key_drop Then launch_probe
@@ -2478,7 +2485,6 @@ End Function
 
 Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim As Single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
-
     Dim As Short slot,r,deadcounter,ship_landing,loadmonsters,allroll(8),osx
     Dim As Single dawn,dawn2
     Dim As String Key,dkey,allowed,text,help
@@ -2494,7 +2500,9 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim spawnmask(1281) As _cords
     Dim lsp As Short
     Dim ti As Short
-
+    
+    if _debug=2704 then print #logfile,"Starting ep loop"
+    
     bg_parent=bg_awayteamtxt
     'dim localitem(128) as items
     Dim li(256) As Short
@@ -2530,7 +2538,6 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
         Next
     EndIf
     slot=from.m
-    If _debug=1 Then dprint "From:"&from.x &":"& from.y &":"& from.m
     planets(slot).mapstat=2
     deadcounter=0
     awayteam.c=from
@@ -2634,7 +2641,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
             loadmonsters=1
         EndIf
     Next
-   
+    if _debug=2704 then print #logfile,"loadmonsters:"&loadmonsters
     If loadmonsters=0 Then 'No saved status, monsters need to be generated
         c=0
         For a=0 To 16
@@ -2658,7 +2665,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
             EndIf
         Next
         lastenemy=c
-
+        
         x=0
         For a=0 To lastspecial
             If specialplanet(a)=slot Then x=1
@@ -2836,6 +2843,7 @@ EndIf
         planets(slot).mon_template(a).slot=a
     Next
     
+    if _debug=2704 then print #logfile,"Move rovers"
     move_rover(slot,li(),lastlocalitem)
     'if planets(slot).colony<>0 then growcolony(slot)
 
@@ -2965,6 +2973,8 @@ EndIf
         Next
         equip_awayteam(slot)
     EndIf
+    
+    if _debug=2704 then print #logfile,"equip"
     equip_awayteam(slot)
 
     c=0
@@ -2979,7 +2989,8 @@ EndIf
         EndIf
     Next
     
-    lastlocalitem=make_localitemlist(li(),slot)
+    if _debug=2704 then print #logfile,"locallists"
+    lastlocalitem=make_locallist(li(),slot)
 
     lsp=0
     For x=0 To 60
@@ -3037,18 +3048,19 @@ EndIf
     If awayteam.c.y<0 Then awayteam.c.y=0
     If awayteam.c.x>60 Then awayteam.c.x=60
     If awayteam.c.y>20 Then awayteam.c.y=20
-
-    Cls
-    display_planetmap(slot,osx,0)
-    ep_display (li(),lastlocalitem)
-    display_awayteam()
-    dprint ""
+'
+'    Cls
+'    display_planetmap(slot,osx,0)
+'    ep_display (li(),lastlocalitem)
+'    display_awayteam()
+'    dprint ""
     '
     ' EXPLORE PLANET
     '
 
     dawn=rnd_range(1,60)
     
+    if _debug=2704 then print #logfile,"Tile effects"
     For a=0 To 5
        ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
     Next
@@ -3078,7 +3090,7 @@ EndIf
         Sleep
     EndIf
     If savefrom(0).map=0 Then
-        nextmap=ep_planetmenu(slot,shipfire(),li(),lastlocalitem,spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
+        nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),li(),lastlocalitem,spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
         If nextmap.m=-1 Then Return nextmap
     EndIf
     
@@ -3087,6 +3099,7 @@ EndIf
     
     osx=calcosx(awayteam.c.x,planets(slot).depth)
     
+    if _debug=2704 then print #logfile,"Displaystuff"
     Screenset 0,1
     set__color(11,0)
     Cls
@@ -3111,9 +3124,8 @@ EndIf
     'Planet Exploration Loop
     '
     '***********************
-    If _debug>0 Then dprint enemy(1).sdesc &" "&enemy(1).aggr
     Do
-        If _debug>0 Then dprint "Awayteam Attacked:"&awayteam.attacked
+        if _debug=2704 then print #logfile,"1"
         If show_all=1 Then
             set__color( 15,0)
             Locate 21,1
@@ -3134,7 +3146,7 @@ EndIf
 
         If configflag(con_warnings)=0 And nightday(awayteam.c.x)=1 And nightday(old.x)<>1 Then dprint "The sun rises"
         If configflag(con_warnings)=0 And nightday(awayteam.c.x)=2 And nightday(old.x)<>2 Then dprint "The sun sets"
-
+        if _Debug=2704 then print #logfile,"Update masks"
         lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
         mapmask(awayteam.c.x,awayteam.c.y)=-9
         
@@ -3148,7 +3160,8 @@ EndIf
             Else
                 player.turn+=1
             EndIf
-        
+            
+            if _debug=2704 then print #logfile,"2"
             ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
             ep_lava(lavapoint())
             lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
@@ -3166,12 +3179,17 @@ EndIf
             Flip
         EndIf
         
+        
+        if _debug=2704 then print #logfile,"3 ae"&awayteam.e.e
         deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
 
         If player.dead>0 Or awayteam.hp<=0 Then allowed=""
 
         If ship_landing>0 And nextmap.m<>0 Then ship_landing=1 'Lands immediately if you changed maps
         If ship_landing>0 Then ep_landship(ship_landing, nextlanding, nextmap)
+
+        
+        if _debug=2704 then print #logfile,"4 ae"&awayteam.e.e
         
         If  tmap(awayteam.c.x,awayteam.c.y).resources>0 Or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 Or  (tmap(awayteam.c.x,awayteam.c.y).no>2 And tmap(awayteam.c.x,awayteam.c.y).gives>0 And player.dead=0 And (awayteam.c.x<>old.x Or awayteam.c.y<>old.y))  Then
             old=awayteam.c
@@ -3204,6 +3222,7 @@ EndIf
             walking=0
         EndIf
 
+        if _debug=2704 then print #logfile,"5  ae"&awayteam.e.e &nextmap.m
         If (player.dead=0 And awayteam.e.tick=-1) Then
             
             Screenset 0,1
@@ -3215,8 +3234,21 @@ EndIf
             ep_display_clouds(cloudmap())
             dprint("")
             Flip
+            
+            Screenset 0,1
+            set__color(11,0)
+            Cls
+            display_planetmap(slot,osx,0)
+            ep_display (li(),lastlocalitem)
+            display_awayteam()
+            ep_display_clouds(cloudmap())
+            dprint("")
+            Flip
+            
             If nextmap.m=0 Then Key=(keyin(allowed,walking))
+            if _debug=2704 then print #logfile, "&"&key
             If Key="" Then
+                screenset 0,1
                 Cls
                 display_planetmap(slot,osx,0)
                 ep_display (li(),lastlocalitem)
@@ -3226,10 +3258,14 @@ EndIf
                 Flip
             EndIf
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
-            If awayteam.oxygen<=0 Then 
+            If awayteam.oxygen<=0 and (awayteam.helmet=1 or tmap(awayteam.c.x,awayteam.c.y).oxyuse>0) Then 
                 dprint "Asphyixaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
                 awayteam.oxygen=0
+                if awayteam.hp<0 then player.dead=14
             endif
+            
+            if _debug=2704 then print #logfile,"&heal"
+            
             heal_awayteam(awayteam,0)
 
             old=awayteam.c
@@ -3290,14 +3326,22 @@ EndIf
                     EndIf
                 EndIf
             EndIf
+            
+            if _debug=2704 then print #logfile,"hitmonster"
             ep_playerhitmonster(old,mapmask())
+            if _debug=2704 then print #logfile,"checkmove"
             ep_checkmove(old,Key)
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_portal Or Key=key_inspect Then nextmap=ep_Portal()
+            if _debug=2704 then print #logfile,"nextmap"&nextmap.m
+            
             ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
+            if _debug=2704 then print #logfile,"PE"
             ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
+            if _debug=2704 then print #logfile,"AE"
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key,lastlocalitem,li())
+            if _debug=2704 then print #logfile,"PU"
             If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(li(),lastlocalitem,localturn)
-
+            if _debug=2704 then print #logfile,"in"
             If vacuum(awayteam.c.x,awayteam.c.y)=1 And awayteam.helmet=0 Then ep_helmet()
             If vacuum(awayteam.c.x,awayteam.c.y)=0 And vacuum(old.x,old.y)=1 And awayteam.helmet=1 Then ep_helmet
         'Display all stuff
@@ -3306,12 +3350,15 @@ EndIf
             Cls
 
             osx=calcosx(awayteam.c.x,planets(slot).depth)
-
+            if _debug=2704 then print #logfile,"calcosx"
             display_planetmap(slot,osx,0)
+            if _debug=2704 then print #logfile,"display_planetmap"
             ep_display (li(),lastlocalitem)
+            if _debug=2704 then print #logfile,"epdisplay"
             ep_display_clouds(cloudmap())
+            if _debug=2704 then print #logfile,"clouds"
             display_awayteam()
-
+            
             ep_atship()
 
             comstr.t=key_ex &" examine;" &key_fi &" fire,"&key_autofire &" autofire;" &key_autoexplore &" autoexplore;"
@@ -3327,6 +3374,7 @@ EndIf
             Next
             dprint ""
             Flip
+            if _debug=2704 then print logfile,"drew everything again and flipped"
             'screenset 1,1
 
             If rnd_range(1,100)<disease(awayteam.disease).nac Then
@@ -3456,15 +3504,15 @@ EndIf
         If debug=99 And _debug=1 Then dprint "Death in:"&planets(slot).death
         ' and the world moves on
         update_world(0)
-        
-        If _debug=2709 Then dprint "NM:"&nextmap.m
+                
+        if _debug=2704 then print #logfile,"end loop"&nextmap.m
     Loop Until awayteam.hp<=0 Or nextmap.m<>0 Or player.dead<>0
-
+    
+    if _debug=2704 then print #logfile,"1"&nextmap.m
     '
     ' END exploring
 
     location=lc_onship
-
     For a=1 To lastlocalitem
         If item(li(a)).ty=45 And item(li(a)).w.p<9999 And item(li(a)).w.s=0 Then 'Alien bomb
             If item(li(a)).v2=1 Then
@@ -3506,7 +3554,6 @@ EndIf
         If slot=specialplanet(1) Then player.dead=9
         If slot=specialplanet(3) Or slot=specialplanet(4) Then player.dead=10
         If slot=specialplanet(5) Then player.dead=11
-        If awayteam.oxygen<1 Then player.dead=14
         no_key=keyin
     EndIf
 
@@ -3616,6 +3663,8 @@ EndIf
 
     'if slot=specialplanet(12) and player.dead<>0 then player.dead=17
     If player.dead<>0 Then screenshot(3)
+    
+    if _debug=2704 then print #logfile,"exit"&nextmap.m
     Return nextmap
 End Function
 
@@ -4146,9 +4195,7 @@ Function space_radio() As Short
             Next
             text=text &"/Cancel"
             y=(20*_fh1-(lc+1)*_fh2)/_fh1
-            If _debug=1310 Then dprint "Y"&y
             If y<0 Then y=0
-            If _debug=1310 Then dprint "and Y"&y
             i=Menu(bg_ship,text,"",0,y)
             If i=lc+1 Then Return 0
             i=contacts(i)
@@ -4157,7 +4204,6 @@ Function space_radio() As Short
         i=0
         dprint "No contact."
     End If
-    If _debug=1 Then dprint "I="&i
     Select Case i
     Case Is>0
         If fleet(i).ty=1 And i>5 Then
@@ -4182,7 +4228,6 @@ Function space_radio() As Short
         EndIf
         p.x=drifting(i).x
         p.y=drifting(i).y
-        If _debug=1310 Then dprint "Contacting drifter "&i
         If planets(drifting(i).m).mon_template(0).made=32 And (planets(drifting(i).m).flags(0)=0 And planets(drifting(i).m).atmos>0) Then
             do_dialog(4,dummy,-i)
         Else
@@ -4310,7 +4355,6 @@ Function move_probes() As Short
                 If lastprobe>1 Then
                     probe(i)=probe(lastprobe)
                 Else
-                    If _debug<>0 Then dprint "Deleting probe "&i
                     probe(i)=probe(0)
                 EndIf
                 lastprobe-=1
@@ -4538,7 +4582,10 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
             text=text & " no casualties."
             col=10
         EndIf
-        If defender.hp<=0 Then player.killedby=attacker.sdesc
+        If defender.hp<=0 Then 
+            player.killedby=attacker.sdesc
+            player.dead=3
+        endif
         dprint text,col
     Else
         defender.hp=defender.hp-b 'Monster attacks monster
@@ -4837,7 +4884,7 @@ Sleep
 If gamerunning=1 Then
     If attempts=0 Then
         Print "Trying to save game"
-        savegame()
+        savegame(1)
         attempts=26
     Else
         Print "Failed to save game."

@@ -2156,7 +2156,6 @@ function save_bones(t as short) as short
     dim as short x,y,a,b
     dim as _cords team
     dim bones_item(64) as _items
-    if _debug_bones=1 then dprint "Saving bones file"
     if is_special(player.landed.m) then return 0
     if is_drifter(player.landed.m) then return 0
     if planets(player.landed.m).depth=0 then planetmap(player.landed.x,player.landed.y,player.landed.m)=127+player.h_no
@@ -2202,7 +2201,6 @@ function load_bones() as short
     dim as _cords p
     dim as _planet pl
     s=getbonesfile
-    if _debug_bones=1 and _debug=1 then dprint "loading bones file:" &s
     if s<>"" then
         f=freefile
         open "bones/"&s for binary as #f
@@ -2273,11 +2271,10 @@ function getbonesfile() as string
         if (rnd_range(1,100)<chance or _debug_bones=1) and s="" then s=d
         d=dir()
     loop until d=""
-    if _debug_bones=1 and _debug=1 then dprint s
     return s
 end function
 
-function savegame() as short
+function savegame(crash as short=0) as short
     dim back as short
     dim a as short
     dim b as short
@@ -2304,8 +2301,12 @@ function savegame() as short
     cls
     back=99
     f=freefile
-    fname="savegames/"&player.desig &".sav"
-
+    fname="savegames/"&player.desig
+    if crash=0 then 
+        fname=fname &".sav"
+    else
+        fname=fname &"-crash.sav"
+    endif
     print "Saving "&fname;
     open fname for binary as #f
     print ".";
@@ -2895,8 +2896,6 @@ function load_game(filename as string) as short
         close #f
 
     endif
-    
-    if _debug=312 then dprint "Bonesflag:"& bonesflag &" "&cords(map(sysfrommap(bonesflag)).c)
     
     if _debug=1110 then
         f=freefile

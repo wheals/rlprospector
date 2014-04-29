@@ -6849,7 +6849,6 @@ function make_mine(slot as short) as short
     gc=rnd_point(lastplanet,0)
     gc.m=lastplanet
     addportal(gc1,gc,0,ASC("#"),"A mineshaft.",14)
-    if _debug>0 then dprint "Mine at:&"&cords(gc1)
     return 0
 end function
 
@@ -8262,7 +8261,6 @@ function checkcomplex(map as short,fl as short) as integer
                 flags(portal(a).dest.m)=1
             endif
         next
-        if _debug>0 then dprint "M:"&maps(nextmap)
     loop until maps(nextmap)=0 or nextmap>35
     
     for a=1 to lastmap

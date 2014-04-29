@@ -4,7 +4,6 @@ function friendly_pirates(f as short) as short
         if player.cargo(i).x>=1 then lastbay+=1
     next
     a=menu(bg_ship,"The pirate fleet hails you, demanding you drop all your cargo/Tell them you have no cargo/Drop some cargo/Drop all cargo/Offer money/Try to flee/Attack","",0,16)
-    if _debug=1310 then dprint "A:"&a
     select case a
     case 1
         if getnextfreebay=1 or player.cargo(1).x<=0 then
@@ -13,7 +12,6 @@ function friendly_pirates(f as short) as short
             fleet(f).con(15)+=1
             r=0
         else
-            if _debug=1 then dprint "Target number:"&fleet(f).mem(1).sensors*10-player.equipment(se_CargoShielding) & " Fleetsensors:"&fleet(f).mem(1).sensors
             if rnd_range(1,10)<fleet(f).mem(1).sensors*10-player.equipment(se_CargoShielding) then
                 dprint "They don't believe you!",c_red
                 fleet(f).con(15)+=1
@@ -78,7 +76,6 @@ function friendly_pirates(f as short) as short
     else
         factionadd(0,2,-5)
     endif
-    if _debug=1310 then dprint "R:"&r
     return r
 end function
 
@@ -115,7 +112,6 @@ function meet_fleet(f as short)as short
             endif
             if q=0 and f>5 then question="There is "&add_a_or_an(fname(fleet(f).ty),0) &" hailing us."
             if q=1 then
-                if _debug=1310 then dprint "Asking question"
                 des=askyn(question)
             else
                 dprint question
@@ -1113,7 +1109,6 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
             enemy.aggr=1
         endif
     endif
-    if _debug>0 then dprint "put a "&enemy.sdesc &" at "&cords(enemy.c) 
     return enemy
 end function
 

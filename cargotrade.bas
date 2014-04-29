@@ -1,6 +1,5 @@
 function update_world(location as short) as short
     dim as short a,b
-    if _debug=2412 then dprint "Loc:"&location
     diseaserun(1)
     clearfleetlist
     
@@ -35,7 +34,6 @@ function update_world(location as short) as short
         if location=1 then trouble_with_tribbles
         clean_station_event
         questroll=rnd_range(1,100)-10*(crew(1).talents(3))
-        if _debug=2412 then dprint "QUestroll_"&questroll
     endif
     
     if player.turn mod (24*60*7)=0 then 'Weekly
@@ -741,7 +739,6 @@ function company(st as short) as short
             addmoney(2500,mt_pirates)
         endif
     endif
-    if _debug>0 then dprint  "Towed:"&player.towed
     if player.towed<>0 then
         if player.towed>0 then
             towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
@@ -1473,7 +1470,6 @@ function refuel(st as short,price as single) as short
     totammo=missing_ammo
     if totammo*((player.loadout+1)^2)>player.money then totammo=fix(player.money/((player.loadout+1)^2))
     if totammo>0 and player.money>0 then
-        if _debug>0 then dprint totammo &"*"&(player.loadout+1)^2 &"=" &totammo*((player.loadout+1)^2)
         do
             for b=1 to 10
                 if player.weapons(b).ammo<player.weapons(b).ammomax and totammo>0 and player.money>=(player.loadout+1)^2 then
@@ -2947,7 +2943,6 @@ function merctrade(byref f as _fleet) as short
     for a=0 to 2
         if f.c.x=basis(a).c.x and f.c.y=basis(a).c.y then st=a
     next
-    if _debug=1 then dprint "fleet at station "&st
     if st<>-1 then
         if show_NPCs then dprint "fleet is trading at "&st+1 &"."
         f=unload_f(f,st)
@@ -3200,9 +3195,7 @@ end function
 function merchant() as single
     dim as single m
     m=(70+5*crew(1).talents(6))/100
-    if _debug=1 then dprint "MT"&m
     if m>0.9 then merchant=0.9
-    if _debug=1 then dprint "MT"&m
     return m
 end function
 
@@ -3243,7 +3236,6 @@ function sellgoods(st as short) as short
                             dprint "how many tons of "& goodsname(ct) &" do you want to leave behind?"
                         endif
                         sold=getnumber(0,m,0)
-                        if _debug=5 then dprint "Sold:"&sold
                         if sold>0 then
                             for i=1 to sold
                                 bay=get_invbay_bytype(ct)
@@ -3288,7 +3280,6 @@ function sellgoods(st as short) as short
                 next
             endif
         endif
-        if _debug=1 then dprint "c:"&c &"b:"& b
     loop until c>=b+2 or c=-1 or em=0
     display_ship
     return 0
@@ -4331,7 +4322,6 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
     else
         answer=-1
     endif
-    if _debug=1 then dprint "answer:"&answer
     if answer=-1 then
         if configflag(con_autosale)=1 or ty=0 then
             do

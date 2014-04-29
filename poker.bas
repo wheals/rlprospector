@@ -21,9 +21,10 @@ function play_poker(st as short) as short
     rules.swap=0
     dealer=rnd_range(1,4)
 
+    do
         for i=1 to 3
             pli=get_highestrisk_questguy(st)
-            if pli>0 and questguy(pli).money>rules.bet*rules.limit then
+            if pli>0 and questguy(pli).money>3*rules.bet*rules.limit then
                 p(i).name=questguy(pli).n
                 p(i).risk=questguy(pli).risk
                 p(i).money=questguy(pli).money
@@ -34,11 +35,10 @@ function play_poker(st as short) as short
                 p(i).in=1
                 p(i).name=character_name(rnd_range(0,1))
                 p(i).risk=rnd_range(3,9)
-                p(i).money=10*rules.bet+rnd_range(50,440)
+                p(i).money=rules.limit*rules.bet*rnd_range(5,10)
             endif
             dprint p(i).name &" joins the game."
         next
-        do
         for i=1 to 4
             p(i).bet=0
             p(i).pot=0
@@ -219,14 +219,15 @@ function play_poker(st as short) as short
         else
             dprint "No winner."
         endif
+        
+        for i=1 to 4
+            if p(i).qg>0 then
+                questguy(p(i).qg).location=st
+                questguy(p(i).qg).money=p(i).money
+            endif
+        next
     loop until not(askyn("Do you want to play another hand?(y/n)"))
         
-    for i=1 to 4
-        if p(i).qg>0 then
-            questguy(p(i).qg).location=st
-            questguy(p(i).qg).money=p(i).money
-        endif
-    next
     return 0
 end function
 

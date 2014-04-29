@@ -1113,7 +1113,6 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
                 if planetmap(ship.x,ship.y,map)>0 or player.stuff(3)=2 then
                     if configflag(con_tiles)=0 then
                         x=ship.x-osx
-                        if _debug=107 then dprint "X="& x &" OSX="& osx &" ship.x="&ship.x
                         if x<0 then x+=61
                         if x>60 then x-=61
                         if x>=0 and x<=_mwx then put (x*_tix,ship.y*_tiy),stiles(5,player.ti_no),trans
@@ -1126,10 +1125,8 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
 
             if configflag(con_tiles)=0 then
                 x=awayteam.c.x-osx
-                if _debug=107 then dprint "ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x<0 then x+=61
                 if x>60 then x-=61
-                if _debug=107 then dprint "after ateam X="& x &" OSX="& osx &" ship.x="&awayteam.c.x
                 if x>=0 and x<=_mwx then
                     if awayteam.movetype=mt_fly or awayteam.movetype=mt_flyandhover then put (x*_tix,awayteam.c.y*_tiy),gtiles(gt_no(2002)),trans
                     put (x*_tix,awayteam.c.y*_tiy),gtiles(captain_sprite),trans
@@ -1260,40 +1257,16 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
                 dtile(x,y,tmap(x2,y),bg)
                 if _debug=2508 then draw string(x,y),""&planetmap(x2,y,slot)
             endif
+            if itemindex.last(x2,y)>0 then
+                for b=1 to itemindex.last(x2,y)
+                    display_item(itemindex.index(x2,y,b),osx,slot)
+                next
+            endif
         next
     next
-'    for x=_mwx to 0 step-1
-'        x2=x+osx
-'        if x2>60 then x2=x2-61
-'        if x2<0 then x2=x2+61
-'        set__color( 15,0
-'        draw string (x*_tix,22*_tiy),""&x2
-'    next
 
     display_portals(slot,osx)
 
-    for b=1 to lastitem
-        if debug=1 and _debug=1 and item(b).w.m=slot then dprint b &":"&item(b).w.x-osx &"."&item(b).w.x &"_"& osx
-        x=item(b).w.x-osx
-        if x<0 then x+=61
-        if x>60 then x-=61
-        if x>=0 and x<=_mwx then
-            if item(b).w.m=slot and item(b).w.s=0 and item(b).w.p=0 and item(b).discovered=1 then
-                if configflag(con_tiles)=0 then
-                    put (x*_tix,item(b).w.y*_tiy),gtiles(gt_no(item(b).ti_no)),alpha,196
-                    if debug=1 and _debug=1 then draw string ((item(b).w.x-osx)*_tix,item(b).w.y*_tiy),""& b,,Font1,custom,@_col
-                else
-                    if item(b).ty<>99 then
-                        set__color( item(b).col,item(b).bgcol)
-                        draw string(item(b).w.x*_fw1,item(b).w.y*_fh1),item(b).icon,,Font1,custom,@_col
-                    else
-                        set__color( rnd_range(1,15),0)
-                        draw string(item(b).w.x*_fw1,item(b).w.y*_fh1),item(b).icon,,Font1,custom,@_col
-                    endif
-                endif
-            endif
-        endif
-    next
     if debug=2 and _debug=1 and lastapwp>0 then
         for b=0 to lastapwp
             if apwaypoints(b).x-osx>=0 and apwaypoints(b).x-osx<=_mwx then
@@ -1308,37 +1281,43 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
 end function
 
 function display_portals(slot as short,osx as short) as short
-    dim as short b,x,debug
+    dim as short b
     for b=0 to lastportal
-        x=portal(b).from.x-osx
-        if x<0 then x+=61
-        if x>60 then x-=61
-        if x>=0 and x<=_mwx then
-            if portal(b).from.m=slot and portal(b).discovered=1 and portal(b).oneway<2 then
-                if configflag(con_tiles)=0 then
-                    put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
-                    if debug=1 and _debug=1 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
-                else
-                    set__color( portal(b).col,0)
-                    draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
-                endif
-            endif
-        endif
-        x=portal(b).dest.x-osx
-        if x<0 then x+=61
-        if x>60 then x-=61
-
-        if x>=0 and x<=_mwx then
-            if portal(b).oneway=0 and portal(b).dest.m=slot and portal(b).discovered=1 then
-                if configflag(con_tiles)=0 then
-                    put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
-                else
-                    set__color( portal(b).col,0)
-                    draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
-                endif
-            endif
-        endif
+        display_portal(b,slot,osx)
     next
+    return 0
+end function
+
+function display_portal(b as short,slot as short,osx as short) as short
+    dim as short x,debug
+    x=portal(b).from.x-osx
+    if x<0 then x+=61
+    if x>60 then x-=61
+    if x>=0 and x<=_mwx then
+        if portal(b).from.m=slot and portal(b).discovered=1 and portal(b).oneway<2 then
+            if configflag(con_tiles)=0 then
+                put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
+                if debug=1 and _debug=1 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
+            else
+                set__color( portal(b).col,0)
+                draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            endif
+        endif
+    endif
+    x=portal(b).dest.x-osx
+    if x<0 then x+=61
+    if x>60 then x-=61
+
+    if x>=0 and x<=_mwx then
+        if portal(b).oneway=0 and portal(b).dest.m=slot and portal(b).discovered=1 then
+            if configflag(con_tiles)=0 then
+                put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
+            else
+                set__color( portal(b).col,0)
+                draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+            endif
+        endif
+    endif
     return 0
 end function
 
@@ -1415,6 +1394,65 @@ function display_monsters(osx as short) as short
     return 0
 end function
 
+function display_item(i as integer,osx as short,slot as short) as short
+    dim as _cords p
+    dim as short x2,bg,fg,alp
+    If item(i).w.s=0 And item(i).w.p=0 Then
+        p.x=item(i).w.x
+        p.y=item(i).w.y
+        If awayteam.c.x=p.x And awayteam.c.y=p.y And comstr.comitem=0 Then
+            comstr.t=comstr.t &key_pickup &" Pick up;"
+            comstr.comitem=1
+        EndIf
+            
+        If  item(i).discovered=1 or (tiles(Abs(planetmap(p.x,p.y,slot))).hides=0 and vismask(item(i).w.x,item(i).w.y)>0) Then
+            If item(i).discovered=0 And walking<11 Then walking=0
+            item(i).discovered=1
+            If tiles(Abs(planetmap(item(i).w.x,item(i).w.y,slot))).walktru>0 And item(i).bgcol=0 Then
+                bg=tiles(Abs(planetmap(item(i).w.x,item(i).w.y,slot))).col
+            Else
+                If item(i).bgcol>=0 Then bg=item(i).bgcol
+            EndIf
+            If item(i).col>0 Then
+                fg=item(i).col
+            Else
+                fg=rnd_range(Abs(item(i).col),Abs(item(i).bgcol))
+            EndIf
+            set__color( fg,bg)
+            If configflag(con_tiles)=0 Then
+                p.x=item(i).w.x
+                p.y=item(i).w.y
+                If vismask(p.x,p.y)=0 Then
+                    alp=197
+                Else
+                    alp=255
+                EndIf
+                x2=item(i).w.x-osx
+                If x2<0 Then x2+=61
+                If x2>60 Then x2-=61
+                Put (x2*_tix,item(i).w.y*_tiy),gtiles(gt_no(item(i).ti_no)),alpha,alp
+                If _debug=2904 Then Draw String(x*_tix,item(i).w.y*_tiy),cords(item(i).vt) &":"&item(i).w.m,,font1,custom,@_tcol'REMOVE
+            Else
+                If configflag(con_transitem)=1 Then
+                    Draw String(p.x*_fw1,P.y*_fh1), item(i).ICON,,font1,custom,@_col
+                Else
+                    If item(i).bgcol<=0 Then
+                        set__color( 241,0)
+                        Draw String(p.x*_fw1-1,P.y*_fh1), item(i).ICON,,font1,custom,@_tcol
+                        Draw String(p.x*_fw1+1,P.y*_fh1), item(i).ICON,,font1,custom,@_tcol
+                        Draw String(p.x*_fw1,P.y*_fh1+1), item(i).ICON,,font1,custom,@_tcol
+                        Draw String(p.x*_fw1,P.y*_fh1-1), item(i).ICON,,font1,custom,@_tcol
+                        set__color( fg,bg)
+                        Draw String(p.x*_fw1,P.y*_fh1), item(i).ICON,,font1,custom,@_tcol
+                    Else
+                        Draw String(p.x*_fw1,P.y*_fh1), item(i).ICON,,font1,custom,@_col
+                    EndIf
+                EndIf
+            EndIf
+        EndIf
+    endif
+    return 0
+end function
 
 function display_ship_weapons(m as short=0) as short
     dim as short a,b,bg,wl,ammo,ammomax,c,empty

@@ -106,7 +106,6 @@ end function
 
 function calcosx(x as short,wrap as byte) as short 'Caculates Ofset X for windows less than 60 tiles wide
     dim osx as short
-    if _debug=107 then dprint "x="&x &" _mwx/2="&_mwx/2 &" R:"&x-_mwx/2 
     osx=x-_mwx/2
     if wrap>0 then
         if osx<0 then osx=0

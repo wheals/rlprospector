@@ -245,7 +245,6 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                     if key=key_fi then
                         player.e.add_action(1)
                         do
-                            if _debug=1 then dprint "W:"&w &" F:"&f &" T:"&t
                             w=com_getweapon()
                             if w>0 then 
                                 if player.weapons(w).ammomax>0 and player.tribbleinfested>0 then
@@ -329,7 +328,6 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                             if e_track_v(c)=0 then
                                 e_map(player.c.x,player.c.y)=0
                             else
-                                if _debug=1 then dprint "Plasma:"&e_map(player.c.x,player.c.y) & "c:"&c &" v:"&e_track_v(c)
                                 text="The "&player.desig &" runs into a plasma stream! "
                                 player=com_damship(player,e_track_v(c),c_red)
                                 osx=calcosx(player.c.x,1)
@@ -518,7 +516,6 @@ function com_add_e_track(ship as _ship,e_track_p() as _cords,e_track_v() as shor
     e_last+=1
     if e_last>128 then
         e_last=1
-        if _debug=1 then dprint "more than 128 engines"
     endif
     e_track_p(e_last).x=p.x
     e_track_p(e_last).y=p.y
@@ -861,7 +858,6 @@ function com_findtarget(defender as _ship,attacker() as _ship) as short
                         endif
                     endif
                 next
-                if _debug=1 then dprint attacker(a).desig &" evals target result:"&t
                 if t>0 then attacker(a).target=attacker(t).c
                 if t=0 then attacker(a).target=defender.c
                 if t=-1 then
@@ -1109,7 +1105,6 @@ function com_display(defender as _ship, attacker() as _ship,  marked as short, e
             endif
         endif
     next
-    if _debug=1 then dprint "Marked:"&marked
     draw_shield(defender,osx)
     if configflag(con_tiles)=0 then
         put ((defender.c.x-osx)*_tix,defender.c.y*_tiy),stiles(player.di,player.ti_no),trans
@@ -1195,7 +1190,6 @@ function com_gettarget(defender as _ship, wn as short, attacker() as _ship,marke
         cls
         display_ship(0)
         a=com_display(defender,attacker(),marked,e_track_p(),e_track_v(),e_map(),e_last,mines_p(),mines_v(),mines_last)
-        if _debug=1 and marked>0 then dprint "Targetno:"&marked &" " &list_e(marked)
         flip
         if last>1 then 'More than 1ships to target
             text="+/- to move, enter to select, esc to skip. "&last
@@ -1246,16 +1240,16 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
     next
     #ifdef _FMODSOUND
     if distance(target.c,attacker.c)<(attacker.sensors+2)*attacker.senac then
-        if w.ammomax>0 and ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser
-        if w.ammomax>0 and ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery
-        if w.ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile
+        if attacker.weapons(a).ammomax>0 and ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser
+        if attacker.weapons(a).ammomax>0 and ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery
+        if attacker.weapons(a).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile
     endif
     #endif
     #ifdef _FBSOUND
     if distance(target.c,attacker.c)<(attacker.sensors+2)*attacker.senac then
-        if w.ammomax>0 and w.ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
-        if w.ammomax>0 and w.ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
-        if w.ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(9)) 'Missile
+        if attacker.weapons(a).ammomax>0 and attacker.weapons(a).ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
+        if attacker.weapons(a).ammomax>0 and attacker.weapons(a).ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
+        if attacker.weapons(a).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(9)) 'Missile
     endif
     #endif
     do
@@ -1311,7 +1305,6 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
                             wp(255)=attacker.c
                         endif
                     endif
-                    if _debug>0 then dprint "D:"&dambonus &" R:"&range
                     if attacker.weapons(w).ammomax=0 then
                         target=com_hit(target,attacker.weapons(w),dambonus,range,attacker.desig,com_side(target,wp(255)))
                         c=185
@@ -1369,7 +1362,6 @@ function com_side(target as _ship,c as _cords) as short
     dim as _cords c2
     dim as short r,di,i
     di=target.di
-    if _debug>0 then dprint "From:"&c.x &":"&c.y &"target:"&target.c.x &":"&target.c.y
     while abs(c.x-target.c.x)>1 or abs(c.y-target.c.y)>1
         if c.x>target.c.x then c.x-=1
         if c.y>target.c.y then c.y-=1
@@ -1382,7 +1374,6 @@ function com_side(target as _ship,c as _cords) as short
         if c2.x=c.x and c2.y=c.y then return i
         di=bestaltdir(di,1)
     next
-    if _debug>0 then dprint "Shouldn't see this."
     return 0
 end function
 
@@ -1395,7 +1386,6 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
     else
         ad=1
     endif
-    if _debug>0 then dprint dambonus &":"&range &":"&attn &":"& side
     sright=bestaltdir(side+ad,1)'Shieldsides are 0-7, bestaltdir=1-4
     sleft=bestaltdir(side+ad,0)
     if sright>4 then
@@ -1409,7 +1399,6 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
         sleft-=1
     endif
     osx=calcosx(target.c.x,1)
-    if _debug=1 then dprint "side"&side &"l:"&sleft &"r:"&sright
     if target.desig=player.desig then
         desig=player.desig
         c=c_red
@@ -1423,7 +1412,6 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
         dprint gainxp(3),c_gre
         c=c_gre
     endif
-    if _debug>0 then dprint "Side:"
     if target.shieldside(side)>0 then
         select case w.made
         case 6 to 10
@@ -1545,15 +1533,12 @@ function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as short,b
                 dprint "You don't have enough fuel to improvise a mine."
             endif
         else
-            if _debug=1 then dprint "chosen "&mdesig(a).desig &"-"&mdesig(a).w.s &"m:"&a
             mine=mdesig(a).w.s
         endif
-        if _debug=1 then dprint "Chosen option "&a &", item Nr." &mine
     else
         dprint "You don't have mines or drones",c_yel
         return 0
     endif
-    if _debug=1 then dprint "Mine:"&mine
     dprint "Dropping "&item(mine).desig &" Direction?"
     key=keyin("12345678")
     a=getdirection(key)

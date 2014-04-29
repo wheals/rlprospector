@@ -1,13 +1,31 @@
-function make_localitemlist(li() as short,slot as short) as short
-    dim as short i,ll
-    for i=0 to lastitem
+function make_locallist(li() as short,slot as short) as short
+    dim as short i,ll,x,y
+    dim p as _cords
+    itemindex.del
+    for i=1 to lastitem
         if item(i).w.m=slot and item(i).w.s=0 and ll<=128 then
-            if _debug=9 then dprint "ll."&ll
-            if _debug=9 and item(i).ty=18 then dprint "Rover " &i & "at "&ll
             ll+=1
             li(ll)=i
+            itemindex.add(i,item(i).w)
         endif
     next
+    
+    portalindex.del
+    for i=0 to lastportal
+        if _debug=1 then dprint slot &":"&portal(i).dest.m &":"& portal(i).from.m
+        if portal(i).dest.m=slot  and portal(i).oneway=0 then portalindex.add(i,portal(i).dest)
+        if portal(i).from.m=slot then portalindex.add(i,portal(i).from)
+        if portal(i).oneway=2 and portal(i).from.m=slot or portal(i).dest.m=slot then
+            for x=0 to 60
+                for y=0 to 20
+                    p.x=x
+                    p.y=y
+                    if x=0 or y=0 or x=20 or y=20 then portalindex.add(i,p)
+                next
+            next
+        endif
+    next
+        
     return ll
 end function
 
@@ -655,7 +673,7 @@ function item_filter() as short
 end function
 
 function check_item_filter(t as short,f as short) as short
-    dim as short r,reverse,r1
+    dim as short r,reverse
     reverse=11
     if f=0 then return 1
     if f<=4 or f=reverse then
@@ -665,7 +683,7 @@ function check_item_filter(t as short,f as short) as short
     endif
     if f=3 and t=103 then r=1 'Squidsuit
     if f=5 or f=reverse then
-        if t=11 or t=19 then
+        if t=11 or t=19 or t=13 then
             r=1
         endif
     endif
@@ -687,9 +705,8 @@ function check_item_filter(t as short,f as short) as short
     if f=11 or f=reverse then
         if t=51 or t=52 or t=53 or t=21 or t=36 or t=40 or t=41 or t=25 then r=1
     endif
-    r1=r
     if f=9 or f=reverse then
-        if t=50 or t=49 or t=48 or t=42 or t=41 or t=27 or t=18 or t=17 or t=16 or t=14 or t=12 or t=10 or t=9 or t=8 or t=5 then r=1
+        if t=77 or t=50 or t=49 or t=48 or t=42 or t=41 or t=27 or t=18 or t=17 or t=16 or t=14 or t=12 or t=10 or t=9 or t=8 or t=5 then r=1
     endif
     if f=reverse then
         if r=0 then
@@ -1078,13 +1095,13 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.res=25
         if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50+player.turn/rate then
-                i.id=i.id+100
+                i.id=i.id+1000
                 i.desig="good "&i.desig
                 i.desigp="good "&i.desigp
                 i.v1=.4
                 i.price=30
             else
-                i.id=i.id+110
+                i.id=i.id+1010
                 i.desig="bad "&i.desig
                 i.desigp="bad "&i.desigp
                 i.v1=.2
@@ -2835,7 +2852,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.icon="&"
         i.col=11
         i.v1=8
-        i.v2=200
+        i.v3=200
         i.res=120
         i.price=250
     endif
@@ -2869,7 +2886,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=10
         i.bgcol=0
         i.v1=15
-        i.v2=500
+        i.v3=250
         i.res=120
         i.price=19000
     endif  
@@ -3592,9 +3609,9 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
     endif
         
     for a=0 to lastitem
-        if _debug=1 and ty=67 and item(a).ty=ty then dprint item(a).desig &":"&item(a).w.s
+        
         if item(a).w.s<0 and ((ty=0 and ty2=0 and ty3=0 and ty4=0) or (item(a).ty=ty or item(a).ty=ty2 or item(a).ty=ty3 or item(a).ty=ty4)) then 'Item on ship
-            if _debug=1 and ty=67 and item(a).ty=ty then dprint "Adding"&item(a).desig &":"&item(a).w.s
+            
             if noequip>0 then
                 for b=1 to noequip
                     if equipnum(b)=a then isequipment=1
@@ -3607,7 +3624,7 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
                         if a<>inv(b).w.s then
                             
                             if inv(b).id=item(a).id and inv(b).ty=item(a).ty and item(a).ty<>15 then
-                               if _debug=1 and ty=67 then dprint "More of same"
+                               
                                invn(b)+=1
                                if _debug=1 and debug=22 then inv(b).desigp &=a
                                set=1
@@ -3629,7 +3646,7 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
                     next
                 endif
                 if set=0 then
-                    if _debug=1 and ty=67 then dprint "New entry"
+                    
                                    
                     lastinv+=1
                     inv(lastinv)=item(a)
@@ -3800,7 +3817,7 @@ function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequ as sho
     endif
     if marked=0 then
         do
-            if _debug=1 and debug=1 then dprint "marked:"&marked &":"&invn(marked)
+            
             marked+=1
             if marked>last then marked=0
         loop until invn(marked)>0
@@ -3828,7 +3845,7 @@ function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequ as sho
         endif
     loop until key=key__enter or key=key__esc
     if key=key__enter then
-        if _debug=1 then dprint "dropping "&inv(marked).w.s
+        
         num=invn(marked)
         return inv(marked).w.s
     else
