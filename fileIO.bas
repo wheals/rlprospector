@@ -406,7 +406,7 @@ function load_fonts() as short
         Next
         _fh1=16
         _fh2=16
-        bsave "F1.bmp",Font1
+        bsave "data/F1.bmp",Font1
         font2=font1
     endif
 
@@ -1528,6 +1528,8 @@ function save_keyset() as short
     print #f,"key_se = "&key_se
     print #f,"key_wait = "&key_wait
     print #f,"key_portal = "&key_portal
+    print #f,"key_autoexplore = "&key_autoexplore
+    print #f,"key_optequip = "&key_optequip
     print #f,"key_layfire = "&key_layfire
     print #f,"key_manual = "&key_manual
     print #f,"key_messages = "&key_messages
@@ -1632,6 +1634,8 @@ function load_keyset() as short
                 if instr(lctext,"key_wait")>0 then key_wait=load_key(text)
                 if instr(lctext,"key_portal")>0 then key_portal=load_key(text)
                 if instr(lctext,"key_accounting")>0 then key_accounting=load_key(text)
+                if instr(lctext,"key_autoexplore")>0 then key_autoexplore=load_key(text)
+                if instr(lctext,"key_optequip")>0 then key_optequip=load_key(text)
 
                 if instr(lctext,"key_manual")>0 then key_manual=load_key(text)
                 if instr(lctext,"key_messages")>0 then key_messages=load_key(text)
@@ -1965,6 +1969,10 @@ function save_config(oldtiles as short) as short
         print #f,configname(i)&":"&configflag(i)
     next
     print #f,""
+    print #f,"spacemapx:"&sm_x
+    print #f,"spacemapy:"&sm_y
+    print #f,"laststar:"&laststar
+    print #f,"wormholes:"&wormhole
     print #f,"gtmwx:"&gt_mwx
     print #f,"_tix:"&_tix
     print #f,"_tiy:"&_tiy
@@ -2003,7 +2011,8 @@ function load_config() as short
                 next
 
                 if lhs="captainsprite" then configflag(con_captainsprite)=val(rhs)
-
+                if instr(text,"wormhole")>0 then wormhole=numfromstr(text)
+                if instr(text,"laststar")>0 then laststar=numfromstr(text)
                 if instr(text,"spacemapx")>0 then sm_x=numfromstr(text)
                 if instr(text,"spacemapy")>0 then sm_y=numfromstr(text)
                 if instr(text,"_tix")>0 then _tix=numfromstr(text)
@@ -2085,8 +2094,12 @@ function load_config() as short
     #ifdef _FBSOUND
     fbs_Set_MasterVolume(_volume/2.0)
     #endif
+    if sm_x>200 then sm_x=200
+    if sm_y>200 then sm_y=200
     redim spacemap(sm_x,sm_y)
     redim vismask(sm_x,sm_y)
+    if wormhole mod 2<>0 then wormhole+=1
+    redim map(laststar+wormhole+1)
     return 0
 end function
 

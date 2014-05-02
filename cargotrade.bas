@@ -2167,13 +2167,14 @@ function custom_ships(where as byte) as short
     dim st(20) as short
     dim as _ship s
     do
+        nos=-1
         nos=count_lines("data/customs.csv")-1
         men="Custom hulls/Build custom hull/Delete custom hull/"
         des="Nil///"
         a=3
         last=3
-        if nos>0 then
-            for i=1 to nos
+        if nos>=0 then
+            for i=0 to nos
                 s=gethullspecs(i,"data/customs.csv")
                 v=val(s.h_desc)
                 if where=sy_blackmarket or v<3 then

@@ -55,7 +55,6 @@ Const show_eq=0 'Show earthquakes
 Const dbshow_factionstatus=0
 Const lstcomit=56
 Const lstcomty=20 'Last common item
-Const laststar=90
 Const lastspecial=46
 Const _debug_bones=0
 Const _test_disease=0
@@ -75,13 +74,16 @@ Const key__esc = Chr(27)
 Const key__enter = Chr(13)
 Const key__space = Chr(32)
 Const lastflag=20
-Dim Shared As UByte sm_x=75
-Dim Shared As UByte sm_y=50
 Const max_maps=2047
 Const _clearmap=0
 Const _testspacecombat=0
 Const add_tile_each_map=0
 Const lastquestguy=15
+
+dim shared as ubyte laststar=90
+Dim Shared As UByte sm_x=75
+Dim Shared As UByte sm_y=50
+Dim Shared As ubyte wormhole=8
 
 'PNG Stuff
 Declare Function savepng( _
@@ -114,7 +116,6 @@ Dim Shared _debugflag(1) As Byte
 Dim Shared As Byte debugvacuum=0
 Dim Shared As Integer fmod_error
 Dim Shared As Byte _NoPB=2
-Dim Shared As Byte wormhole=8
 Dim Shared As Short countpatrol,makepat,unattendedtribbles
 
 Dim Shared As UShort _screenx=800
@@ -212,6 +213,8 @@ Dim Shared As String*3 key_mfile="�"
 Dim Shared As String*3 key_filter="f"
 Dim Shared As String*3 key_extended="#"
 Dim Shared As String*3 key_accounting="\Ca"
+dim shared as string*3 key_optequip="e"
+dim shared optoxy as byte
 Dim Shared gamerunning As Byte
 Dim Shared uid As UInteger
 Dim Shared ranoutoffuel As Short
@@ -242,41 +245,19 @@ End Type
 
 
 type _index
-    index(60,20,128) as short
+    dim as short maxl=128
+    dim as short maxv=1024
+    vindex(60,20,128) as short
     last(60,20) as short
+    value(1024) as short
+    vlast as short
+    declare function index(x as short,y as short,i as short) as short
     declare function add(v as short,c as _cords) as short
     declare function remove(v as short,c as _cords) as short
     declare function move(v as short,oc as _cords,nc as _cords) as short
     declare function del() as short
 end type
 
-function _index.del() as short
-    erase index,last
-    return 0
-end function
-
-function _index.add(v as short,c as _cords) as short
-    last(c.x,c.y)+=1
-    index(c.x,c.y,last(c.x,c.y))=v
-    return 0
-end function
-
-function _index.remove(v as short, c as _cords) as short
-    dim j as short
-    for j=1 to last(c.x,c.y)
-        if index(c.x,c.y,j)=v then
-            index(c.x,c.y,j)=index(c.x,c.y,last(c.x,c.y))
-            last(c.x,c.y)-=1
-        endif
-    next
-    return 0
-end function
-
-function _index.move(v as short,oc as _cords,nc as _cords) as short
-    remove(v,oc)
-    add(v,nc)
-    return 0
-end function
 
 dim shared itemindex as _index
 dim shared portalindex as _index
@@ -589,7 +570,10 @@ Type _monster
     sight As Single
     biomod As Single
     stunres As Byte
+    union
     diet As Byte
+    optoxy as byte
+    end union
     tasty As Byte
     pretty As Byte
     intel As Short
@@ -1235,7 +1219,7 @@ Type _questguy
     talkedto As Short'1 Knows, 2 asked want
     lastseen As Short
     knows(lastquestguy) As Byte
-    systemsknown(laststar) As Byte
+    systemsknown(255) As Byte
     money As Short
     risk As Short
     friendly(lastquestguy) As Short
@@ -1779,7 +1763,7 @@ Dim Shared whplanet As Short
 Dim Shared tmap(60,20) As _tile
 Dim Shared vacuum(60,20) As Byte
 Dim As _cords p1,p2,p3
-Dim Shared pwa(128) As _cords'Points working array
+Dim Shared pwa(1024) As _cords'Points working array
 Dim dummy As _monster
 Dim dummycords As _cords
 Dim text As String
@@ -1912,7 +1896,7 @@ Declare Function rescue() As Short
 Declare Function asteroid_mining(slot As Short) As Short
 Declare Function gasgiant_fueling(t As Short,orbit As Short,sys As Short) As Short
 Declare Function dock_drifting_ship(a As Short) As Short
-Declare Function move_rover(pl As Short,li()As Short,lastlocalitem As Short) As Short
+Declare Function move_rover(pl As Short) As Short
 Declare Function rnd_crewmember(onship As Short=0) As Short
 Declare Function haggle_(way As String) As Single
 Declare Function botsanddrones_shop() As Short
@@ -1929,7 +1913,7 @@ Declare Function reward_patrolquest() As Short
 Declare Function com_radio(defender As _ship, attacker() As _ship, e_track_p() As _cords,e_track_v() As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short)  As Short
 Declare Function draw_shield(ship As _ship,osx As Short) As Short
 Declare Function crew_menu(crew() As _crewmember, from As Short, r As Short=0,text As String="") As Short
-declare function ep_rovermove(a as short,li() as short, lastlocalitem as short,slot as short) as short
+declare function ep_rovermove(a as short,slot as short) as short
 
 Declare Function load_palette() As Short
 Declare Function open_file(filename As String) As Short
@@ -1958,47 +1942,49 @@ declare function gets_entry(x as short,y as short, slot as short) as short
 Declare Function ep_friendfoe(i As Short,j As Short) As Short
 Declare Function calcosx(x As Short,wrap As Byte) As Short
 Declare Function rg_icechunk() As Short 
-Declare Function ep_monsterupdate(i As Short,li() as short,lastlocalitem as short, spawnmask() as _cords,lsp as short,mapmask() As Byte,nightday() As Byte,message() As Byte) As Short
-Declare Function ep_nearest(i As Short,li() As Short,lastlocalitem As Short) As Short
+Declare Function ep_monsterupdate(i As Short, spawnmask() as _cords,lsp as short,mapmask() As Byte,nightday() As Byte,message() As Byte) As Short
+Declare Function ep_nearest(i As Short) As Short
 Declare Function ep_changemood(i As Short,message() As Byte) As Short
 Declare Function ep_needs_spacesuit(slot As Short,c As _cords,ByRef reason As String="") As Short
 Declare Function ep_display_clouds(cloudmap() As Byte) As Short
-Declare Function ep_autoexploreroute(astarpath() As _cords,start As _cords,move As Short, slot As Short,li() As Short,lastlocalitem As Short, rover As Short=0) As Short
-Declare Function ep_roverreveal(i As Integer,li() as short,lastlocalitem as short) As Short
+
+Declare Function ep_autoexplore(slot As Short) As Short
+Declare Function ep_planetroute(route() As _cords,move As Short,start As _cords, target As _cords,rollover As Short) As Short
+Declare Function ep_autoexploreroute(astarpath() As _cords,start As _cords,move As Short, slot As Short, rover As Short=0) As Short
+Declare Function ep_roverreveal(i As Integer) As Short
+
 Declare Function ep_portal() As _cords
-Declare Function ep_pickupitem(Key As String ,ByRef lastlocalitem As Short,li() As Short) As Short
+Declare Function ep_pickupitem(Key As String) As Short
 Declare Function ep_shipfire(shipfire() As _shipfire) As Short
 Declare Function ep_checkmove(ByRef old As _cords,Key As String) As Short
-Declare Function ep_examine(li() As Short,lastlocalitem As Short) As Short
+Declare Function ep_examine() As Short
 Declare Function ep_helmet() As Short
 Declare Function ep_closedoor() As Short
-Declare Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, li() As Short,lastlocalitem As Short,shipfire() As _shipfire,lavapoint() As _cords, ByRef sf As Single, nightday() As Byte,localtemp() As Single) As Short
-Declare Function ep_grenade(shipfire() As _shipfire, ByRef sf As Single,li() As Short ,ByRef lastlocalitem As Short) As Short
+Declare Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, shipfire() As _shipfire,lavapoint() As _cords, ByRef sf As Single, nightday() As Byte,localtemp() As Single) As Short
+Declare Function ep_grenade(shipfire() As _shipfire, ByRef sf As Single) As Short
 Declare Function ep_fire(mapmask() As Byte,Key As String,ByRef autofire_target As _cords) As Short
 Declare Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
-Declare Function ep_monstermove(li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,  mapmask() As Byte,nightday() As Byte) As Short
-Declare Function ep_items(li() As Short, ByRef lastlocalitem As Short, localturn As Short) As Short
+Declare Function ep_monstermove(spawnmask() As _cords, lsp As Short,  mapmask() As Byte,nightday() As Byte) As Short
+Declare Function ep_items(localturn As Short) As Short
 Declare Function ep_updatemasks(spawnmask() As _cords,mapmask() As Byte,nightday() As Byte, ByRef dawn As Single, ByRef dawn2 As Single) As Short
 Declare Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() As _cords, nightday() As Byte, localtemp() As Single,cloudmap() As Byte) As Short
 Declare Function ep_landship(ByRef ship_landing As Short,nextlanding As _cords,nextmap As _cords) As Short
-Declare Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() As _cords, li() As Short,ByRef lastlocalitem As Short,cloudmap() As Byte) As Short
+Declare Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() As _cords, cloudmap() As Byte) As Short
 Declare Function ep_atship() As Short
-Declare Function ep_planeteffect(li() As Short,ByRef lastlocalitem As Short,shipfire() As _shipfire, ByRef sf As Single,lavapoint() As _cords,localturn As Short,cloudmap() As Byte) As Short
+Declare Function ep_planeteffect(shipfire() As _shipfire, ByRef sf As Single,lavapoint() As _cords,localturn As Short,cloudmap() As Byte) As Short
 Declare Function ep_jumppackjump() As Short
-Declare Function ep_inspect(li() As Short,ByRef  lastlocalitem As Short,ByRef localturn As Short) As Short
+Declare Function ep_inspect(ByRef localturn As Short) As Short
 Declare Function ep_launch(ByRef nextmap As _cords) As Short
 Declare Function ep_lava(lavapoint() As _cords) As Short
-Declare Function ep_communicateoffer(Key As String,li() As Short, ByRef lastlocalitem As Short) As Short
+Declare Function ep_communicateoffer(Key As String) As Short
 Declare Function ep_spawning(spawnmask() As _cords,lsp As Short, diesize As Short,nightday() As Byte) As Short
-Declare Function ep_dropitem(li() As Short,ByRef lastlocalitem As Short) As Short
-Declare Function ep_crater(li() As Short, ByRef lastlocalitem As Short,shipfire() As _shipfire, ByRef sf As Single) As Short
+Declare Function ep_dropitem() As Short
+Declare Function ep_crater(shipfire() As _shipfire, ByRef sf As Single) As Short
 Declare Function ep_fireeffect(p2 As _cords,slot As Short, c As Short, range As Short, mapmask() As Byte, first As Short=0,last As Short=0) As Short
 Declare Function ep_heatmap(lavapoint() As _cords,lastlavapoint As Short) As Short
 Declare Function fuzzyMatch( ByRef correct As String, ByRef match As String ) As Single
 Declare Function place_shop_order(sh As Short) As Short
 Declare Function lev_minimum( a As Integer, b As Integer, c As Integer ) As Integer
-Declare Function ep_autoexplore(slot As Short,li() As Short,lastlocalitem As Short) As Short
-Declare Function ep_planetroute(route() As _cords,move As Short,start As _cords, target As _cords,rollover As Short) As Short
 
 Declare Function addmoney(amount As Integer,mt As Byte) As Short
 Declare Function count_and_make_weapons(st As Short) As Short
@@ -2017,13 +2003,13 @@ Declare Function update_world(location As Short) As Short
 Declare Function robot_invasion() As Short
 Declare Function explore_space() As Short
 Declare Function explore_planet(from As _cords, orbit As Short) As _cords
-Declare Function alienbomb(c As Short,slot As Short, li() As Short, ByRef lastlocalitem As Short) As Short
+Declare Function alienbomb(c As Short,slot As Short) As Short
 Declare Function tohit_gun(a As Short) As Short
 Declare Function tohit_close(a As Short) As Short
 Declare Function missing_ammo() As Short
 Declare Function max_hull(s As _ship) As Short
 Declare Function change_loadout() As Short
-Declare Function grenade(from As _cords,map As Short,li() As Short, lastlocalitem As Short) As _cords
+Declare Function grenade(from As _cords,map As Short) As _cords
 Declare Function poolandtransferweapons(s1 As _ship,s2 As _ship) As Short
 Declare Function clear_gamestate() As Short
 Declare Function planetflags_toship(m As Short) As _ship
@@ -2239,17 +2225,17 @@ Declare Function bioreport(slot As Short) As Short
 Declare Function messages() As Short
 Declare Function storescreen(As Short) As Short
 Declare Function alienname(flag As Short) As String
-Declare Function communicate(e As _monster, mapslot As Short,li() As Short,lastlocalitem As Short,monslot As Short) As Short
+Declare Function communicate(e As _monster, mapslot As Short,monslot As Short) As Short
 Declare Function artifact(c As Short) As Short
 'declare function getshipweapon() as short
 Declare Function getmonster() As Short
 Declare Function findartifact(v5 As Short) As Short
 Declare Function scrap_component() As Short
 
-Declare Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfire,li() As Short,ByRef lastlocalitem As Short,spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
-Declare Function ep_display(li()As Short,ByRef lastlocalitem As Short,osx As Short=555) As Short
+Declare Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfire, spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
+Declare Function ep_display(osx As Short=555) As Short
 Declare Function earthquake(t As _tile,dam As Short)As _tile
-Declare Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _shipfire,li() As Short, ByRef lastlocalitem As Short,spawnmask() As _cords,lsp As Short,Key As String,loctemp As Single) As Short
+Declare Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _shipfire, spawnmask() As _cords,lsp As Short,Key As String,loctemp As Single) As Short
 Declare Function numfromstr(t As String) As Short
 Declare Function explored_percentage_string() As String
 
@@ -2443,7 +2429,7 @@ Declare Function getinvbytype(t As Short) As Short
 Declare Function removeinvbytype(t As Short, am As Short) As Short
 Declare Function get_item_list(inv() As _items, invn()As Short, ty As Short=0,ty2 As Short=0,ty3 As Short=0,ty4 As Short=0,noequip As Short=0) As Short
 Declare Function display_item_list(inv() As _items, invn() As Short, marked As Short, l As Short,x As Short,y As Short) As Short
-Declare Function make_locallist(li() As Short,slot As Short) As Short
+Declare Function make_locallist(slot As Short) As Short
 
 Declare Function sick_bay(st As Short=0,obe As Short=0) As Short
 Declare Function first_unused(i As Short) As Short
@@ -2462,7 +2448,7 @@ Declare Function modify_item(i As _items, nomod As Byte) As _items
 Declare Function placeitem(i As _items,x As Short=0,y As Short=0,m As Short=0,p As Short=0,s As Short=0) As Short
 Declare Function get_item(ty As Short=0,ty2 As Short=0,ByRef num As Short=0,noequip As Short=0) As Short
 Declare Function buysitems(desc As String,ques As String, ty As Short, per As Single=1,agrmod As Short=0) As Short
-Declare Function giveitem(e As _monster,nr As Short, li() As Short, ByRef lastlocalitem As Short) As Short
+Declare Function giveitem(e As _monster,nr As Short) As Short
 Declare Function changetile(x As Short,y As Short,m As Short,t As Short) As Short
 Declare Function textbox(text As String,x As Short,y As Short,w As Short, fg As Short=11, bg As Short=0,pixel As Byte=0,ByRef op As Short=0,ByRef Offset As Short=0) As Short
 Declare Function destroyitem(b As Short) As Short
@@ -2636,6 +2622,45 @@ Function _monster.add_move_cost() As Short
     Return 0
 End Function
 
+
+function _index.del() as short
+    erase vindex,last,value
+    vlast=0
+    return 0
+end function
+
+function _index.index(x as short,y as short,i as short) as short
+    return value(vindex(x,y,i))
+end function
+
+function _index.add(v as short,c as _cords) as short
+    last(c.x,c.y)+=1
+    if last(c.x,c.y)>maxl then return -1
+    vlast+=1
+    if vlast>maxv then return -2
+    vindex(c.x,c.y,last(c.x,c.y))=vlast
+    value(vlast)=v
+    return 0
+end function
+
+function _index.remove(v as short, c as _cords) as short
+    dim as short j,j2
+    for j=1 to last(c.x,c.y)
+        if index(c.x,c.y,j)=v then
+            value(vindex(c.x,c.y,j))=value(vlast)
+            vlast-=1
+            vindex(c.x,c.y,j)=vindex(c.x,c.y,last(c.x,c.y))
+            last(c.x,c.y)-=1
+        endif
+    next
+    return 0
+end function
+
+function _index.move(v as short,oc as _cords,nc as _cords) as short
+    remove(v,oc)
+    add(v,nc)
+    return 0
+end function
 
 Function _commandstring.display(wl As Short) As Short
     Dim As String ws(40)

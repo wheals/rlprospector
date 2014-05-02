@@ -8333,7 +8333,7 @@ end function
 
 function get_random_system(unique as short=0,gascloud as short=0,disweight as short=0,hasgarden as short=0) as short 'Returns a random system. If unique=1 then specialplanets are possible
     dim as short a,b,c,p,u,ad,debug,cc,f
-    dim pot(laststar*50) as short
+    dim pot(laststar*100) as short
     'debug=1
     
     if debug=1 and _debug=1 then
@@ -8368,8 +8368,10 @@ function get_random_system(unique as short=0,gascloud as short=0,disweight as sh
                 endif
                 if debug=1 and _debug=1 then print #f,a &";"& cc &";"& disnbase(map(a).c)
                 for p=1 to cc
-                    b=b+1
-                    pot(b)=a
+                    if b<laststar*100 then
+                        b=b+1
+                        pot(b)=a
+                    endif
                     'print "B";b;":";
                 next
             endif

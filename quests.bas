@@ -2194,7 +2194,7 @@ function dirdesc(f as _cords,t as _cords) as string
     return d
 end function
   
-function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem as short,monslot as short) as short
+function communicate(e as _monster,mapslot as short,monslot as short) as short
     dim as short roll,a,b
     dim as byte c,o
     dim as string t
@@ -2251,12 +2251,12 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                         endif
                     case 22  to 44
                         'Tell about item
-                        if lastlocalitem>0 then
-                            roll=rnd_range(1,lastlocalitem)
-                            if item(li(roll)).w.s=0 and item(li(roll)).w.p=0 then
-                                p.x=item(li(roll)).w.x
-                                p.y=item(li(roll)).w.y
-                                if item(li(roll)).ty=15 then
+                        if itemindex.vlast>0 then
+                            roll=rnd_range(1,itemindex.vlast)
+                            if item(itemindex.value(roll)).w.s=0 and item(itemindex.value(roll)).w.p=0 then
+                                p.x=item(itemindex.value(roll)).w.x
+                                p.y=item(itemindex.value(roll)).w.y
+                                if item(itemindex.value(roll)).ty=15 then
                                     dprint "It says 'There are sparkling stones at "& dirdesc(e.c,p) &"'"
                                 else
                                     dprint "It says 'There is something strange at "& dirdesc(e.c,p) &"'"
@@ -2275,8 +2275,6 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                                 item(b).w.s=0
                                 item(b).w.p=monslot
                                 reward(2)=reward(2)-item(b).v5
-                                lastlocalitem=lastlocalitem+1
-                                li(lastlocalitem)=b
                                 it=make_item(94)
                                 placeitem(it,0,0,0,0,-1)
                                 dprint "It takes the "&item(b).desig &" and hands you "&it.desig &"."   
@@ -2307,9 +2305,7 @@ function communicate(e as _monster,mapslot as short,li()as short,lastlocalitem a
                                             e.aggr=2
                                             item(b).w.s=0
                                             item(b).w.p=monslot
-                                            reward(2)=reward(2)-item(b).v5
-                                            lastlocalitem=lastlocalitem+1
-                                            li(lastlocalitem)=b
+                                            if item(b).ty=15 then reward(2)=reward(2)-item(b).v5
                                         endif
                                     endif
                                 endif
@@ -3520,7 +3516,7 @@ function eris_finds_apollo() as short
 end function
 
 
-function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem as short) as short
+function giveitem(e as _monster,nr as short) as short
     dim as short a
     dim it as _items
     dprint "What do you want to offer the "&e.sdesc &"?"
@@ -3539,10 +3535,8 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
          if item(a).price>100 then
             dprint "The "&e.sdesc &" accepts the gift."
             factionadd(0,e.allied,-5)
-            lastlocalitem=lastlocalitem+1
             item(a).w.p=nr
             item(a).w.s=0
-            li(lastlocalitem)=a
             if e.aggr=2 and rnd_range(1,6)+rnd_range(1,6)<e.intel then 
                 e.aggr=1
             endif
@@ -3556,8 +3550,6 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
         if item(a).price>1000 then       
             item(a).w.p=nr
             item(a).w.s=0     
-            lastlocalitem+=1
-            li(lastlocalitem)=a
             dprint "Apollo accepts your tribute"
             e.aggr=1
         else
@@ -3566,20 +3558,16 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
     endif
      
     if (e.lang=28) and (item(a).ty=2 or item(a).ty=7 or item(a).ty=4) then
-        lastlocalitem=lastlocalitem+1
         item(a).w.p=nr
         item(a).w.s=0
-        li(lastlocalitem)=a     
         dprint "The worker hides the "&item(a).desig &"quickly saying 'Thank you, now if i only had a way to get off this rock'" 
         if rnd_range(1,6)<3 then e.faction=2
         return 0
     endif
      
      if (e.lang=40) then
-        lastlocalitem=lastlocalitem+1
         item(a).w.p=nr
         item(a).w.s=0
-        li(lastlocalitem)=a     
         dprint "Thank you so much! I am sure I can find a use for this!"
         return 0
     endif
@@ -3590,10 +3578,8 @@ function giveitem(e as _monster,nr as short, li() as short, byref lastlocalitem 
                 dprint "The "&e.sdesc &" accepts the gift."
                 e.cmmod=e.cmmod+2
                 if rnd_range(1,6)+ rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then e.aggr=1
-                lastlocalitem=lastlocalitem+1
                 item(a).w.p=nr
                 item(a).w.s=0
-                li(lastlocalitem)=a
                 if e.aggr=1 and rnd_range(1,6) +rnd_range(1,6)<e.intel then
                     dprint "The "&e.sdesc &" gives you something in return."
                     if rnd_range(1,100)<66 then

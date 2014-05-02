@@ -793,7 +793,7 @@ function alerts() as short
     static wj as short
     if awayteam.oxygen=awayteam.oxymax then wg=0
     if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.movetype=2 then wj=0
-    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 then
+    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 and awayteam.helmet=1 then
         dprint ("Reporting oxygen tanks half empty",14)
         wg=1
         for a=1 to wg
@@ -809,7 +809,7 @@ function alerts() as short
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 then
+    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 and awayteam.helmet=1 then
         dprint ("Oxygen low.",14)
         wg=2
         for a=1 to wg
@@ -827,7 +827,7 @@ function alerts() as short
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 then
+    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 and awayteam.helmet=1 then
         dprint ("Switching to oxygen reserve!",12)
         wg=3
         for a=1 to wg

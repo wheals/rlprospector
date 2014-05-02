@@ -5,7 +5,7 @@
 function space_mapbmp() as short
     dim as any ptr img
     dim as short x,y,a,n,ti_no,minx,maxx,miny,maxy
-    dim as byte debug=0
+    dim as byte debug=1
     if debug=1  and _debug=1 then dprint "configflag(con_tiles)"&configflag(con_tiles)
     minx=-1
     miny=-1

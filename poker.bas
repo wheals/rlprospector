@@ -90,7 +90,9 @@ function play_poker(st as short) as short
         l=crew(1).talents(5)
         while l>0
             dprint "Swap cards (1-5,0 to exit)"
-            no_key=keyin("012345")
+            do
+                no_key=keyin("012345")
+            loop until val(no_key)<=5
             if val(no_key)>0 then
                 p(4).card(val(no_key))=card(curcard)
                 curcard+=1

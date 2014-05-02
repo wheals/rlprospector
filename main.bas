@@ -556,6 +556,7 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
     Dim nextmap As _cords
     Dim As _monster delaway
     Dim As String reason
+    delaway.optoxy=awayteam.optoxy
     awayteam=delaway
     debug=1
 
@@ -843,7 +844,7 @@ Function scanning() As Short
     Dim As Short osx
     Dim As Single roll,target
     Dim debug As Byte
-    Dim As Short plife,li(255),lastlocalitem,mining
+    Dim As Short plife,mining
     debug=1
     'if getsystem(player)>0 then
     a=getplanet(get_system())
@@ -866,8 +867,8 @@ Function scanning() As Short
             'makefinalmap(mapslot)
         EndIf
         If planets(mapslot).mapstat=0 Then planets(mapslot).mapstat=1
-        lastlocalitem=make_locallist(li(),mapslot)
-        move_rover(mapslot,li(),lastlocalitem)
+        make_locallist(mapslot)
+        move_rover(mapslot)
 
         For x=60 To 0 Step -1
             For y=0 To 20
@@ -1305,7 +1306,7 @@ Function dock_drifting_ship(a As Short)  As Short
     Return 0
 End Function
 
-Function move_rover(pl As Short,li()As Short,lastlocalitem As Short)  As Short
+Function move_rover(pl As Short)  As Short
     Dim As Integer a,b,c,i,t,ti,x,y
     Dim As Integer carn,herb,mins,oxy,food,energy,curr,last
     Dim As Single minebase
@@ -1313,21 +1314,22 @@ Function move_rover(pl As Short,li()As Short,lastlocalitem As Short)  As Short
     Dim As _cords pp(9)
 
     update_tmap(pl)
+    make_locallist(pl)
     t=(player.turn-planets(pl).visited)
     If _debug=9 Then Screenset 1,1
-    For i=0 To lastlocalitem
-        If item(li(i)).ty=18 And item(li(i)).w.p=0 And item(li(i)).w.s=0 And item(li(i)).w.m=pl And item(li(i)).discovered>0 And t>0 Then
-            ep_rovermove(i,li(),lastlocalitem,pl)
-            if rnd_range(1,150)<planets(pl).atmos*2 Then item(i).discovered=0
+    For i=1 To itemindex.vlast
+        If item(itemindex.value(i)).ty=18 And item(itemindex.value(i)).w.p=0 And item(itemindex.value(i)).w.s=0 And item(itemindex.value(i)).w.m=pl And item(itemindex.value(i)).discovered>0 And t>0 Then
+            ep_rovermove(itemindex.value(i),pl)
+            if rnd_range(1,150)<planets(pl).atmos*2 Then item(itemindex.value(i)).discovered=0
             If rnd_range(1,150)<planets(pl).atmos+2 Then
-                item(i)=make_item(65)
+                item(itemindex.value(i))=make_item(65)
             Else
-                dprint "Receiving the homing signal of a rover on this planet from " &cords(item(i).w),10
+                dprint "Receiving the homing signal of a rover on this planet from " &cords(item(itemindex.value(i)).w),10
             EndIf
         EndIf
     Next
     i=0
-    For a=0 To lastitem
+    For a=1 To lastitem
         If item(a).ty=27 And item(a).w.p=0 And item(a).w.s=0 And item(a).w.m=pl Then i=a
         If item(a).ty=15 And item(a).w.p=0 And item(a).w.s=0 And item(a).w.m=pl Then
             minebase+=1.1
@@ -2019,7 +2021,7 @@ Function explore_space() As Short
         If player.e.tick=-1 And player.dead=0 Then
             fl=0
             allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk &key_wait
-            allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw
+            allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw &key_optequip
             If artflag(25)>0 Then allowed=allowed &key_te
             If debug=11 And _debug=1 Then allowed=allowed &"�"
             For a=0 To 2
@@ -2041,7 +2043,7 @@ Function explore_space() As Short
             For a=0 To laststar
                 If player.c.x=map(a).c.x And player.c.y=map(a).c.y Then
                     planetcom=a+1
-                    dPrint add_a_or_an(spectralname(map(a).spec),1)&"." & system_text(a) & ". Press "&key_sc &" to scan, "&key_la &" to land, " &key_tala &" to land at a specific spot."
+                    dPrint add_a_or_an(spectralname(map(a).spec),1)&"." & system_text(a) & ". Press "&key_sc &" to scan, "&key_la &" to land, " &key_tala &" to land at a specific spot, "&key_optequip &" to change armor priorities."
                     If a=piratebase(0) Then dprint "Lots of traffic in this system"
                     map(a).discovered=2
                     display_system(a)
@@ -2163,6 +2165,18 @@ Function explore_space() As Short
                 Key=keyin
                 walking=getdirection(Key)
             EndIf
+            
+            if key=key_optequip then
+                a=menu(bg_shiptxt,"When choosing armor/optimize protection/optimize oxygen")
+                if a=1 then 
+                    awayteam.optoxy=0
+                    dprint "Now optimizing protection"
+                endif
+                if a=2 then 
+                    awayteam.optoxy=1
+                    dprint "Now optimizing oxygen"
+                endif
+            endif
             
             if key=key_wait then
                 player.add_move_cost(0)
@@ -2504,9 +2518,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     if _debug=2704 then print #logfile,"Starting ep loop"
     
     bg_parent=bg_awayteamtxt
-    'dim localitem(128) as items
-    Dim li(256) As Short
-    Dim lastlocalitem As Short
+    
     Dim diesize As Short
     Dim localturn As Short
     Dim tb As Single
@@ -2844,7 +2856,7 @@ EndIf
     Next
     
     if _debug=2704 then print #logfile,"Move rovers"
-    move_rover(slot,li(),lastlocalitem)
+    move_rover(slot)
     'if planets(slot).colony<>0 then growcolony(slot)
 
     If planets(slot).visited>0 And planets(slot).visited<player.turn Then
@@ -2990,7 +3002,7 @@ EndIf
     Next
     
     if _debug=2704 then print #logfile,"locallists"
-    lastlocalitem=make_locallist(li(),slot)
+    make_locallist(slot)
 
     lsp=0
     For x=0 To 60
@@ -3048,12 +3060,7 @@ EndIf
     If awayteam.c.y<0 Then awayteam.c.y=0
     If awayteam.c.x>60 Then awayteam.c.x=60
     If awayteam.c.y>20 Then awayteam.c.y=20
-'
-'    Cls
-'    display_planetmap(slot,osx,0)
-'    ep_display (li(),lastlocalitem)
-'    display_awayteam()
-'    dprint ""
+
     '
     ' EXPLORE PLANET
     '
@@ -3090,7 +3097,7 @@ EndIf
         Sleep
     EndIf
     If savefrom(0).map=0 Then
-        nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),li(),lastlocalitem,spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
+        nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
         If nextmap.m=-1 Then Return nextmap
     EndIf
     
@@ -3104,13 +3111,13 @@ EndIf
     set__color(11,0)
     Cls
     display_planetmap(slot,osx,0)
-    ep_display (li(),lastlocalitem)
+    ep_display ()
     display_awayteam()
     Flip
     set__color(11,0)
     Cls
     display_planetmap(slot,osx,0)
-    ep_display (li(),lastlocalitem)
+    ep_display ()
     display_awayteam()
     Flip
     
@@ -3166,12 +3173,12 @@ EndIf
             ep_lava(lavapoint())
             lastenemy=ep_spawning(spawnmask(),lsp,diesize,nightday())
             ep_shipfire(shipfire())
-            ep_items(li(),lastlocalitem,localturn)
+            ep_items(localturn)
             Screenset 0,1
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display (li(),lastlocalitem)
+            ep_display ()
             display_awayteam()
             ep_display_clouds(cloudmap())
             walking=alerts()
@@ -3181,7 +3188,7 @@ EndIf
         
         
         if _debug=2704 then print #logfile,"3 ae"&awayteam.e.e
-        deadcounter=ep_monstermove(li(),lastlocalitem,spawnmask(),lsp,mapmask(),nightday())
+        deadcounter=ep_monstermove(spawnmask(),lsp,mapmask(),nightday())
 
         If player.dead>0 Or awayteam.hp<=0 Then allowed=""
 
@@ -3198,23 +3205,20 @@ EndIf
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display (li(),lastlocalitem)
+            ep_display ()
             ep_display_clouds(cloudmap())
             display_awayteam()
             dprint ("")
 
-            ep_gives(awayteam,nextmap,shipfire(),li(),lastlocalitem,spawnmask(),lsp,Key,localtemp(awayteam.c.x,awayteam.c.y))
+            ep_gives(awayteam,nextmap,shipfire(),spawnmask(),lsp,Key,localtemp(awayteam.c.x,awayteam.c.y))
             equip_awayteam(slot)
             If awayteam.movetype=2 Or awayteam.movetype=3 Then allowed=allowed &key_ju
             If awayteam.movetype=4 Then allowed=allowed &key_te
-            'displayplanetmap(slot,awayteam.c.x-_mwx/2)
-            'ep_display (awayteam,vismask(),enemy(),lastenemy,li(),lastlocalitem,walking)
-            'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x))
             Flip
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display (li(),lastlocalitem)
+            ep_display ()
             display_awayteam()
             ep_display_clouds(cloudmap())
 
@@ -3229,7 +3233,7 @@ EndIf
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display (li(),lastlocalitem)
+            ep_display ()
             display_awayteam()
             ep_display_clouds(cloudmap())
             dprint("")
@@ -3239,7 +3243,7 @@ EndIf
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display (li(),lastlocalitem)
+            ep_display ()
             display_awayteam()
             ep_display_clouds(cloudmap())
             dprint("")
@@ -3251,7 +3255,7 @@ EndIf
                 screenset 0,1
                 Cls
                 display_planetmap(slot,osx,0)
-                ep_display (li(),lastlocalitem)
+                ep_display ()
                 display_awayteam()
                 ep_display_clouds(cloudmap())
                 dprint("")
@@ -3292,7 +3296,7 @@ EndIf
                     If walking=12 Then
                         If currapwp=lastapwp Then
                             'awayteam.c=movepoint(awayteam.c,nearest(apwaypoints(currapwp),awayteam.c))
-                            lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
+                            lastapwp=ep_autoexplore(slot)
                             currapwp=0
                         EndIf
                         If lastapwp>0 Then
@@ -3334,13 +3338,13 @@ EndIf
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_portal Or Key=key_inspect Then nextmap=ep_Portal()
             if _debug=2704 then print #logfile,"nextmap"&nextmap.m
             
-            ep_planeteffect(li(),lastlocalitem,shipfire(),sf,lavapoint(),localturn,cloudmap())
+            ep_planeteffect(shipfire(),sf,lavapoint(),localturn,cloudmap())
             if _debug=2704 then print #logfile,"PE"
-            ep_areaeffects(areaeffect(),last_ae,lavapoint(),li(),lastlocalitem,cloudmap())
+            ep_areaeffects(areaeffect(),last_ae,lavapoint(),cloudmap())
             if _debug=2704 then print #logfile,"AE"
-            If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key,lastlocalitem,li())
+            If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key)
             if _debug=2704 then print #logfile,"PU"
-            If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(li(),lastlocalitem,localturn)
+            If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(localturn)
             if _debug=2704 then print #logfile,"in"
             If vacuum(awayteam.c.x,awayteam.c.y)=1 And awayteam.helmet=0 Then ep_helmet()
             If vacuum(awayteam.c.x,awayteam.c.y)=0 And vacuum(old.x,old.y)=1 And awayteam.helmet=1 Then ep_helmet
@@ -3350,13 +3354,9 @@ EndIf
             Cls
 
             osx=calcosx(awayteam.c.x,planets(slot).depth)
-            if _debug=2704 then print #logfile,"calcosx"
             display_planetmap(slot,osx,0)
-            if _debug=2704 then print #logfile,"display_planetmap"
-            ep_display (li(),lastlocalitem)
-            if _debug=2704 then print #logfile,"epdisplay"
+            ep_display ()
             ep_display_clouds(cloudmap())
-            if _debug=2704 then print #logfile,"clouds"
             display_awayteam()
             
             ep_atship()
@@ -3387,7 +3387,7 @@ EndIf
             
             If rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 Then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
 
-            If Key=key_ex  Then ep_examine(li(),lastlocalitem)
+            If Key=key_ex  Then ep_examine()
 
             If Key=key_save Then
                 If askyn("Do you really want to save the game (y/n?)") Then
@@ -3398,7 +3398,6 @@ EndIf
                    For a=1 To lastenemy
                        savefrom(0).enemy(a)=enemy(a)
                    Next
-                   savefrom(0).lastlocalitem=lastlocalitem
                    player.dead=savegame()
                    'ship.x=-1
                 EndIf
@@ -3406,10 +3405,8 @@ EndIf
 
             If Key=key_wait Then awayteam.add_move_cost
 
-            If Key=key_drop Then
-                ep_dropitem(li(),lastlocalitem)
-            EndIf
-
+            If Key=key_drop Then ep_dropitem()
+            
             If Key=key_awayteam Then
                 If awayteam.c.x=player.landed.x And awayteam.c.y=player.landed.y And slot=player.landed.m Then
                     showteam(0)
@@ -3422,11 +3419,11 @@ EndIf
 
             If Key=key_close Then ep_closedoor()
 
-            If Key=key_gr Then ep_grenade(shipfire(),sf,li(),lastlocalitem)
+            If Key=key_gr Then ep_grenade(shipfire(),sf)
 
             If Key=key_fi Or Key=key_autofire Or walking=10 Then ep_fire(mapmask(),Key,autofire_target)
 
-            If Key=key_ra Then ep_radio(nextlanding,ship_landing,li(),lastlocalitem,shipfire(),lavapoint(),sf,nightday(),localtemp())
+            If Key=key_ra Then ep_radio(nextlanding,ship_landing,shipfire(),lavapoint(),sf,nightday(),localtemp())
 
             If Key=key_oxy Then ep_helmet()
 
@@ -3467,7 +3464,7 @@ EndIf
                     no_key="0"
                 EndIf
                 If no_key="0" Then
-                    lastapwp=ep_autoexplore(slot,li(),lastlocalitem)
+                    lastapwp=ep_autoexplore(slot)
                     currapwp=0
                     If lastapwp>-1 Then
                         walking=12
@@ -3477,7 +3474,7 @@ EndIf
                 EndIf
             EndIf
 
-            If Key=key_co Or Key=key_of Then ep_communicateoffer(Key,li(),lastlocalitem)
+            If Key=key_co Or Key=key_of Then ep_communicateoffer(Key)
 
             If Key=key_te And artflag(9)=1 Then awayteam.c=teleport(awayteam.c,slot)
 
@@ -3486,18 +3483,15 @@ EndIf
         EndIf
 
         If lastenemy>255 Then lastenemy=255
-        If lastlocalitem>255 Then lastlocalitem=255
 
         'clean up item list
-        For a=1 To lastlocalitem
-            If item(li(a)).w.s<0 Then
-                li(a)=li(lastlocalitem)
-                lastlocalitem=lastlocalitem-1
+        For a=1 To itemindex.vlast
+            If item(itemindex.value(a)).w.s<0 Then
+                itemindex.remove(itemindex.value(a),item(itemindex.value(a)).w)
             Else
-                If tmap(item(li(a)).w.x,item(li(a)).w.y).no>=175 And tmap(item(li(a)).w.x,item(li(a)).w.y).no<=177 Then
-                    destroyitem(li(a))
-                    li(a)=li(lastlocalitem)
-                    lastlocalitem=lastlocalitem-1
+                If tmap(item(itemindex.value(a)).w.x,item(itemindex.value(a)).w.y).no>=175 And tmap(item(itemindex.value(a)).w.x,item(itemindex.value(a)).w.y).no<=177 Then
+                    destroyitem(itemindex.value(a))
+                    itemindex.remove(itemindex.value(a),item(itemindex.value(a)).w)
                 EndIf
             EndIf
         Next
@@ -3513,13 +3507,13 @@ EndIf
     ' END exploring
 
     location=lc_onship
-    For a=1 To lastlocalitem
-        If item(li(a)).ty=45 And item(li(a)).w.p<9999 And item(li(a)).w.s=0 Then 'Alien bomb
-            If item(li(a)).v2=1 Then
-                p1.x=item(li(a)).w.x
-                p1.y=item(li(a)).w.y
-                item(li(a)).w.p=9999
-                alienbomb(li(a),slot,li(),lastlocalitem)
+    For a=1 To itemindex.vlast
+        If item(itemindex.value(a)).ty=45 And item(itemindex.value(a)).w.p<9999 And item(itemindex.value(a)).w.s=0 Then 'Alien bomb
+            If item(itemindex.value(a)).v2=1 Then
+                p1.x=item(itemindex.value(a)).w.x
+                p1.y=item(itemindex.value(a)).w.y
+                item(itemindex.value(a)).w.p=9999
+                alienbomb(itemindex.value(a),slot)
 
             EndIf
         EndIf
@@ -3698,7 +3692,7 @@ function trouble_with_tribbles() as short
 end function
 
 
-Function alienbomb(c As Short,slot As Short, li() As Short, ByRef lastlocalitem As Short) As Short
+Function alienbomb(c As Short,slot As Short) As Short
     Dim As Short a,b,d,e,f,osx,x2
     Dim As _cords p,p1
     p1.x=item(c).w.x
@@ -3779,13 +3773,12 @@ Function alienbomb(c As Short,slot As Short, li() As Short, ByRef lastlocalitem 
             If planets(slot).atmos=6 Or planets(slot).atmos=12 Then planets(slot).atmos=1
         EndIf
     Next
-    For a=1 To lastlocalitem
-        p.x=item(li(a)).w.x
-        p.y=item(li(a)).w.y
-        If a=c Or (rnd_range(1,100)+item(c).v1>item(li(a)).res And distance(p,p1,1)<item(c).v1*5) Then
-            destroyitem(li(a))
-            li(a)=li(lastlocalitem)
-            lastlocalitem-=1
+    For a=1 To itemindex.vlast
+        p.x=item(itemindex.value(a)).w.x
+        p.y=item(itemindex.value(a)).w.y
+        If a=c Or (rnd_range(1,100)+item(c).v1>item(itemindex.value(a)).res And distance(p,p1,1)<item(c).v1*5) Then
+            destroyitem(itemindex.value(a))
+            itemindex.remove(a,p)
         EndIf
     Next
 
@@ -3796,7 +3789,7 @@ Function alienbomb(c As Short,slot As Short, li() As Short, ByRef lastlocalitem 
 End Function
 
 
-Function grenade(from As _cords,map As Short,li() As Short, lastlocalitem As Short) As _cords
+Function grenade(from As _cords,map As Short) As _cords
     Dim As _cords target,ntarget
     Dim As Single dx,dy,x,y,launcher
     Dim As Short a,ex,r,t,osx
@@ -3818,7 +3811,7 @@ Function grenade(from As _cords,map As Short,li() As Short, lastlocalitem As Sho
         dprint "Choose target"
         Do
             Key=planet_cursor(target,map,osx,1)
-            ep_display(li(),lastlocalitem,osx)
+            ep_display(osx)
             display_awayteam(,osx)
             Key=Cursor(target,map,osx,,5+item(launcher).v1-planets(map).grav)
             If Key=key_te Or Ucase(Key)=" " Or Multikey(SC_ENTER) Then ex=-1
@@ -4217,8 +4210,8 @@ Function space_radio() As Short
         dummy.lang=fleet(i).ty+26
         dummy.aggr=1
         If debug=2 And _debug=1 Then dprint ""&dummy.lang
-        If fleet(i).ty=6 Then communicate(dummy,1,du(),1,1)
-        If fleet(i).ty=7 Then communicate(dummy,1,du(),1,1)
+        If fleet(i).ty=6 Then communicate(dummy,1,1)
+        If fleet(i).ty=7 Then communicate(dummy,1,1)
 
     Case Is<0
         i=Abs(i)
@@ -4555,6 +4548,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     Dim noa As Short
     Dim col As Short
     Dim As Short debug
+    if _debug>0 then dprint attacker.sdesc &":"&defender.sdesc
     If vis>0 Then
         If attacker.stuff(1)=1 And attacker.stuff(2)=1 Then mname="flying "
         mname=mname & attacker.sdesc

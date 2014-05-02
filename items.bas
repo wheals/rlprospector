@@ -1,18 +1,18 @@
-function make_locallist(li() as short,slot as short) as short
-    dim as short i,ll,x,y
+function make_locallist(slot as short) as short
+    dim as short i,x,y,r
     dim p as _cords
     itemindex.del
     for i=1 to lastitem
-        if item(i).w.m=slot and item(i).w.s=0 and ll<=128 then
-            ll+=1
-            li(ll)=i
-            itemindex.add(i,item(i).w)
+        if item(i).w.m=slot and item(i).w.s=0 and item(i).w.p=0 then
+            if itemindex.add(i,item(i).w)=-1 then
+                item(i).w=movepoint(item(i).w,5)
+                i-=1
+            endif
         endif
     next
     
     portalindex.del
     for i=0 to lastportal
-        if _debug=1 then dprint slot &":"&portal(i).dest.m &":"& portal(i).from.m
         if portal(i).dest.m=slot  and portal(i).oneway=0 then portalindex.add(i,portal(i).dest)
         if portal(i).from.m=slot then portalindex.add(i,portal(i).from)
         if portal(i).oneway=2 and portal(i).from.m=slot or portal(i).dest.m=slot then
@@ -26,7 +26,7 @@ function make_locallist(li() as short,slot as short) as short
         endif
     next
         
-    return ll
+    return 0
 end function
 
 
@@ -653,7 +653,7 @@ function placeitem(i as _items,x as short=0,y as short=0, m as short=0, p as sho
         item(lastitem).uid=lastitem
         return lastitem
     else
-        for a=0 to lastitem '�berschreibe erstes item das nicht im schiff und keine ressource
+        for a=0 to lastitem '�berschreibe erstes item das nicht im schiff und keine mm
             item(a).uid=a
             if item(a).w.s>=0 and item(a).ty<>15 then
                 item(a)=i
@@ -930,7 +930,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=15
         i.bgcol=0
         i.v1=1
-        i.v3=150
+        i.v3=300
         i.price=20
         i.res=10
     endif
@@ -946,7 +946,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=14
         i.bgcol=0
         i.v1=3
-        i.v3=200
+        i.v3=250
         i.price=75
         i.res=25
     endif
@@ -978,7 +978,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=14
         i.bgcol=0
         i.v1=5
-        i.v3=200
+        i.v3=150
         i.price=300
         i.res=25
     endif
@@ -994,7 +994,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=14
         i.bgcol=0
         i.v1=6
-        i.v3=200
+        i.v3=150
         i.price=450
         i.res=25
     endif
@@ -1010,7 +1010,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=14
         i.bgcol=0
         i.v1=7
-        i.v3=250
+        i.v3=150
         i.price=625
         i.res=25
     endif
@@ -1026,7 +1026,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=6
         i.bgcol=0
         i.v1=8
-        i.v3=300
+        i.v3=100
         i.price=825
         i.res=45
     endif
@@ -1042,7 +1042,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=6
         i.bgcol=0
         i.v1=9
-        i.v3=300
+        i.v3=100
         i.price=1050
         i.res=45
     endif
@@ -1058,7 +1058,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=2
         i.bgcol=0
         i.v1=11
-        i.v3=400
+        i.v3=200
         i.price=1300
         i.res=65
     endif    
@@ -1072,7 +1072,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.ldesc="The ultimate in protective equipment. Several layered forcefields surround the wearer." 
         i.icon="&"
         i.col=6
-        i.v3=400
+        i.v3=200
         i.bgcol=0
         i.v1=13
         i.price=1575
@@ -4173,14 +4173,22 @@ end function
 function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
     dim as single a,b,r
     r=-1
-    for a=0 to lastitem
+    for a=1 to lastitem
         if p<>0 then
             if (item(a).w.s=p and item(a).ty=t) then
-                if item(a).v1>b then
-                    r=a
-                    b=item(a).v1
+                if t<>3 or awayteam.optoxy=0 then
+                    if item(a).v1>b then
+                        r=a
+                        b=item(a).v1
+                    endif
                 endif
                 if id<>0 and item(a).ty=id then return a
+                if t=3 and awayteam.optoxy=1 then
+                    if item(a).v3>b then
+                        r=a
+                        b=item(a).v3
+                    endif
+                endif
             endif
         endif
         

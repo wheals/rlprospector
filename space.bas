@@ -374,24 +374,28 @@ function add_stars() as short
 end function
 
 function add_wormholes() as short
-    dim as short a,i,last,x,y,ano,qux1,quy1,qux2,quy2
+    dim as short a,i,last,x,y,ano,qux1,quy1,qux2,quy2,highest
     dim quadrant(2,2) as byte
+    if _debug>0 then dprint "W:"&wormhole
     for a=laststar+1 to laststar+wormhole-1 step 2
         do 
             qux1=rnd_range(0,2)
             quy1=rnd_range(0,2)
             qux2=rnd_range(0,2)
             quy2=rnd_range(0,2)
-        loop until quadrant(qux1,quy1)=0 and quadrant(qux2,quy2)=0 and (qux1<>qux2 or quy1<>quy2)
-        quadrant(qux1,quy1)=1
-        quadrant(qux2,quy2)=1
+        loop until quadrant(qux1,quy1)<=highest and quadrant(qux2,quy2)<=highest and (qux1<>qux2 or quy1<>quy2)
+        quadrant(qux1,quy1)+=1
+        if quadrant(qux1,quy1)>highest then highest=quadrant(qux1,quy1)
+        quadrant(qux2,quy2)+=1
+        if quadrant(qux2,quy2)>highest then highest=quadrant(qux2,quy2)
+        
         do
             map(a).c.x=rnd_range(0,sm_x/3)+qux1*sm_x/3
             map(a).c.y=rnd_range(0,sm_y/3)+quy1*sm_y/3
             map(a+1).c.x=rnd_range(0,sm_x/3)+qux2*sm_x/3
             map(a+1).c.y=rnd_range(0,sm_y/3)+quy2*sm_y/3
-        loop until distance(map(a).c,map(a+1).c)>25
-        
+        loop until distance(map(a).c,map(a+1).c)>sm_x/3
+        if _debug>0 then dprint "wormhole "&a
         map(a).spec=9
         map(a).ti_no=77
         map(a).planets(1)=a+1
@@ -1370,7 +1374,7 @@ function make_clouds() as short
     dim as short x,y,bx,by,highest,count,a,b,c,r,last,i,ano,x1,y1,j,last2,f
     dim as single attempt
     dim debug as short
-    dim pp(1024) as _cords
+    dim pp((sm_x+1)*(sm_y+1)) as _cords
     
     dim as _cords p1,p2,p3,p4,p(1024)
     for i=0 to sm_x*sm_y*0.66
