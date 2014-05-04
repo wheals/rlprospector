@@ -509,11 +509,16 @@ Function from_savegame(Key As String) As String
         Key=""
     Else
         load_game(getfilename())
-        If player.desig="" Then Key=""
-        player.dead=0
-        If savefrom(0).map>0 Then
-            landing(0)
-        EndIf
+        If player.desig="" Then 
+            Key=""
+        else
+            player.dead=0
+            civ_adapt_tiles(0)
+            civ_adapt_tiles(1)
+            If savefrom(0).map>0 Then
+                landing(0)
+            EndIf
+        endif
     EndIf
     set__color(11,0)
     Cls
@@ -2014,6 +2019,7 @@ Function explore_space() As Short
     Flip
     Screenset 0,1
     If debug=10 And _debug=1 Then dprint spdescr(7)
+    player.turn=fix(player.turn/10)*10 'Needs to be multiple of 10 for events to trigger
     Do
         If debug=8 And _debug=1 Then dprint "Lastfleet:"&lastfleet
         player.turn+=10
@@ -2167,13 +2173,17 @@ Function explore_space() As Short
             EndIf
             
             if key=key_optequip then
-                a=menu(bg_shiptxt,"When choosing armor/optimize protection/optimize oxygen")
+                a=menu(bg_shiptxt,"When choosing armor/optimize protection/balanced/optimize oxygen")
                 if a=1 then 
                     awayteam.optoxy=0
                     dprint "Now optimizing protection"
                 endif
-                if a=2 then 
+                if a=2 then
                     awayteam.optoxy=1
+                    dprint "Balanced"
+                endif
+                if a=3 then 
+                    awayteam.optoxy=2
                     dprint "Now optimizing oxygen"
                 endif
             endif
@@ -3261,7 +3271,7 @@ EndIf
                 dprint("")
                 Flip
             EndIf
-            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)
+            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)-awayteam.leak*awayteam.helmet
             If awayteam.oxygen<=0 and (awayteam.helmet=1 or tmap(awayteam.c.x,awayteam.c.y).oxyuse>0) Then 
                 dprint "Asphyixaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
                 awayteam.oxygen=0
@@ -4252,7 +4262,6 @@ Function launch_probe() As Short
             probe(lastprobe).m=i
             probe(lastprobe).s=d
             probe(lastprobe).p=item(i).v4
-            dprint probe(lastprobe).x &":"&probe(lastprobe).y
             dprint "Probe launched."
             item(i).w.s=0
         Else
@@ -4266,13 +4275,15 @@ End Function
 
 Function move_probes() As Short
     Dim As Short i,x,y,j,navcom,t,d
-
+    if _debug>0 then dprint "Move probes"
     If lastprobe>0 Then
     navcom=player.equipment(se_navcom)
     For i=1 To lastprobe
+        if _debug>0 then dprint "Probe "&i &" exists."
         If probe(i).m>0 Then
             probe(i).z-=item(probe(i).m).v5
             If probe(i).z<=0 Then
+                if _debug>0 then dprint "Moving probe "&i
                 probe(i).z+=10
                 For j=laststar+1 To laststar+wormhole
                     If map(j).c.x=probe(i).x And map(j).c.y=probe(i).y Then
@@ -4548,6 +4559,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     Dim noa As Short
     Dim col As Short
     Dim As Short debug
+    if attacker.hp<=0 or defender.hp<=0 then return defender
     if _debug>0 then dprint attacker.sdesc &":"&defender.sdesc
     If vis>0 Then
         If attacker.stuff(1)=1 And attacker.stuff(2)=1 Then mname="flying "
@@ -4855,34 +4867,105 @@ End Function
 
 Dim As Byte attempts
 
-ERRORMESSAGE:
-e=Err
-text=*ERMN()
-Dim As String w(29)
-a=string_towords(w(),text,"\")
-text=w(a)
-text=__VERSION__ &" Error #"&e &" in "&Erl &":" & *ERFN() &" " & text
-f=Freefile
-Open "error.log" For Append As #f
 
-Print #f,text
-Close #f
-Screenset 1,1
-Locate 10,10
-set__color( 12,0)
-Print "ERROR: Please inform the author and send him the file error.log"
-Print "matthias.mennel@gmail.com"
-set__color( 14,0)
-Print text
-Sleep
-If gamerunning=1 Then
-    If attempts=0 Then
-        Print "Trying to save game"
-        savegame(1)
-        attempts=26
-    Else
-        Print "Failed to save game."
-    EndIf
-EndIf
-Print "key to exit"
-Sleep
+' error handling
+
+Dim as Short ErrorNr
+Dim as Short ErrorLn
+Dim as String ErrText
+
+Function log_error(text as string) As Short
+	Dim As integer f
+	dim as string logfile
+	if gamerunning then 
+		logfile= "savegames/" & player.desig & "-"
+	else 
+		logfile= ""
+	EndIf
+	
+	f=Freefile
+	if Open(logfile & "error.log", For Append, As #f)=0 then
+		if LOF(f)>32*1024 then
+			Close #f	' its getting stupidly large
+			f=Freefile	' get a new handle and rewrite it
+			if Open("error.log", For Output, As #f)<>0 then
+				return -1
+			EndIf
+	 	EndIf
+		Print #f, date + " " + time + " " + __VERSION__  + " " + text
+		Close #f
+		return 0
+	Endif
+	
+	return -1
+End Function
+
+Function error_handler(text as string) As Short
+	dim as string logfile
+	log_error(text)
+	'
+	Screenset 1,1
+	Cls
+	Locate 10,10
+	set__color( 14,0)
+	Print text
+	Locate 12,10
+	set__color( 12,0)
+	If gamerunning=1 Then
+		logfile= "savegames/" & player.desig 
+		Print "Please send " & logfile & "-crash.sav and " & logfile & "-error.log to matthias mennel."
+	else
+		Print "Please send error.log to matthias mennel."
+	endif
+	Locate 13,10
+	Print "The email address is: matthias.mennel@gmail.com"
+	set__color( 14,0)
+	'
+	If gamerunning=1 Then
+		Locate 15,0
+     	if savegame(1)<0 then
+			text= "Failed to save the crashed game."
+			log_error(text)
+      	Print text
+	   EndIf
+	EndIf
+	'
+	'goto WAITANDEXIT
+	return 0
+End Function
+
+function stripFileExtension(text as string, delim as string=".") As String 
+	dim as Integer i = Instrrev(text,delim)
+	if i=0 then return text
+	return left(text,i-1)
+End Function
+
+function lastword(text as string, delim as string, capacity as short=29) As String
+	Dim As String w(capacity)
+	return w(string_towords(w(),text,delim))
+End Function
+
+#if __FB_DEBUG__
+Function log_warning(aFile as string, aFunct as string, iLine as short, text as string) as Short
+	aFile= ucase(stripFileExtension(lastword(aFile,"\")))
+	return not log_error( "Warning! "+aFile+":"+aFunct +" line " & iLine & ": "+text)
+End Function
+#endif
+
+ERRORMESSAGE:
+	On Error goto 0
+	ErrorNr= Err
+	ErrorLn= Erl
+	ErrText= ucase(stripFileExtension(lastword(*ERMN(),"\")))
+	ErrText= ErrText &":" &*ERFN() &" reporting Error #" &ErrorNr &" at line " &ErrorLn &"!"  
+
+	Error_Handler(ErrText)
+WAITANDEXIT:
+	Print
+	Print
+	set__color( 12,0)
+	Print "Press any key to exit"
+	do while inkey<>"" 
+		loop
+	Sleep
+	End ErrorNr

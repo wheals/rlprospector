@@ -441,7 +441,7 @@ function movepoint(byval c as _cords, a as short, eo as short=0, border as short
     return c
 end function
 
-function make_vismask(c as _cords, sight as short,m as short) as short
+function make_vismask(c as _cords, sight as short,m as short,ad as short=0) as short
     dim as short illu
     dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
     dim as byte mask
@@ -455,12 +455,14 @@ function make_vismask(c as _cords, sight as short,m as short) as short
         mx=sm_x
         my=sm_y
     endif
-'    
-    for x=0 to mx
-        for y=0 to my
-            vismask(x,y)=-1
+    if ad=0 then
+        for x=0 to mx
+            for y=0 to my
+                vismask(x,y)=-1
+            next
         next
-    next
+    endif
+    
     for x=c.x-12 to c.x+12 
         for y=c.y-12 to c.y+12 
             if x=c.x-12 or x=c.x+12 or y=c.y-12 or y=c.y+12 then

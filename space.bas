@@ -374,7 +374,8 @@ function add_stars() as short
 end function
 
 function add_wormholes() as short
-    dim as short a,i,last,x,y,ano,qux1,quy1,qux2,quy2,highest
+    dim as short a,i,last,x,y,ano,qux1,quy1,qux2,quy2,highest,qdivx,qdivy
+    
     dim quadrant(2,2) as byte
     if _debug>0 then dprint "W:"&wormhole
     for a=laststar+1 to laststar+wormhole-1 step 2
@@ -1665,100 +1666,15 @@ function make_civilisation(slot as short,m as short) as short
     civ(slot).ship(0).st=st_civ1+slot
     civ(slot).ship(1).st=st_civ1+slot
     piratenames(st_civ1+slot)=civ(slot).n &" ship"
+    
+    civ_adapt_tiles(slot)
+    
     for a=0 to 6
         if rnd_range(1,100)<66 then
             civ(slot).culture(a)=rnd_range(1,5+civ(slot).aggr+civ(slot).phil)
             if civ(slot).culture(a)>6 then civ(slot).culture(a)=6
         endif
     next
-        
-    tiles(272+slot).no=272+slot
-    tiles(272+slot).tile=64 
-    tiles(272+slot).col=civ(slot).spec.col
-    tiles(272+slot).bgcol=0
-    tiles(272+slot).desc=add_a_or_an(civ(slot).n,1) &" spaceship."
-    tiles(272+slot).seetru=1
-    tiles(272+slot).hides=2
-    
-    if rnd_range(1,100)<55 then
-        tiles(274+slot).tile=asc("#") 
-        tiles(274+slot).col=17
-    else
-        tiles(274+slot).tile=asc("O") 
-        tiles(274+slot).col=137
-    endif
-    tiles(274+slot).bgcol=0
-    tiles(274+slot).desc=add_a_or_an(civ(slot).n,1) &" building."
-    tiles(274+slot).seetru=1
-    tiles(274+slot).hides=2
-    
-    tiles(276+slot).tile=tiles(274+slot).tile
-    tiles(276+slot).col=tiles(274+slot).col+2
-    tiles(276+slot).seetru=1
-    tiles(276+slot).gives=301+slot
-    tiles(276+slot).hides=2
-    tiles(276+slot).turnsinto=276+slot
-    
-    tiles(278+slot).tile=tiles(274+slot).tile
-    tiles(278+slot).col=tiles(274+slot).col+3
-    tiles(278+slot).seetru=1
-    tiles(278+slot).gives=311+slot
-    tiles(278+slot).hides=2
-    tiles(278+slot).turnsinto=278+slot
-    
-    tiles(280+slot).tile=tiles(274+slot).tile
-    tiles(280+slot).col=tiles(274+slot).col+3
-    tiles(280+slot).seetru=1
-    tiles(280+slot).gives=321+slot
-    tiles(280+slot).hides=2
-    tiles(280+slot).turnsinto=280+slot
-    
-    tiles(282)=tiles(280)
-    tiles(282).gives=330
-    tiles(282).turnsinto=282
-    
-    
-    tiles(283+slot).tile=64 
-    tiles(283+slot).col=civ(slot).spec.col
-    tiles(283+slot).bgcol=0
-    tiles(283+slot).desc="An alien scoutship"
-    tiles(283+slot).seetru=1
-    tiles(283+slot).walktru=0
-    tiles(283+slot).firetru=1
-    tiles(283+slot).shootable=1
-    tiles(283+slot).locked=3
-    tiles(283+slot).spawnson=100
-    tiles(283+slot).spawnswhat=81+slot
-    tiles(283+slot).spawnsmax=1
-    tiles(283+slot).spawnblock=1
-    tiles(283+slot).turnsinto=62
-    tiles(283+slot).dr=2
-    tiles(283+slot).hp=25
-    tiles(283+slot).succt="It is slightly dented now"
-    tiles(283+slot).failt="Your handwapons arent powerful enough to damage a spaceship"
-    tiles(283+slot).killt="That will teach them a lesson!"
-    tiles(283+slot).hides=2
-    
-    if slot=0 then
-        if civ(slot).phil=1 then specialplanettext(7,0)="A planet with many small, modern structures dotting the landscape"
-        if civ(slot).phil=2 then specialplanettext(7,0)="A planet with several medium to large cities distributed on the surface"
-        if civ(slot).phil=3 then specialplanettext(7,0)="A planet with a huge, dominating megacity"
-        specialplanettext(7,1)="The homeworld of the "&civ(slot).n
-        if civ(slot).culture(4)=5 then 
-            specialplanettext(7,0)=specialplanettext(7,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
-            specialplanettext(7,1)=specialplanettext(7,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
-        endif
-    endif
-    if slot=1 then
-        if civ(slot).phil=1 then specialplanettext(46,0)="A planet with many small, modern structures dotting the landscape"
-        if civ(slot).phil=2 then specialplanettext(46,0)="A planet with several medium to large cities distributed on the surface"
-        if civ(slot).phil=3 then specialplanettext(46,0)="A planet with a huge, dominating megacity"
-        specialplanettext(46,1)="The homeworld of the "&civ(slot).n
-        if civ(slot).culture(4)=5 then 
-            specialplanettext(46,0)=specialplanettext(46,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
-            specialplanettext(46,1)=specialplanettext(46,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
-        endif
-    endif
     if civ(slot).culture(3)=5 then 'Tamed robots
         planets(m).mon_template(2)=makemonster(8,m)
         planets(m).mon_template(2).faction=1+slot
@@ -1885,6 +1801,98 @@ function make_civilisation(slot as short,m as short) as short
     endif
     if slot=1 then 
         spdescr(46)="The homeworld of the "&civ(1).n
+    endif
+    return 0
+end function
+
+function civ_adapt_tiles(slot as short) as short
+        
+    tiles(272+slot).no=272+slot
+    tiles(272+slot).tile=64 
+    tiles(272+slot).col=civ(slot).spec.col
+    tiles(272+slot).bgcol=0
+    tiles(272+slot).desc=add_a_or_an(civ(slot).n,1) &" spaceship."
+    tiles(272+slot).seetru=1
+    tiles(272+slot).hides=2
+    
+    if rnd_range(1,100)<55 then
+        tiles(274+slot).tile=asc("#") 
+        tiles(274+slot).col=17
+    else
+        tiles(274+slot).tile=asc("O") 
+        tiles(274+slot).col=137
+    endif
+    tiles(274+slot).bgcol=0
+    tiles(274+slot).desc=add_a_or_an(civ(slot).n,1) &" building."
+    tiles(274+slot).seetru=1
+    tiles(274+slot).hides=2
+    
+    tiles(276+slot).tile=tiles(274+slot).tile
+    tiles(276+slot).col=tiles(274+slot).col+2
+    tiles(276+slot).seetru=1
+    tiles(276+slot).gives=301+slot
+    tiles(276+slot).hides=2
+    tiles(276+slot).turnsinto=276+slot
+    
+    tiles(278+slot).tile=tiles(274+slot).tile
+    tiles(278+slot).col=tiles(274+slot).col+3
+    tiles(278+slot).seetru=1
+    tiles(278+slot).gives=311+slot
+    tiles(278+slot).hides=2
+    tiles(278+slot).turnsinto=278+slot
+    
+    tiles(280+slot).tile=tiles(274+slot).tile
+    tiles(280+slot).col=tiles(274+slot).col+3
+    tiles(280+slot).seetru=1
+    tiles(280+slot).gives=321+slot
+    tiles(280+slot).hides=2
+    tiles(280+slot).turnsinto=280+slot
+    
+    tiles(282)=tiles(280)
+    tiles(282).gives=330
+    tiles(282).turnsinto=282
+    
+    
+    tiles(283+slot).tile=64 
+    tiles(283+slot).col=civ(slot).spec.col
+    tiles(283+slot).bgcol=0
+    tiles(283+slot).desc="An alien scoutship"
+    tiles(283+slot).seetru=1
+    tiles(283+slot).walktru=0
+    tiles(283+slot).firetru=1
+    tiles(283+slot).shootable=1
+    tiles(283+slot).locked=3
+    tiles(283+slot).spawnson=100
+    tiles(283+slot).spawnswhat=81+slot
+    tiles(283+slot).spawnsmax=1
+    tiles(283+slot).spawnblock=1
+    tiles(283+slot).turnsinto=62
+    tiles(283+slot).dr=2
+    tiles(283+slot).hp=25
+    tiles(283+slot).succt="It is slightly dented now"
+    tiles(283+slot).failt="Your handwapons arent powerful enough to damage a spaceship"
+    tiles(283+slot).killt="That will teach them a lesson!"
+    tiles(283+slot).hides=2
+    
+    if slot=0 then
+        if civ(slot).phil=1 then specialplanettext(7,0)="A planet with many small, modern structures dotting the landscape"
+        if civ(slot).phil=2 then specialplanettext(7,0)="A planet with several medium to large cities distributed on the surface"
+        if civ(slot).phil=3 then specialplanettext(7,0)="A planet with a huge, dominating megacity"
+        specialplanettext(7,1)="The homeworld of the "&civ(slot).n
+        if civ(slot).culture(4)=5 then 
+            specialplanettext(7,0)=specialplanettext(7,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
+            specialplanettext(7,1)=specialplanettext(7,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!"
+        endif
+    endif
+    if slot=1 then
+        if civ(slot).phil=1 then specialplanettext(46,0)="A planet with many small, modern structures dotting the landscape"
+        if civ(slot).phil=2 then specialplanettext(46,0)="A planet with several medium to large cities distributed on the surface"
+        if civ(slot).phil=3 then specialplanettext(46,0)="A planet with a huge, dominating megacity"
+        specialplanettext(46,1)="The homeworld of the "&civ(slot).n
+        if civ(slot).culture(4)=5 then 
+            specialplanettext(46,0)=specialplanettext(46,0) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
+            specialplanettext(46,1)=specialplanettext(46,1) &". In its orbit you discover a spacestation, connected to the ground by a gargantuan cable. A space lift!" 
+        endif
     endif
     return 0
 end function

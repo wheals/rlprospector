@@ -145,7 +145,7 @@ function _patrolquest.generate(p as short,maxdis as short,danger as short) as sh
             else
                 r=piratebase(rnd_range(0,2))
                 if r>0 then
-                    cord(i)=map(r).c
+                    cord(i)=map(sysfrommap(r)).c
                 else
                     do
                         cord(i).x=rnd_range(0,sm_x)

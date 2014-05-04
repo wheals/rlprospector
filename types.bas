@@ -332,6 +332,7 @@ Type _items
     desigp As String*64
     ldesc As String*255
     price As Integer
+    declare function describe() as string
     ty As Short
     v1 As Single
     v2 As Single
@@ -342,6 +343,35 @@ Type _items
     vt As _cords'rover target
     res As UByte
 End Type
+
+function _items.describe() as string
+    dim t as string
+    select case ty
+    case 1
+        return ldesc &"||Capacity:"&v2 &" passengers."
+    case 2,4
+        t=ldesc &"|"
+        if v1>0 then t=t & "|Damage: "&v1
+        if v3>0 then t=t & "|Accuracy: "&v3
+        if v2>0 then t=t & "|Range: "&v2
+        return t
+    case 3,103
+        t=ldesc
+        if v4>0 then t=t &"| !This suit is damaged! |"
+        t=t &"||Armor: "&v1 &"|Oxygen: "&v3
+        if v2>0 then t=t &"|Camo rating "&v2
+        return t
+    case 18
+        t=ldesc
+        t=t &"||Sensor range: "&v1 &"|Speed: "&v4
+        return t
+    case 56
+        t=ldesc &"||HP:"&v1 &"|Volume:"&v3
+    case else
+        return ldesc
+    end select
+end function
+
 
 Type _weap
     desig As String*30
@@ -568,11 +598,14 @@ Type _monster
     light As UByte 'Lightsource
     dark As UByte
     sight As Single
-    biomod As Single
+    union
+        leak as single
+        biomod As Single
+    end union
     stunres As Byte
     union
-    diet As Byte
-    optoxy as byte
+        diet As Byte
+        optoxy as byte
     end union
     tasty As Byte
     pretty As Byte
@@ -1937,6 +1970,7 @@ Declare Function change_armor(st As Short) As Short
 Declare Function urn(min As Short, max As Short,mult As Short,bonus As Short) As Short
 Declare Function rarest_good() As Short
 Declare Function display_stock() As Short
+declare function repair_spacesuits(v as short=-1) as short
 
 declare function gets_entry(x as short,y as short, slot as short) as short
 Declare Function ep_friendfoe(i As Short,j As Short) As Short
@@ -1990,6 +2024,7 @@ Declare Function addmoney(amount As Integer,mt As Byte) As Short
 Declare Function count_and_make_weapons(st As Short) As Short
 
 Declare Function income_expenses() As String
+declare function civ_adapt_tiles(slot as short) as short
 
 Declare Function teleport(awaytam As _cords, map As Short) As _cords
 Declare Function move_monster(i As short, target As _cords,towards as byte,rollover as byte,mapmask() As Byte) As short
@@ -2099,7 +2134,7 @@ Declare Function hpdisplay(a As _monster) As Short
 Declare Function infect(a As Short, dis As Short) As Short
 Declare Function diseaserun(a As Short) As Short
 Declare Function settactics() As Short
-Declare Function make_vismask(c As _cords,sight As Short,m As Short) As Short
+Declare Function make_vismask(c As _cords,sight As Short,m As Short,ad as short=0) As Short
 Declare Function vis_test(a As _cords,p As _cords,Test As Short) As Short
 Declare Function ap_astar(start As _cords,ende As _cords,diff As Short) As Short
 Declare Function has_questguy_want(i As Short,ByRef t As Short) As Short
@@ -2651,14 +2686,17 @@ function _index.remove(v as short, c as _cords) as short
             vlast-=1
             vindex(c.x,c.y,j)=vindex(c.x,c.y,last(c.x,c.y))
             last(c.x,c.y)-=1
+            exit for
         endif
     next
     return 0
 end function
 
 function _index.move(v as short,oc as _cords,nc as _cords) as short
+    if _debug>0 then dprint last(oc.x,oc.y) &":"&last(nc.x,nc.y)
     remove(v,oc)
     add(v,nc)
+    if _debug>0 then dprint last(oc.x,oc.y) &":"&last(nc.x,nc.y)
     return 0
 end function
 

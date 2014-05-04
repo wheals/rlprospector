@@ -24,10 +24,18 @@ function skill_test(bonus as short,targetnumber as short,echo as string="") as s
     dim as short roll
     roll=rnd_range(1,20)
     if roll+bonus>=targetnumber then
-        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Success.",c_gre
+            if echo<>"" and configflag(con_showrolls)=0 then 
+                if bonus>0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Success.",c_gre
+                if bonus=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &": Success.",c_gre
+                if bonus<0 then dprint echo &" needed "& targetnumber &", rolled "&roll & bonus &": Success.",c_gre
+            endif
         return -1
     else
-        if echo<>"" and configflag(con_showrolls)=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Failure.",c_red
+        if echo<>"" and configflag(con_showrolls)=0 then 
+            if bonus>0 then dprint echo &" needed "& targetnumber &", rolled "&roll &"+"& bonus &": Failure.",c_red
+            if bonus<0 then dprint echo &" needed "& targetnumber &", rolled "&roll & bonus &": Failure.",c_red
+            if bonus=0 then dprint echo &" needed "& targetnumber &", rolled "&roll &": Failure.",c_red
+        endif
         return 0
     end if
 end function
@@ -313,7 +321,7 @@ end function
 
 function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     dim text as string
-    dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus
+    dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus,suitdamage
     dim as short local_debug=0
     dim target(128) as short
     dim stored(128) as short
@@ -389,6 +397,13 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
                 else
                     armeff+=1
                 endif
+                if crew(target(t)).armo>0 then
+                    if item(crew(target(t)).armo).ti_no<2019 then 
+                        if item(crew(target(t)).armo).v4=0 then item(crew(target(t)).armo).id+=2000
+                        item(crew(target(t)).armo).v4+=1
+                        suitdamage+=1
+                    endif
+                endif
             endif
         endif
         last=0
@@ -436,7 +451,8 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
             changemoral(-3*killed(b),0)
         endif
     next
-
+    if suitdamage>0 then text=text &suitdamage &" damage to spacesuits."
+    awayteam.leak+=suitdamage
     #ifdef _FMODSOUND
     if configflag(con_damscream)=0 then
         FSOUND_PlaySound(FSOUND_FREE, sound(12))
@@ -457,6 +473,27 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     endif
     if local_debug=1 then text=text & " Out:"&dam
     return trim(text)
+end function
+
+function repair_spacesuits(v as short=-1) as short
+    dim as short b,i,c
+    for b=1 to 128
+        if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
+            if crew(b).armo>0 then
+                i=crew(b).armo
+                if (v=-1 or v>0) and item(i).v4>0 then 
+                    awayteam.leak-=item(i).v4
+                    item(i).v4=0
+                    item(i).id-=2000
+                    if v>0 then v-=1
+                    c+=1
+                endif
+            endif
+        endif
+    next
+    if c=1 then dprint "Repaired a spacesuit."
+    if c>1 then dprint "Repaired " &c & " spacesuits."
+    return 0
 end function
 
 function gain_talent(slot as short,talent as short=0) as string
@@ -776,9 +813,9 @@ function add_member(a as short,skill as short) as short
                 rask=22
                 changeap=23
                 if player.h_no=2 then
-                    turret=23
-                    rask=24
-                    changeap=25
+                    turret=22
+                    rask=23
+                    changeap=24                    
                     text=text &"/Additional module(3 pts.)"
                     help=help &"/Pay 3 pts for a module for your fighter ship."
                 endif
@@ -865,6 +902,7 @@ function add_member(a as short,skill as short) as short
                         dprint "Your ship is in need of repair and servicing"
                     endif
                 case turret
+                    
                     if cat>=3 then
                         player.weapons(2)=starting_turret
                         if player.weapons(2).made<>0 then cat-=3

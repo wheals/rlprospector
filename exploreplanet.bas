@@ -264,6 +264,9 @@ Function ep_atship() As Short
                 EndIf
             EndIf
         Next
+        if awayteam.leak>0 then 
+            repair_spacesuits()
+        endif
         check_tasty_pretty_cargo
         alerts()
         Return 0
@@ -627,22 +630,12 @@ Function ep_display(osx As Short=555) As Short
     
     For a=1 To itemindex.vlast'Cant use index because unseen grenades burn out too
         If item(itemindex.value(a)).ty=7 And item(itemindex.value(a)).v2=1 Then 'flash grenade
-            item(itemindex.value(a)).v1-=1
+            item(itemindex.value(a)).v3-=1
             p2=item(itemindex.value(a)).w
 
             If item(itemindex.value(a)).v3>0 Then
                 If vismask(p2.x,p2.y)>0 Then
-                    For x=item(itemindex.value(a)).w.x-8 To item(itemindex.value(a)).w.x+8
-                        For y=item(itemindex.value(a)).w.y-8 To item(itemindex.value(a)).w.y+8
-                            p1.x=x
-                            p1.y=y
-                            If x>=0 And x<=60 And y>=0 And y<=20 Then
-                                If distance(p1,p2)<=item(itemindex.value(a)).v3/10 And tmap(x,y).seetru=0 Then
-                                    If x>=0 And y>=0 And x<=60 And y<=20 Then vismask(x,y)=1
-                                EndIf
-                            EndIf
-                        Next
-                    Next
+                    make_vismask(item(itemindex.value(a)).w,item(itemindex.value(a)).v3/10,slot,1)
                 EndIf
             Else
                 'Burnt out, destroy
@@ -650,6 +643,9 @@ Function ep_display(osx As Short=555) As Short
                 itemindex.remove(itemindex.value(a),item(itemindex.value(a)).w)
             EndIf
         EndIf
+        If item(itemindex.value(a)).ty=18 And item(itemindex.value(a)).discovered=1 And item(itemindex.value(a)).w.p=0 And item(itemindex.value(a)).w.s>=0  And item(itemindex.value(a)).v5=0 Then 'Rover
+            make_vismask(item(itemindex.value(a)).w,item(itemindex.value(a)).v1+3,slot,1)
+        endif
     Next
         
     For x=0 To _mwx
@@ -1166,9 +1162,9 @@ Function ep_items(localturn As Short) As Short
             EndIf
 
             If item(itemindex.value(a)).ty=18 And item(itemindex.value(a)).discovered=1 And item(itemindex.value(a)).w.p=0 And item(itemindex.value(a)).w.s>=0  And item(itemindex.value(a)).v5=0 Then 'Rover
-                
-                ep_rovermove(itemindex.value(a),slot)
-
+                for i=1 to 10
+                    ep_rovermove(itemindex.value(a),slot)
+                next
             EndIf
 
 
@@ -1415,6 +1411,10 @@ Function ep_planeteffect(shipfire() As _shipfire, ByRef sf As Single,lavapoint()
                 item(a).res=item(a).res-25
                 If item(a).res>=0 Then
                     dprint "Your "&item(a).desig &" starts to corrode.",14
+                    if (item(a).ty=3 or item(a).ty=103) and item(a).ti_no<2019 then 
+                        item(a).v4+=1
+                        awayteam.leak+=1
+                    endif
                 Else
                     dprint "Your "&item(a).desig &" corrodes and is no longer usable.",14
                     destroyitem(a)
@@ -1469,6 +1469,7 @@ Function ep_pickupitem(Key As String) As Short
                     item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).w.p=-0
                 EndIf
                 If item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).ty=18 Then
+                    item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).v5=0
                     text=text &" You transfer the map data from the rover robot ("&Fix(item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).v6) &"). "
                     reward(0)=reward(0)+item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).v6
                     reward(7)=reward(7)+item(itemindex.index(awayteam.c.x,awayteam.c.y,a)).v6
@@ -2513,7 +2514,7 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, shipf
                 b=menu(bg_awayteamtxt,mtext,"",2,2)
                 if b>0 then b=roverlist(b)
             endif
-            if c=1 then b=roverlist(b)
+            if c=1 then b=roverlist(1)
             If b>0 Then
                 If Instr(text,"STOP")>0 Then
                     dprint "Sending stop command to rover"
@@ -2714,7 +2715,7 @@ Function ep_roverreveal(i As Integer) As Short
             If vismask(x,y)>0 And planetmap(x,y,slot)<0 Then
                 If _Debug>0 Then debug+=1
                 planetmap(x,y,slot)=planetmap(x,y,slot)*-1
-                item(i).v6=item(i).v6+0.5*item(i).v3*planets(slot).mapmod
+                item(i).v6=item(i).v6+0.5*(item(i).v1/3)*planets(slot).mapmod
                 if itemindex.last(x,y)>0 then
                     for j=1 to itemindex.last(x,y)
                         item(itemindex.index(x,y,j)).discovered=1
@@ -2728,39 +2729,44 @@ End Function
 
 function ep_rovermove(a as short, slot as short) as short
     dim as _cords p1,route(1024)
-    dim as short i,curr,last               
+    dim as short i,cost,last               
     p1.x=item(a).w.x
     p1.y=item(a).w.y
-    
-    For i=1 To item(a).v4
-        curr+=1
+    if item(a).v3<=0 then
         If item(a).vt.x=-1 Then
-            If curr>=last Then
-                last=ep_autoexploreroute(route(),p1,item(a).v2,slot,1)
-                curr=1
-                
-                if last=-1 then exit for
-            EndIf
+            last=ep_autoexploreroute(route(),p1,item(a).v2,slot,1)
+            if _debug>0 then dprint "last:"&last
+            if last=-1 then return 0
+            item(a).vt=route(last)
         Else
             If item(a).w.x=item(a).vt.x And item(a).w.y=item(a).vt.y Then 
                 item(a).vt.x=-1
-                item(a).v5=1
                 return 0
             else
-                If curr>=last Then
-                    last=ep_planetroute(route(),item(a).v2,p1,item(a).vt,planets(slot).depth)
-                    curr=1
-                EndIf
+                last=ep_planetroute(route(),item(a).v2,p1,item(a).vt,planets(slot).depth)
             endif
         EndIf
-        If last>0 and curr<=last Then
-            itemindex.move(a,item(a).w,route(curr))
-            item(a).w.x=route(curr).x
-            item(a).w.y=route(curr).y
+        If last>1 Then
+            itemindex.move(a,item(a).w,route(2))
+            item(a).w.x=route(2).x
+            item(a).w.y=route(2).y
         EndIf
+        if last=1 then
+            itemindex.move(a,item(a).w,route(1))
+            item(a).w.x=route(1).x
+            item(a).w.y=route(1).y
+        endif
+        ep_roverreveal(a)
         
-        ep_roverreveal(itemindex.value(a))
-    Next
+        cost=(20-item(a).v4)*planets(slot).grav
+        cost+=tmap(item(a).w.x,item(a).w.y).movecost
+        if cost<=0 then cost=1
+        item(a).v3+=cost
+    else
+        item(a).v3-=1
+        if item(a).v3<0 then item(a).v3=0
+        if _debug>0 then dprint "V6"&item(a).v3
+    endif
     return 0
 end function
 

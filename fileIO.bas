@@ -2144,7 +2144,7 @@ function getfilename() as string
             for j=0 to lastartifact
                 if artflags(j)=1 then ca+=1
             next
-            text=text &"/" & b &d &"("&datestring &")"
+            text=text &"/" & b &d &"(" &datestring &")"
             if ll>20 then
                 help=help &"/ Discovered " & ll &" unique planets"
             else
@@ -2309,7 +2309,7 @@ function savegame(crash as short=0) as short
     make_unflags(unflags())
     cl=player.h_sdesc
     names=player.desig
-    desig="("&cl &", "&credits(player.money) &" Cr, T:" &player.turn &")"
+    desig="("&cl &", "&credits(player.money) &" Cr, T:" &display_time(player.turn,2) &")"
     datestring=date_string
     cls
     back=99

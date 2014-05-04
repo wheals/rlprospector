@@ -1076,7 +1076,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.bgcol=0
         i.v1=13
         i.price=1575
-        i.res=45
+        i.res=65
     endif
     
     
@@ -1656,8 +1656,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=192
         i.v1=2
         i.v2=1
-        i.v3=.5
-        i.v4=2'Speed
+        i.v4=12'Speed
         i.vt.x=-1
         i.vt.y=-1
         i.price=200
@@ -1675,8 +1674,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=204
         i.v1=3
         i.v2=2
-        i.v3=.7
-        i.v4=3
+        i.v4=16
         i.vt.x=-1
         i.vt.y=-1
         i.price=400
@@ -1694,8 +1692,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.col=14
         i.v1=4
         i.v2=3
-        i.v3=1
-        i.v4=4
+        i.v4=18
         i.vt.x=-1
         i.vt.y=-1
         i.price=600
@@ -3168,7 +3165,6 @@ function modify_item(i as _items,nomod as byte) as _items
             endif
         endif
         endif
-        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
     
     if i.id>=13 and i.id<=21 then
@@ -3202,7 +3198,6 @@ function modify_item(i as _items,nomod as byte) as _items
                 i.price=i.price*1.25
             endif
         endif
-        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
     
     if i.ty=3 or i.ty=103 then
@@ -3210,7 +3205,6 @@ function modify_item(i as _items,nomod as byte) as _items
             i.v3=i.v3*1.1
             i.price=i.price*1.1
         endif
-        i.ldesc=i.ldesc &"|Oxygen: "&i.v3
     endif
     
     if i.id>=3 and i.id<=11 then
@@ -3260,7 +3254,6 @@ function modify_item(i as _items,nomod as byte) as _items
                 i.price=i.price*1.25
             endif
         endif
-        i.ldesc=i.ldesc &"  | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     endif
     
     if i.id=1 then
@@ -3347,7 +3340,6 @@ function modify_item(i as _items,nomod as byte) as _items
                 i.price=i.price*1.25
             endif
         endif
-        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1
     endif
     
     if i.id=49 then 'tanks
@@ -3399,7 +3391,6 @@ function modify_item(i as _items,nomod as byte) as _items
                 endif
             endif
         endif
-        i.ldesc=i.ldesc &" | | Accuracy: "&i.v3 &" | Damage: "&i.v1 &" | Range:"&i.v2
     
     endif
     if i.id=98 or i.id=523 then 
@@ -3420,8 +3411,26 @@ function modify_item(i as _items,nomod as byte) as _items
                 endif
             endif
         endif
-        i.ldesc=i.ldesc &" | | Armor Value: "&i.v1
     endif
+    
+    if i.ty=18 then
+        if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
+            if rnd_range(1,100)<50+player.turn/rate then
+                i.desig="fast "&i.desig
+                i.desigp="fast "&i.desigp
+                i.v4+=1
+                i.id+=600
+                i.price=i.price*1.2
+            else
+                i.desig="slow "&i.desig
+                i.desigp="slow "&i.desigp
+                i.v4-=1
+                i.id+=610
+                i.price=i.price*0.8
+            endif
+        endif
+    endif
+    
     return i
 end function
 
@@ -3824,7 +3833,7 @@ function get_item(ty as short=0,ty2 as short=0,byref num as short=0,noequ as sho
     endif
     do
         display_item_list(inv(),invn(),marked,last,2,2)
-        helptext=inv(marked).ldesc
+        helptext=inv(marked).describe
         if inv(marked).ty=26 then helptext=helptext & caged_monster_text
         c=textbox(helptext,22,2,25,11,1)
         key=keyin(key_north &key_south)
@@ -4171,8 +4180,9 @@ end function
 
 
 function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
-    dim as single a,b,r
+    dim as single a,b,r,v
     r=-1
+    if awayteam.optoxy=1 and t=3 then b=999
     for a=1 to lastitem
         if p<>0 then
             if (item(a).w.s=p and item(a).ty=t) then
@@ -4183,10 +4193,19 @@ function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
                     endif
                 endif
                 if id<>0 and item(a).ty=id then return a
-                if t=3 and awayteam.optoxy=1 then
-                    if item(a).v3>b then
-                        r=a
-                        b=item(a).v3
+                if t=3 then 
+                    if awayteam.optoxy=1 then
+                        v=item(a).v3*0,9*item(a).v1^2*2+item(a).v1/2
+                        if v<b then
+                            r=a
+                            b=v
+                        endif
+                    endif
+                    if awayteam.optoxy=2 then
+                        if item(a).v3>b then
+                            r=a
+                            b=item(a).v3
+                        endif
                     endif
                 endif
             endif

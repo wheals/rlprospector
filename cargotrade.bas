@@ -3693,7 +3693,7 @@ function shop(sh as short,pmod as single,shopn as string) as short
         
     for a=1 to c-1
         t=t &"/" &inv(a).desig & space(_swidth-len(trim(inv(a).desig))-len(credits(inv(a).price*pmod))) & credits(int(inv(a).price*pmod)) &" Cr." 
-        desc=desc &"/"&inv(a).ldesc
+        desc=desc &"/"&inv(a).describe
         b=b+1
     next
     if sh<=3 then

@@ -765,6 +765,7 @@ function display_stars(bg as short=0) as short
         if x>=0 and y>=0 and x<=_mwx and y<=20 then
             if configflag(con_tiles)=0 then
                put ((x)*_fw1,(y)*_fh1),gtiles(gt_no(2117+probe(a).p)),trans
+                if _debug>0 then draw string((x)*_fw1,(y)*_fh1),"m:"&probe(a).m &"v5:"&item(probe(a).m).v5 &"z"&probe(a).z
             else
                 set__color( _shipcolor,0)
                 draw string (x*_fw1,y*_fh1),"s",,Font1,custom,@_col
@@ -1348,6 +1349,7 @@ function display_monsters(osx as short) as short
     for a=1 to lastenemy
         if enemy(a).ti_no=-1 then enemy(a).ti_no=rnd_range(0,8)+1500 'Assign sprite range
         if enemy(a).hp>0 then
+            if _debug>0 then dprint cords(p)
             p=enemy(a).c
             if comstr.comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then
                 comstr.t=comstr.t & key_co &" Chat, " & key_of &" Offer;"
