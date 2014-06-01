@@ -1403,7 +1403,7 @@ function has_questguy_want(i as short,byref t as short) as short
                             next
                         endif
                         if questguy(i).want.type=qt_locofgarden then
-                            if isgardenworld(map(a).planets(b))=-1 then
+                            if is_gardenworld(map(a).planets(b))=-1 then
                                 t=qt_locofgarden
                                 return map(a).planets(b)
                             endif
@@ -2194,7 +2194,7 @@ function dirdesc(f as _cords,t as _cords) as string
     return d
 end function
   
-function communicate(e as _monster,mapslot as short,monslot as short) as short
+function communicate(byref e as _monster,mapslot as short,monslot as short) as short
     dim as short roll,a,b
     dim as byte c,o
     dim as string t

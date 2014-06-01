@@ -866,6 +866,16 @@ function load_tiles() as short
         a+=1
         n+=1
     next
+    cls
+    bload "graphics/brokenships.bmp"
+    x=0
+    for y=0 to _tiy*16 step _tiy
+        gtiles(a)=imagecreate(_tix,_tiy)
+        get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
+        gt_no(n)=a
+        a+=1
+        n+=1
+    next
 
     bload "graphics/missing.bmp"
     gtiles(2048)=imagecreate(_tix,_tiy)
@@ -2222,7 +2232,7 @@ function load_bones() as short
             do
                 sys=get_random_system
                 m=getrandomplanet(sys)
-            loop until m>0 and isgasgiant(m)=0 and is_special(m)=0
+            loop until m>0 and is_gasgiant(m)=0 and is_special(m)=0
             BonesFlag=m
             for x=0 to 60
                 for y=0 to 20
@@ -2532,7 +2542,9 @@ function savegame(crash as short=0) as short
     put #f,,foundsomething
 
     put #f,,civ()
-
+    
+    put #f,,battleslost()
+    
     close f
 
     'Overwrites large save file with compressed save file. but skills if file is empty
@@ -2860,7 +2872,9 @@ function load_game(filename as string) as short
         get #f,,foundsomething
 
         get #f,,civ()
-
+        
+        get #f,,battleslost()
+        
         close f
         if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then
             kill(fname)

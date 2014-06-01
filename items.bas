@@ -12,23 +12,21 @@ function make_locallist(slot as short) as short
     next
     
     portalindex.del
-    for i=0 to lastportal
-        if portal(i).dest.m=slot  and portal(i).oneway=0 then portalindex.add(i,portal(i).dest)
+    for i=1 to lastportal
+        if portal(i).dest.m=slot and portal(i).oneway=0 then portalindex.add(i,portal(i).dest)
         if portal(i).from.m=slot then portalindex.add(i,portal(i).from)
-        if portal(i).oneway=2 and portal(i).from.m=slot or portal(i).dest.m=slot then
+        if portal(i).oneway=2 and portal(i).from.m=slot then
             for x=0 to 60
                 for y=0 to 20
                     p.x=x
                     p.y=y
-                    if x=0 or y=0 or x=20 or y=20 then portalindex.add(i,p)
+                    if x=0 or y=0 or x=60 or y=20 then portalindex.add(i,p)
                 next
             next
         endif
     next
-        
     return 0
 end function
-
 
 function rnd_item(t as short) as _items
     dim i as _items
@@ -238,8 +236,10 @@ function rnd_item(t as short) as _items
         select case rnd_range(1,100)
         case 1 to 55
             i=make_item(152)
-        case 55 to 85
+        case 56 to 85
             i=make_item(22)
+        case 86 to 88
+            i=make_item(87)
         case else
             i=make_item(23)
         end select
@@ -327,6 +327,7 @@ function rnd_item(t as short) as _items
         if r=14 then i=make_item(83)
         if r=15 then i=make_item(84)
         if r=16 then i=make_item(85)
+        if r=17 then i=make_item(86)
         if r=18 then i=make_item(100)
         if r=19 then i=make_item(101)
         if r=20 then i=make_item(102)
@@ -1414,7 +1415,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.icon="'"
         i.ldesc="Most creatures fall unconcious if they eat one of these."
         i.col=13
-        i.v1=10
+        i.v1=100
         i.price=10
         i.res=5
     endif
@@ -1428,7 +1429,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.ldesc="Most creatures fall unconcious if they eat one of these."
         i.icon="'"
         i.col=13
-        i.v1=25
+        i.v1=250
         i.price=50
         i.res=10
     endif
@@ -2233,6 +2234,33 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         endif
     endif
     
+    if a=85 then
+        i.ty=51
+        i.id=151
+        i.ti_no=2122
+        i.desig="suit repair kit"
+        i.desigp="suit repair kits"
+        i.ldesc="A kit containing tools for spacesuit repair."
+        i.v1=3
+        i.col=6
+        i.icon="+"
+        i.price=25
+        if rnd_range(1,100)<10+player.turn/rate and nomod=0 then
+            if rnd_range(1,100)+player.turn/rate<50 then
+                i.desig="Small suit repair kit"
+                i.desigp="Small suit repair kits"
+                i.id+=100
+                i.v1=2
+                i.price=20
+            else
+                i.desig="Big suit repair kit"
+                i.desigp="Big suit repair kits"
+                i.id+=101
+                i.v1=5
+                i.price=40
+            endif
+        endif
+    endif
     if a=104 then
         i.ti_no=2117
         i.ty=56
@@ -4195,7 +4223,7 @@ function findbest(t as short,p as short=0, m as short=0,id as short=0) as short
                 if id<>0 and item(a).ty=id then return a
                 if t=3 then 
                     if awayteam.optoxy=1 then
-                        v=item(a).v3*0,9*item(a).v1^2*2+item(a).v1/2
+                        v=item(a).v3*0.9*item(a).v1^2*2+item(a).v1/2
                         if v<b then
                             r=a
                             b=v

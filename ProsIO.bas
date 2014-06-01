@@ -249,35 +249,36 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
     return 0
 end function
 
-function mondis(enemy as _monster) as string
+function monster_description(enemy as _monster) as string
     dim text as string
     if enemy.hp<=0 then text=text &"A dead "
     text=text &enemy.ldesc
     if enemy.hpnonlethal>enemy.hp and enemy.hp>0 then
-        text =text &". immobilized."
+        text =text &". Immobilized."
     else
         if enemy.hpmax=enemy.hp then
-            text=text &". unhurt."
+            text=text &". Unhurt."
         else
             if enemy.hp>0 then
                 if enemy.hp<2 then
-                    text=text &". badly hurt."
+                    text=text &". Badly hurt."
                 else
-                    text=text &". hurt."
+                    text=text &". Hurt."
                 endif
             endif
         endif
     endif
     if enemy.stuff(9)=0 then
-    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>9 then enemy.stuff(10)=1
-    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>10 then enemy.stuff(11)=1
-    if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>11 then enemy.stuff(12)=1
-    enemy.stuff(9)=enemy.stuff(10)+enemy.stuff(11)+enemy.stuff(12)
+        if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>9 then enemy.stuff(10)=1
+        if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>10 then enemy.stuff(11)=1
+        if rnd_range(1,6)+rnd_range(1,6)+player.science(1)>11 then enemy.stuff(12)=1
+        enemy.stuff(9)=1
     endif
     if enemy.stuff(10)=1 then text=text &" (" &enemy.hpmax &"/" &enemy.hp &")"
     if enemy.stuff(11)=1 then text=text &" W:" &enemy.weapon
     if enemy.stuff(12)=1 then text=text &" A:" &enemy.armor
-    if enemy.hp>0 and enemy.aggr=0 then text=text &" it is attacking!"
+    if enemy.hp>0 and enemy.aggr=0 and enemy.sleeping=0 and enemy.hp>enemy.hpnonlethal then text=text &" It is attacking!"
+    if enemy.sleeping>0 then text=text &" It is asleep."
     return text
 end function
 
@@ -1268,16 +1269,6 @@ function display_planetmap(slot as short,osx as short,bg as byte) as short
 
     display_portals(slot,osx)
 
-    if debug=2 and _debug=1 and lastapwp>0 then
-        for b=0 to lastapwp
-            if apwaypoints(b).x-osx>=0 and apwaypoints(b).x-osx<=_mwx then
-                set__color( 11,0)
-                draw string((apwaypoints(b).x-osx)*_tix,apwaypoints(b).y*_tiy),""& b,,Font1,custom,@_col
-
-            endif
-        next
-    endif
-
     return 0
 end function
 
@@ -1295,10 +1286,11 @@ function display_portal(b as short,slot as short,osx as short) as short
     if x<0 then x+=61
     if x>60 then x-=61
     if x>=0 and x<=_mwx then
-        if portal(b).from.m=slot and portal(b).discovered=1 and portal(b).oneway<2 then
+        if (portal(b).from.m=slot and portal(b).oneway<2) and (portal(b).discovered=1 or vismask(portal(b).from.x,portal(b).from.y)>0) then
+            portal(b).discovered=1
             if configflag(con_tiles)=0 then
                 put ((x)*_tix,portal(b).from.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
-                if debug=1 and _debug=1 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
+                if _debug>0 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
             else
                 set__color( portal(b).col,0)
                 draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
@@ -1310,7 +1302,7 @@ function display_portal(b as short,slot as short,osx as short) as short
     if x>60 then x-=61
 
     if x>=0 and x<=_mwx then
-        if portal(b).oneway=0 and portal(b).dest.m=slot and portal(b).discovered=1 then
+        if portal(b).oneway=0 and portal(b).dest.m=slot and (portal(b).discovered=1 or vismask(portal(b).dest.x,portal(b).dest.y)>0) then
             if configflag(con_tiles)=0 then
                 put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
             else
@@ -1349,7 +1341,6 @@ function display_monsters(osx as short) as short
     for a=1 to lastenemy
         if enemy(a).ti_no=-1 then enemy(a).ti_no=rnd_range(0,8)+1500 'Assign sprite range
         if enemy(a).hp>0 then
-            if _debug>0 then dprint cords(p)
             p=enemy(a).c
             if comstr.comalive=0 and awayteam.c.x>=p.x-1 and awayteam.c.x<=p.x+1 and awayteam.c.y>=p.y-1 and awayteam.c.y<=p.y+1 then
                 comstr.t=comstr.t & key_co &" Chat, " & key_of &" Offer;"
@@ -1586,7 +1577,7 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
         if map(in).planets(a)<>0 then
                 ptile=0
                 alp=255
-                if isgasgiant(map(in).planets(a))<>0 then
+                if is_gasgiant(map(in).planets(a))<>0 then
                     t="O"
                     if a<6 then
                         set__color( 162,bg)
@@ -1601,12 +1592,12 @@ function display_sysmap(x as short, y as short, in as short, hi as short=0,bl as
                         ptile=1614
                     endif
                 endif
-                if isasteroidfield(map(in).planets(a))<>0 then
+                if is_asteroidfield(map(in).planets(a))<>0 then
                     t=chr(176)
                     set__color( 7,bg)
                     ptile=1608
                 endif
-                if isasteroidfield(map(in).planets(a))=0 and isgasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then
+                if is_asteroidfield(map(in).planets(a))=0 and is_gasgiant(map(in).planets(a))=0 and map(in).planets(a)>0 then
                     t="o"
                     ptile=1609
 
@@ -1779,7 +1770,7 @@ function getplanet(sys as short,forcebar as byte=0) as short
     next
     if b>0 then
         dprint "Enter to select, arrows to move,ESC to quit"
-        if show_mapnr=1 then dprint map(sys).planets(p)&":"&isgasgiant(map(sys).planets(p))
+        if show_mapnr=1 then dprint map(sys).planets(p)&":"&is_gasgiant(map(sys).planets(p))
         do
             display_system(sys,,p)
             key=""
@@ -2245,7 +2236,7 @@ function getmonster() as short
     dim as short d,e,c
     d=0
     for c=1 to lastenemy 'find dead that doesnt respawn
-        if enemy(c).respawns=0 and enemy(c).hp<=0 then return d
+        if enemy(c).respawns=0 and enemy(c).hp<=0 then return c
     next
     if d=0 then
         lastenemy=lastenemy+1

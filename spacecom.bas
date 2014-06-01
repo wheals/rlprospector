@@ -244,8 +244,10 @@ function spacecombat(byref atts as _fleet,ter as short) as short
 
                     if key=key_fi then
                         player.e.add_action(1)
+                        e=1
                         do
-                            w=com_getweapon()
+                            
+                            w=com_getweapon(e)
                             if w>0 then 
                                 if player.weapons(w).ammomax>0 and player.tribbleinfested>0 then
                                     if rnd_range(1,player.ammo)<player.tribbleinfested then
@@ -285,10 +287,9 @@ function spacecombat(byref atts as _fleet,ter as short) as short
                             f=com_display(player, attacker(),0,e_track_p(),e_track_v(),e_map(),e_last,mines_p(),mines_v(),mines_last)
                             'dprint ""
                             flip
-
-                            key=""
+                            e=0
                         loop until t=-1 or w=0 or f=0
-
+                        key=""
                     endif
                     if key=key_ru then victory=com_flee(player,attacker())
                     if victory=1 then
@@ -1117,7 +1118,7 @@ function com_display(defender as _ship, attacker() as _ship,  marked as short, e
     return last
 end function
 
-function com_getweapon() as short
+function com_getweapon(echo as byte=1) as short
     dim as short a,c,lastslot,re,r
     static as short m,d
     if m=0 then m=1
@@ -1133,7 +1134,7 @@ function com_getweapon() as short
             if player.weapons(a).reloading>0 then re+=1
         endif
     next
-    if c=0 then
+    if c=0 and echo=1 then
         if re=0 then
             dprint "You do not have any weapons you can fire!",14
         else
@@ -1240,16 +1241,16 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
     next
     #ifdef _FMODSOUND
     if distance(target.c,attacker.c)<(attacker.sensors+2)*attacker.senac then
-        if attacker.weapons(a).ammomax>0 and ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser
-        if attacker.weapons(a).ammomax>0 and ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery
-        if attacker.weapons(a).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile
+        if attacker.weapons(w).ammomax>0 and ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(7)) 'Laser
+        if attacker.weapons(w).ammomax>0 and ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(8)) 'Missile battery
+        if attacker.weapons(w).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then FSOUND_PlaySound(FSOUND_FREE, sound(9)) 'Missile
     endif
     #endif
     #ifdef _FBSOUND
     if distance(target.c,attacker.c)<(attacker.sensors+2)*attacker.senac then
-        if attacker.weapons(a).ammomax>0 and attacker.weapons(a).ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
-        if attacker.weapons(a).ammomax>0 and attacker.weapons(a).ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
-        if attacker.weapons(a).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(9)) 'Missile
+        if attacker.weapons(w).ammomax>0 and attacker.weapons(a).ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
+        if attacker.weapons(w).ammomax>0 and attacker.weapons(a).ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
+        if attacker.weapons(w).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(9)) 'Missile
     endif
     #endif
     do

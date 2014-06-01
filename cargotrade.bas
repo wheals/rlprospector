@@ -1,7 +1,12 @@
 function update_world(location as short) as short
+    if _debug=1 then dprint "Turn:"&player.turn
+    if location=1 and player.turn mod 10<>0 then player.turn=cint(player.turn/10)*10 'Needs to be multiple of 10 for events to trigger
+    if _debug=1 then dprint "Turn:"&player.turn
+    
     dim as short a,b
     diseaserun(1)
     clearfleetlist
+    
     
     if player.turn mod 60=0 then
         if artflag(23)>0 and player.hull<player.h_maxhull then player.hull+=1
@@ -236,7 +241,7 @@ function pay_bonuses(st as short) as short
         if a<3 or a>6 then
             tarval=combon(a).base*(combon(a).rank+1)^2
             if debug=1 and _debug=1 then dprint tarval &":"& combon(a).value
-            if combon(a).value>=tarval and combon(c).rank<6 then
+            if combon(a).value>=tarval and combon(a).rank<6 then
                 combon(a).rank+=1
                 factor=(combon(a).rank^2/2)*100
                 If a=0 then dprint "For exploring "&(combon(a).value) &" planets you receive a bonus of "&credits(int(combon(a).rank*factor)) &" Cr.",11
@@ -354,7 +359,8 @@ function upgradehull(t as short,byref s as _ship,forced as short=0) as short
     if t<20 then
         n=gethullspecs(t,"data/ships.csv")
     else
-        n=gethullspecs(t-22,"data/customs.csv")
+        n=gethullspecs(t-20,"data/customs.csv")
+        n.h_no=t
     endif
     for a=1 to 10
         if s.cargo(a).x>0 then cargobays=cargobays+1
@@ -1436,7 +1442,7 @@ function count_gas_giants_area(c as _cords,r as short) as short
     for i=0 to laststar
         if distance(c,map(i).c)<r then
             for j=1 to 9
-                if isgasgiant(map(i).planets(j)) then cc+=1
+                if is_gasgiant(map(i).planets(j)) then cc+=1
                 if map(i).planets(j)=specialplanet(21) then cc+=5
                 if map(i).planets(j)=specialplanet(22) then cc+=5
                 if map(i).planets(j)=specialplanet(23) then cc+=5
@@ -1826,7 +1832,7 @@ function used_ships() as short
         mtext=mtext &"Bargain bin/Sell equipment/Exit"
         a=menu(bg_shiptxt,mtext,htext,2,2)
         if a>=1 and a<=8 then
-            if buy_ship(a,desig(a),price(a)) then
+            if buy_ship(usedship(a).x,desig(a),price(a)) then
                 usedship(a).x=yourshiphull
                 player.cursed=usedship(a).y
                 usedship(a).y=0
@@ -1887,7 +1893,7 @@ function shipyard(where as byte) as short
         armor=last+1
         ex=last+2
     else
-        men=men & "Design Hull/"
+        men=men & "Design hull shop/"
         des=des &"/"
         designshop=last+1
         armor=last+2
@@ -2179,7 +2185,7 @@ function custom_ships(where as byte) as short
                 v=val(s.h_desc)
                 if where=sy_blackmarket or v<3 then
                     s.h_desc=s.h_desig
-                    st(a)=a+20
+                    st(a)=i+20
                     pr(a)=s.h_price
                     ds(a)=s.h_desig
                     a+=1
@@ -2935,117 +2941,6 @@ function getshares(comp as short) as short
     return r
 end function
 
-
-' trading
-function merctrade(byref f as _fleet) as short
-    dim as short st,a,debug
-    debug=1
-    st=-1
-    for a=0 to 2
-        if f.c.x=basis(a).c.x and f.c.y=basis(a).c.y then st=a
-    next
-    if st<>-1 then
-        if show_NPCs then dprint "fleet is trading at "&st+1 &"."
-        f=unload_f(f,st)
-        f=load_f(f,st)
-        f=refuel_f(f,st)
-    endif
-    return 0
-end function
-
-function refuel_f(f as _fleet, st as short) as _fleet
-    'Refuels a fleet at a space station
-    dim as short demand,ships,a,debug
-    debug=1
-    for a=0 to 15
-        if f.mem(a).hull>0 then ships+=1
-    next
-    demand=cint(f.fuel*ships/30)
-    basis(st).inv(9).v-=demand
-    if basis(st).inv(9).v<0 then basis(st).inv(9).v=0
-    if debug=1 and _debug=1 then dprint ships &" ships refueling "&demand &" fuel, on base " & basis(st).inv(9).v
-    f.fuel=0
-    return f
-end function
-
-function load_f(f as _fleet, st as short) as _fleet
-    dim as short curship,curgood,buylevel,vol,suc,a
-    dim loaded(8) as short
-    dim text as string
-    buylevel=11
-    do
-        vol=0
-        for a=1 to 5
-            vol=vol+basis(st).inv(a).v
-        next
-        if vol>0 then
-            for a=1 to 8
-                if basis(st).inv(a).v>buylevel and curship<16 then
-                    do 
-                        suc=load_s(f.mem(curship),a,st)
-                        if suc=-1 then 
-                            curship=curship+1
-                        else
-                            'save what was loaded
-                            loaded(a)=loaded(a)+1
-                        endif
-                    loop until suc<>-1 or curship>=15
-                endif
-            next
-        endif
-        buylevel=buylevel-1
-    loop until vol<5 or buylevel<3 or curship>=15
-    if basis(st).spy=1 then
-        for a=1 to 4
-            if loaded(a)>0 then text=text & loaded(a) &" tons of "& goodsname(a)
-            if loaded(a)>0 and loaded(a+1)>0 then text=text &", "
-        next
-        if loaded(5)>0 then text=text & loaded(a) &" tons of "& goodsname(a) &"."
-        if player.landed.m=0 then dprint "We have a transmission from station "&st+1 &". A trader just left with "&text &".",15    
-    endif
-    
-    return f
-end function
-
-function unload_f(f as _fleet, st as short) as _fleet
-    dim as short a
-    for a=1 to 15
-        f.mem(a)=unload_s(f.mem(a),st)
-    next
-    return f
-end function
-
-function unload_s(s as _ship,st as short) as _ship    
-    dim as short a,b,c,d,e,f,t
-    
-    for a=1 to 25
-        if s.cargo(a).x>1 then
-            if st<=2 then companystats(basis(st).company).profit+=1
-            t=s.cargo(a).x-1 'type of cargo
-            basis(st).inv(t).v=basis(st).inv(t).v+1  
-            s.cargo(a).x=1
-            'dprint "sold " &t
-        endif
-    next
-    return s
-end function
-
-function load_s(s as _ship, good as short, st as short) as short
-    dim as short bay,result,a
-    for a=1 to 25
-        if s.cargo(a).x=1 and bay=0 then bay=a
-    next
-    if bay=0 then result=-1
-    if bay>0 then
-        result=bay
-        basis(st).inv(good).v=basis(st).inv(good).v-1
-        s.cargo(bay).x=s.cargo(bay).x+good
-        'dprint "bought " &good &" stored in "& bay &" Inv:"& basis(st).inv(good).v 
-    endif
-    return result
-end function
-
-
 function trading(st as short) as short
     dim a as short
     screenset 1,1
@@ -3342,13 +3237,14 @@ function check_tasty_pretty_cargo() as short
             dprint "You have collected enough beautiful animal parts to produce a cargo ton of luxury items"
             if askyn("Do you want to do so?(y/n)") then
                 reward(rwrd_pretty)-=100
-                player.cargo(freebay).x=4
+                player.cargo(freebay).x=5
                 player.cargo(freebay).y=0
                 freebay=getnextfreebay
             endif
         endif
     endif
     
+    freebay=getnextfreebay
     if freebay>0 then
         if reward(rwrd_tasty)>=100 then
             dprint "You have collected enough tasty animal parts to produce a cargo ton of food!"
@@ -3633,9 +3529,11 @@ function recalcshipsbays() as short
     for c=6 to player.h_maxcrew+player.crewpod+player.cryo
         if crew(c).hp<>0 then player.security=c
     next
-    for c=5+player.cryo+(player.h_maxcrew+player.crewpod-5)*2+1 to 255
-        crew(c)=del
-    next    
+    if player.cryo+(player.h_maxcrew+player.crewpod-5)*2+1<255 then
+        for c=5+player.cryo+(player.h_maxcrew+player.crewpod-5)*2+1 to 255
+            crew(c)=del
+        next
+    endif
     player.addhull=0
     for a=1 to 5
         if player.weapons(a).made=87 then player.addhull=player.addhull+5

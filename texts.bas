@@ -378,8 +378,8 @@ function system_text(a as short) as string
     dim t as string
     for o=1 to 9
         if map(a).planets(o)<>0 then
-            if isgasgiant(map(a).planets(o)) then gg+=1
-            if isasteroidfield(map(a).planets(o)) then af+=1
+            if is_gasgiant(map(a).planets(o)) then gg+=1
+            if is_asteroidfield(map(a).planets(o)) then af+=1
             pl+=1
         endif
     next

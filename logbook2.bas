@@ -623,7 +623,7 @@ function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as 
         for i=1 to last
             f=0
             for j=1 to 9
-                if isgasgiant(map(lobn(i)).planets(j))<>0 then f=1
+                if is_gasgiant(map(lobn(i)).planets(j))<>0 then f=1
             next
             if map(lobn(i)).discovered<2 then f=0
             if f=0 then lobk(i)=""
@@ -633,7 +633,7 @@ function lb_filter(lobk() as string, lobn() as short, lobc() as short,lobp() as 
         for i=1 to last
             f=0
             for j=1 to 9
-                if isasteroidfield(map(lobn(i)).planets(j))<>0 then f=1
+                if is_asteroidfield(map(lobn(i)).planets(j))<>0 then f=1
             next
             if map(lobn(i)).discovered<2 then f=0
             if f=0 then lobk(i)=""

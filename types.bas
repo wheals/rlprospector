@@ -1777,7 +1777,7 @@ Dim Shared empty_ship As _ship
 Dim Shared empty_fleet As _fleet
 
 empty_fleet.del=1
-
+declare function factionadd(a as short,b as short,ad as short) as short
 Dim Shared coms(255) As _comment
 Dim Shared portal(1024) As _transfer
 Dim Shared lastportal As Short
@@ -1970,7 +1970,7 @@ Declare Function change_armor(st As Short) As Short
 Declare Function urn(min As Short, max As Short,mult As Short,bonus As Short) As Short
 Declare Function rarest_good() As Short
 Declare Function display_stock() As Short
-declare function repair_spacesuits(v as short=-1) as short
+declare function repair_spacesuit(v as short=-1) as short
 
 declare function gets_entry(x as short,y as short, slot as short) as short
 Declare Function ep_friendfoe(i As Short,j As Short) As Short
@@ -2102,7 +2102,7 @@ Declare Function gain_talent(slot As Short,talent as short=0) As String
 Declare Function add_talent(cr As Short, ta As Short, Value As Single) As Single
 Declare Function remove_member(n As Short, f As Short) As Short
 Declare Function changemoral(Value As Short, where As Short) As Short
-Declare Function isgardenworld(m As Short) As Short
+Declare Function is_gardenworld(m As Short) As Short
 Declare Function show_wormholemap(j As Short=0) As Short
 Declare Function list_inventory() As String
 Declare Function equipment_value() As Integer
@@ -2143,6 +2143,7 @@ Declare Function caged_monster_text() As String
 Declare Function sell_alien(sh As Short) As Short
 Declare Function skill_test(bonus As Short,targetnumber As Short,echo As String="") As Short
 Declare Function vege_per(slot As Short) As Single
+declare function set_globals() as short
 declare function wear_armor(a as short,b as short) as short
 Declare Function add_ano(p1 As _cords,p2 As _cords,ano As Short=0) As Short
 Declare Function makestuffstring(l As Short) As String
@@ -2167,6 +2168,8 @@ Declare Function get_random_system(unique As Short=0,gascloud As Short=0, diswei
 Declare Function getrandomplanet(s As Short) As Short
 Declare Function sysfrommap(a As Short)As Short
 Declare Function orbitfrommap(a As Short) As Short
+declare function add_stranded_ship(s as short,p as _cords, a as short,working as short) as short
+declare function repair_spacesuits() as short
 
 Declare Function get_colony_building(map As Short) As _cords
 Declare Function grow_colony(map As Short) As Short
@@ -2185,9 +2188,9 @@ Declare Function wormhole_navigation() As Short
 Declare Function random_pirate_system() As Short
 Declare Function askyn(q As String,col As Short=11,sure As Short=0) As Short
 Declare Function randomname() As String
-Declare Function isgasgiant(m As Short) As Short
+Declare Function is_gasgiant(m As Short) As Short
 Declare Function countgasgiants(sys As Short) As Short
-Declare Function isasteroidfield(m As Short) As Short
+Declare Function is_asteroidfield(m As Short) As Short
 Declare Function countasteroidfields(sys As Short) As Short
 Declare Function checkcomplex(map As Short,fl As Short) As Integer
 Declare Function getnumber(a As Integer,b As Integer, e As Integer) As Integer
@@ -2198,7 +2201,7 @@ Declare Function keyplus(Key As String) As Short
 Declare Function keyminus(Key As String) As Short
 Declare Function paystuff(price As Integer) As Integer
 Declare Function shop(sh As Short,pmod As Single, shopn As String) As Short
-Declare Function mondis(enemy As _monster) As String
+Declare Function monster_description(enemy As _monster) As String
 Declare Function getfilename() As String
 Declare Function savegame(crash as short=0)As Short
 Declare Function load_game(filename As String) As Short
@@ -2215,7 +2218,7 @@ Declare Function set_fleet(fl As _fleet)As Short
 Declare Function com_vismask(c As _cords) As Short
 Declare Function com_display(defender As _ship, attacker() As _ship, marked As Short, e_track_p() As _cords,e_track_v()As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short) As Short
 Declare Function com_gettarget(defender As _ship, wn As Short, attacker() As _ship,marked As Short,e_track_p() As _cords,e_track_v() As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short) As Short
-Declare Function com_getweapon() As Short
+Declare Function com_getweapon(echo as byte=1) As Short
 Declare Function com_fire(ByRef target As _ship,ByRef attacker As _ship,ByRef w As Short, gunner As Short, range As Short) As _ship
 Declare Function com_sinkheat(s As _ship,manjets As Short) As Short
 Declare Function com_hit(target As _ship, w As _weap,damage As Short, range As Short,attn As String,side As Short) As _ship
@@ -2260,7 +2263,7 @@ Declare Function bioreport(slot As Short) As Short
 Declare Function messages() As Short
 Declare Function storescreen(As Short) As Short
 Declare Function alienname(flag As Short) As String
-Declare Function communicate(e As _monster, mapslot As Short,monslot As Short) As Short
+Declare Function communicate(byref e As _monster, mapslot As Short,monslot As Short) As Short
 Declare Function artifact(c As Short) As Short
 'declare function getshipweapon() as short
 Declare Function getmonster() As Short
@@ -2337,7 +2340,7 @@ Declare Function flood_fill2(x As Short,y As Short, xm As Short, ym As Short, ma
 Declare Function findsmartest(slot As Short) As Short
 Declare Function makeroad(ByVal s As _cords,ByVal e As _cords, a As Short) As Short
 Declare Function addportal(from As _cords, dest As _cords, twoway As Short, tile As Short,desig As String, col As Short) As Short
-Declare Function deleteportal(f As Short=0, d As Short=0) As Short
+Declare Function deleteportal(f As Short=0, d As Short=0,x as short=-1,y as short=-1) As Short
 Declare Function checkvalid(x As Short,y As Short, map() As Short) As Short
 Declare Function floodfill3(x As Short,y As Short,map() As Short) As Short
 Declare Function checkdoor(x As Short,y As Short, map() As Short) As Short
@@ -2616,8 +2619,6 @@ Function _icol( ByVal src As UInteger, ByVal dest As UInteger, ByVal param As An
         Return Loword(Color)
     EndIf
 End Function
-
-Declare Function factionadd(a As Short,b As Short, add As Short) As Short
 
 #Define RGBA_R( c ) ( CUInt( c ) Shr 16 And 255 )
 #Define RGBA_G( c ) ( CUInt( c ) Shr  8 And 255 )

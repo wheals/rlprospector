@@ -1989,6 +1989,8 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
     dim t as _rect
     dim r(255) as _rect
     dim wmap(60,20) as short
+
+
     dim as short last,wantsize,larga,largb,lno,mi,old,alwaysstranded,debug
     if a<=0 then 
        dprint "ERROR: Attempting to make planet map at "&a,14
@@ -2321,23 +2323,19 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
                 if rnd_range(1,100)<88 then planetmap(p2.x,p2.y,a)=-146
             next
         endif
+        
         alwaysstranded=1
         'Stranded ship
         if rnd_range(1,300)<15-disnbase(player.c)/10+planets(a).grav*10 or (alwaysstranded=1 and _debug>0) then
             p1=rnd_point
             b=rnd_range(1,100+player.turn/5000)'!
             c=rnd_range(1,6)
-            if c=5 or c=6 then c=1
+            if c<4 then c=1
             d=0
             if b>50 then d=4
             if b>75 then d=8
             if b>95 then d=12
-            planetmap(p1.x,p1.y,a)=(-127-c-d)*-1
-            if alwaysstranded=1 and _debug=1 then planetmap(p1.x,p1.y,a)=241
-            'planetmap(p1.x,p1.y,a)=241
-            for b=0 to 1+d
-                if rnd_range(1,100)<11 then placeitem(rnd_item(RI_StrandedShip),p1.x,p1.y,a)
-            next
+            add_stranded_ship(d+c,p,a,1)
         endif
         
         'Mining
@@ -2473,13 +2471,13 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
         endif
     endif    
     for b=0 to planets(a).minerals+planets(a).life
-        if specialplanet(15)<>a and planettype<44 and isgasgiant(a)=0 then placeitem(make_item(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
+        if specialplanet(15)<>a and planettype<44 and is_gasgiant(a)=0 then placeitem(make_item(96,planets(a).depth+disnbase(player.c)\6+gascloud,planets(a).depth+disnbase(player.c)\7+gascloud),rnd_range(0,60),rnd_range(0,20),a)
     next b
     if add_tile_each_map<>0 then
         p=rnd_point
         planetmap(p.x,p.y,a)=add_tile_each_map
     endif
-    if isgardenworld(a) then planets_flavortext(a)="This place is lovely."
+    if is_gardenworld(a) then planets_flavortext(a)="This place is lovely."
         
     if planets(a).temp=0 and planets(a).grav=0 then dprint "Made a 0 planet,#"&a,c_red
     return 0
@@ -3124,12 +3122,14 @@ function make_special_planet(a as short) as short
         planetmap(p1.x,p1.y,lastplanet)=-167
         p1=rnd_point
         planetmap(p1.x,p1.y,a)=-100
-        for x=0 to rnd_range(1,6)+rnd_range(1,6)
-            p1=rnd_point
-            planetmap(p1.x,p1.y,a)=-127-rnd_range(1,10)
-        next
         planets(a).atmos=6
         planets(lastplanet).atmos=6
+        
+        for x=0 to rnd_range(1,6)+rnd_range(1,6)
+            p1=rnd_point
+            b=rnd_range(1,10)
+            add_stranded_ship(b,p1,a,1)
+        next
         p1=rnd_point
         planetmap(p1.x,p1.y,a)=-168
     endif
@@ -3236,22 +3236,6 @@ function make_special_planet(a as short) as short
             planetmap(rnd_range(0,60),rnd_range(0,20),a)=-17
         endif
         
-        if a=specialplanet(28) then
-            for b=0 to 1
-                p=rnd_point
-                if p.x>=52 then p.x=51
-                if p.y>=15 then p.y=14
-                for x=p.x to p.x+8
-                    for y=p.y to p.y+5
-                        planetmap(x,y,a)=-68
-                    next
-                next
-            next
-            p.x=rnd_range(p.x,p.x+10)
-            p.y=rnd_range(p.y,p.y+5)
-            planetmap(p.x,p.y,a)=-241
-            'Unused
-        endif
         
         planets(a).mon_template(0)=makemonster(8,a)
         planets(a).mon_noamin(0)=4
@@ -3267,6 +3251,22 @@ function make_special_planet(a as short) as short
         planets(a).mon_noamax(2)=10
         
         
+        if a=specialplanet(28) then
+            for b=0 to 1
+                p=rnd_point
+                if p.x>=52 then p.x=51
+                if p.y>=15 then p.y=14
+                for x=p.x to p.x+8
+                    for y=p.y to p.y+5
+                        planetmap(x,y,a)=-68
+                    next
+                next
+            next
+            p.x=rnd_range(p.x,p.x+10)
+            p.y=rnd_range(p.y,p.y+5)
+            add_stranded_ship(18,p,a,1)
+            'Unused
+        endif
         
     endif
     
@@ -3401,7 +3401,9 @@ function make_special_planet(a as short) as short
                 planetmap(x,y,a)=-18
             next
         next
-        planetmap(7,7,a)=-241
+        p.x=7
+        p.y=7
+        add_stranded_ship(18,p,a,1)
         for b=0 to 1
             gc.m=a
             gc.x=rnd_range(20,60)
@@ -5666,7 +5668,7 @@ function make_special_planet(a as short) as short
         planetmap(p.x+3,p.y+3,lastplanet)=-4
     endif
     
-    if a=specialplanet(isgasgiant(a)) and isgasgiant(a)>1 and isgasgiant(a)<40 then
+    if (a=specialplanet(21) or a=specialplanet(22) or a=specialplanet(23) or a=specialplanet(24) or a=specialplanet(25)) and is_gasgiant(a)>1 and is_gasgiant(a)<40 then
         deletemonsters(a)
         makeplatform(a,rnd_range(4,8),rnd_range(1,3),1)
         p=rnd_point(a,0)
@@ -6115,17 +6117,14 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                     dest.y=y
                     dest.m=lastplanet
                     addportal(dest,from,1,asc("@"),"airlock",11)
-                    
                 endif
-            next
-        next
-        addportal(from,dest,1,asc("@"),"Abandoned ship",11)
-        addportal(dest,from,2,asc(" "),"",11)
-        for x=0 to 60
-            for y=0 to 20
                 if broken=1 and abs(planetmap(x,y,m))=220 then planetmap(x,y,m)=-202
             next
         next
+        if _debug>0 then dprint "from:"&from.x &":"& from.y &":"&from.m &"M"&m &":"
+        addportal(from,dest,1,asc("@"),"Abandoned "&shiptypes(d.s),11)
+        portal(lastportal).ti_no=3009+d.s
+        addportal(dest,from,2,asc(" "),"",11)
         if d.s=18 and broken=0 then planetmap(30,20,m)=-220
         m=dest.m
         planets(m).atmos=planets(from.m).atmos
@@ -6327,12 +6326,14 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
     return 0
 end function
 
-function deleteportal(f as short=0, d as short=0) as short
+function deleteportal(f as short=0, d as short=0,x as short=-1,y as short=-1) as short
     dim a as short
     for a=1 to lastportal
-        if portal(a).from.m=f or portal(a).from.m=d then
-            portal(a)=portal(lastportal)
-            lastportal-=1
+        if portal(a).from.m=f or portal(a).from.m=d or portal(a).dest.m=f or portal(a).dest.m=d then
+            if (x=-1 and y=-1) or (portal(a).from.x=x and portal(a).from.y=y) then
+                portal(a)=portal(lastportal)
+                lastportal-=1
+            endif
         endif
     next
     return 0
@@ -7204,7 +7205,7 @@ function adaptmap(slot as short) as short
         next
     endif
     
-    if houses(0)=0 and houses(1)=0 and houses(2)=0 and rnd_range(1,100)<55 and isgardenworld(slot)<>0 then makesettlement(rnd_point,slot,rnd_range(0,4))
+    if houses(0)=0 and houses(1)=0 and houses(2)=0 and rnd_range(1,100)<55 and is_gardenworld(slot)<>0 then makesettlement(rnd_point,slot,rnd_range(0,4))
        
        
     if (rnd_range(1,100)<pyr+7 and pyr>0) or addpyramids=1 then         
@@ -8162,6 +8163,35 @@ function digger(byval p as _cords,map() as short,d as byte,ti as short=2,stopti 
     return 0
 end function
 
+function add_stranded_ship(s as short,p as _cords, a as short,broken as short) as short
+    dim addship as _driftingship
+    dim as short b
+    planetmap(p.x,p.y,a)=-127-s
+    if s=18 then planetmap(p.x,p.y,a)=-241
+    addship.x=p.x
+    addship.y=p.y
+    addship.m=a
+    addship.s=s
+    if _debug>0 then dprint ""&addship.s
+    make_drifter(addship,dominant_terrain(p.x,p.y,a),broken)
+    if _debug>0 then dprint "LP Cords:"&cords(portal(lastportal).from) &":" &cords(portal(lastportal).dest)
+    planets(lastplanet).depth=1
+    planets(lastplanet).atmos=planets(a).atmos
+    if rnd_range(1,100)<30 or broken=0 then planets(lastplanet).atmos=6
+    planets(lastplanet).grav=planets(a).grav
+    planets(lastplanet).temp=30
+    For b=1 To 16
+        planets(lastplanet).mon_template(b)=planets(a).mon_template(b)
+        planets(lastplanet).mon_noamin(b)=planets(a).mon_noamin(b)/3-1
+        planets(lastplanet).mon_noamax(b)=planets(a).mon_noamax(b)/3-1
+    Next
+    for b=0 to 1+s/4
+        p=rnd_point
+        if rnd_range(1,100)<11 then placeitem(rnd_item(RI_StrandedShip),p.x,p.y,lastplanet)
+    next
+    return 0
+end function
+
 function dominant_terrain(x as short,y as short,m as short) as short
     dim as short x2,y2,i,in,set,dom,t1
     dim t(9) as short
@@ -8193,44 +8223,11 @@ function dominant_terrain(x as short,y as short,m as short) as short
     return t1
 end function
 
-
-function isgardenworld(m as short) as short
-    if m<0 then return 0
-    if planets(m).grav>1.1 then return 0
-    if planets(m).atmos<3 or planets(m).atmos>5 then return 0
-    if planets(m).temp<-20 or planets(m).temp>55 then return 0
-    if planets(m).weat>1 then return 0
-    if planets(m).water<30 then return 0
-    if planets(m).rot<0.5 or planets(m).rot>1.5 then return 0
-    return -1
-end function
-
-
-function isgasgiant(m as short) as short
-    if m<-20000 then return 1
-    if m=specialplanet(21) then return 21
-    if m=specialplanet(22) then return 22
-    if m=specialplanet(23) then return 23
-    if m=specialplanet(24) then return 24
-    if m=specialplanet(25) then return 25
-    if m=specialplanet(43) then return 43
-    return 0
-end function
-
-function isasteroidfield(m as short) as short
-    if m>=-20000 and m<0 then return 1
-    if m=specialplanet(31) then return 1 
-    if m=specialplanet(32) then return 1 
-    if m=specialplanet(33) then return 1
-    if m=specialplanet(41) then return 1
-    return 0
-end function
-
 function countasteroidfields(sys as short) as short
     dim as short a,b
     if sys<0 then return 0
     for a=1 to 9
-        if map(sys).planets(a)<0 and isgasgiant(map(sys).planets(a))=0 then b=b+1
+        if map(sys).planets(a)<0 and is_gasgiant(map(sys).planets(a))=0 then b=b+1
     next
     return b
 end function
@@ -8240,7 +8237,7 @@ function countgasgiants(sys as short) as short
     dim as short a,b
     if sys<0 then return 0
     for a=1 to 9
-        if isgasgiant(map(sys).planets(a))>0 then b=b+1
+        if is_gasgiant(map(sys).planets(a))>0 then b=b+1
     next
     return b
 end function
@@ -8284,6 +8281,37 @@ function is_special(m as short) as short
     next
     return 0
 end function    
+
+function is_gardenworld(m as short) as short
+    if m<0 then return 0
+    if planets(m).grav>1.1 then return 0
+    if planets(m).atmos<3 or planets(m).atmos>5 then return 0
+    if planets(m).temp<-20 or planets(m).temp>55 then return 0
+    if planets(m).weat>1 then return 0
+    if planets(m).water<30 then return 0
+    if planets(m).rot<0.5 or planets(m).rot>1.5 then return 0
+    return -1
+end function
+
+function is_gasgiant(m as short) as short
+    if m<-20000 then return 1
+    if m=specialplanet(21) then return 21
+    if m=specialplanet(22) then return 22
+    if m=specialplanet(23) then return 23
+    if m=specialplanet(24) then return 24
+    if m=specialplanet(25) then return 25
+    if m=specialplanet(43) then return 43
+    return 0
+end function
+
+function is_asteroidfield(m as short) as short
+    if m>=-20000 and m<0 then return 1
+    if m=specialplanet(31) then return 1 
+    if m=specialplanet(32) then return 1 
+    if m=specialplanet(33) then return 1
+    if m=specialplanet(41) then return 1
+    return 0
+end function
 
 function get_nonspecialplanet(disc as short=0) as short
     dim pot(1024) as short
@@ -8354,7 +8382,7 @@ function get_random_system(unique as short=0,gascloud as short=0,disweight as sh
             if hasgarden=1 then
                 ad=1
                 for p=1 to 9
-                    if isgardenworld(map(a).planets(p)) then ad=0
+                    if is_gardenworld(map(a).planets(p)) then ad=0
                 next
             endif
             if spacemap(map(a).c.x,map(a).c.y)<>0 then cc+=1

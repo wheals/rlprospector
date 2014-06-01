@@ -1,4 +1,4 @@
-function setglobals() as short
+function set_globals() as short
     dim as short a,b,c,d,f        
     dim as string text
     '

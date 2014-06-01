@@ -1,5 +1,5 @@
 function gets_entry(x as short,y as short, slot as short) as short
-    if planetmap(x,y,slot)<0 then return 0
+    if planetmap(x,y,slot)<=2 then return 0 'Water uses gives for ice
     If tmap(x,y).no<2 then return 0
     if tmap(x,y).gives>=69 and tmap(x,y).gives<=75 then return -1
     if tmap(x,y).gives=66 or tmap(x,y).gives=67 then return -1
@@ -264,9 +264,7 @@ Function ep_atship() As Short
                 EndIf
             EndIf
         Next
-        if awayteam.leak>0 then 
-            repair_spacesuits()
-        endif
+        if awayteam.leak>0 then repair_spacesuits()
         check_tasty_pretty_cargo
         alerts()
         Return 0
@@ -861,7 +859,6 @@ End Function
 Function ep_inspect(ByRef localturn As Short) As Short
     Dim As Short a,b,c,slot,skill,js,kit,rep,freebay
     Dim As _cords p
-    Dim As _driftingship addship
     slot=player.map
     awayteam.e.add_action(10)
     freebay=getnextfreebay
@@ -878,6 +875,7 @@ Function ep_inspect(ByRef localturn As Short) As Short
             EndIf
         EndIf
     EndIf
+    if awayteam.leak>0 then repair_spacesuits
     If (tmap(awayteam.c.x,awayteam.c.y).no>=128 And tmap(awayteam.c.x,awayteam.c.y).no<=143) Or tmap(awayteam.c.x,awayteam.c.y).no=241 Then
         'Jump ship
         If tmap(awayteam.c.x,awayteam.c.y).hp>1 Then
@@ -904,13 +902,7 @@ Function ep_inspect(ByRef localturn As Short) As Short
                 
                 changetile(awayteam.c.x,awayteam.c.y,slot,62)
                 tmap(awayteam.c.x,awayteam.c.y)=tiles(62)
-                addship.x=awayteam.c.x
-                addship.y=awayteam.c.y
-                addship.m=slot
-                addship.s=b
-                make_drifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot),1)
-                make_locallist(slot)'To add the portal to the list
-
+                
             EndIf
         EndIf
         If tmap(awayteam.c.x,awayteam.c.y).hp=1 Then
@@ -941,42 +933,23 @@ Function ep_inspect(ByRef localturn As Short) As Short
                         planetmap(player.landed.x,player.landed.y,slot)=4
                         If player.hull<1 Then player.hull=1
                         js=1
+                        deleteportal(slot,0,awayteam.c.x,awayteam.c.y)
+                        make_locallist(slot)
+                    else
+                        deleteportal(slot,0,awayteam.c.x,awayteam.c.y)
+                        add_stranded_ship(b,awayteam.c,slot,0)
+                        
                     EndIf
                 EndIf
                 If js=0 Then
                     changetile(awayteam.c.x,awayteam.c.y,slot,4)
                     tmap(awayteam.c.x,awayteam.c.y)=tiles(4)
 
-                    addship.x=awayteam.c.x
-                    addship.y=awayteam.c.y
-                    addship.m=slot
-                    addship.s=b
-                    make_drifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot))
                     'planets(lastplanet)=planets(slot)
-                    planets(lastplanet).depth=1
-                    planets(lastplanet).atmos=planets(slot).atmos
-                    planets(lastplanet).grav=planets(slot).grav
-                    planets(lastplanet).temp=30
-                    For a=1 To 16
-                        planets(lastplanet).mon_template(a)=planets(slot).mon_template(a)
-                        planets(lastplanet).mon_noamin(a)=planets(slot).mon_noamin(a)/3-1
-                        planets(lastplanet).mon_noamax(a)=planets(slot).mon_noamax(a)/3-1
-                    Next
 
                 EndIf
             Else
                 dprint "You couldn't repair the ship."
-                make_drifter(addship,dominant_terrain(awayteam.c.x,awayteam.c.y,slot),1)
-                planets(lastplanet).depth=1
-                planets(lastplanet).atmos=planets(slot).atmos
-                planets(lastplanet).grav=planets(slot).grav
-                planets(lastplanet).temp=30
-                For a=1 To 16
-                    planets(lastplanet).mon_template(a)=planets(slot).mon_template(a)
-                    planets(lastplanet).mon_noamin(a)=planets(slot).mon_noamin(a)/3-1
-                    planets(lastplanet).mon_noamax(a)=planets(slot).mon_noamax(a)/3-1
-                Next
-
                 changetile(awayteam.c.x,awayteam.c.y,slot,4)
                 tmap(awayteam.c.x,awayteam.c.y)=tiles(4)
             EndIf
@@ -1363,7 +1336,7 @@ Function ep_planeteffect(shipfire() As _shipfire, ByRef sf As Single,lavapoint()
         EndIf
     EndIf
 
-    If isgardenworld(slot) And rnd_range(1,100)<5 Then
+    If is_gardenworld(slot) And rnd_range(1,100)<5 Then
         a=rnd_range(1,awayteam.hpmax)
         If crew(a).hp>0 And crew(a).typ<9 Then
             b=rnd_range(1,6)
@@ -1522,7 +1495,10 @@ Function ep_portal() As _cords
     Dim As _cords nextmap
     Dim As _cords p
     slot=player.map
-    if portalindex.last(awayteam.c.x,awayteam.c.y)>0 then a=portalindex.index(awayteam.c.x,awayteam.c.y,1)
+    if walking<0 then return nextmap 
+    a=portalindex.index(awayteam.c.x,awayteam.c.y,1)
+    if _debug>0 then dprint "A:"&a
+    if a>0 then
         
         If portal(a).oneway=2 And portal(a).from.m=slot Then
             If awayteam.c.x=0 Or awayteam.c.x=60 Or awayteam.c.y=0 Or awayteam.c.y=20 Then
@@ -1614,7 +1590,7 @@ Function ep_portal() As _cords
                 EndIf
             EndIf
         EndIf
-    
+        endif
     Return nextmap
 End Function
 
@@ -2233,7 +2209,7 @@ Function ep_monstermove(spawnmask() As _cords, lsp As Short, mapmask() As Byte,n
                 If enemy(i).attacked<>0 Then
                     If enemy(i).denemy<=enemy(i).range Then
                         If enemy(i).attacked=-1 Then
-                            if pathblock(awayteam.c,enemy(i).c,awayteam.slot,1)=-1 or distance(enemy(i).c,awayteam.c)<2 then
+                            if pathblock(awayteam.c,enemy(i).c,awayteam.slot,1)=-1 or enemy(i).denemy<2 then
                                 awayteam=monsterhit(enemy(i),awayteam,vismask(enemy(i).c.x,enemy(i).c.y))
                             endif
                         Else
@@ -2302,7 +2278,9 @@ Function ep_spawning(spawnmask() As _cords,lsp As Short, diesize As Short,nightd
                 Next
                 If b<tmap(x,y).spawnsmax Then
                     d=getmonster()
+                    if _debug>0 then dprint "D:"&d &"X:"&x &"Y:"&y
                     enemy(d)=setmonster(makemonster(tmap(x,y).spawnswhat,slot),slot,spawnmask(),lsp,x,y,d)
+                    if _debug>0 then dprint "Lastmonster:"&lastenemy
                     If vismask(x,y)>0 Then dprint tmap(x,y).spawntext,14
                 EndIf
             EndIf
@@ -2941,36 +2919,34 @@ Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
                                         dprint "You don't have any unused cages."
                                     EndIf
                                 EndIf
-                            Else
-                                dprint "The "&enemy(a).sdesc &" is asleep."
                             EndIf
-                        Else
-                            If enemy(a).aggr=1 Then
-                                If (askyn("Do you really want to attack the "&enemy(a).sdesc &"?(y/n)")) Then
-                                    enemy(a)=hitmonster(enemy(a),awayteam,mapmask())
-                                    hitflag=1
-                                    If rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel Then enemy(a).aggr=0
-                                    For b=1 To lastenemy
-                                        If a<>b Then
-                                            If enemy(a).faction=enemy(b).faction And vismask(enemy(b).c.x,enemy(b).c.y)>0 Then
-                                                enemy(b).aggr=0
-                                                dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
-                                            EndIf
-                                        EndIf
-                                    Next
-                                Else
-                                    dprint "You squeeze past the "&enemy(a).sdesc &"."
-                                    Swap awayteam.c,enemy(a).c
-                                    enemy(a).add_move_cost
-                                    awayteam.e.add_action(2)
-                                    
-                                EndIf
-                            Else
-                                awayteam.attacked=a
-                                awayteam.e.add_action(awayteam.atcost)
+                        endif
+                    
+                        If enemy(a).aggr=1 Then
+                            If (askyn("Do you really want to attack the "&enemy(a).sdesc &"?(y/n)")) Then
                                 enemy(a)=hitmonster(enemy(a),awayteam,mapmask())
                                 hitflag=1
+                                If rnd_range(1,6)+rnd_range(1,6)<enemy(a).intel Then enemy(a).aggr=0
+                                For b=1 To lastenemy
+                                    If a<>b Then
+                                        If enemy(a).faction=enemy(b).faction and enemy(b).sleeping=0 and enemy(b).hpnonlethal<enemy(b).hp And vismask(enemy(b).c.x,enemy(b).c.y)>0 Then
+                                            enemy(b).aggr=0
+                                            dprint "The "&enemy(b).sdesc &" tries to help his friend!",14
+                                        EndIf
+                                    EndIf
+                                Next
+                            Else
+                                dprint "You squeeze past the "&enemy(a).sdesc &"."
+                                Swap awayteam.c,enemy(a).c
+                                enemy(a).add_move_cost
+                                awayteam.e.add_action(2)
+                                
                             EndIf
+                        Else
+                            awayteam.attacked=a
+                            awayteam.e.add_action(awayteam.atcost)
+                            enemy(a)=hitmonster(enemy(a),awayteam,mapmask())
+                            hitflag=1
                         EndIf
                     EndIf
                 EndIf
@@ -3297,7 +3273,7 @@ Function ep_examine() As Short
                         If enemy(a).hp>0 Then
                             If enemy(a).c.x=p2.x And enemy(a).c.y=p2.y Then
                                 set__color( enemy(a).col,9)
-                                text=text &" "& mondis(enemy(a)) '&"faction"&enemy(a).faction &"aggr" &enemy(a).aggr
+                                text=text &" "& monster_description(enemy(a)) '&"faction"&enemy(a).faction &"aggr" &enemy(a).aggr
                             Else
                                 set__color( enemy(a).col,0)
                             EndIf
@@ -3313,7 +3289,7 @@ Function ep_examine() As Short
                             Else
                                 Draw String (enemy(a).c.x*_fw1,enemy(a).c.y*_fh1), "%",,Font1,custom,@_col
                             EndIf
-                            text=text & mondis(enemy(a))
+                            text=text & monster_description(enemy(a))
                             If _debug=1 And _debug=1 Then text=text &"("&a &" of "&lastenemy &")"
                         EndIf
                         Exit For 'there won't be more than one monster on one tile

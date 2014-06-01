@@ -780,8 +780,10 @@ function line_in_points(b as _cords,c as _cords,p() as _cords) as short
 
     x = c.x
     y = c.y
+    p(1).x=x
+    p(1).y=y
     result=-1
-    For i = 1 To numtiles
+    For i = 2 To numtiles
         
         If d < 0 Then
           d = d + dinc1
@@ -1214,14 +1216,14 @@ function nearlowest(p as _pfcords,queue() as _pfcords) as _pfcords
     endif
 end function
 
-function factionadd(a as short,b as short, add as short) as short
+function factionadd(a as short,b as short, ad as short) as short
     dim as short c
-    faction(a).war(b)+=add
-    faction(b).war(a)+=add
+    faction(a).war(b)+=ad
+    faction(b).war(a)+=ad
     if faction(a).alli<>0 then 
         c=faction(a).alli
-        faction(b).war(c)+=add
-        faction(c).war(b)+=add
+        faction(b).war(c)+=ad
+        faction(c).war(b)+=ad
         if faction(b).war(c)>100 then faction(b).war(c)=100
         if faction(c).war(b)>100 then faction(c).war(b)=100
         if faction(b).war(c)<0 then faction(b).war(c)=0
@@ -1229,8 +1231,8 @@ function factionadd(a as short,b as short, add as short) as short
     endif
     if faction(b).alli<>0 then 
         c=faction(b).alli
-        faction(a).war(a)+=add
-        faction(c).war(c)+=add
+        faction(a).war(a)+=ad
+        faction(c).war(c)+=ad
         if faction(a).war(c)>100 then faction(a).war(c)=100
         if faction(c).war(a)>100 then faction(c).war(a)=100
         if faction(a).war(c)<0 then faction(a).war(c)=0

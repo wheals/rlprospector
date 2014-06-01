@@ -397,7 +397,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
                 else
                     armeff+=1
                 endif
-                if crew(target(t)).armo>0 then
+                if crew(target(t)).armo>0 and ap<>1 then
                     if item(crew(target(t)).armo).ti_no<2019 then 
                         if item(crew(target(t)).armo).v4=0 then item(crew(target(t)).armo).id+=2000
                         item(crew(target(t)).armo).v4+=1
@@ -475,7 +475,26 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     return trim(text)
 end function
 
-function repair_spacesuits(v as short=-1) as short
+function repair_spacesuits() as short
+    dim c as short
+    c=findbest(51,-1)
+    if c>0 then
+        If configflag(con_chosebest)=0 Then
+            c=findbest(51,-1)
+        Else
+            c=get_item(51)
+        EndIf
+        if c>0 then
+            if askyn("Do you want to use your "&item(c).desig &" to plug holes in your spacesuit?") then
+                item(c).v1=repair_spacesuit(item(c).v1)
+            endif
+        endif
+    endif
+    return 0
+end function
+
+
+function repair_spacesuit(v as short=-1) as short
     dim as short b,i,c
     for b=1 to 128
         if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
@@ -493,7 +512,7 @@ function repair_spacesuits(v as short=-1) as short
     next
     if c=1 then dprint "Repaired a spacesuit."
     if c>1 then dprint "Repaired " &c & " spacesuits."
-    return 0
+    return v
 end function
 
 function gain_talent(slot as short,talent as short=0) as string

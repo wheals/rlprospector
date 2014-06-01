@@ -328,9 +328,9 @@ function score_planet(i as short,st as short) as short
         if is_special(i) then 
             pscore-=100
         else
-            if isgardenworld(i) then pscore+=1000
+            if is_gardenworld(i) then pscore+=1000
             if basis(st).company=1 or basis(st).company=3 then 
-                if isgardenworld(i) then pscore+=1000
+                if is_gardenworld(i) then pscore+=1000
             endif
             if basis(st).company=2 then pscore+=planets(i).minerals*100
             if basis(st).company=4 then pscore+=planets(i).life*50

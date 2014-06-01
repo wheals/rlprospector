@@ -249,6 +249,7 @@ function make_spacemap() as short
         next
     endif
     set__color( 11,0)
+    locate 1,1
     print
     print "Universe created with "&laststar &" stars and "&lastplanet-lastdrifting &" planets."
     set__color( 15,0)
@@ -258,7 +259,7 @@ function make_spacemap() as short
     next
     print "Asteroid belts:";astcou
     print "Gas giants:";gascou
-    sleep 1250
+    sleep 2500
     if _debug>0 then
         dim key as string
         key=keyin
@@ -581,7 +582,7 @@ end function
 function add_drifters() as short
     dim as short a,b,c,d,e,f,ba(3)
     dim as _cords p
-    dim as byte makelog=1
+    dim as byte makelog=0
     
     for e=firstwaypoint to lastwaypoint
         if targetlist(e).x=basis(0).c.x and targetlist(e).y=basis(0).c.y then ba(1)=e 

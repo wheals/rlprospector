@@ -36,6 +36,8 @@ Draw String(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #Include Once "ProsIO.bas"
 #Include Once "highscore.bas"
 #Include Once "cargotrade.bas"
+#include once "fleets.bas"
+#include once "Monster.bas"
 '#include once "colonies.bas"
 #Include Once "quests.bas"
 #Include Once "spacecom.bas"
@@ -99,7 +101,7 @@ EndIf
     
 
 Do
-    setglobals
+    set_globals
     if _debug=2704 then
         f=Freefile
         Open "tiles.csv" For Output As #f
@@ -150,55 +152,15 @@ Do
 '            next
 '        endif
         If _debug>0 Then
-                If Key="t" Then
-                    Screenset 1,1
-                    BLoad "graphics\spacestations.bmp"
-                    a=getnumber(0,10000,0)
-                    Put(30,0),gtiles(gt_no(a)),Pset
-                    no_key=keyin
-                    Sleep
-                EndIf
-                If Key="8" Then
-                    f=Freefile
-                    Open "monster.csv" For Output As #f
-                    Print #f,"name;hp;speed;atcost;biodata"
-                    For a=1 To 400
-                        enemy(0)=makemonster(a,1)
-                        If enemy(0).sdesc<>"" Then Print #f,enemy(0).sdesc &";"& Int(enemy(0).hp)  &";"& enemy(0).speed  &";"& enemy(0).atcost &";"&get_biodata(enemy(0))
-                    Next
-                    Close #f
-                    f=Freefile
-                    Open "tiles.csv" For Output As #f
-                    For a=1 To 400
-                        If tiles(a).gives>0 Then Print #f,a &";"&tiles(a).desc &";"& tiles(a).gives
-                    Next
-                    Close #f
-                End If
-                If Key="9" Then
-                    Cls
-                    set__color(15,0)
-                    For a=1 To 10
-                        reroll_shops
-                        Print a
-                    Next
-                EndIf
-        EndIf
-        If a=8 Then
-            f=Freefile
-            basis(0).company=1
-            Open "prices.csv" For Output As #f
-            For b=1 To 200
-                change_prices(0,1)
-                Key=""
-                For a=1 To 9
-                    Key &=basis(0).inv(a).p &";"
-                Next
-                For a=1 To 9
-                    Key &=basis(0).inv(a).v &";"
-                Next
-                Print #f,Key
-            Next
-            Close #f
+            f=freefile
+            open "Tiletriggers.txt" for output as #f
+            
+            for a=1 to 512
+                planetmap(1,1,1)=a
+                tmap(1,1)=tiles(a)
+                if gets_entry(1,1,1)=-1 then print #f,a &":"&tiles(a).desc
+            next
+            close #f
         EndIf
     Loop Until Key="1" Or Key="2" Or a=7
     set__color(11,0)
@@ -298,6 +260,10 @@ Function start_new_game() As Short
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
+        If _debug>0 Then placeitem(make_item(48),,,,,-1)
+        If _debug>0 Then placeitem(make_item(106),,,,,-1)
+        If _debug>0 Then placeitem(make_item(106),,,,,-1)
+        If _debug>0 Then placeitem(make_item(106),,,,,-1)
         If _debug>0 Then placeitem(make_item(50),,,,,-1)
         If _debug>0 Then placeitem(make_item(50),,,,,-1)
         If _debug>0 Then placeitem(make_item(50),,,,,-1)
@@ -374,23 +340,6 @@ Function start_new_game() As Short
             player.weapons(1)=make_weapon(rnd_range(1,2))
         EndIf
     End Select
-    If b=5 Then
-        player.weapons(2)=make_weapon(99)
-        player.weapons(3)=make_weapon(99)
-        pirateupgrade
-        recalcshipsbays()
-        player.engine=2
-        player.hull=10
-        faction(0).war(2)=-100
-        faction(0).war(1)=100
-        makeplanetmap(piratebase(0),3,map(sysfrommap(piratebase(0))).spec)
-        planets(piratebase(0)).mapstat=1
-        player.c=map(sysfrommap(piratebase(0))).c
-        If _debug>0 Then 
-            player.c.x=drifting(1).x
-            player.c.y=drifting(1).y
-        EndIf
-    EndIf
     player.turn=0
     If start_teleport=1 Then artflag(9)=1
     set__color(11,0)
@@ -408,12 +357,26 @@ Function start_new_game() As Short
     Else
         c=2+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to avoid the company patrols, and get good loot, it will be very profitable! You will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
+        player.weapons(2)=make_weapon(99)
+        player.weapons(3)=make_weapon(99)
+        pirateupgrade
+        recalcshipsbays()
+        player.engine=2
+        player.hull=10
+        makeplanetmap(piratebase(0),3,map(sysfrommap(piratebase(0))).spec)
+        planets(piratebase(0)).mapstat=1
+        player.c=map(sysfrommap(piratebase(0))).c
+        If _debug>0 Then 
+            player.c.x=drifting(1).x
+            player.c.y=drifting(1).y
+        EndIf
         faction(0).war(1)=100
         faction(0).war(2)=0
         faction(0).war(3)=100
         faction(0).war(4)=0
         faction(0).war(5)=100
     EndIf
+    
     faction(1).war(2)=100
     faction(1).war(4)=100
     faction(2).war(1)=100
@@ -633,13 +596,11 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
             last2=no_spacesuit(who(),alle)
             If last2>0 And ep_needs_Spacesuit(mapslot,player.landed,reason)<>0 Then
                 If alle=0 Then
-                    If askyn("You will need spacesuits ("& reason &"). Do you want to leave "&last2 &" crewmembers who have none on the ship? (Y/N)") Then
+                    If not(askyn("You will need spacesuits ("& reason &"). Do you want to take "&last2 &" crewmembers who have none with you? (Y/N)")) Then
                         remove_no_spacesuit(who(),last2)
                     EndIf
                 Else
-                    If askyn("You need spacesuits on this planet  ("& reason &") and don't have any. Shall we abort landing? (y/n)") Then Return 0
-                    awayteam.oxygen=0
-                    awayteam.oxymax=0
+                    If not(askyn("You need spacesuits on this planet  ("& reason &") and don't have any. Land anyway? (y/n)")) Then Return 0
                 EndIf
             EndIf
                         
@@ -682,7 +643,7 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
                 EndIf
             EndIf
         EndIf
-        If isgardenworld(nextmap.m) Then changemoral(3,0)
+        If is_gardenworld(nextmap.m) Then changemoral(3,0)
         awayteam.oxygen=awayteam.oxymax
         awayteam.jpfuel=awayteam.jpfuelmax
 
@@ -865,8 +826,8 @@ Function scanning() As Short
         If mapslot=-20001 Then dprint "A helium-hydrogen gas giant"
         If mapslot=-20002 Then dprint "A methane-ammonia gas giant"
         If mapslot=-20003 Then dprint "A hot jupiter"
-        If mapslot<-20000 Or isgasgiant(mapslot)>0 Then gasgiant_fueling(mapslot,a,sys)
-        If mapslot>0 And isgasgiant(mapslot)=0 Then
+        If mapslot<-20000 Or is_gasgiant(mapslot)>0 Then gasgiant_fueling(mapslot,a,sys)
+        If mapslot>0 And is_gasgiant(mapslot)=0 Then
         If planetmap(0,0,mapslot)=0 Then
             makeplanetmap(mapslot,a,map(sys).spec)
             'makefinalmap(mapslot)
@@ -934,7 +895,7 @@ Function scanning() As Short
             dprint "Science Officer: 'This is a sight you get to see once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone.'",15
             planets(mapslot).flags(27)=2
         EndIf
-        If isgardenworld(mapslot) Then dprint "This planet is earthlike."
+        If is_gardenworld(mapslot) Then dprint "This planet is earthlike."
         If planets(mapslot).colflag(0)>0 Then dprint "There is "& add_a_or_an(companyname(planets(mapslot).colflag(0)),0) &" colony on this planet. They are sending greetings."
         If debug=1 And _debug=1 Then dprint "Map number "&slot &":"& mapslot
         osx=30-_mwx/2
@@ -1117,8 +1078,8 @@ Function gasgiant_fueling(p As Short, orbit As Short, sys As Short) As Short
     mon(5)="a huge balloon floating in the wind with five, thin, several kilometers long tentacles!"
     mon(6)="a circular flat being floating among the clouds. Three bulges on the top are glowing with static electricity."
     If p=-20003 Then mo=2
-    m=isgasgiant(p)
-    If isgasgiant(p)>1 Then
+    m=is_gasgiant(p)
+    If is_gasgiant(p)>1 Then
         If planetmap(0,0,m)<>0 Then make_special_planet(m)
         If askyn("As you dive into the upper atmosphere of the gas giant your sensor pick up a huge metal structure. It is a platform, big enough to land half a fleet on it, connected to struts that extend out into the atmosphere. Do you want to try to land on it? (y/n)") Then
             landing(map(sys).planets(orbit))
@@ -2018,8 +1979,6 @@ Function explore_space() As Short
     display_ship
     Flip
     Screenset 0,1
-    If debug=10 And _debug=1 Then dprint spdescr(7)
-    player.turn=fix(player.turn/10)*10 'Needs to be multiple of 10 for events to trigger
     Do
         If debug=8 And _debug=1 Then dprint "Lastfleet:"&lastfleet
         player.turn+=10
@@ -2207,11 +2166,11 @@ Function explore_space() As Short
                         a=getplanet(pl)
                         If a>0 Then
                             b=map(pl).planets(a)
-                            If isgasgiant(b)=0 And b>0 Then
+                            If is_gasgiant(b)=0 And b>0 Then
                                 If Key=key_la Then landing(map(pl).planets(a))
                                 If Key=key_tala Then target_landing(map(pl).planets(a))
                             Else
-                                If isgasgiant(b)=0 Then
+                                If is_gasgiant(b)=0 Then
                                     dprint"You don't find anything big enough to land on"
                                 Else
                                     gasgiant_fueling(b,a,pl)
@@ -2509,7 +2468,7 @@ End Function
 
 Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim As Single a,b,c,d,e,f,g,x,y,sf,sf2,vismod
-    Dim As Short slot,r,deadcounter,ship_landing,loadmonsters,allroll(8),osx
+    Dim As Short slot,r,deadcounter,ship_landing,loadmonsters,allroll(8),osx,wraparound
     Dim As Single dawn,dawn2
     Dim As String Key,dkey,allowed,text,help
     Dim dam As Single
@@ -2567,7 +2526,11 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     osx=calcosx(awayteam.c.x,slot)
     lsp=0
     location=lc_awayteam
-
+    IF planets(slot).depth>0 then 
+        wraparound=0
+    else
+        wraparound=3
+    endif
     For a=1 To 20
         If makew(a,1)<>0 Then
             b+=1
@@ -2674,6 +2637,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
                     enemy(c)=setmonster(planets(slot).mon_template(a),slot,spawnmask(),lsp,,,c,1)
                     enemy(c).slot=a
                     enemy(c).no=c
+                    if _debug=905 then enemy(c).sleeping=100000
                     If enemy(c).faction=0 Then enemy(c).faction=9+a
                     If enemy(c).faction<9 Then
                         If allroll(enemy(c).faction)=0 Then allroll(enemy(c).faction)=rnd_range(1,100)
@@ -3273,7 +3237,7 @@ EndIf
             EndIf
             awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)-awayteam.leak*awayteam.helmet
             If awayteam.oxygen<=0 and (awayteam.helmet=1 or tmap(awayteam.c.x,awayteam.c.y).oxyuse>0) Then 
-                dprint "Asphyixaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
+                dprint "Asphyxiaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
                 awayteam.oxygen=0
                 if awayteam.hp<0 then player.dead=14
             endif
@@ -3326,7 +3290,7 @@ EndIf
                 EndIf
             Else
                 If rnd_range(1,100)<110+countdeadofficers(awayteam.hpmax) Then
-                    awayteam.c=movepoint(awayteam.c,getdirection(Key),3)
+                    awayteam.c=movepoint(awayteam.c,getdirection(Key),wraparound)
                     If getdirection(Key)<>0 Then
                         Key=""
                     EndIf
@@ -3343,22 +3307,16 @@ EndIf
             
             if _debug=2704 then print #logfile,"hitmonster"
             ep_playerhitmonster(old,mapmask())
-            if _debug=2704 then print #logfile,"checkmove"
             ep_checkmove(old,Key)
-            If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_portal Or Key=key_inspect Then nextmap=ep_Portal()
-            if _debug=2704 then print #logfile,"nextmap"&nextmap.m
-            
+            nextmap=ep_portal()
+            'If walking>=0 and tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143 and tmap(awayteam.c.x,awayteam.c.y).no<>241 and ((old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Or Key=key_portal Or Key=key_inspect) Then nextmap=ep_Portal()
             ep_planeteffect(shipfire(),sf,lavapoint(),localturn,cloudmap())
-            if _debug=2704 then print #logfile,"PE"
             ep_areaeffects(areaeffect(),last_ae,lavapoint(),cloudmap())
-            if _debug=2704 then print #logfile,"AE"
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key)
-            if _debug=2704 then print #logfile,"PU"
             If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(localturn)
-            if _debug=2704 then print #logfile,"in"
             If vacuum(awayteam.c.x,awayteam.c.y)=1 And awayteam.helmet=0 Then ep_helmet()
             If vacuum(awayteam.c.x,awayteam.c.y)=0 And vacuum(old.x,old.y)=1 And awayteam.helmet=1 Then ep_helmet
-        'Display all stuff
+            'Display all stuff
             Screenset 0,1
             set__color(11,0)
             Cls
@@ -3454,7 +3412,7 @@ EndIf
                         If item(c).ty<>11 Then
                             dprint "you can't use that."
                         Else
-                            If askyn("Do you want to use the "&item(c).desig &"(y/n)?") Then
+                            If askyn("Do you want to use your "&item(c).desig &"(y/n)?") Then
                                 item(c).v1=heal_awayteam(awayteam,item(c).v1)
                                 If item(c).v1<=0 Then destroyitem(c)
                             EndIf
@@ -3463,6 +3421,9 @@ EndIf
                         dprint "you dont have any medpacks"
                     EndIf
                 EndIf
+                if awayteam.leak>0 then
+                    repair_spacesuits
+                endif
             EndIf
 
             If Key=key_walk Or Key=key_autoexplore Then
@@ -3804,7 +3765,7 @@ Function grenade(from As _cords,map As Short) As _cords
     Dim As Single dx,dy,x,y,launcher
     Dim As Short a,ex,r,t,osx
     Dim As String Key
-    Dim As _cords p,pts(60*20)
+    Dim As _cords p,pts(61*21)
 
     Dim As Short debug=0
 
@@ -4603,10 +4564,8 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
 End Function
 
 Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte, first As Short=-1, last As Short=-1) As _monster
-    Dim a As Short
-    Dim b As Single
-    Dim As Single nonlet
-    Dim c As Short
+    Dim As Single nonlet,dis,damage
+    Dim As Short a,c,weaponused
     Dim col As Short
     Dim noa As Short
     Dim text As String
@@ -4653,6 +4612,7 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
         EndIf
     Next
     slbc=1
+    dis=distance(defender.c,attacker.c)
     For a=first To noa
         If noa-first<=5 Then
             echo2=crew(a).n &" attacks"
@@ -4660,15 +4620,24 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
         EndIf
         If crew(a).hp>0 And crew(a).onship=0 And crew(a).disease=0 And distance(defender.c,attacker.c)<=attacker.secweapran(a)+1.5 Then
             slbc+=1
-            If distance(defender.c,attacker.c)>1.5 Then
-                If skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),targetnumber,echo1) Then
-                    b=b+attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
+            if dis<1.5 then
+                if tohit_gun(a)>tohit_close(a) then
+                    weaponused=1
+                else
+                    weaponused=0
+                endif
+            else
+                weaponused=1
+            endif
+            If weaponused=1 Then
+                If skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),targetnumber,echo1) or defender.sleeping>0 Then
+                    damage+=attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
                     xpstring=gainxp(a)
                     xpgained+=1
                 EndIf
             Else
-                If skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),targetnumber,echo2) Then
-                    b=b+maximum(attacker.secweapc(a),attacker.secweap(a))+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
+                If skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),targetnumber,echo2) or defender.sleeping>0 Then
+                    damage+=attacker.secweapc(a)+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
                     xpstring=gainxp(a)
                     xpgained+=1
                 EndIf
@@ -4678,24 +4647,31 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
     If xpgained=1 Then dprint xpstring,c_gre
     If xpgained>1 Then dprint xpgained &" crewmembers gained 1 Xp.",c_gre
     text="You attack the "&defender.sdesc &"."
-    If distance(defender.c,attacker.c)>1.5 Then b=b+1-Int(distance(defender.c,attacker.c)/2)
-    b=CInt(b)-player.tactic+add_talent(3,10,1)
-    If b<0 Then b=0
-    If b>0 Then
-       b=b-defender.armor
-       If b>0 Then
+    If distance(defender.c,attacker.c)>1.5 Then damage=damage+1-Int(distance(defender.c,attacker.c)/2)
+    damage=CInt(damage)-player.tactic+add_talent(3,10,1)
+    If damage<0 Then damage=0
+    If damage>0 Then
+       damage=damage-defender.armor
+       If damage>0 Then
             If player.tactic<>3 Then
-                text=text &" You hit for " & b &" points of damage."
-                defender.hp=defender.hp-b
+                text=text &" You hit for " & damage &" points of damage."
+                defender.hp=defender.hp-damage
+                if defender.sleeping>0 then defender.add_move_cost
+                defender.sleeping=0
             Else
                 If defender.stunres<10 Then
-                    b=b/2
-                    b=(b*((10-defender.stunres)/10))
-                    text=text &" You hit for " & b &" nonlethal points of damage."
-                    defender.hpnonlethal+=b
+                    damage=damage/2
+                    damage=(damage*((10-defender.stunres)/10))
+                    if damage>0 then
+                        text=text &" You hit for " & damage &" nonlethal points of damage."
+                        defender.hpnonlethal+=damage
+                    endif
                 Else
-                    b=b/2
-                    defender.hp-=b
+                    if damage>0 then
+                        damage=damage/2
+                        defender.hp-=damage
+                        text=text &" You hit for " & damage &" points of damage."
+                    endif
                 EndIf
             EndIf
             If defender.hp/defender.hpmax<0.8 Then wtext =" The " & mname &" is slightly "&defender.dhurt &". "
@@ -4727,12 +4703,13 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
         If defender.enemy>0 Then factionadd(0,defender.enemy,-1)
         If defender.slot>=0 Then planets(slot).mon_killed(defender.slot)+=1
     Else
-        If defender.hp=1 And b>0 And defender.aggr<>2 Then
+        If defender.hp=1 And damage>0 And defender.aggr<>2 Then
             If rnd_range(1,6) +rnd_range(1,6)<defender.intel+defender.diet And defender.speed>0 Then
                 defender.aggr=2
-                text=text &"the " &mname &" is critically hurt and tries to FLEE. "
+                text=text &"the " &mname &" is critically hurt and tries to flee. "
             EndIf
-        Else
+        endif
+        if defender.hp>1 and damage>0 and defender.aggr>0 then
             If defender.aggr>0 And defender.hp<defender.hpmax Then
                 If distance(defender.c,attacker.c)<=1.5 Or defender.intel+rnd_range(1,6)>attacker.invis Then
                     defender.aggr=0
@@ -4807,29 +4784,7 @@ Function clear_gamestate() As Short
 
 
     Wage=10
-    basis(0)=d_basis
-    basis(0).c.x=50
-    basis(0).c.y=20
-    basis(0).discovered=1
-    basis(0)=makecorp(0)
-
-    basis(1)=d_basis
-    basis(1).c.x=10
-    basis(1).c.y=25
-    basis(1).discovered=1
-    basis(1)=makecorp(0)
-
-    basis(2)=d_basis
-    basis(2).c.x=75
-    basis(2).c.y=10
-    basis(2).discovered=1
-    basis(2)=makecorp(0)
-
-    basis(3)=d_basis
-    basis(3).c.x=-1
-    basis(3).c.y=-1
-    basis(3).discovered=0
-
+    
     baseprice(1)=50
     baseprice(2)=200
     baseprice(3)=500
@@ -4860,7 +4815,8 @@ Function clear_gamestate() As Short
     For a=0 To 255
         portal(a)=d_portal
     Next
-
+    
+    set_globals
 
     Return 0
 End Function
