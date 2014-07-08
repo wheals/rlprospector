@@ -82,7 +82,7 @@ If Not fileexists("config/shipregister.txt") Then
     Print #f,"0"
     Print #f,""
     If Menu(bg_randompic,"Autonaming:/Standard/Babylon 5 Shipnames")=2 Then
-        Print #f,"b5shipnames.txt"
+        Print #f,"config/b5shipnames.txt"
     EndIf
     Close #f
     chdir("..")
