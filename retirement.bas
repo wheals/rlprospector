@@ -52,8 +52,8 @@ function retirement() as short
     dim asset(9) as string
     dim desc(9) as string
     dim as string mtext,htext
-    asset(1)="Muds store franchise"
-    desc(1)="A permit to operate a store under the well known 'Mud's' brand name. The opportunity to make a living by buying at insanely low prices, at negligable risk!"
+    asset(1)="Mudds store franchise"
+    desc(1)="A permit to operate a store under the well known 'Mudds' brand name. The opportunity to make a living by buying at insanely low prices, at negligable risk!"
     price(1)=500
     asset(2)="life insurance"
     desc(2)="A small rent to be paid until your death, from your 60th birthday onwards."
@@ -74,7 +74,7 @@ function retirement() as short
     desc(7)="A small, arid planet. Thin oxygen atmosphere. Further terraforming possible"
     price(7)= 250000
     asset(8)="planet"
-    desc(8)="A medium sized planet with an oxygen atmosphere. It's habitable, if further terraforming would be a good investment"
+    desc(8)="A medium sized planet with an oxygen atmosphere. It's habitable, but further terraforming would be a good investment"
     price(8)=500000
     asset(9)="Earthlike planet"
     desc(9)="A planet with an oxygen atmosphere, oceans and continents. Lifeforms are present, but nothing dangerous."

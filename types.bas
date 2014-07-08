@@ -22,7 +22,7 @@ Const show_energy=0
 
 Const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'1'12'13'5'38 'special planets already discovered
+Const Show_specials=0'013'0'1'12'13'5'38 'special planets already discovered
 Const Show_all_specials=0'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -45,7 +45,6 @@ Const show_wormholes=0
 Const rev_map=0
 Const no_enemys=0
 Const more_mets=0
-Const all_drifters_are=0
 Const show_civs=0
 Const toggling_filter=0
 Const fuel_usage=0
@@ -356,7 +355,7 @@ function _items.describe() as string
         if v2>0 then t=t & "|Range: "&v2
         return t
     case 3,103
-        t=ldesc
+        t=ldesc &"|"
         if v4>0 then t=t &"| !This suit is damaged! |"
         t=t &"||Armor: "&v1 &"|Oxygen: "&v3
         if v2>0 then t=t &"|Camo rating "&v2
@@ -366,7 +365,8 @@ function _items.describe() as string
         t=t &"||Sensor range: "&v1 &"|Speed: "&v4
         return t
     case 56
-        t=ldesc &"||HP:"&v1 &"|Volume:"&v3
+        t="A system for the automatic retrieval of fuel from gas giants. It can hold up to " &v3 &" tons of fuel. ||HP: "&v1 &"|Volume: "&v3
+        return t
     case else
         return ldesc
     end select
@@ -686,7 +686,7 @@ Type _planet
     p As Short
     map As Short
     orbit As Short
-    darkness As UByte
+    darkness As Byte
     water As Short
     atmos As Short
     dens As Short
@@ -1497,7 +1497,6 @@ Enum config
     con_volume
     con_anykeyno
     con_diagonals
-    con_altnum
     con_easy
     con_minsafe
     con_startrandom
@@ -1532,7 +1531,6 @@ configname(con_damscream)="damscream"
 configname(con_volume)="volume"
 configname(con_anykeyno)="anykeyno"
 configname(con_diagonals)="digonals"
-configname(con_altnum)="altnum"
 configname(con_easy)="easy"
 configname(con_minsafe)="minsafe"
 configname(con_startrandom)="startrandom"
@@ -1558,7 +1556,6 @@ configdesc(con_res)="/ Resolution:"
 configdesc(con_showvis)="/ Underlay for visible tiles:"
 configdesc(con_onbar)="/ Starmap on bar:"
 configdesc(con_classic)="/ Classic look:"
-configdesc(con_altnum)="/ Alternative Numberinput:"
 configdesc(con_transitem)="/ Transparent Items:"
 configdesc(con_gtmwx)="/ Main window width(tile mode):"
 configdesc(con_savescumming)="/ Savescumming:"
@@ -1802,7 +1799,7 @@ Dim dummycords As _cords
 Dim text As String
 Dim As Short astcou,gascou,pl
 Dim Shared tacdes(6) As String
-Dim Shared shop_order(2) As Short
+Dim Shared shoporder(2) As Short
 Dim Shared pcards As cards.cardobj
 Dim Shared lastprobe As Short
 Dim Shared probe(100) As _cords 'm=Item,
@@ -1918,7 +1915,7 @@ Declare Function get_planet_cords(ByRef p As _cords,mapslot As Short,shteam As B
 Declare Function planet_cursor(p As _cords,mapslot As Short,ByRef osx As Short,shteam As Byte) As String
 
 Declare Function start_new_game() As Short
-Declare Function from_savegame(Key As String) As String
+Declare Function from_savegame(a As Short) As Short
 Declare Function wormhole_travel() As Short
 
 Declare Function wormhole_ani(target As _cords) As Short
@@ -2057,7 +2054,7 @@ Declare Function get_com_colon_candidate(st As Short) As Short
 Declare Function score_planet(i As Short,st As Short) As Short
 Declare Function score_system(s As Short,st As Short) As Short
 
-
+declare function calc_sight() as short
 
 Declare Function get_highestrisk_questguy(st As Short) As Short
 Declare Function questguy_newquest(i As Short) As Short
@@ -2153,6 +2150,7 @@ Declare Function get_freecrewslot() As Short
 Declare Function add_member(a As Short,skill As Short) As Short
 Declare Function cure_awayteam(where As Short) As Short
 Declare Function heal_awayteam(ByRef a As _monster,heal As Short) As Short
+declare function dam_awayteam_list(target() as short, stored() as short, ap as short) as short
 Declare Function dam_awayteam(dam As Short,ap As Short=0,dis As Short=0) As String
 Declare Function dplanet(p As _planet,orbit As Short, scanned As Short,slot As Short) As Short
 Declare Function dprint(text As String, col As Short=11) As Short
@@ -2271,7 +2269,7 @@ Declare Function findartifact(v5 As Short) As Short
 Declare Function scrap_component() As Short
 
 Declare Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfire, spawnmask() As _cords, lsp As Short,loctemp As Single) As _cords
-Declare Function ep_display(osx As Short=555) As Short
+Declare Function ep_display(osx As Short=555,nightday as short=0) As Short
 Declare Function earthquake(t As _tile,dam As Short)As _tile
 Declare Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _shipfire, spawnmask() As _cords,lsp As Short,Key As String,loctemp As Single) As Short
 Declare Function numfromstr(t As String) As Short
@@ -2300,7 +2298,7 @@ Declare Function makecomplex3(slot As Short,cn As Short, rc As Short,collums As 
 Declare Function makecomplex4(slot As Short,rn As Short,tileset As Short) As Short
 Declare Function makeplatform(slot As Short,platforms As Short,rooms As Short,translate As Short, adddoors As Short=0) As Short
 Declare Function makelabyrinth(slot As Short) As Short
-Declare Function invisiblelabyrinth(tmap() As _tile,xoff As Short ,yoff As Short, _x As Short=10, _y As Short=10) As Short
+Declare Function invisiblelabyrinth(xoff As Short ,yoff As Short, _x As Short=10, _y As Short=10) As Short
 Declare Function makeroots(slot As Short) As Short
 Declare Function makeplanetmap(a As Short,orbit As Short, spect As Short) As Short
 Declare Function modsurface(a As Short,o As Short) As Short
@@ -2530,7 +2528,7 @@ Declare Function distributepoints(result() As _cords, ps() As _cords, last As Sh
 Declare Function getany(possible() As Short)As Short
 Declare Function maximum(a As Double,b As Double) As Double
 Declare Function minimum(a As Double,b As Double) As Double
-Declare Function dominant_terrain(x As Short,y As Short,m As Short) As Short
+Declare Function dominant_terrain(x As Short,y As Short,m As Short) As _cords
 
 Declare Function checkandadd(queue() As _pfcords,map() As Byte,in As Short) As Short
 Declare Function add_p(queue() As _pfcords,p As _pfcords) As Short

@@ -1,6 +1,6 @@
 function gainxp(typ as short,v as short=1) as string
     dim as short a,lowest,slot
-    lowest=100
+    lowest=5000
     if typ<=5 then
         for a=0 to 128
             if crew(a).typ=typ and crew(a).hp>0 then
@@ -105,10 +105,12 @@ function cure_awayteam(where as short) as short
         if configflag(con_chosebest)=0 then
             pack=findbest(19,-1)
         else
-            pack=get_item()
-            if item(pack).ty<>19 then
-                dprint "You can't use that",14
-                pack=-1
+            pack=get_item(-1,19)
+            if pack>0 then
+                if item(pack).ty<>19 then
+                    dprint "You can't use that",14
+                    pack=-1
+                endif
             endif
         endif
         if pack>0 then
@@ -319,6 +321,26 @@ function diseaserun(onship as short) as short
     return 0
 end function
 
+function dam_awayteam_list(target() as short, stored() as short, ap as short) as short
+    dim as short b,last
+    if ap=5 then
+        last=no_spacesuit(target()) 'Don't need the b
+        for b=1 to last
+            stored(b)=crew(target(b)).hp
+        next
+    else
+        for b=1 to 128
+            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
+                last+=1
+                target(last)=b
+                stored(b)=crew(b).hp
+            endif
+        next
+    endif
+    if last>128 then last=128
+    return last
+end function 
+
 function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     dim text as string
     dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus,suitdamage
@@ -353,28 +375,18 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
 
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
-    if ap=5 then
-        last=no_spacesuit(target(),b) 'Don't need the b
-        if last=0 then return ""
-        for b=1 to last
-            stored(b)=crew(target(b)).hp
-        next
-    else
-        for b=1 to 128
-            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
-                last+=1
-                target(last)=b
-                stored(b)=crew(b).hp
-            endif
-        next
-    endif
     
-    if last>128 then last=128
+    last=dam_awayteam_list(target(),stored(),ap)
+    
     cc=0
     do
         cc+=1
         t=rnd_range(1,last)
         if crew(target(t)).hp>0 then
+            if ap=5 then
+                dam-=1
+                crew(target(t)).hp-=1
+            endif
             if ap=2 then
                 dam=dam-crew(target(t)).hp
                 crew(target(t)).hp=dam
@@ -406,14 +418,10 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
                 endif
             endif
         endif
-        last=0
-        for b=1 to 128
-            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
-                last+=1
-                target(last)=b
-            endif
-        next
-    loop until dam<=0 or ex=1 or cc>9999
+        
+        last=dam_awayteam_list(target(),stored(),ap)
+    
+    loop until dam<=0 or ex=1 or cc>9999 or last=0
     dam=0
     for b=1 to 128
         if crew(b).onship=0 and crew(b).hpmax>0 then
@@ -686,10 +694,16 @@ function get_freecrewslot() as short
     for b=1 to (player.h_maxcrew+player.crewpod)*player.bunking+player.cryo
         if crew(b).hp<=0 then return b
     next
+    Dprint "No room on the ship.",c_yel
     if player.bunking=1 then
-        if askyn("No room on the ship. Do you want to doublebunk?(y/n)") then
+        if askyn("Do you want to doublebunk?(y/n)") then
             player.bunking=2
             return get_freecrewslot()
+        endif
+    endif
+    if slot<0 then
+        if askyn("Do you want to replace someone?(y/n)") then
+            return showteam(0,1,"Replace who?")
         endif
     endif
     return -1
@@ -716,29 +730,27 @@ function add_member(a as short,skill as short) as short
     dim _del as _crewmember
     dim as string n(200,1)
     dim as short ln(1)
-    f=freefile
-    open "data/crewnames.txt" for input as #f
-    do
-        ln(cc)+=1
-        line input #f,n(ln(cc),cc)
-        if n(ln(cc),cc)="####" then
-            ln(0)-=1
-            cc=1
-        endif
-
-    loop until eof(f) or ln(0)>=199 or ln(1)>=199
-    close #f
+    
     'find empty slot
     slot=get_freecrewslot
-    if slot<0 then
-        if askyn("No room on the ship, do you want to replace someone?(y/n)") then
-            slot=showteam(0,1,"Replace who?")
-        endif
-    endif
+    
     if debug=1 and _debug=1 then dprint ""&slot
     if slot<0 then return -1
     if slot>=0 then
-
+        
+        f=freefile
+        open "data/crewnames.txt" for input as #f
+        do
+            ln(cc)+=1
+            line input #f,n(ln(cc),cc)
+            if n(ln(cc),cc)="####" then
+                ln(0)-=1
+                cc=1
+            endif
+    
+        loop until eof(f) or ln(0)>=199 or ln(1)>=199
+        close #f
+        
         crew(slot)=_del
         crew(slot).baseskill(0)=-5
         crew(slot).baseskill(1)=-5
@@ -1334,7 +1346,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
         b=menu(bg_shiptxt,text,help)
         if b>0 and b<ex then
             if meni(b)<=5 then 'hire Officer
-                select case rnd_range(1,150)
+                select case rnd_range(1,100+player.turn/(7*24*60))
                 case is <=50
                     skill=1
                 case 51 to 90
@@ -1377,7 +1389,7 @@ function hiring(st as short,byref hiringpool as short,hp as short) as short
                 if w>0 then Wage=w
                 f=0
                 for g=2 to 128
-                    if Crew(g).paymod>0 and crew(g).hpmax>0 and crew(g).hp>0 then f=f+Wage*Crew(g).paymod
+                    if Crew(g).paymod>0 and crew(g).hpmax>0 and crew(g).hp>0 then f=f+Wage*Crew(g).paymod/10
                 next
                 cwage(6)=wage
                 cwage(16)=wage*2
@@ -1862,6 +1874,9 @@ function equip_awayteam(m as short) as short
     awayteam.light=0
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
+    
+    
+    
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
     awayteam.jpfueluse=awayteam.jpfueluse*planets(m).grav
@@ -2220,6 +2235,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
             if from<>0 then draw string (10,_screeny-_fh2),key_rename &" rename a member, s set Item, c clear, e toggle autoequip, esc exit",,font2,custom,@_col
         endif
         if r=1 then draw string (10,_screeny-_fh2),"installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
+        if r=2 then draw string (10,_screeny-_fh2),"Training for "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         'flip
         textbox(crew_bio(p),_mwx,1,20,15,1)
         screenset 0,1

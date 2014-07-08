@@ -441,6 +441,33 @@ function movepoint(byval c as _cords, a as short, eo as short=0, border as short
     return c
 end function
 
+function calc_sight() as short
+    dim as byte darkness,sight,binocbonus
+    darkness=awayteam.dark
+    sight=awayteam.sight
+    if _debug=1 then dprint "S:"&sight
+    if darkness>0 then
+        sight=sight-darkness
+        if sight<0 then sight=0
+        if awayteam.light>0 then 
+            sight=awayteam.light 'Lamps always illuminate the same area
+            if findbest(8,-1)>0 then 'But maybe they illuminate more than we can see
+                binocbonus=item(findbest(8,-1)).v1
+            endif
+            
+            if 3+binocbonus>awayteam.light then
+                sight=awayteam.light
+            else
+                sight=3+binocbonus
+            endif
+        
+        endif
+    endif
+    if _debug=1 then dprint "S:"&sight
+    return sight
+end function
+
+
 function make_vismask(c as _cords, sight as short,m as short,ad as short=0) as short
     dim as short illu
     dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
@@ -451,6 +478,7 @@ function make_vismask(c as _cords, sight as short,m as short,ad as short=0) as s
     if m>0 then
         mx=60
         my=20
+        if sight=0 then sight=calc_sight
     else
         mx=sm_x
         my=sm_y

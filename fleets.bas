@@ -360,6 +360,7 @@ function playerfightfleet(f as short) as short
 '        if fleet(f).ty=7 then player.dead=33
         
     endif
+    if _debug>0 then dprint "PD:"&player.dead
     fleet(f).ty=0
     return 0
 end function

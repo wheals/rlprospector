@@ -392,7 +392,7 @@ function high_score(text as string) as short
     dim as short xo,yo,sp
     'open highscore table
     f=freefile
-    open "highscore" for binary as f
+    open "data/highscore.dat" for binary as f
     for a=1 to 10
         get #f,,highscore(a)
     next        
@@ -466,7 +466,7 @@ function high_score(text as string) as short
     
     'open highscore table
     in=1
-    open "highscore" for binary as f
+    open "data/highscore.dat" for binary as f
       for a=1 to 10  
         put #f,,highscore(a)
         

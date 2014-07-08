@@ -2204,6 +2204,7 @@ tiles(265).turnsinto=265
 
 tiles(266).tile=asc("$") 'Casino
 tiles(266).gives=45
+tiles(266).seetru=1
 tiles(266).col=14
 tiles(266).bgcol=2
 tiles(266).turnsinto=266

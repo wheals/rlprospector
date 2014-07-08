@@ -62,6 +62,241 @@ function count_diet(slot as short,diet as short) as short
     return c
 end function
 
+function randomcritterdescription(enemy as _monster, spec as short,weight as short,movetype as short,byref pumod as byte,diet as byte,water as short,depth as short) as _monster
+
+    dim as string text
+    dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(7),wings(4),horns(4),tails(5)
+    dim as short a,w1,w2
+    dim as string species(12)
+    dim as short limbsbyspec(12),eyesbyspec(12)
+    dim as short noeyes,nolimbs,add,nolegs,noarms,armor,roll
+    if water=1 then
+        w1=4
+        w2=1
+    endif
+
+    if weight<=0 then weight=1
+    spec=spec+1
+    
+    species(1)="avian"
+    species(2)="arachnide"
+    species(3)="insect"
+    species(4)="mammal"
+    species(5)="reptile"
+    species(6)="snake"
+    species(7)="humanoid"
+    species(8)="cephalopod"
+    species(9)="centipede"
+    species(10)="amphibian"
+    species(11)="gastropod"
+    species(12)="fish"
+
+    limbsbyspec(1)=2
+    limbsbyspec(2)=8
+    limbsbyspec(3)=6
+    limbsbyspec(4)=4
+    limbsbyspec(5)=4
+    limbsbyspec(6)=0
+    limbsbyspec(7)=2
+    limbsbyspec(8)=10
+    limbsbyspec(9)=50
+    limbsbyspec(10)=4
+    limbsbyspec(11)=0
+    limbsbyspec(12)=6
+
+    eyesbyspec(1)=2
+    eyesbyspec(2)=8
+    eyesbyspec(3)=4
+    eyesbyspec(4)=2
+    eyesbyspec(5)=2
+    eyesbyspec(6)=2
+    eyesbyspec(7)=2
+    eyesbyspec(8)=2
+    eyesbyspec(9)=6
+    eyesbyspec(10)=2
+    eyesbyspec(11)=2
+    eyesbyspec(12)=2
+
+
+
+    add=2-rnd_range(1,4)
+    nolimbs=rnd_range(limbsbyspec(spec),limbsbyspec(spec)+add)
+    if frac(nolimbs/2)<>0 then nolimbs=nolimbs+1
+    add=2-rnd_range(1,4)
+    noeyes=rnd_range(eyesbyspec(spec),eyesbyspec(spec)+add)
+    noeyes=noeyes-depth
+    if depth=0 and noeyes<2 then noeyes=2
+    heads(1)="round"
+    heads(2)="elongated"
+    heads(3)="cone shaped"
+    heads(4)="flat"
+
+    horns(1)="short horns"
+    horns(2)="long horns"
+    horns(3)="curved horns"
+    horns(4)="antlers"
+
+    eyes(1)="pit eyes"
+    eyes(2)="compound eyes"
+    eyes(3)="lens eyes"
+    eyes(4)="occeli"
+
+    mouths(1)="elongated mouth"
+    mouths(2)="small mouth"
+    mouths(3)="big mouth"
+    mouths(4)="trunk"
+
+    necks(1)=""
+    necks(2)="long"
+    necks(3)="short"
+    necks(4)="thick"
+
+    bodys(1)="wide"
+    bodys(2)="long"
+    bodys(3)="thick"
+    bodys(4)="thin"
+
+    arms(1)="long arms"
+    arms(2)="short arms"
+    arms(3)="thick arms"
+    arms(4)="tentacles"
+
+    legs(1)="thin legs"
+    legs(2)="short legs"
+    legs(3)="tubular legs"
+    legs(4)="tentacles"
+    legs(5)="broad fins"
+    legs(6)="long fins"
+    legs(7)="legs with webbed feet"
+    legs(8)="skin sacks for water jets"
+
+    skin(1)=" fur"
+    skin(2)=" scales"
+    skin(3)=" leathery skin"
+    skin(4)=" an exoskeleton"
+    skin(5)=" a chitin shell"
+    skin(6)=" feathers"
+    skin(7)=" scales"
+
+    wings(4)=" Skin flaps"
+    wings(3)=" leather wings"
+    wings(2)=" feathered wings"
+    wings(1)=" an inflatable skin sack"
+
+    tails(1)="prehensile tail"
+    tails(2)="short tail"
+    tails(3)="long tail"
+    tails(4)="spiked tail"
+    tails(5)="prehensile tail with a stinger"
+
+    text=add_a_or_an(species(spec),1) &" with " & add_a_or_an(heads(rnd_range(1,4)),0) &" head, with "
+    if noeyes>0 then text=text & noeyes &" "&eyes(rnd_range(1,4))
+    if noeyes=0 then text=text &" no eyes"
+    if rnd_range(1,10)<7+w2 then
+        text=text & " and " &add_a_or_an(mouths(rnd_range(1,4)),0)
+    else
+        text=text &", "&rnd_range(1,2)*2 &" "& horns(rnd_range(1,4)) & " and " &add_a_or_an(mouths(rnd_range(1,4)),0)
+        enemy.weapon=enemy.weapon+1
+    endif
+    if spec<>8 then
+        text=text &". "&add_a_or_an(necks(rnd_range(1,4)),1) &" neck leads to " & add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with "
+    else
+        text=text &". It has "& add_a_or_an(bodys(rnd_range(1,4)),0) &" body, with "
+    endif
+    nolegs=rnd_range(1,6)*2
+    if nolegs>nolimbs then
+        nolegs=nolimbs
+        nolimbs=0
+    else
+        nolimbs=nolimbs-nolegs
+    endif
+
+    noarms=rnd_range(1,6)
+    if nolimbs=0 then noarms=0
+    if noarms>nolimbs then noarms=nolimbs
+
+    if pumod<0 and noarms=0 then noarms=2
+    pumod=noarms
+    if noarms>0 then
+        text=text & noarms &" "& arms(rnd_range(1,4))
+    else
+        text=text &"no arms"
+    endif
+
+    if nolegs>0 then
+        text=text & " and " & nolegs &" "&legs(rnd_range(1,4)+w1)
+    else
+        text=text & " and no legs"
+    endif
+
+    armor=rnd_range(1,6)+w2
+    text=text &". Its whole body is covered in"&skin(armor)&"."
+    if armor=1 then enemy.col=rnd_range(204,209)
+    if armor=2 then
+        enemy.col=rnd_range(1,3)
+        if enemy.col=1 then enemy.col=78
+        if enemy.col=2 then enemy.col=114
+        if enemy.col=3 then enemy.col=120
+    endif
+    if armor=3 then enemy.col=rnd_range(90,94)
+    if armor=4 then enemy.col=rnd_range(156,159)
+    if armor=5 then
+        enemy.col=rnd_range(215,217)
+        enemy.armor+=1
+    endif
+    if armor=6 then
+        enemy.col=rnd_range(74,77)
+        enemy.armor+=2
+    endif
+
+    if armor>6 then armor=6
+    enemy.ti_no=800+13*(spec-1)
+    enemy.ti_no+=(armor-1)*2
+
+    if rnd_range(1,6)<3 then
+        if rnd_range(1,6)<3 then
+            roll=rnd_range(1,3)
+            if roll>1 then
+                text=text &" It has " & roll &" "&tails(rnd_range(1,5))&"s."
+            else
+                text=text &" It has "&add_a_or_an(tails(rnd_range(1,5)),0)&"."
+            endif
+            enemy.weapon=enemy.weapon+1
+        else
+            roll=rnd_range(1,5)
+            text=text &" It has "&add_a_or_an(tails(roll),0)&"."
+            if roll=4 then enemy.weapon=enemy.weapon+1
+            if roll=5 then
+                enemy.weapon=enemy.weapon+1
+                enemy.atcost=enemy.atcost-2
+                if enemy.atcost<0 then enemy.atcost=2
+            endif
+        endif
+    endif
+
+    text=text &" It weighs appr. "&(weight*rnd_range(1,8)*rnd_range(1,10)) &" Kg."
+
+    if movetype=mt_fly then
+        if rnd_range(1,100)<66 then
+            text= text &" It flies using "&wings(rnd_range(1,3)) &"."
+        else
+            text= text &" It flies using "&rnd_range(1,3) & " pairs of "&wings(rnd_range(2,4)) &"."
+        endif
+    endif
+    if diet=1 then text=text &" It is a predator."
+    if diet=2 then
+        if rnd_range(1,100)<66 then
+            text=text &" It is a herbivore."
+        else
+            text=text &" It is an omnivore"
+        endif
+    endif
+    if diet=3 then text=text &" It is a scavenger."
+    enemy.ldesc=text
+    return enemy
+end function
+
+
 function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     dim enemy as _monster
     dim as short d,e,l,mapo,g,r,ahp,debug,prettybonus,tastybonus
@@ -263,7 +498,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.hpmax>20 then prefix="giant"
         if enemy.hpmax>10 and enemy.hpmax<21 then prefix= "huge"
         if enemy.hpmax>10 then prefix=""
-        if enemy.weapon>0 then 
+        if enemy.weapon>2 then 
             if prefix="" then
                 prefix=prefix &"vicious"
             else 
@@ -279,6 +514,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     if a=2 then 'Powerful standard critter
         'Postion
         g=rnd_range(0,4)
+        if _debug>0 then dprint "Making a "&ti(g)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
         
@@ -304,6 +540,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.ti_no=g+750
+        
         enemy.atcost=rnd_range(6,8)
         if enemy.speed<=1 then enemy.speed=1
         if enemy.speed>19 then enemy.speed=19
@@ -1119,7 +1356,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             if rnd_range(1,150)<25 then enemy.lang=-12
         endif
         if a=37 then enemy.lang=-17
-        if a=80 then enemy.lang=12
+        if a=80 then enemy.lang=-12
+        if _debug>0 then enemy.lang=12
         enemy.respawns=1
     endif
     
@@ -1353,8 +1591,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=35 then
-        enemy.ti_no=1001+g 'Powerful standard critter
         g=rnd_range(0,4)
+        enemy.ti_no=1001+g 'Powerful standard critter
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
         enemy.sprite=261+g

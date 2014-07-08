@@ -264,15 +264,14 @@ Function ep_atship() As Short
                 EndIf
             EndIf
         Next
-        if awayteam.leak>0 then repair_spacesuits()
+        if awayteam.leak>0 then repair_spacesuit()
         check_tasty_pretty_cargo
         alerts()
         Return 0
     Else
         location=lc_awayteam
-        'dprint ""&ep_Needs_spacesuit(slot,awayteam.c)
         If ep_Needs_spacesuit(slot,awayteam.c)>0 Then
-            dprint dam_awayteam(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)),5)
+            dprint dam_awayteam(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)),5),c_red
         EndIf
         Return 0
     EndIf
@@ -609,7 +608,7 @@ End Function
 
 
 
-Function ep_display(osx As Short=555) As Short
+Function ep_display(osx As Short=555,nightday as short=0) As Short
     Dim As Short a,b,x,y,slot,fg,bg,debug,alp,x2
     Dim As Byte comitem,comdead,comalive,comportal
     Dim As _cords p,p1,p2
@@ -624,7 +623,7 @@ Function ep_display(osx As Short=555) As Short
         Return 0
     EndIf
     ' Stuff on ground
-    make_vismask(awayteam.c,awayteam.sight,slot)
+    make_vismask(awayteam.c,0,slot)
     
     For a=1 To itemindex.vlast'Cant use index because unseen grenades burn out too
         If item(itemindex.value(a)).ty=7 And item(itemindex.value(a)).v2=1 Then 'flash grenade
@@ -850,6 +849,7 @@ Function ep_dropitem() As Short
                 EndIf
             End Select
             equip_awayteam(slot)
+            make_vismask(awayteam.c,0,slot)
         EndIf
     EndIf
     Return 0
@@ -949,7 +949,7 @@ Function ep_inspect(ByRef localturn As Short) As Short
 
                 EndIf
             Else
-                dprint "You couldn't repair the ship."
+                dprint "You couldn't repair the ship.",c_red
                 changetile(awayteam.c.x,awayteam.c.y,slot,4)
                 tmap(awayteam.c.x,awayteam.c.y)=tiles(4)
             EndIf
@@ -1127,7 +1127,7 @@ Function ep_items(localturn As Short) As Short
                         p1.y=item(itemindex.value(a)).w.y
                         dam=10/(1+distance(awayteam.c,p1))*item(itemindex.value(a)).v1*10
                         alienbomb(itemindex.value(a),slot)
-                        If dam>0 Then dprint dam_awayteam(dam)
+                        If dam>0 Then dprint dam_awayteam(dam),c_red
                         If awayteam.hp<=0 Then player.dead=29
                         itemindex.remove(a,p1)
                     EndIf
@@ -1392,6 +1392,7 @@ Function ep_planeteffect(shipfire() As _shipfire, ByRef sf As Single,lavapoint()
                     dprint "Your "&item(a).desig &" corrodes and is no longer usable.",14
                     destroyitem(a)
                     equip_awayteam(slot)
+                    make_vismask(awayteam.c,0,slot)
                     'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
                 EndIf
             EndIf
@@ -1486,6 +1487,7 @@ Function ep_pickupitem(Key As String) As Short
     EndIf
     If text<>"" Then
         dprint Trim(text),15
+        equip_awayteam(awayteam.slot)
     EndIf
     Return 0
 End Function
@@ -2826,6 +2828,7 @@ Function ep_helmet() As Short
         EndIf
     EndIf
     equip_awayteam(slot)
+    make_vismask(awayteam.c,0,slot)
     Return 0
 End Function
 
@@ -2919,6 +2922,7 @@ Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
                                         dprint "You don't have any unused cages."
                                     EndIf
                                 EndIf
+                                return 0
                             EndIf
                         endif
                     
@@ -3228,7 +3232,7 @@ Function ep_examine() As Short
         Cls
         p3=p2
         osx=calcosx(p3.x,planets(slot).depth)
-        make_vismask(awayteam.c,awayteam.sight,slot)
+        make_vismask(awayteam.c,0,slot)
         display_planetmap(slot,osx,0)
         ep_display(osx)
         display_awayteam(,osx)
@@ -3627,6 +3631,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
         If slot<>piratebase(0) Or faction(0).war(2)<=30 Then
             hiring(0,rnd_range(0,5),maximum(4,awayteam.hp))
             equip_awayteam(slot)
+            make_vismask(awayteam.c,calc_sight(),slot)
             If awayteam.oxygen<awayteam.oxymax Then awayteam.oxygen=awayteam.oxymax
         EndIf
     EndIf
@@ -3838,6 +3843,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
         If planets(slot).mon_killed(1)=0 Then
             If askyn("Do you want to fight in the arena? (y/n)") Then
                 planets(slot).depth=0
+                enemy(1)=enemy(0)
                 enemy(1)=makemonster(2,slot)
                 enemy(1)=setmonster(enemy(1),slot,spawnmask(),lsp,awayteam.c.x+3,awayteam.c.y,1)
                 enemy(1).slot=1
@@ -3855,11 +3861,11 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                         tmap(x,y)=tiles(planetmap(x,y,slot))
                     Next
                 Next
-            EndIf
-            If askyn("Do you want to sell your aliens as arena contestants?(y/n)") Then
-                sell_alien(slse_arena)
-            EndIf
-
+            else
+                If askyn("Do you want to sell your aliens as arena contestants?(y/n)") Then
+                    sell_alien(slse_arena)
+                EndIf
+            endif
         Else
             addmoney(planets(slot).plantsfound,mt_gambling)
             dprint "You get "& planets(slot).plantsfound &" Cr. for the fight.",10
@@ -4029,6 +4035,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             EndIf
         EndIf
     EndIf
+            
             If tmap(awayteam.c.x,awayteam.c.y).gives=59 Then 'Scrapyard
                 botsanddrones_shop
             EndIf
@@ -4200,8 +4207,6 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=75 Then used_ships
 
-
-
             If tmap(awayteam.c.x,awayteam.c.y).gives=167 Then
                 If askyn("A working security camera terminal. Do you want to try to use it?(y/n)") Then
                     If skill_test(player.science(location),st_average) Then
@@ -4209,7 +4214,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                         awayteam.c=rnd_point(slot,0)
                         dprint "You manage to access a camera at "&awayteam.c.x &":" &awayteam.c.y &"."
                         Do
-                            make_vismask(awayteam.c,awayteam.sight,slot)
+                            make_vismask(awayteam.c,0,slot)
                             display_planetmap(slot,calcosx(awayteam.c.x,1),0)
                             ep_display()
                             display_awayteam()

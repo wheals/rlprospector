@@ -1266,22 +1266,22 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.icon=";"
         i.ldesc="A small lamp to lighten up dark places"
         i.col=7
-        i.v1=3
-        i.price=40
+        i.v1=2
+        i.price=25
         i.res=35
         if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50+player.turn/rate then
                 i.id=i.id+1000
                 i.desig="strong "&i.desig
                 i.desigp="strong "&i.desigp
-                i.v1=4
-                i.price=50
+                i.v1=3
+                i.price=30
             else
                 i.id=i.id+1100
                 i.desig="weak "&i.desig
                 i.desigp="weak "&i.desigp
-                i.v1=2
-                i.price=30
+                i.v1=1
+                i.price=15
             endif
         endif
             
@@ -1297,21 +1297,21 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.icon=";"
         i.col=14
         i.v1=6
-        i.price=90
+        i.price=50
         i.res=55
         if rnd_range(1,100)<30+player.turn/rate and nomod=0 then
             if rnd_range(1,100)<50+player.turn/rate then
                 i.id=i.id+1000
                 i.desig="strong "&i.desig
                 i.desigp="strong "&i.desigp
-                i.v1=8
-                i.price=100
+                i.v1=7
+                i.price=60
             else
                 i.id=i.id+1100
                 i.desig="weak "&i.desig
                 i.desigp="weak "&i.desigp
                 i.v1=5
-                i.price=80
+                i.price=40
             endif
         endif
     endif
@@ -2270,7 +2270,6 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.v3=10 'HPs
         i.desig="Gas mining probe MK I"
         i.desigp="Gas mining probes MK I"
-        i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to " &i.v3 &" tons of fuel"
         i.icon="s"
         i.col=12
         i.price=100
@@ -2286,13 +2285,12 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.v1=2 'HP
         i.v2=0 'Piloting Bonus
         i.v3=20 'Tanksizes
-        i.ldesc="A system for the automatic retrieval of fuel from gas giants. It can hold up to " &i.v3 &" tons of fuel"
         i.icon="s"
         i.col=12
         i.price=200
     endif
     
-    if rnd_range(1,100)<10+player.turn/rate and a=104 or a=105 then
+    if rnd_range(1,100)<10+player.turn/rate and (a=104 or a=105) then
         if rnd_range(1,100)<50 then
             i.desig="Big "&i.desig
             i.v3=i.v3*1.5

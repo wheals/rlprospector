@@ -142,6 +142,8 @@ end function
 
 
 function check_filestructure() as short
+    dim as short f
+    
     if chdir("data")=-1 then
         set__color(c_yel,0)
         print "Can't find folder 'data'. Try reinstalling the game."
@@ -168,25 +170,34 @@ function check_filestructure() as short
     else
         chdir("..")
     endif
+    
+    if chdir("config")=-1 then
+        mkdir("config")
+    else
+        chdir("..")
+    endif
+    
+    set__color(11,0)
 
     if not fileexists("savegames/empty.sav") then
         player.desig="empty"
         savegame()
     endif
+    
     return 0
 end function
 
 function load_palette() as short
     dim as short f,i,j,k,debug
     dim as string l,w(3)
-    if not(fileexists("p.pal")) then
+    if not(fileexists("data/p.pal")) then
         color rgb(255,255,0),0
         print "p.pal not found - can't start the game"
         sleep
         end
     endif
     f=freefile
-    open "p.pal" for input as #f
+    open "data/p.pal" for input as #f
     line input #f,l
     line input #f,l
     line input #f,l 'First do not need to be checked
@@ -1259,7 +1270,7 @@ function randomname() as string
     dim desig as string="NNC - "
     dim suf as string
     f=freefile
-    if (open ("register" for input as f))=0 then
+    if (open ("config/shipregister.txt" for input as f))=0 then
         while not(eof(f))
             input #f,lines(count)
             if lines(count)<>"" then count=count+1
@@ -1269,7 +1280,7 @@ function randomname() as string
     d=val(lines(0))
     mask=lines(1)
     if lines(2)<>"" then
-        fname=lines(2)
+        fname="config/"&lines(2)
     else
         fname=mask
     endif
@@ -1305,7 +1316,7 @@ function randomname() as string
 
     f=freefile
 
-    open "register" for output as f
+    open "config/shipregister.txt" for output as f
     print #f,d
     print #f,mask
     print #f,fname
@@ -1354,11 +1365,12 @@ function keybindings(allowed as string="") as short
     dim as short f,a,b,d,x,y,c,ls,lk,cl(99),colflag(99),lastcom,changed,fg,bg,o
     dim as _cords cc,ncc
     dim as string keys(99),nkeys(99),varn(99),expl(99),coml(99),comn(99),comdes(99),text,newkey,text2
-    if not fileexists("keybindings.txt") then
+    cls
+    if not fileexists("config/keybindings.txt") then
         save_keyset
     endif
     f=freefile
-    open "keybindings.txt" for input as #f
+    open "config/keybindings.txt" for input as #f
     while not eof(f)
         ls+=1
         line input #f,text2
@@ -1384,11 +1396,12 @@ function keybindings(allowed as string="") as short
     a=0
     cls
     while not eof(f)
-       line input #f,text2
-
-       a+=1
-       coml(a)=left(text2,instr(text2,";")-1) &" = "
-       comdes(a)=right(text2,len(text2)-instr(text2,";"))
+        line input #f,text2
+        if left(text2,1)<>"#" then
+            a+=1
+            coml(a)=left(text2,instr(text2,";")-1) &" = "
+            comdes(a)=right(text2,len(text2)-instr(text2,";"))
+        endif
     wend
     close #f
     do
@@ -1403,7 +1416,6 @@ function keybindings(allowed as string="") as short
                 endif
             next
         next
-        b=0
         set__color( 11,0)
         cls
         if cc.x<1 then cc.x=1
@@ -1418,6 +1430,7 @@ function keybindings(allowed as string="") as short
         screenset 0,1
         set__color( 15,0)
         draw string ((_screenx-12*_fw2)/2,1*_fh2),"Keybindings:",,FONT2,custom,@_col
+        b=0
         for x=1 to 4
             for y=1 to 20
                 if x>1 or y>6 then
@@ -1487,6 +1500,7 @@ function keybindings(allowed as string="") as short
         if getdirection(no_key)=6 then c+=20
         if c<1 then c=lk
         if c>lk then c=1
+    
         'c=(cc.x-1)*20+cc.y
         if varn(c)="" then o=c
 
@@ -1511,7 +1525,7 @@ function keybindings(allowed as string="") as short
     if changed=1 then
         if askyn("Do you want to save changes(y/n)?") then
             f=freefile
-            open "keybindings.txt" for output as #f
+            open "config/keybindings.txt" for output as #f
             lastcom=1
             b=1
             for a=1 to lk
@@ -1527,7 +1541,7 @@ end function
 function save_keyset() as short
     dim f as short
     f=freefile
-    open "keybindings.txt" for output as #f
+    open "config/keybindings.txt" for output as #f
     print #f,"key_nw = "&key_nw
     print #f,"key_north = "&key_north
     print #f,"key_ne = "&key_ne
@@ -1570,6 +1584,7 @@ function save_keyset() as short
     print #f,"key_dropitem ="&key_drop
     print #f,"key_inspect ="&key_inspect
     print #f,"key_examine ="&key_ex
+    print #f,"key_report ="&key_report
     print #f,"key_radio ="&key_ra
     print #f,"key_teleport ="&key_te
     print #f,"key_jump ="&key_ju
@@ -1597,9 +1612,9 @@ function load_keyset() as short
     dim keys(256) as string
     dim texts(256) as string
     f=freefile
-    if fileexists("keybindings.txt") then
+    if fileexists("config/keybindings.txt") then
 
-        open "keybindings.txt" for input as #f
+        open "config/keybindings.txt" for input as #f
         print "loading keyset";
         do
             b+=1
@@ -2077,7 +2092,6 @@ function load_config() as short
         configflag(con_volume)=2
         configflag(con_anykeyno)=0
         configflag(con_diagonals)=1
-        configflag(con_altnum)=1
         configflag(con_easy)=0
         configflag(con_minsafe)=0
         configflag(con_startrandom)=1
@@ -2421,7 +2435,7 @@ function savegame(crash as short=0) as short
     next
 
     for a=0 to 2
-        put #f,,shop_order(a)
+        put #f,,shoporder(a)
     next
 
     for a=0 to 20
@@ -2547,7 +2561,7 @@ function savegame(crash as short=0) as short
     
     close f
 
-    'Overwrites large save file with compressed save file. but skills if file is empty
+    'Overwrites large save file with compressed save file. but skips if file is empty
     if fname<>"savegames/empty.sav" then
         f=freefile
         open fname for binary as #f
@@ -2621,14 +2635,14 @@ function load_game(filename as string) as short
 
 
     if filename<>"" then
-        f=freefile
         fname="savegames/"&filename
-        print "loading"&fname;
+        print "loading "&fname;
 
-        if filename <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
+        if fname <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
             'Starting the uncompress
-
-        open fname for binary as #f
+            f=freefile
+        
+            open fname for binary as #f
 
             get #f,,names           '36 bytes
             get #f,,dat             '36 bytes
@@ -2752,7 +2766,7 @@ function load_game(filename as string) as short
         next
 
         for a=0 to 2
-            Get #f,,shop_order(a)
+            Get #f,,shoporder(a)
         next
 
 
@@ -2876,14 +2890,14 @@ function load_game(filename as string) as short
         get #f,,battleslost()
         
         close f
-        if fname<>"savegames/empty.sav" and configflag(con_savescumming)=1 then
+        if fname<>"savegames/empty.sav" then
             kill(fname)
-        elseif fname<>"savegames/empty.sav" then
-            'need to rewrite our compressed data back
-            kill(fname)
-            open fname for binary as #f
-            put #f,, compressed_data
-            close f
+            if configflag(con_savescumming)=1 then
+                f=freefile
+                open fname for binary as #f
+                put #f,, compressed_data
+                close f
+            endif
         endif
         player.lastvisit.s=-1
     else

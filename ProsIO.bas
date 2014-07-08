@@ -77,6 +77,28 @@ function update_tmap(slot as short) as short
     for x=0 to 60
         for y=0 to 20
             tmap(x,y)=tiles(abs(planetmap(x,y,slot)))
+            
+            If show_all=1 And planetmap(x,y,slot)<0 Then planetmap(x,y,slot)=-planetmap(x,y,slot)
+            If Abs(planetmap(x,y,slot))>512 Then
+                dprint "ERROR: Tile #"&planetmap(x,y,slot)&"out ofbounds"
+                planetmap(x,y,slot)=512
+            EndIf
+            If tmap(x,y).ti_no=2505 Then 'Ship walls
+                If rnd_range(1,100)<33 Then
+                    tmap(x,y).ti_no=2504+rnd_range(1,4)
+                EndIf
+            EndIf
+            If Abs(planetmap(x,y,slot))=267 Then
+                enemy(0)=makemonster(1,slot)
+                tmap(x,y).desc="A cage. Inside is "&first_lc(enemy(0).ldesc)
+                enemy(0)=enemy(1) 'Delete monster
+            EndIf
+
+            If tmap(x,y).vege>0 Then
+                tmap(x,y).vege=rnd_range(0,tmap(x,y).vege)
+                If rnd_range(1,100)<tmap(x,y).vege/2 Then tmap(x,y).disease=rnd_range(0,tmap(x,y).vege/2)
+            EndIf
+            
         next
     next
     for x=0 to 60
@@ -327,7 +349,7 @@ function settactics() as short
         text=text &"/"
     next
     text=text &"Exit"
-    a=menu(bg_awayteam,text,,,,1)
+    a=menu(bg_awayteamtxt,text,,,,1)
     if a<7 then
         player.tactic=a-3
     endif
@@ -362,7 +384,7 @@ function bioreport(slot as short) as short
     next
     t=t &"Exit"
     do
-    loop until menu(bg_awayteam,t,h)
+    loop until menu(bg_awayteamtxt,t,h)
     return 0
 end function
 
@@ -1149,7 +1171,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         l=hpdisplay(awayteam)
         set__color( 11,0)
         l+=1
-        draw string(sidebar,l*_fh2), "Visibility: " &awayteam.sight,,Font2,custom,@_col
+        draw string(sidebar,l*_fh2), "Visibility: " &calc_sight(),,Font2,custom,@_col
         l+=1
         if awayteam.movetype=0 then draw string(sidebar,l*_fh2), "Trp.: None",,Font2,custom,@_col
         if awayteam.movetype=1 then draw string(sidebar,l*_fh2), "Trp.: Hoverplt.",,Font2,custom,@_col
@@ -1370,7 +1392,7 @@ function display_monsters(osx as short) as short
                             endif
                         endif
                         if _debug>0 then 
-                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),"faction #" & enemy(a).faction & " NE"&enemy(a).denemy & " NF:" & enemy(a).dfriend &" T:"&cords(enemy(a).target) &" Att:"&enemy(a).attacked ,,font2,custom,@_tcol
+                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),"W:" & enemy(a).ti_no,,font2,custom,@_tcol
                         endif    
                         if show_energy=1 then 
                             set__color(15,0)

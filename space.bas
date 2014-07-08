@@ -614,6 +614,7 @@ function add_drifters() as short
     
         if drifting(a).s<=22 then make_drifter(drifting(a),0,0,f)
         drifting(a).p=show_all
+        if _debug>0 then drifting(a).p=1
     next
     if makelog=1 then close #f
     drifting(1).x=targetlist(firstwaypoint).x
@@ -631,7 +632,9 @@ function add_drifters() as short
     planets(drifting(1).m).mon_template(3)=makemonster(103,drifting(1).m)
     planets(drifting(1).m).mon_noamin(3)=1
     planets(drifting(1).m).mon_noamax(3)=2
-    
+    planets(drifting(1).m).darkness=0
+    planets(drifting(2).m).darkness=0
+    planets(drifting(3).m).darkness=0
     planets(drifting(1).m).flags(29)=5
     planets(drifting(2).m).flags(29)=6
     planets(drifting(3).m).flags(29)=7

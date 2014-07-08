@@ -64,6 +64,7 @@ function spacecombat(byref atts as _fleet,ter as short) as short
             endif
         next
     next
+    if _debug>0 then dprint atts.ty &"<- atts.ty"
     combatmap(30,10)=0
     victory=0
     col=12
@@ -443,14 +444,16 @@ function spacecombat(byref atts as _fleet,ter as short) as short
         #endif
 
 
-
+        if victory=3 then
+            dprint "Any key to continue."
+            no_key=keyin
+        endif
     loop until victory<>0 or player.dead=6
     if attacker(16).desig="" and col=10 then atts.con(1)=-1
     player.c=p
     if victory=3 then
-        if player.dead<>0 then screenshot(3)
-        if atts.ty=1 or atts.ty=3 then player.dead=5 'merchants
-        if atts.ty=2 or atts.ty=4 then player.dead=13 'Pirates
+        if atts.ty=1 or atts.ty=3 then player.dead=13 'merchants
+        if atts.ty=2 or atts.ty=4 then player.dead=5 'Pirates
         if atts.ty=8 then player.dead=20 'Asteroid belt monster '
         if atts.ty=5 then player.dead=21 'ACSC
         if atts.ty=9 then player.dead=23 'GG monster
@@ -1128,17 +1131,19 @@ function com_getweapon(echo as byte=1) as short
 
         if player.weapons(a).dam>0 then
             if (player.weapons(a).ammo>0 or player.weapons(a).ammomax=0) and player.weapons(a).reloading=0 and player.weapons(a).shutdown=0 then
-                c+=1 'waffe braucht ammo und hat keine
+                c+=1 'waffe braucht ammo
                 lastslot=a
             endif
             if player.weapons(a).reloading>0 then re+=1
         endif
     next
-    if c=0 and echo=1 then
-        if re=0 then
-            dprint "You do not have any weapons you can fire!",14
-        else
-            dprint "All your weapons are reloading or recharging at this time.",14
+    if c=0 then
+        if echo=1 then
+            if re=0 then
+                dprint "You do not have any weapons you can fire!",14
+            else
+                dprint "All your weapons are reloading or recharging at this time.",14
+            endif
         endif
         return 0
     endif
@@ -1219,15 +1224,18 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
     dim del as _weap
     dim wp(255) as _cords
     dim as short roll,a,ROF,dambonus,rangebonus,tohitbonus,i,l,c,osx,j,col,col2,col3,firefree
+    dim as string echo
     'screenset 1,1
     if target.desig=player.desig then
         col=c_gre
         col2=c_yel
         col3=c_red
+        echo=""
     else
         col=c_yel
         col2=c_gre
         col3=c_gre
+        echo="Firing "&attacker.weapons(2).desig &":" 
     endif
 
 
@@ -1248,8 +1256,8 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
     #endif
     #ifdef _FBSOUND
     if distance(target.c,attacker.c)<(attacker.sensors+2)*attacker.senac then
-        if attacker.weapons(w).ammomax>0 and attacker.weapons(a).ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
-        if attacker.weapons(w).ammomax>0 and attacker.weapons(a).ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
+        if attacker.weapons(w).ammomax>0 and attacker.weapons(w).ROF>0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(7)) 'Laser
+        if attacker.weapons(w).ammomax>0 and attacker.weapons(w).ROF=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(8)) 'Missile battery
         if attacker.weapons(w).ammomax=0 and (configflag(con_sound)=0 or configflag(con_sound)=2) then fbs_Play_Wave(sound(9)) 'Missile
     endif
     #endif
@@ -1275,8 +1283,7 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
                 rangebonus=0
                 if range<=attacker.weapons(w).range*2 then rangebonus+=1
                 if range<=attacker.weapons(w).range then rangebonus+=2
-                if skill_test(gunner+attacker.senac+tohitbonus+rangebonus-target.pilot(0)/2-(target.equipment(se_ecm)*attacker.weapons(w).ecmmod),st_average,_
-                attacker.desig &" fires "&attacker.weapons(w).desig) then
+                if skill_test(gunner+attacker.senac+tohitbonus+rangebonus-target.pilot(0)/2-(target.equipment(se_ecm)*attacker.weapons(w).ecmmod),st_average,echo) then
                     if attacker.weapons(w).ammomax=0 then
                         c=185
                     else
@@ -1312,8 +1319,7 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
                     else
                         target=com_hit(target,attacker.weapons(w),attacker.loadout,range,attacker.desig,com_side(target,wp(255)))
                         c=7
-                    endif
-
+                    endif                                    
                 else
                     if distance(target.c,player.c)<(player.sensors+2)*player.senac then
                         l=line_in_points(movepoint(target.c,5),attacker.c,wp())
@@ -1336,9 +1342,9 @@ function com_fire(byref target as _ship,byref attacker as _ship,byref w as short
                         next
                         if attacker.weapons(w).p>0 then
                             if attacker.weapons(w).ammomax>0 then
-                                if configflag(con_showrolls)=1 then dprint attacker.desig &" fires "&ammotypename(attacker.loadout) &", and misses!",col
+                                dprint attacker.desig &" fires "&ammotypename(attacker.loadout) &" and misses!",col
                             else
-                                if configflag(con_showrolls)=1 then dprint attacker.desig &" fires "&attacker.weapons(w).desig &", and misses!",col
+                                dprint attacker.desig &" fires "&attacker.weapons(w).desig &" and misses!",col
                             endif
                         else
                             if configflag(con_showrolls)=1 then dprint "It missed.",col
@@ -1439,7 +1445,7 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
             text=desig &" is hit! "
         endif
         target.hull=target.hull+target.shieldside(side)
-        text=text &" "& abs(target.shieldside(side)) & " Damage!"
+        text=text &" "& abs(target.shieldside(side)) & " damage!"
         roll=rnd_range(1,6)+6-target.armortype-target.shieldside(side)
         if roll>8 and target.hull>0 then
             if roll+rnd_range(1,6)>13 then
@@ -2075,16 +2081,9 @@ function com_victory(attacker() as _ship) as short
         if attacker(a).hull>0 and attacker(a).aggr=0 then enemycount+=1
         if debug=1 and _debug=1 and attacker(a).hull>0 then dprint a &":x:"&attacker(a).c.x &":y:"&attacker(a).c.y
     next
-    if debug=2 and _debug=1 then
-        f=freefile
-        open "enemycount" for output as #f
-        print #f,enemycount
-        close #f
-    endif
 
     if debug=1 and _debug=1 then dprint "Enemycount"&enemycount
-    if enemycount>0 then return enemycount
-    return 0
+    return enemycount
 end function
 
 function com_remove(attacker() as _ship, t as short,flag as short=0) as short

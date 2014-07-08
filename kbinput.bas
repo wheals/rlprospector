@@ -379,63 +379,12 @@ function getnumber(a as integer,b as integer, e as integer) as integer
     dim p as _cords
     screenset 1,1
     dprint ""
-    if configflag(con_altnum)=0 then
-        p=locEOL
-        c=numfromstr((gettext(p.x,p.y,46,"")))
-        if c>b then c=b
-        if c<a then c=e
-        return c
-    else
-        
-        set__color( 11,1)
-        for i=1 to 61
-            draw string (i*_fw1,21*_fh1),chr(196),,font1,custom,@_col
-        next
-        set__color( 11,11)
-        draw string (28*_fw1,21*_fh1),space(5),,font1,custom,@_col
-        c=a
-        if e>0 then c=e
-        do 
-            set__color( 11,1)
-            
-            draw string (27*_fw1,22*_fh1),chr(180),,font1,custom,@_col
-            set__color( 5,11)
-            
-            draw string (29*_fw1,21*_fh1),"-",,font1,custom,@_col
-            print "-"
-    
-            if c<10 then 
-                set__color( 1,11)
-                print "0" &c
-                draw string (30*_fw1,21*_fh1),"0"&c,,font2,custom,@_col
-            else
-                set__color( 1,11)
-                draw string (30*_fw1,21*_fh1),""&c,,font2,custom,@_col
-            endif
-            
-            locate 22,32
-            set__color( 5,11)        
-            draw string (32*_fw1,21*_fh1),"+",,font1,custom,@_col
-            
-            set__color( 11,1)
-            draw string (33*_fw1,21*_fh1),chr(195),,font1,custom,@_col
-            key=keyin(key__up &key__dn &key__rt &key__lt &"1234567890+-"&key__esc &key__enter)
-            if keyplus(key) then c=c+1
-            if keyminus(key) then c=c-1
-            if key=key__enter then d=1
-            if key=key__esc then d=2
-            buffer=buffer+key
-            if len(buffer)>5 then buffer=""
-            if val(buffer)<>0 or buffer="0" then c=val(buffer)
-            
-            if c>b then c=b
-            if c<a then c=a
-            
-        loop until d=1 or d=2
-        if d=2 then c=-1
-        set__color( 11,0)
-    endif
+    p=locEOL
+    c=numfromstr((gettext(p.x,p.y,46,"")))
+    if c>b then c=b
+    if c<a then c=e
     return c
+    
 end function    
 
 function keyplus(key as string) as short
@@ -622,6 +571,7 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
             case is>=bg_trading
                 display_ship()
                 displaywares(bg-bg_trading)
+                dprint ""
             end select
         endif
         set__color( 15,0)

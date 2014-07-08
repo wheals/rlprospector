@@ -32,14 +32,16 @@ Draw String(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #Include Once "logbook2.bas"
 #Include Once "pirates.bas"
 #Include Once "planet.bas"
+#include once "drifter.bas"
 #Include Once "items.bas"
 #Include Once "ProsIO.bas"
 #Include Once "highscore.bas"
 #Include Once "cargotrade.bas"
 #include once "fleets.bas"
-#include once "Monster.bas"
+#include once "monster.bas"
 '#include once "colonies.bas"
 #Include Once "quests.bas"
+#include once "landing.bas"
 #Include Once "spacecom.bas"
 #Include Once "fileIO.bas"
 #Include Once "exploreplanet.bas"
@@ -50,7 +52,8 @@ Draw String(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #Include Once "globals.bas"
 #Include Once "compcolon.bas"
 #Include Once "poker.bas"
-
+#include once "shop.bas"
+#include once "dialog.bas"
 On Error Goto errormessage
 
 Screenres 640,320,32
@@ -66,39 +69,24 @@ If configflag(con_tiles)=0 Or configflag(con_sysmaptiles)=0 Then load_tiles
 load_keyset
 load_sounds
 load_palette()
-
-If Not fileexists("register") Then
+        
+If Not fileexists("config/shipregister.txt") Then
     Cls
     If askyn("This is the first time you start prospector. Do you want to see the keybindings before you start?(Y/N)") Then
        keybindings
     EndIf
     Cls
     f=Freefile
-    Open "register" For Output As f
+    chdir("config")
+    Open "shipregister.txt" For Output As f
     Print #f,"0"
     Print #f,""
     If Menu(bg_randompic,"Autonaming:/Standard/Babylon 5 Shipnames")=2 Then
         Print #f,"b5shipnames.txt"
     EndIf
-
     Close #f
-    set__color(11,0)
-EndIf
-
-If _debug=601 Then
-    f=Freefile
-    Open "weapdump.csv" For Output As #f
-    For a=0 To 100
-        player.turn=a*1000
-        Print #f,display_time(player.turn)&","&make_item(96).desig
-        For b=0 To 10
-            'player.weapons(0)=make_weapon(6)
-            'print #f,player.weapons(0).desig
-        Next
-    Next
-    Close #f
-EndIf
-    
+    chdir("..")
+endif
 
 Do
     set_globals
@@ -115,20 +103,19 @@ Do
         
         a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1)
         If a=1 Then
-            Key="1"
             If count_savegames()>20 Then
-                Key=""
+                a=0
                 dprint "Too many Savegames, choose one to overwrite",14
                 text=getfilename()
                 If text<>"" Then
                     If askyn("Are you sure you want to delete "&text &"(y/n)") Then
                         Kill("savegames/"&text)
-                        Key="1"
+                        a=1
                     EndIf
                 EndIf
             EndIf
         EndIf
-        If a=2 Then Key=from_savegame("2")
+        If a=2 Then a=from_savegame(a)
         If a=3 Then high_score("")
         If a=4 Then manual
         If a=5 Then configuration
@@ -151,23 +138,12 @@ Do
 '                clear_gamestate
 '            next
 '        endif
-        If _debug>0 Then
-            f=freefile
-            open "Tiletriggers.txt" for output as #f
-            
-            for a=1 to 512
-                planetmap(1,1,1)=a
-                tmap(1,1)=tiles(a)
-                if gets_entry(1,1,1)=-1 then print #f,a &":"&tiles(a).desc
-            next
-            close #f
-        EndIf
-    Loop Until Key="1" Or Key="2" Or a=7
+    Loop Until a=1 or a=2 or a=7
     set__color(11,0)
     Cls
-    If Key="1" Then start_new_game
+    If a=1 Then start_new_game
 
-    If Key="1" Or Key="2" Or Key="a" Or Key="b" And player.dead=0 Then
+    If (a=1 or a=2) And player.dead=0 Then
         Key=""
         gamerunning=1
         display_stars(1)
@@ -175,16 +151,17 @@ Do
         explore_space
     EndIf
 
-    If Key="7" Or Key="g" Then End
+    If a=7 Then End
 
     If player.dead>0 Then death_message()
-
+    
     set__color( 15,0)
     If configflag(con_restart)=0 Then
         load_game("empty.sav")
         clear_gamestate
         gamerunning=0
     EndIf
+
 Loop Until configflag(con_restart)=1
 #IfDef _FMODSOUND
 fSOUND_close
@@ -197,7 +174,7 @@ Function start_new_game() As Short
     Dim doubleitem(4555) As Byte
     Dim i As _items
     Dim debug As Byte
-    'debug=127
+    debug=66
     
     make_spacemap()
     If debug=1 And _debug=1 Then
@@ -461,7 +438,7 @@ Function start_new_game() As Short
     Return 0
 End Function
 
-Function from_savegame(Key As String) As String
+Function from_savegame(a As Short) As Short
     Dim As Short c
     c=count_savegames
     set__color(11,0)
@@ -469,11 +446,11 @@ Function from_savegame(Key As String) As String
     If c=0 Then
         dprint "No Saved Games"
         no_key=keyin 
-        Key=""
+        a=0
     Else
         load_game(getfilename())
         If player.desig="" Then 
-            Key=""
+            a=0
         else
             player.dead=0
             civ_adapt_tiles(0)
@@ -485,791 +462,7 @@ Function from_savegame(Key As String) As String
     EndIf
     set__color(11,0)
     Cls
-    Return Key
-End Function
-
-Function target_landing(mapslot As Short,Test As Short=0) As Short
-    Dim As _cords p
-    Dim As String Key
-    Dim As Short c,osx
-    set__color(11,0)
-    Cls
-    Screenset 1,1
-
-    dprint "Choose landing site"
-    p.x=30
-    p.y=10
-    Key=get_planet_cords(p,mapslot)
-    If Key=key__enter Then
-        Do
-            p=movepoint(p,5)
-            c+=1
-            player.fuel-=1
-        Loop Until c>5 Or (tiles(Abs(planetmap(p.x,p.y,mapslot))).gives=0 And tiles(Abs(planetmap(p.x,p.y,mapslot))).walktru=0 And skill_test(player.pilot(0),st_easy+c+planets(mapslot).grav+planets(mapslot).dens,"Pilot:"))
-        If c<=5 Then
-            landing(mapslot,p.x,p.y,c)
-        Else
-            dprint "Couldn't land there, landing aborted",14
-        EndIf
-    EndIf
-    Return 0
-End Function
-
-
-Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) As Short
-    Dim As Short l,m,a,b,c,d,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad,landinggear,who(128),last2,alle
-    Dim light As Single
-    Dim p As _cords
-    Dim As Short  last,debug
-    Dim nextmap As _cords
-    Dim As _monster delaway
-    Dim As String reason
-    delaway.optoxy=awayteam.optoxy
-    awayteam=delaway
-    debug=1
-
-    p.x=lx
-    p.y=ly
-    If lx=0 And ly=0 Then p=rnd_point(mapslot,0)
-    sys=sysfrommap(mapslot)
-    If savefrom(0).map=0 Then
-        If mapslot=specialplanet(29) And findbest(89,-1)>0 Then mapslot=specialplanet(30)
-        If mapslot=specialplanet(30) And findbest(89,-1)=-1 Then mapslot=specialplanet(29)
-        If mapslot=specialplanet(29) Then specialflag(30)=1
-        If configflag(con_warnings)=0 And player.hull=1 And planets(mapslot).depth=0 Then
-            If Not askyn("Pilot: 'Are you sure captain? I can't guarantee I get this bucket up again'(Y/N)",14) Then Return 0
-        EndIf
-        If _debug=510 Then
-            dprint sys &","&mapslot
-        EndIf
-
-        If mapslot>0 Then
-            set__color(11,0)
-            Cls
-
-            If planetmap(0,0,mapslot)=0 Then makeplanetmap(mapslot,slot,map(sys).spec)
-            awayteam.hp=0
-            For b=1 To 255
-                If crew(b).hpmax>0 And crew(b).hp>0 And crew(b).onship=0 And crew(b).disease=0 Then
-                    awayteam.hp+=1
-                    crew(b).hp=crew(b).hpmax
-                EndIf
-            Next
-            'awayteam.hpmax=awayteam.hp
-            If player.dead=0 Then
-                While tiles(Abs(planetmap(p.x,p.y,mapslot))).locked<>0 Or _
-                    tiles(Abs(planetmap(p.x,p.y,mapslot))).gives<>0 Or _
-                    tiles(Abs(planetmap(p.x,p.y,mapslot))).walktru<>0 Or _
-                    Abs(planetmap(p.x,p.y,mapslot))=45 Or _
-                    Abs(planetmap(p.x,p.y,mapslot))=80
-                    If lx=0 And ly=0 Then
-                        p=rnd_point(mapslot,0)
-                    Else
-                        p=movepoint(p,5,,4)'4=Rollover
-                    EndIf
-                Wend
-
-                'if ((mapslot=pirateplanet(0) or mapslot=pirateplanet(1) or mapslot=pirateplanet(2)) and player.pirate_agr<=0) or isgasgiant(mapslot)<>0 then
-                    For x=0 To 60
-                        For y=0 To 20
-                            If planetmap(x,y,mapslot)=68 And last<128 Then
-                                last+=1
-                                pwa(last).x=x
-                                pwa(last).y=y
-                            EndIf
-                        Next
-                    Next
-                    If last>0 Then
-                        If askyn("Shall we use the landingpad to land?(y/n)") Then
-                            p=pwa(rnd_range(1,last))
-                            landingpad=5
-                        EndIf
-                    EndIf
-                'endif
-                player.landed.x=p.x
-                player.landed.y=p.y
-                player.landed.m=mapslot
-                nextmap=player.landed
-                equip_awayteam(mapslot)
-            EndIf
-
-            last2=no_spacesuit(who(),alle)
-            If last2>0 And ep_needs_Spacesuit(mapslot,player.landed,reason)<>0 Then
-                If alle=0 Then
-                    If not(askyn("You will need spacesuits ("& reason &"). Do you want to take "&last2 &" crewmembers who have none with you? (Y/N)")) Then
-                        remove_no_spacesuit(who(),last2)
-                    EndIf
-                Else
-                    If not(askyn("You need spacesuits on this planet  ("& reason &") and don't have any. Land anyway? (y/n)")) Then Return 0
-                EndIf
-            EndIf
-                        
-            If findbest(10,-1)>-1 And is_drifter(m)=0 Then
-                awayteam.stuff(8)=item(findbest(10,-1)).v1 'Sattelite
-                dprint "You deploy your satellite."
-            EndIf
-            
-            roll=landingpad+player.pilot(0)+add_talent(2,8,1)
-            landinggear=findbest(41,-1)
-            If landinggear>0 And landingpad=0 Then roll=roll+item(landinggear).v1
-            target=planets(mapslot).dens+2*planets(mapslot).grav^2
-            If mapslot<>specialplanet(2) And Test=0 Then
-                If skill_test(roll,target,"Pilot") Then
-                    If landingpad=0 Then
-                        dprint ("Your pilot succesfully landed in the difficult terrain",10)
-                    Else
-                        dprint ("You landed on the landinpad",10)
-                    EndIf
-                    player.fuel=player.fuel-1
-                    dprint gainxp(2),c_gre
-                Else
-                    If landingpad=0 Then
-                        dprint ("your pilot damaged the ship trying to land in difficult terrain.",12)
-                    Else
-                        dprint ("your pilot actually manged to damage the ship while landing on a landing pad!",12)
-                    EndIf
-                    player.hull=player.hull-1
-                    player.fuel=player.fuel-2-Int(planets(mapslot).grav)
-                    If player.hull<=0 Then
-                        dprint ("A Crash landing. you will never be able to start with that thing again",12)
-                        If skill_test(player.pilot(0),st_veryhard,"Pilot") Then
-                            dprint ("but your pilot wants to try anyway and succeeds!",12)
-                            player.hull=1
-                        Else
-                            player.dead=4
-                        EndIf
-                        no_key=keyin
-                    EndIf
-                EndIf
-            EndIf
-        EndIf
-        If is_gardenworld(nextmap.m) Then changemoral(3,0)
-        awayteam.oxygen=awayteam.oxymax
-        awayteam.jpfuel=awayteam.jpfuelmax
-
-        Else
-            awayteam=savefrom(0).awayteam
-            nextmap=savefrom(0).ship
-            nextmap.m=savefrom(0).map
-        EndIf
-        
-        #IfDef _FMODSOUND
-        If (configflag(con_sound)=0 Or configflag(con_sound)=2) And mapslot>0 Then FSOUND_PlaySound(FSOUND_FREE, Sound(11))
-        #EndIf
-        #IfDef _FBSOUND
-        If (configflag(con_sound)=0 Or configflag(con_sound)=2) And mapslot>0 Then fbs_Play_Wave(Sound(11))
-        #EndIf
-        
-        If player.dead=0 And awayteam.hp>0 Then
-            
-            Do
-                if _debug=2704 then print #freefile,"outerloop1"
-                savegame
-                if _debug=2704 then print #freefile,"outerloop2"
-                equip_awayteam(slot)
-                if _debug=2704 then print #freefile,"outerloop3"
-                nextmap=explore_planet(nextmap,slot)
-                if _debug=2704 then print #freefile,"outerloop4"
-                set__color(11,0)
-                removeequip
-                if _debug=2704 then print #freefile,"outerloop5"
-                c=1
-                For b=2 To 255
-                    If crew(b).hp<=0 Then
-                        crew(b)=crew(0)
-                    Else
-                        c+=1
-                    EndIf
-                Next
-                If c>127 Then c=127
-
-                For b=2 To c-1
-                    If crew(b).hpmax=0 Then
-                        Swap crew(b),crew(b+1)
-                    EndIf
-                Next
-                
-                if _debug=2704 then print #freefile,"outerloop6:"&nextmap.m
-            Loop Until nextmap.m=-1 Or player.dead<>0
-            For c=0 To 127
-                For b=6 To 127
-                    If crew(b).hp<=0 Then Swap crew(b),crew(b+1)
-                Next
-
-            Next
-            For b=0 To 127
-                If crew(b).onship=4 Then
-                    crew(b).onship=crew(b).oldonship
-                EndIf
-            Next
-            removeequip
-            'artifacts?
-            If reward(5)>0 Then
-                If reward(5)=1 Then
-                    player.fuelmax=200
-                EndIf
-                If reward(5)=2 Then
-                    player.stuff(1)=3
-                EndIf
-                If reward(5)=3 Then
-                    slot=get_random_system()
-                    If slot<0 Then slot=rnd_range(0,laststar)
-                    map(slot).discovered=1
-                    For b=1 To 9
-                        If map(slot).planets(b)>0 Then
-                        If planetmap(0,0,map(slot).planets(b))=0 Then makeplanetmap(map(slot).planets(b),b,map(sys).spec)
-                        reward(0)=reward(0)+1200
-                        reward(7)=reward(7)+600
-                        For xx=0 To 60
-                            For yy=0 To 20
-                                If planetmap(xx,yy,map(slot).planets(b))<0 Then planetmap(xx,yy,map(slot).planets(b))=planetmap(xx,yy,map(slot).planets(b))*-1
-                            Next
-                        Next
-                        EndIf
-                    Next
-                    dprint "the data from the computer describes a system with the coordinates "& map(slot).c.x &":" & map(slot).c.y
-                EndIf
-                If reward(5)=4 Then
-                    player.stuff(2)=3
-                EndIf
-                If reward(5)=5 Then
-                    player.stuff(0)=3
-                EndIf
-                reward(5)=0
-
-            EndIf
-        EndIf
-        c=6
-        dis=0
-        If crew(1).hp<=0 And player.dead=0 Then
-            crew(1).hp=crew(1).hpmax
-            b=rnd_range(1,3)
-            If b=1 Then dprint "Captain "&crew(1).n &" was just unconcious.",10
-            If b=2 Then dprint "Captain "&crew(1).n &" got better.",10
-            If b=3 Then dprint "Captain "&crew(1).n &" miracoulously recovered.",10
-        EndIf
-        For b=1 To 128
-            If crew(b).hp<crew(b).hpmax And crew(b).hp>0 And crew(b).disease=0 Then crew(b).hp=crew(b).hpmax
-        Next
-        For b=6 To 128
-            If crew(b).hp<=0 Then
-                crew(b)=crew(0)
-            Else
-                If crew(b).disease>dis Then dis=crew(b).disease
-                c+=1
-            EndIf
-        Next
-        awayteam.disease=dis
-        d=0
-        Do
-            d+=1
-            a=0
-            For b=6 To c-1
-                If crew(b).hpmax=0 And crew(b+1).hpmax>0 Then
-                    Swap crew(b),crew(b+1)
-                    a=1
-                EndIf
-            Next
-        Loop Until a=0 Or d>=1000
-        For b=0 To lastitem
-            If item(b).w.s<0 Then
-                item(b).w.s=-1
-                item(b).w.m=0
-                item(b).w.p=0
-            EndIf
-        Next
-        player.landed.m=0
-        display_stars(1)
-        display_ship
-        If awayteam.stuff(8)=1 And player.dead=0 And Test=0 And planets(slot).depth=0 Then
-            If skill_test(player.pilot(0)+player.tractor,st_easy,"Pilot:") Then
-                dprint "You rendevouz with your satellite and take it back in",10
-            Else
-                dprint "When trying to rendevouz with your satellite your pilot rams and destroys it.",12
-                item(findbest(10,-1))=item(lastitem)
-                lastitem=lastitem-1
-                no_key=keyin
-            EndIf
-        Else
-            dprint ""
-        EndIf
-    Return 0
-End Function
-
-Function scanning() As Short
-    Dim mapslot As Short
-    Dim As Short slot
-    Dim sys As Short
-    Dim scanned As Short
-    Dim itemfound As Short
-    Dim a As Short
-    Dim b As Short
-    Dim x As Short
-    Dim y As Short
-    Dim Key As String
-    Dim As Short osx
-    Dim As Single roll,target
-    Dim debug As Byte
-    Dim As Short plife,mining
-    debug=1
-    'if getsystem(player)>0 then
-    a=getplanet(get_system())
-    slot=a
-    update_tmap(slot)
-    If a>0 Then
-        sys=get_system()
-        mapslot=map(sys).planets(a)
-        If mapslot=specialplanet(29) And findbest(89,-1)>0 Then mapslot=specialplanet(30)
-        If mapslot=specialplanet(30) And findbest(89,-1)=-1 Then mapslot=specialplanet(29)
-        If mapslot=specialplanet(29) Then specialflag(30)=1
-        If mapslot<0 And mapslot>-20000 Then map(sys).planets(a)=asteroid_mining(mapslot)
-        If mapslot=-20001 Then dprint "A helium-hydrogen gas giant"
-        If mapslot=-20002 Then dprint "A methane-ammonia gas giant"
-        If mapslot=-20003 Then dprint "A hot jupiter"
-        If mapslot<-20000 Or is_gasgiant(mapslot)>0 Then gasgiant_fueling(mapslot,a,sys)
-        If mapslot>0 And is_gasgiant(mapslot)=0 Then
-        If planetmap(0,0,mapslot)=0 Then
-            makeplanetmap(mapslot,a,map(sys).spec)
-            'makefinalmap(mapslot)
-        EndIf
-        If planets(mapslot).mapstat=0 Then planets(mapslot).mapstat=1
-        make_locallist(mapslot)
-        move_rover(mapslot)
-
-        For x=60 To 0 Step -1
-            For y=0 To 20
-                target=st_average+(planets(mapslot).mapped/100*player.sensors)+planets(mapslot).dens
-                If Abs(planetmap(x,y,mapslot))=8 Then target=target-1
-                If Abs(planetmap(x,y,mapslot))=7 Then target=target-2
-                If Abs(planetmap(x,y,mapslot))=99 Then mining=1
-                If skill_test(minimum(player.science(0)+1,player.sensors),target) And planetmap(x,y,mapslot)<0 Then
-                    planetmap(x,y,mapslot)=planetmap(x,y,mapslot)*-1
-                    tmap(x,y)=tiles(planetmap(x,y,mapslot))
-                    reward(0)=reward(0)+.4+player.sensors/10
-                    reward(7)=reward(7)+planets(mapslot).mapmod
-                    scanned=scanned+1
-                    
-                EndIf
-            Next
-        Next
-        For b=0 To lastitem
-            If item(b).w.m=mapslot And item(b).w.p=0 And item(b).w.s=0 Then
-                target=st_hard+planets(mapslot).dens*item(a).scanmod
-                If skill_test(add_talent(4,15,1)+minimum(player.science(0),player.sensors)*item(b).scanmod,target) Then
-                    item(b).discovered=1
-                    itemfound+=1
-                EndIf
-            EndIf
-        Next
-        planets(mapslot).mapped=planets(mapslot).mapped+scanned
-        If scanned>50 Then dprint gainxp(4),c_gre
-        set__color(11,0)
-        Cls
-        If mapslot=player.questflag(7) Then dprint "This is the planet Eridiani Explorations wants us to map completely"
-        If mapslot=piratebase(0) Then
-            dprint "Science Officer: 'There is a starport on this planet.'",15
-        EndIf
-        For a=0 To lastspecial
-            If mapslot=specialplanet(a) Then
-                If specialflag(a)<=1 Then
-                    If specialplanettext(a,specialflag(a))<>"" Then
-                        dprint specialplanettext(a,specialflag(a)) &" Key to continue",15
-                        no_key=keyin
-                    EndIf
-                EndIf
-            EndIf
-        Next
-        dprint "Scanned "&scanned &" km2"
-        If itemfound>1 Then dprint "Detected "&itemfound &" objects."
-        If itemfound=1 Then dprint "Detected an object."
-        If itemfound<1 Then dprint "Detected no objects."
-        If mining=1 Then
-            If planets(mapslot).flags(22)=-1 Then dprint "A mining station on this planet sends a distress signal. They need medical help.",15
-            If planets(mapslot).flags(22)>=0 Then dprint "There is a mining station on this planet. They send greetings.",15
-        EndIf
-        If planets(mapslot).flags(23)>0 Then dprint "Science Officer: 'I can detect several ships on this planet.",15
-        If planets(mapslot).flags(24)>0 Then dprint "Science Officer: 'This planet is completely covered in rain forest. What on first glance appears to be its surface is actually the top layer of a root system.",15
-        If planets(mapslot).flags(25)>0 Then dprint "Science Officer: 'The biosphere readings for this planet are off the charts. We sure will find some interesting plants here!",15
-        If planets(mapslot).flags(26)>0 Then dprint "Science Officer: A very deep ocean covers this planet. Sensor readings seem to indicate large cave structures at the bottom.",15
-        If planets(mapslot).flags(27)>0 Then
-            dprint "Science Officer: 'This is a sight you get to see once in a lifetime. The orbit of this planet is unstable and it is about to plunge into its sun! Gravity is ripping open its surface, solar wind blasts its material into space. In a few hours it will be gone.'",15
-            planets(mapslot).flags(27)=2
-        EndIf
-        If is_gardenworld(mapslot) Then dprint "This planet is earthlike."
-        If planets(mapslot).colflag(0)>0 Then dprint "There is "& add_a_or_an(companyname(planets(mapslot).colflag(0)),0) &" colony on this planet. They are sending greetings."
-        If debug=1 And _debug=1 Then dprint "Map number "&slot &":"& mapslot
-        osx=30-_mwx/2
-
-        For a=0 To planets(mapslot).life
-            If skill_test(player.science(location),st_hard) Then plife=plife+((planets(mapslot).life+1)*3)/100
-        Next
-        If plife>1 Then plife=1
-        If plife>planets(mapslot).highestlife Then
-            planets(mapslot).highestlife=plife
-            dprint "Revising earlier lifeform estimate",c_yel
-        EndIf
-        If planets(mapslot).discovered<2 Then planets(mapslot).discovered=2
-        Do
-            Screenset 0,1
-            Cls
-            display_planetmap(mapslot,osx,1)
-            dplanet(planets(mapslot),slot,scanned,mapslot)
-            dprint ""
-            Flip
-            no_key=keyin(key_la & key_tala &" abcdefghijklmnopqrstuvwxyz" &key_east &key_west)
-            If no_key=key_east Then osx+=1
-            If no_key=key_west Then osx-=1
-            If osx<0 Then osx=0
-            If osx>60-_mwx Then osx=60-_mwx
-            set__color(11,0)
-            Cls
-
-        Loop Until no_key<>key_east And no_key<>key_west
-        If no_key=key_la Then Key=key_la
-        If no_key=key_tala Then Key=key_tala
-        If Not(skill_test(player.pilot(location),st_veryeasy,"Pilot:")) And player.fuel>30 Then
-            dprint "your pilot had to correct the orbit.",14
-            x=rnd_range(1,4)-player.pilot(0)
-            If x<1 Then x=1
-            player.fuel=player.fuel-x
-
-        EndIf
-        EndIf
-        If Key=key_la Then landing(map(sys).planets(slot))
-        If Key=key_tala Then target_landing(map(sys).planets(slot))
-    EndIf
-    'show_stars(1,0)
-    'displayship
-    Return 0
-End Function
-
-Function asteroid_mining(slot As Short) As Short
-    Dim it As _items
-    Dim en As _fleet
-    Dim As Short f,q,m,roll
-    Dim mon(6) As String
-    mon(1)="a huge crystaline lifeform, vaguely resembling a spider. It jumps from asteroid to asteroid, it's diet obviously being metal ores. Looks like it has just put our ship on the menu! It is  coming this  way!"
-    mon(2)="a huge lifeform made entirely of metal! It is spherical and drifts among the astroids. There are no detectable means of locomotion, except for 3 openenings at the equator. It is radiating high amounts of heat, especially at those openings. Looks like it is a living, moving fission reactor!"
-    mon(3)="a dense cloud of living creatures, from microscopic to about 10cm long. They seem to be living insome kind of symbiosis, with different specimen performing different tasks."
-    mon(4)="a giant wormlike creature. It's biochemistry is based on liquid hydrogen. The heat of our engines is attracting it."
-    mon(5)="an enormous blob of living plasma!"
-    mon(6)="a gigantic creature resembling a jellyfish!"
-    en.ty=2
-    m=rnd_range(1,6)
-    If show_all Then dprint ""&slot
-    roll=rnd_range(1,100)
-    slot=slot-rnd_range(1,10)
-    player.fuel=player.fuel-1
-    If not(skill_test(player.pilot(0),st_hard,"Pilot")) Then player.fuel=player.fuel-rnd_range(1,3)
-    If (slot<-11 And slot>-13) Or (slot<-51 And slot>-54)  Then
-        dprint "you have discovered a dwarf planet among the asteroids!",10
-        no_key=keyin
-        lastplanet=lastplanet+1
-        slot=lastplanet
-    Else
-        If skill_test(player.tractor*2+minimum(player.science(0)+1,player.sensors+1)+3*add_talent(2,9,2)+slot,st_average) Then
-
-            Do
-                it=make_item(96,f+slot+165,-2)
-            Loop Until it.ty=15
-            it.v5=it.v5+100
-            it.v2=it.v2+100
-            it.desig &=" asteroid"
-            If askyn("Science officer: 'There is an asteroid containing a high ammount of "&it.desig &". shall we try to take it aboard?'(y/n)") Then
-                display_ship()
-                q=-1
-                Do
-                    If configflag(con_warnings)=0 And player.hull=1 Then
-                        q=askyn("Pilot: 'If i make a mistake it could be fatal. Shall I really try?'(y/n)")
-                    EndIf
-                    If q=-1 Then
-                        If skill_test(player.pilot(0)+player.tractor*2,st_average,"Pilot") Then
-                            q=0
-                            placeitem((it),0,0,0,0,-1)
-                            reward(2)=reward(2)+it.v5
-                            dprint "We got it!",10
-                        Else
-                            player.hull=player.hull-1
-                            display_ship()
-                            dprint "Your pilot hit the asteroid, damaging the ship, and changing the asteroids trajectory.",14
-                            If player.hull>0 Then
-                                q=askyn("try again? (y/n)")
-                                If q=-1 Then
-                                    dprint "Pilot: 'starting another attempt.'"
-                                    Sleep 300
-                                EndIf
-                            Else
-                                q=0
-                                player.dead=19
-                                Exit Function
-                            EndIf
-                        EndIf
-                    EndIf
-                    player.fuel=player.fuel-rnd_range(1,3)
-                    roll=roll-1
-                    If roll<7 Then q=0
-                    If player.fuel<10 Then player.fuel=10
-                Loop Until q=0
-            Else
-                slot=slot+rnd_range(1,2)
-                If slot>=0 Then slot =-1
-            EndIf
-        Else
-            dprint "Nothing remarkable."
-        EndIf
-    EndIf
-    If roll<4 Then
-        If rnd_range(1,100)<85 Then
-            dprint "A ship has been hiding among the asteroids.",14
-            If faction(0).war(1)<0 Then
-                dprint "It hails us.",10
-            Else
-                dprint "It attacks!",12
-                no_key=keyin
-                If rnd_range(1,6)<5 Then
-                    en.ty=ft_pirate
-                    en.mem(1)=make_ship(3)
-                Else
-                    en.ty=1
-                    en.mem(1)=make_ship(4)
-                EndIf
-                no_key=keyin
-                spacecombat(en,10)
-                If player.dead<0 Then player.dead=0
-            EndIf
-        Else
-            dprint "A ship has been hiding among the asteroids.",14
-            no_key=keyin
-            dprint "Wait. that is no ship. It is  "&mon(m) &"!",14
-            no_key=keyin
-            en.ty=8
-            en.mem(1)=make_ship(20+m)
-            spacecombat(en,20)
-
-            If player.dead>0 Then
-                player.dead=20
-            Else
-                If player.dead=0 Then
-                    dprint "We got very interesting sensor data from that being.",10
-                    reward(1)=reward(1)+rnd_range(10,180)*rnd_range(1,maximum(player.science(0),player.sensors))
-                    player.alienkills=player.alienkills+1
-                Else
-                    player.dead=0
-                EndIf
-            EndIf
-        EndIf
-        set__color(11,0)
-        Cls
-        display_ship()
-        display_stars(1)
-    EndIf
-    Return slot
-End Function
-
-Function gasgiant_fueling(p As Short, orbit As Short, sys As Short) As Short
-    Dim As Short fuel,roll,noa,a,mo,m,probe,probeflag,hydrogenscoop,debug,freebay
-    Dim en As _fleet
-    Static restfuel As Byte
-    Dim As String mon(6)
-    mon(1)="a giant wormlike creature. It's biochemistry is based on liquid hydrogen. The heat of our engines is attracting it."
-    mon(2)="an enormous blob of living plasma!"
-    mon(3)="a gigantic creature resembling a jellyfish!"
-    mon(4)="a flock of large tube shaped creatures with wide maws and sharp teeth!"
-    mon(5)="a huge balloon floating in the wind with five, thin, several kilometers long tentacles!"
-    mon(6)="a circular flat being floating among the clouds. Three bulges on the top are glowing with static electricity."
-    If p=-20003 Then mo=2
-    m=is_gasgiant(p)
-    If is_gasgiant(p)>1 Then
-        If planetmap(0,0,m)<>0 Then make_special_planet(m)
-        If askyn("As you dive into the upper atmosphere of the gas giant your sensor pick up a huge metal structure. It is a platform, big enough to land half a fleet on it, connected to struts that extend out into the atmosphere. Do you want to try to land on it? (y/n)") Then
-            landing(map(sys).planets(orbit))
-            Return 0
-        Else
-            p=-20001
-
-        EndIf
-    EndIf
-    hydrogenscoop=1
-    For a=1 To player.h_maxweaponslot
-        If player.weapons(a).made=85 Then hydrogenscoop+=1
-        If player.weapons(a).made=86 Then hydrogenscoop+=2
-    Next
-    If askyn("Do you want to refuel in the gas giants atmosphere?(y/n)") Then
-        probe=findbest(56,-1)
-        If probe>0 Then
-            If Not(askyn("Do you want to use your gas mining probe?(y/n)")) Then probe=0
-        EndIf
-        If probe<=0 Then
-            If configflag(con_warnings)=0 And player.hull=1 Then
-                If Not(askyn("Pilot: 'If i make a mistake we are doomed. Do you really want to try it? (Y/N)")) Then Return 0
-            EndIf
-            If not(skill_test(player.pilot(location)+add_talent(2,9,1),st_average+mo,"Pilot")) Then
-                dprint "Your Pilot damaged the ship diving into the dense atmosphere",12
-                player.hull=player.hull-rnd_range(1,2)
-                If p=-20003 Then player.hull=player.hull-1
-                display_ship
-            EndIf
-            If player.hull>0 Then
-                If debug=1 And _debug=1 Then dprint ""& hydrogenscoop
-                fuel=10+rnd_range(2,7)*hydrogenscoop+add_talent(2,9,3)
-                hydrogenscoop-=1
-                If hydrogenscoop<=0 Then hydrogenscoop=1
-                If p=-20001 Then fuel=fuel+rnd_range(3,11)*hydrogenscoop
-                hydrogenscoop-=1
-                If hydrogenscoop<=0 Then hydrogenscoop=0
-                If p=-20003 Then fuel=fuel+rnd_range(5,15)*hydrogenscoop
-
-                display_ship
-            Else
-                player.dead=22
-            EndIf
-            If map(sys).spec=10 Then rg_icechunk()
-
-            If rnd_range(1,100)<19-orbit*2 And player.dead=0 Then
-                roll=rnd_range(1,6)
-                dprint "While taking up fuel your ship gets attacked by "&mon(roll),14
-                no_key=keyin
-                noa=1
-                If roll=4 Then noa=rnd_range(1,6) +rnd_range(1,6)
-                If roll=5 Then noa=rnd_range(1,3)
-                If roll=6 Then noa=rnd_range(1,2)
-                For a=1 To noa
-                    en.ty=9
-                    en.mem(a)=make_ship(23+roll)
-                Next
-                spacecombat(en,21)
-
-                If player.dead>0 Then
-                    player.dead=23
-                Else
-                    If player.dead=0 Then
-                        dprint "We got very interesting sensor data during this encounter.",10
-                        reward(1)=reward(1)+(roll*3+rnd_range(10,80))*rnd_range(1,maximum(player.science(0),player.sensors))
-                        player.alienkills=player.alienkills+1
-                    Else
-                        player.dead=0
-                    EndIf
-                EndIf
-            EndIf
-        Else
-            'using probe
-            If Not(skill_test(player.pilot(0)+add_talent(2,9,1)-3+item(probe).v2,st_average+mo,"Pilot")) Then item(probe).v1-=1
-            If rnd_range(1,100)<38-orbit*2 Then item(probe).v1-=1
-            If item(probe).v1<=0 Then
-                dprint "We lost contact with the probe.",c_yel
-                destroyitem(probe)
-            Else
-                fuel=25+rnd_range(3,9)+add_talent(2,9,3)
-                If p=-20001 Then fuel=fuel+rnd_range(3,9)
-                If p=-20003 Then fuel=fuel+rnd_range(5,15)
-                If fuel>item(probe).v3 Then fuel=item(probe).v3
-                'if player.fuel>player.fuelmax+player.fuelpod then player.fuel=player.fuelmax+player.fuelpod
-            EndIf
-        EndIf
-
-    EndIf
-    If fuel>0 Then
-        dprint "you take up "&fuel & " tons of fuel.",10
-        player.fuel=player.fuel+fuel
-        freebay=getnextfreebay
-        If player.fuel>player.fuelmax+player.fuelpod And freebay>0 Then
-            If askyn("Do you want to store the excess fuel in a cargobay?(y/n)") Then
-                Do
-                    player.cargo(freebay).x=10
-                    player.cargo(freebay).y=1
-                    player.fuel-=30
-                    freebay=getnextfreebay
-                Loop Until player.fuel<=player.fuelmax+player.fuelpod Or freebay=-1
-            EndIf
-        EndIf
-        If player.fuel>player.fuelmax+player.fuelpod Then player.fuel=player.fuelmax+player.fuelpod
-    EndIf
-
-
-    Return 0
-End Function
-
-Function rg_icechunk() As Short
-    Dim As Short debug,x,y,b
-    Dim gc As _cords
-    If rnd_range(1,100)>5+player.sensors Then Return 0
-    dprint "Your sensors seem to pick up something"
-    If rnd_range(1,100)>5+player.sensors Then
-        dprint "But it is gone again quickly."
-        Return 0
-    EndIf
-    lastplanet+=1
-    makemossworld(lastplanet,4)
-    For x=0 To 60
-        For y=0 To 20
-            If Abs(planetmap(x,y,lastplanet))=1 Then planetmap(x,y,lastplanet)=-4
-            If Abs(planetmap(x,y,lastplanet))=2 Then planetmap(x,y,lastplanet)=-158
-            If Abs(planetmap(x,y,lastplanet))=102 Then planetmap(x,y,lastplanet)=-4
-            If Abs(planetmap(x,y,lastplanet))=103 Then planetmap(x,y,lastplanet)=-7
-            If Abs(planetmap(x,y,lastplanet))=104 Then planetmap(x,y,lastplanet)=-193
-            If Abs(planetmap(x,y,lastplanet))=105 Then planetmap(x,y,lastplanet)=-145
-            If Abs(planetmap(x,y,lastplanet))=106 Then planetmap(x,y,lastplanet)=-145
-            If Abs(planetmap(x,y,lastplanet))=146 Then planetmap(x,y,lastplanet)=-145
-            If rnd_range(1,6)+player.science(0)>9 Then planetmap(x,y,lastplanet)=Abs(planetmap(x,y,lastplanet))
-        Next
-    Next
-    planets(lastplanet).grav=.3
-    planets(lastplanet).temp=-120
-    planets(lastplanet).atmos=1
-    planets(lastplanet).death=5+rnd_range(3,6)
-    planets(lastplanet).flags(27)=2
-    planets(lastplanet).flags(29)=1 'Planet Flag for Ice Chunk
-    If rnd_range(1,100)<10 Then
-        planets(lastplanet).mon_template(0)=makemonster(rnd_range(62,64),0,0)
-        planets(lastplanet).mon_noamin(0)=1
-        planets(lastplanet).mon_noamax(0)=3
-
-    EndIf
-    For b=0 To 10+rnd_range(0,6)+disnbase(player.c)\4
-        gc=rnd_point(lastplanet,1)
-        placeitem(make_item(96,planets(lastplanet).depth+disnbase(player.c)\5,planets(lastplanet).depth+disnbase(player.c)\6),gc.x,gc.y,lastplanet)
-    Next b
-    display_planetmap(lastplanet,30,1)
-    dprint "Your sensors pick up a huge chunk of ice in the atmosphere, quickly tumbling down into the denser areas of the gas giant. It is big enough to land on."
-    If askyn("Do you want to try to land on it?(y/n)") Then
-        landing(lastplanet)
-        lastplanet-=1
-    Else
-        dprint "You climb back up into free space while the icechunk disintegrates"
-    EndIf
-    Return 0
-End Function
-
-
-Function dock_drifting_ship(a As Short)  As Short
-    Dim As Short m,b,c,x,y,debug
-    Dim p(1024) As _cords
-    Dim land As _cords
-    Dim As Short Test=0
-    debug=1
-    m=drifting(a).m
-    If a<=3 And rnd_range(1,100)<10+Test And player.turn>5 Then
-        station_event(m)
-    EndIf
-    For x=0 To 60
-        For y=0 To 20
-            If Abs(planetmap(x,y,m))=203 Then
-                b+=1
-                p(b).x=x
-                p(b).y=y
-            EndIf
-        Next
-    Next
-    c=rnd_range(1,b)
-    land.x=p(c).x
-    land.y=p(c).y
-    land.m=m
-    If _debug=11 Then
-        dprint "Got through dock_drifting_ship"
-        Sleep
-    EndIf
-    landing(m,p(c).x,p(c).y,1)
-    Return 0
+    Return a
 End Function
 
 Function move_rover(pl As Short)  As Short
@@ -1476,7 +669,7 @@ Function spacestation(st As Short) As _ship
                 If c=1 And rnd_range(1,100)<30-player.equipment(se_CargoShielding)+player.cargo(b).x Then
                     d=1
                     If player.cargo(b).y>0 Then
-                        dprint "You are informed that there is an import embargo on "& LCase(goodsname(player.cargo(b).x-1)) &" and that the cargo will be confiscated.",12
+                        dprint "You are informed that there is an import embargo on "& (goodsname(player.cargo(b).x-1)) &" and that the cargo will be confiscated.",12
                     Else
                         dprint "Your cargo of "& LCase(goodsname(player.cargo(b).x-1)) &" gets confiscated because you lack proper documentation.",12
                     EndIf
@@ -1500,16 +693,10 @@ Function spacestation(st As Short) As _ship
 
             EndIf
         Next
-        dprint "You pay your crew "&a &" Cr. in wages"
+        dprint "You pay your crew "&credits(a) &" Cr. in wages"
         player.money=player.money-a
         player=levelup(player,0)
-        If shop_order(st)<>0 And rnd_range(1,100)<33 Then
-            dprint  "Your ordered "&make_item(shop_order(st)).desig &" has arrived.",12
-            b=rnd_range(1,20)
-            shopitem(b,st)=make_item(shop_order(st))
-            shopitem(b,st).price=shopitem(b,st).price*2
-            shop_order(st)=0
-        EndIf
+        
     EndIf
     
     ss_sighting(st)
@@ -1932,7 +1119,14 @@ Function move_ship(Key As String) As _ship
         For a=0 To 12
             If patrolquest(a).status=1 Then patrolquest(a).check
         Next
-        If player.cursed>0 And rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod(50-player.cursed)=0 Then player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
+        If player.cursed>0 And rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod 50=0 Then 
+            player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
+        else
+            if rnd_range(1,100)<3+player.cursed then 
+                player.cursed+=1
+                dprint "A minor malfunction in one of the ships systems."
+            endif
+        endif
     Else
         walking=0
     EndIf
@@ -2539,11 +1733,12 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Next
 
     osx=calcosx(awayteam.c.x,planets(slot).depth)
-
+    
+    update_tmap(slot)
+    
+    lsp=0
     For x=0 To 60
         For y=0 To 20
-            If _debug=11 Then Print #f,planetmap(x,y,slot)
-            If _debug=312 Then planetmap(x,y,slot)=Abs(planetmap(x,y,slot))
             If Abs(planetmap(x,y,slot))=1 Then watermap(x,y)=10
             If Abs(planetmap(x,y,slot))=2 Then watermap(x,y)=50
             If planets(slot).depth=0 Then
@@ -2551,43 +1746,16 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
             Else
                 localtemp(x,y)=planets(slot).temp
             EndIf
-            If show_all=1 And planetmap(x,y,slot)<0 Then planetmap(x,y,slot)=-planetmap(x,y,slot)
-            If Abs(planetmap(x,y,slot))>512 Then
-                dprint "ERROR: Tile #"&planetmap(x,y,slot)&"out ofbounds"
-                planetmap(x,y,slot)=512
-            EndIf
-            tmap(x,y)=tiles(Abs(planetmap(x,y,slot)))
-            If tmap(x,y).ti_no=2505 Then 'Ship walls
-                If rnd_range(1,100)<33 Then
-                    tmap(x,y).ti_no=2504+rnd_range(1,4)
-                EndIf
-            EndIf
-            If Abs(planetmap(x,y,slot))=267 Then
-                enemy(0)=makemonster(1,slot)
-                tmap(x,y).desc="A cage. Inside is "&first_lc(enemy(0).ldesc)
-                enemy(0)=enemy(1) 'Delete monster
-            EndIf
-            mapmask(x,y)=0
             If tmap(x,y).walktru=0 Then
                 lsp=lsp+1
                 spawnmask(lsp).x=x
                 spawnmask(lsp).y=y
             EndIf
-            If tmap(x,y).vege>0 Then
-                tmap(x,y).vege=rnd_range(0,tmap(x,y).vege)
-                If rnd_range(1,100)<tmap(x,y).vege/2 Then tmap(x,y).disease=rnd_range(0,tmap(x,y).vege/2)
-            EndIf
+            mapmask(x,y)=0
             If rnd_range(1,100)<planets(slot).atmos And planets(slot).atmos>1 And planets(slot).depth=0 Then cloudmap(x,y)=1
-            If planetmap(x,y,slot)=0 Then
-                f=Freefile
-                Open "error.log" For Append As #f
-                Print #f,"Tile at "&x &":"&y &":"&slot &"=0"
-                Close #f
-                planetmap(x,y,slot)=-4
-            EndIf
+            
         Next
     Next
-    
     'allowed="12346789ULXFSQRWGCHDO"&key_pickup &key__i
     allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he _
      & key_la & key_pickup & key_inspect & key_ex & key_of & key_co & key_drop & key_gr & key_wait _
@@ -2596,7 +1764,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
      & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"_
      & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
 
-    If rev_map=1 Then allowed=allowed &"ï¿½"
+    If _debug>0 Then allowed=allowed &"Ü"
     If awayteam.movetype=2 Or awayteam.movetype=3 Then
         allowed=allowed &key_ju
         comstr.t=comstr.t &key_ju &" Jetpackjump;"
@@ -2667,27 +1835,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
             combon(0).Value+=1
             adaptmap(slot)
             lsp=0
-            For x=0 To 60
-                For y=0 To 20
-                    If Abs(planetmap(x,y,slot))=1 Then watermap(x,y)=10
-                    If Abs(planetmap(x,y,slot))=2 Then watermap(x,y)=50
-                    localtemp(x,y)=planets(slot).temp-Abs(10-y)*5+10
-                    If show_all=1 And planetmap(x,y,slot)<0 Then planetmap(x,y,slot)=-planetmap(x,y,slot)
-                    tmap(x,y)=tiles(Abs(planetmap(x,y,slot)))
-                    If Abs(planetmap(x,y,slot))=267 Then tmap(x,y).desc="A cage. Inside is "&makemonster(1,slot).ldesc
-                    mapmask(x,y)=0
-                    If tmap(x,y).walktru=0 Then
-                        lsp=lsp+1
-                        spawnmask(lsp).x=x
-                        spawnmask(lsp).y=y
-                    EndIf
-                    If tmap(x,y).vege>0 Then
-                        tmap(x,y).vege=rnd_range(0,tmap(x,y).vege)
-                        If rnd_range(1,100)<tmap(x,y).vege/2 Then tmap(x,y).disease=rnd_range(0,tmap(x,y).vege/2)
-                    EndIf
-                Next
-            Next
-
+            
             If rnd_range(1,100)<5 And rnd_range(1,100)<disnbase(player.c) And lastenemy>10 And planets(slot).atmos>1 Then
                 lastenemy=lastenemy+1
                 enemy(lastenemy)=makemonster(46,slot)
@@ -2811,7 +1959,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
             EndIf
             planets(slot).vault(c)=del_rec
         EndIf
-        Next
+    Next
     For a=0 To _NoPB
         If slot=piratebase(a) Then
             c=5+rnd_range(1,6)
@@ -2832,7 +1980,7 @@ EndIf
     if _debug=2704 then print #logfile,"Move rovers"
     move_rover(slot)
     'if planets(slot).colony<>0 then growcolony(slot)
-
+    
     If planets(slot).visited>0 And planets(slot).visited<player.turn Then
         b=planets(slot).visited-player.turn
         For e=1 To lastenemy
@@ -2930,8 +2078,6 @@ EndIf
         If lastenemy<0 Then lastenemy=0
     EndIf
 
-    If specialplanet(11)=slot Then lastenemy=0 'No critters on dying world
-
     If planets(slot).flags(25)<>0 Or specialplanet(40)=slot Then
         For x=0 To 60
             For y=0 To 20
@@ -2957,12 +2103,11 @@ EndIf
         For b=1 To lastenemy
             enemy(b)=savefrom(0).enemy(b)
         Next
-        equip_awayteam(slot)
     EndIf
     
     if _debug=2704 then print #logfile,"equip"
     equip_awayteam(slot)
-
+    make_vismask(awayteam.c,0,slot)        
     c=0
     For a=0 To lastitem
         If item(a).ty=47 And item(a).w.m=slot And item(a).w.s=0 Then
@@ -2977,18 +2122,7 @@ EndIf
     
     if _debug=2704 then print #logfile,"locallists"
     make_locallist(slot)
-
-    lsp=0
-    For x=0 To 60
-        For y=0 To 20
-            mapmask(x,y)=0
-            If tmap(x,y).walktru=0 Then
-                lsp=lsp+1
-                spawnmask(lsp).x=x
-                spawnmask(lsp).y=y
-            EndIf
-        Next
-    Next
+    
 
     If slot=specialplanet(16) Then
         If findbest(24,-1)>0 Then
@@ -3005,11 +2139,10 @@ EndIf
     If slot=specialplanet(37) Then
         p.x=25
         p.y=5
-        invisiblelabyrinth(tmap(),p.x,p.y)
+        invisiblelabyrinth(p.x,p.y)
     EndIf
 
     If alien_scanner=1 Then player.stuff(3)=2
-
     'outpost trading
     For a=11 To 13
         planets(slot).flags(a)=planets(slot).flags(a)+rnd_range(1,6) +rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6)
@@ -3074,24 +2207,32 @@ EndIf
         nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
         If nextmap.m=-1 Then Return nextmap
     EndIf
-    
-    
+        
     savefrom(0)=savefrom(16)
-    
+    if planets(slot).darkness>0 then 
+        if planets(slot).depth=0 then
+            awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
+        else
+            awayteam.dark=planets(slot).darkness
+        endif
+    else
+        awayteam.dark=0
+    endif
     osx=calcosx(awayteam.c.x,planets(slot).depth)
+    make_vismask(awayteam.c,0,slot)
     
     if _debug=2704 then print #logfile,"Displaystuff"
     Screenset 0,1
     set__color(11,0)
     Cls
     display_planetmap(slot,osx,0)
-    ep_display ()
+    ep_display(,nightday(awayteam.c.x))
     display_awayteam()
     Flip
     set__color(11,0)
     Cls
     display_planetmap(slot,osx,0)
-    ep_display ()
+    ep_display(,nightday(awayteam.c.x))
     display_awayteam()
     Flip
     
@@ -3106,14 +2247,16 @@ EndIf
     '
     '***********************
     Do
-        if _debug=2704 then print #logfile,"1"
-        If show_all=1 Then
-            set__color( 15,0)
-            Locate 21,1
-            Print awayteam.disease;":";player.disease;":";planets(slot).visited;":";slot;"Temp:";localtemp(awayteam.c.x,awayteam.c.y)
-        EndIf
-        'dprint "Death"&planets(slot).death
-        awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
+        if _debug>0 then dprint "Darkness"&planets(slot).darkness
+        if planets(slot).darkness>0 then 
+            if planets(slot).depth=0 then
+                awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
+            else
+                awayteam.dark=planets(slot).darkness
+            endif
+        else
+            awayteam.dark=0
+        endif
         If artflag(9)=1 And  player.teleportload<15 Then player.teleportload+=1
         If awayteam.disease>player.disease Then player.disease=awayteam.disease
         If planets(slot).atmos<=1 Or planets(slot).atmos>=7 Then awayteam.helmet=1
@@ -3134,8 +2277,10 @@ EndIf
         com_sinkheat(player,0)
             
         localturn=localturn+1
-
+        
+        
         If localturn Mod 10=0 Then
+            make_vismask(awayteam.c,0,slot)
             If planets(slot).depth=0 Then
                 player.turn+=2
             Else
@@ -3152,7 +2297,7 @@ EndIf
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             display_awayteam()
             ep_display_clouds(cloudmap())
             walking=alerts()
@@ -3173,26 +2318,29 @@ EndIf
         if _debug=2704 then print #logfile,"4 ae"&awayteam.e.e
         
         If  tmap(awayteam.c.x,awayteam.c.y).resources>0 Or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 Or  (tmap(awayteam.c.x,awayteam.c.y).no>2 And tmap(awayteam.c.x,awayteam.c.y).gives>0 And player.dead=0 And (awayteam.c.x<>old.x Or awayteam.c.y<>old.y))  Then
+            make_vismask(awayteam.c,0,slot)
             old=awayteam.c
             osx=calcosx(awayteam.c.x,planets(slot).depth)
+            
             Screenset 0,1
             set__color(11,0)
             Cls
+            equip_awayteam(slot)
+            make_vismask(awayteam.c,0,slot)
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             ep_display_clouds(cloudmap())
             display_awayteam()
             dprint ("")
 
             ep_gives(awayteam,nextmap,shipfire(),spawnmask(),lsp,Key,localtemp(awayteam.c.x,awayteam.c.y))
-            equip_awayteam(slot)
             If awayteam.movetype=2 Or awayteam.movetype=3 Then allowed=allowed &key_ju
             If awayteam.movetype=4 Then allowed=allowed &key_te
             Flip
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             display_awayteam()
             ep_display_clouds(cloudmap())
 
@@ -3200,14 +2348,13 @@ EndIf
             walking=0
         EndIf
 
-        if _debug=2704 then print #logfile,"5  ae"&awayteam.e.e &nextmap.m
-        If (player.dead=0 And awayteam.e.tick=-1) Then
-            
+        If (player.dead=0 and awayteam.hp>0 And awayteam.e.tick=-1) Then
             Screenset 0,1
             set__color(11,0)
+            make_vismask(awayteam.c,0,slot)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             display_awayteam()
             ep_display_clouds(cloudmap())
             dprint("")
@@ -3217,7 +2364,7 @@ EndIf
             set__color(11,0)
             Cls
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             display_awayteam()
             ep_display_clouds(cloudmap())
             dprint("")
@@ -3229,7 +2376,7 @@ EndIf
                 screenset 0,1
                 Cls
                 display_planetmap(slot,osx,0)
-                ep_display ()
+                ep_display(,nightday(awayteam.c.x))
                 display_awayteam()
                 ep_display_clouds(cloudmap())
                 dprint("")
@@ -3308,11 +2455,11 @@ EndIf
             if _debug=2704 then print #logfile,"hitmonster"
             ep_playerhitmonster(old,mapmask())
             ep_checkmove(old,Key)
-            nextmap=ep_portal()
             'If walking>=0 and tmap(awayteam.c.x,awayteam.c.y).no>=128 and tmap(awayteam.c.x,awayteam.c.y).no<=143 and tmap(awayteam.c.x,awayteam.c.y).no<>241 and ((old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Or Key=key_portal Or Key=key_inspect) Then nextmap=ep_Portal()
             ep_planeteffect(shipfire(),sf,lavapoint(),localturn,cloudmap())
             ep_areaeffects(areaeffect(),last_ae,lavapoint(),cloudmap())
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key)
+            If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_portal Then nextmap=ep_portal
             If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(localturn)
             If vacuum(awayteam.c.x,awayteam.c.y)=1 And awayteam.helmet=0 Then ep_helmet()
             If vacuum(awayteam.c.x,awayteam.c.y)=0 And vacuum(old.x,old.y)=1 And awayteam.helmet=1 Then ep_helmet
@@ -3322,8 +2469,10 @@ EndIf
             Cls
 
             osx=calcosx(awayteam.c.x,planets(slot).depth)
+            
+            make_vismask(awayteam.c,0,slot)
             display_planetmap(slot,osx,0)
-            ep_display ()
+            ep_display(,nightday(awayteam.c.x))
             ep_display_clouds(cloudmap())
             display_awayteam()
             
@@ -3471,6 +2620,8 @@ EndIf
         update_world(0)
                 
         if _debug=2704 then print #logfile,"end loop"&nextmap.m
+        
+            
     Loop Until awayteam.hp<=0 Or nextmap.m<>0 Or player.dead<>0
     
     if _debug=2704 then print #logfile,"1"&nextmap.m
@@ -3521,7 +2672,12 @@ EndIf
         If slot=specialplanet(5) Then player.dead=11
         no_key=keyin
     EndIf
-
+    
+    if awayteam.hp<=0 or (player.dead<>0 and player.dead<>18) then
+            dprint "Any key to continue."
+            no_key=keyin
+    endif
+    
     If player.dead<>0 Then
         old=player.c
         player.c=awayteam.c
@@ -4565,14 +3721,14 @@ End Function
 
 Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte, first As Short=-1, last As Short=-1) As _monster
     Dim As Single nonlet,dis,damage
-    Dim As Short a,c,weaponused
+    Dim As Short a,c,weaponused,b
     Dim col As Short
     Dim noa As Short
     Dim text As String
     Dim wtext As String
     Dim mname As String
     Dim xpstring As String
-    Dim SLBonus(255) As Byte
+    Dim SLBonus(512) As Byte
     Dim As String echo1,echo2
     Dim slbc As Short
     Dim As Short slot,xpgained,tacbonus,targetnumber
@@ -4606,9 +3762,11 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
     EndIf
 
     For a=first To noa
-        If crew(a).hp>0 And crew(a).onship=0 And crew(a).talents(27)>0 Then
-            slbc+=1
-            SLBonus(slbc)=1
+        If crew(a).hp>0 And crew(a).onship=0 And crew(a).talents(27)>0 and slbc<=512 Then
+            for b=1 to 5
+                slbc+=1
+                SLBonus(slbc)=2+crew(a).talents(27)
+            next
         EndIf
     Next
     slbc=1
