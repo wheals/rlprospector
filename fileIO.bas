@@ -1988,7 +1988,7 @@ end function
 function save_config(oldtiles as short) as short
     dim as short f,i
     f=freefile
-    open "config.txt" for output as #f
+    open "config/config.txt" for output as #f
     print #f,"# 0 is on, 1 is off"
     for i=con_tiles to con_end-1
         print #f,configname(i)&":"&configflag(i)
@@ -2013,9 +2013,9 @@ function load_config() as short
     dim as short f,i,j
     dim as string text,rhs,lhs
 
-    if fileexists("config.txt") then
+    if fileexists("config/config.txt") then
         f=freefile
-        open "config.txt" for input as #f
+        open "config/config.txt" for input as #f
         print "loading config";
         do
             print ".";
@@ -2105,6 +2105,7 @@ function load_config() as short
         _Fohi2=16
         _lines=26
         _volume=1
+        sleep 100
         save_config(configflag(con_tiles))
         load_config
     endif
