@@ -2136,6 +2136,7 @@ function getfilename() as string
     dim c as short
     dim n(24) as string
     dim d as string*36
+    dim vers as string*36
     dim datestring as string*12
     dim ustring as string*512
     dim as string help
@@ -2156,7 +2157,12 @@ function getfilename() as string
 
             f=freefile
             open "savegames/"&n(c) for binary as #f
-            get #f,,b
+            get #f,,vers
+            if instr(vers,"VERSION")>0 then                    
+                get #f,,b
+            else
+                b=vers
+            endif
             get #f,,d
             get #f,,datestring
             get #f,,unflags()
@@ -2321,6 +2327,7 @@ function savegame(crash as short=0) as short
     dim f as integer
     dim desig as string*36
     dim names as string*36
+    dim versionstring as string*36
     dim datestring as string*12
     dim cl as string
     dim unflags(lastspecial) as byte
@@ -2332,6 +2339,7 @@ function savegame(crash as short=0) as short
     dim filedata_string as string
     dim as short emptyshort
     make_unflags(unflags())
+    versionstring="VERSION:"&__VERSION__
     cl=player.h_sdesc
     names=player.desig
     desig="("&cl &", "&credits(player.money) &" Cr, T:" &display_time(player.turn,2) &")"
@@ -2349,6 +2357,7 @@ function savegame(crash as short=0) as short
     open fname for binary as #f
     print ".";
     'save shortinfo
+    put #f,,versionstring
     put #f,,names
     put #f,,desig
     put #f,,datestring
@@ -2578,6 +2587,7 @@ function savegame(crash as short=0) as short
         f=freefile
         open fname for binary as #f
         compress(dest , @dest_len, StrPtr(filedata_string), src_len)
+        put #f,,versionstring
         put #f,,names           '36 bytes
         put #f,,desig           '36 bytes
         put #f,,datestring      '12 bytes + 1 overhead
@@ -2586,7 +2596,7 @@ function savegame(crash as short=0) as short
         put #f,, src_len 'we can use this to know the amount of memory needed when we load - should be 4 bytes long
         'Putting in the short info the the load game menu
 
-        header_len =  36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring,
+        header_len =  36 + 36 + 36 + 12 + lastspecial + lastartifact*2 + 4 + 4 + 3 ' bytelengths of names, desig, datestring,
         'unflags, artflag, src_len, header_len, and 3 bytes of over head for the 3 arrays datestring, unflags, artflag
         put #f,, header_len
         put #f,, *dest, dest_len
@@ -2613,6 +2623,7 @@ function load_game(filename as string) as short
     dim f as integer
     dim dat as string*36
     dim names as string*36
+    dim versionstring as string*36
     dim datestring as string*12
     dim unflags(lastspecial) as byte
     dim as short emptyshort
@@ -2637,15 +2648,24 @@ function load_game(filename as string) as short
 
     if filename<>"" then
         fname="savegames/"&filename
-        print "loading "&fname;
+        dprint "loading "&fname
 
         if fname <> "savegames/empty.sav" then 'makes sure we dont load the uncompressed empty
             'Starting the uncompress
             f=freefile
-        
             open fname for binary as #f
-
-            get #f,,names           '36 bytes
+            get #f,,versionstring
+            dprint "checking version"
+            if instr(versionstring,"VERSION:")>0 then
+                if versionstring<>"VERSION:"&__version__ then
+                    if not askyn("Savegame from another version then your current version(" & (versionstring) &" and VERSION:" &(__version__)  & "). There might be compatibility issues. Load anyway?(y/n)") then return 0
+                else
+                    dprint "Version Ok."
+                endif
+                get #f,,names           '36 bytes
+            else
+                names=versionstring
+            endif
             get #f,,dat             '36 bytes
             get #f,,datestring      '12 bytes + 1 overhead
             get #f,,unflags()       'lastspecial + 1 overhead
@@ -2679,6 +2699,7 @@ function load_game(filename as string) as short
 
         f=freefile
         open fname for binary as #f
+        get #f,,versionstring
         get #f,,names
         get #f,,dat
         get #f,,datestring

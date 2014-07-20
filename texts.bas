@@ -155,7 +155,6 @@ end function
 
 function death_text() as string
     dim text as string
-    if player.fuel<=0 then player.dead=1
     if player.dead=1 then text="You ran out of fuel. Slowly your life support fails while you wait for your end beneath the eternal stars"
     if player.dead=2 then text="The station impounds your ship for outstanding depts. You start a new career as cook at the stations bistro"
     if player.dead=3 then text="Your awayteam was obliterated. your Bones are being picked clean by alien scavengers under a strange sun"
@@ -191,6 +190,7 @@ function death_text() as string
     if player.dead=33 then text="White."&space(41)&"then all black"&space(41)&"your ship got destroyed by an alien vessel"
     if player.dead=34 then text="Too late you realize that your ride on the icechunk has brought you too deep into the gas giants atmosphere. Rising pressure squashes you, as the iceblock disintegrates around you."
     if player.dead=35 then text="The dangers of spacecombat are manifold. Flying into your own engine exhaust is one of them."
+    if player.dead=36 then text="White."&space(41)&"then all black"&space(41)&"Your assault on a space station failed."
     if player.dead=98 then
         endstory=es_part1
         textbox (endstory,2,2,_screenx/_fw2-5)
@@ -514,9 +514,9 @@ function crew_bio(i as short) as string
         t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
         t=t &" ||To hit gun:"&tohit_gun(i) &"|To hit cc:"&tohit_close(i) &"||"
         select case crew(i).morale
-        case is >100
+        case is >90
             t=t &"Morale :D"
-        case 60 to 100
+        case 60 to 90
             t=t &"Morale :)"
         case 40 to 59
             t=t &"Morale :/"
@@ -540,6 +540,7 @@ function crew_bio(i as short) as string
         for a=1 to 25
             if crew(i).talents(a)>0 then t=t &" |"&talent_desc(a)
         next
+        if crew(a).story(3)=1 and a<>1 then t=t &"|Has considered retiring."
         if debug=1 and _debug=1 then
             if crew(i).story(10)=0 then
                 t=t & "W"

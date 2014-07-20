@@ -745,7 +745,7 @@ function make_questitem(i as short,wanthas as short) as short
         endif
         
     endif
-    if (*o).type=qt_cursedship then'Wormhole Info	26
+    if (*o).type=qt_cursedship then'Cursed ship	26
         if wanthas=q_want then
         else
             select case rnd_range(1,100)

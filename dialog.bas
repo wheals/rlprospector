@@ -33,7 +33,7 @@ function talk_culture(c as short) as short
     t(2,1)="We value art as a form of individual expression. There are no 'professionals' or an 'industry'"
     t(2,2)="Art is a waste of resources. Growing civilisations need it. We have outgrown that phase centuries ago."
     t(2,3)="We base the value of art on its educational value."
-    t(2,4)="Our language will be rather hard for you to learn:' - the alien presents a little blue bug - 'Part of the meaning is conveyed by this animal changing it's set__color(. Its a chameleon, and trained to react to the users touches."
+    t(2,4)="Our language will be rather hard for you to learn:' - the alien presents a little blue bug - 'Part of the meaning is conveyed by this animal changing it's color. Its a chameleon, and trained to react to the users touches.'"
     t(2,5)="We are most impressed with feats of the body. Our most import areas of art are sport, dance, and general acrobatics. We get very little out of a film, picture or books other than for education"
     t(2,6)="The value of Art is its contribution to the survival of the species. It can do so by reminding individuals that they are nothing without the group."
     
@@ -991,6 +991,12 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
             add_passenger(questguy(p(0)).n,30+p(0),questguy(p(0)).flag(13),questguy(p(0)).flag(14),questguy(p(0)).flag(12)+1,questguy(p(0)).flag(15),questguy(p(0)).gender)
             questguy(p(0)).location=-3
         endif
+    endif
+    
+    if effekt="GIVES" then
+        it=make_item(99)
+        placeitem(it,0,0,0,0,-1)
+        dprint "The "&e.sdesc &" hands you a "&it.desig
     endif
     
     if effekt="BUYSHIP" then

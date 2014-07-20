@@ -81,9 +81,9 @@ If Not fileexists("config/shipregister.txt") Then
     Open "shipregister.txt" For Output As f
     Print #f,"0"
     Print #f,""
-    If Menu(bg_randompic,"Autonaming:/Standard/Babylon 5 Shipnames")=2 Then
-        Print #f,"config/b5shipnames.txt"
-    EndIf
+    a=Menu(bg_randompic,"Autonaming:/Standard/Babylon 5 shipnames/Star trek shipnames")
+    if a=2 Then Print #f,"data/b5shipnames.txt"
+    if a=3 then print #f,"data/startreknames.txt"
     Close #f
     chdir("..")
 endif
@@ -1119,12 +1119,14 @@ Function move_ship(Key As String) As _ship
         For a=0 To 12
             If patrolquest(a).status=1 Then patrolquest(a).check
         Next
-        If player.cursed>0 And rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod 50=0 Then 
-            player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
-        else
-            if rnd_range(1,100)<3+player.cursed then 
-                player.cursed+=1
-                dprint "A minor malfunction in one of the ships systems."
+        If player.cursed>0 then
+            if rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod 60=0 Then 
+                player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
+            else
+                if rnd_range(1,100)<3+player.cursed then 
+                    player.cursed+=1
+                    dprint "A minor malfunction in one of the ships systems."
+                endif
             endif
         endif
     Else
@@ -2386,7 +2388,8 @@ EndIf
             If awayteam.oxygen<=0 and (awayteam.helmet=1 or tmap(awayteam.c.x,awayteam.c.y).oxyuse>0) Then 
                 dprint "Asphyxiaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
                 awayteam.oxygen=0
-                if awayteam.hp<0 then player.dead=14
+                if awayteam.hp<=0 and player.dead=0 then player.dead=14
+                if _debug>0 then dprint "PD:"&player.dead & "AHP:"&awayteam.hp
             endif
             
             if _debug=2704 then print #logfile,"&heal"
@@ -2599,7 +2602,7 @@ EndIf
             If Key=key_te And artflag(9)=1 Then awayteam.c=teleport(awayteam.c,slot)
 
         Else
-            If player.dead<>0 Then allowed=""
+            If player.dead<>0 or awayteam.hp=0 Then allowed=""
         EndIf
 
         If lastenemy>255 Then lastenemy=255
@@ -2620,10 +2623,8 @@ EndIf
         update_world(0)
                 
         if _debug=2704 then print #logfile,"end loop"&nextmap.m
-        
-            
-    Loop Until awayteam.hp<=0 Or nextmap.m<>0 Or player.dead<>0
-    
+    Loop Until awayteam.hp<=0 or nextmap.m<>0 or player.dead<>0
+    if _debug>0 then dprint "Dead:"&player.dead
     if _debug=2704 then print #logfile,"1"&nextmap.m
     '
     ' END exploring
@@ -2657,26 +2658,22 @@ EndIf
     If awayteam.hp<=0 Then
         reward(2)=0
         reward(1)=0
-        If player.dead=0 Then player.dead=3
-
         For a=1 To lastdrifting
-            If slot=drifting(a).m Then player.dead=25
+            if slot=drifting(a).m and player.dead=3 Then player.dead=25
         Next
-        player.landed.s=planets(slot).depth
         If player.dead=25 Then player.landed.s=slot
-        display_awayteam()
-        dprint "The awayteam has been destroyed.",12
-        If slot=specialplanet(0) Then player.dead=8
-        If slot=specialplanet(1) Then player.dead=9
-        If slot=specialplanet(3) Or slot=specialplanet(4) Then player.dead=10
-        If slot=specialplanet(5) Then player.dead=11
-        no_key=keyin
-    EndIf
-    
-    if awayteam.hp<=0 or (player.dead<>0 and player.dead<>18) then
-            dprint "Any key to continue."
+        If player.dead=0 Then             
+            player.landed.s=planets(slot).depth
+            If slot=specialplanet(0) Then player.dead=8
+            If slot=specialplanet(1) Then player.dead=9
+            If slot=specialplanet(3) Or slot=specialplanet(4) Then player.dead=10
+            If slot=specialplanet(5) Then player.dead=11
+            if player.dead=0 then player.dead=3
+            display_awayteam()
+            dprint "The awayteam has been destroyed.",12
             no_key=keyin
-    endif
+        endif
+    EndIf
     
     If player.dead<>0 Then
         old=player.c
@@ -2770,7 +2767,7 @@ EndIf
         b=15
     EndIf
     a=b
-    If lastenemy>129 Then lastenemy=129
+    If lastenemy>255 Then lastenemy=255
     savefrom(a).lastenemy=lastenemy
     savefrom(a).map=slot
     For b=1 To lastenemy
@@ -3712,7 +3709,10 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
         dprint text,col
     Else
         defender.hp=defender.hp-b 'Monster attacks monster
-        If defender.hp<=0 Then defender.killedby=attacker.made
+        If defender.hp<=0 Then 
+            defender.killedby=attacker.made
+            player.dead=3
+        endif
     EndIf
     attacker.e.add_action(attacker.atcost)
     If debug=1 And _debug=1 Then dprint "DEBUG MESSAGE dam:"& b
@@ -3898,7 +3898,7 @@ Function clear_gamestate() As Short
     Dim d_portal As _transfer
     set__color(15,0)
     Draw String(_screenx/2-7*_fw1,_screeny/2),"Resetting game",,font2,custom,@_col
-
+    make_eventplanet(0,1) 'Clear static array
     player=d_ship
 
     For a=0 To 255
@@ -3969,8 +3969,8 @@ Function clear_gamestate() As Short
         artflag(a)=0
     Next
 
-
-    For a=0 To 255
+    lastportal=0
+    For a=0 To ubound(portal)
         portal(a)=d_portal
     Next
     

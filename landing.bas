@@ -201,7 +201,7 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
                 Next
                 
                 if _debug=2704 then print #freefile,"outerloop6:"&nextmap.m
-            Loop Until nextmap.m=-1 Or player.dead<>0
+            Loop Until nextmap.m=-1 Or player.dead<>0 or awayteam.hp<=0
             For c=0 To 127
                 For b=6 To 127
                     If crew(b).hp<=0 Then Swap crew(b),crew(b+1)

@@ -37,7 +37,7 @@ Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0
 Const show_allitems=0
 Const easy_fights=0
-Const show_eventp=0 'Show eventplanets
+Const show_eventp=1 'Show eventplanets
 Const show_mapnr=0
 Const show_enemyships=0
 Const show_mnr=0
@@ -1930,6 +1930,8 @@ Declare Function move_rover(pl As Short) As Short
 Declare Function rnd_crewmember(onship As Short=0) As Short
 Declare Function haggle_(way As String) As Single
 Declare Function botsanddrones_shop() As Short
+declare function make_shop_menu(sh as short,pmod as single,inv() as _items,c as short,byref order as short,byref ex as short,t as string,desc as string) as short
+
 Declare Function display_monsters(osx As Short) As Short
 Declare Function alerts() As Short
 Declare Function launch_probe() As Short
@@ -2198,7 +2200,7 @@ Declare Function getdirection(Key As String) As Short
 Declare Function keyplus(Key As String) As Short
 Declare Function keyminus(Key As String) As Short
 Declare Function paystuff(price As Integer) As Integer
-Declare Function shop(sh As Short,pmod As Single, shopn As String) As Short
+Declare Function shop(sh As Short,pmod As Single, shopn As String, qty as byte=0) As Short
 Declare Function monster_description(enemy As _monster) As String
 Declare Function getfilename() As String
 Declare Function savegame(crash as short=0)As Short
@@ -2324,7 +2326,7 @@ Declare Function addcastle(dest As _cords,slot As Short) As Short
 Declare Function make_mine(slot As Short) As Short
 
 Declare Function makemudsshop(slot As Short, x1 As Short, y1 As Short) As Short
-Declare Function make_eventplanet(slot As Short) As Short
+Declare Function make_eventplanet(slot As Short,cl as byte=0) As Short
 Declare Function station_event(m As Short) As Short
 Declare Function makewhplanet() As Short
 Declare Function makeoutpost (slot As Short,x1 As Short=0, y1 As Short=0) As Short
@@ -2529,6 +2531,7 @@ Declare Function getany(possible() As Short)As Short
 Declare Function maximum(a As Double,b As Double) As Double
 Declare Function minimum(a As Double,b As Double) As Double
 Declare Function dominant_terrain(x As Short,y As Short,m As Short) As _cords
+declare function get_hull(t as short) as _ship
 
 Declare Function checkandadd(queue() As _pfcords,map() As Byte,in As Short) As Short
 Declare Function add_p(queue() As _pfcords,p As _pfcords) As Short

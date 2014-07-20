@@ -77,6 +77,7 @@ function update_world(location as short) as short
                     a=rnd_range(1,20)
                     shopitem(a,b)=make_item(shoporder(b))
                     shopitem(a,b).price=shopitem(a,b).price*2
+                    shopitem(a,b).w.x=rnd_range(1,6)
                     shoporder(b)=-shoporder(b)
                 endif
             endif
@@ -245,6 +246,18 @@ function drawroulettetable() as short
     return 0
 end function
 
+function get_hull(t as short) as _ship
+    dim n as _ship
+    if t<20 then
+        n=gethullspecs(t,"data/ships.csv")
+    else
+        n=gethullspecs(t-20,"data/customs.csv")
+        n.h_no=t
+    endif
+    return n
+end function
+
+
 function upgradehull(t as short,byref s as _ship,forced as short=0) as short
     dim as short f,flg,a,b,cargobays,weapons,tfrom,tto,m
     dim n as _ship
@@ -252,12 +265,7 @@ function upgradehull(t as short,byref s as _ship,forced as short=0) as short
     dim as string ques
     dim as string word(10)
     dim as string text
-    if t<20 then
-        n=gethullspecs(t,"data/ships.csv")
-    else
-        n=gethullspecs(t-20,"data/customs.csv")
-        n.h_no=t
-    endif
+    n=get_hull(t)
     for a=1 to 10
         if s.cargo(a).x>0 then cargobays=cargobays+1
         if s.weapons(a).desig<>"" then weapons=weapons+1
@@ -1705,45 +1713,6 @@ function sick_bay(st as short=0,obe as short=0) as short
     return player.disease
 end function
 
-function used_ships() as short
-    dim as short yourshipprice,i,a,yourshiphull,price(8),l
-    dim s as _ship
-    dim as single pmod
-    dim as string mtext,htext,desig(8)
-    do
-        yourshiphull=player.h_no
-        s=gethullspecs(yourshiphull,"data/ships.csv")
-        yourshipprice=s.h_price*.1
-        mtext="Used ships (" &credits(yourshipprice)& " Cr. for your ship.)/"
-        htext="/"
-        for i=1 to 8
-            pmod=(80-usedship(i).y*3)/100
-            s=gethullspecs(usedship(i).x,"data/ships.csv")
-            l=len(trim(s.h_desig))+len(credits(s.h_price*pmod))
-            mtext=mtext &s.h_desig &space(45-l)&credits(s.h_price*pmod) &" Cr./"
-            price(i)=s.h_price*pmod-yourshipprice
-            desig(i)=s.h_desig
-            htext=htext &makehullbox(s.h_no,"data/ships.csv") &"/"
-        next
-        mtext=mtext &"Bargain bin/Sell equipment/Exit"
-        a=menu(bg_shiptxt,mtext,htext,2,2)
-        if a>=1 and a<=8 then
-            if buy_ship(usedship(a).x,desig(a),price(a)) then
-                usedship(a).x=yourshiphull
-                player.cursed=usedship(a).y
-                usedship(a).y=0
-            endif
-        endif
-        if a=9 then 
-            cls
-            shop(30,0.8,"Bargain bin")
-        endif
-        if a=10 then buysitems("","",0,.5)
-    loop until a=11 or a=-1        
-    return 0
-end function
-
-
 function shipyard(where as byte) as short
     dim as short a,b,c,d,e,last,designshop,ex,armor,shipstart,shipstop,shipstep,inspection
     dim as string men,des
@@ -1816,7 +1785,16 @@ function shipyard(where as byte) as short
 end function
 
 function ship_inspection(price as short) as short
+    dim hullspecs as _ship
     if paystuff(price) then
+        hullspecs=get_hull(player.h_no)
+        
+        if player.h_maxhull<hullspecs.h_maxhull and rnd_range(1,20)>12 then
+            player.h_maxhull+=1
+            dprint "Some structural damage has been fixed.",c_gre
+            return 0
+        end if
+        
         if rnd_range(1,6) +rnd_range(1,6)>10-player.cursed then 'Heavily cursed stuff is easier to find. It gets harder to find the little stuff
             if player.cursed=0 then
                 dprint "Your ship is in excellent shape.",c_gre

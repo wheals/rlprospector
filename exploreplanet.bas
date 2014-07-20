@@ -240,7 +240,7 @@ Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() A
 End Function
 
 Function ep_atship() As Short
-    Dim As Short slot,a
+    Dim As Short slot,a,who(128)
     slot=player.map
     If awayteam.c.y=player.landed.y And awayteam.c.x=player.landed.x And slot=player.landed.m Then
         location=lc_onship
@@ -270,8 +270,9 @@ Function ep_atship() As Short
         Return 0
     Else
         location=lc_awayteam
-        If ep_Needs_spacesuit(slot,awayteam.c)>0 Then
+        If no_spacesuit(who())>0 and ep_Needs_spacesuit(slot,awayteam.c)>0 Then
             dprint dam_awayteam(rnd_range(1,ep_needs_spacesuit(slot,awayteam.c)),5),c_red
+            if awayteam.hp<=0 then player.dead=14
         EndIf
         Return 0
     EndIf
@@ -1128,7 +1129,7 @@ Function ep_items(localturn As Short) As Short
                         dam=10/(1+distance(awayteam.c,p1))*item(itemindex.value(a)).v1*10
                         alienbomb(itemindex.value(a),slot)
                         If dam>0 Then dprint dam_awayteam(dam),c_red
-                        If awayteam.hp<=0 Then player.dead=29
+                        If player.dead=0 and awayteam.hp<=0 Then player.dead=29
                         itemindex.remove(a,p1)
                     EndIf
                 EndIf
@@ -1171,7 +1172,7 @@ Function ep_landship(ByRef ship_landing As Short,nextlanding As _cords,nextmap A
                     player.hull=1
                     dprint gainxp(2),c_gre
                 Else
-                    player.dead=4
+                    if player.dead=0 then player.dead=4
                 EndIf
                 no_key=keyin
             EndIf
@@ -1707,13 +1708,13 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
 
     If planetmap(awayteam.c.x,awayteam.c.y,slot)=45 Then
         dprint "Smoldering lava:" &dam_awayteam(rnd_range(1,6-awayteam.movetype)),12
-        If awayteam.hp<=0 Then player.dead=16
+        If player.dead=0 and awayteam.hp<=0 Then player.dead=16
         player.killedby="lava"
     EndIf
 
     If tmap(awayteam.c.x,awayteam.c.y).no=175 Or tmap(awayteam.c.x,awayteam.c.y).no=176 Or tmap(awayteam.c.x,awayteam.c.y).no=177 Then
         dprint "Aaaaaaaaaaaaaaaahhhhhhhhhhhhhhh",12
-        player.dead=27
+        if player.dead=0 then player.dead=27
     EndIf
 
     If (tmap(awayteam.c.x,awayteam.c.y).no=260 Or tmap(awayteam.c.x,awayteam.c.y).no=27) And player.dead=0 Then
@@ -2550,7 +2551,7 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, shipf
             Else
                 If askyn("Are you certain? you want to launch on remote and leave you behind? (y/n)") Then
                     If planets(slot).depth=0 Then
-                        player.dead=4
+                        if player.dead=0 then player.dead=4
                     Else
                         dprint "Good luck then."
                         player.landed.m=0

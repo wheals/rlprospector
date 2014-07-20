@@ -557,7 +557,7 @@ function add_easy_planets(start as _cords) as short
 end function
 
 function add_event_planets() as short
-    dim as short sys,d,planet,debug,f
+    dim as short sys,d,planet,debug,f,orbit
     
     for d=0 to 5
         sys=get_random_system()
@@ -568,7 +568,8 @@ function add_event_planets() as short
                 
                 if planet>0 then
                     if is_special(planet)=0 then
-                        makeplanetmap(planet,rnd_range(1,9),map(sys).spec)
+                        orbit=orbitfrommap(planet)
+                        makeplanetmap(planet,orbit,map(sys).spec)
                         map(sys).discovered=3
                         make_eventplanet(planet)
                     endif
@@ -803,8 +804,7 @@ end function
 
 function add_caves() as short
     dim as short a,b,debug
-    lastportal=22
-    for a=0 to lastportal
+    for a=lastportal+1 to lastportal+23
          
             portal(a).desig="A natural tunnel. "
             portal(a).tile=111
@@ -850,6 +850,7 @@ function add_caves() as short
                 
             endif
     next
+    lastportal+=23
     if debug=1 and _debug=1 then
         a=freefile
         open "portals.csv" for output as #a

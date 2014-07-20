@@ -589,6 +589,7 @@ function get_death() as string
     if player.dead=33 then death="Died in battle with the "&civ(1).n
     if player.dead=34 then death="Surfed to his death on a chunk of ice"
     if player.dead=35 then death="Flew into his own engine exaust"
+    if player.dead=36 then death="Destroyed in an assault on a space station."
     if player.dead=98 then death="Captain got filthy rich as a prospector"
     death=death &" after "&display_time(player.turn,2) &"."
     return death

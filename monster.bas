@@ -374,6 +374,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.range=1.5
         enemy.weapon=rnd_range(1,5)-3+planets(map).depth
         if enemy.weapon<0 then enemy.weapon=0
+        
+        enemy.hpmax=enemy.hpmax*planets(map).grav
         enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)
         
@@ -395,6 +397,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if enemy.diet=1 and (count_diet(map,1)+1)/(count_diet(map,2)+1)<=.25 then enemy.diet=2 'Need 3 herbivoures at least to support one carni
         if enemy.diet=3 and (count_diet(map,3)+1)/(count_diet(map,1)+1)<=.25 then enemy.diet=2 'Need 3 carni at least to support one scav
         enemy.speed=rnd_range(0,5)+rnd_range(0,4)+rnd_range(0,enemy.weapon)
+        enemy.speed=enemy.speed/(planets(map).grav+.1)
         if enemy.speed<1 then enemy.speed=1
         if enemy.speed>19 then enemy.speed=19
         if rnd_range(1,100)<(planets(map).atmos-1)*3/planets(map).grav then

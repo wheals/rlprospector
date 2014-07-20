@@ -2407,11 +2407,27 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
 
     endif
     
-    planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
+    
     
     modsurface(a,o)
     
-    planets(a).darkness=o*1.5-spect
+    b=0
+    for x=0 to 60
+        for y=0 to 20
+            if tiles(abs(planetmap(x,y,a))).walktru=1  or planetmap(x,y,a)=-1 or planetmap(x,y,a)=-20 or planetmap(x,y,a)=-25 or planetmap(x,y,a)=-27 then b=b+1
+        next
+    next
+    planets(a).water=(b/1200)*100
+    
+    planets(a).dens=planets(a).atmos
+    if planets(a).dens>5 then planets(a).dens-=5
+    if planets(a).dens>5 then planets(a).dens-=5
+    planets(a).dens-=1
+    
+    planets(a).mapmod=0.5+planets(a).dens/10+planets(a).grav/5
+    
+    planets(a).darkness=o-spect*3
+    planets(a).darkness+=planets(a).dens
     if planets(a).darkness<0 then planets(a).darkness=0
     if _debug>0 then dprint "O:"& o &" D"&planets(a).darkness
     if spect=8 or spect=10 then
@@ -2441,18 +2457,6 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
     for b=1 to _NoPB '1 because 0 is mainbase
         if a=piratebase(b) then makeoutpost(a)
     next
-    b=0
-    for x=0 to 60
-        for y=0 to 20
-            if tiles(abs(planetmap(x,y,a))).walktru=1  or planetmap(x,y,a)=-1 or planetmap(x,y,a)=-20 or planetmap(x,y,a)=-25 or planetmap(x,y,a)=-27 then b=b+1
-        next
-    next
-    planets(a).water=(b/1200)*100
-    
-    planets(a).dens=planets(a).atmos
-    if planets(a).dens>5 then planets(a).dens-=5
-    if planets(a).dens>5 then planets(a).dens-=5
-    planets(a).dens-=1
     
     if show_all=1 then
         for x=0 to 60
@@ -6234,129 +6238,6 @@ function makemudsshop(slot as short, x1 as short, y1 as short)  as short
     return 0
 end function
 
-function station_event(m as short) as short
-    dim p as _cords
-    dim as short c,s,i,j,r,r2
-    for i=10 to 1 step -1
-        if planets(m).mon_template(i).made=0 and s=0 then s=i
-    next
-    planets_flavortext(m)="Something is going on here today."
-    r=rnd_range(1,100)
-    r2=rnd_range(1,100)
-    if _debug=1501 then 
-        r=60
-        r2=50
-    endif
-    select case r
-    case is<35 'Good stuff
-        select case r2
-            case 0 to 25
-                planets(m).mon_template(s)=makemonster(98,m)
-                planets(m).mon_noamin(s)=1
-                planets(m).mon_noamax(s)=1
-            case 26 to 50
-                planets(m).flags(26)=7
-                planetmap(39,1,m)=-268
-                planetmap(38,1,m)=-267
-                planetmap(40,1,m)=-267
-                planetmap(40,2,m)=-267
-                planetmap(38,2,m)=-267
-            case 51 to 75
-                planetmap(46,17,m)=-215
-                planetmap(44,18,m)=-216
-                planets(m).flags(26)=8
-                planets(m).flags(12)=rnd_range(2,6)
-                planets(m).flags(13)=rnd_range(2,6)
-            case else
-                planets(m).flags(26)=9 'Fuel shortage
-                planets(m).flags(27)=0 
-        end select
-    case is>55 'Bad Stuff
-        select case r2
-            case 0 to 20
-                planets(m).flags(26)=1 'Standard Critter loose
-                planets(m).mon_template(s)=makemonster(1,m)
-                planets(m).mon_noamin(s)=1
-                planets(m).mon_noamax(s)=1
-            case 21 to 40
-                planets(m).flags(26)=4 'Crawling Shrooms loose
-                planets(m).mon_template(s)=makemonster(34,m)
-                planets(m).mon_noamin(s)=1
-                planets(m).mon_noamax(s)=1
-            case 41 to 60
-                planets(m).flags(26)=5 'Pirate band attacking
-                planets(m).mon_template(s)=makemonster(3,m)
-                planets(m).mon_noamin(s)=1
-                planets(m).mon_noamax(s)=3
-                p=rnd_point(m,,203)
-                planetmap(p.x,p.y,m)=-67
-            case 61 to 80 'Tribble infestation
-                planets(m).flags(26)=12
-                planets(m).mon_template(s)=makemonster(80,m)
-                planets(m).mon_noamin(s)=1
-                planets(m).mon_noamax(s)=1
-            case else
-                planets(m).flags(26)=6 'Leak
-                p=rnd_point(m,,243)
-                planetmap(p.x,p.y,m)=-4
-                'planets(m).atmos=1
-        end select
-    case else 'Neutral Stuff
-        c=rnd_range(0,1)
-        planets(m).flags(26)=10
-        planets(m).mon_template(s)=civ(c).spec
-        planets(m).mon_noamin(s)=1
-        planets(m).mon_noamax(s)=3
-        p=rnd_point(m,,203)
-        
-        planetmap(p.x,p.y,m)=-(272+c)
-    end select
-    'Clear cache
-    
-    for i=1 to 15 'Look for saved status on this planet
-        if savefrom(i).map=m then
-            for j=i to 14
-                savefrom(j)=savefrom(j+1)
-            next
-            savefrom(15)=savefrom(0)
-        endif
-    next
-    'CLEAN UP ROUTINE!!!!
-    return 0
-end function
-
-function clean_station_event() as short
-    dim as short a,m,x,y
-    for a=1 to 3
-        m=drifting(a).m
-        planets(m).mon_noamin(2)=0
-        planets(m).mon_noamax(2)=0
-        if planets(m).flags(26)<>9 then 
-            planets(m).flags(26)=0
-            planets(m).flags(27)=0
-            planets(m).atmos=5
-            planets_flavortext(m)="A cheerful sign welcomes you to the station"
-        endif
-        for x=0 to 60
-            for y=0 to 20
-                if planetmap(x,y,m)=268 then planetmap(x,y,m)=202 
-                if planetmap(x,y,m)=-268 then planetmap(x,y,m)=-202 
-                if planetmap(x,y,m)=267 then planetmap(x,y,m)=202 
-                if planetmap(x,y,m)=-267 then planetmap(x,y,m)=-202 
-                if planetmap(x,y,m)=215 then planetmap(x,y,m)=202 
-                if planetmap(x,y,m)=-215 then planetmap(x,y,m)=-202 
-                if planetmap(x,y,m)=216 then planetmap(x,y,m)=202 
-                if planetmap(x,y,m)=-216 then planetmap(x,y,m)=-202 
-                if planetmap(x,y,m)=67 then planetmap(x,y,m)=203
-                if planetmap(x,y,m)=-67 then planetmap(x,y,m)=-203
-                if planetmap(x,y,m)=4 then planetmap(x,y,m)=243
-                if planetmap(x,y,m)=-4 then planetmap(x,y,m)=-243 
-            next
-        next
-    next
-    return 0
-end function
-
 function make_mine(slot as short) as short
     dim as short x,y
     dim as _cords p1,gc1,gc
@@ -6384,7 +6265,7 @@ function make_mine(slot as short) as short
     gc1.x=p1.x+1
     gc1.y=p1.y+1
     gc1.m=slot
-    
+    if _debug>0 then dprint cords(gc1)
     lastplanet=lastplanet+1
     gc.x=rnd_range(1,59)
     gc.y=rnd_range(1,19)
@@ -6395,9 +6276,9 @@ function make_mine(slot as short) as short
     planets(lastplanet)=planets(slot)
     planets(lastplanet).grav=1.4
     planets(lastplanet).depth=2
-    planets(lastplanet).mon_template(0)=makemonster(1,lastplanet)
-    planets(lastplanet).mon_noamax(0)=rnd_Range(2,12)+6
-    planets(lastplanet).mon_noamin(0)=rnd_Range(2,12)
+'    planets(lastplanet).mon_template(0)=makemonster(1,lastplanet)
+'    planets(lastplanet).mon_noamax(0)=rnd_Range(2,12)+6
+'    planets(lastplanet).mon_noamin(0)=rnd_Range(2,12)
     for x=0 to 60
         for y=0 to 20
             if planetmap(x,y,lastplanet)=-4 and rnd_range(0,100)<66 then planetmap(x,y,lastplanet)=-47
@@ -6406,21 +6287,33 @@ function make_mine(slot as short) as short
     gc=rnd_point(lastplanet,0)
     gc.m=lastplanet
     addportal(gc1,gc,0,ASC("#"),"A mineshaft.",14)
+    if _debug>0 then 
+        dprint "slot:" &gc1.m
+        dprint "slot:" &gc.m
+    endif
     return 0
 end function
 
 
-function make_eventplanet(slot as short) as short
+function make_eventplanet(slot as short, cl as byte=0) as short
     dim as _cords p1,from,dest
     dim as _cords gc1,gc
     dim as short x,y,a,b,t1,t2,t,maxt,debug
     static generated(11) as short
+    
+    if cl=1 then
+        for a=0 to 11
+            generated(a)=0
+        next
+        return 0
+    endif
     debug=4
     if orbitfrommap(slot)<>1 then
         maxt=10
     else
         maxt=11
     endif
+    
     do
         t1=rnd_range(0,maxt)+disnbase(map(sysfrommap(slot)).c)/10
         t2=rnd_range(0,maxt)+disnbase(map(sysfrommap(slot)).c)/10
@@ -6448,9 +6341,13 @@ function make_eventplanet(slot as short) as short
         print "making "&t & " on planet "&slot &" in system " &sysfrommap(slot)
         no_key=keyin
     endif
-    if debug=4 and _Debug>1 then t=7
+    if debug=4 and _Debug>1 then t=1
     if t=1 then 'Mining Colony in Distress Flag 22 
         make_mine(slot)
+        if _Debug>0 then 
+            dprint "Slot:"&slot &"LP:"&lastportal
+            no_key=keyin
+        endif
     endif
     
     if t=2 then 'Icetrolls

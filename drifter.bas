@@ -541,8 +541,131 @@ function add_stranded_ship(s as short,p as _cords, a as short,broken as short) a
     return 0
 end function
 
+function station_event(m as short) as short
+    dim p as _cords
+    dim as short c,s,i,j,r,r2
+    for i=10 to 1 step -1
+        if planets(m).mon_template(i).made=0 and s=0 then s=i
+    next
+    planets_flavortext(m)="Something is going on here today."
+    r=rnd_range(1,100)
+    r2=rnd_range(1,100)
+    if _debug=1501 then 
+        r=60
+        r2=50
+    endif
+    select case r
+    case is<35 'Good stuff
+        select case r2
+            case 0 to 25
+                planets(m).mon_template(s)=makemonster(98,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
+            case 26 to 50
+                planets(m).flags(26)=7
+                planetmap(39,1,m)=-268
+                planetmap(38,1,m)=-267
+                planetmap(40,1,m)=-267
+                planetmap(40,2,m)=-267
+                planetmap(38,2,m)=-267
+            case 51 to 75
+                planetmap(46,17,m)=-215
+                planetmap(44,18,m)=-216
+                planets(m).flags(26)=8
+                planets(m).flags(12)=rnd_range(2,6)
+                planets(m).flags(13)=rnd_range(2,6)
+            case else
+                planets(m).flags(26)=9 'Fuel shortage
+                planets(m).flags(27)=0 
+        end select
+    case is>55 'Bad Stuff
+        select case r2
+            case 0 to 20
+                planets(m).flags(26)=1 'Standard Critter loose
+                planets(m).mon_template(s)=makemonster(1,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
+            case 21 to 40
+                planets(m).flags(26)=4 'Crawling Shrooms loose
+                planets(m).mon_template(s)=makemonster(34,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
+            case 41 to 60
+                planets(m).flags(26)=5 'Pirate band attacking
+                planets(m).mon_template(s)=makemonster(3,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=3
+                p=rnd_point(m,,203)
+                planetmap(p.x,p.y,m)=-67
+            case 61 to 80 'Tribble infestation
+                planets(m).flags(26)=12
+                planets(m).mon_template(s)=makemonster(80,m)
+                planets(m).mon_noamin(s)=1
+                planets(m).mon_noamax(s)=1
+            case else
+                planets(m).flags(26)=6 'Leak
+                p=rnd_point(m,,243)
+                planetmap(p.x,p.y,m)=-4
+                'planets(m).atmos=1
+        end select
+    case else 'Neutral Stuff
+        c=rnd_range(0,1)
+        planets(m).flags(26)=10
+        planets(m).mon_template(s)=civ(c).spec
+        planets(m).mon_noamin(s)=1
+        planets(m).mon_noamax(s)=3
+        p=rnd_point(m,,203)
+        
+        planetmap(p.x,p.y,m)=-(272+c)
+    end select
+    'Clear cache
+    
+    for i=1 to 15 'Look for saved status on this planet
+        if savefrom(i).map=m then
+            for j=i to 14
+                savefrom(j)=savefrom(j+1)
+            next
+            savefrom(15)=savefrom(0)
+        endif
+    next
+    
+    return 0
+end function
+
+function clean_station_event() as short
+    dim as short a,m,x,y
+    for a=1 to 3
+        m=drifting(a).m
+        planets(m).mon_noamin(2)=0
+        planets(m).mon_noamax(2)=0
+        if planets(m).flags(26)<>9 then 
+            planets(m).flags(26)=0
+            planets(m).flags(27)=0
+            planets(m).atmos=5
+            planets_flavortext(m)="A cheerful sign welcomes you to the station"
+        endif
+        for x=0 to 60
+            for y=0 to 20
+                if planetmap(x,y,m)=268 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-268 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=267 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-267 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=215 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-215 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=216 then planetmap(x,y,m)=202 
+                if planetmap(x,y,m)=-216 then planetmap(x,y,m)=-202 
+                if planetmap(x,y,m)=67 then planetmap(x,y,m)=203
+                if planetmap(x,y,m)=-67 then planetmap(x,y,m)=-203
+                if planetmap(x,y,m)=4 then planetmap(x,y,m)=243
+                if planetmap(x,y,m)=-4 then planetmap(x,y,m)=-243 
+            next
+        next
+    next
+    return 0
+end function
+
 function dominant_terrain(x as short,y as short,m as short) as _cords
-    dim as short x2,y2,i,in,set,dom,t1,t2,p
+    dim as short x2,y2,i,in,set,dom,t1,t2,p,addtile
     dim t(9) as short
     dim c(9) as short
     dim result as _cords
@@ -550,16 +673,21 @@ function dominant_terrain(x as short,y as short,m as short) as _cords
         for y2=y-1 to y+1
             if x2>=0 and x2<=60 and y2>=0 and y2<=20 then
                 if (abs(planetmap(x2,y2,m))<128 or abs(planetmap(x2,y2,m)>149)) and tiles(abs(planetmap(x2,y2,m))).gives=0 then
+                    if abs(planetmap(x2,y2,m))=27 then
+                        addtile=14
+                    else
+                        addtile=abs(planetmap(x2,y2,m))
+                    endif
                     set=0
                     for i=1 to 9
-                        if t(i)=abs(planetmap(x2,y2,m)) then
+                        if t(i)=addtile then
                             c(i)+=1
                             set+=1
                         endif
                     next
                     if set=0 then 
                         in+=1
-                        t(in)=abs(planetmap(x2,y2,m))
+                        t(in)=addtile
                         c(in)+=1
                     endif
                 endif

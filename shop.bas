@@ -33,6 +33,7 @@ function reroll_shops() as short
                     if spec=3 then it=rnd_item(RI_ShopSpace)
                     if spec=4 then it=rnd_item(RI_ShopWeapons)
                 endif
+                it.w.x=rnd_range(10,50-it.v1)
             endif
             if i=4 then 'Colony I
                 if b=19 then it=make_item(97)'Disintegrator
@@ -40,9 +41,11 @@ function reroll_shops() as short
                 if b<17 then
                     it=make_item(RI_Standardshop)
                 endif
+                it.w.x=rnd_range(1,15-it.v1)
             endif
             if i=6 then 'Black market
                 it=rnd_item(RI_AllButWeaponsAndMeds)
+                it.w.x=rnd_range(1,15-it.v1)
             endif
             if i=7 then 'Mudds
                 if b=1 then 
@@ -50,24 +53,30 @@ function reroll_shops() as short
                 else
                     it=make_item(rnd_range(1,80))
                 endif
+                it.w.x=rnd_range(5,10)
             endif
             if i=5 or (i>7 and i<21) then
                 if a<=3 then
                     it=make_item(31+a)
                 endif
                 it=rnd_item(RI_StandardShop)
+                it.w.x=rnd_range(5,10-it.v1)
             endif
             
             if i>=21 and i<=24 then 'Medical supplies
                 select case rnd_range(1,100)
                 case 1 to 18
                     it=rnd_item(RI_Infirmary)
+                    it.w.x=rnd_range(1,3)
                 case 19 to 60
                     it=rnd_item(RI_Medpacks)
+                    it.w.x=rnd_range(10,60)
                 case 61 to 80
                     it=rnd_item(RI_KODrops)
+                    it.w.x=rnd_range(10,60)
                 case else
                     it=rnd_item(RI_Cage)
+                    it.w.x=rnd_range(10,25)
                 end select
             endif
             
@@ -161,17 +170,20 @@ function reroll_shops() as short
     for b=50 to 55 
         if rnd_range(1,100)<77 then
             shopitem(c,25)=make_item(b)
+            shopitem(c,25).w.x=rnd_range(1,20)
             c+=1
         endif
     next
     if rnd_range(1,100)<77 then 
         c+=1
         shopitem(c,25)=make_item(30)'Comsat
+        shopitem(c,25).w.x=rnd_range(1,20)
     endif
     
     for b=100 to 102
         if rnd_range(1,100)<77 then
             shopitem(c,25)=make_item(b,,25)
+            shopitem(c,25).w.x=rnd_range(1,20)
             c+=1
         endif
     next
@@ -179,6 +191,7 @@ function reroll_shops() as short
     for b=104 to 105
         if rnd_range(1,100)<77 then
             shopitem(c,25)=make_item(b)
+            shopitem(c,25).w.x=rnd_range(1,20)
             c+=1
         endif
     next
@@ -186,6 +199,7 @@ function reroll_shops() as short
     for b=110 to 112
         if rnd_range(1,100)<77 then
             shopitem(c,25)=make_item(b,,25)
+            shopitem(c,25).w.x=rnd_range(1,20)
             c+=1
         endif
     next
@@ -273,16 +287,20 @@ function reroll_shops() as short
         i=0
         i+=1
         shopitem(i,b)=make_item(75)
+        shopitem(i,b).w.x=rnd_range(1,6)
         if rnd_range(1,100)<50 then
            i+=1
            shopitem(i,b)=make_item(76)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         
         i+=1
         shopitem(i,b)=make_item(104)
+        shopitem(i,b).w.x=rnd_range(1,6)
         if rnd_range(1,100)<25 then
            i+=1
            shopitem(i,b)=make_item(105)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         
         i+=1
@@ -290,21 +308,26 @@ function reroll_shops() as short
         if rnd_range(1,100)<75 then
            i+=1
            shopitem(i,b)=make_item(101)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         if rnd_range(1,100)<25 then
            i+=1
            shopitem(i,b)=make_item(102)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         
         i+=1
         shopitem(i,b)=make_item(110)
+        shopitem(i,b).w.x=rnd_range(1,6)
         if rnd_range(1,100)<75 then
            i+=1
            shopitem(i,b)=make_item(111)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         if rnd_range(1,100)<25 then
            i+=1
            shopitem(i,b)=make_item(112)
+           shopitem(i,b).w.x=rnd_range(1,6)
         endif
         
         'sort_items(shopitem(,b))
@@ -324,6 +347,7 @@ function reroll_shops() as short
             it=rnd_item(RI_shopexplorationgear)
         end select
         it.res=it.res/1.2
+        it.w.x=1
         shopitem(i,30)=it
     next
             
@@ -501,44 +525,54 @@ function customize_item() as short
     
 end function
 
-
-function shop(sh as short,pmod as single,shopn as string) as short
-    dim as short a,b,c,e,v,i,best,order,ex
-    dim as string t
-    dim inv(20) as _items
-    dim lonest as short
-    dim desc as string
-    dim l as string
-    c=1
-    i=20
-    order=-2
-    t=shopn
-    if sh<=2 then
-        if shoporder(sh)<0 then
-            dprint  "Your ordered "&make_item(abs(shoporder(sh))).desig &" has arrived.",c_gre
-            shoporder(sh)=0
-        endif
-    endif
-    for a=1 to 9999
-        for b=1 to i
-            if shopitem(b,sh).ty=a then
-                inv(c)=shopitem(b,sh)
-                c=c+1
+function used_ships() as short
+    dim as short yourshipprice,i,a,yourshiphull,price(8),l
+    dim s as _ship
+    dim as single pmod
+    dim as string mtext,htext,desig(8)
+    do
+        yourshiphull=player.h_no
+        s=gethullspecs(yourshiphull,"data/ships.csv")
+        yourshipprice=s.h_price*.1
+        mtext="Used ships (" &credits(yourshipprice)& " Cr. for your ship.)/"
+        htext="/"
+        for i=1 to 8
+            pmod=(80-usedship(i).y*3)/100
+            s=gethullspecs(usedship(i).x,"data/ships.csv")
+            l=len(trim(s.h_desig))+len(credits(s.h_price*pmod))
+            mtext=mtext &s.h_desig &space(45-l)&credits(s.h_price*pmod) &" Cr./"
+            price(i)=s.h_price*pmod-yourshipprice
+            desig(i)=s.h_desig
+            htext=htext &makehullbox(s.h_no,"data/ships.csv") &"/"
+        next
+        mtext=mtext &"Bargain bin/Sell equipment/Exit"
+        a=menu(bg_shiptxt,mtext,htext,2,2)
+        if a>=1 and a<=8 then
+            if buy_ship(usedship(a).x,desig(a),price(a)) then
+                usedship(a).x=yourshiphull
+                player.cursed=usedship(a).y
+                usedship(a).y=0
             endif
-        next
-    next
-        
-    sort_items(inv())
-    
-    for b=1 to i
-        for a=1 to i-1
-            if inv(a).desig="" then inv(a)=inv(a+1)
-        next
-    next
+        endif
+        if a=9 then 
+            do
+                cls
+            loop until shop(30,0.8,"Bargain bin")=-1
+        endif
+        if a=10 then buysitems("","",0,.5)
+    loop until a=11 or a=-1        
+    return 0
+end function
+
+function make_shop_menu(sh as short,pmod as single,inv() as _items,c as short,byref order as short,byref ex as short,t as string,desc as string) as short
+    dim as short a,b
     b=1
-        
     for a=1 to c-1
-        t=t &"/" &inv(a).desig & space(_swidth-len(trim(inv(a).desig))-len(credits(inv(a).price*pmod))) & credits(int(inv(a).price*pmod)) &" Cr." 
+        if inv(a).w.x>1 then
+            t=t &"/" &inv(a).w.x &" "&inv(a).desigp & space(_swidth-len(" "&inv(a).w.x)-len(trim(inv(a).desigp))-len(credits(inv(a).price*pmod))) & credits(int(inv(a).price*pmod)) &" Cr." 
+        else
+            t=t &"/" &inv(a).w.x &" "&inv(a).desig & space(_swidth-len(" "&inv(a).w.x)-len(trim(inv(a).desig))-len(credits(inv(a).price*pmod))) & credits(int(inv(a).price*pmod)) &" Cr." 
+        endif
         desc=desc &"/"&inv(a).describe
         b=b+1
     next
@@ -551,9 +585,50 @@ function shop(sh as short,pmod as single,shopn as string) as short
     ex=b
     t=t & "/Exit"
     desc=desc &"/"
+    return 0
+end function
+
+
+function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
+    dim as short a,b,c,e,v,i,best,order,ex
+    dim as string t
+    dim inv(20) as _items
+    dim lonest as short
+    dim desc as string
+    dim l as string
+    if _debug>0 then qty=1
+    c=1
+    i=20
+    order=-2
+    if sh<=2 then
+        if shoporder(sh)<0 then
+            dprint  "Your ordered "&make_item(abs(shoporder(sh))).desig &" has arrived.",c_gre
+            shoporder(sh)=0
+        endif
+    endif
+    for a=1 to 9999
+        for b=1 to i
+            if shopitem(b,sh).ty=a then
+                inv(c)=shopitem(b,sh)
+                if inv(c).w.x<=0 then inv(c).w.x=1
+                c=c+1
+            endif
+        next
+    next
+        
+    sort_items(inv())
+    
+    for b=1 to i
+        for a=1 to i-1
+            if inv(a).desig="" then inv(a)=inv(a+1)
+        next
+    next
+    t=shopn
+    make_shop_menu(sh,pmod,inv(),c,order,ex,t,desc)    
     display_ship()
     dprint("")
     c=menu(bg_parent,t,desc,2,2)
+    dprint "C:"&c
     select case c
     case order
         place_shop_order(sh)
@@ -643,41 +718,55 @@ function shop(sh as short,pmod as single,shopn as string) as short
                 if item(best).v1=inv(c).v1 then dprint "you already have such an infirmary"
                 if item(best).v1<inv(c).v1 then 
                     if paystuff(inv(c).price*pmod) then 
-                        placeitem(inv(c),0,0,0,0,-1)'player already has one and t his one is better
+                        placeitem(inv(c),inv(c).w.x,0,0,0,-1)'player already has one and t his one is better
+                        inv(c).w.x-=1
                         dprint "You buy " &add_a_or_an(inv(c).desig,0) & "."
-            
                     endif
                 endif
             else
                 if paystuff(inv(c).price*pmod) then 
-                    placeitem(inv(c),0,0,0,0,-1)'Its the first
+                    placeitem(inv(c),inv(c).w.x,0,0,0,-1)'player already has one and t his one is better
+                    inv(c).w.x-=1
                     dprint "You buy " &add_a_or_an(inv(c).desig,0) & "."
-            
                 endif
             endif
         
         case else
             if paystuff(int(inv(c).price*pmod))=-1 then
                 player.money=player.money+int(inv(c).price*pmod)'Giving back
-                dprint "How many "&inv(c).desigp &" do you want to buy? (Max: " &fix(player.money/(inv(c).price*pmod)) &")"
-                v=getnumber(0,fix(player.money/(inv(c).price*pmod)),0)
+                dprint "How many "&inv(c).desigp &" do you want to buy? (Max: " &minimum(inv(c).w.x,fix(player.money/(inv(c).price*pmod))) &")"
+                v=getnumber(0,minimum(inv(c).w.x,fix(player.money/(inv(c).price*pmod))) ,0)
                 if v>0 then
-                    if paystuff(inv(c).price*pmod*v)=-1 and v>0 then
+                    if paystuff(inv(c).price*pmod*v)=-1 then
                         for a=1 to v
                             uid+=1
                             inv(c).uid=uid
-                            placeitem(inv(c),0,0,0,0,-1)
+                            placeitem(inv(c),inv(c).w.x,0,0,0,-1) 'X is necesarry because that is where we store the number of items in the shop
                         next
                         if v=1 then
                             dprint "you buy "&add_a_or_an(inv(c).desig,0) & " for "& credits(int(inv(c).price*pmod))&" Cr."
                         else
                             dprint "you buy "& v &" "&inv(c).desigp &" for "&credits(int(inv(c).price*pmod*v)) &" Cr."
                         endif
+                        inv(c).w.x=inv(c).w.x-v
+                        if inv(c).w.x=0 then
+                            for a=c to 19 
+                                inv(a)=inv(a+1)
+                            next
+                            inv(20)=inv(0)
+                            t=shopn
+                            desc=""
+                            make_shop_menu(sh,pmod,inv(),c,order,ex,t,desc)    
+    
+                        endif
                     endif
                 endif
             endif
         end select
     end select
+    for b=1 to 20
+        shopitem(b,sh)=inv(b)
+    next
     return c
 end function
 

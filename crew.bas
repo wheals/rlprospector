@@ -323,6 +323,7 @@ end function
 
 function dam_awayteam_list(target() as short, stored() as short, ap as short) as short
     dim as short b,last
+    awayteam.hp=0
     if ap=5 then
         last=no_spacesuit(target()) 'Don't need the b
         for b=1 to last
@@ -331,6 +332,7 @@ function dam_awayteam_list(target() as short, stored() as short, ap as short) as
     else
         for b=1 to 128
             if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
+                awayteam.hp+=1
                 last+=1
                 target(last)=b
                 stored(b)=crew(b).hp
@@ -568,7 +570,7 @@ function levelup(p as _ship,from as short) as _ship
     for a=1 to 128
         lev(a)=0
         if _showrolls=1 or debug=1 then crew(a).xp+=10
-        if crew(a).hp>0 and (crew(a).typ>0 and crew(a).typ<8) or (crew(a).typ>=14 and crew(a).typ<=16) then
+        if crew(a).hp>0 and ((crew(a).typ>0 and crew(a).typ<8) or (crew(a).typ>=14 and crew(a).typ<=16)) then
             roll=rnd_range(1,crew(a).xp)
             if crew(a).xp>0 and (roll+crew(a).augment(10)*2>5+crew(a).hp^2 or debug=1) then
                 lev(a)+=1
@@ -579,12 +581,15 @@ function levelup(p as _ship,from as short) as _ship
                     if crew(a).hp>0 and crew(a).augment(11)=0 then
                         roll=rnd_range(1,100)
                         if roll>10+crew(a).morale+add_talent(1,4,10) then
-                            ret(crew(a).typ)+=1
-                            crew(a)=_del
-                            lev(a)=0
-                        endif
-                        if roll>crew(a).morale+add_talent(1,4,10) and roll<=10+crew(a).morale+add_talent(1,4,10) then
-                            conret(crew(a).typ)+=1
+                            if crew(a).story(3)=1 and crew(a).morale<60 then
+                                ret(crew(a).typ)+=1
+                                crew(a)=_del
+                                lev(a)=0
+                            else
+                                crew(a).morale=crew(a).morale-10+add_talent(1,4,5)
+                                crew(a).story(3)=1
+                                conret(crew(a).typ)+=1
+                            endif
                         endif
                     endif
                 endif
@@ -641,6 +646,7 @@ function no_spacesuit(who() as short,byref alle as short=0) as short
     alle=1
     for i=1 to 128
         if crew(i).hp>0 then
+            if crew(i).onship=0 then awayteam.hp+=1
             if crew(i).onship=0 and crew(i).armo=0 and crew(i).equips=0 then
                 last+=1
                 who(last)=i
@@ -1859,14 +1865,15 @@ function equip_awayteam(m as short) as short
     'dprint ""&awayteam.move
     'count teleportation devices
     awayteam.movetype=0
-    if awayteam.movetype<4 and cantswim<=hovers then awayteam.movetype=1
-    if awayteam.movetype<4 and cantfly<=jpacks*1.5+robots*2 then awayteam.movetype+=2
-    awayteam.carried=cantfly-jpacks-robots*2
-    if awayteam.carried<0 then awayteam.carried=0
-    if cantfly-jpacks-robots*2>0 then awayteam.jpfueluse=awayteam.jpfueluse+(cantfly-jpacks-robots*2) 'The ones that need to be carried use extra fuel
-
-    awayteam.nohp=hovers
-    awayteam.nojp=jpacks*1.5+robots*2
+    if crewcount>0 then
+        if awayteam.movetype<4 and cantswim<=hovers then awayteam.movetype=1
+        if awayteam.movetype<4 and cantfly<=jpacks*1.5+robots*2 then awayteam.movetype+=2
+        awayteam.carried=cantfly-jpacks-robots*2
+        if awayteam.carried<0 then awayteam.carried=0
+        if cantfly-jpacks-robots*2>0 then awayteam.jpfueluse=awayteam.jpfueluse+(cantfly-jpacks-robots*2) 'The ones that need to be carried use extra fuel
+        awayteam.nohp=hovers
+        awayteam.nojp=jpacks*1.5+robots*2
+    endif
     if findbest(5,-1)>-1 then awayteam.stuff(5)=item(findbest(5,-1)).v1
     if findbest(17,-1)>-1 then awayteam.stuff(4)=.2
     if findbest(46,-1)>-1 then awayteam.invis=7

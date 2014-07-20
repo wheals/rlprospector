@@ -13,18 +13,29 @@ function make_locallist(slot as short) as short
     
     portalindex.del
     for i=1 to lastportal
+        if _debug>0 and (portal(i).from.m=slot or portal(i).dest.m=slot) then dprint "dest from slot"&portal(i).dest.m &":"&portal(i).from.m &":"&slot
         if portal(i).dest.m=slot and portal(i).oneway=0 then portalindex.add(i,portal(i).dest)
-        if portal(i).from.m=slot then portalindex.add(i,portal(i).from)
-        if portal(i).oneway=2 and portal(i).from.m=slot then
-            for x=0 to 60
-                for y=0 to 20
-                    p.x=x
-                    p.y=y
-                    if x=0 or y=0 or x=60 or y=20 then portalindex.add(i,p)
+        if portal(i).from.m=slot then
+            if _debug>0 then dprint "Adding portal"
+            if portal(i).oneway<2 then 
+                portalindex.add(i,portal(i).from)
+            else
+                for x=0 to 60
+                    for y=0 to 20
+                        p.x=x
+                        p.y=y
+                        if x=0 or y=0 or x=60 or y=20 then portalindex.add(i,p)
+                    next
                 next
-            next
+            endif
         endif
     next
+    if _debug>0 then
+        for i=1 to portalindex.vlast
+            dprint cords(portal(portalindex.value(i)).from)
+            dprint cords(portal(portalindex.value(i)).dest)
+        next
+    endif
     return 0
 end function
 
@@ -1907,8 +1918,8 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.ti_no=2067
         i.id=68
         i.ty=21
-        i.desig="basic Infirmary"
-        i.desigp="basic Infirmary"
+        i.desig="basic infirmary"
+        i.desigp="basic infirmaries"
         i.ldesc="The basic supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10
@@ -1924,7 +1935,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.id=69
         i.ty=21
         i.desig="infirmary"
-        i.desigp="infirmary"
+        i.desigp="infirmaries"
         i.ldesc="The supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10
@@ -1939,8 +1950,8 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.ti_no=2069
         i.id=70
         i.ty=21
-        i.desig="advanced Infirmary"
-        i.desigp="advanced Infirmary"
+        i.desig="advanced infirmary"
+        i.desigp="advanced infirmaries"
         i.ldesc="State of the art supplies and devices for your ships infirmary."
         i.icon="X"
         i.col=10

@@ -10,8 +10,10 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
     dim as string control
     if walking<>0 then sleep 50
     flip
+    if _debug>0 and allowed<>"" then allowed &="_"
     if _test_disease=1 and allowed<>"" then allowed="#"&allowed
     if player.dead>0 and allowed<>"" then allowed=allowed &" "
+    
     do 
         control=""
         do        
@@ -89,7 +91,12 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             b=0
             key=""
         endif
-        
+        if _debug>0 then
+            if key="_" then 
+                make_mine(awayteam.slot)
+                make_locallist(awayteam.slot)
+            endif
+        endif
         if blocked>=97 then
             if (asc(key)>=97 and asc(key)<=blocked) then return key
         endif
