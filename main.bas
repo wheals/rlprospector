@@ -1,4 +1,3 @@
-
 'Master debug switch: Do not touch!
 #Include "debug.bas"
 
@@ -12,22 +11,24 @@ Draw String(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 
 #IfDef _FBSOUND
 #Include "fbsound.bi"
-#EndIf
+#EndIf 
 #Include Once "fbgfx.bi"
 #Include Once "zlib.bi"
 #Include Once "file.bi"
 #Include "cardobj.bi"
 #Include "string.bi"
 #Include Once "types.bas"
-
+#include once "stims.bas"
 #Include Once "tiles.bas"
 'f=freefile
 'open "data/tiles.dat" for binary as #f
 'get #f,,tiles()
 'close #f
+#include once "update_world.bas"
 #Include Once "credits.bas"
 #Include Once "retirement.bas"
 #Include Once "math.bas"
+#include once "targeting.bas"
 #Include Once "astar.bas"
 #Include Once "logbook2.bas"
 #Include Once "pirates.bas"
@@ -54,6 +55,9 @@ Draw String(ds_x,ds_y),ds_text,,ds_font,custom,@ds_col
 #Include Once "poker.bas"
 #include once "shop.bas"
 #include once "dialog.bas"
+#if _debug>0
+#include once "windows.bi"
+#endif
 On Error Goto errormessage
 
 Screenres 640,320,32
@@ -90,6 +94,19 @@ endif
 
 Do
     set_globals
+    if _debug>0 then
+        f=freefile
+        open "questguys.txt" for append as #f
+        for b=0 to 100
+            print #f,b
+            add_questguys
+            for a=1 to 3
+                print #f,questguy(a).job &";"&questguy(a).location
+            next
+        next
+        close #f
+    endif
+    
     if _debug=2704 then
         f=Freefile
         Open "tiles.csv" For Output As #f
@@ -171,12 +188,19 @@ End
 Function start_new_game() As Short
     Dim As String text
     Dim As Short a,b,c,f,d
-    Dim doubleitem(4555) As Byte
+    Dim doubleitem(45550) As Byte
     Dim i As _items
     Dim debug As Byte
     debug=66
     
     make_spacemap()
+    
+    if _debug>0 then
+        for a=1 to 3
+            dprint a &":"&questguy(a).location
+        next
+    endif
+    
     If debug=1 And _debug=1 Then
         f=Freefile
         Open "planettemp.csv" For Output As #f
@@ -223,7 +247,15 @@ Function start_new_game() As Short
         doubleitem(i.id)+=1
         placeitem(i,0,0,0,0,-1) 'Other stuff
     Loop Until equipment_value>1000 And d>2 'At least 3 other stuffs
-
+    
+    if _debug=1 then
+        placeitem(make_item(303),0,0,0,0,-1)
+        dprint item(lastitem).desig &":"& item(lastitem).w.s
+        placeitem(make_item(303),0,0,0,0,-1)
+        placeitem(make_item(47),0,0,0,0,-1)
+        placeitem(make_item(77),0,0,0,0,-1)
+    endif
+    
     If _debug=707 Then
         placeitem(make_item(48),0,0,0,0,-1)
         placeitem(make_item(52),0,0,0,0,-1)
@@ -232,7 +264,15 @@ Function start_new_game() As Short
             placeitem(make_item(26),0,0,0,0,-1)
         Next
     EndIf
-
+    if _debug>0 then artflag(13)=1
+    if _debug>0 then artflag(16)=1
+    if _debug>0 then placeitem(make_item(30),0,0,0,0,-1)
+    if _debug>0 then 
+        placeitem(make_item(251),0,0,0,0,-1)
+        placeitem(make_item(252),0,0,0,0,-1)
+        placeitem(make_item(252),0,0,0,0,-1)
+        placeitem(make_item(253),0,0,0,0,-1)
+    endif
     If b=1 Then
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
@@ -256,24 +296,7 @@ Function start_new_game() As Short
         If _debug=999 Then placeitem(make_item(301),,,,,-1)
         If _debug=2411 Then placeitem(make_item(301),,,,,-1)
         If _debug=1211 Then placeitem(make_item(30),,,,,-1)
-        If _debug>0 Then player.weapons(2)=make_weapon(95)
-'        placeitem(make_item(250),0,0,0,0,-1)
-'        placeitem(make_item(162),0,0,0,0,-1)
-'        placeitem(make_item(162),0,0,0,0,-1)
-'        placeitem(make_item(163),0,0,0,0,-1)
-        If debugvacuum=1 And _debug=1 Then placeitem(make_item(23),0,0,0,0,-1)
-        'player.cargo(1).x=10
-'        placeitem(make_item(52),0,0,0,0,-1)
-'        placeitem(make_item(52),0,0,0,0,-1)
-'        placeitem(make_item(52),0,0,0,0,-1)
-'        for a=0 to 1000
-'        i=make_item(96)
-'        placeitem(i,0,0,0,0,-1)
-'        reward(2)+=i.v1
-'        next
-        'player.pilot=3
-        'placeitem(make_item(85),0,0,0,0,-1)
-        'placeitem(make_item(85),0,0,0,0,-1)
+        
     EndIf
 
     If b=2 Then
@@ -295,8 +318,9 @@ Function start_new_game() As Short
     add_member(3,1)
     add_member(4,1)
     add_member(5,1)
+    if _debug>0 then add_member(13,0)
     If debug=3 And _debug=1 Then player.questflag(22)=1
-
+    
 
     If b=4 Then
         player.security=5
@@ -318,7 +342,7 @@ Function start_new_game() As Short
         EndIf
     End Select
     player.turn=0
-    If start_teleport=1 Then artflag(9)=1
+    
     set__color(11,0)
     Cls
     set__color( 11,0)
@@ -418,7 +442,11 @@ Function start_new_game() As Short
         Next
         player.money+=6000
     EndIf
-    If _debug>0 Then player.money=10000000
+    If _debug>0 Then 
+        player.money=10000000
+        
+    endif
+    
     If debug=2 And _debug=1 Then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
     If _debug=1 Then player.cursed=1
     just_run=run_until
@@ -434,6 +462,11 @@ Function start_new_game() As Short
             station_event(drifting(a).m)
         Next
     EndIf
+    if _debug>0 then
+        for a=1 to 3
+            dprint a &":"&questguy(a).location
+        next
+    endif
     Cls
     Return 0
 End Function
@@ -638,7 +671,7 @@ End Function
 
 Function spacestation(st As Short) As _ship
     Dim As Integer a,b,c,d,e,wchance,inspectionchance
-    Static As Short hiringpool,last,muddsshop,botsshop,usedshop
+    Static As Short hiringpool,last,muddsshop,botsshop,usedshop,equipshop
     Static inv(lstcomit) As _items
     Dim quarantine As Short
     Dim i As _items
@@ -802,7 +835,12 @@ Function spacestation(st As Short) As _ship
                 Do
                     set__color(11,0)
                     Cls
-                    sn=shopname(basis(st).shop(sh_equipment))
+                    for b=0 to 3
+                        equipshop=get_shop_index(sh_explorers+b,st)
+                        if equipshop>0 then exit for
+                    next
+                    sn=shopname(b+1)
+                    if _debug>0 then dprint "Shop:"&shoplist(equipshop).shoptype
                     usedshop=99
                     muddsshop=99
                     botsshop=99
@@ -829,22 +867,22 @@ Function spacestation(st As Short) As _ship
                     'if b= then towingmodules
                     If b=3 Then 'awayteam equipment
                         Do
-                            c=shop(st,basis(st).pricelevel,sn)
+                            c=shop(equipshop,basis(st).pricelevel,sn)
                             display_ship
                         Loop Until c=-1
                         set__color(11,0)
                         Cls
                     EndIf
-                    If basis(st).shop(sh_used)=1 And b=usedshop Then used_ships
-                    If basis(st).shop(sh_mudds)=1 And b=muddsshop Then mudds_shop
-                    If basis(st).shop(sh_bots)=1 And b=botsshop Then botsanddrones_shop
+                    If basis(st).shop(sh_used)=1 And b=usedshop Then used_ships(get_shop_index(sh_used,st),get_shop_index(sh_usedships,st))
+                    If basis(st).shop(sh_mudds)=1 And b=muddsshop Then mudds_shop(get_shop_index(sh_mudds,st))
+                    If basis(st).shop(sh_bots)=1 And b=botsshop Then botsanddrones_shop(get_shop_index(sh_bots,st))
                 Loop Until b=4+basis(st).shop(sh_mudds)+basis(st).shop(sh_bots)+basis(st).shop(sh_used) Or b=-1
             Else
                 dprint "you are under quarantine and not allowed to enter there"
             EndIf
         EndIf
         If a=3 Then
-            player.disease=sick_bay(,basis(st).company)
+            player.disease=sick_bay(get_shop_index(sh_sickbay,st),,basis(st).company)
             mtext="Station "& st+1 &"/ "
             mtext=mtext & basis(st).repname &" Office "
             If quarantine>6 Then mtext=mtext &"(Quar.)"
@@ -970,10 +1008,12 @@ Function move_ship(Key As String) As _ship
                 dam=rnd_range(1,spacemap(player.c.x,player.c.y))
                 If dam>player.shieldside(rnd_range(0,7)) Then
                     dam=dam-player.shieldside(rnd_range(0,7))
-                    dprint "Your Ship is damaged ("&dam &").",12
-                    player.hull=player.hull-dam
-                    player.fuel=player.fuel-rnd_range(1,5)
-                    If player.hull<=0 Then player.dead=12
+                    if dam>0 then
+                        dprint "Your Ship is damaged ("&dam &").",12
+                        player.hull=player.hull-dam
+                        player.fuel=player.fuel-rnd_range(1,5)
+                        If player.hull<=0 Then player.dead=12
+                    endif
                 EndIf
             EndIf
         EndIf
@@ -1141,8 +1181,6 @@ Function explore_space() As Short
     Dim As _cords p1,p2
     Dim As Short planetcom,driftercom,fleetcom,wormcom
     lturn=0
-    debug=11
-    If debug=11 And _debug=1 Then dprint basis(0).shop(sh_equipment) &":"& basis(1).shop(sh_equipment) &":"& basis(2).shop(sh_equipment)
     For a=0 To lastitem
         For b=0 To lastitem
             If b<>a Then
@@ -1261,7 +1299,8 @@ Function explore_space() As Short
             If driftercom=1 Then comstr.t=comstr.t &key_dock &" dock;"
             If wormcom=1 Then comstr.t=comstr.t &key_la &" enter wormhole;"
             If artflag(25)>0 Then comstr.t=comstr.t &key_te &" wormhole generator"
-            
+            comstr.nextpage
+        
             Screenset 0,1
             Cls
             bg_parent=bg_shipstarstxt
@@ -1271,9 +1310,9 @@ Function explore_space() As Short
             If planetcom>0 Then display_system(planetcom-1)
             dprint ""
             Flip
-        
+            explore_space_messages
             'screenset 1,1
-            Key=keyin(allowed,walking)
+            if player.dead=0 then Key=keyin(allowed,walking)
             
             player=move_ship(Key)
 
@@ -1668,7 +1707,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim As Single dawn,dawn2
     Dim As String Key,dkey,allowed,text,help
     Dim dam As Single
-    Dim As _cords p,p1,p2,p3,nextlanding,old,nextmap
+    Dim As _cords p,p1,p2,p3,old,nextmap
     Dim towed As _ship
     Dim As Short skill
     Dim mapmask(60,20) As Byte
@@ -1692,7 +1731,6 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim shipfire(16) As _shipfire
     Dim areaeffect(16) As _ae
     Dim autofire_dir As Short
-    Dim autofire_target As _cords
     Dim last_ae As Short
     Dim del_rec As _rect
 
@@ -1738,26 +1776,6 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     
     update_tmap(slot)
     
-    lsp=0
-    For x=0 To 60
-        For y=0 To 20
-            If Abs(planetmap(x,y,slot))=1 Then watermap(x,y)=10
-            If Abs(planetmap(x,y,slot))=2 Then watermap(x,y)=50
-            If planets(slot).depth=0 Then
-                localtemp(x,y)=planets(slot).temp-Abs(10-y)*5+10
-            Else
-                localtemp(x,y)=planets(slot).temp
-            EndIf
-            If tmap(x,y).walktru=0 Then
-                lsp=lsp+1
-                spawnmask(lsp).x=x
-                spawnmask(lsp).y=y
-            EndIf
-            mapmask(x,y)=0
-            If rnd_range(1,100)<planets(slot).atmos And planets(slot).atmos>1 And planets(slot).depth=0 Then cloudmap(x,y)=1
-            
-        Next
-    Next
     'allowed="12346789ULXFSQRWGCHDO"&key_pickup &key__i
     allowed=key_awayteam &key_ju & key_te & key_fi &key_save &key_quit &key_ra &key_walk & key_gr & key_he _
      & key_la & key_pickup & key_inspect & key_ex & key_of & key_co & key_drop & key_gr & key_wait _
@@ -1771,7 +1789,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
         allowed=allowed &key_ju
         comstr.t=comstr.t &key_ju &" Jetpackjump;"
     EndIf
-    If artflag(9)=1 Then
+    If awayteam.teleportrange>0 Then
         allowed=allowed &key_te
         comstr.t=comstr.t &key_te &" Teleport;"
     EndIf
@@ -2109,7 +2127,7 @@ EndIf
     
     if _debug=2704 then print #logfile,"equip"
     equip_awayteam(slot)
-    make_vismask(awayteam.c,0,slot)        
+    make_vismask(awayteam.c,0,slot,,awayteam.groundpen)        
     c=0
     For a=0 To lastitem
         If item(a).ty=47 And item(a).w.m=slot And item(a).w.s=0 Then
@@ -2176,19 +2194,12 @@ EndIf
 
     dawn=rnd_range(1,60)
     
-    if _debug=2704 then print #logfile,"Tile effects"
-    For a=0 To 5
-       ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())
-    Next
-    
-    If _debug=11 Then
-        dprint "moving enemies"
-        Sleep
-    EndIf
     Do
         b=0
         For a=1 To lastenemy
-            If enemy(a).c.x=awayteam.c.x And enemy(a).c.y=enemy(a).c.y Then
+            
+            If enemy(a).c.x=awayteam.c.x And enemy(a).c.y=awayteam.c.y Then
+                if _debug>0 then dprint "Moving enemies"
                 enemy(a).c=movepoint(enemy(a).c,5)
                 b=1
             EndIf
@@ -2221,7 +2232,7 @@ EndIf
         awayteam.dark=0
     endif
     osx=calcosx(awayteam.c.x,planets(slot).depth)
-    make_vismask(awayteam.c,0,slot)
+    make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
     
     if _debug=2704 then print #logfile,"Displaystuff"
     Screenset 0,1
@@ -2249,7 +2260,6 @@ EndIf
     '
     '***********************
     Do
-        if _debug>0 then dprint "Darkness"&planets(slot).darkness
         if planets(slot).darkness>0 then 
             if planets(slot).depth=0 then
                 awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
@@ -2259,7 +2269,7 @@ EndIf
         else
             awayteam.dark=0
         endif
-        If artflag(9)=1 And  player.teleportload<15 Then player.teleportload+=1
+        If awayteam.teleportrange>0 And  awayteam.teleportload<15 Then awayteam.teleportload+=1
         If awayteam.disease>player.disease Then player.disease=awayteam.disease
         If planets(slot).atmos<=1 Or planets(slot).atmos>=7 Then awayteam.helmet=1
         If (tmap(awayteam.c.x,awayteam.c.y).no=1 Or tmap(awayteam.c.x,awayteam.c.y).no=26 Or tmap(awayteam.c.x,awayteam.c.y).no=20) And awayteam.hp<=awayteam.nohp*5 Then awayteam.oxygen=awayteam.oxygen+tmap(awayteam.c.x,awayteam.c.y).oxyuse
@@ -2273,16 +2283,15 @@ EndIf
         If configflag(con_warnings)=0 And nightday(awayteam.c.x)=1 And nightday(old.x)<>1 Then dprint "The sun rises"
         If configflag(con_warnings)=0 And nightday(awayteam.c.x)=2 And nightday(old.x)<>2 Then dprint "The sun sets"
         if _Debug=2704 then print #logfile,"Update masks"
-        lsp=ep_updatemasks(spawnmask(),mapmask(),nightday(),dawn,dawn2)
+        lsp=ep_updatemasks(watermap(),localtemp(),cloudmap(),spawnmask(),mapmask(),nightday(),dawn,dawn2)
         mapmask(awayteam.c.x,awayteam.c.y)=-9
         
         com_sinkheat(player,0)
             
         localturn=localturn+1
-        
-        
+             
         If localturn Mod 10=0 Then
-            make_vismask(awayteam.c,0,slot)
+            make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
             If planets(slot).depth=0 Then
                 player.turn+=2
             Else
@@ -2320,7 +2329,7 @@ EndIf
         if _debug=2704 then print #logfile,"4 ae"&awayteam.e.e
         
         If  tmap(awayteam.c.x,awayteam.c.y).resources>0 Or planetmap(awayteam.c.x,awayteam.c.y,slot)=17 Or  (tmap(awayteam.c.x,awayteam.c.y).no>2 And tmap(awayteam.c.x,awayteam.c.y).gives>0 And player.dead=0 And (awayteam.c.x<>old.x Or awayteam.c.y<>old.y))  Then
-            make_vismask(awayteam.c,0,slot)
+            make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
             old=awayteam.c
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             
@@ -2328,7 +2337,7 @@ EndIf
             set__color(11,0)
             Cls
             equip_awayteam(slot)
-            make_vismask(awayteam.c,0,slot)
+            make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
             display_planetmap(slot,osx,0)
             ep_display(,nightday(awayteam.c.x))
             ep_display_clouds(cloudmap())
@@ -2353,7 +2362,7 @@ EndIf
         If (player.dead=0 and awayteam.hp>0 And awayteam.e.tick=-1) Then
             Screenset 0,1
             set__color(11,0)
-            make_vismask(awayteam.c,0,slot)
+            make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
             Cls
             display_planetmap(slot,osx,0)
             ep_display(,nightday(awayteam.c.x))
@@ -2370,9 +2379,10 @@ EndIf
             display_awayteam()
             ep_display_clouds(cloudmap())
             dprint("")
+            comstr.nextpage
             Flip
             
-            If nextmap.m=0 Then Key=(keyin(allowed,walking))
+            If nextmap.m=0 Then Key=keyin(allowed,walking)
             if _debug=2704 then print #logfile, "&"&key
             If Key="" Then
                 screenset 0,1
@@ -2384,11 +2394,15 @@ EndIf
                 dprint("")
                 Flip
             EndIf
-            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,tmap(awayteam.c.x,awayteam.c.y).oxyuse)-awayteam.leak*awayteam.helmet
+            awayteam.oxygen=awayteam.oxygen-maximum(awayteam.oxydep*awayteam.helmet,awayteam.oxydep*tmap(awayteam.c.x,awayteam.c.y).oxyuse)-awayteam.leak*awayteam.helmet-awayteam.oxydep*awayteam.helmet*stims.laststim
             If awayteam.oxygen<=0 and (awayteam.helmet=1 or tmap(awayteam.c.x,awayteam.c.y).oxyuse>0) Then 
-                dprint "Asphyxiaction:"&dam_awayteam(rnd_range(1,awayteam.hp),1),12
-                awayteam.oxygen=0
-                if awayteam.hp<=0 and player.dead=0 then player.dead=14
+                text=dam_awayteam(rnd_range(1,awayteam.hp),4)
+                if text<>"" then
+                    dprint "Asphyxiaction:"&text,12
+                    awayteam.oxygen=0
+                    if awayteam.hp<=0 and player.dead=0 then player.dead=14
+                    text=""
+                endif
                 if _debug>0 then dprint "PD:"&player.dead & "AHP:"&awayteam.hp
             endif
             
@@ -2400,7 +2414,7 @@ EndIf
             If walking<>0 Then
                 If walking<0 Then
                     tmap(awayteam.c.x,awayteam.c.y).hp-=1
-                    awayteam.add_move_cost
+                    awayteam.add_move_cost(-stims.effect)
                     For a=1 To _lines
                         If displaytext(a)="" Then 
                             displaytext(a-1)&="."
@@ -2470,10 +2484,10 @@ EndIf
             Screenset 0,1
             set__color(11,0)
             Cls
-
+            if _debug>0 and stims.effect<>0 then dprint "Stims:"&stims.effect &" "&awayteam.e.e
             osx=calcosx(awayteam.c.x,planets(slot).depth)
             
-            make_vismask(awayteam.c,0,slot)
+            make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
             display_planetmap(slot,osx,0)
             ep_display(,nightday(awayteam.c.x))
             ep_display_clouds(cloudmap())
@@ -2485,7 +2499,7 @@ EndIf
             comstr.t=comstr.t & key_gr &" grenade;" &key_oxy &" open/close helmet;" &key_close &" close door;" &key_drop &" Drop;"
             comstr.t=comstr.t & key_he &" use medpack;" &key_report &" bioreport;"&key_ra &" radio;"
             If awayteam.movetype=2 Or awayteam.movetype=3 Then comstr.t=comstr.t &key_ju &" Jetpackjump;"
-            If artflag(9)=1 Then comstr.t=comstr.t &key_te &" Teleport;"
+            If awayteam.teleportrange>0 Then comstr.t=comstr.t &key_te &" Teleport;"
 
             set__color( 11,0)
             For x=0 To 60
@@ -2500,13 +2514,13 @@ EndIf
             If rnd_range(1,100)<disease(awayteam.disease).nac Then
                 Key=""
                 dprint "ZZZZZZZZZZZzzzzzzzz",14
-                awayteam.e.add_action(50)
+                awayteam.e.add_action(50-stims.effect)
             EndIf
             
             If Key<>"" And walking>0 Then walking=0
             
             If rnd_range(1,100)<tmap(awayteam.c.x,awayteam.c.y).disease*2-awayteam.helmet*3 Then infect(rnd_range(1,awayteam.hpmax),tmap(awayteam.c.x,awayteam.c.y).disease)
-
+            stims.tick
             If Key=key_ex  Then ep_examine()
 
             If Key=key_save Then
@@ -2523,7 +2537,7 @@ EndIf
                 EndIf
             EndIf
 
-            If Key=key_wait Then awayteam.add_move_cost
+            If Key=key_wait Then awayteam.add_move_cost(-stims.effect)
 
             If Key=key_drop Then ep_dropitem()
             
@@ -2541,8 +2555,12 @@ EndIf
 
             If Key=key_gr Then ep_grenade(shipfire(),sf)
 
-            If Key=key_fi Or Key=key_autofire Or walking=10 Then ep_fire(mapmask(),Key,autofire_target)
-
+            If Key=key_fi Or Key=key_autofire Or walking=10 Then 
+                ep_fire(mapmask(),Key,autofire_target)
+            else
+                target.t.x=-1
+            endif
+            
             If Key=key_ra Then ep_radio(nextlanding,ship_landing,shipfire(),lavapoint(),sf,nightday(),localtemp())
 
             If Key=key_oxy Then ep_helmet()
@@ -2573,6 +2591,21 @@ EndIf
                         dprint "you dont have any medpacks"
                     EndIf
                 EndIf
+                if findbest(30,-1)>0 then
+                    if askyn("Do you want to use stims?(y/n)") then
+                        If configflag(con_chosebest)=0 Then
+                            c=findbest(30,-1)
+                        Else
+                            c=get_item(30)
+                        EndIf
+                        if c>0 then 
+                            if stims.add(c,awayteam.hp)=0 then
+                                if item(c).v2=0 then destroyitem(c)
+                            endif
+                        endif
+                    endif
+                endif
+                        
                 if awayteam.leak>0 then
                     repair_spacesuits
                 endif
@@ -2599,7 +2632,7 @@ EndIf
 
             If Key=key_co Or Key=key_of Then ep_communicateoffer(Key)
 
-            If Key=key_te And artflag(9)=1 Then awayteam.c=teleport(awayteam.c,slot)
+            If Key=key_te And awayteam.teleportrange>0 Then awayteam.c=teleport(awayteam.c,slot)
 
         Else
             If player.dead<>0 or awayteam.hp=0 Then allowed=""
@@ -2618,11 +2651,8 @@ EndIf
                 EndIf
             EndIf
         Next
-        If debug=99 And _debug=1 Then dprint "Death in:"&planets(slot).death
         ' and the world moves on
         update_world(0)
-                
-        if _debug=2704 then print #logfile,"end loop"&nextmap.m
     Loop Until awayteam.hp<=0 or nextmap.m<>0 or player.dead<>0
     if _debug>0 then dprint "Dead:"&player.dead
     if _debug=2704 then print #logfile,"1"&nextmap.m
@@ -3021,30 +3051,31 @@ End Function
 
 Function teleport(from As _cords,map As Short) As _cords
     Dim target As _cords
-    Dim ex As Short
+    Dim As Short ex,osx,device
     Dim Key As String
-    Dim osx As Short
 
     If planets(map).teleport<>0 Then
         dprint "Something is jamming your teleportation device!",14
         Return from
     EndIf
-    If player.teleportload<10 Then
-        dprint "The teleportation device still needs some time to recharge!"
+    device=find_working_teleporter
+    If device=-1 Then
+        dprint "The teleportation device still needs some time to recharge!",14
         Return from
     EndIf
     target=awayteam.c
     Do
         Key=planet_cursor(target,map,osx,1)
         display_awayteam(,osx)
-        Key=Cursor(target,map,osx,,10)
-        If Key=key_te Or Ucase(Key)=" " Or Multikey(SC_ENTER) Then ex=1
-        If Key=key_quit Or Multikey(SC_ESCAPE) Then ex=-1
+        Key=Cursor(target,map,osx,,item(device).v1)
+        If Key=key_te Or Ucase(Key)=" " Or key=key__enter Then ex=1
+        If Key=key_quit Or key=key__esc Then ex=-1
     Loop Until ex<>0
     If ex=1 Then
-            from.x=target.x
-            from.y=target.y
-            player.teleportload=0
+        item(device).v2-=distance(awayteam.c,target,planets(map).depth)
+        from.x=target.x
+        from.y=target.y
+        if _debug>0 then dprint "v2."&item(device).v2 &"_"&distance(awayteam.c,target,planets(map).depth)&cords(awayteam.c)&cords(target)
     EndIf
     Return from
 End Function
@@ -3186,6 +3217,8 @@ Function wormhole_navigation() As Short
     Dim As String Key
     For c=laststar+1 To laststar+wormhole
         map(c).discovered=1
+        map(c).desig=spectralshrt(map(c).spec)&player.discovered(map(c).spec)&"-"&int(disnbase(map(c).c))&"("&map(c).c.x &":"& map(c).c.y &")"
+        
         i+=1
         wp(i)=map(c).c
         wi(i)=c
@@ -3709,10 +3742,6 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
         dprint text,col
     Else
         defender.hp=defender.hp-b 'Monster attacks monster
-        If defender.hp<=0 Then 
-            defender.killedby=attacker.made
-            player.dead=3
-        endif
     EndIf
     attacker.e.add_action(attacker.atcost)
     If debug=1 And _debug=1 Then dprint "DEBUG MESSAGE dam:"& b
@@ -3720,7 +3749,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
 End Function
 
 Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte, first As Short=-1, last As Short=-1) As _monster
-    Dim As Single nonlet,dis,damage
+    Dim As Single nonlet,dis,damage,nldamage
     Dim As Short a,c,weaponused,b
     Dim col As Short
     Dim noa As Short
@@ -3761,7 +3790,7 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
         tacbonus=player.tactic
     EndIf
 
-    For a=first To noa
+    For a=first To noa 
         If crew(a).hp>0 And crew(a).onship=0 And crew(a).talents(27)>0 and slbc<=512 Then
             for b=1 to 5
                 slbc+=1
@@ -3790,12 +3819,14 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
             If weaponused=1 Then
                 If skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),targetnumber,echo1) or defender.sleeping>0 Then
                     damage+=attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
+                    if crew(a).weap>0 and player.tactic<>3 then nldamage+=item(crew(a).weap).v4
                     xpstring=gainxp(a)
                     xpgained+=1
                 EndIf
             Else
                 If skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),targetnumber,echo2) or defender.sleeping>0 Then
                     damage+=attacker.secweapc(a)+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
+                    if crew(a).blad>0 and player.tactic<>3 then nldamage+=item(crew(a).blad).v4
                     xpstring=gainxp(a)
                     xpgained+=1
                 EndIf
@@ -3808,16 +3839,20 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
     If distance(defender.c,attacker.c)>1.5 Then damage=damage+1-Int(distance(defender.c,attacker.c)/2)
     damage=CInt(damage)-player.tactic+add_talent(3,10,1)
     If damage<0 Then damage=0
-    If damage>0 Then
+    If damage>0 or nldamage>0 Then
        damage=damage-defender.armor
        If damage>0 Then
             If player.tactic<>3 Then
-                text=text &" You hit for " & damage &" points of damage."
+                text=text &" You hit for " & damage &" points of damage"
+                if nldamage>0 and defender.stunres<10 then text=text &" and "&nldamage &" points of nonlethal damage"
+                text=text &"."
+                if defender.stunres<10 then defender.hpnonlethal+=nldamage
                 defender.hp=defender.hp-damage
                 if defender.sleeping>0 then defender.add_move_cost
                 defender.sleeping=0
             Else
                 If defender.stunres<10 Then
+                    damage=damage+nldamage
                     damage=damage/2
                     damage=(damage*((10-defender.stunres)/10))
                     if damage>0 then
@@ -3853,7 +3888,7 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
     EndIf
     If defender.hp<=0 Then
         text=text &" the "& mname &" "&defender.dkill
-        If defender.made=44 Then player.questflag(12)=28
+        If defender.made=44 Then player.questflag(12)=2
         If defender.made=83 Then player.questflag(20)+=1
         If defender.made=84 Then player.questflag(20)+=2
         player.alienkills=player.alienkills+1
@@ -3904,7 +3939,12 @@ Function clear_gamestate() As Short
     For a=0 To 255
         crew(a)=d_crew
     Next
-
+    
+    for a=1 to lastshop
+        shoplist(a)=shoplist(0)
+    next
+    lastshop=0
+    
     For a=0 To laststar+wormhole
         map(a)=d_map
     Next

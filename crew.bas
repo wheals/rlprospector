@@ -647,11 +647,11 @@ function no_spacesuit(who() as short,byref alle as short=0) as short
     for i=1 to 128
         if crew(i).hp>0 then
             if crew(i).onship=0 then awayteam.hp+=1
-            if crew(i).onship=0 and crew(i).armo=0 and crew(i).equips=0 then
+            if crew(i).onship=0 and crew(i).armo=0 and crew(i).equips=0 and crew(i).typ<>13 then
                 last+=1
                 who(last)=i
             else
-                alle=0 'At least one crewmember has a spacesuit
+                alle=0 'At least one crewmember has a spacesuit or doesn't need one(Is a robot)
             endif
         endif
     next
@@ -830,10 +830,10 @@ function add_member(a as short,skill as short) as short
                 help=help &"/Start with a missile weapon for your ship.|(If you change your mind just select this option again)||"&list_inventory
                 if player.cursed=0 then
                     text=text &"/Junk ship"
-                    help=help &"/Your starting ship is in need of an overhaul. +1 points"
+                    help=help &"/Your starting ship is in need of an overhaul. +1 points||"&list_inventory
                 else
                     text=text &"/Decent ship"
-                    help=help &"/Your starting ship is in good condition."
+                    help=help &"/Your starting ship is in good condition.||"&list_inventory
                 endif
                 for i=1 to 6
                     text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
@@ -959,7 +959,7 @@ function add_member(a as short,skill as short) as short
                 end select
 
             loop until cat=0
-
+            return 0
 
         endif
         if a=2 then 'Pilot
@@ -1108,7 +1108,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).hp=4
             crew(slot).hp=crew(4).hpmax
             crew(slot).icon="T"
-            crew(slot).typ=4
+            crew(slot).typ=17
             crew(slot).paymod=0
             crew(slot).n=alienname(1)
             crew(slot).xp=0
@@ -1129,6 +1129,7 @@ function add_member(a as short,skill as short) as short
             crew(slot).baseskill(3)=6
             crew(slot).story(10)=1
             crew(slot).atcost=20
+            crew(slot).story(0)=2
         endif
 
 
@@ -1771,7 +1772,7 @@ function equip_awayteam(m as short) as short
         'find best ranged weapon
         'give to redshirt
 
-        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips<>1 then
+        if crew(a).hp>0 and crew(a).onship=0 then
             if crew(a).augment(7)=0 then
                 cantswim+=1
             else
@@ -1782,16 +1783,36 @@ function equip_awayteam(m as short) as short
                 cantfly+=1
             else
                 jpacks+=1
-                awayteam.jpfueluse+=1
+                if crew(a).typ<>13 then awayteam.jpfueluse+=1
             endif
 
             'Find best Jetpack(V3 lowest value)
             'Give to crewmember
-
+            oxy=.75
+            b=findbest(17,-1)
+            if b>-1 then
+                item(b).w.s=-2
+                oxy=oxy-item(b).v1
+            endif
+            if crew(a).augment(3)>1 then oxy=oxy-.3
+            if oxy<0 then oxy=.1
+            
+            if crew(a).typ=13 then 
+                oxy=0
+                awayteam.secweap(a)=1
+                awayteam.secweapc(a)=1
+                awayteam.secweapthi(a)=5
+                awayteam.secweapran(a)=5
+                awayteam.blades_to+=awayteam.secweapc(a)
+                awayteam.guns_to+=awayteam.secweap(a)
+            endif
+            
+            awayteam.oxydep=awayteam.oxydep+oxy
+            
 
             if crew(a).equips<>1 then
                 b=-1
-                if crew(a).equips<>1 then b=findbest(2,-1)
+                b=findbest(2,-1)
                 if b>-1 and crew(a).weap=0 then
                     'dprint "Equipping "&item(b).desig & b
                     awayteam.secweap(a)=item(b).v1
@@ -1819,24 +1840,15 @@ function equip_awayteam(m as short) as short
                         awayteam.jpfueluse+=item(b).v3
                     endif
                 endif
-            endif
-            oxy=.75
-            b=findbest(17,-1)
-            if b>-1 then
-                item(b).w.s=-2
-                oxy=oxy-item(b).v1
-            endif
-            if crew(a).augment(3)>1 then oxy=oxy-.3
-            if oxy<0 then oxy=.1
-            if crew(a).typ=13 then oxy=0
-            awayteam.oxydep=awayteam.oxydep+oxy
-            if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).equips=0 then
+                
                 b=findbest(14,-1)
                 if b>-1 then
                     item(b).w.s=-2
                     awayteam.oxymax=awayteam.oxymax+item(b).v1
                 endif
+                
             endif
+            
             if crew(a).hpmax>0 and crew(a).onship=0 and crew(a).jp=1 or crew(a).augment(8)=1 then
                 b=findbest(28,-1)
                 if b>-1 then
@@ -1864,6 +1876,18 @@ function equip_awayteam(m as short) as short
     next
     'dprint ""&awayteam.move
     'count teleportation devices
+    if findbest(88,-1)>0 then
+        awayteam.teleportrange=item(findbest(88,-1)).v1
+    else
+        awayteam.teleportrange=0
+    endif
+    
+    if findbest(42,-1)>0 then
+        awayteam.groundpen=item(findbest(42,-1)).v1
+    else
+        awayteam.groundpen=0
+    endif
+    
     awayteam.movetype=0
     if crewcount>0 then
         if awayteam.movetype<4 and cantswim<=hovers then awayteam.movetype=1
@@ -1882,7 +1906,7 @@ function equip_awayteam(m as short) as short
     if findbest(8,-1)>-1 then awayteam.sight=awayteam.sight+item(findbest(8,-1)).v1
     if findbest(9,-1)>-1 then awayteam.light=item(findbest(9,-1)).v1
     
-    
+    awayteam.robots=robots
     
     if awayteam.oxygen>awayteam.oxymax then awayteam.oxygen=awayteam.oxymax
     if awayteam.jpfuel>awayteam.jpfuelmax then awayteam.jpfuel=awayteam.jpfuelmax
@@ -1890,10 +1914,11 @@ function equip_awayteam(m as short) as short
     awayteam.oxydep=awayteam.oxydep*awayteam.helmet
 
     awayteam.atcost=atcost/crewcount
-
+    if _debug>0 then dprint "atcost:"&awayteam.atcost
     crewcount=crewcount-squadlcount*5
     if crewcount<0 then crewcount=0
     awayteam.speed=10+awayteam.movetype+add_talent(-1,24,0)-crewcount/20
+    if _debug>0 then dprint "atspeed:"&awayteam.speed
 
     return 0
 end function
@@ -1937,7 +1962,7 @@ end function
 
 
 function crew_menu(crew() as _crewmember, from as short, r as short=0,text as string="") as short
-    dim as short b,bg,last,a,sit,cl,y,lines,xw,xhp,carl,dfirst,dlast
+    dim as short b,bg,last,a,sit,cl,y,lines,xw,xhp,carl,dfirst,dlast,offset2
     dim dummy as _monster
     static p as short
     static offset as short
@@ -2241,14 +2266,16 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
             if from=0 then draw string (10,_screeny-_fh2),"enter add/remove from awaytem,"&key_rename &" rename a member, s set Item c clear, e toggle autoequip, esc exit",,font2,custom,@_col
             if from<>0 then draw string (10,_screeny-_fh2),key_rename &" rename a member, s set Item, c clear, e toggle autoequip, esc exit",,font2,custom,@_col
         endif
-        if r=1 then draw string (10,_screeny-_fh2),"installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
+        if r=1 then draw string (10,_screeny-_fh2),"Installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         if r=2 then draw string (10,_screeny-_fh2),"Training for "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         'flip
-        textbox(crew_bio(p),_mwx,1,20,15,1)
+        textbox(crew_bio(p),_mwx,1,20,15,1,,,offset2)
         screenset 0,1
         no_key=keyin(,1)
-        if keyplus(no_key) or getdirection(no_key)=2 then p+=1
-        if keyminus(no_key) or getdirection(no_key)=8 then p-=1
+        if getdirection(no_key)=2 then p+=1
+        if getdirection(no_key)=8 then p-=1
+        if no_key="+" then offset2+=1
+        if no_key="-" then offset2-=1
         if no_key=key_rename then
             screenset 1,1
             if p<6 then

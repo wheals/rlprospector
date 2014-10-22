@@ -23,7 +23,7 @@ Const show_energy=0
 Const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
 Const Show_specials=0'013'0'1'12'13'5'38 'special planets already discovered
-Const Show_all_specials=0'38 'special planets already discovered
+Const Show_all_specials=0'013'0'1'12'13'5'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
 Const make_files=0'outputs statistics to txt files
@@ -37,7 +37,7 @@ Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
 Const all_resources_are=0
 Const show_allitems=0
 Const easy_fights=0
-Const show_eventp=1 'Show eventplanets
+Const show_eventp=0 'Show eventplanets
 Const show_mapnr=0
 Const show_enemyships=0
 Const show_mnr=0
@@ -249,6 +249,7 @@ type _index
     vindex(60,20,128) as short
     last(60,20) as short
     value(1024) as short
+    cordindex(1024) as _cords
     vlast as short
     declare function index(x as short,y as short,i as short) as short
     declare function add(v as short,c as _cords) as short
@@ -268,6 +269,7 @@ Type _energycounter
 End Type
 
 Function _energycounter.add_action(v As Integer) As Integer
+    if v<0 then v=1 'If this thing get's a 0 it is propably supposed to be a 0, negative numbers propably not
     e+=v
     Return 0
 End Function
@@ -351,7 +353,8 @@ function _items.describe() as string
     case 2,4
         t=ldesc &"|"
         if v1>0 then t=t & "|Damage: "&v1
-        if v3>0 then t=t & "|Accuracy: "&v3
+        if v4>0 then t=t & "|Nonlethal : "&v4
+        if v3<>0 then t=t & "|Accuracy: "&v3
         if v2>0 then t=t & "|Range: "&v2
         return t
     case 3,103
@@ -360,9 +363,21 @@ function _items.describe() as string
         t=t &"||Armor: "&v1 &"|Oxygen: "&v3
         if v2>0 then t=t &"|Camo rating "&v2
         return t
+    case 17
+        t=ldesc
+        t=t &"||Range: "&v1+5
+        if v2>0 then t=t &"|Twin barrels"
     case 18
         t=ldesc
         t=t &"||Sensor range: "&v1 &"|Speed: "&v4
+        return t
+    case 30
+        t=ldesc &"|This pack contains "&v2 &" dosages."
+        return t
+    case 88
+        t="An alien device used for teleportation. It has a range of "&v1 &". "
+        if v2<v4 then t=t &"||It is currently recharging. ("&int(v2) &")"
+        if v2=v4 then t=t &"||Fully charged ("&int(v2)&")"
         return t
     case 56
         t="A system for the automatic retrieval of fuel from gas giants. It can hold up to " &v3 &" tons of fuel. ||HP: "&v1 &"|Volume: "&v3
@@ -455,7 +470,7 @@ Type _ship
 
     manjets As Short
     weapons(25) As _weap
-    Declare Function useammo() As Short
+    Declare Function useammo(test as short) As Short
     hull As Short
     hulltype As Short
 
@@ -507,7 +522,6 @@ Type _ship
     discovered(10) As Byte
     towed As Byte
     Declare Function tractor() As Byte
-    teleportload As Byte
     col As Short
     bcol As Short
     mcol As Short
@@ -515,7 +529,7 @@ End Type
 
 
 Dim Shared foundsomething As Integer
-
+dim shared nextlanding as _cords
 Function _ship.tractor() As Byte
     Dim As Byte i,t
     For i=0 To 25
@@ -524,7 +538,7 @@ Function _ship.tractor() As Byte
     Return Abs(t)
 End Function
 
-Function _ship.useammo() As Short
+Function _ship.useammo(test as short) As Short
     Dim As Short i,most,where
     For i=0 To 25
         If weapons(i).ammo>most Then
@@ -532,7 +546,7 @@ Function _ship.useammo() As Short
             where=i
         EndIf
     Next
-    If weapons(where).ammo>0 Then
+    If weapons(where).ammo>0 and test=1 Then
         weapons(where).ammo-=1
         Return -1
     Else
@@ -551,7 +565,8 @@ end function
 Dim Shared alliance(7) As Byte
 
 dim shared logfile as short
-
+dim shared autofire_target As _cords
+    
 
 if _debug=2704 then
     logfile=freefile
@@ -570,12 +585,28 @@ Function _ship.diop() As Byte
     If this.di=9 Then Return 1
 End Function
 
+Type _target
+    targets as _index
+    i as short
+    ti as short
+    t as _cords
+    declare function sort(center as _cords, rollover as short) as short
+    declare function add(newtarget as _cords,newtvalue as short) as short
+    declare function plusminus(key as string) as _cords
+    declare function move(key as string,rollover as byte) as _cords
+end type
+
+dim shared target as _target
+target.t.x=-1
+
 Type _monster
     e As _energycounter
     speed As Byte
     movetype As Byte
     atcost As Byte
-    Declare Function add_move_cost() As Short
+    teleportrange as byte
+    teleportload as byte
+    Declare Function add_move_cost(modifier as short=0) As Short
     c As _cords
     made As UByte
     slot As Byte
@@ -610,9 +641,15 @@ Type _monster
     tasty As Byte
     pretty As Byte
     intel As Short
-    lang As Short
+    union
+        lang As Short
+        robots as short
+    end union
     nocturnal As Byte
-    faction As Short
+    union
+        faction As Short
+        groundpen as short
+    end union
     allied As Short
     enemy As Short
     aggr As Byte
@@ -804,7 +841,7 @@ Type _basis
     repname As String*32
     company As Byte
     spy As Byte
-    shop(8) As Byte
+    shop(17) As Byte
     pricelevel As Single=1
     mapmod As Single
     biomod As Single
@@ -883,34 +920,6 @@ Type _comment
     l As Short
 End Type
 
-Type _commandstring
-    t As String
-    comdead As Byte
-    comalive As Byte
-    comportal As Byte
-    comitem As Byte
-    page As Byte
-    lastpage As Byte
-    Declare Function Reset() As Short
-    Declare Function display(wl As Short) As Short
-    Declare Function nextpage() As Short
-End Type
-
-Function _commandstring.nextpage() As Short
-    page+=1
-    If page>lastpage Then page=0
-    Return 0
-End Function
-
-Function _commandstring.Reset() As Short
-    t=""
-    comdead=0
-    comalive=0
-    comportal=0
-    comitem=0
-    page=0
-    Return 0
-End Function
 
 
 Type _table
@@ -1018,7 +1027,7 @@ Type _crewmember
     xp As Short
     morale As Short
     target As Short
-    Time As Short
+    Time As integer
     bonus As Short
     price As Short
     baseskill(3) As Short
@@ -1312,11 +1321,33 @@ End Enum
 Enum shops
     sh_shipyard
     sh_modules
-    sh_equipment
+    sh_Explorers
+    sh_Cheap
+    sh_Spacenstuff
+    sh_YeOlde
     sh_used
+    sh_usedships
     sh_mudds
     sh_bots
+    sh_blackmarket
+    sh_colonyI
+    sh_aliens1
+    sh_aliens2
+    sh_sickbay
+    sh_shipequip
+    sh_giftshop
 End Enum
+
+type _shops
+    station as short=-1
+    x as short
+    y as short 
+    m as short
+    shoptype as short
+end type
+
+dim shared lastshop as short
+dim shared shoplist(2048) as _shops
 
 Enum ShipYards
     sy_civil
@@ -1343,6 +1374,7 @@ Enum RndItem
     RI_armor'3
     RI_Medpacks'4
     RI_KODrops'5
+    RI_Stims
     RI_WEAPONS'6
     RI_ALLBUTWEAPONS'7
     RI_Mining'8
@@ -1372,7 +1404,7 @@ Enum RndItem
     RI_Cage
     RI_WeakWeapons
     RI_WeakStuff
-
+    RI_Nonlethal
 End Enum
 
 Enum ShipType
@@ -1677,7 +1709,6 @@ End Enum
 Dim Shared standardphrase(sp_last-1,2) As String
 Dim Shared talent_desc(29) As String
 
-Dim Shared comstr As _commandstring
 
 Dim Shared palette_(255) As UInteger
 Dim Shared _swidth As Byte=35'Length of line in a shop
@@ -1757,7 +1788,6 @@ Dim Shared Sound(12) As Integer
 #Else
 Dim Shared Sound(12) As Integer Ptr
 #EndIf
-Dim Shared usedship(8) As _cords
 Dim Shared displaytext(255) As String
 Dim Shared dtextcol(255) As Short
 
@@ -1856,6 +1886,12 @@ End Type
 
 Dim Shared pixelsize As Integer
 
+declare function add_shop overload (shoptype as short,x as short,y as short,map as short) as short
+declare function add_shop overload (shoptype as short, station as short) as short
+declare function get_shop_index overload (shoptype as short,station as short) as short
+declare function get_shop_index overload (shoptype as short,x as short,y as short,map as short) as short
+
+
 Declare Function make_shipequip(a As Short) As _items
 Declare Function roman(i As Integer) As String
 
@@ -1880,13 +1916,15 @@ Declare Function count_crew(crew() As _crewmember) As Short
 Declare Function income_expenses_html() As String
 Declare Function play_poker(st As Short) As Short
 Declare Function card_shuffle(card() As Integer) As Short
+declare function gen_shop(i as short, shoptype as short) as short
 
 Declare Function font_load_bmp(ByRef _filename As String) As UByte Ptr
 
 Declare Function player_eval(p() As _pokerplayer,i As Short,rules As _pokerrules) As Short
 Declare Function change_captain_appearance(x As Short,y As Short) As Short
 Declare Function captain_sprite() As Short
-
+declare function ep_dropdeaditem(mi as short) as short
+declare function find_working_teleporter() as short
 Declare Function draw_poker_table(p() As _pokerplayer,reveal As Short=0, winner As Short=0,r As _pokerrules) As Short
 Declare Function better_hand(h1 As _handrank,h2 As _handrank) As Short
 Declare Function poker_eval(c() As Integer, acehigh As Short,knowall As Short) As _handrank
@@ -1919,6 +1957,8 @@ Declare Function from_savegame(a As Short) As Short
 Declare Function wormhole_travel() As Short
 
 Declare Function wormhole_ani(target As _cords) As Short
+declare function landing_landingpads(cords() as _cords, last as short,mapslot as short) as short
+
 Declare Function target_landing(mapslot As Short,Test As Short=0) As Short
 Declare Function landing(mapslot As Short,lx As Short=0,ly As Short=0, Test As Short=0) As Short
 Declare Function scanning() As Short
@@ -1929,7 +1969,7 @@ Declare Function dock_drifting_ship(a As Short) As Short
 Declare Function move_rover(pl As Short) As Short
 Declare Function rnd_crewmember(onship As Short=0) As Short
 Declare Function haggle_(way As String) As Single
-Declare Function botsanddrones_shop() As Short
+Declare Function botsanddrones_shop(si as short) As Short
 declare function make_shop_menu(sh as short,pmod as single,inv() as _items,c as short,byref order as short,byref ex as short,t as string,desc as string) as short
 
 Declare Function display_monsters(osx As Short) As Short
@@ -1999,7 +2039,7 @@ Declare Function ep_fire(mapmask() As Byte,Key As String,ByRef autofire_target A
 Declare Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
 Declare Function ep_monstermove(spawnmask() As _cords, lsp As Short,  mapmask() As Byte,nightday() As Byte) As Short
 Declare Function ep_items(localturn As Short) As Short
-Declare Function ep_updatemasks(spawnmask() As _cords,mapmask() As Byte,nightday() As Byte, ByRef dawn As Single, ByRef dawn2 As Single) As Short
+Declare Function ep_updatemasks(watermap() as byte,localtemp() as single, cloudmap() as byte, spawnmask() As _cords,mapmask() As Byte,nightday() As Byte, ByRef dawn As Single, ByRef dawn2 As Single) As Short
 Declare Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() As _cords, nightday() As Byte, localtemp() As Single,cloudmap() As Byte) As Short
 Declare Function ep_landship(ByRef ship_landing As Short,nextlanding As _cords,nextmap As _cords) As Short
 Declare Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() As _cords, cloudmap() As Byte) As Short
@@ -2032,7 +2072,6 @@ Declare Function monsterhit(defender As _monster, attacker As _monster,vis As By
 Declare Function spacecombat(atts As _fleet, ter As Short) As Short
 Declare Function spacestation(st As Short) As _ship
 Declare Function buy_weapon(st As Short) As Short
-Declare Function buy_engine() As Short
 Declare Function update_world(location As Short) As Short
 Declare Function robot_invasion() As Short
 Declare Function explore_space() As Short
@@ -2050,6 +2089,7 @@ Declare Function planetflags_toship(m As Short) As _ship
 Declare Function can_learn_skill(ci As Short,si As Short) As Short
 Declare Function form_alliance(who As Short) As Short
 Declare Function ask_alliance(who As Short) As Short
+declare function explore_space_messages() as short
 
 Declare Function colonize_planet(st As Short) As Short
 Declare Function get_com_colon_candidate(st As Short) As Short
@@ -2086,7 +2126,7 @@ Declare Function load_keyset() As Short
 Declare Function load_dialog(fn As String, n() As _dialognode) As Short
 Declare Function get_biodata(e As _monster) As Integer
 Declare Function is_passenger(i As Short) As Short
-Declare Function add_passenger(n As String,typ As Short, price As Short, bonus As Short, target As Short, ttime As Short, gender As Short) As Short
+Declare Function add_passenger(n As String,typ As Short, price As Short, bonus As Short, target As Short, ttime As integer, gender As Short) As Short
 
 Declare Function gen_fname(fname() As String) As Short
 Declare Function cargo_text() As String
@@ -2133,7 +2173,7 @@ Declare Function hpdisplay(a As _monster) As Short
 Declare Function infect(a As Short, dis As Short) As Short
 Declare Function diseaserun(a As Short) As Short
 Declare Function settactics() As Short
-Declare Function make_vismask(c As _cords,sight As Short,m As Short,ad as short=0) As Short
+Declare Function make_vismask(c As _cords,sight As Short,m As Short,ad as short=0,groundpen as short=0) As Short
 Declare Function vis_test(a As _cords,p As _cords,Test As Short) As Short
 Declare Function ap_astar(start As _cords,ende As _cords,diff As Short) As Short
 Declare Function has_questguy_want(i As Short,ByRef t As Short) As Short
@@ -2214,9 +2254,10 @@ Declare Function makecivfleet(slot As Short) As _fleet
 Declare Function civfleetdescription(f As _fleet) As String
 Declare Function string_towords(word() As String, s As String, break As String, punct As Short=0) As Short
 Declare Function set_fleet(fl As _fleet)As Short
+declare function com_playerfire(t as short,w as short,attacker() as _ship,mines_p() as _cords ,mines_v() as short,mines_last as short) as short
 
 Declare Function com_vismask(c As _cords) As Short
-Declare Function com_display(defender As _ship, attacker() As _ship, marked As Short, e_track_p() As _cords,e_track_v()As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short) As Short
+Declare Function com_display(defender As _ship, attacker() As _ship, e_track_p() As _cords,e_track_v()As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short) As Short
 Declare Function com_gettarget(defender As _ship, wn As Short, attacker() As _ship,marked As Short,e_track_p() As _cords,e_track_v() As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short) As Short
 Declare Function com_getweapon(echo as byte=1) As Short
 Declare Function com_fire(ByRef target As _ship,ByRef attacker As _ship,ByRef w As Short, gunner As Short, range As Short) As _ship
@@ -2252,7 +2293,7 @@ Declare Function get_rumor(i As Short=18) As String
 Declare Function show_standing() As Short
 
 Declare Function date_string() As String
-Declare Function com_targetlist(list_c() As _cords, list_e() As Short, defender As _ship, attacker() As _ship, mines_p() As _cords,mines_v() As Short, mines_last As Short) As Short
+Declare Function com_targetlist(defender As _ship, attacker() As _ship, mines_p() As _cords,mines_v() As Short, mines_last As Short) As _target
 Declare Function load_quest_cargo(t As Short,car As Short,dest As Short) As Short
 
 Declare Function keyin(allowed As String ="", blocked As Short=0)As String
@@ -2403,7 +2444,7 @@ Declare Function score() As Integer
 Declare Function get_death() As String
 
 'cargotrade
-Declare Function mudds_shop() As Short
+Declare Function mudds_shop(si as short) As Short
 Declare Function girlfriends(st As Short) As Short
 Declare Function pay_bonuses(st As Short) As Short
 Declare Function check_passenger(st As Short) As Short
@@ -2421,7 +2462,7 @@ Declare Function dividend() As Short
 Declare Function getsharetype() As Short
 Declare Function reroll_shops() As Short
 Declare Function find_crew_type(t As Short) As Short
-Declare Function used_ships() As Short
+Declare Function used_ships(si as short,si2 as short) As Short
 
 Declare Function hiring(st As Short, ByRef hiringpool As Short, hp As Short) As Short
 Declare Function sort_crew() As Short
@@ -2469,7 +2510,7 @@ Declare Function get_item_list(inv() As _items, invn()As Short, ty As Short=0,ty
 Declare Function display_item_list(inv() As _items, invn() As Short, marked As Short, l As Short,x As Short,y As Short) As Short
 Declare Function make_locallist(slot As Short) As Short
 
-Declare Function sick_bay(st As Short=0,obe As Short=0) As Short
+Declare Function sick_bay(si as short, st As Short=0,obe As Short=0) As Short
 Declare Function first_unused(i As Short) As Short
 Declare Function item_assigned(i As Short) As Short
 Declare Function scroll_bar(Offset As Short,linetot As Short,lineshow As Short,winhigh As Short, x As Short,y As Short,col As Short) As Short
@@ -2518,11 +2559,11 @@ Declare Function fill_rect(r As _rect,t1 As Short, t2 As Short,map() As Short) A
 Declare Function chksrd(p As _cords, slot As Short) As Short
 Declare Function findrect(tile As Short,map()As Short, er As Short=0, fi As Short=60) As _rect
 Declare Function content(r As _rect,tile As Short,map()As Short) As Integer
-Declare Function distance(first As _cords, last As _cords,rollover As Byte=0) As Single
+Declare Function distance(first As _cords, last As _cords,rollover As Byte=1) As Single
 Declare Function rnd_range (first As Short, last As Short) As Short
 Declare Function movepoint(ByVal c As _cords, a As Short, eo As Short=0,showstats As Short=0) As _cords
 Declare Function pathblock(ByVal c As _cords,ByVal b As _cords,mapslot As Short,blocktype As Short=1,col As Short=0, delay As Short=100,rollover As Byte=0) As Short
-Declare Function line_in_points(b As _cords,c As _cords,p() As _cords) As Short
+Declare Function line_in_points(b As _cords,c As _cords,p() As _cords, rollover as short=1) As Short
 
 Declare Function nearest(ByVal c As _cords, ByVal b As _cords,rollover As Byte=0) As Single
 Declare Function farthest(c As _cords,b As _cords) As Single
@@ -2649,10 +2690,11 @@ Function set__color(fg As Short,bg As Short,visible As Byte=1) As Short
     Return 0
 End Function
 
-Function _monster.add_move_cost() As Short
+Function _monster.add_move_cost(modifier as short=0) As Short
     Dim As Short cost
     cost=(20-speed)*planets(player.map).grav
     cost+=tmap(c.x,c.y).movecost
+    cost+=modifier
     If made=0 And player.tactic=2 Then cost-=1 '
     If cost<=0 Then cost=1
     e.add_action(cost)
@@ -2676,6 +2718,8 @@ function _index.add(v as short,c as _cords) as short
     vlast+=1
     if vlast>maxv then return -2
     vindex(c.x,c.y,last(c.x,c.y))=vlast
+    cordindex(vlast).x=c.x
+    cordindex(vlast).y=c.y
     value(vlast)=v
     return 0
 end function
@@ -2685,6 +2729,7 @@ function _index.remove(v as short, c as _cords) as short
     for j=1 to last(c.x,c.y)
         if index(c.x,c.y,j)=v then
             value(vindex(c.x,c.y,j))=value(vlast)
+            cordindex(vindex(c.x,c.y,j))=cordindex(vlast)
             vlast-=1
             vindex(c.x,c.y,j)=vindex(c.x,c.y,last(c.x,c.y))
             last(c.x,c.y)-=1
@@ -2702,11 +2747,41 @@ function _index.move(v as short,oc as _cords,nc as _cords) as short
     return 0
 end function
 
+Type _commandstring
+    t As String
+    comdead As Byte
+    comalive As Byte
+    comportal As Byte
+    comitem As Byte
+    page As Byte
+    lastpage As Byte
+    Declare Function Reset() As Short
+    Declare Function display(wl As Short) As Short
+    Declare Function nextpage() As Short
+End Type
+
+Function _commandstring.nextpage() As Short
+    page+=1
+    If page>lastpage Then page=0
+    Return 0
+End Function
+
+Function _commandstring.Reset() As Short
+    t=""
+    comdead=0
+    comalive=0
+    comportal=0
+    comitem=0
+    page=0
+    Return 0
+End Function
+
+
 Function _commandstring.display(wl As Short) As Short
     Dim As String ws(40)
     Dim As Short last,b,start,room,needed
-    If comstr.t="" Then Return 0
-    last=string_towords(ws(),comstr.t,";")
+    If t="" Then Return 0
+    last=string_towords(ws(),t,";")
     room=_lines-wl
     needed=last
     lastpage=needed/room
@@ -2724,3 +2799,6 @@ Function _commandstring.display(wl As Short) As Short
     Return 0
 End Function
 
+dim shared lastteleportdevice as integer
+dim shared teleportdevices(1024) as integer
+Dim Shared comstr As _commandstring

@@ -26,6 +26,42 @@ Function target_landing(mapslot As Short,Test As Short=0) As Short
     Return 0
 End Function
 
+function landing_landingpads(pads() as _cords, last as short,mapslot as short) as short
+    dim p as _cords
+    dim as short i,osx,x
+    dim as string key
+    if last=1 then return 1
+    p=pads(1)
+    dprint "Chose landing pad(+/-)"
+    do
+        screenset 0,1
+        cls
+        osx=calcosx(p.x,0)
+        display_planetmap(mapslot,osx,4)
+        display_ship
+        dprint("")
+        if configflag(con_tiles)=1 then
+            set__color( 11,11)
+            draw string (p.x*_fw1,p.y*_fh1)," ",,font1,custom,@_col
+        else
+            x=p.x-osx
+            if x<0 then x+=61
+            if x>60 then x-=61
+            if x>=0 and x<=_mwx then put ((x)*_tix,(p.y)*_tiy),gtiles(85),trans
+        endif
+        flip
+        key=keyin("+-"&key_north &key_south &key__enter &key__esc)
+        if key="+" or key=key_north then i+=1
+        if key="-" or key=key_south then i-=1
+        if i<1 then i=last
+        if i>last then i=1
+        p=pads(i)
+    loop until key=key__enter or key=key__esc
+    if key=key__esc then i=-1
+    key=""
+    return i
+end function
+
 
 Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) As Short
     Dim As Short l,m,a,b,c,d,dis,alive,dead,roll,target,xx,yy,slot,sys,landingpad,landinggear,who(128),last2,alle
@@ -92,7 +128,9 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
                     Next
                     If last>0 Then
                         If askyn("Shall we use the landingpad to land?(y/n)") Then
-                            p=pwa(rnd_range(1,last))
+                            last=landing_landingpads(pwa(),last,mapslot)
+                            if last<0 then return 0
+                            p=pwa(last)
                             landingpad=5
                         EndIf
                     EndIf
@@ -174,16 +212,11 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
         If player.dead=0 And awayteam.hp>0 Then
             
             Do
-                if _debug=2704 then print #freefile,"outerloop1"
                 savegame
-                if _debug=2704 then print #freefile,"outerloop2"
                 equip_awayteam(slot)
-                if _debug=2704 then print #freefile,"outerloop3"
                 nextmap=explore_planet(nextmap,slot)
-                if _debug=2704 then print #freefile,"outerloop4"
-                set__color(11,0)
                 removeequip
-                if _debug=2704 then print #freefile,"outerloop5"
+                
                 c=1
                 For b=2 To 255
                     If crew(b).hp<=0 Then
@@ -200,8 +233,8 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
                     EndIf
                 Next
                 
-                if _debug=2704 then print #freefile,"outerloop6:"&nextmap.m
             Loop Until nextmap.m=-1 Or player.dead<>0 or awayteam.hp<=0
+            
             For c=0 To 127
                 For b=6 To 127
                     If crew(b).hp<=0 Then Swap crew(b),crew(b+1)
@@ -252,6 +285,9 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
         EndIf
         c=6
         dis=0
+        
+        stims.clear
+        
         If crew(1).hp<=0 And player.dead=0 Then
             crew(1).hp=crew(1).hpmax
             b=rnd_range(1,3)

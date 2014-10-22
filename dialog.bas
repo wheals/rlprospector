@@ -871,7 +871,7 @@ function node_menu(no as short,node() as _dialognode,e as _monster, fl as short,
     for a=1 to 16
         if node(no).option(a).answer<>"" then 
             text=text &"/"& adapt_nodetext(node(no).option(a).answer,e,fl,qgindex)
-            if debug=1 and _debug=1 then text=text &"("& node(no).option(a).no &")"
+            if _debug=1 then text=text &node(no).effekt &"("& node(no).option(a).no &")"
             flag+=1
         endif
     next
@@ -1027,13 +1027,13 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="BUYFUEL" then
-        if askyn("Do you want to buy fuel for "&p(0) &" Cr. (y/n)") then
+        if askyn("Do you want to buy fuel for "&p(1) &" Cr. (y/n)") then
             dprint "How much fuel do you want to buy"
             f=getnumber(0,player.fuelmax-player.fuel,0)
-            if f*p(0)>player.money then f=fix(player.money/p(0))
+            if f*p(1)>player.money then f=fix(player.money/p(1))
             if f+player.fuel>player.fuelmax then f=player.fuelmax-player.fuel
             player.fuel=player.fuel+f
-            if f>0 then dprint "You buy "&f &" tons of fuel for "& credits(f*p(0)) &" Cr."
+            if f>0 then dprint "You buy "&f &" tons of fuel for "& credits(f*p(1)) &" Cr."
         endif
     endif
     

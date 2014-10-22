@@ -497,7 +497,7 @@ function crew_bio(i as short) as string
     dim as short a
     dim as byte debug=0
     if crew(i).typ<=9 or (crew(i).typ>=14 and crew(i).typ<=16) then
-        t="Age:"& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight:" &50+crew(i).story(8)*4+crew(i).story(7) &"kg. ||"
+        t="Age: "& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight: " &50+crew(i).story(8)*4+crew(i).story(7) &" kg. ||"
         select case crew(i).story(0)
         case is =1
             t=t &"Place of Birth: Spaceship in transit"
@@ -512,7 +512,7 @@ function crew_bio(i as short) as string
         end select
         t=t &" |Education: " &4+fix(crew(i).story(1)/2) &" years. "
         t=t &" |Work experience: " &cint(crew(i).story(2)/3) &" years. |"
-        t=t &" ||To hit gun:"&tohit_gun(i) &"|To hit cc:"&tohit_close(i) &"||"
+        t=t &" ||To hit gun: "&tohit_gun(i) &"|To hit cc: "&tohit_close(i) &"||"
         select case crew(i).morale
         case is >90
             t=t &"Morale :D"
@@ -560,7 +560,7 @@ function alerts() as short
     static wj as short
     if awayteam.oxygen=awayteam.oxymax then wg=0
     if awayteam.jpfuel=awayteam.jpfuelmax and awayteam.movetype=2 then wj=0
-    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 and awayteam.helmet=1 then
+    if int(awayteam.oxygen<awayteam.oxymax*.5) and wg=0 and awayteam.helmet=1 and awayteam.oxygen>0 then
         dprint ("Reporting oxygen tanks half empty",14)
         wg=1
         for a=1 to wg
@@ -576,7 +576,7 @@ function alerts() as short
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 and awayteam.helmet=1 then
+    if int(awayteam.oxygen<awayteam.oxymax*.25) and wg=1 and awayteam.helmet=1 and awayteam.oxygen>0 then
         dprint ("Oxygen low.",14)
         wg=2
         for a=1 to wg
@@ -594,7 +594,7 @@ function alerts() as short
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 and awayteam.helmet=1 then
+    if int(awayteam.oxygen<awayteam.oxymax*.125) and wg=2 and awayteam.helmet=1 and awayteam.oxygen>0 then
         dprint ("Switching to oxygen reserve!",12)
         wg=3
         for a=1 to wg
@@ -612,7 +612,7 @@ function alerts() as short
         walking=0
         if configflag(con_sound)=2 then no_key=keyin(" "&key__enter &key__esc)
     endif
-    if awayteam.jpfuel<awayteam.jpfuelmax then
+    if awayteam.jpfuel<awayteam.jpfuelmax and awayteam.jpfuel>0 then
         if awayteam.jpfuel/awayteam.jpfuelmax<.5 and wj=0 then
             wj=1
             for a=1 to wj
@@ -631,7 +631,7 @@ function alerts() as short
             walking=0
             dprint ("Jetpack fuel low",14)
         endif
-        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and wj=1 then
+        if awayteam.jpfuel/awayteam.jpfuelmax<.3 and awayteam.jpfuel>0  and wj=1 then
             wj=2
             for a=1 to wj
                 if configflag(con_sound)=0 or configflag(con_sound)=2 then
@@ -650,7 +650,7 @@ function alerts() as short
             dprint ("Jetpack fuel very low",14)
         endif
 
-        if awayteam.jpfuel<5 and wj=2 then
+        if awayteam.jpfuel<5 and awayteam.jpfuel>0  and wj=2 then
             wj=3
         for a=1 to wj
                 if configflag(con_sound)=0 or configflag(con_sound)=2 then
@@ -1481,7 +1481,7 @@ end function
 function artifacts_html(artflags() as short) as string
     dim as short a,c
     dim flagst(22) as string
-    dim as short hd,sd,ar,ss,bombs,cd
+    dim as short hd,sd,ar,ss,bombs,cd,td
     flagst(1)="Fuel System"
     flagst(2)=" hand disintegrator"
     flagst(3)="Scanner"
@@ -1490,7 +1490,7 @@ function artifacts_html(artflags() as short) as string
     flagst(6)="Engine"
     flagst(7)="Sensors"
     flagst(8)=" cryochamber"
-    flagst(9)="Teleportation device"
+    'flagst(9)="Teleportation device"
     flagst(10)="Air recycler"
     flagst(11)="Data crystal(s)"
     flagst(12)="Cloaking device"
@@ -1515,6 +1515,7 @@ function artifacts_html(artflags() as short) as string
             if item(a).id=523 or item(a).id=623 or item(a).id=624 then ss+=1
             if item(a).id=301 then bombs+=1
             if item(a).id=87 then CD+=1
+            if item(a).ty=88 then td+=1
         endif
     next
     flagst(0)=html_color("#ffffff") &"Artifacts:</span><br>"& html_color("#00ffff")
@@ -1546,7 +1547,9 @@ function artifacts_html(artflags() as short) as string
     if ss>1 then flagst(0)=flagst(0) & ss &" squid-suits<br>"
     if bombs=1 then flagst(0)=flagst(0) & bombs &" ancient bomb<br>"
     if bombs>1 then flagst(0)=flagst(0) & bombs &" ancient bombs<br>"
-    if CD>0 then flagst(0)=flagst(0) &"Cloaking device<br>"
+    if CD>0 then flagst(0)=flagst(0) &"cloaking device<br>"
+    if td=1 then flagst(0)=flagst(0)&"teleport device<br>"
+    if td>1 then flagst(0)=flagst(0)&td &" teleport devices<br>"
     if reward(4)>0 then flagst(0)=flagst(0) & reward(4) &" unidentified artifacts<br></span>."
     return flagst(0)
 end function
@@ -1554,7 +1557,7 @@ end function
 function list_artifacts(artflags() as short) as string
     dim as short a,c
     dim flagst(25) as string
-    dim as short hd,sd,ar,ss,bombs,cd
+    dim as short td,hd,sd,ar,ss,bombs,cd
     flagst(1)="Fuel System"
     flagst(2)=" hand disintegrator"
     flagst(3)="Scanner"
@@ -1563,7 +1566,7 @@ function list_artifacts(artflags() as short) as string
     flagst(6)="Engine"
     flagst(7)="Sensors"
     flagst(8)=" cryochamber"
-    flagst(9)="Teleportation device"
+    'flagst(9)="Teleportation device"
     flagst(10)="Air recycler"
     flagst(11)="Data crystal(s)"
     flagst(12)="Cloaking device"
@@ -1591,6 +1594,7 @@ function list_artifacts(artflags() as short) as string
             if item(a).id=523 or item(a).id=623 or item(a).id=624 then ss+=1
             if item(a).id=301 then bombs+=1
             if item(a).id=87 then CD+=1
+            if item(a).id=3003 then TD+=1
         endif
     next
     for a=1 to 22
@@ -1607,7 +1611,7 @@ function list_artifacts(artflags() as short) as string
             endif
         endif
     next
-    if c=0 and sd=0 and hd=0 and ar=0 and ss=0 and bombs=0 and CD=0 and player.cryo=0 then
+    if c=0 and sd=0 and hd=0 and ar=0 and ss=0 and bombs=0 and CD=0 and TD=0 and player.cryo=0 then
         flagst(0)=flagst(0) &"      {14} None |"
     endif
 
@@ -1622,8 +1626,13 @@ function list_artifacts(artflags() as short) as string
     if ss>1 then flagst(0)=flagst(0) & ss &" squid-suits|"
     if bombs=1 then flagst(0)=flagst(0) & bombs &" ancient bomb|"
     if bombs>1 then flagst(0)=flagst(0) & bombs &" ancient bombs|"
-    if CD>0 then flagst(0)=flagst(0) &"Cloaking device|"
+    if CD=1 then flagst(0)=flagst(0) &"Cloaking device|"
+    if CD>1 then flagst(0)=flagst(0) &"Cloaking devices|"
+    if TD=1 then flagst(0)=flagst(0) &"Teleportation device|"
+    if TD>1 then flagst(0)=flagst(0) &TD &" Teleportation devices|"
+    
     if reward(4)>0 then flagst(0)=flagst(0) & reward(4) &" unidentified artifacts."
+    if _debug>0 then flagst(0)=flagst(0)&td &":"&cd &":"& bombs &":"&ss &":"&ar &":"& hd &":"&sd
     return flagst(0)
 end function
 

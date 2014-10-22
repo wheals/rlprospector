@@ -717,7 +717,7 @@ function load_tiles() as short
     n=800
     cls
     bload "graphics/critters2.bmp"
-    for y=0 to _tiy*10 step _tiy
+    for y=0 to _tiy*11 step _tiy
         for x=0 to _tix*12 step _tix
             gtiles(a)=imagecreate(_tix,_tiy)
             get (x,y)-(x+_tix-1,y+_tiy-1),gtiles(a)
@@ -2245,6 +2245,7 @@ function load_bones() as short
     dim as _cords p
     dim as _planet pl
     s=getbonesfile
+    if _debug>0 then dprint s
     if s<>"" then
         f=freefile
         open "bones/"&s for binary as #f
@@ -2380,6 +2381,8 @@ function savegame(crash as short=0) as short
     put #f,,alliance()
     put #f,,bountyquest()
     put #f,,patrolquest()
+    put #f,,nextlanding
+    
     for a=1 to 255
         put #f,,crew(a)
     next
@@ -2459,8 +2462,6 @@ function savegame(crash as short=0) as short
             put #f,,makew(b,a)
         next
     next
-
-    put #f,,usedship()
 
     put #f,,lastcagedmonster
     for a=0 to lastcagedmonster
@@ -2568,6 +2569,11 @@ function savegame(crash as short=0) as short
     put #f,,civ()
     
     put #f,,battleslost()
+    
+    put #f,,lastshop
+    for b=1 to lastshop
+        put #f,,shoplist(b)
+    next
     
     close f
 
@@ -2722,7 +2728,8 @@ function load_game(filename as string) as short
         get #f,,alliance()
         get #f,,bountyquest()
         get #f,,patrolquest()
-        
+        get #f,,nextlanding
+    
         for a=1 to 255
             get #f,,crew(a)
         next
@@ -2752,6 +2759,7 @@ function load_game(filename as string) as short
             if savefrom(a).lastenemy>0 then
                 for b=0 to savefrom(a).lastenemy
                     get #f,,savefrom(a).enemy(b)
+                    if _debug>0 then dprint cords(savefrom(a).enemy(b).c)
                 next
             endif
             get #f,,savefrom(a).ship
@@ -2804,8 +2812,6 @@ function load_game(filename as string) as short
             next
         next
 
-
-        get #f,,usedship()
 
         get #f,,lastcagedmonster
         for a=0 to lastcagedmonster
@@ -2910,6 +2916,12 @@ function load_game(filename as string) as short
         get #f,,civ()
         
         get #f,,battleslost()
+        
+            
+        get #f,,lastshop
+        for b=1 to lastshop
+            get #f,,shoplist(b)
+        next
         
         close f
         if fname<>"savegames/empty.sav" then

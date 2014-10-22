@@ -919,7 +919,6 @@ end function
 
 function display_ship(show as byte=0) as short
     dim  as short a,mjs,wl',b
-    static wg as byte
     dim t as string
     dim as string p,g,s,d,carg
     dim as byte fw1,fh1
@@ -939,8 +938,6 @@ function display_ship(show as byte=0) as short
         endif
     endif
     
-    if player.fuel=player.fuelmax then wg=0
-
     set__color( 15,0)
     if player.equipment(se_navcom)>0 then
         draw string (0,21*_fh1), "Pos:"&player.c.x &":"&player.c.y,, font2,custom,@_col
@@ -996,6 +993,45 @@ function display_ship(show as byte=0) as short
     if player.fuel<(player.fuelmax+player.fuelpod)*0.2 then set__color(c_red,0)
     draw string(sidebar+11*_fw2,(wl+4)*_fh2) ,space(10-len(round_str(player.fuel,1)))&round_str(player.fuel,1) ,,Font2,custom,@_col
 
+    set__color( 11,0)
+    draw string(sidebar,(wl+2)*_fh2),"Credits: "&space(12-len(Credits(player.money)))&Credits(player.money),,Font2,custom,@_col
+    draw string(sidebar,(wl+3)*_fh2),display_time(player.turn),,Font2,custom,@_col
+    set__color( 15,0)
+    draw string(sidebar,wl*_fh2), "Cargo",,font2,custom,@_col
+    for a=1 to 10
+        carg=""
+        if player.cargo(a).x=1 then
+            set__color( 8,1)
+        else
+            set__color( 10,8)
+        endif
+        if player.cargo(a).x=1 then carg= "E"
+        if player.cargo(a).x=2 then carg= "F"
+        if player.cargo(a).x=3 then carg= "B"
+        if player.cargo(a).x=4 then carg= "T"
+        if player.cargo(a).x=5 then carg= "L"
+        if player.cargo(a).x=6 then carg= "W"
+        if player.cargo(a).x=7 then carg= "N"
+        if player.cargo(a).x=8 then carg= "H"
+        if player.cargo(a).x=9 then carg= "U"
+        if player.cargo(a).x=10 then carg= "f"
+        if player.cargo(a).x=11 then carg= "C"
+        if player.cargo(a).x=12 then carg= "?"
+        if player.cargo(a).x=13 then carg= "t"
+        draw string(sidebar+(a-1)*_fw2,(wl+1)*_fh2),carg,,font2,custom,@_col
+    next
+    wl+=6
+
+    comstr.display(wl)
+    set__color( 11,0)
+    if player.tractor=0 then player.towed=0
+    return wl+4
+end function
+
+function explore_space_messages() as short
+    static wg as byte
+    if player.fuel=player.fuelmax then wg=0
+
     if player.fuel<(player.fuelmax+player.fuelpod)*0.5 then
         if wg=0 then
             wg=1
@@ -1033,40 +1069,7 @@ function display_ship(show as byte=0) as short
     endif
 
     if player.turn mod 20=0 then low_morale_message
-
-    set__color( 11,0)
-    draw string(sidebar,(wl+2)*_fh2),"Credits: "&space(12-len(Credits(player.money)))&Credits(player.money),,Font2,custom,@_col
-    draw string(sidebar,(wl+3)*_fh2),display_time(player.turn),,Font2,custom,@_col
-    set__color( 15,0)
-    draw string(sidebar,wl*_fh2), "Cargo",,font2,custom,@_col
-    for a=1 to 10
-        carg=""
-        if player.cargo(a).x=1 then
-            set__color( 8,1)
-        else
-            set__color( 10,8)
-        endif
-        if player.cargo(a).x=1 then carg= "E"
-        if player.cargo(a).x=2 then carg= "F"
-        if player.cargo(a).x=3 then carg= "B"
-        if player.cargo(a).x=4 then carg= "T"
-        if player.cargo(a).x=5 then carg= "L"
-        if player.cargo(a).x=6 then carg= "W"
-        if player.cargo(a).x=7 then carg= "N"
-        if player.cargo(a).x=8 then carg= "H"
-        if player.cargo(a).x=9 then carg= "U"
-        if player.cargo(a).x=10 then carg= "f"
-        if player.cargo(a).x=11 then carg= "C"
-        if player.cargo(a).x=12 then carg= "?"
-        if player.cargo(a).x=13 then carg= "t"
-        draw string(sidebar+(a-1)*_fw2,(wl+1)*_fh2),carg,,font2,custom,@_col
-    next
-    wl+=6
-
-    comstr.display(wl)
-    set__color( 11,0)
-    if player.tractor=0 then player.towed=0
-    return wl+4
+    return 0
 end function
 
 function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
@@ -1182,7 +1185,7 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
             draw string(sidebar,l*_fh2), "      Teleport",,Font2,custom,@_col
         endif
         l+=1
-        draw string(sidebar,l*_fh2),"Speed: "&awayteam.speed,,Font2,Custom,@_col
+        draw string(sidebar,l*_fh2),"Speed: "&awayteam.speed+stims.effect,,Font2,Custom,@_col
         xoffset=xoffset+8
 
         l+=2
@@ -1235,8 +1238,8 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         set__color( 10,0)
         if awayteam.oxygen<50 then set__color( 14,0)
         if awayteam.oxygen<25 then set__color( 12,0)
-        if awayteam.hp>0 then
-            draw string(sidebar+8*_fw2,l*_fh2),""&int(awayteam.oxygen/awayteam.hp),,Font2,custom,@_col
+        if awayteam.hp-awayteam.robots>0 then
+            draw string(sidebar+8*_fw2,l*_fh2),""&int(awayteam.oxygen/(awayteam.hp-awayteam.robots)),,Font2,custom,@_col
         else
             draw string(sidebar+8*_fw2,l*_fh2),""&awayteam.oxygen,,Font2,custom,@_col
         endif
@@ -1392,7 +1395,7 @@ function display_monsters(osx as short) as short
                             endif
                         endif
                         if _debug>0 then 
-                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),"W:" & enemy(a).ti_no,,font2,custom,@_tcol
+                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),cords(enemy(a).c),,font2,custom,@_tcol
                         endif    
                         if show_energy=1 then 
                             set__color(15,0)
@@ -1420,7 +1423,7 @@ function display_item(i as integer,osx as short,slot as short) as short
             comstr.comitem=1
         EndIf
             
-        If  item(i).discovered=1 or (tiles(Abs(planetmap(p.x,p.y,slot))).hides=0 and vismask(item(i).w.x,item(i).w.y)>0) Then
+        If  item(i).w.s=0 and item(i).discovered=1 or (tiles(Abs(planetmap(p.x,p.y,slot))).hides=0 and vismask(item(i).w.x,item(i).w.y)>0) Then
             If item(i).discovered=0 And walking<11 Then walking=0
             item(i).discovered=1
             If tiles(Abs(planetmap(item(i).w.x,item(i).w.y,slot))).walktru>0 And item(i).bgcol=0 Then

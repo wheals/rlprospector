@@ -2,7 +2,7 @@ function setmonster(enemy as _monster,map as short,spawnmask()as _cords,lsp as s
     dim as short l,c
     if x=0 and y=0 then
         do
-            l=rnd_range(0,lsp)
+            l=rnd_range(1,lsp)
             c+=1
         loop until vismask(spawnmask(l).x,spawnmask(l).y)=0 or c=500
     endif
@@ -305,7 +305,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     static ch(11) as short
     static ad(11) as single
     dim as string prefix
-    debug=1
+    debug=55
     if a=0 then
         if debug=1 and _debug=1 then dprint "ERROR: Making monster 0",14
         return enemy
@@ -368,6 +368,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     enemy.made=a 'saves how the critter was made for respawning
     
     if a=1 or a=24 then 'standard critter
+        if _debug>0 and debug=55 then a=24
         'Postion
         if planets(map).atmos=1 then enemy.hasoxy=1
         'Fighting Stats
@@ -443,10 +444,11 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         endif
         if forcearms>0 then enemy.pumod=-1 '2 arms minimum
         g=rnd_range(0,10)
-        if a=24 and rnd_range(1,100)>50 then g=11
+        if a=24 then g=11
         enemy.tile=ch(g)
         enemy.sprite=261+g
         if g=1 then enemy.movetype=mt_climb 'Spinnen klettern
+        if g=11 then enemy.movetype=mt_hover 'Fish
         if g=6 then enemy.intel=enemy.intel+1
         if g=9 or a=24 then enemy.movetype=mt_climb
         if g=10 then enemy.speed+=3
@@ -517,7 +519,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     if a=2 then 'Powerful standard critter
         'Postion
         g=rnd_range(0,4)
-        if _debug>0 then dprint "Making a "&ti(g)
         enemy.tile=ch(g)
         enemy.sdesc=ti(g)
         
@@ -741,6 +742,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=7
         enemy.biomod=2
         enemy.respawns=0
+        enemy.teleportrange=10
+        enemy.items(1)=303
+        enemy.itemch(1)=75
         enemy.dhurt="hurt"
         enemy.dkill="dies"   
         enemy.swhat="shoots a lightning bolt "
@@ -979,12 +983,14 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hp=4
         enemy.col=23
         enemy.aggr=1
+        enemy.speed=9
         if a=88 then 
             enemy.faction=8
             enemy.allied=0
             enemy.aggr=1
             enemy.lang=34
         endif
+        if _debug>0 then enemy.teleportrange=10
     endif
     
     if a=15 then
@@ -2000,6 +2006,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.itemch(l)=33
         next
         enemy.faction=5
+        
+        if rnd_range(1,100)<15 then enemy.teleportrange=rnd_range(3,6)
     endif
     
     if a=47 then 'Sgt Pinback
@@ -2205,6 +2213,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.items(0)=96
         enemy.itemch(0)=33
         enemy.faction=5
+        
+        if rnd_range(1,100)<10 then enemy.teleportrange=rnd_range(5,8)
     endif
     
     if a=52 then 'Defensebot
@@ -2253,6 +2263,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.items(0)=96
         enemy.itemch(0)=33
         enemy.faction=5
+        
+        if rnd_range(1,100)<10 then enemy.teleportrange=rnd_range(3,6)
     endif
         
     if a=53 then 'Fast Bot
@@ -2311,6 +2323,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.items(0)=96
         enemy.itemch(0)=33
         enemy.faction=5
+        
+        if rnd_range(1,100)<15 then enemy.teleportrange=rnd_range(3,6)
     endif
     
     if a=54 then 'Defense Bot
@@ -2371,6 +2385,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.items(0)=96
         enemy.itemch(0)=33
         enemy.faction=5
+        
+        if rnd_range(1,100)<15 then enemy.teleportrange=rnd_range(3,6)
     endif
     
     if a=55 then 'Living Energy
@@ -2420,6 +2436,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.col=rnd_range(192,197)
         enemy.speed=18
         enemy.movetype=mt_ethereal
+        if rnd_range(1,100)<25 then enemy.teleportrange=rnd_range(3,6)+3
         enemy.hpmax=enemy.hp
         enemy.faction=5
     endif
@@ -2471,6 +2488,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ldesc="A massive ball of metal on tracks, 5 arms end in massive blades, so thin they are almost invisible."
         enemy.range=1.5
         enemy.sight=4
+        if rnd_range(1,100)<10 then enemy.teleportrange=rnd_range(2,4)
         enemy.hpmax=enemy.hp
         enemy.faction=5
     endif
@@ -3284,7 +3302,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=24
         enemy.hp=24
         enemy.weapon=1
-        
+        if rnd_range(1,100)<10 then enemy.teleportrange=rnd_range(3,6)
         enemy.col=23
         enemy.aggr=1
         enemy.faction=5
@@ -3302,6 +3320,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.swhat="shoots a disintegrator beam "
         enemy.scol=12
         enemy.respawns=0
+        if rnd_range(1,100)<10 then enemy.teleportrange=rnd_range(2,4)
         enemy.armor=16
         enemy.lang=-3
         enemy.sight=9
@@ -3615,7 +3634,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.sight=rnd_range(2,5)
         enemy.aggr=1
         enemy.respawns=0
-        
+        if _debug>0 then enemy.teleportrange=10
         
         enemy.speed=(rnd_range(0,14)+rnd_range(0,13)+rnd_range(0,enemy.weapon))
         if enemy.speed<11 then enemy.speed=11

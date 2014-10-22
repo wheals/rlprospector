@@ -265,8 +265,8 @@ function give_patrolquest(employer as short) as short
     next
     if j>-1 then
         if askyn("We could use some help with an easy patrol. Are you interested?(y/n)") then
-            patrolquest(j).generate(rnd_range(2,4),rnd_range(15,20),player.turn/250+10)'!
             patrolquest(j).employer=employer
+            patrolquest(j).generate(rnd_range(3,6),rnd_range(15,20),player.turn/(250*60)+10)'!
             dprint patrolquest(j).show &" Upon completion you will get paid "&Credits(patrolquest(j).reward) &" Cr."
             questroll=999
         endif
@@ -344,7 +344,7 @@ function reward_bountyquest(employer as short) as short
 end function
 function questguy_newloc(i as short) as short
     dim as short j,noperstation(2),s1,s2,s3,debug
-    for j=1 to lastquestguy
+    for j=3 to lastquestguy
         if questguy(j).location>=0 then' Is on a big station
             noperstation(questguy(j).location)+=1
         endif
@@ -379,7 +379,7 @@ function questguy_newloc(i as short) as short
             endif
         endif
     endif
-    for j=1 to lastquestguy
+    for j=3 to lastquestguy
         if questguy(i).location=questguy(j).location then 
             if questguy(i).location<0 then
                 questguy(i).knows(j)=questguy(i).location
@@ -578,15 +578,8 @@ function make_questitem(i as short,wanthas as short) as short
         
     if (*o).type=qt_drug then'Drug	5
         if wanthas=q_want then
-            questguy(i).want.it.ty=60
-            questguy(i).want.it.v1=rnd_range(1,6)
-            questguy(i).want.it.price=(*o).it.v1*100
-            questguy(i).want.price=(*o).it.v1*100
-            
-            questguy(i).want.it.desig="Drug "&chr(64+(*o).it.v1)
-            questguy(i).want.it.desigp="Drugs "
+            questguy(i).want.it=make_item(1005,rnd_range(1,6))
         else
-            
             questguy(i).has.it=make_item(1005,rnd_range(1,6))
         endif
         
@@ -1130,8 +1123,7 @@ function giveitem(e as _monster,nr as short) as short
         dprint "Thank you so much! I am sure I can find a use for this!"
         return 0
     endif
-     dprint "E:"&e.intel
-     select case e.intel
+    select case e.intel
         case is>6
             if rnd_range(1,6)+ rnd_range(1,6)<e.intel+e.lang+e.aggr*2 then
                 dprint "The "&e.sdesc &" accepts the gift."

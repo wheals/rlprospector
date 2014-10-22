@@ -15,11 +15,10 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     randomshop(4)=294 'Antiques
     randomshop(5)=109 'Bot-Bin
     randomshop(6)=98 'Black Market
-    randomshop(7)=43 'Equipment
-    randomshop(8)=286 'Customize item
-    randomshop(9)=110 'Zoo
-    randomshop(10)=112 'Used ships
-    lastrandomshop=10 '
+    randomshop(7)=286 'Customize item
+    randomshop(8)=110 'Zoo
+    randomshop(9)=112 'Used ships
+    lastrandomshop=9 '
     
     if _debug=18 then d.s=18
     
@@ -122,10 +121,15 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                 planetmap(x,y,m)=-202
                 if rnd_range(1,100)<66 then 'Random Shops
                     ti=rnd_range(1,lastrandomshop)
-                    if _debug>0 then ti=8
                     planetmap(x,y,m)=-randomshop(ti)
+                    if randomshop(ti)=98 then add_shop(sh_blackmarket,x,y,m)
+                    if randomshop(ti)=262 then add_shop(sh_mudds,x,y,m)
+                    if randomshop(ti)=109 then add_shop(sh_sickbay,x,y,m)
+                    if randomshop(ti)=112 then add_shop(sh_usedships,x,y,m)
+                    if randomshop(ti)=261 then add_shop(sh_sickbay,x,y,m)
                     randomshop(ti)=randomshop(lastrandomshop)
                     lastrandomshop-=1
+                                    
                 endif
             endif
         next
@@ -409,7 +413,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                 if broken=1 and abs(planetmap(x,y,m))=220 then planetmap(x,y,m)=-202
             next
         next
-        if _debug>0 then dprint "from:"&from.x &":"& from.y &":"&from.m &"M"&m &":"
+        
         addportal(from,dest,1,asc("@"),"Abandoned "&shiptypes(d.s),11)
         portal(lastportal).ti_no=3009+d.s
         addportal(dest,from,2,asc(" "),"",11)

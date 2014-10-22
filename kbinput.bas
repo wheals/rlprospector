@@ -77,26 +77,11 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
             sleep 1
         loop until key<>"" or walking<>0 or (allowed="" and player.dead<>0) or just_run<>0
         lastkey=key    
-        comstr.nextpage
-        if key<>"" then walking=0 
-        if _test_disease=1 and key="#" then
-            a=getnumber(0,255,0)
-            b=Getnumber(0,255,0)
-            crew(a).disease=b
-            crew(a).duration=disease(b).duration
-            crew(a).incubation=disease(b).incubation
-            if b>player.disease then player.disease=b
-            dprint a &":" & b
-            a=0
-            b=0
-            key=""
+        if key<>"" then 
+            walking=0 
+            autofire_target.m=0
         endif
-        if _debug>0 then
-            if key="_" then 
-                make_mine(awayteam.slot)
-                make_locallist(awayteam.slot)
-            endif
-        endif
+        
         if blocked>=97 then
             if (asc(key)>=97 and asc(key)<=blocked) then return key
         endif
@@ -270,16 +255,15 @@ end function
 function cursor(target as _cords,map as short,osx as short,osy as short=0,radius as short=0) as string
     dim key as string
     dim as _cords p2
-    dim as short border,eo
+    dim as short border,eo,x
     if configflag(con_tiles)=1 then
         set__color( 11,11)
         draw string (target.x*_fw1,target.y*_fh1)," ",,font1,custom,@_col
     else
-        'if map>0 then
-            put ((target.x-osx)*_tix,(target.y-osy)*_tiy),gtiles(85),trans
-        'else
-        '    put ((target.x+osx)*_tix,(target.y+osy)*_tiy),gtiles(85),trans
-        'endif
+        x=target.x-osx
+        if x<0 then x+=61
+        if x>60 then x-=61
+        if x>=0 and x<=_mwx then put ((x)*_tix,(target.y-osy)*_tiy),gtiles(85),trans
     endif
     key=keyin
     if map>0 then
@@ -314,7 +298,7 @@ function cursor(target as _cords,map as short,osx as short,osy as short=0,radius
     set__color( 11,0)
     p2=target
     target=movepoint(target,getdirection(key),eo,border)
-    if radius>0 and distance(target,awayteam.c)>radius then target=p2
+    if radius>0 and distance(target,awayteam.c,eo)>radius then target=p2
     return key
 end function
 

@@ -9,7 +9,7 @@ function logbook() as short
     dim lobc(255) as short 'lobc is bg set__color(
     dim lobp(255) as _cords 'lobc is bg set__color(
     static as short curs
-    dim as short x,y,a,b,p,m,lx,ly,dlx,diff,i,last,ll,debug
+    dim as short x,y,a,b,p,m,lx,ly,dlx,diff,i,last,ll,debug,osx
     dim as string key,lobk1,lobk2
     
     ll=fix(20*_fh1/_fh2)
@@ -131,17 +131,21 @@ function logbook() as short
                         if m>0 then
                             if planets(m).comment<>"" then dprint planets(m).comment
                             if planetmap(0,0,m)=0 then
+                                screenset 0,1
                                 cls
                                 display_ship(1)
                                 set__color( 15,0)
                                 draw string (15*_fw1,10*_fh1),"No map data for this planet.",,Font2,custom,@_col
+                                flip
                                 no_key=keyin
                             else
-                                cls
                                 do
+                                    screenset 0,1
+                                    cls
                                     dplanet(planets(m),p,planets(m).mapped,m)
-                                    display_planetmap(m,0,1)
-                                    no_key=keyin(key_comment &key_report &key__esc)
+                                    display_planetmap(m,osx,1)
+                                    flip
+                                    no_key=keyin(key_comment &key_report &key__esc &"abcdefghiklmnop" &key_east &key_west & key__enter)
                                     if no_key=key_comment then
                                         screenset 1,1
                                         dprint "Enter comment on planet"
@@ -150,8 +154,12 @@ function logbook() as short
                                     endif
                                     if no_key=key_report then
                                         bioreport(m)
-                                    endif   
-                                loop until no_key<>key_comment or no_key<>key_report
+                                    endif 
+                                    If no_key=key_east Then osx+=1
+                                    If no_key=key_west Then osx-=1
+                                    If osx<0 Then osx=0
+                                    If osx>60-_mwx Then osx=60-_mwx
+                                loop until no_key<>key_comment and no_key<>key_report and no_key<>key_west and no_key<>key_east
                             endif
                         endif
                     endif
@@ -536,6 +544,9 @@ function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as
             endif
         next
     loop until f=0
+    
+    
+    
     for a=laststar+1 to laststar+wormhole
         if map(a).discovered>0 then
             i+=1
@@ -549,6 +560,15 @@ function lb_listmake(lobk() as string, lobn() as short, lobc() as short,lobp()as
             i+=1
             lobk(i)="Station "&a+1
             lobp(i)=basis(a).c
+            lobn(i)=0
+        endif
+    next
+    
+    for a=1 to 3
+        if drifting(a).p=1 then
+            i+=1
+            lobk(i)="Minor station"&cords(drifting(a))
+            lobp(i)=drifting(a)
             lobn(i)=0
         endif
     next

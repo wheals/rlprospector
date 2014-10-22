@@ -325,6 +325,7 @@ function set_globals() as short
     spdescr(35)="A world populated by peaceful cephalopods"
     spdescr(36)="A tribe of small green people in trouble"
     spdescr(37)="An invisible labyrinth"
+    spdescr(38)="A world with intelligent trees"
     spdescr(39)="A very fertile world plagued by burrowing monsters"
     spdescr(40)="A world under control of Eridiani Explorations"
     spdescr(41)="A world under control of Smith Heavy Industries"

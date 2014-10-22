@@ -1,107 +1,3 @@
-function update_world(location as short) as short
-    if location=1 and player.turn mod 10<>0 then player.turn=cint(player.turn/10)*10 'Needs to be multiple of 10 for events to trigger
-    
-    dim as short a,b
-    diseaserun(1)
-    clearfleetlist
-    
-    
-    if player.turn mod 60=0 then
-        if artflag(23)>0 and player.hull<player.h_maxhull then player.hull+=1
-        move_fleets()
-        collide_fleets()
-        move_probes()
-        cure_awayteam(location)
-        
-        for a=0 to laststar
-            if map(a).planets(1)>0 then
-                if planets(map(a).planets(1)).flags(27)=2 then
-                    planets(map(a).planets(1)).death-=1
-                    if planets(map(a).planets(1)).death<=0 then
-                        map(a).planets(1)=0
-                    endif
-                endif
-            endif
-        next
-        
-    endif
-    
-    if player.turn mod (24*60)=0 or location=2 then 'Daily,loc2=forced
-        for a=0 to 12
-            change_prices(a,10)
-        next
-        
-        for a=0 to 2
-            if fleet(a).mem(1).hull<128 and fleet(a).mem(1).hull>0 then fleet(a).mem(1).hull+=3
-        next
-        if location=1 then trouble_with_tribbles
-        clean_station_event
-        questroll=rnd_range(1,100)-10*(crew(1).talents(3))
-    endif
-    
-    if player.turn mod (24*60*7)=0 then 'Weekly
-        set_fleet(make_fleet)
-        if rnd_range(1,100)<50 then
-            set_fleet(makecivfleet(0))
-        else
-            set_fleet(makecivfleet(1))
-        endif
-        if player.turn>2*30*24*60 and player.questflag(3)=0 then
-            set_fleet(makealienfleet)
-        endif
-        reroll_shops
-        
-        for a=0 to 2
-            colonize_planet(a)
-        next
-        grow_colonies
-        
-        if player.turn>2*30*24*60 and rnd_range(1,100)<1+cint(player.turn/10000) then robot_invasion
-            
-        for a=1 to lastquestguy
-            if rnd_range(1,100)<25 and questguy(a).job=9 then questguy_newloc(a)
-            if rnd_range(1,100)<25 and questguy(a).job<>1 then questguy_newloc(a)
-            if questguy(a).want.type=qt_travel then
-                questguy(a).location=questguy(a).flag(12)
-                questguy(a).want.given=1
-            endif
-            if questguy(a).want.given=1 then questguy(a).want.type=0
-            if questguy(a).has.given=1 then questguy(a).has.type=0
-            if (questguy(a).has.type=0 or questguy(a).want.type=0) and rnd_range(1,100)<10 then
-                questguy_newquest(a)
-            endif
-        next
-        for b=0 to 2
-            if rnd_range(1,100)<33 then
-                if shoporder(b)>0 then
-                    a=rnd_range(1,20)
-                    shopitem(a,b)=make_item(shoporder(b))
-                    shopitem(a,b).price=shopitem(a,b).price*2
-                    shopitem(a,b).w.x=rnd_range(1,6)
-                    shoporder(b)=-shoporder(b)
-                endif
-            endif
-            
-            a=basis(b).company
-            companystats(a).profit=companystats(a).profit+(rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))
-            if companystats(a).profit>0 then 
-                companystats(a).profit=(companystats(a).profit+rnd_range(0,1))*(companystats(a).capital/50)
-            else
-                companystats(a).profit=companystats(a).profit*(companystats(a).capital/50)
-            endif
-            companystats(a).capital=companystats(a).capital+companystats(a).profit
-            companystats(a).rate=companystats(a).capital/companystats(a).shares
-            if companystats(a).profit>0 then companystats(a).rate+=1'rnd_range(1,6)
-            if companystats(a).profit<=0 then companystats(a).rate-=1'rnd_range(1,6)
-            companystats(a).profit=0
-            if companystats(a).capital>50000 then companystats(a).capital=50000
-        next
-        
-    endif
-    
-    return 0
-end function
-
 function scrap_component() as short
     dim as short w,b
     if askyn("Do you want to cannibalize the "&tmap(awayteam.c.x,awayteam.c.y).desc &" for parts?(y/n)") then
@@ -800,8 +696,9 @@ function company(st as short) as short
 end function
 
 function casino(staked as short=0, st as short=-1) as short
-    dim as short a,b,c,d,e,f,pr,bet,num,fi,col,times,mbet,gpld,asst,x,y,z,t,price,bonus,passenger,i
+    dim as short a,b,c,d,e,f,pr,bet,num,fi,col,times,mbet,gpld,asst,x,y,z,price,bonus,passenger,i
     dim ba(3) as short
+    dim as integer t
     dim localquestguy(lastquestguy+4) as short
     dim leave as short
     dim as uinteger mwon,mlos
@@ -1029,7 +926,7 @@ function casino(staked as short=0, st as short=-1) as short
                 passenger+=rnd_range(5,25)
                 if b<>st then
                     t=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(b).c)
-                    price=distance(player.c,basis(b).c)*rnd_range(1,20)
+                    price=distance(player.c,basis(b).c)*rnd_range(10,200)
                     bonus=rnd_range(1,15)
                     if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every day you arrive there earlier. Do you want to take him with you?(y/n)") then
                         add_passenger("Passenger for S-"& b+1,30,price,bonus,b+1,t,0)
@@ -1270,7 +1167,7 @@ function play_slot_machine() as short
     return 0
 end function
 
-function add_passenger(n as string,typ as short, price as short, bonus as short, target as short, ttime as short, gender as short) as short
+function add_passenger(n as string,typ as short, price as short, bonus as short, target as short, ttime as integer, gender as short) as short
     dim c as short
     c=get_freecrewslot
     if c>0 then
@@ -1428,7 +1325,7 @@ function repair_hull(pricemod as single=1) as short
     return 0
 end function
 
-function sick_bay(st as short=0,obe as short=0) as short
+function sick_bay(si as short,st as short=0,obe as short=0) as short
     dim text as string
     dim lastaug as byte
     dim augn(20) as string
@@ -1585,7 +1482,9 @@ function sick_bay(st as short=0,obe as short=0) as short
         dprint ""
         a=menu(bg_parent,n &"/ Buy supplies / Treat crewmembers/ Buy crew augments/Exit")
         if a=1 then
-            shop(21+st,1,"Medical Supplies")
+            do
+                b=shop(si,1,"Medical Supplies")
+            loop until b=-1
         endif
         if a=2 then
             'if player.disease>0 then price=price+10*player.disease
@@ -1794,7 +1693,7 @@ function ship_inspection(price as short) as short
             dprint "Some structural damage has been fixed.",c_gre
             return 0
         end if
-        
+        if _debug>0 then dprint "Cursed:"&player.cursed
         if rnd_range(1,6) +rnd_range(1,6)>10-player.cursed then 'Heavily cursed stuff is easier to find. It gets harder to find the little stuff
             if player.cursed=0 then
                 dprint "Your ship is in excellent shape.",c_gre
@@ -2096,264 +1995,6 @@ function custom_ships(where as byte) as short
     return 0
 end function
 
-function shipupgrades(st as short) as short
-    dim as short b,c,d,e,i
-    dim mtext as string
-    dim help as string
-'    shopitem(1,20).desig="sensors MK I"
-'    shopitem(1,20).price=200
-'    shopitem(1,20).v1=1
-'    shopitem(1,20).ty=50
-'    shopitem(1,20).ldesc="Basic ship sensor set. 1 Parsec Range" 
-'    
-'    shopitem(2,20).desig="sensors MK II"
-'    shopitem(2,20).price=800
-'    shopitem(2,20).v1=2
-'    shopitem(2,20).v4=1
-'    shopitem(2,20).ty=50
-'    shopitem(2,20).ldesc="Basic ship sensor set. 2 Parsec Range" 
-'    
-'    shopitem(3,20).desig="Sensors MK III"
-'    shopitem(3,20).price=1600
-'    shopitem(3,20).v1=3
-'    shopitem(3,20).ty=50
-'    shopitem(3,20).ldesc="Ship sensor set. 3 Parsec Range" 
-'        
-'    shopitem(4,20).desig="sensors MK IV"
-'    shopitem(4,20).price=3200
-'    shopitem(4,20).v1=4
-'    shopitem(4,20).ty=50
-'    shopitem(4,20).ldesc="Advanced ship sensor set. 4 Parsec Range" 
-'    
-'    shopitem(5,20).desig="sensors MK V"
-'    shopitem(5,20).price=6400                        
-'    shopitem(5,20).ty=50
-'    shopitem(5,20).v1=5
-'    shopitem(5,20).ldesc="Advanced ship sensor set. 5 Parsec Range" 
-'    
-
-    help=help &"Change type of ammo used for missile weapons."
-    do 
-        c=menu(bg_parent,"Ship Upgrades:/Sensors,Shields & Engines/Weapons & Modules/Change Loadout/Change Armortype/Exit")
-'            mtext="Sensors/" 
-'            for i=1 to 15
-'                mtext=mtext &shopitem(i,20).desig &space(_swidth-len(trim(shopitem(i,20).desig))-len(credits(shopitem(i,20).price))) &credits(shopitem(i,20).price) &" Cr./"
-'            next
-'            mtext=mtext &"Exit"
-'            do
-'            d=menu(bg_parent,mtext,help)
-'                    
-'            display_ship
-'            if d<>-1 then
-'                if d>0 and d<13 then
-'                    if player.money>=shopitem(d,20).price then
-'                        if shopitem(d,20).ty=50 then
-'                            if shopitem(d,20).v1>player.h_maxsensors then dprint "Your ship is too small for those."
-'                            if shopitem(d,20).v1<player.sensors then dprint "You already have better sensors."
-'                            if shopitem(d,20).v1=player.sensors then dprint "That is the same as your current sensor system."
-'                            if shopitem(d,20).v1>player.sensors and shopitem(d,20).v1<=player.h_maxsensors then
-'                                player.sensors=shopitem(d,20).v1
-'                                paystuff(shopitem(d,20).price)
-'                                dprint "You buy "&shopitem(d,20).desig &"."
-'                            endif
-'                        endif
-'                        if shopitem(d,20).ty>50 and shopitem(d,20).ty<53 then
-'                            if findbest(shopitem(d,20).ty,-1)<0 then
-'                                placeitem(shopitem(d,20),0,0,0,0,-1)
-'                                paystuff(shopitem(d,20).price)
-'                                dprint "You buy "&shopitem(d,20).desig &"."
-'                            else
-'                                if item(findbest(shopitem(d,20).ty,-1)).v1<shopitem(d,20).v1 then
-'                                    dprint "You already have a better "&shopitem(d,20).desig &"."
-'                                else
-'                                    dprint "You already have "&add_a_or_an(shopitem(d,20).desig,0) &"."
-'                                endif
-'                            endif
-'                        endif
-'                        if shopitem(d,20).ty=53 then
-'                            if shopitem(d,20).v1<player.ecm then dprint "you already have a better ECM system."
-'                            if shopitem(d,20).v1=player.ecm then dprint "That is the same as your current ECM system."
-'                            if shopitem(d,20).v1>player.ecm then 
-'                                player.ecm=shopitem(d,20).v1
-'                                paystuff(shopitem(d,20).price)
-'                                dprint "You buy "&shopitem(d,20).desig &"."
-'                            endif
-'                        endif
-'                        if shopitem(d,20).ty=54 then
-'                            if shopitem(d,20).v1<player.shieldedcargo then dprint "you already have a better cargo shielding."
-'                            if shopitem(d,20).v1=player.shieldedcargo then dprint "That is the same as your current cargo shielding."
-'                            if shopitem(d,20).v1>player.shieldedcargo then 
-'                                player.shieldedcargo=shopitem(d,20).v1
-'                                paystuff(shopitem(d,20).price)
-'                                dprint "You buy "&shopitem(d,20).desig &"."
-'                            endif
-'                        endif
-'                    else
-'                        dprint "You don't have enough money."
-'                    endif
-'                endif
-'            endif
-'            display_ship()
-'            loop until d=-1 or d=16
-'            for b=0 to lastitem
-'                if item(b).ty=50 then
-'                    item(b)=item(lastitem)
-'                    lastitem=lastitem-1
-'                endif
-'            next
-'            display_ship()
-'        endif
-'            
-'            if c=2 then 'Shields
-'                do
-'                    d=menu(bg_parent,"Shields:/ Shields MKI   -  300 Cr/ Shields MKII  - 1200 Cr/ Shields MKIII - 2700 Cr/ Shields MKIV  - 4800 Cr/ Shields MKV   - 7500 Cr/ Exit")
-'                    if d<6 and d<=player.h_maxshield then
-'                        if d<player.shieldmax then dprint "you already have better shields"
-'                        if d=player.shieldmax then dprint "You already have this shieldgenerator"
-'                        if d>player.shieldmax and d<6 then
-'                            if paystuff(d*d*300) then
-'                                player.shieldmax=d
-'                                dprint "You upgrade your shields"
-'                                d=6
-'                            endif
-'                        endif
-'                    else
-'                        if d<6 then dprint "That shieldgenerator doesnt fit in your hull"
-'                    endif
-'                    display_ship()
-'                loop until d=6
-'                
-'            endif
-'                   
-            if c=1 then shop(20,1,"Sensors, Shields & Engines")
-            if c=2 then buy_weapon(st)
-            if c=3 then change_loadout
-            if c=4 then change_armor(0)
-            display_ship()
-        loop until c=5 or c=-1
-    return 0
-end function
-
-function buy_engine() as short
-    dim as string metxt,hetxt
-    dim as string iname(10),ihelp(10)
-    dim as short iprice(10),d,i
-    iname(1)="Engine MKI"
-    iprice(1)=300
-    iname(2)="Engine MKII"
-    iprice(2)=1200
-    iname(3)="Engine MKIII"
-    iprice(3)=2700
-    iname(4)="Engine MKIV"
-    iprice(4)=4800
-    iname(5)="Engine MKV" 
-    iprice(5)=7500
-    iname(6)="AT Landing Gear"
-    iprice(6)=250
-    iname(7)="Imp. AT Landing Gear"
-    iprice(7)=500
-    iname(8)="Maneuverjets MKI"
-    iprice(8)=250
-    iname(9)="Maneuverjets MKII"
-    iprice(9)=500
-    iname(10)="Maneuverjets MKIII"
-    iprice(10)=1000
-    metxt="Engine:"
-    for i=1 to 10
-        iprice(i)=iprice(i)*haggle_("down")
-        metxt &="/"&iname(i) &space(_swidth-len(iname(i))-len(credits(iprice(i)))) &credits(iprice(i)) &" Cr."
-    next
-    metxt &="/Exit"
-    do
-        hetxt="/"
-        for i=1 to 5
-            hetxt=hetxt &iname(i) &"||"
-            if i<player.engine then hetxt=hetxt &"You already have a better engine now"
-            if i=player.engine then hetxt=hetxt &"This is the same engine as you have now."
-            if i>player.engine then hetxt=hetxt &"With this engine you would have " & int(i+2-player.h_maxhull\15) & " movement points."
-            if i>player.h_maxengine then hetxt &= "|This engine is too big for your ship."
-            hetxt &="/"
-        next
-        hetxt &="special landing struts designed to make landing in all kinds of terrain easier/Special landing struts designed to make landing in all kinds of terrain easier."
-        hetxt &="/Adds 1 pt to movement"
-        if player.manjets=1 then hetxt &="|You already have these maneuvering jets."
-        hetxt &="/Add 2 pts to movement"
-        if player.manjets=2 then hetxt &="|You already have these maneuvering jets."
-        hetxt &="/Adds 3 pts to movement"
-        if player.manjets=3 then hetxt &="|You already have these maneuvering jets."
-    
-        d=menu(bg_parent,metxt,hetxt)
-        if d<6 and d<=player.h_maxengine then
-            if d<player.engine then dprint "You already have a better engine."
-            if d=player.engine then dprint "You already have this engine."
-            if d>player.engine and d<6 then
-                if paystuff(iprice(d)) then
-                    player.engine=d
-                    dprint "You upgrade your engine."
-                    display_ship()
-                    d=6
-                endif
-            endif
-        else
-            if d<6 then dprint "That engine doesn't fit in your hull."
-            if d=6 then 
-                if paystuff(250) then
-                    dprint "You buy all terrain landing gear."
-                    placeitem(make_item(75),,,,,-1)
-                endif
-            endif
-            if d=7 then 
-                if paystuff(500) then
-                    dprint "You buy improved all terrain landing gear."
-                    placeitem(make_item(76),,,,,-1)
-                endif
-            endif
-            
-            
-            
-            if d=8 then
-                if paystuff(250) then
-                    if player.manjets<1 then
-                        dprint "You buy Maneuver Jets I."
-                        player.manjets=1
-                    else
-                        if player.manjets>1 then dprint "you alrealdy have better maneuvering jets."
-                        if player.manjets=1 then dprint "you alrealdy have these maneuvering jets."
-                        player.money=player.money+250 'Just returning money
-                    endif
-                endif
-            endif
-            
-            if d=9 then
-                if paystuff(500) then
-                    if player.manjets<2 then
-                        dprint "You buy Maneuver Jets II."
-                        player.manjets=2
-                    else
-                        if player.manjets>2 then dprint "you alrealdy have better maneuvering jets."
-                        if player.manjets=2 then dprint "you alrealdy have these maneuvering jets."
-                        player.money=player.money+500 'returning money
-                    endif
-                endif
-            endif
-            
-            if d=10 then
-                if paystuff(1000) then
-                    if player.manjets<3 then
-                        dprint "You buy Maneuver Jets III."
-                        player.manjets=3
-                    else
-                        if player.manjets>3 then dprint "you alrealdy have better maneuvering jets."
-                        if player.manjets=3 then dprint "you alrealdy have these maneuvering jets."
-                        player.money=player.money+1000 'Returning money
-                    endif
-                endif
-            endif
-        endif
-    loop until d=11
-    return 0
-end function
-
 function starting_turret() as _weap
     dim as string m,help
     dim weapon(12) as _weap
@@ -2381,86 +2022,6 @@ function starting_turret() as _weap
     if i<0 or i=12 then return weapon(0)
     return weapon(i)
 end function
-
-function buy_weapon(st as short) as short
-    dim as short a,b,c,d,i,mod1,mod2,mod3,mod4,ex
-    dim as short last
-    dim it as _items 
-    dim weapons as string
-    dim key as string
-    dim wmenu as string
-    dim help as string
-    do
-        i=0
-        for a=1 to 20
-            if makew(a,st)<>0 then i+=1
-        next
-        weapons="Weapons:"
-        help=""
-        for a=1 to i
-            b=_swidth-len(trim(wsinv(a).desig))-len(credits(wsinv(a).p*haggle_("down")))
-            weapons=weapons &"/ " &trim(wsinv(a).desig) & space(b) &credits(wsinv(a).p*haggle_("down"))&" Cr."
-            help=help &"/"&make_weap_helptext(wsinv(a))
-        next
-        
-       
-        
-        weapons=weapons &"/Exit"
-        help=help &" /"
-        last=i
-        ex=i+1
-        
-        screenset 0,1
-        set__color(11,0)
-        cls
-        display_ship()        
-        dprint ""
-        d=menu(bg_parent,weapons,help,2,2)
-        flip
-        if d>=1 and d<=last then
-            b=player.h_maxweaponslot
-            wmenu="Weapon Slot/"
-            for a=1 to b
-                if player.weapons(a).desig="" then
-                    wmenu=wmenu & "-Empty-/"
-                else
-                    wmenu=wmenu & player.weapons(a).desig & "/"
-                endif
-            next
-            wmenu=wmenu+"Exit"
-            b=b+1            
-            c=menu(bg_parent,wmenu)
-            if c<b then
-                if player.weapons(c).desig<>"" and d<>5 then 
-                    if not(askyn("Do you want to replace your "&player.weapons(c).desig &"(y/n)")) then c=b
-                endif
-                if c<b then
-                    if paystuff(wsinv(d).p*haggle_("down")) then
-                        if wsinv(d).made<=14 then
-                            dprint "You buy "&add_a_or_an(wsinv(d).desig,0) &"."
-                        else
-                            dprint "You buy "&wsinv(d).desig &"."
-                        endif
-                        player.weapons(c)=wsinv(d)
-                        for i=d to last
-                            wsinv(d)=wsinv(d+1)
-                            makew(d,st)=makew(d+1,st)
-                        next
-                        wsinv(last)=make_weapon(0)
-                        makew(last,st)=0
-                    endif
-                endif
-            endif
-        endif
-        
-           
-        recalcshipsbays
-        
-    loop until d=ex
-                      
-    return 0
-end function
-
 
 function pirateupgrade() as short
     dim a as short

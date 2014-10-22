@@ -273,16 +273,12 @@ function minimum(a as double,b as double) as double
 end function
 
 
-function distance(first as _cords, last as _cords,rollover as byte=0) as single
+function distance(first as _cords, last as _cords,rollover as byte=1) as single
     dim as single dis,dx,dy,dx2
     dx=first.x-last.x
     dy=first.y-last.y
-    if rollover<>0 then
-        if first.x<last.x then
-            dx2=60-last.x+first.x
-        else
-            dx2=60-first.x+last.x
-        endif
+    if rollover=0 then
+        dx2=60-abs(first.x-last.x)
         if abs(dx)>abs(dx2) then dx=dx2
     endif
     dis=sqr(dx*dx+dy*dy)
@@ -445,7 +441,6 @@ function calc_sight() as short
     dim as byte darkness,sight,binocbonus
     darkness=awayteam.dark
     sight=awayteam.sight
-    if _debug=1 then dprint "S:"&sight
     if darkness>0 then
         sight=sight-darkness
         if sight<0 then sight=0
@@ -463,19 +458,19 @@ function calc_sight() as short
         
         endif
     endif
-    if _debug=1 then dprint "S:"&sight
     return sight
 end function
 
 
-function make_vismask(c as _cords, sight as short,m as short,ad as short=0) as short
+function make_vismask(c as _cords, sight as short,m as short,ad as short=0,groundpen as short=0) as short
     dim as short illu
-    dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr
+    dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr,rollover
     dim as byte mask
     dim as _cords p,pts(128)
     x1=c.x
     y1=c.y
     if m>0 then
+        if planets(m).depth>0 then rollover=1
         mx=60
         my=20
         if sight=0 then sight=calc_sight
@@ -497,15 +492,16 @@ function make_vismask(c as _cords, sight as short,m as short,ad as short=0) as s
                 mask=1
                 p.x=x
                 p.y=y
-                d=line_in_points(p,c,pts())
+                d=line_in_points(p,c,pts(),rollover)
                 for i=1 to d
-                    if distance(c,pts(i))<=sight then
+                    if distance(c,pts(i),rollover)<=sight then
                         if m>0 then
                             if pts(i).x>60 then pts(i).x-=61
                             if pts(i).x<0 then pts(i).x+=61
                             if pts(i).y>=0 and pts(i).y<=20 then
                                 vismask(pts(i).x,pts(i).y)=mask
-                                if tmap(pts(i).x,pts(i).y).seetru>0 or (tmap(pts(i).x,pts(i).y).seetru>0 and tmap(pts(i).x,pts(i).y).dr>grr) then mask=0    
+                                if tmap(pts(i).x,pts(i).y).seetru>0 then mask=0
+                                if tmap(pts(i).x,pts(i).y).seetru>0 and distance(c,pts(i),rollover)<=groundpen then mask=1    
                             endif
                         else
                             if pts(i).x>=0 and pts(i).x<=mx and pts(i).y>=0 and pts(i).y<=my then
@@ -760,7 +756,7 @@ function pathblock(byval c as _cords,byval b as _cords,mapslot as short,blocktyp
     return result
 end function
 
-function line_in_points(b as _cords,c as _cords,p() as _cords) as short
+function line_in_points(b as _cords,c as _cords,p() as _cords,rollover as short=1) as short
     dim last as short
     dim as single px,py
     dim deltax as single
@@ -769,13 +765,21 @@ function line_in_points(b as _cords,c as _cords,p() as _cords) as short
     dim l as single
     dim  as short result
     dim text as string
-    dim as short co,i
+    dim as short co,i,dx,dx2
     Dim As Integer d, dinc1, dinc2
     Dim As Integer x, xinc1, xinc2
     Dim As Integer y, yinc1, yinc2
-    
+    if rollover=0 then
+        dx2=60-abs(b.x-c.x)
+        dx=abs(b.x-c.x)
+        if dx2<dx then
+            b.x-=60
+        endif
+    endif
+
     deltax = Abs(c.x - b.x)
     deltay = Abs(c.y - b.y)
+    
     If deltax >= deltay Then
         numtiles = deltax + 1
         d = (2 * deltay) - deltax
@@ -805,7 +809,7 @@ function line_in_points(b as _cords,c as _cords,p() as _cords) as short
         yinc1 = - yinc1
         yinc2 = - yinc2
     End If
-
+    
     x = c.x
     y = c.y
     p(1).x=x
@@ -823,6 +827,10 @@ function line_in_points(b as _cords,c as _cords,p() as _cords) as short
           y = y + yinc2
         End If
         last+=1
+        if rollover=0 then
+            if x>60 then x=0
+            if x<0 then x=60
+        endif
         p(last).x=x
         p(last).y=y
     next
