@@ -221,7 +221,7 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
     draw string(sidebar+_fw2,14*_fh2), p.temp &" "&chr(248)&"C ",,font2,custom,@_col
     draw string(sidebar+_fw2,15*_fh2), c_to_f(p.temp) &" "&chr(248)&"F ",,font2,custom,@_col
     if p.rot>0 then
-        draw string(sidebar,17*_fh2),"Rot.:"&round_str(24*(1/p.rot),1) &" h",,font2,custom,@_col
+        draw string(sidebar,17*_fh2),"Rot.: "&display_time((60*5*10)/(p.rot),3) &" h",,font2,custom,@_col
     else
         draw string(sidebar,17*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif

@@ -2447,16 +2447,6 @@ function savegame(crash as short=0) as short
         put #f,,shares(a)
     next
 
-    for a=0 to 2
-        put #f,,shoporder(a)
-    next
-
-    for a=0 to 20
-        for b=0 to 30
-            put #f,,shopitem(a,b)
-        next
-        print ".";
-    next
     for a=0 to 5
         for b=0 to 20
             put #f,,makew(b,a)
@@ -2574,6 +2564,19 @@ function savegame(crash as short=0) as short
     for b=1 to lastshop
         put #f,,shoplist(b)
     next
+
+    for a=0 to 2
+        put #f,,shoporder(a)
+    next
+
+
+    for a=0 to 20
+        for b=0 to lastshop
+            put #f,,shopitem(a,b)
+        next
+        print ".";
+    next
+        
     
     close f
 
@@ -2795,17 +2798,6 @@ function load_game(filename as string) as short
             Get #f,,shares(a)
         next
 
-        for a=0 to 2
-            Get #f,,shoporder(a)
-        next
-
-
-        for a=0 to 20
-            for b=0 to 30
-                get #f,,shopitem(a,b)
-            next
-            print ".";
-        next
         for a=0 to 5
             for b=0 to 20
                 get #f,,makew(b,a)
@@ -2921,6 +2913,18 @@ function load_game(filename as string) as short
         get #f,,lastshop
         for b=1 to lastshop
             get #f,,shoplist(b)
+        next
+        
+        for a=0 to 2
+            Get #f,,shoporder(a)
+        next
+
+
+        for a=0 to 20
+            for b=0 to lastshop
+                get #f,,shopitem(a,b)
+            next
+            print ".";
         next
         
         close f

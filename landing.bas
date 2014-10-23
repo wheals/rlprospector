@@ -32,6 +32,7 @@ function landing_landingpads(pads() as _cords, last as short,mapslot as short) a
     dim as string key
     if last=1 then return 1
     p=pads(1)
+    i=1
     dprint "Chose landing pad(+/-)"
     do
         screenset 0,1

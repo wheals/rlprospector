@@ -546,8 +546,8 @@ Function _ship.useammo(test as short) As Short
             where=i
         EndIf
     Next
-    If weapons(where).ammo>0 and test=1 Then
-        weapons(where).ammo-=1
+    If weapons(where).ammo>0 Then
+        if test=1 then weapons(where).ammo-=1
         Return -1
     Else
         Return 0
@@ -1346,9 +1346,6 @@ type _shops
     shoptype as short
 end type
 
-dim shared lastshop as short
-dim shared shoplist(2048) as _shops
-
 Enum ShipYards
     sy_civil
     sy_military
@@ -1765,7 +1762,11 @@ Next
 Dim Shared item(25000) As _items
 Dim Shared lastitem As Integer=-1
 Dim Shared _last_title_pic As Byte=14
-Dim Shared shopitem(20,30) As _items
+
+dim shared lastshop as short
+dim shared shoplist(2048) as _shops
+Dim Shared shopitem(20,2048) As _items
+
 Dim Shared makew(20,5) As Byte
 
 Dim Shared tiles(512) As _tile
@@ -1886,11 +1887,8 @@ End Type
 
 Dim Shared pixelsize As Integer
 
-declare function add_shop overload (shoptype as short,x as short,y as short,map as short) as short
-declare function add_shop overload (shoptype as short, station as short) as short
-declare function get_shop_index overload (shoptype as short,station as short) as short
-declare function get_shop_index overload (shoptype as short,x as short,y as short,map as short) as short
-
+declare function add_shop (shoptype as short,c as _cords, station as short) as short
+declare function get_shop_index (shoptype as short,c as _cords,station as short) as short
 
 Declare Function make_shipequip(a As Short) As _items
 Declare Function roman(i As Integer) As String

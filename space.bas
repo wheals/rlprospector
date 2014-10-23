@@ -1315,7 +1315,7 @@ end function
 function gen_shops() as short
     dim  as short i,j,flag,debug,mudddone,lastshopspec,botsdone
     dim as byte shopspec(7)
-    
+    dim c as _cords
     lastshopspec=3
     for i=0 to 3
         shopspec(i)=sh_Explorers+i
@@ -1323,18 +1323,18 @@ function gen_shops() as short
     
     for i=0 to 3 'Set shopspecs. Never should be the same twice
         j=rnd_range(0,lastshopspec)
-        add_shop(shopspec(j),i)
+        add_shop(shopspec(j),c,i)
         basis(i).shop(0)=shopspec(j)
         shopspec(j)=shopspec(lastshopspec)
         lastshopspec-=1
         if rnd_range(1,100)<15 then 
             basis(i).shop(sh_mudds)=1
-            add_shop(sh_mudds,i)
+            add_shop(sh_mudds,c,i)
             mudddone=1
         endif
         if rnd_range(1,100)<15 then
             basis(i).shop(sh_bots)=1
-            add_shop(sh_bots,i)
+            add_shop(sh_bots,c,i)
             botsdone=1
         endif
         select case rnd_range(1,100)
@@ -1351,19 +1351,19 @@ function gen_shops() as short
         end select
         if rnd_range(1,100)<(1-basis(i).pricelevel)*100 or _debug=1 then 
             basis(i).shop(sh_used)=1
-            add_shop(sh_used,i)
-            add_shop(sh_usedships,i)
+            add_shop(sh_used,c,i)
+            add_shop(sh_usedships,c,i)
         endif
     next
     if mudddone=0 then 
         i=rnd_range(0,2)
         basis(i).shop(Sh_mudds)=1
-        add_shop(sh_mudds,i)
+        add_shop(sh_mudds,c,i)
     endif 
     if botsdone=0 then 
         i=rnd_range(0,2)
         basis(i).shop(Sh_bots)=1
-        add_shop(sh_bots,i)
+        add_shop(sh_bots,c,i)
     endif
     
     j=0
@@ -1397,15 +1397,15 @@ function gen_shops() as short
     basis(3).shop(sh_shipyard)=rnd_range(0,1)
     
     for i=0 to 2
-        add_shop(sh_sickbay,i)
+        add_shop(sh_sickbay,c,i)
     next
     
-    add_shop(sh_modules,0)
-    add_shop(sh_modules,1)
-    add_shop(sh_modules,2)
-    add_shop(sh_modules,3)
-    add_shop(sh_modules,4)
-    add_shop(sh_modules,5)
+    add_shop(sh_modules,c,0)
+    add_shop(sh_modules,c,1)
+    add_shop(sh_modules,c,2)
+    add_shop(sh_modules,c,3)
+    add_shop(sh_modules,c,4)
+    add_shop(sh_modules,c,5)
     
     return 0
 end function

@@ -2702,6 +2702,7 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, shipf
                         If player.weapons(shipfire(sf).what).reloading<>0 Then shipfire(sf).when=-4
                         If shipfire(sf).when>0 Then
                             dprint player.weapons(shipfire(sf).what).desig &" fired"
+                            If player.weapons(shipfire(sf).what).ammomax>0 Then player.useammo(1)
                             player.weapons(shipfire(sf).what).heat+=player.weapons(shipfire(sf).what).heatadd*25
                             player.weapons(shipfire(sf).what).reloading=player.weapons(shipfire(sf).what).reload
                             If Not(skill_test(player.gunner(0),player.weapons(shipfire(sf).what).heat/25)) Then
@@ -3663,7 +3664,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
         dprint "A Weapons and Equipment store"
         If slot<>piratebase(0) Or faction(0).war(2)<=0 Then
             for b=0 to 3
-                d=get_shop_index(sh_explorers+b,awayteam.c.x,awayteam.c.y,slot)
+                d=get_shop_index(sh_explorers+b,awayteam.c,-1)
                 if d>0 then exit for
             next
             Do
@@ -3909,7 +3910,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
     EndIf
 
     If tmap(awayteam.c.x,awayteam.c.y).gives=43 Then
-        player.disease=sick_bay(get_shop_index(sh_sickbay,awayteam.c.x,awayteam.c.y,slot),1)
+        player.disease=sick_bay(get_shop_index(sh_sickbay,awayteam.c,-1),1)
     EndIf
 
     If tmap(awayteam.c.x,awayteam.c.y).gives=44 Then
@@ -4110,7 +4111,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
     EndIf
             
             If tmap(awayteam.c.x,awayteam.c.y).gives=59 Then 'Scrapyard
-                botsanddrones_shop(get_shop_index(sh_bots,awayteam.c.x,awayteam.c.y,slot))
+                botsanddrones_shop(get_shop_index(sh_bots,awayteam.c,-1))
             EndIf
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=60 Then 'Town hall in settlements
@@ -4228,7 +4229,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             EndIf
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=66 Then
-                mudds_shop(get_shop_index(sh_mudds,awayteam.c.x,awayteam.c.y,slot))
+                mudds_shop(get_shop_index(sh_mudds,awayteam.c,-1))
             EndIf
 
 
@@ -4278,7 +4279,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=74 Then sell_alien(slse_slaves)
 
-            If tmap(awayteam.c.x,awayteam.c.y).gives=75 Then used_ships(get_shop_index(sh_used,awayteam.c.x,awayteam.c.y,slot),get_shop_index(sh_usedships,awayteam.c.x,awayteam.c.y,slot))
+            If tmap(awayteam.c.x,awayteam.c.y).gives=75 Then used_ships(get_shop_index(sh_used,awayteam.c,-1),get_shop_index(sh_usedships,awayteam.c,-1))
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=167 Then
                 If askyn("A working security camera terminal. Do you want to try to use it?(y/n)") Then
@@ -4673,7 +4674,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             If tmap(awayteam.c.x,awayteam.c.y).gives=321 Then
                 dprint add_a_or_an(civ(0).n,1) &" shop"
                 If faction(0).war(6)<50 Then
-                    shop(get_shop_index(sh_aliens1,awayteam.c.x,awayteam.c.y,slot),1,civ(0).n &" shop")
+                    shop(get_shop_index(sh_aliens1,awayteam.c,-1),1,civ(0).n &" shop")
                 Else
                     dprint "They don't want to trade with you"
                 EndIf
@@ -4682,7 +4683,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             If tmap(awayteam.c.x,awayteam.c.y).gives=322 Then
                 dprint add_a_or_an(civ(1).n,1) &" shop"
                 If faction(0).war(7)<50 Then
-                    shop(get_shop_index(sh_aliens2,awayteam.c.x,awayteam.c.y,slot),1,civ(1).n &" shop")
+                    shop(get_shop_index(sh_aliens2,awayteam.c,-1),1,civ(1).n &" shop")
                 Else
                     dprint "They don't want to trade with you"
                 EndIf

@@ -556,7 +556,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         node(22).statement="Oh, that's pretty! But I don't know what to do with it."
         node(22).option(1).no=1
     end select
-    if questguy(i).knows(questguy(i).flag(1))>0 then
+    if questguy(i).knows(questguy(i).flag(1))<>0 then
         select case questguy(i).knows(questguy(i).flag(1))
         case 1,2,3
             select case rnd_range(1,100)

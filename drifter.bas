@@ -122,11 +122,14 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                 if rnd_range(1,100)<66 then 'Random Shops
                     ti=rnd_range(1,lastrandomshop)
                     planetmap(x,y,m)=-randomshop(ti)
-                    if randomshop(ti)=98 then add_shop(sh_blackmarket,x,y,m)
-                    if randomshop(ti)=262 then add_shop(sh_mudds,x,y,m)
-                    if randomshop(ti)=109 then add_shop(sh_sickbay,x,y,m)
-                    if randomshop(ti)=112 then add_shop(sh_usedships,x,y,m)
-                    if randomshop(ti)=261 then add_shop(sh_sickbay,x,y,m)
+                    p.x=x
+                    p.y=y
+                    p.m=m
+                    if randomshop(ti)=98 then add_shop(sh_blackmarket,p,-1)
+                    if randomshop(ti)=262 then add_shop(sh_mudds,p,-1)
+                    if randomshop(ti)=109 then add_shop(sh_sickbay,p,-1)
+                    if randomshop(ti)=112 then add_shop(sh_usedships,p,-1)
+                    if randomshop(ti)=261 then add_shop(sh_sickbay,p,-1)
                     randomshop(ti)=randomshop(lastrandomshop)
                     lastrandomshop-=1
                                     

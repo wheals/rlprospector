@@ -948,7 +948,7 @@ function casino(staked as short=0, st as short=-1) as short
                 endif
                 p=fleet(rnd_range(1,lastfleet)).c
                 if p.x=0 and p.y=0 then p=rnd_point
-                if b=16 and rnd_range(1,100)<66 then p=map(piratebase(rnd_range(0,_NoPB))).c
+                if b=16 and rnd_range(1,100)<66 then p=map(sysfrommap(piratebase(rnd_range(0,_NoPB)))).c
                 if b=1 then dprint "An old miner tells you a tall tale about a planet he worked on. Short version: they dug too deep and released invisible monsters that drove them off the planet."
                 if b=2 then dprint "Another prospector tells you that he used ground radar to locate the ruins of an alien temple. Unfortunately the weather on the planet was so harsh his crew muntinied and demanded to return to the station immediately."
                 if b=3 then dprint "A merchant captain claims to have outrun the infamous 'Anne Bonny' at coordinates "&cords(p)&"."

@@ -34,6 +34,12 @@ Function display_time(t As UInteger,form As Byte=0) As String
         Else
             Return  hs &":"&ms
         EndIf
+    case 3
+        If d>0 Then
+            Return d &" days, "& h &" hours and "& m &" minutes"
+        Else
+            Return  hs &":"&ms
+        EndIf
     End Select
 End Function
 

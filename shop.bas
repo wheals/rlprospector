@@ -1,36 +1,30 @@
-function add_shop(shoptype as short,x as short,y as short,map as short) as short
-    if _debug>0 then dprint "planet ad"
-    lastshop+=1
-    shoplist(lastshop).shoptype=shoptype
-    shoplist(lastshop).x=x
-    shoplist(lastshop).y=y
-    shoplist(lastshop).m=map
+function add_shop(shoptype as short,c as _cords,station as short) as short
+    if station=-1 then
+        lastshop+=1
+        shoplist(lastshop).shoptype=shoptype
+        shoplist(lastshop).x=c.x
+        shoplist(lastshop).y=c.y
+        shoplist(lastshop).m=c.m
+    else
+        lastshop+=1
+        shoplist(lastshop).shoptype=shoptype
+        shoplist(lastshop).station=station
+    endif
     gen_shop(lastshop,shoptype)
     return 0
 end function
 
-function add_shop(shoptype as short, station as short) as short
-    if _debug>0 then dprint "station ad"
-    lastshop+=1
-    shoplist(lastshop).shoptype=shoptype
-    shoplist(lastshop).station=station
-    gen_shop(lastshop,shoptype)
-    return 0
-end function
-
-function get_shop_index(shoptype as short,x as short,y as short,map as short) as short
+function get_shop_index(shoptype as short,c as _cords,station as short) as short
     dim i as short
-    for i=1 to lastshop
-        if x=shoplist(i).x and y=shoplist(i).y and map=shoplist(i).m and shoptype=shoplist(i).shoptype then return i
-    next
-    return 0
-end function
-
-function get_shop_index(shoptype as short,station as short) as short
-    dim i as short
-    for i=1 to lastshop
-        if station=shoplist(i).station and shoptype=shoplist(i).shoptype then return i
-    next
+    if station=-1 then
+        for i=1 to lastshop
+            if c.x=shoplist(i).x and c.y=shoplist(i).y and c.m=shoplist(i).m and shoptype=shoplist(i).shoptype then return i
+        next
+    else
+        for i=1 to lastshop
+            if station=shoplist(i).station and shoptype=shoplist(i).shoptype then return i
+        next
+    endif
     return 0
 end function
 
@@ -39,7 +33,7 @@ function gen_shop(i as short, shoptype as short) as short
     dim as _items it
     if _debug>0 then dprint i &" ST:"&shoptype 
     for a=0 to 20
-        shopitem(a,i)=it
+        shopitem(a,i).desig=""
     next
     if shoptype=sh_used then
         for a=0 to rnd_range(1,6)+rnd_range(1,6)
@@ -214,13 +208,14 @@ function gen_shop(i as short, shoptype as short) as short
         case sh_Cheap
             if rnd_range(1,100)<25 then
                 it=rnd_item(RI_standardshop)
-                it.w.x=rnd_range(10,20)
+                it.w.x=rnd_range(1,5)
             else
                 if rnd_range(1,100)<50 then 
                     it=rnd_item(RI_WeakWeapons)
                 else
                     it=rnd_item(RI_WeakStuff)
                 endif
+                it.w.x=rnd_range(5,15)
             end if
             
         case sh_Spacenstuff                
@@ -353,7 +348,10 @@ function gen_shop(i as short, shoptype as short) as short
                 a+=1
                 exit for
             endif
-            if shopitem(c,i).id=it.id then exit for
+            if shopitem(c,i).id=it.id then 
+                if shoptype<>sh_used then shopitem(c,i).w.x+=1
+                exit for
+            endif
         next
     loop until a>=20 or (shoptype=sh_sickbay and a>=15) or (a>=15 and shoptype=sh_aliens1) or (a>=15 and shoptype=sh_aliens2) or (shoptype=sh_usedships and a>=10)    
     return 0
@@ -1366,13 +1364,13 @@ function shipupgrades(st as short) as short
     dim as short b,c,d,e,i
     dim mtext as string
     dim help as string
-
+    dim as _cords p1
     help=help &"Change type of ammo used for missile weapons."
     do 
         c=menu(bg_parent,"Ship Upgrades:/Sensors,Shields & Engines/Weapons & Modules/Change Loadout/Change Armortype/Exit")
             if c=1 then 
                 do
-                    d=shop(get_shop_index(sh_modules,st),1,"Sensors, Shields & Engines")
+                    d=shop(get_shop_index(sh_modules,p1,st),1,"Sensors, Shields & Engines")
                 loop until d=-1
             endif    
             if c=2 then buy_weapon(st)

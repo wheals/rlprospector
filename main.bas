@@ -191,7 +191,6 @@ Function start_new_game() As Short
     Dim doubleitem(45550) As Byte
     Dim i As _items
     Dim debug As Byte
-    debug=66
     
     make_spacemap()
     
@@ -677,6 +676,7 @@ Function spacestation(st As Short) As _ship
     Dim i As _items
     Dim As String Key,text,mtext,sn
     Dim dum As _basis
+    dim p as _cords
     set__color(11,0)
     Cls
     basis(st).docked+=1
@@ -836,7 +836,7 @@ Function spacestation(st As Short) As _ship
                     set__color(11,0)
                     Cls
                     for b=0 to 3
-                        equipshop=get_shop_index(sh_explorers+b,st)
+                        equipshop=get_shop_index(sh_explorers+b,p,st)
                         if equipshop>0 then exit for
                     next
                     sn=shopname(b+1)
@@ -873,16 +873,16 @@ Function spacestation(st As Short) As _ship
                         set__color(11,0)
                         Cls
                     EndIf
-                    If basis(st).shop(sh_used)=1 And b=usedshop Then used_ships(get_shop_index(sh_used,st),get_shop_index(sh_usedships,st))
-                    If basis(st).shop(sh_mudds)=1 And b=muddsshop Then mudds_shop(get_shop_index(sh_mudds,st))
-                    If basis(st).shop(sh_bots)=1 And b=botsshop Then botsanddrones_shop(get_shop_index(sh_bots,st))
+                    If basis(st).shop(sh_used)=1 And b=usedshop Then used_ships(get_shop_index(sh_used,p,st),get_shop_index(sh_usedships,p,st))
+                    If basis(st).shop(sh_mudds)=1 And b=muddsshop Then mudds_shop(get_shop_index(sh_mudds,p,st))
+                    If basis(st).shop(sh_bots)=1 And b=botsshop Then botsanddrones_shop(get_shop_index(sh_bots,p,st))
                 Loop Until b=4+basis(st).shop(sh_mudds)+basis(st).shop(sh_bots)+basis(st).shop(sh_used) Or b=-1
             Else
                 dprint "you are under quarantine and not allowed to enter there"
             EndIf
         EndIf
         If a=3 Then
-            player.disease=sick_bay(get_shop_index(sh_sickbay,st),,basis(st).company)
+            player.disease=sick_bay(get_shop_index(sh_sickbay,p,st),,basis(st).company)
             mtext="Station "& st+1 &"/ "
             mtext=mtext & basis(st).repname &" Office "
             If quarantine>6 Then mtext=mtext &"(Quar.)"
