@@ -321,7 +321,7 @@ function diseaserun(onship as short) as short
     return 0
 end function
 
-function dam_awayteam_list(target() as short, stored() as short, ap as short) as short
+function dam_awayteam_list(target() as short, stored() as short, ap as short, all as short) as short
     dim as short b,last
     awayteam.hp=0
     if ap=5 then
@@ -331,11 +331,19 @@ function dam_awayteam_list(target() as short, stored() as short, ap as short) as
         next
     else
         for b=1 to 128
-            if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).onship=0) then
-                awayteam.hp+=1
-                last+=1
-                target(last)=b
-                stored(b)=crew(b).hp
+            if all=2 then
+                if crew(b).hpmax>0 and crew(b).typ>1 and crew(b).typ<=5 then
+                    last+=1
+                    target(last)=b
+                    stored(b)=crew(b).hp
+                endif
+            else                
+                if (crew(b).hpmax>0 and crew(b).hp>0 and (all=1 or crew(b).onship=0)) then
+                    awayteam.hp+=1
+                    last+=1
+                    target(last)=b
+                    stored(b)=crew(b).hp
+                endif
             endif
         next
     endif
@@ -343,7 +351,7 @@ function dam_awayteam_list(target() as short, stored() as short, ap as short) as
     return last
 end function 
 
-function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
+function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as short=0) as string
     dim text as string
     dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus,suitdamage
     dim as short local_debug=0
@@ -378,7 +386,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
     if abs(player.tactic)=2 then dam=dam-player.tactic
     if dam<0 then dam=1
     
-    last=dam_awayteam_list(target(),stored(),ap)
+    last=dam_awayteam_list(target(),stored(),ap,all)
     
     cc=0
     do
@@ -421,7 +429,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0) as string
             endif
         endif
         
-        last=dam_awayteam_list(target(),stored(),ap)
+        last=dam_awayteam_list(target(),stored(),ap,0)
     
     loop until dam<=0 or ex=1 or cc>9999 or last=0
     dam=0

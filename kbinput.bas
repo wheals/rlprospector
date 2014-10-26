@@ -277,6 +277,15 @@ function cursor(target as _cords,map as short,osx as short,osy as short=0,radius
     if map<=0 then border=1
     'dprint ""&planetmap(target.x,target.y,map)
     if map>0 then
+        if planets(map).depth=0 then
+            if target.x<0 then target.x=60
+            if target.x>60 then target.x=0
+        else
+            if target.x<0 then target.x=0
+            if target.x>60 then target.x=60
+        endif
+        if target.y<0 then target.y=0
+        if target.y>20 then target.y=20
         if planetmap(target.x,target.y,map)<0 then
             if configflag(con_tiles)=0 then
                 put ((target.x-osx)*_tix,(target.y-osy)*_tiy),gtiles(0),trans

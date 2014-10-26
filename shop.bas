@@ -5,11 +5,35 @@ function add_shop(shoptype as short,c as _cords,station as short) as short
         shoplist(lastshop).x=c.x
         shoplist(lastshop).y=c.y
         shoplist(lastshop).m=c.m
+        select case shoptype
+        case sh_modules
+            planetmap(c.x,c.y,c.m)=-72
+        case sh_Explorers,sh_Cheap,sh_Spacenstuff,sh_YeOlde,sh_colonyI
+            planetmap(c.x,c.y,c.m)=-43
+        case sh_used,sh_usedships
+            planetmap(c.x,c.y,c.m)=-112
+        case sh_mudds
+            planetmap(c.x,c.y,c.m)=-262
+        case sh_bots
+            planetmap(c.x,c.y,c.m)=-109
+        case sh_blackmarket
+            planetmap(c.x,c.y,c.m)=-98
+        case sh_aliens1
+            planetmap(c.x,c.y,c.m)=-280
+        case sh_aliens2
+            planetmap(c.x,c.y,c.m)=-281
+        case sh_sickbay
+            planetmap(c.x,c.y,c.m)=-261
+        case sh_giftshop
+            planetmap(c.x,c.y,c.m)=-113
+        end select
+        
     else
         lastshop+=1
         shoplist(lastshop).shoptype=shoptype
         shoplist(lastshop).station=station
     endif
+    if _debug>0 then dprint "genshop"&shoptype
     gen_shop(lastshop,shoptype)
     return 0
 end function
@@ -29,12 +53,22 @@ function get_shop_index(shoptype as short,c as _cords,station as short) as short
 end function
 
 function gen_shop(i as short, shoptype as short) as short
-    dim as short a,b,c,roll,savety,species
+    dim as short a,b,c,roll,savety,species,money,empty
     dim as _items it
     if _debug>0 then dprint i &" ST:"&shoptype 
-    for a=0 to 20
-        shopitem(a,i).desig=""
-    next
+    money=5000
+    if shoptype<>sh_usedships then
+        do
+            empty=1
+            for a=0 to 20
+                if shopitem(a,i).desig<>"" then empty=0
+            next
+            b=rnd_range(1,20)
+            money-=shopitem(b,i).price
+            shopitem(b,i).w.x-=1
+            if shopitem(b,i).w.x<=0 then shopitem(b,i).desig=""
+        loop until money<=0 or empty=1
+    endif
     if shoptype=sh_used then
         for a=0 to rnd_range(1,6)+rnd_range(1,6)
             
@@ -54,22 +88,49 @@ function gen_shop(i as short, shoptype as short) as short
     end if
     
     if shoptype=sh_usedships then
-        a=0
-        for b=0 to rnd_range(1,6)+rnd_range(1,6)
-            select case rnd_range(1,100)
-            case 1 to 50
-                it.w.x=rnd_range(1,4)
-                it.w.y=rnd_range(1,3)
-            case 1 to 85
-                it.w.x=rnd_range(5,8)
-                it.w.y=rnd_range(1,3)
-            case else
-                it.w.x=rnd_range(9,12)
-                it.w.y=rnd_range(1,3)
-            end select
-            a+=1
-            shopitem(a,i)=it
-        next
+        if player.turn=0 then
+            a=0
+            for b=0 to rnd_range(1,6)+rnd_range(1,6)
+                select case rnd_range(1,100)
+                case 1 to 50
+                    it.w.x=rnd_range(1,4)
+                    it.w.y=rnd_range(1,3)
+                case 1 to 85
+                    it.w.x=rnd_range(5,8)
+                    it.w.y=rnd_range(1,3)
+                case else
+                    it.w.x=rnd_range(9,12)
+                    it.w.y=rnd_range(1,3)
+                end select
+                a+=1
+                shopitem(a,i)=it
+            next
+        else
+            a=0
+            for b=0 to 20
+                if it.w.x>0 then a+=1
+            next
+            for b=0 to 1+rnd_range(0,1)
+                if rnd_range(1,100)<50 then
+                    c=rnd_range(1,a)
+                else
+                    c=a+1
+                    a+=1
+                endif
+                select case rnd_range(1,100)
+                case 1 to 50
+                    it.w.x=rnd_range(1,4)
+                    it.w.y=rnd_range(1,3)
+                case 1 to 85
+                    it.w.x=rnd_range(5,8)
+                    it.w.y=rnd_range(1,3)
+                case else
+                    it.w.x=rnd_range(9,12)
+                    it.w.y=rnd_range(1,3)
+                end select
+                shopitem(c,i)=it
+            next
+        endif
         return 0
     end if
     
@@ -242,26 +303,25 @@ function gen_shop(i as short, shoptype as short) as short
             else
                 it=make_item(rnd_range(1,80))
             endif
-            if _debug>0 then dprint it.desig &":"&a
             if it.price=0 then it.price=rnd_range(9,49)
             it.w.x=rnd_range(5,10)
         case sh_blackmarket        
             it=rnd_item(RI_AllButWeaponsAndMeds)
             it.w.x=rnd_range(1,15-it.v1)
         case sh_colonyI
-            if a<17 then
-                it=make_item(RI_Standardshop)
+            if a>1 then
+                it=rnd_item(RI_Standardshop)
             endif
-            if a=19 then it=make_item(97)'Disintegrator
-            if a=18 then it=make_item(98)'adaptive bodyarmor
-            it.w.x=rnd_range(1,15-it.v1)        
+            if a=1 then it=make_item(97)'Disintegrator
+            if a=0 then it=make_item(98)'adaptive bodyarmor
+            it.w.x=rnd_range(1,15-it.v1) 
         case sh_aliens1,sh_aliens2
             species=sh_aliens2-sh_aliens1
-            if a<17 then
-                it=make_item(RI_Standardshop)
+            if a>1 then
+                it=rnd_item(RI_Standardshop)
             endif
-            if a=19 then it=civ(species).item(0)'weapons
-            if a=18 then it=civ(species).item(1)'ccweap
+            if a=1 then it=civ(species).item(0)'weapons
+            if a=0 then it=civ(species).item(1)'ccweap
         case sh_shipequip
             it=make_item(75)
             it.w.x=rnd_range(1,6)
@@ -329,17 +389,16 @@ function gen_shop(i as short, shoptype as short) as short
         case sh_giftshop
             select case rnd_range(1,100)
             case 1 to 5
-                it=make_item(201)
-            case 11 to 15
-                it=make_item(202)
-            case 6 to 10
-                it=make_item(203)
-            case 16 to 20
-                it=make_item(204)
+                it=make_item(rnd_range(201,204))
+            case 99
+                it=make_item(89)
+                it.price=rnd_range(100,5000)
+            case 100
+                it=rnd_item(RI_artefact)
             case else
-                it=make_item(94)
+                it=make_item(rnd_range(91,94))
             end select
-            it.w.x=rnd_range(1,3)
+            it.w.x=1
         end select
             
         for c=1 to 20
@@ -348,12 +407,16 @@ function gen_shop(i as short, shoptype as short) as short
                 a+=1
                 exit for
             endif
-            if shopitem(c,i).id=it.id then 
+            if shopitem(c,i).id=it.id and shoptype<>sh_giftshop  then 
                 if shoptype<>sh_used then shopitem(c,i).w.x+=1
                 exit for
             endif
         next
-    loop until a>=20 or (shoptype=sh_sickbay and a>=15) or (a>=15 and shoptype=sh_aliens1) or (a>=15 and shoptype=sh_aliens2) or (shoptype=sh_usedships and a>=10)    
+        empty=0
+        for c=1 to 20
+            if shopitem(c,i).desig="" then empty=1
+        next
+    loop until (a>=20 or empty=0 or savety>100) or (shoptype=sh_giftshop and a>10+rnd_range(1,4)) or (shoptype=sh_sickbay and a>=15) or (a>=15 and shoptype=sh_aliens1) or (a>=15 and shoptype=sh_aliens2) or (shoptype=sh_usedships and a>=10)    
     return 0
 end function
 
@@ -898,7 +961,7 @@ function customize_item() as short
                     endif
                 endif
             else
-                dprint "Come back when you have something to acidproof."
+                dprint "Come back when you have something to make acidproof."
             endif
         endif
     loop until a=5
@@ -906,8 +969,30 @@ function customize_item() as short
     
 end function
 
+function sell_towed() as short
+    dim towed as _ship
+    dim a as short
+    towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
+    a=towed.h_price
+    if planets(drifting(player.towed).m).genozide<>1 then a=a/2
+    a=a/2
+    a=int(a)
+    
+    if planets(drifting(player.towed).m).mon_template(0).made=32 then
+        if askyn ("the company offers you "& credits(a) &" Cr. for the "&towed.h_desig &" you have in tow. Do you accept?(y/n)") then
+            drifting(player.towed)=drifting(lastdrifting)
+            lastdrifting-=1
+            addmoney(a,mt_towed)
+            player.towed=0
+        endif
+    else
+        dprint "That ships seems to belong to somebody else."
+    endif
+    return 0
+end function
+
 function used_ships(si as short,si2 as short) as short
-    dim as short yourshipprice,i,a,yourshiphull,price(8),l,bargainbin
+    dim as short yourshipprice,i,a,yourshiphull,price(8),l,bargainbin,selltowed,sellequipment,leave
     dim s as _ship
     dim as single pmod
     dim as string mtext,htext,desig(8)
@@ -938,7 +1023,16 @@ function used_ships(si as short,si2 as short) as short
             endif
         next
         bargainbin+=1
-        mtext=mtext &"Bargain bin/Sell equipment/Exit"
+        sellequipment=bargainbin+1
+        mtext=mtext & "Bargain bin/Sell equipment"
+        if player.towed>0 then 
+            selltowed=sellequipment+1
+            mtext=mtext &"/Sell towed ship"
+            leave=selltowed+1
+        else
+            leave=sellequipment+1
+        endif
+        mtext=mtext &"/Exit"
         a=menu(bg_shiptxt,mtext,htext,2,2)
         if a>=1 and a<bargainbin then
             if buy_ship(usedship(a).x,desig(a),price(a)) then
@@ -952,8 +1046,9 @@ function used_ships(si as short,si2 as short) as short
                 cls
             loop until shop(si,0.8,"Bargain bin")=-1
         endif
-        if a=bargainbin+1 then buysitems("","",0,.5)
-    loop until a=bargainbin+2 or a=-1        
+        if a=sellequipment then buysitems("","",0,.5)
+        if a=selltowed then sell_towed
+    loop until a=leave or a=-1        
     return 0
 end function
 
@@ -994,12 +1089,10 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
     i=20
     if _debug>0 then dprint "Hopindex:"&sh
     order=-2
-    if sh<=2 then
-        if shoporder(sh)<0 then
-            dprint  "Your ordered "&make_item(abs(shoporder(sh))).desig &" has arrived.",c_gre
-            shoporder(sh)=0
+        if shoplist(sh).shoporder<0 then
+            dprint  "Your ordered "&make_item(abs(shoplist(sh).shoporder)).desig &" has arrived.",c_gre
+            shoplist(sh).shoporder=0
         endif
-    endif
     for a=1 to 9999
         for b=1 to i
             if shopitem(b,sh).ty=a then
@@ -1207,7 +1300,7 @@ function place_shop_order(sh as short) as short
     if bestmatch<0.4 then
         i=make_item(candidate)
         if askyn("Do you want to order "&add_a_or_an(i.desig,0) &"? (y/n)") then
-            shoporder(sh)=candidate
+            shoplist(sh).shoporder=candidate
             dprint "I can't say for certain when it will arive, but it should be here soon."
             f=3
             candidate=0

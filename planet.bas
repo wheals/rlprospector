@@ -1460,14 +1460,13 @@ function makecomplex4(slot as short,rn as short,tileset as short) as short
     if tileset=1 then
         for x=0 to 60
             for y=0 to 20
-                if map(x,y)=0 then planetmap(x,y,slot)=4
-                if map(x,y)=1 then planetmap(x,y,slot)=50
-                if map(x,y)=2 then planetmap(x,y,slot)=156
-                if map(x,y)=-2 then planetmap(x,y,slot)=156
-                if map(x,y)=-2 then planetmap(x,y,slot)=156
+                if map(x,y)=0 then planetmap(x,y,slot)=-4
+                if map(x,y)=1 then planetmap(x,y,slot)=-50
+                if map(x,y)=2 then planetmap(x,y,slot)=-156
+                if map(x,y)=-2 then planetmap(x,y,slot)=-156
+                if map(x,y)=-2 then planetmap(x,y,slot)=-156
             next
         next
-        planetmap(0,0,slot)=50
     endif
     return 0
 end function
@@ -2010,7 +2009,7 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
        dprint "ERROR: Attempting to make planet map at "&a,14
        return 0
     endif
-    
+    if _debug>0 then dprint "making planet"
     prefmin=rnd_range(1,14)
     planettype=rnd_range(1,100)
     o=orbit
@@ -2478,6 +2477,8 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
             next
         next
     endif
+    
+    if _debug>0 then dprint "looking if special"
     make_special_planet(a)
     if is_special(a)=0 or _debug>0 then
         if _debug>0 then dprint "sysfrommap"&sysfrommap(a)
@@ -3080,6 +3081,7 @@ function make_special_planet(a as short) as short
     dim addship as _driftingship
     ' UNIQUE PLANETS
     '
+    if _debug>0 then dprint "making special"
     for b=0 to lastspecial
         if a=specialplanet(b) then
             planets(a).temp=22+rnd_range(2,20)/10
@@ -3444,17 +3446,20 @@ function make_special_planet(a as short) as short
     endif
     
     if specialplanet(10)=a or a=piratebase(0) then 'Settlement
+        
+        if _debug>0 then dprint "-1"
         deletemonsters(a)
 
         planets(a).grav=0.8+rnd_range(1,3)/2
         planets(a).atmos=6
         planets(a).temp=9+rnd_range(1,200)/10
         
+        if _debug>0 then dprint "0"
         if rnd_range(1,100)<35 then
             p1=rnd_point
             makemudsshop(a,p1.x,p1.y) 'Mud's Bazar
         endif
-        
+        if _debug>0 then dprint "1"
         wx=rnd_range(5,8)
         wy=wx
         p1.x=rnd_range(20,40)
@@ -3464,19 +3469,19 @@ function make_special_planet(a as short) as short
         
         for y=p2.y-wy+1 to p2.y+wy-1 step 3    
         
-                for x=p2.x-wx to p2.x+wx 
-                    if p4.x=0 and p4.y=0 then
-                        p4.x=x
-                        p4.y=y 'Grab first east west street
-                    endif
-                    planetmap(x,y,a)=32
-                next
+            for x=p2.x-wx to p2.x+wx 
+                if p4.x=0 and p4.y=0 then
+                    p4.x=x
+                    p4.y=y 'Grab first east west street
+                endif
+                planetmap(x,y,a)=32
             next
-            for x=p2.x-wx+1 to p2.x+wx-1 step 3
-                for y=p2.y-wy to p2.y+wy
-                    planetmap(x,y,a)=31
-                next
+        next
+        for x=p2.x-wx+1 to p2.x+wx-1 step 3
+            for y=p2.y-wy to p2.y+wy
+                planetmap(x,y,a)=31
             next
+        next
             
         for x=p2.x-wx to p2.x+wx
             for y=p2.y-wy to p2.y+wy
@@ -3485,6 +3490,7 @@ function make_special_planet(a as short) as short
                 endif
             next
         next
+        if _debug>0 then dprint "2"
         for x=0 to 60
            for y=0 to 20
                p3.x=x
@@ -3501,6 +3507,7 @@ function make_special_planet(a as short) as short
         next
         cnt=0
         
+        if _debug>0 then dprint "3"
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
@@ -3512,25 +3519,30 @@ function make_special_planet(a as short) as short
         else
             planetmap(x,y,a)=42
         endif
+        
+        if _debug>0 then dprint "4"
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
             y=rnd_range(p2.y,p2.y+wy)
         loop until planetmap(x,y,a)<30 or cnt>20000
+        
         planetmap(x,y,a)=43
         p1.x=x
         p1.y=y
         p1.m=a
-        add_shop(sh_explorers+rnd_range(0,3),p1,-1)
+        add_shop(sh_colonyI,p1,-1)
         
+        if _debug>0 then dprint "5"
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
             y=rnd_range(p2.y-wy,p2.y+wy)
         loop until planetmap(x,y,a)<30 or cnt>40000
+        
         if a<>piratebase(0) then planetmap(x,y,a)=270
         
-        
+        if _debug>0 then dprint "6"
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
@@ -3544,6 +3556,7 @@ function make_special_planet(a as short) as short
         endif
         
         
+        if _debug>0 then dprint "7"
         do
             cnt=cnt+1
             x=rnd_range(p2.x-wx,p2.x+wx)
@@ -3552,6 +3565,7 @@ function make_special_planet(a as short) as short
         
         planetmap(x,y,a)=286
         
+        if _debug>0 then dprint "8/"
         if rnd_range(1,100)<50 or a=piratebase(0) then
         do
             cnt=cnt+1
@@ -3570,6 +3584,7 @@ function make_special_planet(a as short) as short
         planets(a).mon_noamin(0)=8
         planets(a).mon_noamax(0)=17
         
+        if _debug>0 then dprint "9"
         if specialplanet(10)=a then 'Small spaceport for colony
             p3.x=p2.x+wx
             p3.y=10
@@ -3593,6 +3608,7 @@ function make_special_planet(a as short) as short
     
         endif
         
+        if _debug>0 then dprint "10"
         if a=piratebase(0) then 'add spaceport
             c=rnd_range(1,53)
             if c>p4.x then 
@@ -3619,7 +3635,7 @@ function make_special_planet(a as short) as short
                 next
             next
             if rnd_range(1,100)<50 or _debug=2 then 
-                planetmap(c+1,p4.y+3,a)=112
+                planetmap(c+1,p4.y+3,a)=-112
                 p5.x=c+1
                 p5.y=p4.y+3
                 p5.m=a
@@ -3630,6 +3646,7 @@ function make_special_planet(a as short) as short
             planetmap(c,p4.y-2,a)=74
             do
                 p=rnd_point(a,0)
+                if _debug>0 then dprint cords(p)
             loop until tiles(abs(planetmap(p.x,p.y,a))).walktru>0 or abs(planetmap(p.x,p.y,a))<15
             planetmap(p.x,p.y,a)=-197
             planets(a).grav=.8+rnd_range(1,2)/2
@@ -3671,6 +3688,14 @@ function make_special_planet(a as short) as short
             p3=movepoint(p1,5)
         loop until (p1.x<>p3.x or p1.y<>p3.y) and (p2.x<>p3.x or p2.y<>p3.y)
         planetmap(p3.x,p3.y,a)=271
+        if rnd_range(1,100)<33 then
+            do
+                p3=movepoint(p3,5)
+            loop until tiles(abs(planetmap(p3.x,p3.y,a))).gives=0
+            p3.m=a
+            add_shop(sh_giftshop,p3,-1)
+        endif
+            
     endif
     
     if specialplanet(12)=a then
@@ -3763,7 +3788,7 @@ function make_special_planet(a as short) as short
         if p4.y<0 then p4.y=0
         if p4.y>20 then p4.y=20
         if p4.x>60 then p4.x=60
-        p4.m=a
+        p4.m=lastplanet
         planetmap(p4.x,p4.y,lastplanet)=-261
         add_shop(sh_sickbay,p4,-1)
         do
@@ -3774,7 +3799,8 @@ function make_special_planet(a as short) as short
         if p4.y>20 then p4.y=20
         if p4.x>60 then p4.x=60
         planetmap(p4.x,p4.y,lastplanet)=-262
-
+        p4.m=lastplanet
+        add_shop(sh_mudds,p4,-1)
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
@@ -3782,7 +3808,7 @@ function make_special_planet(a as short) as short
         if p4.y<0 then p4.y=0
         if p4.y>20 then p4.y=20
         if p4.x>60 then p4.x=60
-        p4.m=a
+        p4.m=lastplanet
         planetmap(p4.x,p4.y,lastplanet)=-261
         add_shop(sh_sickbay,p4,-1)
         
@@ -3816,7 +3842,11 @@ function make_special_planet(a as short) as short
         p2.m=lastplanet
         lastplanet+=1
         makecomplex3(lastplanet,5,6,0,3)
-        
+        if rnd_range(1,100)<10 then
+            p2=rnd_point(lastplanet,0)
+            p2.m=a
+            add_shop(sh_giftshop,p2,-1)
+        endif
         planets(lastplanet).depth=1
         planets(lastplanet).mon_template(2)=makemonster(39,lastplanet)
         planets(lastplanet).mon_noamin(2)=3
@@ -3909,7 +3939,8 @@ function make_special_planet(a as short) as short
         planetmap(p2.x-1,p2.y+2,a)=-237
         planetmap(p2.x-1,p2.y+4,a)=-259
         planetmap(p3.x,p3.y,a)=-261
-        add_shop(sh_sickbay,p4,-1)
+        p3.m=a
+        add_shop(sh_sickbay,p3,-1)
         planetmap(p4.x,p4.y,a)=-270
         planetmap(p4.x-1,p4.y,a)=-271
         p4.x+=2

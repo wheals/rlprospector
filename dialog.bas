@@ -2359,7 +2359,7 @@ function communicate(byref e as _monster,mapslot as short,monslot as short) as s
         if e.aggr=0 then dprint "I am not going to deal with you!"
         if e.aggr=2 then dprint "I surrender!"
         if e.aggr=1 then
-            if askyn("If you got problem with the megacorps, i could take a look at your record, and see what I can do. (y/n)") then
+            if askyn("If you got problems with one of the megacorps, i could take a look at your records and files, and see what I can do. (y/n)") then
                 if faction(0).war(1)+faction(0).war(3)>0 then
                     if askyn("Ok, I could do something there for "& (faction(0).war(1)+faction(0).war(3))*75 &" Cr. (y/n)") then
                         if paystuff(faction(0).war(1)+faction(0).war(3))*75 then

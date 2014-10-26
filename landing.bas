@@ -27,8 +27,9 @@ Function target_landing(mapslot As Short,Test As Short=0) As Short
 End Function
 
 function landing_landingpads(pads() as _cords, last as short,mapslot as short) as short
-    dim p as _cords
-    dim as short i,osx,x
+    dim as _cords p,p2
+    dim as short i,osx,x,j,best
+    dim as single d
     dim as string key
     if last=1 then return 1
     p=pads(1)
@@ -52,10 +53,30 @@ function landing_landingpads(pads() as _cords, last as short,mapslot as short) a
         endif
         flip
         key=keyin("+-"&key_north &key_south &key__enter &key__esc)
-        if key="+" or key=key_north then i+=1
-        if key="-" or key=key_south then i-=1
-        if i<1 then i=last
-        if i>last then i=1
+        if key="+" or key="-" then
+            if key="+" or key=key_north then i+=1
+            if key="-" or key=key_south then i-=1
+            if i<1 then i=last
+            if i>last then i=1
+        endif
+        if key=key_north or key=key_south or key=key_east or key=key_west then
+            best=0
+            d=9999
+            p2=movepoint(p,getdirection(key))'Move p2 into direction
+            'find closest point to p2 that isn't p
+            for j=1 to last
+                if j<>i then
+                    if distance(p2,pads(j))<d then
+                        d=distance(p2,pads(j))
+                        best=j
+                    endif
+                endif
+            next
+            if best>0 then
+                i=best
+            endif
+        end if
+        
         p=pads(i)
     loop until key=key__enter or key=key__esc
     if key=key__esc then i=-1

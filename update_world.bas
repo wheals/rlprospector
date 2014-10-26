@@ -71,30 +71,31 @@ function update_world(location as short) as short
                 questguy_newquest(a)
             endif
         next
-        for b=0 to 2
+        for b=1 to lastshop
             if rnd_range(1,100)<33 then
-                if shoporder(b)>0 then
+                if shoplist(b).shoporder>0 then
                     a=rnd_range(1,20)
-                    shopitem(a,b)=make_item(shoporder(b))
+                    shopitem(a,b)=make_item(shoplist(b).shoporder)
                     shopitem(a,b).price=shopitem(a,b).price*2
                     shopitem(a,b).w.x=rnd_range(1,6)
-                    shoporder(b)=-shoporder(b)
+                    shoplist(b).shoporder=-shoplist(b).shoporder
                 endif
             endif
-            
-            a=basis(b).company
-            companystats(a).profit=companystats(a).profit+(rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))
-            if companystats(a).profit>0 then 
-                companystats(a).profit=(companystats(a).profit+rnd_range(0,1))*(companystats(a).capital/50)
-            else
-                companystats(a).profit=companystats(a).profit*(companystats(a).capital/50)
+            if b<3 then
+                a=basis(b).company
+                companystats(a).profit=companystats(a).profit+(rnd_range(1,6)+rnd_range(1,6)-rnd_range(1,6)-rnd_range(1,6))
+                if companystats(a).profit>0 then 
+                    companystats(a).profit=(companystats(a).profit+rnd_range(0,1))*(companystats(a).capital/50)
+                else
+                    companystats(a).profit=companystats(a).profit*(companystats(a).capital/50)
+                endif
+                companystats(a).capital=companystats(a).capital+companystats(a).profit
+                companystats(a).rate=companystats(a).capital/companystats(a).shares
+                if companystats(a).profit>0 then companystats(a).rate+=1'rnd_range(1,6)
+                if companystats(a).profit<=0 then companystats(a).rate-=1'rnd_range(1,6)
+                companystats(a).profit=0
+                if companystats(a).capital>50000 then companystats(a).capital=50000
             endif
-            companystats(a).capital=companystats(a).capital+companystats(a).profit
-            companystats(a).rate=companystats(a).capital/companystats(a).shares
-            if companystats(a).profit>0 then companystats(a).rate+=1'rnd_range(1,6)
-            if companystats(a).profit<=0 then companystats(a).rate-=1'rnd_range(1,6)
-            companystats(a).profit=0
-            if companystats(a).capital>50000 then companystats(a).capital=50000
         next
         
     endif

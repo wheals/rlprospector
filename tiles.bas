@@ -1120,6 +1120,15 @@ tiles(112).turnsinto=112
 tiles(112).desc="Used Ships"
 tiles(112).movecost=3
 
+tiles(113).tile=asc("#")
+tiles(113).col=9
+tiles(113).hp=5
+tiles(113).dr=1
+tiles(113).gives=76
+tiles(113).hitt="you start to shoot at the gift shop"
+tiles(113).turnsinto=113
+tiles(113).desc="Gift shop"
+tiles(113).movecost=3
 
 tiles(126).tile=64 
 tiles(126).col=7

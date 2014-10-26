@@ -1901,7 +1901,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         if a=6 then
             b=rnd_range(1,5)
             if t.weapons(b).desig<>"" then
-                dprint t.weapons(b).desig &" hit and destroyed!",12
+                dprint t.weapons(b).desig &" destroyed!",12
                 if t.desig=player.desig then
 
                     if t.weapons(b).desig="Fuel tank" then
@@ -1924,6 +1924,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                             t.security=0
                         endif
                         dprint  b &" casualties!",12
+                        player.deadredshirts=player.deadredshirts+b
                     endif
 
                 endif
@@ -1942,9 +1943,8 @@ function com_criticalhit(t as _ship, roll as short) as _ship
                     b=b+t.security
                     t.security=0
                 endif
-                dprint "Crew quaters hit! "& b &" casualties!",12
-                remove_member(b,0)
-                player.deadredshirts=player.deadredshirts+b
+                dprint "An explosion in the crew quaters! "
+                dprint dam_awayteam(b,2,,1)
             else
                 dprint "Crew quaters hit!"
             endif
@@ -1956,12 +1956,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
             if t.desig=player.desig then
 
                 if rnd_range(1,6)+ rnd_range(1,6)>7 then
-                    b=rnd_range(2,t.h_maxcrew)
-                    if crew(b).hp>0 then
-                        crew(b).hp=0
-                        dprint "An Explosion! "& crew_desig(crew(b).typ) &" "&crew(b).n &" was killed!",12
-                        player.deadredshirts=player.deadredshirts+1
-                    endif
+                    dprint dam_awayteam(b,2,,2)
                 endif
             endif
         endif

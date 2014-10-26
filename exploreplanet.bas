@@ -1,7 +1,7 @@
 function gets_entry(x as short,y as short, slot as short) as short
     if planetmap(x,y,slot)<=2 then return 0 'Water uses gives for ice
     If tmap(x,y).no<2 then return 0
-    if tmap(x,y).gives>=69 and tmap(x,y).gives<=75 then return -1
+    if tmap(x,y).gives>=69 and tmap(x,y).gives<=76 then return -1
     if tmap(x,y).gives=66 or tmap(x,y).gives=67 then return -1
     if tmap(x,y).gives=59 or tmap(x,y).gives=60 then return -1
     if tmap(x,y).gives=49 then return -1
@@ -3019,7 +3019,7 @@ End Function
 Function ep_fire(mapmask() As Byte,Key As String,ByRef autofire_target As _cords) As Short
     Dim enlist(128) As Short
     Dim shortlist As Short
-    Dim wp(80) As _cords
+    Dim wp(60*20) As _cords
     Dim dam As Short
     Dim As Short first,last,lp,osx,rollover
     Dim As Short a,b,c,d,e,f,slot,x,i,l
@@ -3667,6 +3667,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                 d=get_shop_index(sh_explorers+b,awayteam.c,-1)
                 if d>0 then exit for
             next
+            if d=0 then d=get_shop_index(sh_colonyI,awayteam.c,-1)
             Do
                 Cls
                 display_ship
@@ -4280,7 +4281,9 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             If tmap(awayteam.c.x,awayteam.c.y).gives=74 Then sell_alien(slse_slaves)
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=75 Then used_ships(get_shop_index(sh_used,awayteam.c,-1),get_shop_index(sh_usedships,awayteam.c,-1))
-
+            
+            If tmap(awayteam.c.x,awayteam.c.y).gives=76 Then shop(get_shop_index(sh_giftshop,awayteam.c,-1),5,"Giftshop")
+            
             If tmap(awayteam.c.x,awayteam.c.y).gives=167 Then
                 If askyn("A working security camera terminal. Do you want to try to use it?(y/n)") Then
                     If skill_test(player.science(location),st_average) Then
@@ -4604,7 +4607,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                     For a=0 To lastenemy
                         If enemy(a).hp>0 Then
                             enemy(a).aggr=1
-                            b=b+1
+                            if abs(planetmap(enemy(a).c.x,enemy(a).c.y,slot))<>200 then b=b+1'Only count inside ship
                         EndIf
                     Next
                     If b=0 Then

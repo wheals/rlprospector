@@ -1319,23 +1319,23 @@ Enum dockingdifficulty
 End Enum
 
 Enum shops
-    sh_shipyard
-    sh_modules
-    sh_Explorers
-    sh_Cheap
-    sh_Spacenstuff
-    sh_YeOlde
-    sh_used
-    sh_usedships
-    sh_mudds
-    sh_bots
-    sh_blackmarket
-    sh_colonyI
-    sh_aliens1
-    sh_aliens2
-    sh_sickbay
-    sh_shipequip
-    sh_giftshop
+    sh_shipyard'0
+    sh_modules'1
+    sh_Explorers'2
+    sh_Cheap'3
+    sh_Spacenstuff'4
+    sh_YeOlde'5
+    sh_used'6
+    sh_usedships'7
+    sh_mudds'8
+    sh_bots'9
+    sh_blackmarket'10
+    sh_colonyI'11
+    sh_aliens1'12
+    sh_aliens2'13
+    sh_sickbay'14
+    sh_shipequip'15
+    sh_giftshop'16
 End Enum
 
 type _shops
@@ -1344,6 +1344,7 @@ type _shops
     y as short 
     m as short
     shoptype as short
+    shoporder as short
 end type
 
 Enum ShipYards
@@ -1830,7 +1831,6 @@ Dim dummycords As _cords
 Dim text As String
 Dim As Short astcou,gascou,pl
 Dim Shared tacdes(6) As String
-Dim Shared shoporder(2) As Short
 Dim Shared pcards As cards.cardobj
 Dim Shared lastprobe As Short
 Dim Shared probe(100) As _cords 'm=Item,
@@ -2175,6 +2175,8 @@ Declare Function make_vismask(c As _cords,sight As Short,m As Short,ad as short=
 Declare Function vis_test(a As _cords,p As _cords,Test As Short) As Short
 Declare Function ap_astar(start As _cords,ende As _cords,diff As Short) As Short
 Declare Function has_questguy_want(i As Short,ByRef t As Short) As Short
+declare function sell_towed() as short
+
 
 Declare Function caged_monster_text() As String
 Declare Function sell_alien(sh As Short) As Short
@@ -2190,8 +2192,8 @@ Declare Function get_freecrewslot() As Short
 Declare Function add_member(a As Short,skill As Short) As Short
 Declare Function cure_awayteam(where As Short) As Short
 Declare Function heal_awayteam(ByRef a As _monster,heal As Short) As Short
-declare function dam_awayteam_list(target() as short, stored() as short, ap as short) as short
-Declare Function dam_awayteam(dam As Short,ap As Short=0,dis As Short=0) As String
+declare function dam_awayteam_list(target() as short, stored() as short, ap as short, all as short) as short
+Declare Function dam_awayteam(dam As Short,ap As Short=0,dis As Short=0,all as short=0) As String
 Declare Function dplanet(p As _planet,orbit As Short, scanned As Short,slot As Short) As Short
 Declare Function dprint(text As String, col As Short=11) As Short
 Declare Function scrollup(b As Short) As Short

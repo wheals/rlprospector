@@ -50,13 +50,13 @@ function rnd_item(t as short) as _items
     dim i as _items
     dim as short r,debug
     dim items(25) as short
-    debug=1
     if t=RI_Lamps then 
         if rnd_range(1,100)<66 then
             i=make_item(28)
         else
             i=make_item(29)
         endif
+        return i
     endif
     
     if t=RI_SPACEBOTS then
@@ -68,6 +68,7 @@ function rnd_item(t as short) as _items
         case else
             i=rnd_item(RI_Gasprobes)
         end select
+        return i
     end if
     
     if t=RI_Cage then
@@ -79,6 +80,7 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(64)
         end select
+        return i
     endif
     
     if t=RI_Tanks then 
@@ -91,6 +93,7 @@ function rnd_item(t as short) as _items
                 i=make_item(49)'Aux tank JJ
             endif
         endif
+        return i
     endif
     
     if t=RI_Artefact then
@@ -110,6 +113,7 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(rnd_range(95,98))
         end select
+        return i
     endif
         
     if t=RI_ALLDRONESPROBES then
@@ -121,10 +125,13 @@ function rnd_item(t as short) as _items
         case else
             i=rnd_item(RI_Gasprobes)
         end select
+        return i
     endif
     
     if t=RI_StandardShop then 
-        select case rnd_range(1,100)
+        r=rnd_range(1,100)
+        if _debug>0 then dprint "R"&r
+        select case r
         case 1 to 50
             i=rnd_item(RI_WeaponsArmor)
         case 51 to 60
@@ -138,6 +145,7 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(30)
         end select
+        return i
     endif
     
     if t=RI_Strandedship then 
@@ -156,18 +164,20 @@ function rnd_item(t as short) as _items
             i=rnd_item(RI_Shipequipment)
         end select
         
+        return i
     endif
     
     
-    if t=RI_Transport then i=make_item(rnd_range(1,2)) 'transport
-    if t=RI_RangedWeapon then i=make_item(urn(0,8,2,player.turn/5000)+3) 'ranged weapons
-    if t=RI_CCWeapon then i=make_item(urn(0,7,2,player.turn/5000)+40) 'close weapons
+    if t=RI_Transport then return make_item(rnd_range(1,2)) 'transport
+    if t=RI_RangedWeapon then return make_item(urn(0,8,2,player.turn/5000)+3) 'ranged weapons
+    if t=RI_CCWeapon then return make_item(urn(0,7,2,player.turn/5000)+40) 'close weapons
     if t=RI_Armor then 'Space suits 
         if rnd_range(1,100)<30-player.turn/5000 then
             i=make_item(320)
         else
             i=make_item(urn(0,8,2,player.turn/5000)+12) 'Armor
         endif
+        return i
     endif
     if t=RI_ShopAliens then 
         if rnd_range(1,100)<10 then 
@@ -179,6 +189,7 @@ function rnd_item(t as short) as _items
         else
             i=make_item(rnd_range(21,39)) 'misc
         endif
+        return i
     endif
     
     if t=RI_Mining then 'misc2 mining
@@ -192,6 +203,7 @@ function rnd_item(t as short) as _items
             i=make_item(152) 'Mining Explosives
         endif
         if rnd_range(1,100)<15 then i=make_item(rnd_range(41,43))
+        return i
     endif
     
     if t=RI_KOdrops then i=make_item(rnd_range(36,37)) 'Anaesthetics
@@ -202,9 +214,10 @@ function rnd_item(t as short) as _items
         else
             i=make_item(rnd_range(31,33))
         endif
+        return i
     endif
     
-    if t=RI_Stims then i=make_item(rnd_range(251,253))
+    if t=RI_Stims then return make_item(rnd_range(251,253))
     
     if t=RI_WEAPONS then 'weapons
         select case rnd_range(1,100)
@@ -215,9 +228,10 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(rnd_range(181,184))'Nonlethal
         end select
+        return i
     endif
     
-    if t=RI_Rovers then i=make_item(rnd_range(50,52))'fs
+    if t=RI_Rovers then return make_item(rnd_range(50,52))'fs
     
     if t=RI_Allbutweapons then 'all but weapons
         select case rnd_range(1,100)
@@ -234,10 +248,12 @@ function rnd_item(t as short) as _items
             case else
                 i=make_item(77)
         end select 
+        return i
     endif
     
     if t=RI_Infirmary then
         i=make_item(rnd_range(67,69))
+        return i
     endif
     
     if t=RI_ROBOTS then
@@ -246,15 +262,16 @@ function rnd_item(t as short) as _items
         else
             i=make_item(RI_Miningbots)
         endif
+        return i
     endif
     
-    if t=RI_LandingGear then i=make_item(rnd_range(75,76))
+    if t=RI_LandingGear then return make_item(rnd_range(75,76))
     
-    if t=RI_Probes then i=make_item(rnd_range(101,102))
+    if t=RI_Probes then return make_item(rnd_range(101,102))
     
-    if t=RI_Drones then i=make_item(rnd_range(110,112))
+    if t=RI_Drones then return make_item(rnd_range(110,112))
     
-    if t=RI_GasProbes then i=make_item(rnd_range(104,105))
+    if t=RI_GasProbes then return make_item(rnd_range(104,105))
     
     if t=RI_Mining then
         select case rnd_range(1,100)
@@ -267,6 +284,7 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(23)
         end select
+        return i
     endif
     
     if t=RI_Miningbots then
@@ -278,6 +296,7 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(55)
         end select
+        return i
     endif
         
     if t=RI_ShopSpace or t=RI_Shipequipment then
@@ -294,6 +313,7 @@ function rnd_item(t as short) as _items
         if r=9 then i=rnd_item(RI_Mining)
         if r=10 then i=rnd_item(RI_Lamps)
         if r=11 then i=rnd_item(RI_tanks)
+        return i
     endif
         
     
@@ -331,6 +351,7 @@ function rnd_item(t as short) as _items
         if r=30 then i=make_item(100)
         if r=31 then i=make_item(101)
         if r=32 then i=make_item(102)
+        return i
     endif
     
     if t=RI_ShopExplorationGear then 'specialty shop exploration gear
@@ -351,34 +372,36 @@ function rnd_item(t as short) as _items
         if r=14 then i=make_item(83)
         if r=15 then i=make_item(84)
         if r=16 then i=make_item(85)
-        if r=17 then i=make_item(86)
+        if r=17 then i=make_item(82)
         if r=18 then i=make_item(100)
         if r=19 then i=make_item(101)
         if r=20 then i=make_item(102)
-        if r=21 then i=make_item(103)
-        if r=17 then i=make_item(104)
-        if r=22 then i=make_item(22)
-        if r=23 then i=make_item(23)
-        if r=24 then i=make_item(62)
-        if r=25 then i=make_item(63)
-        if r=26 then i=make_item(162)
-        if r=27 then i=make_item(163)
-        if r=28 then i=make_item(38)
-        if r=29 then i=make_item(30)'Comsat
-        if r>=30 and r<=37 then i=make_item(1)
+        if r=21 then i=make_item(22)
+        if r=22 then i=make_item(23)
+        if r=23 then i=make_item(62)
+        if r=24 then i=make_item(63)
+        if r=25 then i=make_item(162)
+        if r=26 then i=make_item(163)
+        if r=27 then i=make_item(38)
+        if r=28 then i=make_item(30)'Comsat
+        if r>=29 and r<=37 then i=make_item(1)
         if r>=38 and r<=40 then i=make_item(2)
         if r>=41 and r<=42 then i=rnd_item(RI_nonlethal)
+        return i
     endif
     
     if t=RI_Kits then
         select case rnd_range(1,100)
-        case 1 to 33
+        case 1 to 30
             i=make_item(82)'Autopsy Kit
-        case 34 to 66
+        case 31 to 60
             i=make_item(83)'Botany Kit
-        case else
+        case 60 to 90
             i=make_item(84)'Ship Repair
+        case else
+            i=make_item(85)
         end select
+        return i
     endif
     
     if t=RI_ShopWeapons then 'Weapons
@@ -402,6 +425,7 @@ function rnd_item(t as short) as _items
                     i=make_item(48)'Grenade launcher
                 endif
         end select
+        return i
     endif
     
     if t=RI_WeaponsArmor then 'Weapons or armor
@@ -412,7 +436,8 @@ function rnd_item(t as short) as _items
             i=make_item(rnd_range(40,47))
         case else
             i=make_item(rnd_range(12,20))
-        end select        
+        end select
+        return i        
     endif
     
     if t=RI_WeakStuff then 'Starting equipment Weak stuff
@@ -455,6 +480,7 @@ function rnd_item(t as short) as _items
         case 75 to 78
             i=make_item(152,,,,1)'Mining explosives
         end select
+        return i
         
     endif
     
@@ -470,9 +496,10 @@ function rnd_item(t as short) as _items
         case else
             i=make_item(320)
         end select
+        return i
     end if
     
-    if t=RI_Nonlethal then i=make_item(rnd_range(181,184))'Nonlethal
+    if t=RI_Nonlethal then return make_item(rnd_range(181,184))'Nonlethal
     
     return i
 end function

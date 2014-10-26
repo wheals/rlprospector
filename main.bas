@@ -115,7 +115,7 @@ Do
         Next
         Close #f
     End If
-
+    if _debug>0 then add_shop(sh_colonyI,pwa(0),-1)
     Do
         
         a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1)
@@ -1219,7 +1219,7 @@ Function explore_space() As Short
         If show_specials<>0 Then dprint "Planet is at " &map(sysfrommap(specialplanet(show_specials))).c.x &":"&map(sysfrommap(specialplanet(show_specials))).c.y
         If player.e.tick=-1 And player.dead=0 Then
             fl=0
-            allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc & key_rename & key_comment & key_save &key_quit &key_tow &key_walk &key_wait
+            allowed=key_awayteam & key_ra & key_drop &key_la &key_tala &key_dock &key_sc &key_inspect & key_rename & key_comment & key_save &key_quit &key_tow &key_walk &key_wait
             allowed= allowed & key_nw & key_north & key_ne & key_east & key_west & key_se & key_south & key_sw &key_optequip
             If artflag(25)>0 Then allowed=allowed &key_te
             If debug=11 And _debug=1 Then allowed=allowed &"�"
@@ -1390,7 +1390,7 @@ Function explore_space() As Short
 
             If Key=key_drop Then launch_probe
 
-            If Key=key_la Or Key=key_tala Or Key=key_sc Then
+            If Key=key_la Or Key=key_tala Or Key=key_sc or key=key_inspect Then
                 pl=-1
                 For a=0 To laststar
                     If player.c.x=map(a).c.x And player.c.y=map(a).c.y Then pl=a
@@ -1413,12 +1413,12 @@ Function explore_space() As Short
                             EndIf
                         EndIf
                     EndIf
-                    If Key=key_sc Then scanning()
+                    If Key=key_sc or key=key_inspect Then scanning()
                     Key=""
                 EndIf
                 pl=-1
 
-                If Key=key_sc And Abs(spacemap(player.c.x,player.c.y))>=6 And Abs(spacemap(player.c.x,player.c.y))<=10 Then
+                If Key=key_sc or key=key_inspect And Abs(spacemap(player.c.x,player.c.y))>=6 And Abs(spacemap(player.c.x,player.c.y))<=10 Then
                     If askyn("Do you want to scan the anomaly?(y/n)") Then
                         If rnd_range(1,100)=1 Then player.cursed+=1
                         If skill_test(player.science(0),st_easy+Abs(spacemap(player.c.x,player.c.y)),"Science officer") Then
@@ -1720,7 +1720,6 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Dim ti As Short
     
     if _debug=2704 then print #logfile,"Starting ep loop"
-    
     bg_parent=bg_awayteamtxt
     
     Dim diesize As Short
@@ -1803,7 +1802,8 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Else
         awayteam.helmet=1
     EndIf
-
+    lsp=ep_updatemasks(watermap(),localtemp(),cloudmap(),spawnmask(),mapmask(),nightday(),dawn,dawn2)
+        
     b=0
     For a=1 To 15 'Look for saved status on this planet
         If savefrom(a).map=slot Then
@@ -1816,6 +1816,7 @@ Function explore_planet(from As _cords, orbit As Short) As _cords
     Next
     if _debug=2704 then print #logfile,"loadmonsters:"&loadmonsters
     If loadmonsters=0 Then 'No saved status, monsters need to be generated
+        
         c=0
         For a=0 To 16
             If planets(slot).mon_noamin(a)>0 And planets(slot).mon_noamax(a)>0 Then
@@ -2197,7 +2198,7 @@ EndIf
     Do
         b=0
         For a=1 To lastenemy
-            
+            if _debug>0 then dprint cords(enemy(a).c)
             If enemy(a).c.x=awayteam.c.x And enemy(a).c.y=awayteam.c.y Then
                 if _debug>0 then dprint "Moving enemies"
                 enemy(a).c=movepoint(enemy(a).c,5)
@@ -2205,13 +2206,15 @@ EndIf
             EndIf
         Next
     Loop Until b=0
-
+    if _debug>0 then dprint "lastenemy"&lastenemy
     If debug=99 And _debug=1 Then dprint "Death in:" &planets(slot).death &"(in)"
     
     dprint planets_flavortext(slot),15
         
     If no_enemys=1 Then lastenemy=0
-
+    
+    if _debug>0 then dprint slot &":"& bonesflag
+    
     If _debug=11 Then
         dprint "Setting screen"
         Sleep
@@ -3715,7 +3718,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     Else
         mname="Something"
     EndIf
-    If distance(attacker.c,defender.c)<1.5 Then
+    If distance(attacker.c,defender.c)<=1.5 Then
         text=text &mname &" attacks: "
     Else
         text=text &mname &" "&attacker.swhat &": "

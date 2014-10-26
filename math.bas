@@ -770,10 +770,10 @@ function line_in_points(b as _cords,c as _cords,p() as _cords,rollover as short=
     Dim As Integer x, xinc1, xinc2
     Dim As Integer y, yinc1, yinc2
     if rollover=0 then
-        dx2=60-abs(b.x-c.x)
+        dx2=61-abs(b.x-c.x)
         dx=abs(b.x-c.x)
         if dx2<dx then
-            b.x-=60
+            b.x-=61
         endif
     endif
 

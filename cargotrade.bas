@@ -547,19 +547,7 @@ function company(st as short) as short
     endif
     if player.towed<>0 then
         if player.towed>0 then
-            towed=gethullspecs(drifting(player.towed).s,"data/ships.csv")
-            a=towed.h_price
-            if planets(drifting(player.towed).m).genozide<>1 then a=a/2
-            a=a/2
-            a=int(a)
-            if planets(drifting(player.towed).m).mon_template(0).made<>32 then
-                if askyn ("the company offers you "& credits(a) &" Cr. for the "&towed.h_desig &" you have in tow. Do you accept?(y/n)") then
-                    drifting(player.towed)=drifting(lastdrifting)
-                    lastdrifting-=1
-                    addmoney(a,mt_towed)
-                    player.towed=0
-                endif
-            else
+            if planets(drifting(player.towed).m).mon_template(0).made=32 then
                 a=disnbase(drifting(player.towed).start)
                 a=int(a*100)
                 dprint "The company pays you "&credits(a) &" Cr. for towing in the ship."
@@ -568,6 +556,8 @@ function company(st as short) as short
                 addmoney(a,mt_towed)
                 player.towed=0
             endif
+        else
+            
         endif
         a=0
     endif
@@ -1051,7 +1041,7 @@ function casino(staked as short=0, st as short=-1) as short
                 
                 if b=44 then dprint "A merchant captain proclaims: 'If you want to avoid pirate attacks, just fly a triax traders flag!' " &first_uc(randomgender) & " is pretty drunk and refuses to elaborate."
                 
-                if b=1001 then dprint "An explorer captain tells a funny story about a captain "& randomgender &" knew, who didn't return from an expedition to a system at "&cords(map(bonesflag).c) &"."
+                if b=1001 then dprint "An explorer captain tells a funny story about a captain "& randomgender &" knew, who didn't return from an expedition to a system at "&cords(map(sysfrommap(bonesflag)).c) &"."
 
                 if b=100 then 
                     if faction(0).war(1)>50 then

@@ -281,12 +281,11 @@ function get_com_colon_candidate(st as short) as short
                 for c=0 to _NOPB
                     if map(a).planets(b)=piratebase(c) then block=1
                 next
-                for c=0 to lastspecial
-                    if map(a).planets(b)=specialplanet(c) then block=1
-                next
-                if planets(map(a).planets(b)).mapstat<>0 and block=-1 then block=0
+                if is_special(map(a).planets(b))=-1 then block=1
                 if planets(map(a).planets(b)).colflag(0)<>0 then block=1
+                if planets(map(a).planets(b)).mapstat<>0 and block=-1 then block=0
             endif
+            
         next
         if block=0 then
             i+=1
