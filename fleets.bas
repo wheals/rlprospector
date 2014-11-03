@@ -485,9 +485,10 @@ function decide_if_fight(f1 as short,f2 as short) as short
     if (fleet(f2).ty=10 and f1<=5) then fleet(f1).ty=0 
     if debug=1 and _debug=1 then dprint "f1:"&aggr1 &"F2:"&aggr2
     'Ancient aliens attack everything
-    if fleet(f1).ty=5 or fleet(f2).ty=5 then fighting=1
+    if fleet(f1).ty=5 and fleet(f2).ty<>5 then fighting=1
+    if fleet(f2).ty=5 and fleet(f1).ty<>5 then fighting=1
     
-    if f1<=5 or f2<=5 and player.turn<5000 then fighting=0 'Spacestations aren't attcked before turn 5000
+    if f1<=5 or f2<=5 and player.turn<50000 then fighting=0 'Spacestations aren't attcked before turn 5000
     
     if fighting=1 then
         if debug=1 and _debug=1 then dprint "fight initiated between " &fleet(f1).ty &" and "&fleet(f2).ty

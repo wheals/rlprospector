@@ -1,8 +1,8 @@
 function scrap_component() as short
     dim as short w,b
     if askyn("Do you want to cannibalize the "&tmap(awayteam.c.x,awayteam.c.y).desc &" for parts?(y/n)") then
-        if skill_test(st_average,player.science(0)) then
-            if skill_test(st_hard,player.science(0)) then
+        if skill_test(st_hard,player.science(0)) then
+            if skill_test(st_veryhard,player.science(0)) then
                 dprint "You found enough parts for a ton of weapons parts"
                 w=6
             else
@@ -150,6 +150,8 @@ function get_hull(t as short) as _ship
         n=gethullspecs(t-20,"data/customs.csv")
         n.h_no=t
     endif
+    
+    if _debug>0 then dprint "Cursed:"&n.cursed
     return n
 end function
 
@@ -162,6 +164,8 @@ function upgradehull(t as short,byref s as _ship,forced as short=0) as short
     dim as string word(10)
     dim as string text
     n=get_hull(t)
+    
+    if _debug>0 then dprint "Cursed:"&n.cursed
     for a=1 to 10
         if s.cargo(a).x>0 then cargobays=cargobays+1
         if s.weapons(a).desig<>"" then weapons=weapons+1
@@ -2512,7 +2516,7 @@ end function
 
 function displaywares(st as short) as short
     textbox(station_goods(st,1),2,3,(_mwx*_fw1-4*_fw1)/_fw2)
-'    dim a as short
+     dim a as short
 '    dim t as string
 '    dim as single pricelevel,merchant
 '    pricelevel=basis(st).pricelevel
@@ -2725,24 +2729,29 @@ function station_goods(st as short, tb as byte) as string
     dim as string text,pl,LR
     dim a as short
     dim off as short
-    if tb=0 then 'Textbox or menu
+
+    if tb=0 then
         LR="/"
-        text=space(25)&"Buy        Sell"&LR
     else
         LR="|"
-        
-        text="{15}"&space(25)&"Buy        Sell"&LR &"{11}"
+    endif
+    if st<>10 then
+        text=space(25)&"Buy        Sell"&LR
+    else
+        text="Booty:"&LR
     endif
     for a=1 to 9
         if tb=1 then text=text &"   "
         text=text & trim(goodsname(a))&space(17-len(trim(goodsname(a)))) 
-        pl=""& credits(basis(st).inv(a).p) &" Cr."
-        text=text & space(12-len(pl))
-        text=text & pl
-        
-        pl=""& credits(cint(basis(st).inv(a).p*merchant))&" Cr."
-        text=text & space(12-len(pl))
-        text=text & pl &space(4)
+        if st<>10 then
+            pl=""& credits(basis(st).inv(a).p) &" Cr."
+            text=text & space(12-len(pl))
+            text=text & pl
+            
+            pl=""& credits(cint(basis(st).inv(a).p*merchant))&" Cr."
+            text=text & space(12-len(pl))
+            text=text & pl &space(4)
+        endif
         if basis(st).inv(a).v>=10 then
             text=text & basis(st).inv(a).v
         else

@@ -2348,6 +2348,8 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
             if b>50 then d=4
             if b>75 then d=8
             if b>95 then d=12
+            d=18
+            c=0
             add_stranded_ship(d+c,p,a,1)
         endif
         
@@ -3601,7 +3603,7 @@ function make_special_planet(a as short) as short
                 p4.m=a
                 planetmap(p3.x,12,a)=-112
                 add_shop(sh_used,p4,-1)
-                add_shop(sh_usedships,p4,-1)
+                add_shop(sh_usedships,p4,-1)'Need both
             endif
             planetmap(p3.x,10,a)=70
             planetmap(p3.x,11,a)=71
@@ -3640,7 +3642,7 @@ function make_special_planet(a as short) as short
                 p5.y=p4.y+3
                 p5.m=a
                 add_shop(sh_used,p5,-1)
-                add_shop(sh_usedships,p5,-1)
+                add_shop(sh_usedships,p5,-1)'Need both
             endif
             planetmap(c,p4.y-3,a)=-259
             planetmap(c,p4.y-2,a)=74
@@ -3791,6 +3793,7 @@ function make_special_planet(a as short) as short
         p4.m=lastplanet
         planetmap(p4.x,p4.y,lastplanet)=-261
         add_shop(sh_sickbay,p4,-1)
+        
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
@@ -3811,8 +3814,7 @@ function make_special_planet(a as short) as short
         p4.m=lastplanet
         planetmap(p4.x,p4.y,lastplanet)=-261
         add_shop(sh_sickbay,p4,-1)
-        
-        
+                
         do
             p4=rnd_point(lastplanet,0)
         loop until p4.x<p3.x or p4.x>p3.x+7 or p4.y<p3.y or p4.y>p3.y+7
@@ -3906,7 +3908,7 @@ function make_special_planet(a as short) as short
             p4.m=a
             planetmap(p3.x,9,a)=-112
             add_shop(sh_used,p4,-1)
-            add_shop(sh_usedships,p4,-1)
+            add_shop(sh_usedships,p4,-1)'Need both
         endif
         planetmap(p3.x,10,a)=70
         planetmap(p3.x,11,a)=71

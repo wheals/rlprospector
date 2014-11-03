@@ -53,8 +53,10 @@ function robot_invasion() as short
             endif
         endif
     next
+    if _debug>0 then lp=1
     if lp>0 then
         m=pot(rnd_range(1,lp))
+        if _debug>0 then m=awayteam.slot
         c=rnd_point
         planetmap(c.x,c.y,m)=-305
         'Add ship to enter
@@ -62,7 +64,7 @@ function robot_invasion() as short
         d.s=18
         d.x=c.x
         d.y=c.y
-        make_drifter(d,1)
+        add_stranded_ship(18,d,m,0)
         planets(lastplanet)=planets(m)
         planets(m).depth=1
         planets(m).wallset=rnd_range(12,13)
@@ -98,9 +100,9 @@ function form_alliance(who as short) as short
         next
     case 2'Pirates
     case 6,7'Alien civs
-        if civ(who-7).inte>=2 then factionmod+=civ(who-7).inte
-        factionmod=factionmod+(civ(who-7).aggr-2)*3 
-        factionmod=factionmod+(civ(who-7).phil-2)*2 
+        if civ(who-6).inte>=2 then factionmod+=civ(who-6).inte
+        factionmod=factionmod+(civ(who-6).aggr-2)*3 
+        factionmod=factionmod+(civ(who-6).phil-2)*2 
     end select
     
     if faction(who).war(0)=0 then 

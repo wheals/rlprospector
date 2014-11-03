@@ -2456,7 +2456,7 @@ tiles(306).tile=asc("B")
 tiles(306).col=102
 tiles(306).desc="Bridge"
 tiles(306).gives=221
-tiles(306).turnsinto=221
+tiles(306).turnsinto=306
 
 tiles(401).tile=ASC("#")
 tiles(401).col=210

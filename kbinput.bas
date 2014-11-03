@@ -83,6 +83,7 @@ function keyin(byref allowed as string="" , blocked as short=0)as string
         endif
         
         if blocked>=97 then
+            if _debug>0 then dprint key &":K"
             if (asc(key)>=97 and asc(key)<=blocked) then return key
         endif
         if blocked=0 or blocked>=97 then
@@ -592,8 +593,13 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
         else
             dprint ""
         endif
-        if player.dead=0 then key=keyin(,96+c)
-        
+        if player.dead=0 then 
+            if blocked=0 then
+                key=keyin(,96+c)
+            else
+                key=keyin(,1)
+            endif
+        endif
         if hfl=1 then 
             for a=1 to blen
                 set__color( 0,0)

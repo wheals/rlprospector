@@ -1120,8 +1120,8 @@ function com_getweapon(echo as byte=1) as short
     for a=1 to player.h_maxweaponslot
 
         if player.weapons(a).dam>0 then
-            if (player.weapons(a).ammo>0 or player.weapons(a).ammomax=0) and player.weapons(a).reloading=0 and player.weapons(a).shutdown=0 then
-                c+=1 'waffe braucht ammo
+            if (player.useammo(0)=-1 or player.weapons(a).ammomax=0) and player.weapons(a).reloading=0 and player.weapons(a).shutdown=0 then
+                c+=1 'waffe hat ammo
                 lastslot=a
             endif
             if player.weapons(a).reloading>0 then re+=1

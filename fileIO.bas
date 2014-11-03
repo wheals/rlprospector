@@ -94,6 +94,7 @@ function gethullspecs(t as short,file as string) as _ship
     n.h_sdesc=word(10)
     n.reloading=val(word(11))
     n.h_desc=word(12)
+    if _debug>0 then dprint "Cursed:"&n.cursed
     return n
 end function
 
@@ -2403,8 +2404,8 @@ function savegame(crash as short=0) as short
     next
 
     print ".";
-    for a=0 to 16
 
+    for a=0 to 16
         put #f,,savefrom(a).awayteam
         put #f,,savefrom(a).lastlocalitem
         put #f,,savefrom(a).lastenemy
@@ -2572,7 +2573,6 @@ function savegame(crash as short=0) as short
         print ".";
     next
         
-    
     close f
 
     'Overwrites large save file with compressed save file. but skips if file is empty
@@ -2625,7 +2625,7 @@ function load_game(filename as string) as short
     dim c as short
     dim fname as string
     dim f as integer
-    dim dat as string*36
+    dim desig as string*36
     dim names as string*36
     dim versionstring as string*36
     dim datestring as string*12
@@ -2670,7 +2670,7 @@ function load_game(filename as string) as short
             else
                 names=versionstring
             endif
-            get #f,,dat             '36 bytes
+            get #f,,desig             '36 bytes
             get #f,,datestring      '12 bytes + 1 overhead
             get #f,,unflags()       'lastspecial + 1 overhead
             get #f,,artflag()       'lastartifact + 1 overhead
@@ -2705,7 +2705,7 @@ function load_game(filename as string) as short
         open fname for binary as #f
         get #f,,versionstring
         get #f,,names
-        get #f,,dat
+        get #f,,desig
         get #f,,datestring
         get #f,,unflags()
         get #f,,artflag()
@@ -2903,8 +2903,7 @@ function load_game(filename as string) as short
         get #f,,civ()
         
         get #f,,battleslost()
-        
-            
+                    
         get #f,,lastshop
         for b=1 to lastshop
             get #f,,shoplist(b)

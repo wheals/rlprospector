@@ -42,6 +42,7 @@ function get_shop_index(shoptype as short,c as _cords,station as short) as short
     dim i as short
     if station=-1 then
         for i=1 to lastshop
+            if _debug>0 then dprint "I:"&i &" ls:"&lastshop & "M:"&c.m & ":"&shoplist(i).x &":"&shoplist(i).y
             if c.x=shoplist(i).x and c.y=shoplist(i).y and c.m=shoplist(i).m and shoptype=shoplist(i).shoptype then return i
         next
     else

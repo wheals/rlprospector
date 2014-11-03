@@ -20,7 +20,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     randomshop(9)=112 'Used ships
     randomshop(10)=113 'Used ships
     lastrandomshop=10 '
-    
+    if _debug>0 then dprint "DS:"&d.s
     if _debug=18 then d.s=18
     
     if bg=0 then
@@ -130,7 +130,8 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                     if randomshop(ti)=98 then add_shop(sh_blackmarket,p,-1)
                     if randomshop(ti)=262 then add_shop(sh_mudds,p,-1)
                     if randomshop(ti)=109 then add_shop(sh_sickbay,p,-1)
-                    if randomshop(ti)=112 then add_shop(sh_usedships,p,-1)
+                    if randomshop(ti)=112 then add_shop(sh_usedships,p,-1)'Need both
+                    if randomshop(ti)=112 then add_shop(sh_used,p,-1)
                     if randomshop(ti)=113 then add_shop(sh_giftshop,p,-1)
                     if randomshop(ti)=261 then add_shop(sh_sickbay,p,-1)
                     randomshop(ti)=randomshop(lastrandomshop)
@@ -420,8 +421,13 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
             next
         next
         
-        addportal(from,dest,1,asc("@"),"Abandoned "&shiptypes(d.s),11)
-        portal(lastportal).ti_no=3009+d.s
+        if d.s=18 then
+            addportal(from,dest,1,asc("@"),"Abandoned "&shiptypes(17),11)
+            portal(lastportal).ti_no=3009+17
+        else
+            addportal(from,dest,1,asc("@"),"Abandoned "&shiptypes(d.s),11)
+            portal(lastportal).ti_no=3009+d.s
+        endif
         addportal(dest,from,2,asc(" "),"",11)
         if d.s=18 and broken=0 then planetmap(30,20,m)=-220
         m=dest.m
@@ -681,7 +687,7 @@ function dominant_terrain(x as short,y as short,m as short) as _cords
     dim result as _cords
     for x2=x-1 to x+1
         for y2=y-1 to y+1
-            if x2>=0 and x2<=60 and y2>=0 and y2<=20 then
+            if x2>=0 and x2<=60 and y2>=0 and y2<=20 and (x2<>x or y2<>y) then
                 if (abs(planetmap(x2,y2,m))<128 or abs(planetmap(x2,y2,m)>149)) and tiles(abs(planetmap(x2,y2,m))).gives=0 then
                     if abs(planetmap(x2,y2,m))=27 then
                         addtile=14

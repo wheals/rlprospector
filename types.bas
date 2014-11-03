@@ -22,7 +22,7 @@ Const show_energy=0
 
 Const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'013'0'1'12'13'5'38 'special planets already discovered
+Const Show_specials=0'13'0'1'12'13'5'38 'special planets already discovered
 Const Show_all_specials=0'013'0'1'12'13'5'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -1841,7 +1841,7 @@ Dim Shared As Any Ptr FONT1,FONT2
 Dim Shared As UByte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2,_TFH
 
 Dim Shared endstory As String
-Dim Shared crew_desig(16) As String
+Dim Shared crew_desig(17) As String
 Dim Shared combon(9) As _company_bonus
 
 Dim Shared ammotypename(4) As String

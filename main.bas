@@ -118,7 +118,7 @@ Do
     if _debug>0 then add_shop(sh_colonyI,pwa(0),-1)
     Do
         
-        a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1)
+        a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1,1)
         If a=1 Then
             If count_savegames()>20 Then
                 a=0
@@ -219,7 +219,7 @@ Function start_new_game() As Short
     EndIf
     text="/"&makehullbox(1,"data/ships.csv") &"|Comes with 3 Probes MKI/"&makehullbox(2,"data/ships.csv")&"|Comes with 2 combat drones and fully armored|You get one more choice at a talent if you take this ship/"&makehullbox(3,"data/ships.csv") &"|Comes with paid for cargo to collect on delivery/"&makehullbox(4,"data/ships.csv") &"|Comes with 5 veteran security team members/"&makehullbox(6,"data/ships.csv")&"|You will start as a pirate if you choose this option"
     If configflag(con_startrandom)=1 Then
-        b=Menu(bg_randompic,"Choose ship/Scout/Long Range Fighter/Light Transport/Troop Transport/Pirate Cruiser/Random",text)
+        b=Menu(bg_randompic,"Choose ship/Scout/Long Range Fighter/Light Transport/Troop Transport/Pirate Cruiser/Random",text,,,1)
     Else
         b=rnd_range(1,4)
     EndIf
@@ -377,6 +377,7 @@ Function start_new_game() As Short
         faction(0).war(5)=100
     EndIf
     
+    
     faction(1).war(2)=100
     faction(1).war(4)=100
     faction(2).war(1)=100
@@ -384,7 +385,7 @@ Function start_new_game() As Short
     faction(3).war(2)=100
     faction(3).war(4)=100
     faction(4).war(1)=100
-    faction(4).war(3)=100
+    faction(4).war(3)=100 '
 
     player.desig=gettext((5*_fw1+44*_fw2),(5*_fh1+c*_fh2),32,"",1)
     If player.desig="" Then player.desig=randomname()
@@ -447,7 +448,6 @@ Function start_new_game() As Short
     endif
     
     If debug=2 And _debug=1 Then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
-    If _debug=1 Then player.cursed=1
     just_run=run_until
     If show_specials>0 Then
         player.c=map(sysfrommap(specialplanet(show_specials))).c
@@ -2219,6 +2219,7 @@ EndIf
         dprint "Setting screen"
         Sleep
     EndIf
+    
     If savefrom(0).map=0 Then
         nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
         If nextmap.m=-1 Then Return nextmap
@@ -2257,12 +2258,15 @@ EndIf
         no_key=keyin
     EndIf
     
+    if _debug>0 then robot_invasion()
+    
     '***********************
     '
     'Planet Exploration Loop
     '
     '***********************
     Do
+        if _debug>0 then dprint "depth:"&planets(slot).depth
         if planets(slot).darkness>0 then 
             if planets(slot).depth=0 then
                 awayteam.dark=planets(slot).darkness+nightday(awayteam.c.x)
@@ -3823,14 +3827,14 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
                 If skill_test(-tacbonus+tohit_gun(a)+attacker.secweapthi(a)+SLBonus(slbc),targetnumber,echo1) or defender.sleeping>0 Then
                     damage+=attacker.secweap(a)+add_talent(3,11,.1)+add_talent(a,26,.1)
                     if crew(a).weap>0 and player.tactic<>3 then nldamage+=item(crew(a).weap).v4
-                    xpstring=gainxp(a)
+                    xpstring=gainxp(0,a)
                     xpgained+=1
                 EndIf
             Else
                 If skill_test(-tacbonus+tohit_close(a)+SLBonus(slbc),targetnumber,echo2) or defender.sleeping>0 Then
                     damage+=attacker.secweapc(a)+add_talent(3,11,.1)+add_talent(a,25,.1)+crew(a).augment(2)/10
                     if crew(a).blad>0 and player.tactic<>3 then nldamage+=item(crew(a).blad).v4
-                    xpstring=gainxp(a)
+                    xpstring=gainxp(0,a)
                     xpgained+=1
                 EndIf
             EndIf

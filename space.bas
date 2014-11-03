@@ -1352,7 +1352,7 @@ function gen_shops() as short
         if rnd_range(1,100)<(1-basis(i).pricelevel)*100 or _debug=1 then 
             basis(i).shop(sh_used)=1
             add_shop(sh_used,c,i)
-            add_shop(sh_usedships,c,i)
+            add_shop(sh_usedships,c,i)'Need both
         endif
     next
     if mudddone=0 then 

@@ -6,7 +6,7 @@ function gets_entry(x as short,y as short, slot as short) as short
     if tmap(x,y).gives=59 or tmap(x,y).gives=60 then return -1
     if tmap(x,y).gives=49 then return -1
     if tmap(x,y).gives=55 then return -1
-    if tmap(x,y).gives>=44 and tmap(x,y).gives<=46 then return -1
+    if tmap(x,y).gives>=43 and tmap(x,y).gives<=46 then return -1
     if tmap(x,y).gives>=13 and tmap(x,y).gives<=31 then return -1
     if tmap(x,y).gives>=4 and tmap(x,y).gives<=8 then return -1
     return 0
@@ -2443,7 +2443,7 @@ Function ep_shipfire(shipfire() As _shipfire) As Short
                 Loop Until ani>=8 Or configflag(con_tiles)=1
                                 'Deal damage
                 For a=1 To lastenemy
-                    If dammap(enemy(a).c.x,enemy(a).c.y)>0 Then
+                    If dammap(enemy(a).c.x,enemy(a).c.y)>0 and enemy(a).hp>0 Then
                         If shipfire(sf2).stun=0 Then
                             enemy(a).hp=enemy(a).hp-dammap(enemy(a).c.x,enemy(a).c.y)
                             If vismask(enemy(a).c.x,enemy(a).c.y)>0 Then txt &= enemy(a).sdesc &" takes " &dammap(enemy(a).c.x,enemy(a).c.y)&" points of damage. "
@@ -3495,6 +3495,7 @@ End Function
 
 Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _shipfire, spawnmask() As _cords,lsp As Short,Key As String, loctemp As Single) As Short
     Dim As Short a,b,c,d,e,r,sf,slot,st,debug
+    dim as integer money
     Dim As Single fuelsell,fuelprice,minprice
     Dim towed As _ship
     Dim As String text
@@ -3922,8 +3923,11 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                 enemy(1)=makemonster(2,slot)
                 enemy(1)=setmonster(enemy(1),slot,spawnmask(),lsp,awayteam.c.x+3,awayteam.c.y,1)
                 enemy(1).slot=1
-                planets(slot).plantsfound=(enemy(1).hpmax^2+enemy(1).armor+enemy(1).weapon+rnd_range(1,2))*10
-
+                
+                money=(enemy(1).hpmax^2+enemy(1).armor+enemy(1).weapon+rnd_range(1,2))*10
+                if money>30000 then money=30000
+                planets(slot).plantsfound=money
+                
                 planets(slot).depth=1
 
                 For x=awayteam.c.x+1 To awayteam.c.x+5
@@ -3942,6 +3946,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                 EndIf
             endif
         Else
+            
             addmoney(planets(slot).plantsfound,mt_gambling)
             dprint "You get "& planets(slot).plantsfound &" Cr. for the fight.",10
             planets(slot).mon_killed(1)=0

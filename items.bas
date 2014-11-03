@@ -2078,11 +2078,11 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
             
             if rnd_range(1,100)+player.turn/rate<60 then
                 i.v1=3
-                i.id+=222
+                i.id+=202
                 i.desig="Good ground penetrating radar"
                 i.desigp="Good ground penetrating radars"
             else
-                i.id+=223
+                i.id+=203
                 i.v1=4
                 i.desig="Great ground penetrating radar"
                 i.desigp="Great ground penetrating radars"

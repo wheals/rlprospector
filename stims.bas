@@ -52,7 +52,7 @@ end type
 function _stims.add(i as short,awhp as short) as short
     dim as single ratio,value
     if awhp=0 then return -1
-    if laststim>25 then return -1
+    if laststim>24 then return -1
     laststim+=1
     ratio=item(i).v2/awhp
     if ratio>1 then ratio=1
@@ -81,7 +81,7 @@ function _stims.tick() as short
             if stim(i).time=-1 then 
                 flag=1
                 stim(i)=stim(i+1)
-                laststim+=1
+                laststim-=1
             endif
         next
     loop until flag=0 or laststim<=1

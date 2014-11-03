@@ -1,4 +1,5 @@
 
+
 Function target_landing(mapslot As Short,Test As Short=0) As Short
     Dim As _cords p
     Dim As String Key
@@ -6,7 +7,11 @@ Function target_landing(mapslot As Short,Test As Short=0) As Short
     set__color(11,0)
     Cls
     Screenset 1,1
-
+    
+    If mapslot=specialplanet(29) And findbest(89,-1)>0 Then mapslot=specialplanet(30)
+    If mapslot=specialplanet(30) And findbest(89,-1)=-1 Then mapslot=specialplanet(29)
+    If mapslot=specialplanet(29) Then specialflag(30)=1
+    
     dprint "Choose landing site"
     p.x=30
     p.y=10
@@ -18,7 +23,8 @@ Function target_landing(mapslot As Short,Test As Short=0) As Short
             player.fuel-=1
         Loop Until c>5 Or (tiles(Abs(planetmap(p.x,p.y,mapslot))).gives=0 And tiles(Abs(planetmap(p.x,p.y,mapslot))).walktru=0 And skill_test(player.pilot(0),st_easy+c+planets(mapslot).grav+planets(mapslot).dens,"Pilot:"))
         If c<=5 Then
-            landing(mapslot,p.x,p.y,c)
+            dprint gainxp(2),c_gre
+            landing(mapslot,p.x,p.y,0)
         Else
             dprint "Couldn't land there, landing aborted",14
         EndIf
@@ -67,8 +73,10 @@ function landing_landingpads(pads() as _cords, last as short,mapslot as short) a
             for j=1 to last
                 if j<>i then
                     if distance(p2,pads(j))<d then
-                        d=distance(p2,pads(j))
-                        best=j
+                        if (key=key_north and pads(j).y<=p2.y) or (key=key_south and pads(j).y>=p2.y) or (key=key_west and pads(j).x<=p2.x) or (key=key_east and pads(j).x>=p2.x) then
+                            d=distance(p2,pads(j))
+                            best=j
+                        endif
                     endif
                 endif
             next
@@ -100,6 +108,7 @@ Function landing(mapslot As Short,lx As Short=0,ly As Short=0,Test As Short=0) A
     p.x=lx
     p.y=ly
     If lx=0 And ly=0 Then p=rnd_point(mapslot,0)
+    p.m=mapslot
     sys=sysfrommap(mapslot)
     If savefrom(0).map=0 Then
         If mapslot=specialplanet(29) And findbest(89,-1)>0 Then mapslot=specialplanet(30)

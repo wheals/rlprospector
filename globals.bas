@@ -244,6 +244,7 @@ function set_globals() as short
     crew_desig(14)="Squad Leader"
     crew_desig(15)="Sniper"
     crew_desig(16)="Paramedic"
+    crew_desig(17)="Tree"
     
     specialplanettext(1,0)="I got some strange sensor readings here sir. can't make any sense of it."
     specialplanettext(1,1)="The readings are gone. must have been that temple."

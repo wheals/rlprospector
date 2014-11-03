@@ -1,7 +1,7 @@
 function gainxp(typ as short,v as short=1) as string
     dim as short a,lowest,slot
     lowest=5000
-    if typ<=5 then
+    if typ>0 then
         for a=0 to 128
             if crew(a).typ=typ and crew(a).hp>0 then
                 if crew(a).xp<lowest then
@@ -11,11 +11,11 @@ function gainxp(typ as short,v as short=1) as string
             endif
         next
     else
-        slot=typ
+        slot=v
     endif
     if crew(slot).hp>0 and crew(slot).xp>=0 then
-        crew(slot).xp+=v
-        return crew_desig(crew(slot).typ) &" " &crew(slot).n &" has gained "&v &" Xp."
+        crew(slot).xp+=1
+        return crew_desig(crew(slot).typ) &" " &crew(slot).n &" has gained 1 Xp."
     endif
     return ""
 end function
@@ -419,7 +419,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as shor
                 else
                     armeff+=1
                 endif
-                if crew(target(t)).armo>0 and ap<>1 then
+                if crew(target(t)).armo>0 and ap<>1 and ap<>4 then
                     if item(crew(target(t)).armo).ti_no<2019 then 
                         if item(crew(target(t)).armo).v4=0 then item(crew(target(t)).armo).id+=2000
                         item(crew(target(t)).armo).v4+=1
@@ -869,10 +869,10 @@ function add_member(a as short,skill as short) as short
                 text=text &"/Change captain details"
                 help=help &"/Change the appearance and bio details of your captain"
                 
-                i=menu(bg_randompictxt,text,help)
+                i=menu(bg_randompictxt,text,help,,,1)
                 if i=rask then
                     do
-                        i=rnd_range(8,rask-1)
+                        i=rnd_range(9,rask-1)
                         j=i-7
                         if j>6 then j+=13
                     loop until crew(1).talents(j)<=3

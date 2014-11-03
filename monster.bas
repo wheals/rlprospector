@@ -376,8 +376,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.weapon=rnd_range(1,5)-3+planets(map).depth
         if enemy.weapon<0 then enemy.weapon=0
         
-        enemy.hpmax=enemy.hpmax*planets(map).grav
-        enemy.hpmax=enemy.hp
         enemy.sight=rnd_range(3,6)
         
         enemy.nocturnal=0
@@ -454,10 +452,13 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         if g=10 then enemy.speed+=3
         if enemy.speed>19 then enemy.speed=19
         if rnd_range(1,100)<15-enemy.intel*2 then enemy.disease=rnd_range(1,15)
+        
         enemy.hp=enemy.hp+rnd_range(1,5)+rnd_range(1,ad(g))+rnd_range(1,1+planets(map).depth)
-            
         enemy.hp=enemy.hp+rnd_range(0,2)+enemy.weapon+planets(map).depth
+        enemy.hp=enemy.hp*planets(map).grav
         enemy.hpmax=enemy.hp
+        
+        
         enemy.sdesc=ti(g)
         enemy=randomcritterdescription(enemy,g,enemy.hp/planets(map).grav,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)
         if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,1,planets(map).depth)

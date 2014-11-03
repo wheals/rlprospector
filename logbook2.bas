@@ -131,7 +131,6 @@ function logbook() as short
                         if m>0 then
                             if planets(m).comment<>"" then dprint planets(m).comment
                             if planetmap(0,0,m)=0 then
-                                screenset 0,1
                                 cls
                                 display_ship(1)
                                 set__color( 15,0)
@@ -140,7 +139,6 @@ function logbook() as short
                                 no_key=keyin
                             else
                                 do
-                                    screenset 0,1
                                     cls
                                     dplanet(planets(m),p,planets(m).mapped,m)
                                     display_planetmap(m,osx,1)
@@ -160,6 +158,7 @@ function logbook() as short
                                     If osx<0 Then osx=0
                                     If osx>60-_mwx Then osx=60-_mwx
                                 loop until no_key<>key_comment and no_key<>key_report and no_key<>key_west and no_key<>key_east
+                                
                             endif
                         endif
                     endif
@@ -307,7 +306,7 @@ function show_dotmap(x1 as short, y1 as short) as short
 end function
 
 function show_minimap(xx as short,yy as short) as short
-    dim as short a,x1,y1,x,y,osx,osy,n,bg,wid,px,py,debug,f
+    dim as short a,x1,y1,x,y,osx,osy,n,bg,wid,px,py,debug,f,tile
     
     x1=xx
     y1=yy
@@ -415,10 +414,11 @@ function show_minimap(xx as short,yy as short) as short
                 x=basis(a).c.x+osx
                 y=basis(a).c.y+osy
                 set__color( 15,0)
+                tile=a+3*(basis(a).company-1)
                 if configflag(con_tiles)=1 then
                     draw string (x*_fw1+px,y*_fh1),"S",,Font1,custom,@_col
                 else
-                    put (x*_tix+px,y*_tiy),gtiles(44),trans
+                    put (x*_tix+px,y*_tiy),gtiles(gt_no(1750+tile)),trans
                 endif
             endif
         endif
