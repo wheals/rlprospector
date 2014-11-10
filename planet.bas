@@ -2502,6 +2502,7 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
     endif
     if is_gardenworld(a) then planets_flavortext(a)="This place is lovely."
     if planets(a).temp=0 and planets(a).grav=0 then dprint "Made a 0 planet,#"&a,c_red
+    awayteam.c.x=-1
     for a=0 to 25
         lsp=ep_updatemasks(watermap(),localtemp(),cloudmap(),spawnmask(),mapmask(),nightday(),dawn,dawn2)
         ep_tileeffects(areaeffect(),last_ae,lavapoint(),nightday(),localtemp(),cloudmap())

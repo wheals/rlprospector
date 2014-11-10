@@ -2276,7 +2276,6 @@ function load_bones() as short
             p=rnd_point(m,0)
             portal(sys).dest.x=p.x
             portal(sys).dest.y=p.y
-            map(sysfrommap(portal(sys).from.m)).discovered=4
         endif
         for x=0 to 60
             for y=0 to 20

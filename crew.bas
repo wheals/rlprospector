@@ -200,7 +200,7 @@ function changemoral(value as short, where as short) as short
     if value<0 then value=value*bunk_multi
     if value>0 then value=value/bunk_multi
     for a=2 to 128
-        if crew(a).hp>0 and crew(a).onship=where then
+        if crew(a).hp>0 and crew(a).onship=where and crew(a).equips>-1 then
             crew(a).morale=crew(a).morale+value
             if tribbles>0 then
                 tribbles-=1
@@ -338,7 +338,7 @@ function dam_awayteam_list(target() as short, stored() as short, ap as short, al
                     stored(b)=crew(b).hp
                 endif
             else                
-                if (crew(b).hpmax>0 and crew(b).hp>0 and (all=1 or crew(b).onship=0)) then
+                if (crew(b).hpmax>0 and crew(b).hp>0 and crew(b).equips>-1 and (all=1 or crew(b).onship=0)) then
                     awayteam.hp+=1
                     last+=1
                     target(last)=b
@@ -693,7 +693,7 @@ function rnd_crewmember(onship as short=0) as short
     dim pot(128) as short
     dim as short p,a
     for a=0 to 128
-        if crew(a).hp>0 and crew(a).onship=onship then
+        if crew(a).hp>0 and crew(a).equips>-1 and crew(a).onship=onship then
             p+=1
             pot(p)=a
         endif
@@ -702,10 +702,13 @@ function rnd_crewmember(onship as short=0) as short
 end function
 
 function get_freecrewslot() as short
-    dim as short b,slot,debug
-
+    dim as short b,slot,debug,max
+    max=(player.h_maxcrew+player.crewpod)*player.bunking+player.cryo
+    for b=1 to 128
+        if crew(b).equips<0 then max+=1
+    next
     if debug=1 and _debug=1 then dprint ""&player.h_maxcrew &":"&player.crewpod &":"&player.cryo
-    for b=1 to (player.h_maxcrew+player.crewpod)*player.bunking+player.cryo
+    for b=1 to max
         if crew(b).hp<=0 then return b
     next
     Dprint "No room on the ship.",c_yel
@@ -727,7 +730,7 @@ function bunk_multi() as single
     dim as short b,here,max
     max=(player.h_maxcrew+player.crewpod)+player.cryo
     for b=1 to 128
-        if crew(b).hp>0 then here+=1
+        if crew(b).hp>0 and crew(b).equips<>-1 then here+=1
     next
     if here<=max then
         player.bunking=1
@@ -1182,6 +1185,24 @@ function add_member(a as short,skill as short) as short
             crew(slot).morale=150
             'crew(slot).disease=rnd_range(1,16)
         endif
+        
+        if a=20 or a=21 or a=22 or a=23 then
+            crew(slot).typ=18
+            crew(slot).hpmax=1
+            crew(slot).icon="A"
+            crew(slot).paymod=0
+            crew(slot).equips=-1
+            crew(slot).morale=200
+            if a=20 then crew(slot).n="Piloting"
+            if a=21 then crew(slot).n="Gunner"
+            if a=22 then crew(slot).n="Science"
+            if a=23 then crew(slot).n="Medical"
+            if a=20 then crew(slot).baseskill(0)=7
+            if a=21 then crew(slot).baseskill(1)=7
+            if a=22 then crew(slot).baseskill(2)=7
+            if a=23 then crew(slot).baseskill(3)=7
+        endif
+            
         
         crew(slot).hp=crew(slot).hpmax
         if crew(slot).story(10)<2 then 'Is human
@@ -1696,7 +1717,7 @@ function equip_awayteam(m as short) as short
     next
     for a=1 to 128 'determine fuel use
         'if crew(a).hp>0 and crew(a).onship=0 then awayteam.hp+=1
-        if crew(a).hp>0 and crew(a).onship=0 then
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips>-1 then
             crewcount+=1
             if crew(a).typ=13 then robots+=1
             if crew(a).talents(27)>0 then squadlcount+=1
@@ -1780,7 +1801,7 @@ function equip_awayteam(m as short) as short
         'find best ranged weapon
         'give to redshirt
 
-        if crew(a).hp>0 and crew(a).onship=0 then
+        if crew(a).hp>0 and crew(a).onship=0 and crew(a).equips>-1 then
             if crew(a).augment(7)=0 then
                 cantswim+=1
             else
@@ -1814,6 +1835,8 @@ function equip_awayteam(m as short) as short
                 awayteam.blades_to+=awayteam.secweapc(a)
                 awayteam.guns_to+=awayteam.secweap(a)
             endif
+            
+            if crew(a).equips=-1 then oxy=0
             
             awayteam.oxydep=awayteam.oxydep+oxy
             
@@ -2168,7 +2191,9 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
 
                     'Fixes the auto equip messgae so it does not get over writen Also goign to set the highlighting if needed
                     if skills = "" then
-                    draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    if crew(b-offset).equips>-1 then
+                        draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                    endif
                     elseif augments = "" then
                         set__color( 0,bg)
                         draw string (0,(y+3)*_fh2), space(80),,font2,custom,@_col

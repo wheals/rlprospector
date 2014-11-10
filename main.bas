@@ -253,6 +253,10 @@ Function start_new_game() As Short
         placeitem(make_item(303),0,0,0,0,-1)
         placeitem(make_item(47),0,0,0,0,-1)
         placeitem(make_item(77),0,0,0,0,-1)
+        add_member(20,0)
+        add_member(21,0)
+        add_member(23,0)
+        add_member(22,0)
     endif
     
     If _debug=707 Then
@@ -1418,7 +1422,7 @@ Function explore_space() As Short
                 EndIf
                 pl=-1
 
-                If Key=key_sc or key=key_inspect And Abs(spacemap(player.c.x,player.c.y))>=6 And Abs(spacemap(player.c.x,player.c.y))<=10 Then
+                If (Key=key_sc or key=key_inspect) And Abs(spacemap(player.c.x,player.c.y))>=6 And Abs(spacemap(player.c.x,player.c.y))<=10 Then
                     If askyn("Do you want to scan the anomaly?(y/n)") Then
                         If rnd_range(1,100)=1 Then player.cursed+=1
                         If skill_test(player.science(0),st_easy+Abs(spacemap(player.c.x,player.c.y)),"Science officer") Then
@@ -1998,6 +2002,8 @@ EndIf
         planets(slot).mon_template(a).slot=a
     Next
     
+    awayteam.slot=slot
+    
     if _debug=2704 then print #logfile,"Move rovers"
     move_rover(slot)
     'if planets(slot).colony<>0 then growcolony(slot)
@@ -2258,8 +2264,11 @@ EndIf
         no_key=keyin
     EndIf
     
-    if _debug>0 then robot_invasion()
-    
+    if _debug>0 then 
+        robot_invasion()
+        make_locallist(slot)
+        update_tmap(slot)
+    endif
     '***********************
     '
     'Planet Exploration Loop
@@ -3730,10 +3739,11 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     EndIf
     noa=attacker.hp\7
     If noa<1 Then noa=1
+    if _debug>0 then dprint noa &":"& -defender.armor\(6*(defender.hp+1))+attacker.weapon
     For a=1 To noa
-        If skill_test(-defender.armor\(6*(defender.hp+1))+attacker.weapon,13+defender.movetype*5) Then b=b+1+attacker.weapon
+        If skill_test(attacker.weapon,13+defender.movetype*3) Then b=b+1+attacker.weapon
     Next
-    If b>attacker.weapon+5+noa/2 Then b=attacker.weapon+5+noa/2 'max damage
+    
     If defender.made=0 Then
         If b>0 Then
             text=text & dam_awayteam(b,,attacker.disease)

@@ -24,7 +24,6 @@ end function
 function robot_invasion() as short
     dim as short a,pot(1024),lp,m,ad
     dim c as _cords
-    dim d as _driftingship
     for a=1 to lastplanet
         ad=0
         if planets(a).depth=0 then
@@ -39,13 +38,19 @@ function robot_invasion() as short
             if specialplanet(40)=a then ad=1
             if specialplanet(41)=a then ad=1
             if specialplanet(42)=a then ad=1
-            if specialplanet(43)=a then ad=1
             if piratebase(0)=a then ad=1
             if piratebase(1)=a then ad=1
             if piratebase(2)=a then ad=1
             if ad=1 then
                 c=rnd_point(a,,305)
-                if c.x>0 then ad=0 'Already invaded
+                if c.x>0 then 
+                    do
+                        c=movepoint(c,5)
+                    loop until abs(planetmap(c.x,c.y,a))<>305
+                    add_landed_alienship(c,a)
+                    planetmap(c.x,c.y,a)=-305
+                    ad=0 'Already invaded
+                endif
             endif
             if ad=1 then
                 lp+=1 
@@ -57,19 +62,16 @@ function robot_invasion() as short
     if lp>0 then
         m=pot(rnd_range(1,lp))
         if _debug>0 then m=awayteam.slot
+        
         c=rnd_point
-        planetmap(c.x,c.y,m)=-305
-        'Add ship to enter
-        d.m=m
-        d.s=18
-        d.x=c.x
-        d.y=c.y
-        add_stranded_ship(18,d,m,0)
-        planets(lastplanet)=planets(m)
-        planets(m).depth=1
-        planets(m).wallset=rnd_range(12,13)
-        c=rnd_point(201,lastplanet)
-        planetmap(c.x,c.y,lastplanet)=-306
+        for a=1 to rnd_range(1,3)
+            add_landed_alienship(c,m)
+            planetmap(c.x,c.y,m)=-305
+            do
+                c=movepoint(c,5)
+            loop until abs(planetmap(c.x,c.y,m))<>305            
+            if _debug>0 then dprint "ASP"&cords(c)&m
+        next
         select case m
         case specialplanet(10),specialplanet(13),specialplanet(14),specialplanet(20),specialplanet(39),specialplanet(40),specialplanet(41),specialplanet(42),specialplanet(43)
             battleslost(ft_merchant,ft_ancientaliens)+=5
@@ -78,11 +80,39 @@ function robot_invasion() as short
         case specialplanet(7)
             battleslost(ft_civ1,ft_ancientaliens)+=5
         case specialplanet(38)
-            battleslost(ft_civ1,ft_ancientaliens)+=5
+            battleslost(ft_civ2,ft_ancientaliens)+=5
         end select
     endif
     return 0
 end function
+
+function add_landed_alienship(c as _cords,m as short) as short
+    dim d as _driftingship
+    dim c1 as _cords
+    if m<0 or m>max_maps then 
+        dprint "out of bounds:"&m
+        return 0
+    end if
+        
+    if c.x<0 or c.x>60 or c.y<0 or c.y>20 then 
+        dprint "out of bounds:"&cords(c),14
+        return 0
+    end if
+    planetmap(c.x,c.y,m)=-305
+    'Add ship to enter
+    d.m=m
+    d.s=18
+    d.x=c.x
+    d.y=c.y
+    add_stranded_ship(18,d,m,0)
+    planets(lastplanet)=planets(m)
+    planets(lastplanet).depth=1
+    planets(lastplanet).wallset=rnd_range(12,13)
+    c1=rnd_point(201,lastplanet)
+    planetmap(c.x,c.y,lastplanet)=-306
+    return 0
+end function
+
 
 function form_alliance(who as short) as short
     dim as integer playerkills,ancientskills,factionmod,i

@@ -67,7 +67,6 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     dim as string text
     dim as string heads(4),eyes(4),mouths(4),necks(4),bodys(4),Legs(8),Feet(4),Arms(4),Hands(4),skin(7),wings(4),horns(4),tails(5)
     dim as short a,w1,w2
-    dim as string species(12)
     dim as short limbsbyspec(12),eyesbyspec(12)
     dim as short noeyes,nolimbs,add,nolegs,noarms,armor,roll
     if water=1 then
@@ -76,21 +75,7 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     endif
 
     if weight<=0 then weight=1
-    spec=spec+1
     
-    species(1)="avian"
-    species(2)="arachnide"
-    species(3)="insect"
-    species(4)="mammal"
-    species(5)="reptile"
-    species(6)="snake"
-    species(7)="humanoid"
-    species(8)="cephalopod"
-    species(9)="centipede"
-    species(10)="amphibian"
-    species(11)="gastropod"
-    species(12)="fish"
-
     limbsbyspec(1)=2
     limbsbyspec(2)=8
     limbsbyspec(3)=6
@@ -301,9 +286,8 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     dim enemy as _monster
     dim as short d,e,l,mapo,g,r,ahp,debug,prettybonus,tastybonus
     dim as single easy
-    static ti(11) as string
-    static ch(11) as short
-    static ad(11) as single
+    static ch(12) as short
+    static ad(12) as single
     dim as string prefix
     debug=55
     if a=0 then
@@ -315,42 +299,30 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     enemy.dhurt="hurt"
     enemy.dkill="dies"
         
-    ti(0)="avian"
-    ti(1)="arachnid"
-    ti(2)="insect"
-    ti(3)="mammal"
-    ti(4)="reptile"
-    ti(5)="snake"
-    ti(6)="humanoid"
-    ti(7)="cephalopod"
-    ti(8)="centipede"
-    ti(9)="amphibian"
-    ti(10)="gastropod"
-    ti(11)="fish"
-    ad(0)=1
-    ad(1)=0
+    ad(1)=1
     ad(2)=0
-    ad(3)=3
+    ad(3)=0
     ad(4)=3
-    ad(5)=1
-    ad(6)=2
-    ad(7)=1
+    ad(5)=3
+    ad(6)=1
+    ad(7)=2
     ad(8)=1
     ad(9)=1
     ad(10)=1
+    ad(11)=1
     
-    ch(0)=66
-    ch(1)=65
-    ch(2)=73
-    ch(3)=77
-    ch(4)=asc("l")
-    ch(5)=asc("s")
-    ch(6)=asc("h")
-    ch(7)=asc("q")
-    ch(8)=asc("c")
-    ch(9)=asc("f")
-    ch(10)=asc("g")
-    ch(11)=asc("f")
+    ch(1)=66
+    ch(2)=65
+    ch(3)=73
+    ch(4)=77
+    ch(5)=asc("l")
+    ch(6)=asc("s")
+    ch(7)=asc("h")
+    ch(8)=asc("q")
+    ch(9)=asc("c")
+    ch(10)=asc("f")
+    ch(11)=asc("g")
+    ch(12)=asc("f")
     for g=0 to 128
         if crew(g).hp>0 then ahp=ahp+1
     next
@@ -441,15 +413,15 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.itemch(2)=55
         endif
         if forcearms>0 then enemy.pumod=-1 '2 arms minimum
-        g=rnd_range(0,10)
-        if a=24 then g=11
+        g=rnd_range(1,11)
+        if a=24 then g=12
         enemy.tile=ch(g)
-        enemy.sprite=261+g
-        if g=1 then enemy.movetype=mt_climb 'Spinnen klettern
-        if g=11 then enemy.movetype=mt_hover 'Fish
-        if g=6 then enemy.intel=enemy.intel+1
-        if g=9 or a=24 then enemy.movetype=mt_climb
-        if g=10 then enemy.speed+=3
+        enemy.sprite=260+g
+        if g=2 then enemy.movetype=mt_climb 'Spinnen klettern
+        if g=12 then enemy.movetype=mt_hover 'Fish
+        if g=7 then enemy.intel=enemy.intel+1
+        if g=10 or a=24 then enemy.movetype=mt_climb
+        if g=11 then enemy.speed+=3
         if enemy.speed>19 then enemy.speed=19
         if rnd_range(1,100)<15-enemy.intel*2 then enemy.disease=rnd_range(1,15)
         
@@ -459,7 +431,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.hpmax=enemy.hp
         
         
-        enemy.sdesc=ti(g)
+        enemy.sdesc=species(g)
         enemy=randomcritterdescription(enemy,g,enemy.hp/planets(map).grav,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)
         if a=24 then enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,1,planets(map).depth)
         if rnd_range(1,15)<planets(map).depth then
@@ -519,9 +491,10 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=2 then 'Powerful standard critter
         'Postion
-        g=rnd_range(0,4)
+        g=rnd_range(1,5)
         enemy.tile=ch(g)
-        enemy.sdesc=ti(g)
+        enemy.sdesc=species(g)
+        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.sprite=261+g
         'Fighting Stats
@@ -542,7 +515,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.diet=1
         enemy.speed=(rnd_range(1,5)+rnd_range(1,5)+rnd_range(0,enemy.weapon))
         
-        enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)        
         
         enemy.ti_no=g+750
         
@@ -1077,9 +1049,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.tile=ch(g)
         if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
-        enemy.sdesc=ti(g)
+        enemy.sdesc=species(g)
         enemy=randomcritterdescription(enemy,g,enemy.hp,enemy.movetype,enemy.pumod,enemy.diet,0,planets(map).depth)
-        enemy.sprite=270+g
+        enemy.sprite=269+g
         enemy.biomod=2.3
     endif
         
@@ -1604,7 +1576,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         g=rnd_range(0,4)
         enemy.ti_no=1001+g 'Powerful standard critter
         enemy.tile=ch(g)
-        enemy.sdesc=ti(g)
+        enemy.sdesc=species(g)
         enemy.sprite=261+g
         'Fighting Stats
         enemy.range=1.5
@@ -1756,9 +1728,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     
     if a=41 then 'Powerful space standard critter
         enemy.ti_no=1001+g
-        g=rnd_range(0,4)
+        g=rnd_range(1,5)
         enemy.tile=ch(g)
-        enemy.sdesc=ti(g)
+        enemy.sdesc=species(g)
         enemy.sprite=261+g
         enemy.range=1.5
         enemy.weapon=rnd_range(1,4)-2

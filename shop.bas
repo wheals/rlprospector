@@ -423,216 +423,7 @@ end function
 
 
 function reroll_shops() as short
-'    dim as short a,b,i,c,sh,flag,roll,spec,shopno
-'    dim  as _items it,delit
-'    dim sortinvlist(20) as _items
-'    dim dummynumber(20) as short
-'    for shopno=0 to 29
-'        for a=0 to 20
-'            shopitem(a,shopno)=delit 'Delete Item
-'        next
-'    next
-'    
-'    for i=0 to 24
-'        if i<>20 then
-'        b=0
-'        a=1
-'        do
-'            b+=1
-'            flag=0
-'            it=delit 'Delete Item
-'            if i<=3 then 'Station Shops
-'                spec=basis(i).shop(sh_equipment)
-'                if a<=5 then
-'                    it=rnd_item(RI_StandardShop)
-'                else
-'                    if spec=1 then it=rnd_item(RI_ShopExplorationGear)
-'                    if spec=2 then 
-'                        if rnd_range(1,100)<50 then 
-'                            it=rnd_item(RI_WeakWeapons)
-'                        else
-'                            it=rnd_item(RI_WeakStuff)
-'                        endif
-'                    endif
-'                    if spec=3 then it=rnd_item(RI_ShopSpace)
-'                    if spec=4 then it=rnd_item(RI_ShopWeapons)
-'                endif
-'                it.w.x=rnd_range(10,50-it.v1)
-'            endif
-'            if i=4 then 'Colony I
-'                if b=19 then it=make_item(97)'Disintegrator
-'                if b=18 then it=make_item(98)'adaptive bodyarmor
-'                if b<17 then
-'                    it=make_item(RI_Standardshop)
-'                endif
-'                it.w.x=rnd_range(1,15-it.v1)
-'            endif
-'            if i=6 then 'Black market
-'                it=rnd_item(RI_AllButWeaponsAndMeds)
-'                it.w.x=rnd_range(1,15-it.v1)
-'            endif
-'            
-'            if i=7 then 'Mudds
-'                if b=1 then 
-'                    it=make_item(250)
-'                else
-'                    it=make_item(rnd_range(1,80))
-'                endif
-'                it.w.x=rnd_range(5,10)
-'            endif
-'            
-'            if i=5 or (i>7 and i<21) then
-'                if a<=3 then
-'                    it=make_item(31+a)
-'                endif
-'                it=rnd_item(RI_StandardShop)
-'                it.w.x=rnd_range(5,10-it.v1)
-'            endif
-'            
-'            if i>=21 and i<=24 then 'Medical supplies
-'                select case rnd_range(1,100)
-'                case 1 to 18
-'                    it=rnd_item(RI_Infirmary)
-'                    it.w.x=rnd_range(1,3)
-'                case 19 to 50
-'                    it=rnd_item(RI_Medpacks)
-'                    it.w.x=rnd_range(10,60)
-'                case 51 to 65
-'                    it=rnd_item(RI_KODrops)
-'                    it.w.x=rnd_range(10,60)
-'                case 66 to 90
-'                    it=rnd_item(RI_Stims)
-'                    it.w.x=rnd_range(10,50)
-'                case else
-'                    it=rnd_item(RI_Cage)
-'                    it.w.x=rnd_range(10,25)
-'                end select
-'            endif
-'            
-'            for c=1 to 20
-'                if shopitem(c,i).desig="" then
-'                    shopitem(c,i)=it
-'                    a+=1
-'                    exit for
-'                endif
-'                if shopitem(c,i).id=it.id then exit for
-'            next
-'        loop until a>=20 or (i=20 and a>=15) or (i>=21 and a>=10)
-'        endif
-'    next
-'    
-'    'Engine Sensors Shieldshop
-'    a=0
-'    roll=rnd_range(1,90)+player.turn/2500
-'    if roll>0 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(1)
-'    endif
-'    if roll>10 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(2)
-'    endif
-'    if roll>25 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(3)
-'    endif
-'    if roll>75 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(4)
-'    endif
-'    if roll>90 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(5)
-'    endif
-'    
-'    roll=rnd_range(1,90)+player.turn/2500
-'    if roll>0 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(6)
-'    endif
-'    if roll>10 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(7)
-'    endif
-'    if roll>25 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(8)
-'    endif
-'    if roll>75 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(9)
-'    endif
-'    if roll>90 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(10)
-'    endif
-'    
-'    roll=rnd_range(1,90)+player.turn/2500
-'    if roll>10 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(11)
-'    endif
-'    if roll>25 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(12)
-'    endif
-'    if roll>75 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(13)
-'    endif
-'    if roll>90 then 
-'        a+=1
-'        shopitem(a,20)=make_shipequip(14)
-'    endif
-'    for b=15 to 23
-'        if rnd_range(1,100)<50 and a<=19 then 
-'            a+=1
-'            shopitem(a,20)=make_shipequip(b)
-'        endif
-'    next
-'    a+=1
-'    if a>20 then a=20
-'    shopitem(a,20)=make_shipequip(21)
-'    'Droneshop
-'    c=1
-'    
-'    for b=50 to 55 
-'        if rnd_range(1,100)<77 then
-'            shopitem(c,25)=make_item(b)
-'            shopitem(c,25).w.x=rnd_range(1,20)
-'            c+=1
-'        endif
-'    next
-'    if rnd_range(1,100)<77 then 
-'        c+=1
-'        shopitem(c,25)=make_item(30)'Comsat
-'        shopitem(c,25).w.x=rnd_range(1,20)
-'    endif
-'    
-'    for b=100 to 102
-'        if rnd_range(1,100)<77 then
-'            shopitem(c,25)=make_item(b,,25)
-'            shopitem(c,25).w.x=rnd_range(1,20)
-'            c+=1
-'        endif
-'    next
-'    
-'    for b=104 to 105
-'        if rnd_range(1,100)<77 then
-'            shopitem(c,25)=make_item(b)
-'            shopitem(c,25).w.x=rnd_range(1,20)
-'            c+=1
-'        endif
-'    next
-'    
-'    for b=110 to 112
-'        if rnd_range(1,100)<77 then
-'            shopitem(c,25)=make_item(b,,25)
-'            shopitem(c,25).w.x=rnd_range(1,20)
-'            c+=1
-'        endif
-'    next
-'    
+    
     dim as short b,i,c,sh,a
     for b=1 to lastshop
        gen_shop(b,shoplist(b).shoptype)
@@ -714,78 +505,6 @@ function reroll_shops() as short
             endif
         next
     next
-    
-'    
-'    
-'    for b=26 to 29
-'        i=0
-'        i+=1
-'        shopitem(i,b)=make_item(75)
-'        shopitem(i,b).w.x=rnd_range(1,6)
-'        if rnd_range(1,100)<50 then
-'           i+=1
-'           shopitem(i,b)=make_item(76)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        
-'        i+=1
-'        shopitem(i,b)=make_item(104)
-'        shopitem(i,b).w.x=rnd_range(1,6)
-'        if rnd_range(1,100)<25 then
-'           i+=1
-'           shopitem(i,b)=make_item(105)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        
-'        i+=1
-'        shopitem(i,b)=make_item(100)
-'        if rnd_range(1,100)<75 then
-'           i+=1
-'           shopitem(i,b)=make_item(101)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        if rnd_range(1,100)<25 then
-'           i+=1
-'           shopitem(i,b)=make_item(102)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        
-'        i+=1
-'        shopitem(i,b)=make_item(110)
-'        shopitem(i,b).w.x=rnd_range(1,6)
-'        if rnd_range(1,100)<75 then
-'           i+=1
-'           shopitem(i,b)=make_item(111)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        if rnd_range(1,100)<25 then
-'           i+=1
-'           shopitem(i,b)=make_item(112)
-'           shopitem(i,b).w.x=rnd_range(1,6)
-'        endif
-'        
-'        'sort_items(shopitem(,b))
-'    next
-'    for i=1 to 8
-'        usedship(i).x=rnd_range(1,12)
-'        usedship(i).y=rnd_range(0,3)
-'    next
-'    
-'    for i=1 to 12
-'        select case rnd_range(1,100)
-'        case 1 to 50
-'            it=rnd_item(RI_weakweapons)
-'        case 51 to 90
-'            it=rnd_item(RI_weakstuff)
-'        case else
-'            it=rnd_item(RI_shopexplorationgear)
-'        end select
-'        it.res=it.res/1.2
-'        it.w.x=1
-'        shopitem(i,30)=it
-'    next
-'            
-'    
     return 0
 end function
 
@@ -859,7 +578,8 @@ function buysitems(desc as string,ques as string, ty as short, per as single=1,a
 end function
 
 function customize_item() as short
-    dim as integer a,b,i,i2,j,price,c,nr
+    dim as integer a,b,i,i2,j,price,c
+    dim as short num
     dim as string t
     dim as byte debug=0
     do
@@ -871,32 +591,28 @@ function customize_item() as short
         cls
         display_ship()
         if a=1 then
-            i=get_item(2,4)
+            i=get_item(2,4,num)
             if i>0 then
                 dprint "Let's take a look at your "&item(i).desig &"."
                 if item(i).v3<4 then
-                    nr=count_items(item(i))
-                    if nr>1 then 
-                        dprint "How many?(1-"&nr &")"
-                        nr=getnumber(0,nr,0)
+                    if num>1 then 
+                        dprint "How many?(1-"&num &")"
+                        num=getnumber(0,num,1)
                     endif
-                    if debug=1 and _debug=1 then dprint ""&nr
-                    price=(item(i).v3+1)*(item(i).v3+1)*100*nr*haggle_("down")
-                    if askyn("That will cost "&price &" Cr.(y/n)") then
-                        if paystuff(price) then 
-                            for j=1 to nr
-                                i=lowest_by_id(item(i).id)
-                                item(i).id+=2000
-                                item(i).v3+=1
-                                t=left(item(i).ldesc,instr(item(i).ldesc,"| |"))
-                                for c=1 to len(item(i).ldesc)
-                                    if mid(item(i).ldesc,c,1)<>"|" then
-                                        t=t &mid(item(i).ldesc,c,1)
-                                    else
-                                        exit for
+                    if num>0 then
+                        price=(item(i).v3+1)*(item(i).v3+1)*100*num*haggle_("down")
+                        if askyn("That will cost "&price &" Cr.(y/n)") then
+                            if paystuff(price) then 
+                                for j=1 to num
+                                    if i>0 then
+                                        i2=next_item(i)
+                                        item(i).id+=2000
+                                        item(i).v3+=1
+                                        i=next_item(i)
+                                        i=i2
                                     endif
                                 next
-                            next
+                            endif
                         endif
                     endif
                 else
@@ -907,35 +623,40 @@ function customize_item() as short
             endif
         endif
         if a=2 or a=3 then
-            i=get_item(3)
+            i=get_item(3,,num)
             if i>0 then
                 dprint "Let's take a look at your "&item(i).desig &"."
-                nr=count_items(item(i))
-                if nr>1 then 
-                    dprint "How many?(1-"&nr &")"
-                    nr=getnumber(0,nr,0)
+                if num>1 then 
+                    dprint "How many?(1-"&num &")"
+                    num=getnumber(0,num,0)
                 endif
-                i2=lowest_by_id(item(i).id)
-                if i2>0 then i=i2
-                if a=2 then price=100
-                if a=3 then price=250
-                if item(i).v2>0 then 
-                    dprint "That suit is already camoflaged."
-                else
-                    price=price*nr*haggle_("down")
-                    if askyn("that will cost "&price &" Cr.(y/n)") then
+                if num>0 then
+                    if a=2 then price=100
+                    if a=3 then price=250
+                    if item(i).v2>0 then 
+                        dprint "That suit is already camoflaged."
+                    else
+                        price=price*num*haggle_("down")
                         if paystuff(price) then
-                            if a=2 then 
-                                item(i).id+=1200
-                                item(i).v2=1
-                                item(i).desig="Camo "&item(i).desig
-                                item(i).desigp="Camo "&item(i).desigp
-                            endif
-                            if a=3 then 
-                                item(i).id+=1300
-                                item(i).v2=3
-                                item(i).desig="Imp. Camo "&item(i).desig
-                                item(i).desigp="Imp. Camo "&item(i).desigp
+                            if askyn("that will cost "&price &" Cr.(y/n)") then
+                                for j=1 to num
+                                    if i>0 then
+                                        i2=next_item(i)
+                                        if a=2 then 
+                                            item(i).id+=1200
+                                            item(i).v2=1
+                                            item(i).desig="Camo "&item(i).desig
+                                            item(i).desigp="Camo "&item(i).desigp
+                                        endif
+                                        if a=3 then 
+                                            item(i).id+=1300
+                                            item(i).v2=3
+                                            item(i).desig="Imp. Camo "&item(i).desig
+                                            item(i).desigp="Imp. Camo "&item(i).desigp
+                                        endif
+                                        i=i2
+                                    endif
+                                next
                             endif
                         endif
                     endif
@@ -945,19 +666,31 @@ function customize_item() as short
             endif
         endif
         if a=4 then
-            i=get_item()
+            i=get_item(,,num)
             if i>0 then
                 dprint "Let's take a look at your "&item(i).desig &"."
-                price=50*haggle_("down")
-                if item(i).id>5500 then 
-                    dprint "That "&item(i).desig &" is already acidproof."
-                else
-                    if askyn("That will cost " &price & " cr.(y/n)") then
-                        if paystuff(price) then
-                            item(i).id+=5500
-                            item(i).res=120
-                            item(i).desig="acidproof "&item(i).desig
-                            item(i).desigp="acidproof "&item(i).desigp
+                if num>1 then 
+                    dprint "How many?(1-"&num &")"
+                    num=getnumber(0,num,0)
+                endif
+                if num>0 then 
+                    price=50*num*haggle_("down")
+                    if instr(item(i).desig,"acidproof")>0 then 
+                        dprint "That "&item(i).desig &" is already acidproof."
+                    else
+                        if askyn("That will cost " &price & " cr.(y/n)") then
+                            if paystuff(price) then
+                                for j=1 to num
+                                    if i>0 then
+                                        i2=next_item(i)
+                                        item(i).id+=5500
+                                        item(i).res=120
+                                        item(i).desig="acidproof "&item(i).desig
+                                        item(i).desigp="acidproof "&item(i).desigp
+                                        i=i2
+                                    endif
+                                next
+                            endif
                         endif
                     endif
                 endif

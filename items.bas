@@ -4650,22 +4650,22 @@ function artifact(c as short) as short
     
     if c=17 then
         dprint "It's a sophisticated piloting AI"
-        player.pipilot=7
+        add_member(20,0)
     endif
     
     if c=18 then
         dprint "It's a sophisticated gunner AI"
-        player.pigunner=7
+        add_member(21,0)
     endif
     
     if c=19 then
         dprint "It's a sophisticated science AI"
-        player.piscience=7
+        add_member(22,0)
     endif
     
     if c=20 then
         dprint "It's a sophisticated medical AI"
-        player.pidoctor=8
+        add_member(23,0)
     endif
     
     if c=21 then

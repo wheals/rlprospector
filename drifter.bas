@@ -122,7 +122,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                 planetmap(x,y,m)=-202
                 if rnd_range(1,100)<66 then 'Random Shops
                     ti=rnd_range(1,lastrandomshop)
-                    if _debug>0 then ti=lastrandomshop
+                    if _debug>0 then ti=7
                     planetmap(x,y,m)=-randomshop(ti)
                     p.x=x
                     p.y=y

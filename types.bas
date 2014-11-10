@@ -127,7 +127,7 @@ Dim Shared As Byte _hpdisplay=1
 
 
 Dim Shared As Byte _autoinspect=1
-
+dim shared species(12) as string
 Dim Shared As Byte _volume=2
 Dim Shared As Byte _resolution=2
 Dim Shared As Byte _lines=25
@@ -609,7 +609,7 @@ Type _monster
     Declare Function add_move_cost(modifier as short=0) As Short
     c As _cords
     made As UByte
-    slot As Byte
+    slot As short
     no As UByte
     hpmax As Single
     hp As Single
@@ -1841,7 +1841,7 @@ Dim Shared As Any Ptr FONT1,FONT2
 Dim Shared As UByte _FH1,_FH2,_FW1,_FW2,_fohi1,_fohi2,_TFH
 
 Dim Shared endstory As String
-Dim Shared crew_desig(17) As String
+Dim Shared crew_desig(18) As String
 Dim Shared combon(9) As _company_bonus
 
 Dim Shared ammotypename(4) As String
@@ -2072,6 +2072,7 @@ Declare Function spacestation(st As Short) As _ship
 Declare Function buy_weapon(st As Short) As Short
 Declare Function update_world(location As Short) As Short
 Declare Function robot_invasion() As Short
+declare function add_landed_alienship(c as _cords,m as short) as short
 Declare Function explore_space() As Short
 Declare Function explore_planet(from As _cords, orbit As Short) As _cords
 Declare Function alienbomb(c As Short,slot As Short) As Short

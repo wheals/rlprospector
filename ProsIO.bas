@@ -1308,8 +1308,13 @@ end function
 function display_portal(b as short,slot as short,osx as short) as short
     dim as short x,debug
     x=portal(b).from.x-osx
-    if x<0 then x+=61
-    if x>60 then x-=61
+    if planets(slot).depth=0 then
+        if x<0 then x+=61
+        if x>60 then x-=61
+    else
+        if x<0 then x=0
+        if x>60 then x=60
+    endif
     if x>=0 and x<=_mwx then
         if (portal(b).from.m=slot and portal(b).oneway<2) and (portal(b).discovered=1 or vismask(portal(b).from.x,portal(b).from.y)>0) then
             portal(b).discovered=1
@@ -1318,21 +1323,25 @@ function display_portal(b as short,slot as short,osx as short) as short
                 if _debug>0 then draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),""&portal(b).ti_no,,Font2,custom,@_col
             else
                 set__color( portal(b).col,0)
-                draw string(portal(b).from.x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+                draw string(x*_fw1,portal(b).from.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
             endif
         endif
     endif
     x=portal(b).dest.x-osx
-    if x<0 then x+=61
-    if x>60 then x-=61
-
+    if planets(slot).depth=0 then
+        if x<0 then x+=61
+        if x>60 then x-=61
+    else
+        if x<0 then x=0
+        if x>60 then x=60
+    endif
     if x>=0 and x<=_mwx then
         if portal(b).oneway=0 and portal(b).dest.m=slot and (portal(b).discovered=1 or vismask(portal(b).dest.x,portal(b).dest.y)>0) then
             if configflag(con_tiles)=0 then
                 put ((x)*_tix,portal(b).dest.y*_tiy),gtiles(gt_no(portal(b).ti_no)),trans
             else
                 set__color( portal(b).col,0)
-                draw string(portal(b).dest.x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
+                draw string(x*_fw1,portal(b).dest.y*_fh1),chr(portal(b).tile),,Font1,custom,@_col
             endif
         endif
     endif
@@ -2301,5 +2310,6 @@ function changetile(x as short,y as short,m as short,t as short) as short
     else
         planetmap(x,y,m)=abs(t)
     endif
+    tmap(x,y)=tiles(t)
     return 0
 end function

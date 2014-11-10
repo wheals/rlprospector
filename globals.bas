@@ -228,6 +228,20 @@ function set_globals() as short
     talent_desig(28)="Sniper"
     talent_desig(29)="Paramedic"
     
+    species(1)="avian"
+    species(2)="arachnide"
+    species(3)="insect"
+    species(4)="mammal"
+    species(5)="reptile"
+    species(6)="snake"
+    species(7)="humanoid"
+    species(8)="cephalopod"
+    species(9)="centipede"
+    species(10)="amphibian"
+    species(11)="gastropod"
+    species(12)="fish"
+
+    
     crew_desig(1)="Captain"
     crew_desig(2)="Pilot"
     crew_desig(3)="Gunner"
@@ -245,6 +259,7 @@ function set_globals() as short
     crew_desig(15)="Sniper"
     crew_desig(16)="Paramedic"
     crew_desig(17)="Tree"
+    crew_desig(18)="A.I."
     
     specialplanettext(1,0)="I got some strange sensor readings here sir. can't make any sense of it."
     specialplanettext(1,1)="The readings are gone. must have been that temple."

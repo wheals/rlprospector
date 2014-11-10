@@ -187,7 +187,6 @@ Function ep_areaeffects(areaeffect() As _ae,ByRef last_ae As Short,lavapoint() A
                             EndIf
                             If tmap(x,y).no=1 Or tmap(x,y).no=2 Then tmap(x,y).hp=tmap(x,y).hp+10
                             If tmap(x,y).no<>7 And tmap(x,y).no<>8 And tmap(x,y).no>2 And tmap(x,y).no<15 And rnd_range(1,100)<8+planets(slot).atmos Then
-                                tmap(x,y)=tiles(145)
                                 changetile(x,y,slot,145)
                             EndIf
                             If awayteam.c.x=x And awayteam.c.y=y Then dprint "It is snowing."
@@ -669,7 +668,7 @@ Function ep_display(osx As Short=555,nightday as short=0) As Short
             
             a=0
             if portalindex.last(p.x,p.y)>0 then 
-                display_portal(portalindex.index(p.x,p.y,1),slot,osx)
+                display_portal((portalindex.index(p.x,p.y,1)),slot,osx)
                 If portal(a).from.m=slot And portal(a).oneway<2 and awayteam.c.x=portal(a).from.x And awayteam.c.y=portal(a).from.y And comstr.comportal=0 Then
                     comstr.t=comstr.t &key_portal &" Enter"
                     comstr.comportal=1
@@ -801,7 +800,7 @@ Function ep_dropitem() As Short
             Case Else
                 dprint "Dropping " &item(c).desig &"."
                 If num>1 Then
-                    dprint "How many?"
+                    dprint "How many do you want to drop?(0-"&num &")"
                     num=getnumber(1,num,0)
                 EndIf
                 If num>0 Then
@@ -1693,6 +1692,8 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
         Next
     Next
 
+    if awayteam.c.x<0 then return 0
+
     If planetmap(awayteam.c.x,awayteam.c.y,slot)=45 Then
         dprint "Smoldering lava:" &dam_awayteam(rnd_range(1,6-awayteam.movetype)),12
         If player.dead=0 and awayteam.hp<=0 Then player.dead=16
@@ -2303,6 +2304,7 @@ Function ep_spawning(spawnmask() As _cords,lsp As Short, diesize As Short,nightd
     For x=0 To 60
         For y=0 To 20
             a=rnd_range(1,100)
+            if _debug>0 and tmap(x,y).spawnson>0 then dprint "Roled a"& a &" need:"&tmap(x,y).spawnson
             If a<tmap(x,y).spawnson And tmap(x,y).spawnblock>=0 Then
                 If tmap(x,y).spawnblock>0 Then tmap(x,y).spawnblock=tmap(x,y).spawnblock-3
                 b=0
@@ -3315,22 +3317,24 @@ Function ep_examine() As Short
         If p3.x<>p2.x Or p3.y<>p2.y Then
             If p2.x<0 Then
                 If planets(slot).depth=0 Then
-                    p2.x=0
-                Else
                     p2.x=60
+                Else
+                    p2.x=0
                 EndIf
             EndIf
             If p2.x>60 Then
                 If planets(slot).depth=0 Then
-                    p2.x=60
-                Else
                     p2.x=0
+                Else
+                    p2.x=60
                 EndIf
             EndIf
             If p2.y<0 Then p2.y=0
             If p2.y>20 Then p2.y=20
             If distance(p2,awayteam.c,planets(slot).depth)<=awayteam.sight And vismask(p2.x,p2.y)>0 Then
-                text=add_a_or_an(tmap(p2.x,p2.y).desc,1)&". "
+                if tmap(p2.x,p2.y).desc<>"" then text=add_a_or_an(tmap(p2.x,p2.y).desc,1)&". "
+                if _debug>0 then text=text & planetmap(p2.x,p2.y,slot)
+                
                 For a=0 To lastportal
                     If p2.x=portal(a).from.x And p2.y=portal(a).from.y And slot=portal(a).from.m Then text=text & portal(a).desig &". "
                     If p2.x=portal(a).dest.x And p2.y=portal(a).dest.y And slot=portal(a).dest.m And portal(a).oneway=0 Then text= text &portal(a).desig &". "
@@ -3517,7 +3521,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
     If tmap(awayteam.c.x,awayteam.c.y).gives=2 Then
         dprint "'Ah great. Imagining people again are we?' the occupant of this bunker looks like he had a pretty bad time. 'No wait. You are real? I am not imagining you?' He explains to you that he managed to survive for months, alone, after the sandworms had demolished his ship, and eaten his crewmates."
         If askyn("He is quite a good gunner and wants to join your crew. do you let him? (y/n)") Then
-            add_member(2,6)
+            add_member(3,6)
         EndIf
     EndIf
 
@@ -4344,6 +4348,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             EndIf
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=169 Then
+                d=0
                 If askyn("A working security terminal. Do you want to try to use it?(y/n)") Then
                     If skill_test(player.science(location),st_average) Then
                         If skill_test(player.science(location),st_hard) Then
@@ -4351,22 +4356,24 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                             For x=0 To 60
                                 For y=0 To 20
                                     If tmap(x,y).tohit<>0 Then
-                                        tmap(x,y).tohit=0
-                                        tmap(x,y).dam=0
-                                        tmap(x,y).hitt=""
+                                        changetile(x,y,slot,4)
                                     EndIf
                                 Next
                             Next
                         Else
-                            dprint "You manage to shut down some of the traps on this level."
                             For x=0 To 60
                                 For y=0 To 20
-                                    If skill_test(player.science(location),st_veryhard) And tmap(x,y).tohit<>0 Then
-                                        tmap(x,y).tohit=0
-                                        tmap(x,y).hitt=""
-                                    EndIf
+                                    if tmap(x,y).tohit<>0 then
+                                        If skill_test(player.science(location),st_veryhard) Then
+                                            changetile(x,y,slot,4)
+                                            d+=1
+                                        EndIf
+                                    endif
                                 Next
                             Next
+                            if d=0 then dprint "You do not manage to shut down any traps on this level."
+                            if d=1 then dprint "You manage to shut down a trap on this level."
+                            if d>1 then dprint "You manage to shut down "& d &" traps on this level."
                         EndIf
                     Else
                         dprint "You do not get it to work properly."
@@ -4427,7 +4434,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                             reward(4)-=1
                             findartifact(0)
                         Else
-                            dprint "Unfortunately you do not have any technology of the ancient aliens."
+                            dprint "Unfortunately it does not contain any new information about the technology of the ancient aliens."
                         EndIf
                     Else
                         dprint "You do not get it to work properly."
