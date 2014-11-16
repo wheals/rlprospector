@@ -3802,7 +3802,6 @@ function make_special_planet(a as short) as short
         if p4.y<0 then p4.y=0
         if p4.y>20 then p4.y=20
         if p4.x>60 then p4.x=60
-        planetmap(p4.x,p4.y,lastplanet)=-262
         p4.m=lastplanet
         add_shop(sh_mudds,p4,-1)
         do
@@ -3813,7 +3812,6 @@ function make_special_planet(a as short) as short
         if p4.y>20 then p4.y=20
         if p4.x>60 then p4.x=60
         p4.m=lastplanet
-        planetmap(p4.x,p4.y,lastplanet)=-261
         add_shop(sh_sickbay,p4,-1)
                 
         do

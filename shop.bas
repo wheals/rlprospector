@@ -1,6 +1,8 @@
 function add_shop(shoptype as short,c as _cords,station as short) as short
+    if station=-1 and c.m=0 then dprint "Map 0"
     if station=-1 then
         lastshop+=1
+        if lastshop>2048 then return 0
         shoplist(lastshop).shoptype=shoptype
         shoplist(lastshop).x=c.x
         shoplist(lastshop).y=c.y
@@ -41,6 +43,7 @@ end function
 function get_shop_index(shoptype as short,c as _cords,station as short) as short
     dim i as short
     if station=-1 then
+        c.m=awayteam.slot
         for i=1 to lastshop
             if _debug>0 then dprint "I:"&i &" ls:"&lastshop & "M:"&c.m & ":"&shoplist(i).x &":"&shoplist(i).y
             if c.x=shoplist(i).x and c.y=shoplist(i).y and c.m=shoplist(i).m and shoptype=shoplist(i).shoptype then return i
@@ -360,21 +363,21 @@ function gen_shop(i as short, shoptype as short) as short
             endif
         case sh_sickbay
             select case rnd_range(1,100)
-            case 1 to 18
+            case 1 to 35
                 it=rnd_item(RI_Infirmary)
                 it.w.x=rnd_range(1,3)
-            case 19 to 50
+            case 35 to 50
                 it=rnd_item(RI_Medpacks)
-                it.w.x=rnd_range(10,60)
+                it.w.x=rnd_range(5,20-it.v1*2)
             case 51 to 65
                 it=rnd_item(RI_KODrops)
-                it.w.x=rnd_range(10,60)
-            case 66 to 90
+                it.w.x=rnd_range(5,20-it.v1)
+            case 66 to 80
                 it=rnd_item(RI_Stims)
-                it.w.x=rnd_range(10,50)
+                it.w.x=rnd_range(5,20-it.v1)
             case else
                 it=rnd_item(RI_Cage)
-                it.w.x=rnd_range(10,25)
+                it.w.x=rnd_range(5,25-it.v1*2)
             end select
         case sh_used            
             select case rnd_range(1,100)
@@ -396,8 +399,10 @@ function gen_shop(i as short, shoptype as short) as short
                 it.price=rnd_range(100,5000)
             case 100
                 it=rnd_item(RI_artefact)
+            case 6 to 30
+                it=make_item(rnd_range(91,92))
             case else
-                it=make_item(rnd_range(91,94))
+                it=make_item(rnd_range(93,94))
             end select
             it.w.x=1
         end select
@@ -417,7 +422,7 @@ function gen_shop(i as short, shoptype as short) as short
         for c=1 to 20
             if shopitem(c,i).desig="" then empty=1
         next
-    loop until (a>=20 or empty=0 or savety>100) or (shoptype=sh_giftshop and a>10+rnd_range(1,4)) or (shoptype=sh_sickbay and a>=15) or (a>=15 and shoptype=sh_aliens1) or (a>=15 and shoptype=sh_aliens2) or (shoptype=sh_usedships and a>=10)    
+    loop until (a>=20 or empty=0 or savety>100) or (shoptype=sh_sickbay and a>5+rnd_range(1,4)) or (shoptype=sh_giftshop and a>3+rnd_range(1,4)) or (shoptype=sh_sickbay and a>=15) or (a>=15 and shoptype=sh_aliens1) or (a>=15 and shoptype=sh_aliens2) or (shoptype=sh_usedships and a>=10)    
     return 0
 end function
 

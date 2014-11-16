@@ -2838,7 +2838,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         if i.v2=5 then i.col=14
         if i.v2=5 then i.ti_no=2090
         
-        if i.v2=6 then i.desig="osmodium"
+        if i.v2=6 then i.desig="osmium"
         if i.v2=6 then i.col=8
         if i.v2=6 then i.ti_no=2091
         
@@ -3765,7 +3765,7 @@ function get_item_list(invit() as _items, invnit()as short,ty as short=0,ty2 as 
     for a=0 to lastitem
         
         if item(a).w.s<0 and ((ty=0 and ty2=0 and ty3=0 and ty4=0) or (item(a).ty=ty or item(a).ty=ty2 or item(a).ty=ty3 or item(a).ty=ty4)) then 'Item on ship
-            
+            isequipment=0
             if noequip>0 then
                 for b=1 to noequip
                     if equipnum(b)=a then isequipment=1
@@ -4302,8 +4302,8 @@ function first_unused(i as short) as short
     if item_assigned(i)=0 then return i
     if debug=1 and _debug=1 then dprint "Item "&i &"assigned, looking for alternative"
     for a=0 to lastitem
-        if item(a).w.s<0 and a<>i then
-            if item(a).desig=item(i).desig and item(a).v1=item(i).v1 and item(a).v2=item(i).v2 and item(a).v3=item(i).v3 then
+        if item(a).w.s=-1 and a<>i then
+            if item(a).id=item(i).id and item(a).ty=item(i).ty then
                 if debug=1 and _debug=1 and item_assigned(a)=0 then dprint "Item " &a & "is alternative"
                 if debug=1 and _debug=1 and item_assigned(a)>0 then dprint "Item " &a & "is used by"&item_assigned(a)-1
                 if item_assigned(a)=0 then return a

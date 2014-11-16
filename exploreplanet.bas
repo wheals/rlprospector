@@ -81,6 +81,7 @@ Function ep_planetmenu(entrycords as _cords,slot As Short,shipfire() As _shipfir
                 nextmap.m=-1
             Case Else
                 awayteam.c=mgcords(a)
+                awayteam.c.m=awayteam.slot
                 ep_gives(awayteam,nextmap,shipfire(),spawnmask(),lsp,Key,loctemp)
             End Select
         Loop Until a=-1 Or a=launch Or a=explore
@@ -3136,84 +3137,85 @@ Function ep_fire(mapmask() As Byte,Key As String,ByRef autofire_target As _cords
             if no_key="+" or no_key="-" then target.t=target.plusminus(no_key)
             If no_key=key_te Or Ucase(no_key)=" " Or no_key=key__enter Then a=1
             If no_key=key_quit Or no_key=key__esc Then return 0
-        Loop Until a<>0
+        Loop Until a<>0 or no_key=key_layfire
         
-        if a=1 then 
-            autofire_target=p
-            if key=key_autofire then autofire_target.m=1
+        if no_key<>key_layfire then
+            if a=1 then 
+                autofire_target=p
+                if key=key_autofire then autofire_target.m=1
+            endif
+            
+            if _debug>0 then dprint "range:"&range
+            If a>0 Then
+                if _debug>0 then dprint "dist:"&distance(awayteam.c,autofire_target,planets(slot).depth)
+                If distance(awayteam.c,autofire_target,planets(slot).depth)<=range Then
+                    awayteam.e.add_action(awayteam.atcost-stims.effect)
+                    lp=line_in_points(autofire_target,awayteam.c,wp(),planets(slot).depth)
+                    For b=1 To lp
+                        set__color( scol,0)
+                        If configflag(con_tiles)=0 Then
+                            If range<4 Then
+                                Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
+                            Else
+                                Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(76)),trans
+                            EndIf
+                        Else
+                            Draw String((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
+                        EndIf
+                        b=ep_fireeffect(wp(b),slot,b,lp,mapmask())
+                        Sleep 15
+                    Next
+                    target.t=autofire_target
+                Else
+                    dprint "Target out of range.",14
+                EndIf
+                Sleep 100
+            EndIf
+            If Key=key_autofire Then walking=10
         endif
         
-        if _debug>0 then dprint "range:"&range
-        If a>0 Then
-            if _debug>0 then dprint "dist:"&distance(awayteam.c,autofire_target,planets(slot).depth)
-            If distance(awayteam.c,autofire_target,planets(slot).depth)<=range Then
-                awayteam.e.add_action(awayteam.atcost-stims.effect)
-                lp=line_in_points(autofire_target,awayteam.c,wp(),planets(slot).depth)
-                For b=1 To lp
-                    set__color( scol,0)
-                    If configflag(con_tiles)=0 Then
-                        If range<4 Then
-                            Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
-                        Else
-                            Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(76)),trans
-                        EndIf
-                    Else
-                        Draw String((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
+        If no_key=key_layfire Then
+            awayteam.e.add_action(awayteam.atcost-stims.effect)
+            For a=1 To lastenemy
+                If vismask(enemy(a).c.x,enemy(a).c.y)>0 And enemy(a).hp>0 And enemy(a).aggr=0 And distance(awayteam.c,enemy(a).c,planets(slot).depth)<=range Then
+                    If pathblock(awayteam.c,enemy(a).c,slot,1) Then
+                        shortlist+=1
+                        enlist(shortlist)=a
                     EndIf
-                    b=ep_fireeffect(wp(b),slot,b,lp,mapmask())
-                    Sleep 15
-                Next
-                target.t=autofire_target
-            Else
-                dprint "Target out of range.",14
-            EndIf
-            Sleep 100
-        EndIf
-        If Key=key_autofire Then walking=10
-    EndIf
-
-    If no_key=key_layfire Then
-        awayteam.e.add_action(awayteam.atcost-stims.effect)
-        For a=1 To lastenemy
-            If vismask(enemy(a).c.x,enemy(a).c.y)>0 And enemy(a).hp>0 And enemy(a).aggr=0 And distance(awayteam.c,enemy(a).c,planets(slot).depth)<=range Then
-                If pathblock(awayteam.c,enemy(a).c,slot,1) Then
-                    shortlist+=1
-                    enlist(shortlist)=a
                 EndIf
-            EndIf
-        Next
-        If shortlist>0 Then
-            first=1
-            last=Fix(awayteam.hpmax/shortlist)
-            If last<1 Then last=1
-            For a=1 To shortlist
-                lp=line_in_points(enemy(enlist(a)).c,awayteam.c,wp())
-                If lp>=1 Then
-                    For b=1 To lp
-                        If wp(b).x>=0 And wp(b).x<=60 And wp(b).y>=0 And wp(b).y<=20 Then
-                            set__color( scol,0)
-                            If configflag(con_tiles)=0 Then
-                                If range<4 Then
-                                    Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
-                                Else
-                                    Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(76)),trans
-                                EndIf
-                            Else
-                                Draw String((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
-                            EndIf
-                            fired(wp(b).x,wp(b).y)=1
-                            b=ep_fireeffect(wp(b),slot,b,lp-1,mapmask(),first,last)
-                        EndIf
-                    Next
-                EndIf
-                first=first+last+1
             Next
-            Sleep 100
-        Else
-            dprint "No hostile targets in sight."
-        EndIf
-        autofire_target.m=0
-
+            If shortlist>0 Then
+                first=1
+                last=Fix(awayteam.hpmax/shortlist)
+                If last<1 Then last=1
+                For a=1 To shortlist
+                    lp=line_in_points(enemy(enlist(a)).c,awayteam.c,wp())
+                    If lp>=1 Then
+                        For b=1 To lp
+                            If wp(b).x>=0 And wp(b).x<=60 And wp(b).y>=0 And wp(b).y<=20 Then
+                                set__color( scol,0)
+                                If configflag(con_tiles)=0 Then
+                                    If range<4 Then
+                                        Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(75)),trans
+                                    Else
+                                        Put((wp(b).x-osx)*_tix,wp(b).y*_tiy),gtiles(gt_no(76)),trans
+                                    EndIf
+                                Else
+                                    Draw String((wp(b).x-osx)*_fw1,wp(b).y*_fh1), "*",,Font1,custom,@_col
+                                EndIf
+                                fired(wp(b).x,wp(b).y)=1
+                                b=ep_fireeffect(wp(b),slot,b,lp-1,mapmask(),first,last)
+                            EndIf
+                        Next
+                    EndIf
+                    first=first+last+1
+                Next
+                Sleep 100
+            Else
+                dprint "No hostile targets in sight."
+            EndIf
+            autofire_target.m=0
+        endif
     EndIf
     Return 0
 End Function
@@ -3332,7 +3334,7 @@ Function ep_examine() As Short
             If p2.y<0 Then p2.y=0
             If p2.y>20 Then p2.y=20
             If distance(p2,awayteam.c,planets(slot).depth)<=awayteam.sight And vismask(p2.x,p2.y)>0 Then
-                if tmap(p2.x,p2.y).desc<>"" then text=add_a_or_an(tmap(p2.x,p2.y).desc,1)&". "
+                if tmap(p2.x,p2.y).desc<>"" then text=first_uc(tmap(p2.x,p2.y).desc)&". "
                 if _debug>0 then text=text & planetmap(p2.x,p2.y,slot)
                 
                 For a=0 To lastportal
@@ -3343,8 +3345,8 @@ Function ep_examine() As Short
                 
                 if itemindex.last(p2.x,p2.y)>0 then
                     For a=1 To itemindex.last(p2.x,p2.y)
-                        If item(itemindex.value(a)).w.p=0 And item(itemindex.value(a)).w.s=0 Then
-                            text=text & item(itemindex.value(a)).desig & ". "
+                        If item(itemindex.index(p2.x,p2.y,a)).w.p=0 And item(itemindex.index(p2.x,p2.y,a)).w.s=0 Then
+                            text=text & item(itemindex.index(p2.x,p2.y,a)).desig & ". "
                             'if show_all=1 then text=text &"("&item(li(a)).w.x &" "&item(li(a)).w.y &" "&item(li(a)).w.p &" "&localitem(a).w.s &" "&localitem(a).w.m &")"
                         EndIf
                     Next
@@ -4291,7 +4293,11 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
 
             If tmap(awayteam.c.x,awayteam.c.y).gives=75 Then used_ships(get_shop_index(sh_used,awayteam.c,-1),get_shop_index(sh_usedships,awayteam.c,-1))
             
-            If tmap(awayteam.c.x,awayteam.c.y).gives=76 Then shop(get_shop_index(sh_giftshop,awayteam.c,-1),5,"Giftshop")
+            If tmap(awayteam.c.x,awayteam.c.y).gives=76 Then 
+                do
+                    b=shop(get_shop_index(sh_giftshop,awayteam.c,-1),.9,"Giftshop")
+                loop until b=-1
+            endif
             
             If tmap(awayteam.c.x,awayteam.c.y).gives=167 Then
                 If askyn("A working security camera terminal. Do you want to try to use it?(y/n)") Then

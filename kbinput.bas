@@ -574,6 +574,11 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
                 displaywares(bg-bg_trading)
                 dprint ""
             end select
+            if _debug>0 then dtile(0,0,tiles(229),1)
+            if _debug>0 then dtile(1,0,tiles(230),1)
+            if _debug>0 then dtile(2,0,tiles(231),1)
+            if _debug>0 then dtile(3,0,tiles(232),1)
+        
         endif
         set__color( 15,0)
         draw string(x*_fw1,y*_fh1), lines(0)&space(3),,font2,custom,@_col

@@ -1130,6 +1130,39 @@ tiles(113).turnsinto=113
 tiles(113).desc="Gift shop"
 tiles(113).movecost=3
 
+
+tiles(114).tile=238
+tiles(114).col=7
+tiles(114).desc="An environmental control console. The systems don't seem to be working."
+tiles(114).gives=56
+tiles(114).turnsinto=114
+
+tiles(115).tile=238
+tiles(115).col=7
+tiles(115).desc="An environmental control console. All systems working within perimeters"
+
+tiles(116).tile=238
+tiles(116).col=7
+tiles(116).desc="An environmental control console. It is broken beyond repair."
+
+tiles(117).tile=238
+tiles(117).col=12
+tiles(117).col=8
+tiles(117).desc="A reactor control console."
+tiles(117).gives=57
+tiles(117).turnsinto=117
+
+tiles(118).tile=238
+tiles(118).col=12
+tiles(118).col=8
+tiles(118).desc="A reactor control console. All systems green"
+
+tiles(119).tile=238
+tiles(119).col=12
+tiles(119).col=8
+tiles(119).desc="A reactor control console. It is broken beyond repair"
+
+
 tiles(126).tile=64 
 tiles(126).col=7
 tiles(126).bgcol=0
@@ -1920,40 +1953,6 @@ tiles(230).tile=asc(".")
 tiles(230).col=7
 tiles(230).desc="metal floor"
 tiles(230).turnsinto=230
-
-tiles(231).tile=238
-tiles(231).col=10
-tiles(231).col=7
-tiles(231).desc="An environmental control console. The systems don't seem to be working."
-tiles(231).gives=56
-tiles(231).turnsinto=231
-
-tiles(232).tile=238
-tiles(232).col=10
-tiles(232).col=7
-tiles(232).desc="An environmental control console. All systems working within perimeters"
-
-tiles(233).tile=238
-tiles(233).col=10
-tiles(233).col=7
-tiles(233).desc="An environmental control console. It is broken beyond repair."
-
-tiles(234).tile=238
-tiles(234).col=12
-tiles(234).col=8
-tiles(234).desc="A reactor control console."
-tiles(234).gives=57
-tiles(234).turnsinto=234
-
-tiles(235).tile=238
-tiles(235).col=12
-tiles(235).col=8
-tiles(235).desc="A reactor control console. All systems green"
-
-tiles(236).tile=238
-tiles(236).col=12
-tiles(236).col=8
-tiles(236).desc="A reactor control console. It is broken beyond repair"
 
 
 tiles(237).tile=asc("W") 'Weapons shop

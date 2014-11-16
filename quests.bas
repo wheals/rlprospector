@@ -590,9 +590,13 @@ function make_questitem(i as short,wanthas as short) as short
             end select
                 
             questguy(i).flag(1)=get_other_questguy(i,1)
-            if rnd_range(1,100)<33 or questguy(i).location=questguy(j).location then questguy(i).knows(questguy(i).flag(1))=questguy(questguy(i).flag(1)).location
-            questguy(questguy(i).flag(1)).loan=rnd_range(1,10)*100
-            questguy(i).want.price=questguy(questguy(i).flag(1)).loan
+                if questguy(i).flag(1)>0 then
+                if rnd_range(1,100)<33 or questguy(i).location=questguy(j).location then questguy(i).knows(questguy(i).flag(1))=questguy(questguy(i).flag(1)).location
+                questguy(questguy(i).flag(1)).loan=rnd_range(1,10)*100
+                questguy(i).want.price=questguy(questguy(i).flag(1)).loan
+            else
+                questguy(i).want.type=0
+            endif
         else
             
         endif
@@ -720,12 +724,12 @@ function make_questitem(i as short,wanthas as short) as short
     if (*o).type=qt_research then'Research
         if wanthas=q_want then
             questguy(i).flag(1)=rnd_questguy_byjob(15,i)'If no astro
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(16,i)'xeno
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(6,i)'Doctor
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(4,i)'SO
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(13,i)'OBE MEgacopr
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=rnd_questguy_byjob(17,i)'Engineer
-            if questguy(i).flag(1)=0 then questguy(i).flag(1)=get_other_questguy(i)'SO
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=rnd_questguy_byjob(16,i)'xeno
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=rnd_questguy_byjob(6,i)'Doctor
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=rnd_questguy_byjob(4,i)'SO
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=rnd_questguy_byjob(13,i)'OBE MEgacopr
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=rnd_questguy_byjob(17,i)'Engineer
+            if questguy(i).flag(1)<=0 then questguy(i).flag(1)=get_other_questguy(i)'SO
         else
             questguy(i).has.it=make_item(1010,i)
         endif
@@ -791,6 +795,8 @@ function make_questitem(i as short,wanthas as short) as short
         print #f,"Done"
         close #f
     endif
+    
+    if questguy(i).flag(1)<0 then questguy(i).want.type=0
     
     return 0
 end function

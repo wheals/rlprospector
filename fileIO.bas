@@ -56,7 +56,7 @@ function character_name(byref gender as byte) as string
     else
         n=fn(fnn) &" "&CHR(rnd_range(65,87))&". " &ln(lnn)
     endif
-    if fnn<=23 then
+    if fnn<=22 then
         gender=0 'Female
     else
         gender=1 'Male

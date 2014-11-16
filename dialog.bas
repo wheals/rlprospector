@@ -205,7 +205,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             node(1).statement=standardphrase(sp_greetfriendly,rnd_range(0,2))
         end select
     endif
-    
+    if _debug=1511 then questguy(i).flag(1)=rnd_range(1,16)
     o+=1
     node(1).option(o).answer="Who are you?"
     node(1).option(o).no=2
@@ -519,6 +519,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             endif
         endif
     next
+    
     node(9).statement="Sorry, don't know who that is."
     node(9).option(1).no=8
     node(10).statement="Last I saw that person on one of the small space stations."
@@ -556,30 +557,32 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         node(22).statement="Oh, that's pretty! But I don't know what to do with it."
         node(22).option(1).no=1
     end select
+    
     if questguy(i).knows(questguy(i).flag(1))<>0 then
-        select case questguy(i).knows(questguy(i).flag(1))
-        case 1,2,3
+            select case questguy(i).knows(questguy(i).flag(1))
+            case 1,2,3
+                select case rnd_range(1,100)
+                case 1 to 33
+                    node(24).statement="Last I saw that person on Station "&questguy(i).knows(questguy(i).flag(1))&"."
+                case 34 to 66
+                    node(24).statement="I think " & heshe(questguy(questguy(i).flag(1)).gender)& " is on Station "&questguy(i).knows(questguy(i).flag(1))&"."
+                case else
+                    node(24).statement="I met " & questguy(questguy(i).flag(1)).n & " on Station "&questguy(i).knows(questguy(i).flag(1))&" recently."
+                end select
+            case else
+                node(10).statement="Last I saw that person on one of the small space stations."
+            end select
+        else
             select case rnd_range(1,100)
             case 1 to 33
-                node(24).statement="Last I saw that person on Station "&questguy(i).knows(questguy(i).flag(1))&"."
+                node(24).statement="I honestly  don't know."
             case 34 to 66
-                node(24).statement="I think " & heshe(questguy(questguy(i).flag(1)).gender)& " is on Station "&questguy(i).knows(questguy(i).flag(1))&"."
+                node(24).statement="I have no idea."
             case else
-                node(24).statement="I met " & questguy(questguy(i).flag(1)).n & " on Station "&questguy(i).knows(questguy(i).flag(1))&" recently."
+                node(24).statement="Sorry I can't help you with that."
             end select
-        case else
-            node(10).statement="Last I saw that person on one of the small space stations."
-        end select
-    else
-        select case rnd_range(1,100)
-        case 1 to 33
-            node(24).statement="I honestly  don't know."
-        case 34 to 66
-            node(24).statement="I have no idea."
-        case else
-            node(24).statement="Sorry I can't help you with that."
-        end select
     endif
+'    
     node(24).option(1).no=1
     return 0
 end function

@@ -117,7 +117,6 @@ Do
     End If
     if _debug>0 then add_shop(sh_colonyI,pwa(0),-1)
     Do
-        
         a=Menu(bg_title,__VERSION__ &"/Start new game/Load game/Highscore/Manual/Configuration/Keybindings/Quit",,40,_lines-10*_fh2/_fh1,1)
         If a=1 Then
             If count_savegames()>20 Then
@@ -191,7 +190,7 @@ Function start_new_game() As Short
     Dim doubleitem(45550) As Byte
     Dim i As _items
     Dim debug As Byte
-    
+    debug=99
     make_spacemap()
     
     if _debug>0 then
@@ -227,6 +226,7 @@ Function start_new_game() As Short
     If b=6 Then b=rnd_range(1,4)
     c=b
     If b=5 Then c=6
+    if _debug>0 then c=18
     upgradehull(c,player)
     player.hull=player.h_maxhull
     dprint "Your ship: "&player.h_desig
@@ -257,6 +257,19 @@ Function start_new_game() As Short
         add_member(21,0)
         add_member(23,0)
         add_member(22,0)
+    endif
+    
+    if debug=99 and _debug>0 then
+        add_member(2,5)
+        add_member(3,5)
+        add_member(4,5)
+        add_member(5,5)
+        placeitem(make_item(89),0,0,0,0,-1)
+        for d=1 to 40
+            add_member(8,0)
+            placeitem(make_item(97),0,0,0,0,-1)
+            placeitem(make_item(98),0,0,0,0,-1)
+        next
     endif
     
     If _debug=707 Then
@@ -2226,7 +2239,10 @@ EndIf
         Sleep
     EndIf
     
+    awayteam.slot=slot
+    
     If savefrom(0).map=0 Then
+        
         nextmap=ep_planetmenu(awayteam.c,slot,shipfire(),spawnmask(),lsp,localtemp(awayteam.c.x,awayteam.c.y))
         If nextmap.m=-1 Then Return nextmap
     EndIf
@@ -2264,11 +2280,6 @@ EndIf
         no_key=keyin
     EndIf
     
-    if _debug>0 then 
-        robot_invasion()
-        make_locallist(slot)
-        update_tmap(slot)
-    endif
     '***********************
     '
     'Planet Exploration Loop
@@ -3721,7 +3732,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     Dim b As Short
     Dim noa As Short
     Dim col As Short
-    Dim As Short debug
+    Dim As Short debug,targetnumber
     if attacker.hp<=0 or defender.hp<=0 then return defender
     if _debug>0 then dprint attacker.sdesc &":"&defender.sdesc
     If vis>0 Then
@@ -3740,11 +3751,18 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
     noa=attacker.hp\7
     If noa<1 Then noa=1
     if _debug>0 then dprint noa &":"& -defender.armor\(6*(defender.hp+1))+attacker.weapon
+    if defender.made=0 then 
+        targetnumber=15+defender.movetype*3
+    else
+        targetnumber=15+defender.armor+defender.movetype*3
+    endif
+    text=text &"(needs "&targetnumber &")"
     For a=1 To noa
-        If skill_test(attacker.weapon,13+defender.movetype*3) Then b=b+1+attacker.weapon
+        If skill_test(attacker.weapon,targetnumber) Then b=b+1+attacker.weapon
     Next
     
     If defender.made=0 Then
+        if b>attacker.hp/10+15 then b=attacker.hp/10+15
         If b>0 Then
             text=text & dam_awayteam(b,,attacker.disease)
             col=12

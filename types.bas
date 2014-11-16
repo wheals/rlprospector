@@ -22,7 +22,7 @@ Const show_energy=0
 
 Const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'13'0'1'12'13'5'38 'special planets already discovered
+Const Show_specials=0'029'13''1'12''5'38 'special planets already discovered
 Const Show_all_specials=0'013'0'1'12'13'5'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered

@@ -2070,11 +2070,12 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
         if no_key="s" then
             sit=get_item(0,0,0,1)
             if sit>0 then
-'                for cl=1 to 128
-'                    if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
-'                    if crew(cl).pref_ccweap=item(sit).uid then crew(cl).pref_ccweap=0
-'                    if crew(cl).pref_armor=item(sit).uid then crew(cl).pref_armor=0
-'                next
+                sit=first_unused(sit)
+                for cl=1 to 128
+                    if crew(cl).pref_lrweap=item(sit).uid then crew(cl).pref_lrweap=0
+                    if crew(cl).pref_ccweap=item(sit).uid then crew(cl).pref_ccweap=0
+                    if crew(cl).pref_armor=item(sit).uid then crew(cl).pref_armor=0
+                next
                 if item(sit).ty=2 then
                     crew(p).pref_lrweap=item(sit).uid
                 endif
@@ -2096,17 +2097,19 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
             equip_awayteam(0)
 
         endif
-
+        
         y=0
         b=1
         'for b=1 to lines
         dfirst=0
+        
         do
             if b=p+offset then
                 bg=5
             else
                 bg=0
             endif
+            
             if b-offset>0 and b-offset<=128 then
                 if dfirst=0 then dfirst=b-offset
                 if crew(b-offset).hpmax>0 then
@@ -2191,19 +2194,23 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
 
                     'Fixes the auto equip messgae so it does not get over writen Also goign to set the highlighting if needed
                     if skills = "" then
-                    if crew(b-offset).equips>-1 then
-                        draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
-                    endif
+                        if crew(b-offset).equips>-1 then
+                            draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                        endif
                     elseif augments = "" then
                         set__color( 0,bg)
                         draw string (0,(y+3)*_fh2), space(80),,font2,custom,@_col
                         set__color( 15,bg)
-                        draw string(45*_fw2,(y+3)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                        if crew(b-offset).equips>-1 then
+                            draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                        endif
                     else
                         set__color( 0,bg)
                         draw string (0,(y+4)*_fh2), space(80),,font2,custom,@_col
                         set__color( 15,bg)
-                        draw string(45*_fw2,(y+4)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                        if crew(b-offset).equips>-1 then
+                            draw string(45*_fw2,(y+2)*_fh2),"Auto Equip:" & onoff(crew(b-offset).equips),,font2,custom,@_col
+                        endif
                     endif
 
 
@@ -2301,6 +2308,7 @@ function crew_menu(crew() as _crewmember, from as short, r as short=0,text as st
         endif
         if r=1 then draw string (10,_screeny-_fh2),"Installing augment "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
         if r=2 then draw string (10,_screeny-_fh2),"Training for "&text &": Enter to choose crewmember, esc to quit, a for all",,font2,custom,@_col
+        
         'flip
         textbox(crew_bio(p),_mwx,1,20,15,1,,,offset2)
         screenset 0,1
