@@ -262,11 +262,17 @@ end function
 function show_quests() as short
     dim as short a,b,c,d,sys,p
     dim dest(10) as short
-    dim as string txt,addtxt
+    dim as string txt,addtxt,shipcords
     set__color( 15,0)
     cls
     txt="{15}Missions: |{11}"
     set__color( 11,0)
+    if player.questflag(11)=1 then
+        for a=1 to lastdrifting
+            if drifting(a).p>0 then shipcords=drifting(a).x &":"&drifting(a).y
+        next
+    endif
+        
     for a=1 to 10
         if player.cargo(a).x=11 or player.cargo(a).x=12 then
             b+=1
@@ -292,7 +298,7 @@ function show_quests() as short
     endif
     if player.questflag(9)=1 then txt=txt & "  Find a working robot factory"&"|"
     if player.questflag(10)>0 then txt=txt & "  Find a planet without life and "&add_a_or_an(atmdes(player.questflag(10)),0)&" atmosphere."&"|"
-    if player.questflag(11)=1 then txt=txt & "  Find a missing company battleship"&"|"
+    if player.questflag(11)=1 then txt=txt & "  Find a missing company battleship, last seen at "&shipcords &".|"
     if player.questflag(2)=1 then txt=txt & "  Rescue a company executive from pirates"&"|"
     if player.questflag(12)=1 then txt=txt & "  A small green alien told you about a monster in their mushroom caves."
     if player.questflag(26)>0 then
@@ -496,6 +502,13 @@ function crew_bio(i as short) as string
     dim t as string
     dim as short a
     dim as byte debug=0
+    if crew(i).typ=18 then
+        t="An artificial intelligence"
+        if crew(i).baseskill(0)=7 then t=t &"|Pilot   :7"
+        if crew(i).baseskill(1)=7 then t=t &"|Gunner  :7"
+        if crew(i).baseskill(2)=7 then t=t &"|Science :7"
+        if crew(i).baseskill(3)=7 then t=t &"|Doctor  :7"
+    endif
     if crew(i).typ<=9 or (crew(i).typ>=14 and crew(i).typ<=16) then
         t="Age: "& 18+crew(i).story(6) &" Size: 1."& 60+crew(i).story(7)*4 &"m Weight: " &50+crew(i).story(8)*4+crew(i).story(7) &" kg. ||"
         select case crew(i).story(0)
@@ -538,7 +551,16 @@ function crew_bio(i as short) as string
         next
 
         for a=1 to 25
-            if crew(i).talents(a)>0 then t=t &" |"&talent_desc(a)
+            if crew(i).talents(a)>0 then 
+                
+                t=t &" |"&talent_desc(a)
+                if a=1 then                    
+                    if crew(i).baseskill(0)>0 then t=t &"| Pilot   :"&crew(i).baseskill(0)
+                    if crew(i).baseskill(1)>0 then t=t &"| Gunner  :"&crew(i).baseskill(1)
+                    if crew(i).baseskill(2)>0 then t=t &"| Science :"&crew(i).baseskill(2)
+                    if crew(i).baseskill(3)>0 then t=t &"| Doctor  :"&crew(i).baseskill(3)
+                endif
+            endif
         next
         if crew(a).story(3)=1 and a<>1 then t=t &"|Has considered retiring."
         if debug=1 and _debug=1 then
@@ -1739,7 +1761,7 @@ function exploration_text() as string
     if wormdis>1 and wormtra=1 then text=text &" and travelled through {15}one{11} of them."
     if wormdis>1 and wormtra>1 and wormtra<wormhole/2 then text=text &" and travelled through {15}" & wormtra & "{11} of them."
     if wormdis=wormhole and wormtra=wormhole/2 then text =text &" and travelled through {15}all{11} of them."
-    text=text &"|The farthest expedition took the "&player.desig &" {15}"&farthestexpedition &"{11} parsec out from the nearest spacestation."
+    text=text &"|"
     for c=0 to 3
         if basis(c).docked>0 then docked+=1
         alldockings+=basis(c).docked
@@ -1759,7 +1781,8 @@ function exploration_text() as string
     if visited=1 then text=text &"|Landed on {15}"&visited &"{11} planet."
     if visited>1 and visited<tp then text=text &"|Landed on {15}"&visited &"{11} planets."
     if visited=tp then text=text &"|Landed on every planet in the sector."
-
+    text=text &"||The farthest expedition took the "&player.desig &" {15}"&farthestexpedition &"{11} parsec out from the nearest spacestation."
+    
     b=0
     for a=0 to 25
         if discovered(a)=1 then b=b+1
@@ -1788,16 +1811,17 @@ end function
 
 function mission_type() as string
     dim text as string
-    dim per(4) as uinteger
+    dim per(5) as uinteger
     dim as uinteger i,h,highest
 
     per(0)=income(mt_ress)+income(mt_bio)+income(mt_map)+income(mt_ano)+income(mt_artifacts)
     per(1)=income(mt_trading)+income(mt_quest)+income(mt_bonus)+income(mt_escorting)+income(mt_towed)
     per(2)=income(mt_pirates)
-    per(3)=income(mt_piracy)+income(mt_gambling)+income(mt_blackmail)
+    per(3)=income(mt_piracy)+income(mt_blackmail)
     per(4)=income(mt_quest)+income(mt_quest2)+income(mt_escorting)
+    per(5)=income(mt_gambling)
     text= "{15}Mission type: {11}"
-    for i=0 to 4
+    for i=0 to 5
         if per(i)>highest then
             highest=per(i)
             h=i
@@ -1808,6 +1832,7 @@ function mission_type() as string
     if h=2 then text &="Pirate hunter|"
     if h=3 then text &="Pirate|"
     if h=4 then text &="Errand boy|"
+    if h=5 then text &="Gambler|"
 
     return text
 end function

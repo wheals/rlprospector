@@ -13,16 +13,16 @@ Const c_gre=10
 Const c_yel=14
 
 Const st_veryeasy=8
-Const st_easy=10
-Const st_average=12
-Const st_hard=14
-Const st_veryhard=16
+Const st_easy=11
+Const st_average=14
+Const st_hard=17
+Const st_veryhard=20
 
 Const show_energy=0
 
 Const show_dangerous=0
 Const Show_NPCs=0'shows pirates and mercs
-Const Show_specials=0'029'13''1'12''5'38 'special planets already discovered
+Const Show_specials=0'27'13''1'12''5'38 'special planets already discovered
 Const Show_all_specials=0'013'0'1'12'13'5'38 'special planets already discovered
 Const show_portals=0 'Shows .... portals!
 Const Show_pirates=0 'pirate system already discovered
@@ -33,7 +33,7 @@ Const show_items=0 'shows entire maps
 Const alien_scanner=0
 Const start_teleport=0'player has alien scanner
 Const show_critters=0
-Const enable_donplanet=0 'D key on planet tirggers displayplanetmap
+Const enable_donplanet=0 'D key on planet triggers displayplanetmap
 Const all_resources_are=0
 Const show_allitems=0
 Const easy_fights=0
@@ -1980,6 +1980,7 @@ Declare Function add_questguys() As Short
 Declare Function give_patrolquest(employer As Short) As Short
 Declare Function reward_patrolquest() As Short
 
+declare function com_explosion_ani(x as short,y as short) as short
 Declare Function com_radio(defender As _ship, attacker() As _ship, e_track_p() As _cords,e_track_v() As Short,e_map() As Byte,e_last As Short,mines_p() As _cords,mines_v() As Short,mines_last As Short)  As Short
 Declare Function draw_shield(ship As _ship,osx As Short) As Short
 Declare Function crew_menu(crew() As _crewmember, from As Short, r As Short=0,text As String="") As Short
@@ -2334,7 +2335,7 @@ Declare Function add_caves() As Short
 Declare Function add_piratebase() As Short
 Declare Function distribute_stars() As Short
 
-
+declare function empty_cages() as short
 Declare Function makefinalmap(m As Short) As Short
 Declare Function makecomplex(ByRef enter As _cords, down As Short,blocked As Byte=0) As Short
 Declare Function makecomplex2(slot As Short,gc1 As _cords, gc2 As _cords, roundedcorners1 As Short,roundedcorners2 As Short,nocol1 As Short,nocol2 As Short,doorchance As Short,loopchance As Short,loopdoor As Short,adddoor As Short,addloop As Short,nosmallrooms As Short,culdesacruns As Short, t As Short) As Short

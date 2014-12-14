@@ -411,6 +411,9 @@ function questguy_newloc(i as short) as short
             endif
         endif
     endif
+    
+    if questguy(i).location=questguy(i).flag(12) and questguy(i).want.type=qt_travel then questguy(i).want.type=0 
+    
     for j=3 to lastquestguy
         if questguy(i).location=questguy(j).location then 
             if questguy(i).location<0 then
@@ -1435,12 +1438,16 @@ function give_quest(st as short) as short
                 if y<0 then y=0
                 if x>sm_x then x=sm_x
                 if y>sm_y then y=sm_y
-                dprint "The company rep tells you about a battleship that has gone missing. It's last known position was " & x &":" &y & ". There is a 5000 Credit reward for finding out what happened to it.",15
                 lastdrifting=lastdrifting+1
                 m=lastdrifting
                 drifting(m).s=14
                 drifting(m).x=x
                 drifting(m).y=y
+                drifting(m).p=rnd_range(1,8)
+                if drifting(m).p=5 then drifting(m).p+=1
+                
+                dprint "The company rep tells you about a battleship that has gone missing. It's last known position was " & x &":" &y & ". There is a 5000 Credit reward for finding out what happened to it.",15
+                
                 drifting(m).m=lastplanet+1
                 lastplanet=lastplanet+1
                 load_map(14,lastplanet)

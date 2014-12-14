@@ -1479,14 +1479,17 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
                 target=com_criticalhit(target,roll)
             endif
         else
-            if w.p>0 then
+            if w.made<100 then
                 if w.ammomax>0 then
                     dprint attn &" fires "& ammotypename(dambonus) &". " & text,c
                 else
                     dprint attn &" fires "&w.desig &". " & text,c
                 endif
             else
-                dprint attn &" "&w.desig &", " & text,c
+                if w.made=101 then dprint attn &"bites. "&text,c
+                if w.made=102 then dprint attn &"fires a concentrated radiation beam. "&text,c
+                if w.made=103 then dprint attn &"hits with a tentacle. "&text,c
+                if w.made=104 then dprint attn &"fires a lightning bolt. "&text,c
             endif
         endif
         text=""
@@ -1503,10 +1506,7 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
         'screenset 1,1
         if target.c.x-osx>=0 and target.c.x-osx<=_mwx then
             if distance(target.c,player.c)<(player.sensors+2)*player.senac then
-                for j=1 to 8
-                    put ((target.c.x-osx)*_tix,target.c.y*_tix),gtiles(gt_no(76+j)),trans
-                    sleep 5
-                next
+                com_explosion_ani(target.c.x-osx,target.c.y)
             endif
         endif
     endif
@@ -1514,6 +1514,15 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
     'if text<>"" then no_key=keyin
     if target.shieldside(side)<0 then target.shieldside(side)=0
     return target
+end function
+
+function com_explosion_ani(x as short,y as short) as short
+    dim j as short
+    for j=1 to 8
+        put ((x)*_tix,y*_tiy),gtiles(gt_no(76+j)),trans
+        sleep 5
+    next
+    return 0
 end function
 
 function com_dropmine(defender as _ship,mines_p() as _cords,mines_v() as short,byref mines_last as short ,attacker() as _ship) as short
@@ -1951,7 +1960,7 @@ function com_criticalhit(t as _ship, roll as short) as _ship
         endif
 
         if a=8 then
-            dprint "A direct hit on the bridge!",12
+            dprint "An explosion on the bridge!",12
 
             if t.desig=player.desig then
 

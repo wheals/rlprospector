@@ -121,10 +121,10 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     horns(3)="curved horns"
     horns(4)="antlers"
 
-    eyes(1)="pit eyes"
-    eyes(2)="compound eyes"
-    eyes(3)="lens eyes"
-    eyes(4)="occeli"
+    eyes(1)="pit eye"
+    eyes(2)="compound eye"
+    eyes(3)="lens eye"
+    eyes(4)="eye spot"
 
     mouths(1)="elongated mouth"
     mouths(2)="small mouth"
@@ -175,7 +175,8 @@ function randomcritterdescription(enemy as _monster, spec as short,weight as sho
     tails(5)="prehensile tail with a stinger"
 
     text=add_a_or_an(species(spec),1) &" with " & add_a_or_an(heads(rnd_range(1,4)),0) &" head, with "
-    if noeyes>0 then text=text & noeyes &" "&eyes(rnd_range(1,4))
+    if noeyes>1 then text=text & noeyes &" "&eyes(rnd_range(1,4))&"s"
+    if noeyes=1 then text=text & noeyes &" "&eyes(rnd_range(1,4))
     if noeyes=0 then text=text &" no eyes"
     if rnd_range(1,10)<7+w2 then
         text=text & " and " &add_a_or_an(mouths(rnd_range(1,4)),0)
@@ -1622,7 +1623,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.speed=16
         enemy.atcost=99
-        enemy.breedson=5
+        enemy.breedson=1
         enemy.tile=asc("o")
         enemy.col=39
         enemy.biomod=1
@@ -1661,9 +1662,9 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.ti_no=-1
         enemy.faction=8
         enemy.hasoxy=1
-        enemy.sdesc="citizen"
-        enemy.ldesc="a friendly human pioneer"
-        enemy.lang=18
+        enemy.sdesc="tourist"
+        enemy.ldesc="a visitior of the ditch"
+        enemy.lang=41
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.cmmod=7
@@ -3055,11 +3056,10 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     if a=79 then
         enemy.ti_no=1087
         enemy.aggr=0
-        enemy.hp=rnd_range(1,30)+20
+        enemy.hp=rnd_range(1,10)+20
         enemy.hpmax=enemy.hp
         enemy.speed=12
         enemy.atcost=8
-        enemy.breedson=2
         enemy.weapon=3
         enemy.armor=0
         enemy.sight=3

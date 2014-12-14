@@ -540,98 +540,6 @@ function roman(i as integer) as string
     end select
 end function
 
-function make_shipequip(a as short) as _items
-    dim i as _items
-    i.id=a+9000
-    select case a
-    case 1 to 5
-        i.ty=150
-        i.desig="Sensors "&roman(a)
-        i.v1=a
-        if a=1 then
-            i.price=200
-        else
-            i.price=800*(a-1)
-        endif
-    case 6 to 10
-        i.ty=151
-        i.desig="Engine "&roman(a-5)
-        i.v1=a-5
-        i.price=(2^(i.v1-1))*300
-    case 11 to 14
-        i.ty=152
-        i.desig="Shield "&roman(a-10)
-        i.v1=a-10
-        i.price=(2^(i.v1-1))*500
-    case 15
-        i.desig="ship detection system"
-        i.desigp="ship detection systems"
-        i.price=1500
-        i.id=1001
-        i.ty=153
-        i.v1=1
-        i.ldesc="Filters out ship signatures out of longrange sensor noise."
-    case 16
-        i.desig="imp. ship detection sys."
-        i.desigp="imp. ship detection sys."
-        i.price=3000
-        i.id=1002
-        i.ty=153
-        i.v1=2
-        i.ldesc="Filters out ship signatures, and friend-foe signals out of longrange sensor noise."
-    case 21
-        i.desig="navigational computer"
-        i.desigp="navigational computers"
-        i.price=350
-        i.id=1003
-        i.ty=154
-        i.v1=1
-        i.ldesc="A system keeping track of sensor input. Shows you where you are and allows you to see where you have already been." 
-    case 18
-        i.desig="ECM I system"
-        i.desigp="ECM I systems"
-        i.price=3000
-        i.ty=155
-        i.id=1004
-        i.v1=1
-        i.ldesc="Designed to prevent sensor locks, especially effective against missiles"
-    case 19    
-        i.desig="ECM II system"
-        i.desigp="ECM II systems"
-        i.price=9000
-        i.ty=155
-        i.id=1005
-        i.v1=2
-        i.ldesc="Designed to prevent sensor locks, and decrease sensor echo. especially effective against missiles"
-    case 20
-        i.desig="Cargo bay shielding"
-        i.price=500
-        i.ty=156
-        i.id=1006
-        i.v1=30
-        i.ldesc="Special shielding for cargo bays, making it harder to scan them."
-    case 17
-        i.desig="Cargo bay shielding MKII"
-        i.price=1500
-        i.ty=156
-        i.id=1007
-        i.v1=45
-        i.ldesc="Special shielding for cargo bays, making it harder to scan them."
-    case 22
-        i.desig="Fuel System I"
-        i.price=500
-        i.ty=157
-        i.v1=1
-        i.ldesc="Saves fuel by reducing leakage."
-    case 23
-        i.desig="Fuel System II"
-        i.price=750
-        i.ty=157
-        i.v1=2
-        i.ldesc="Saves fuel by reducing leakage and improved engine control."
-    end select
-    return i
-end function
 
 
 function destroyitem(b as short) as short     
@@ -1859,7 +1767,7 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.v2=1
         i.price=25
     endif
-    
+        
     if a=63 then
         i.ti_no=2063
         i.id=64
@@ -3274,8 +3182,8 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         if i.v3>0 then i.price=i.price*(10+i.v3)/10
     endif
     if i.ty=4 and i.v1>0 then
-        i.price=i.v1*100+(i.v1-0.1)*100
-        if i.v3>0 then i.price=i.price*(i.v3/20)
+        i.price=i.v1*75+(i.v1-0.1)*75
+        if i.v3>3 then i.price=i.price*((20+i.v3-3)/20)
     endif
     
     'if i.desig="" or i.desigp="" then dprint "ERROR: Item #" &a &" does not exist.",14,14
@@ -3578,6 +3486,101 @@ function modify_item(i as _items,nomod as byte) as _items
     
     return i
 end function
+
+function make_shipequip(a as short) as _items
+    dim i as _items
+    i.id=a+9000
+    select case a
+    case 1 to 5
+        i.ty=150
+        i.desig="Sensors "&roman(a)
+        i.v1=a
+        if a=1 then
+            i.price=200
+        else
+            i.price=800*(a-1)
+        endif
+    case 6 to 10
+        i.ty=151
+        i.desig="Engine "&roman(a-5)
+        i.v1=a-5
+        i.price=(2^(i.v1-1))*300
+    case 11 to 14
+        i.ty=152
+        i.desig="Shield "&roman(a-10)
+        i.v1=a-10
+        i.price=(2^(i.v1-1))*500
+    case 15
+        i.desig="ship detection system"
+        i.desigp="ship detection systems"
+        i.price=1500
+        i.id=1001
+        i.ty=153
+        i.v1=1
+        i.ldesc="Filters out ship signatures out of longrange sensor noise."
+    case 16
+        i.desig="imp. ship detection sys."
+        i.desigp="imp. ship detection sys."
+        i.price=3000
+        i.id=1002
+        i.ty=153
+        i.v1=2
+        i.ldesc="Filters out ship signatures, and friend-foe signals out of longrange sensor noise."
+    case 17
+        i.desig="Cargo bay shielding MKII"
+        i.price=1500
+        i.ty=156
+        i.id=1007
+        i.v1=45
+        i.ldesc="Special shielding for cargo bays, making it harder to scan them."
+    case 18
+        i.desig="ECM I system"
+        i.desigp="ECM I systems"
+        i.price=3000
+        i.ty=155
+        i.id=1004
+        i.v1=1
+        i.ldesc="Designed to prevent sensor locks, especially effective against missiles"
+    case 19    
+        i.desig="ECM II system"
+        i.desigp="ECM II systems"
+        i.price=9000
+        i.ty=155
+        i.id=1005
+        i.v1=2
+        i.ldesc="Designed to prevent sensor locks, and decrease sensor echo. especially effective against missiles"
+    case 20
+        i.desig="Cargo bay shielding"
+        i.price=500
+        i.ty=156
+        i.id=1006
+        i.v1=30
+        i.ldesc="Special shielding for cargo bays, making it harder to scan them."
+    case 21
+        i.desig="navigational computer"
+        i.desigp="navigational computers"
+        i.price=350
+        i.id=1003
+        i.ty=154
+        i.v1=1
+        i.ldesc="A system keeping track of sensor input. Shows you where you are and allows you to see where you have already been." 
+
+    case 22
+        i.desig="Fuel System I"
+        i.price=500
+        i.ty=157
+        i.v1=1
+        i.ldesc="Saves fuel by reducing leakage."
+    case 23
+        i.desig="Fuel System II"
+        i.price=750
+        i.ty=157
+        i.v1=2
+        i.ldesc="Saves fuel by reducing leakage and improved engine control."
+    end select
+    return i
+end function
+
 
 function make_weapon(a as short) as _weap
     'w.made &";"&w.desig &";" &w.range &";"& w.ammo &";"&w.ammomax &";"& w.ecmmod &";"& w.p &";"

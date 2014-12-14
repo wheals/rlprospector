@@ -245,14 +245,18 @@ function gen_shop(i as short, shoptype as short) as short
             shopitem(a,i)=make_shipequip(14)
         endif
         for b=15 to 23
-            if rnd_range(1,100)<50 and a<=19 then 
+            if rnd_range(1,100)<50 then 
                 a+=1
+                if a>20 then a=20
                 shopitem(a,i)=make_shipequip(b)
             endif
         next
         a+=1
         if a>20 then a=20
         shopitem(a,i)=make_shipequip(21)
+        for b=1 to a
+            shopitem(b,i).w.x=1
+        next
         return 0
     end if
     
@@ -501,14 +505,15 @@ function reroll_shops() as short
                 c=c+1
             next
         endif
-        
-        for a=84 to 99
-            if rnd_range(1,100)<55 then
-                i+=1
-                if i>20 then i=20
-                makew(i,b)=a
-            endif
-        next
+        do
+            for a=84 to 99
+                if rnd_range(1,100)<55 then
+                    i+=1
+                    if i>20 then i=20
+                    makew(i,b)=a
+                endif
+            next
+        loop until i=20
     next
     return 0
 end function
@@ -824,20 +829,19 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
     dim desc as string
     dim l as string
     if _debug>0 then qty=1
-    c=1
-    i=20
     if _debug>0 then dprint "Hopindex:"&sh
     order=-2
-        if shoplist(sh).shoporder<0 then
-            dprint  "Your ordered "&make_item(abs(shoplist(sh).shoporder)).desig &" has arrived.",c_gre
-            shoplist(sh).shoporder=0
-        endif
+    i=20
+    if shoplist(sh).shoporder<0 then
+        dprint  "Your ordered "&make_item(abs(shoplist(sh).shoporder)).desig &" has arrived.",c_gre
+        shoplist(sh).shoporder=0
+    endif
     for a=1 to 9999
         for b=1 to i
             if shopitem(b,sh).ty=a then
+                c+=1
                 inv(c)=shopitem(b,sh)
                 if inv(c).w.x<=0 then inv(c).w.x=1
-                c=c+1
             endif
         next
     next
@@ -869,6 +873,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then 
                     player.sensors=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
         case 151'engine
@@ -879,6 +884,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then
                     player.engine=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
         case 152'shield
@@ -889,6 +895,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then
                     player.shieldmax=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
         case 153 'Shipdetection
@@ -898,6 +905,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then 
                     player.equipment(se_shipdetection)=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
         case 154 'navcomp
@@ -906,6 +914,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then 
                     player.equipment(se_navcom)=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
             
@@ -916,6 +925,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                 if paystuff(inv(c).price*pmod) then 
                     player.equipment(se_ECM)=inv(c).v1
                     dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
                 endif
             endif
             
@@ -923,7 +933,11 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
             if inv(c).v1<player.equipment(se_CargoShielding) then dprint "You already have better cargo shielding."
             if inv(c).v1=player.equipment(se_CargoShielding) then dprint "You already have the same cargo shielding."
             if inv(c).v1>player.equipment(se_CargoShielding) then 
-                if paystuff(inv(c).price*pmod) then player.equipment(se_CargoShielding)=inv(c).v1
+                if paystuff(inv(c).price*pmod) then 
+                    player.equipment(se_CargoShielding)=inv(c).v1
+                    dprint "You buy a "&inv(c).desig &"."
+                    inv(c).w.x-=1
+                endif
             endif
         case 157 'Fuelsystem
             if inv(c).v1<player.equipment(se_Fuelsystem) then dprint "You already have a better fuel system."
@@ -933,7 +947,7 @@ function shop(sh as short,pmod as single,shopn as string,qty as byte=0) as short
                     player.equipment(se_fuelsystem)=inv(c).v1
                     player.fueluse=1-inv(c).v1/10
                     dprint "You buy " &add_a_or_an(inv(c).desig,0) & "."
-            
+                    inv(c).w.x-=1
                 endif
             endif
         case 21

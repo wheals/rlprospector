@@ -261,7 +261,6 @@ Function ep_atship() As Short
                 EndIf
                 If crew(a).disease=0 And crew(a).onship=0 Then
                     crew(a).onship=crew(a).oldonship
-                    crew(a).oldonship=0
                 EndIf
             EndIf
         Next
@@ -665,6 +664,7 @@ Function ep_display(osx As Short=555,nightday as short=0) As Short
                 Else
                     dtile(x,y,tmap(p.x,y),vismask(p.x,y))
                 EndIf
+                if _debug=1312 then draw string(p.x*_tix,p.y*_tiy),distance(awayteam.c,p,0)&""
             endif
             
             a=0
@@ -719,11 +719,12 @@ Function ep_needs_spacesuit(slot As Short,c As _cords,ByRef reason As String="")
 End Function
 
 Function ep_dropitem() As Short
-    Dim As Short c,d,slot,i,num,j
+    Dim As Short c,d,slot,i,num,j,osx
     Dim As String text
     Dim As _cords ship
     awayteam.e.add_action(10)
     slot=player.map
+    osx=calcosx(awayteam.c.x,planets(slot).depth)
     d=1
     If player.towed<-100 Then
         text="Do you want to build the "
@@ -784,9 +785,11 @@ Function ep_dropitem() As Short
                 display_awayteam()
                 dprint "Where do you want to drop the "&item(c).desig &"?"
                 d=getdirection(keyin)
-                If d<>-1 Or 5 Then
+                If d<>-1 Or d<>5 Then
                     item(c).w=movepoint(awayteam.c,d)
                     If tmap(item(c).w.x,item(c).w.y).shootable<>0 Then
+                        screenset 1,1
+                        com_explosion_ani(item(c).w.x-osx,item(c).w.y)
                         tmap(item(c).w.x,item(c).w.y).hp-=item(c).v1
                         dprint tmap(item(c).w.x,item(c).w.y).desc &" takes "&item(c).v1 &" points of damage."
                         destroyitem(c)
@@ -1606,95 +1609,99 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
                     If vacuum(x-1,y-1)=1 Or vacuum(x-1,y+1)=1 Or vacuum(x+1,y-1)=1 Or vacuum(x+1,y+1)=1 Then vacuum(x,y)=1
                 EndIf
             EndIf
-            If tmap(x,y).dam<>0 Then
-                p2.x=x
-                p2.y=y
-                player.killedby=tmap(x,y).deadt
-                If player.killedby="" Then player.killedby=tmap(x,y).desc
-                If distance(awayteam.c,p2,planets(slot).depth)<=tmap(x,y).range Then
-                    If tmap(x,y).dam<0 Then
-                        dam=rnd_range(1,Abs(tmap(x,y).dam))
-                    Else
-                        dam=tmap(x,y).dam
-                    EndIf
-                    If rnd_range(1,100)<tmap(x,y).tohit Then
-                        dprint tmap(x,y).hitt &" "&  dam_awayteam(dam),12
-                    Else
-                        dprint tmap(x,y).misst,14
-                    EndIf
-                EndIf
-            EndIf
-
-            a=rnd_range(1,100)
-            If a<tmap(x,y).causeaeon Then
-                last_ae=last_ae+1
-                If last_ae>16 Then last_ae=0
-                areaeffect(last_ae).c.x=x
-                areaeffect(last_ae).c.y=y
-                areaeffect(last_ae).rad=rnd_range(1,2)
-                areaeffect(last_ae).dam=0
-                areaeffect(last_ae).dur=rnd_range(1,4)+rnd_range(1,4)
-                areaeffect(last_ae).typ=tmap(x,y).aetype
-            EndIf
-                If localtemp(x,y)<-10 And tmap(x,y).no=1 Or tmap(x,y).no=2 Then
-                    tmap(x,y).gives=tmap(x,y).gives+(localtemp(x,y)/25)
-                    If rnd_range(0,100)<Abs(tmap(x,y).gives) And tmap(x,y).gives<-50 Then
-                        If vismask(x,y)>0 Then dprint "The water freezes again."
-                        If tmap(x,y).no=2 Then
-                            tmap(x,y)=tiles(27)
-                            changetile(x ,y ,slot ,27)
+            
+            if awayteam.c.x>=0 then
+                If tmap(x,y).dam<>0 Then
+                    p2.x=x
+                    p2.y=y
+                    player.killedby=tmap(x,y).deadt
+                    If player.killedby="" Then player.killedby=tmap(x,y).desc
+                    If distance(awayteam.c,p2,planets(slot).depth)<=tmap(x,y).range Then
+                        If tmap(x,y).dam<0 Then
+                            dam=rnd_range(1,Abs(tmap(x,y).dam))
                         Else
-                            tmap(x,y)=tiles(260)
-                            changetile(x ,y ,slot ,260)
+                            dam=tmap(x,y).dam
+                        EndIf
+                        If rnd_range(1,100)<tmap(x,y).tohit Then
+                            dprint tmap(x,y).hitt &" "&  dam_awayteam(dam),12
+                        Else
+                            dprint tmap(x,y).misst,14
                         EndIf
                     EndIf
                 EndIf
-
-                If localtemp(x)>10 And tmap(x,y).no=27 Or tmap(x,y).no=260 Then
-                    tmap(x,y).hp-=localtemp(x,y)/25
-                    If tmap(x,y).hp<0 Then
-                        tmap(x,y)=tiles(2)
-                        changetile(x ,y ,slot ,2)
-                        If vismask(x,y)>0 Then dprint "The ice melts."
+            
+                a=rnd_range(1,100)
+                If a<tmap(x,y).causeaeon Then
+                    last_ae=last_ae+1
+                    If last_ae>16 Then last_ae=0
+                    areaeffect(last_ae).c.x=x
+                    areaeffect(last_ae).c.y=y
+                    areaeffect(last_ae).rad=rnd_range(1,2)
+                    areaeffect(last_ae).dam=0
+                    areaeffect(last_ae).dur=rnd_range(1,4)+rnd_range(1,4)
+                    areaeffect(last_ae).typ=tmap(x,y).aetype
+                EndIf
+            endif
+        
+            If localtemp(x,y)<-10 And tmap(x,y).no=1 Or tmap(x,y).no=2 Then
+                tmap(x,y).gives=tmap(x,y).gives+(localtemp(x,y)/25)
+                If rnd_range(0,100)<Abs(tmap(x,y).gives) And tmap(x,y).gives<-50 Then
+                    If vismask(x,y)>0 Then dprint "The water freezes again."
+                    If tmap(x,y).no=2 Then
+                        tmap(x,y)=tiles(27)
+                        changetile(x ,y ,slot ,27)
+                    Else
+                        tmap(x,y)=tiles(260)
+                        changetile(x ,y ,slot ,260)
                     EndIf
                 EndIf
+            EndIf
 
-                If localtemp(x)>30 And planets(slot).atmos>1 Then
-                    If tmap(x,y).walktru=1 Then
-                        If rnd_range(1,100)<localtemp(x,y)+planets(slot).weat Then cloudmap(x,y)+=1
+            If localtemp(x)>10 And tmap(x,y).no=27 Or tmap(x,y).no=260 Then
+                tmap(x,y).hp-=localtemp(x,y)/25
+                If tmap(x,y).hp<0 Then
+                    tmap(x,y)=tiles(2)
+                    changetile(x ,y ,slot ,2)
+                    If vismask(x,y)>0 Then dprint "The ice melts."
+                EndIf
+            EndIf
 
-                    EndIf
+            If localtemp(x)>30 And planets(slot).atmos>1 Then
+                If tmap(x,y).walktru=1 Then
+                    If rnd_range(1,100)<localtemp(x,y)+planets(slot).weat Then cloudmap(x,y)+=1
+
                 EndIf
-                If x>0 And y>0 And x<60 And y<20 Then
-                    If cloudmap(x,y)>0 Then
-                        If tmap(x,y).walktru=2 Or tmap(x-1,y).walktru=2 Or tmap(x+1,y).walktru=2 Or tmap(x,y-1).walktru=2 Or tmap(x,y+1).walktru=2 Then
-                            cloudmap(x,y)-=1
-                        EndIf
-                        If planets(slot).dens<3 Then cloudmap(x,y)-=2
-                    EndIf
-                EndIf
+            EndIf
+            If x>0 And y>0 And x<60 And y<20 Then
                 If cloudmap(x,y)>0 Then
-                    p.x=x
-                    p.y=y
-                    If rnd_range(1,100)<(1+planets(slot).weat)*5 Then
+                    If tmap(x,y).walktru=2 Or tmap(x-1,y).walktru=2 Or tmap(x+1,y).walktru=2 Or tmap(x,y-1).walktru=2 Or tmap(x,y+1).walktru=2 Then
                         cloudmap(x,y)-=1
-                        p=movepoint(p,5,1)
-                        cloudmap(p.x,p.y)+=1
                     EndIf
+                    If planets(slot).dens<3 Then cloudmap(x,y)-=2
                 EndIf
+            EndIf
+            If cloudmap(x,y)>0 Then
+                p.x=x
+                p.y=y
+                If rnd_range(1,100)<(1+planets(slot).weat)*5 Then
+                    cloudmap(x,y)-=1
+                    p=movepoint(p,5,1)
+                    cloudmap(p.x,p.y)+=1
+                EndIf
+            EndIf
 
 
-                If tmap(x,y).no=245 And rnd_range(1,100)<9+planets(slot).grav Then
-                    p.x=x
-                    p.y=y
-                    p=movepoint(p,5)
-                    lavapoint(rnd_range(1,5))=p
-                EndIf
+            If tmap(x,y).no=245 And rnd_range(1,100)<9+planets(slot).grav Then
+                p.x=x
+                p.y=y
+                p=movepoint(p,5)
+                lavapoint(rnd_range(1,5))=p
+            EndIf
         Next
     Next
 
     if awayteam.c.x<0 then return 0
-
+    
     If planetmap(awayteam.c.x,awayteam.c.y,slot)=45 Then
         dprint "Smoldering lava:" &dam_awayteam(rnd_range(1,6-awayteam.movetype)),12
         If player.dead=0 and awayteam.hp<=0 Then player.dead=16
@@ -1796,6 +1803,8 @@ Function ep_updatemasks(watermap() as byte,localtemp() as single, cloudmap() as 
     lsp=0
     For x=0 To 60
         For y=0 To 20
+            spawnmask(0).x=x
+            spawnmask(0).y=y
             If Abs(planetmap(x,y,slot))=1 Then watermap(x,y)=10
             If Abs(planetmap(x,y,slot))=2 Then watermap(x,y)=50
             If planets(slot).depth=0 Then
@@ -1803,7 +1812,7 @@ Function ep_updatemasks(watermap() as byte,localtemp() as single, cloudmap() as 
             Else
                 localtemp(x,y)=planets(slot).temp
             EndIf
-            If tmap(x,y).walktru=0 Then
+            If tmap(x,y).walktru=0 and distance(spawnmask(0),awayteam.c)>5 Then
                 lsp=lsp+1
                 spawnmask(lsp).x=x
                 spawnmask(lsp).y=y
@@ -2000,7 +2009,16 @@ Function ep_monsterupdate(i As Short, spawnmask() as _cords,lsp as short,mapmask
         enemy(i).hpmax=0
     EndIf
     
-
+    if (enemy(i).made=39 or enemy(i).made=79) and specialflag(27)>0 then
+        enemy(i).hp-=1
+        if enemy(i).hp<=0 and vismask(enemy(i).c.x,enemy(i).c.y)>0 then dprint "The "&enemy(i).sdesc &" drops dead."
+    endif
+    
+    If enemy(i).hasoxy=0 And (planets(slot).atmos=1 Or vacuum(enemy(i).c.x,enemy(i).c.y)=1) Then
+        enemy(i).hp=enemy(i).hp-1
+        If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" is struggling for air!"
+    EndIf
+    
     If rnd_range(1,100)<enemy(i).breedson And enemy(i).breedson>0 And lastenemy<255 Then
         If enemy(i).made<>101 Or tmap(enemy(i).c.x,enemy(i).c.y).vege>0 Then
             If enemy(i).made=101 Then
@@ -2030,11 +2048,6 @@ Function ep_monsterupdate(i As Short, spawnmask() as _cords,lsp as short,mapmask
             If enemy(i).aggr>0 And rnd_range(1,distance(enemy(i).c,awayteam.c,planets(slot).depth))>enemy(i).intel Then enemy(i).aggr=enemy(i).aggr-1
         EndIf
     EndIf    
-    
-    If enemy(i).hasoxy=0 And (planets(slot).atmos=1 Or vacuum(enemy(i).c.x,enemy(i).c.y)=1) Then
-        enemy(i).hp=enemy(i).hp-1
-        If vismask(enemy(i).c.x,enemy(i).c.y)>0 Then dprint "The "&enemy(i).sdesc &" is struggling for air!"
-    EndIf
     
     If enemy(i).sleeping>0 Then enemy(i).sleeping-=(1+enemy(i).reg)
     
@@ -2213,7 +2226,9 @@ Function ep_monstermove(spawnmask() As _cords, lsp As Short, mapmask() As Byte,n
                         endif
                     EndIf
                     
-                    
+                    if enemy(i).made=36 and enemy(i).nearestenemy=-1 then
+                        if enemy(i).nearestfriend>0 then enemy(enemy(i).nearestfriend).nearestenemy=-1
+                    endif
                     
                     
                 EndIf
@@ -2359,7 +2374,7 @@ function ep_dropdeaditem(mi as short) as short
 end function
 
 Function ep_shipfire(shipfire() As _shipfire) As Short
-    Dim As Short sf2,a,b,c,x,y,dam,slot,osx,ani,f,debug,icechunkhole,dambonus
+    Dim As Short sf2,a,b,c,x,y,dam,slot,osx,ani,f,debug,icechunkhole,dambonus,col
     Dim As Short dammap(60,20)
     Dim As String txt
     Dim As Single r,ed
@@ -2484,14 +2499,16 @@ Function ep_shipfire(shipfire() As _shipfire) As Short
                     
                     Next
                 Next
-                
+                col=11
                 If dammap(awayteam.c.x,awayteam.c.y)>0 Then
-                    txt=txt &"you got caught in the blast! "
+                    dprint txt,col
+                    col=c_red
+                    txt="you got caught in the blast! "
                     If shipfire(sf2).stun=0 Then txt = txt & dam_awayteam(dammap(awayteam.c.x,awayteam.c.y),1) &" "
                     If shipfire(sf2).stun=1 Then awayteam.e.add_action(150-stims.effect)
                 EndIf
                 
-                dprint txt
+                dprint txt,col
                 #IfDef _FMODSOUND
                 If (configflag(con_sound)=0 Or configflag(con_sound)=2) And planets(slot).atmos>1 Then FSOUND_PlaySound(FSOUND_FREE, Sound(4))
                 #EndIf
@@ -3798,7 +3815,13 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
             dprint "You sit down for some drinks and discuss your travels."
             planet_bounty()
         EndIf
-        If faction(0).war(2)<=60 Then
+        If faction(0).war(2)<=60 Then                    
+            if player.questflag(3)=1 then
+                dprint "After some negotiations you convince him to buy the secret of controling the alien ships for ... 1,000,000 CR!",10
+                factionadd(0,1,-15)
+                addmoney(1000000,mt_artifacts)
+                player.questflag(3)=3
+            endif
             If askyn("Do you want to challenge him to a duel?(y/n)") Then
                 dprint "He accepts. The Anne Bonny launches and awaits you in orbit."
                 no_key=keyin
@@ -3813,6 +3836,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
                     player.dead=26
                 EndIf
             EndIf
+            
             ask_alliance(2)
 
         EndIf

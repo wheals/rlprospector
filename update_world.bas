@@ -42,12 +42,12 @@ function update_world(location as short) as short
     if player.turn mod (24*60*7)=0 then 'Weekly
         set_fleet(make_fleet)
         if rnd_range(1,100)<50 then
-            set_fleet(makecivfleet(0))
+            if rnd_range(1,100)>80+countfleet(6) then set_fleet(makecivfleet(0))
         else
-            set_fleet(makecivfleet(1))
+            if rnd_range(1,100)>80+countfleet(7) then set_fleet(makecivfleet(1))
         endif
         if player.turn>2*30*24*60 and player.questflag(3)=0 then
-            set_fleet(makealienfleet)
+            if rnd_range(1,100)>80+countfleet(5) then set_fleet(makealienfleet)
         endif
         reroll_shops
         

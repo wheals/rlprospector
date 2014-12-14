@@ -48,7 +48,8 @@ function haggle_(way as string) as single
 end function
 
 function can_learn_skill(ci as short,si as short) as short
-    if (crew(ci).typ<=8 or crew(ci).typ>=14) and si>16 and si<=26 then return -1
+    if crew(ci).typ=18 then return 0
+    if (crew(ci).typ<=8 or (crew(ci).typ>=14)) and si>16 and si<=26 then return -1
     select case crew(ci).typ
     case is=1 'Captain
         if si>=1 and si<=6 then return -1
@@ -284,15 +285,13 @@ function diseaserun(onship as short) as short
     for a=2 to 128
         if crew(a).hpmax>0 and crew(a).hp>0 and crew(a).disease>0 then
             if crew(a).incubation>0 then
-                dprint a &":"&crew(a).incubation
                 crew(a).incubation-=1
-                if crew(a).incubation=0 then dprint crew(a).n &" "& disease(crew(a).disease).desig &".",14
             else
                 if crew(a).duration>0 then
                     crew(a).duration-=1
                     if rnd_range(1,100)<disease(crew(a).disease).contagio then
                         b=rnd_crewmember
-                        if crew(a).onship=crew(b).onship then
+                        if crew(a).onship=crew(b).onship and a<>b then
                             crew(b).disease=crew(a).disease
                             crew(b).oldonship=crew(b).onship
                             crew(b).duration=disease(crew(a).disease).duration
@@ -353,7 +352,7 @@ end function
 
 function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as short=0) as string
     dim text as string
-    dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus,suitdamage
+    dim as short ex,b,t,last,last2,armeff,reequip,roll,cc,tacbonus,suitdamage,dealtdam
     dim as short local_debug=0
     dim target(128) as short
     dim stored(128) as short
@@ -396,13 +395,16 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as shor
             if ap=5 then
                 dam-=1
                 crew(target(t)).hp-=1
+                dealtdam+=1
             endif
             if ap=2 then
                 dam=dam-crew(target(t)).hp
+                dealtdam=crew(target(t)).hp
                 crew(target(t)).hp=dam
             endif
             if ap=3 then
                 crew(target(t)).hp=crew(target(t)).hp-dam
+                dealtdam=dam
                 dam=0
             endif
             if ap=0 or ap=1 or ap=4 then
@@ -416,6 +418,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as shor
                 if roll>2+awayteam.secarmo(target(t))+crew(target(t)).augment(5)+tacbonus+add_talent(3,10,1)+add_talent(t,20,1) or ap=4 or ap=1 or roll=25 then
                     if not(crew(target(t)).typ=13 and ap=4) then crew(target(t)).hp=crew(target(t)).hp-1
                     dam=dam-1
+                    dealtdam+=1
                 else
                     armeff+=1
                 endif
@@ -445,8 +448,9 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as shor
             endif
         endif
     next
-    if armeff>0 then text=text &" "&armeff &" prevented by armor. "
-
+    
+    if dealtdam>0 then text=text & "Caused "&dealtdam &" points of damage."
+    if armeff>0 then text=text &armeff &" prevented by armor. "
     for b=1 to 16
         if injured(b)>0 then
             walking=0
@@ -535,7 +539,7 @@ end function
 
 function gain_talent(slot as short,talent as short=0) as string
     dim text as string
-    dim roll as short
+    dim as short roll,roll2
     ' roll for talent
     if talent=0 then
         roll=rnd_range(1,25)
@@ -544,13 +548,34 @@ function gain_talent(slot as short,talent as short=0) as string
     endif
     ' check if can have it
     if can_learn_skill(slot,roll) then
-        if crew(slot).talents(roll)<3 then
+        if crew(slot).talents(roll)<3 or roll=1 then
             crew(slot).talents(roll)+=1
-            text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
-            if roll=20 then
+            select case roll
+            case 1'Competent
+                roll2=rnd_range(0,3)
+                if crew(slot).baseskill(roll2)=-5 then
+                    crew(slot).baseskill(roll2)=1
+                else
+                    crew(slot).baseskill(roll2)+=1
+                endif
+                text=text &crew(slot).n &" is now competent("
+                select case roll2
+                case 0
+                    text=text &"Piloting:"& crew(slot).baseskill(0) &")"
+                case 1
+                    text=text &"Gunnery:"& crew(slot).baseskill(1) &")"
+                case 2
+                    text=text &"Science:"& crew(slot).baseskill(2) &")"
+                case 3
+                    text=text &"Doctor:"&  crew(slot).baseskill(3) &")"
+                end select
+            case 20 'Tough
                 crew(slot).hpmax+=1
                 crew(slot).hp+=1
-            endif
+                text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+            case else
+                text=text &crew(slot).n &" is now "& talent_desig(roll) &"("&crew(slot).talents(roll)&"). "
+            end select    
         endif
     endif
     return text
@@ -1186,7 +1211,7 @@ function add_member(a as short,skill as short) as short
             'crew(slot).disease=rnd_range(1,16)
         endif
         
-        if a=20 or a=21 or a=22 or a=23 then
+        if a=20 or a=21 or a=22 or a=23 or a=24 then
             crew(slot).typ=18
             crew(slot).hpmax=1
             crew(slot).icon="A"
@@ -1201,6 +1226,13 @@ function add_member(a as short,skill as short) as short
             if a=21 then crew(slot).baseskill(1)=7
             if a=22 then crew(slot).baseskill(2)=7
             if a=23 then crew(slot).baseskill(3)=7
+            if a=24 then
+                crew(slot).n="General"
+                crew(slot).baseskill(0)=7
+                crew(slot).baseskill(1)=7
+                crew(slot).baseskill(2)=7
+                crew(slot).baseskill(3)=7
+            endif
         endif
             
         

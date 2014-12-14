@@ -486,7 +486,12 @@ function display_stars(bg as short=0) as short
         if player.osx>=sm_x-_mwx then player.osx=sm_x-_mwx
         if player.osy>=sm_y-20 then player.osy=sm_y-20
     endif
-    make_vismask(player.c,player.sensors+5.5-player.sensors/2,-1)
+    if rnd_range(1,100)<player.cursed then
+        make_vismask(player.c,0,-1)
+        dprint "Sensor malfunction",c_yel
+    else
+        make_vismask(player.c,player.sensors+5.5-player.sensors/2,-1)
+    endif
     navcom=player.equipment(se_navcom)
     for x=player.c.x-1 to player.c.x+1
         for y=player.c.y-1 to player.c.y+1
@@ -509,54 +514,56 @@ function display_stars(bg as short=0) as short
     if bg>0 then
         for x=0 to _mwx
             for y=0 to 20
-                ti_no=spacemap(x+player.osx,y+player.osy)
-                set__color( 1,0)
-                if debug=44 and _debug=1 then draw string (x*_fw1,y*_fh1),""&spacemap(x+player.osx,y+player.osy),,FONT1,custom,@_col
-
-                if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then
-                    if configflag(con_tiles)=0 then
-                        alphav=192
-                        if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                        if (x+player.osx+y+player.osy) mod 2=0 then
-                            put (x*_fw1+1,y*_fh1+1),gtiles(49),alpha,alphav
+                if x+player.osx>=0 and x+player.osx<=sm_x and y+player.osy>=0 and y+player.osy<=sm_y then
+                    ti_no=spacemap(x+player.osx,y+player.osy)
+                    set__color( 1,0)
+                    if debug=44 and _debug=1 then draw string (x*_fw1,y*_fh1),""&spacemap(x+player.osx,y+player.osy),,FONT1,custom,@_col
+    
+                    if spacemap(x+player.osx,y+player.osy)=1 and navcom>0 then
+                        if configflag(con_tiles)=0 then
+                            alphav=192
+                            if vismask(x+player.osx,y+player.osy)=1 then alphav=255
+                            if (x+player.osx+y+player.osy) mod 2=0 then
+                                put (x*_fw1+1,y*_fh1+1),gtiles(49),alpha,alphav
+                            else
+                                put (x*_fw1+1,y*_fh1+1),gtiles(50),alpha,alphav
+                            endif
                         else
-                            put (x*_fw1+1,y*_fh1+1),gtiles(50),alpha,alphav
+                            draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                         endif
-                    else
-                        draw string (x*_fw1,y*_fh1),".",,FONT1,custom,@_col
                     endif
-                endif
-                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
-                    if configflag(con_tiles)=0 then
-                        alphav=192
-                        if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                        put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
-                    else
-                        if spacemap(x+player.osx,y+player.osy)=2 then color(rgb(0,0,50))
-                        if spacemap(x+player.osx,y+player.osy)=3 then color(rgb(0,0,100))
-                        if spacemap(x+player.osx,y+player.osy)=4 then color(rgb(0,0,150))
-                        if spacemap(x+player.osx,y+player.osy)=5 then color(rgb(0,0,250))
-                        draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
+                    if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
+                        if configflag(con_tiles)=0 then
+                            alphav=192
+                            if vismask(x+player.osx,y+player.osy)=1 then alphav=255
+                            put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
+                        else
+                            if spacemap(x+player.osx,y+player.osy)=2 then color(rgb(0,0,50))
+                            if spacemap(x+player.osx,y+player.osy)=3 then color(rgb(0,0,100))
+                            if spacemap(x+player.osx,y+player.osy)=4 then color(rgb(0,0,150))
+                            if spacemap(x+player.osx,y+player.osy)=5 then color(rgb(0,0,250))
+                            draw string (x*_fw1,y*_fh1),chr(176),,Font1,custom,@_col
+                        endif
                     endif
-                endif
-                if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
-
-                endif
-                if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=20 then
-                    ti_no=abs(spacemap(x+player.osx,y+player.osy))
-                    if ti_no>10 then ti_no-=10
-                    if configflag(con_tiles)=0 then
-                        alphav=192
-                        if vismask(x+player.osx,y+player.osy)=1 then alphav=255
-                        put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
-                    else
-                        if ti_no=6 then set__color( 2,0)
-                        if ti_no=7 then set__color( 10,0)
-                        if ti_no=8 then set__color( 4,0)
-                        if ti_no=9 then set__color( 12,0)
-                        if ti_no=10 then set__color( 3,0)
-                        draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
-
+                    if spacemap(x+player.osx,y+player.osy)>=2 and  spacemap(x+player.osx,y+player.osy)<=5 then
+    
+                    endif
+                    if spacemap(x+player.osx,y+player.osy)>=6 and spacemap(x+player.osx,y+player.osy)<=20 then
+                        ti_no=abs(spacemap(x+player.osx,y+player.osy))
+                        if ti_no>10 then ti_no-=10
+                        if configflag(con_tiles)=0 then
+                            alphav=192
+                            if vismask(x+player.osx,y+player.osy)=1 then alphav=255
+                            put (x*_fw1+1,y*_fh1+1),gtiles(ti_no+49),alpha,alphav
+                        else
+                            if ti_no=6 then set__color( 2,0)
+                            if ti_no=7 then set__color( 10,0)
+                            if ti_no=8 then set__color( 4,0)
+                            if ti_no=9 then set__color( 12,0)
+                            if ti_no=10 then set__color( 3,0)
+                            draw string (x*_fw1,y*_fh1),":",,Font1,custom,@_col
+    
+                        endif
                     endif
                 endif
             next
@@ -1251,8 +1258,6 @@ function display_awayteam(showshipandteam as byte=1,osx as short=555) as short
         if len(trim(tmap(awayteam.c.x,awayteam.c.y).desc))<18 then
             l+=1
             draw string(sidebar,l*_fh2),tmap(awayteam.c.x,awayteam.c.y).desc,,Font2,custom,@_col ';planetmap(awayteam.c.x,awayteam.c.y,map)
-        else
-            dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
         endif
         l+=2
         draw string(sidebar,l*_fh2),"Credits: " &credits(player.money),,Font2,custom,@_col
@@ -1349,7 +1354,7 @@ function display_portal(b as short,slot as short,osx as short) as short
 end function
 
 function display_monsters(osx as short) as short
-    dim as short a
+    dim as short a,x2
     dim as _cords p
     for a=1 to lastenemy
         if enemy(a).hp<=0 then
@@ -1380,7 +1385,11 @@ function display_monsters(osx as short) as short
                 comstr.t=comstr.t & key_co &" Chat, " & key_of &" Offer;"
                 comstr.comalive=1
             endif
-            if p.x-osx>=0 and p.x-osx<=_mwx and p.y>=0 and p.y<=20 then
+            
+            x2=enemy(a).c.x-osx
+            If x2<0 Then x2+=61
+            If x2>60 Then x2-=61
+            if x2>=0 and x2<=_mwx and p.y>=0 and p.y<=20 then
                 if (vismask(p.x,p.y)>0) or player.stuff(3)=2 then
                     if enemy(a).cmshow=1 then
                         enemy(a).cmshow=0
@@ -1390,17 +1399,17 @@ function display_monsters(osx as short) as short
                     endif
                     if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if configflag(con_tiles)=0 then
-                            put ((p.x-osx)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
+                            put ((x2)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
                         else
                             draw string(p.x*_fw1,P.y*_fh1),chr(enemy(a).tile),,font1,custom,@_col
                         endif
                         if enemy(a).sleeping>0 or enemy(a).hpnonlethal>enemy(a).hp then
                             if configflag(con_tiles)=0 then
                                 set__color(  203,0)
-                                draw string ((p.x-osx)*_tix,P.y*_fh1),"z",,font2,custom,@_tcol
+                                draw string ((x2)*_tix,P.y*_fh1),"z",,font2,custom,@_tcol
                             else
                                 set__color(  203,0)
-                                draw string ((p.x-osx)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
+                                draw string ((x2)*_fw1,P.y*_fh1),"z",,font2,custom,@_tcol
                             endif
                         endif
                         if _debug>0 then 

@@ -190,7 +190,7 @@ Function start_new_game() As Short
     Dim doubleitem(45550) As Byte
     Dim i As _items
     Dim debug As Byte
-    debug=99
+    debug=126
     make_spacemap()
     
     if _debug>0 then
@@ -226,7 +226,7 @@ Function start_new_game() As Short
     If b=6 Then b=rnd_range(1,4)
     c=b
     If b=5 Then c=6
-    if _debug>0 then c=18
+    
     upgradehull(c,player)
     player.hull=player.h_maxhull
     dprint "Your ship: "&player.h_desig
@@ -247,7 +247,7 @@ Function start_new_game() As Short
         placeitem(i,0,0,0,0,-1) 'Other stuff
     Loop Until equipment_value>1000 And d>2 'At least 3 other stuffs
     
-    if _debug=1 then
+    if debug=101 and _debug=1 then
         placeitem(make_item(303),0,0,0,0,-1)
         dprint item(lastitem).desig &":"& item(lastitem).w.s
         placeitem(make_item(303),0,0,0,0,-1)
@@ -257,6 +257,7 @@ Function start_new_game() As Short
         add_member(21,0)
         add_member(23,0)
         add_member(22,0)
+        add_member(24,0)
     endif
     
     if debug=99 and _debug>0 then
@@ -265,10 +266,13 @@ Function start_new_game() As Short
         add_member(4,5)
         add_member(5,5)
         placeitem(make_item(89),0,0,0,0,-1)
-        for d=1 to 40
+        placeitem(make_item(29),0,0,0,0,-1)
+        player.bunking=1
+        for d=1 to 100
             add_member(8,0)
             placeitem(make_item(97),0,0,0,0,-1)
             placeitem(make_item(98),0,0,0,0,-1)
+            placeitem(make_item(33),0,0,0,0,-1)
         next
     endif
     
@@ -293,26 +297,27 @@ Function start_new_game() As Short
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
-        If _debug>0 Then placeitem(make_item(48),,,,,-1)
-        If _debug>0 Then placeitem(make_item(106),,,,,-1)
-        If _debug>0 Then placeitem(make_item(106),,,,,-1)
-        If _debug>0 Then placeitem(make_item(106),,,,,-1)
-        If _debug>0 Then placeitem(make_item(50),,,,,-1)
-        If _debug>0 Then placeitem(make_item(50),,,,,-1)
-        If _debug>0 Then placeitem(make_item(50),,,,,-1)
-        If _debug>0 Then placeitem(make_item(51),,,,,-1)
-        If _debug>0 Then placeitem(make_item(51),,,,,-1)
-        If _debug>0 Then placeitem(make_item(52),,,,,-1)
-        If _debug>0 Then placeitem(make_item(52),,,,,-1)
-        If _debug=1 Then placeitem(make_item(65),,,,,-1)
-        If _debug=1 Then placeitem(make_item(66),,,,,-1)
-        If _debug=1 Then placeitem(make_item(301),,,,,-1)
-        If _debug=1 Then placeitem(make_item(105),,,,,-1)
-        If _debug=1 Then placeitem(make_item(64),,,,,-1)
-        If _debug=999 Then placeitem(make_item(301),,,,,-1)
-        If _debug=2411 Then placeitem(make_item(301),,,,,-1)
-        If _debug=1211 Then placeitem(make_item(30),,,,,-1)
-        
+        if debug=99 then
+            If _debug>0 Then placeitem(make_item(48),,,,,-1)
+            If _debug>0 Then placeitem(make_item(106),,,,,-1)
+            If _debug>0 Then placeitem(make_item(106),,,,,-1)
+            If _debug>0 Then placeitem(make_item(106),,,,,-1)
+            If _debug>0 Then placeitem(make_item(50),,,,,-1)
+            If _debug>0 Then placeitem(make_item(50),,,,,-1)
+            If _debug>0 Then placeitem(make_item(50),,,,,-1)
+            If _debug>0 Then placeitem(make_item(51),,,,,-1)
+            If _debug>0 Then placeitem(make_item(51),,,,,-1)
+            If _debug>0 Then placeitem(make_item(52),,,,,-1)
+            If _debug>0 Then placeitem(make_item(52),,,,,-1)
+            If _debug=1 Then placeitem(make_item(65),,,,,-1)
+            If _debug=1 Then placeitem(make_item(66),,,,,-1)
+            If _debug=1 Then placeitem(make_item(301),,,,,-1)
+            If _debug=1 Then placeitem(make_item(105),,,,,-1)
+            If _debug=1 Then placeitem(make_item(64),,,,,-1)
+            If _debug=999 Then placeitem(make_item(301),,,,,-1)
+            If _debug=2411 Then placeitem(make_item(301),,,,,-1)
+            If _debug=1211 Then placeitem(make_item(30),,,,,-1)
+        endif
     EndIf
 
     If b=2 Then
@@ -436,6 +441,7 @@ Function start_new_game() As Short
         player.weapons(2)=make_weapon(66)
         For a=1 To 45
             add_member(8,0)
+            placeitem(make_item(2),0,0,0,0,-1)
             placeitem(make_item(97),0,0,0,0,-1)
             placeitem(make_item(98),0,0,0,0,-1)
         Next
@@ -452,17 +458,16 @@ Function start_new_game() As Short
         player.shieldmax=2
         player.weapons(1)=make_weapon(4)
         player.weapons(1)=make_weapon(3)
-        For a=1 To 15
+        For a=1 To 25
             add_member(8,0)
+            placeitem(make_item(2),0,0,0,0,-1)
             placeitem(rnd_item(RI_WEAPONS),0,0,0,0,-1)
+            placeitem(rnd_item(RI_WEAPONS),0,0,0,0,-1)
+            placeitem(rnd_item(RI_Armor),0,0,0,0,-1)
             placeitem(rnd_item(RI_Armor),0,0,0,0,-1)
         Next
         player.money+=6000
     EndIf
-    If _debug>0 Then 
-        player.money=10000000
-        
-    endif
     
     If debug=2 And _debug=1 Then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
     just_run=run_until
@@ -482,6 +487,14 @@ Function start_new_game() As Short
         for a=1 to 3
             dprint a &":"&questguy(a).location
         next
+    endif
+    if _debug=2000 and debug=823 then 
+        a=4
+        crew(a).disease=12
+        crew(a).oldonship=crew(a).onship
+        crew(a).duration=disease(12).duration
+        crew(a).incubation=disease(12).incubation
+        if 12>player.disease then player.disease=12
     endif
     Cls
     Return 0
@@ -1177,7 +1190,7 @@ Function move_ship(Key As String) As _ship
             If patrolquest(a).status=1 Then patrolquest(a).check
         Next
         If player.cursed>0 then
-            if rnd_range(1,100)<3+player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod 60=0 Then 
+            if rnd_range(1,100)<player.cursed+spacemap(player.c.x,player.c.y) And player.turn Mod 600=0 Then 
                 player=com_criticalhit(player,rnd_range(1,6)+6-player.armortype)
             else
                 if rnd_range(1,100)<3+player.cursed then 
@@ -2504,6 +2517,8 @@ EndIf
             ep_areaeffects(areaeffect(),last_ae,lavapoint(),cloudmap())
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_pickup Then ep_pickupitem(Key)
             If old.x<>awayteam.c.x Or old.y<>awayteam.c.y Or Key=key_portal Then nextmap=ep_portal
+            if tmap(old.x,old.y).no<>tmap(awayteam.c.x,awayteam.c.y).no and len(trim(tmap(awayteam.c.x,awayteam.c.y).desc))>18 then dprint tmap(awayteam.c.x,awayteam.c.y).desc '&planetmap(awayteam.c.x,awayteam.c.y,map)
+        
             If Key=key_inspect Or _autoinspect=0 And (old.x<>awayteam.c.x Or old.y<>awayteam.c.y) Then ep_inspect(localturn)
             If vacuum(awayteam.c.x,awayteam.c.y)=1 And awayteam.helmet=0 Then ep_helmet()
             If vacuum(awayteam.c.x,awayteam.c.y)=0 And vacuum(old.x,old.y)=1 And awayteam.helmet=1 Then ep_helmet
@@ -3876,7 +3891,10 @@ Function hitmonster(defender As _monster,attacker As _monster,mapmask() As Byte,
     If damage<0 Then damage=0
     If damage>0 or nldamage>0 Then
        damage=damage-defender.armor
-       If damage>0 Then
+       nldamage=nldamage-defender.armor
+       if damage<0 then damage=0
+       if nldamage<0 then nldamage=0
+       If damage>0 or nldamage>0 Then
             If player.tactic<>3 Then
                 text=text &" You hit for " & damage &" points of damage"
                 if nldamage>0 and defender.stunres<10 then text=text &" and "&nldamage &" points of nonlethal damage"

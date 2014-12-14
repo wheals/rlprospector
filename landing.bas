@@ -618,7 +618,7 @@ Function asteroid_mining(slot As Short) As Short
         Else
             dprint "A ship has been hiding among the asteroids.",14
             no_key=keyin
-            dprint "Wait. that is no ship. It is  "&mon(m) &"!",14
+            dprint "Wait. that is no ship. It is "&mon(m) &"!",14
             no_key=keyin
             en.ty=8
             en.mem(1)=make_ship(20+m)

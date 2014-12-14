@@ -621,14 +621,7 @@ function company(st as short) as short
             endif
             addmoney((reward(1)*basis(st).biomod*haggle_("up")),mt_bio)
             reward(1)=0
-            lastcagedmonster=0
-            for a=0 to lastitem
-                if item(a).ty=26 and item(a).w.s<0 then 
-                    item(a).v1=0 'Empty cages
-                    item(a).ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
-                endif
-                if item(a).ty=29 and item(a).w.s<0 then item(a).v1=0
-            next
+            empty_cages
         endif
     endif
     if reward(2)>0 then
@@ -763,6 +756,7 @@ function casino(staked as short=0, st as short=-1) as short
             if questguy(i).location=st then
                 questguy(i).lastseen=st 'For the quest log
                 localquestguy(leave)=i
+                if _debug=1412 then menustring=menustring &questguy(i).flag(15)
                 if debug=1 and _debug=1 then menustring=menustring &st &"(W:"&questguy(i).want.type &" M:" &questguy(i).want.motivation &")"
                 menustring=menustring & questguyjob(questguy(i).job) &" "&questguy(i).n &"/"
                 qgindex(leave)=i
@@ -919,10 +913,10 @@ function casino(staked as short=0, st as short=-1) as short
                 b=rnd_range(0,2)
                 passenger+=rnd_range(5,25)
                 if b<>st then
-                    t=player.turn+(rnd_range(15,25)/10)*distance(player.c,basis(b).c)
+                    t=player.turn+(rnd_range(15,25))*distance(player.c,basis(b).c)
                     price=distance(player.c,basis(b).c)*rnd_range(10,200)
                     bonus=rnd_range(1,15)
-                    if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every day you arrive there earlier. Do you want to take him with you?(y/n)") then
+                    if askyn("A passenger needs to get to space station "& b+1 &" by "& display_time(t*10) &". He offers you "&price &" Cr, and a "& bonus &" Cr. Bonus for every day you arrive there earlier. Do you want to take him with you?(y/n)") then
                         add_passenger("Passenger for S-"& b+1,30,price,bonus,b+1,t,0)
                     endif
                 endif
@@ -1209,12 +1203,12 @@ function check_passenger(st as short) as short
                     if questguy(crew(b).typ-30).has.type=qt_travel then questguy(crew(b).typ-30).has.given=1 
                     if questguy(crew(b).typ-30).want.type=qt_travel then questguy(crew(b).typ-30).want.given=1 
                 endif
-                t=(crew(b).time-player.turn)/(60*24)
+                t=(crew(b).time*10-player.turn)/(60*24)
                 price=crew(b).price+crew(b).bonus*t
                 if price<0 then price=10
-                if t>0 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
-                if t=0 then dprint crew(b).n &" is happy to have arrived on time."
-                if t<0 then dprint crew(b).n &" isn't happy at all that " &lcase(heshe(crew(b).story(10)))& " arrived too late.",c_yel
+                if t>1 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre
+                if t>=-1 and t<=1 then dprint crew(b).n &" is happy to have arrived on time."
+                if t<-1 then dprint crew(b).n &" isn't happy at all that " &lcase(heshe(crew(b).story(10)))& " arrived too late.",c_yel
                 addmoney(price,mt_quest2)
                 dprint heshe(crew(b).story(10)) &" pays you "&credits(price) &" Cr.",c_gre
                 crew(b)=cr
@@ -1250,7 +1244,23 @@ function count_gas_giants_area(c as _cords,r as short) as short
     return cc
 end function
 
-
+function empty_cages() as short
+    dim a as short
+    lastcagedmonster=0
+    for a=0 to lastitem
+        if item(a).ty=26 and item(a).w.s<0 then 
+            item(a).v1=0 'Empty cages
+            if item(a).id=63 then item(a).ldesc="A cage for transporting wild animals."
+            if item(a).id=64 then item(a).ldesc="A portable device for storing wild animals. It can hold up to 5 creatures in a compressed form, no matter what size."
+        endif
+        if item(a).ty=29 and item(a).w.s<0 then 
+            item(a).v1=0
+            if item(a).id=63 then item(a).ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
+            if item(a).id=64 then item(a).ldesc="For trapping wild animals. Just place it on the ground and wait for an animal to wander into it. Contains:"
+        endif
+    next
+    return 0
+end function
 
 function refuel(st as short,price as single) as short
     dim as single refueled,b,totammo

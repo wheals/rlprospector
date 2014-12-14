@@ -407,7 +407,8 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             node(3).option(2).no=1
         case qt_travel
             node(3).effekt="PASSENGER"
-            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(2)).c))
+            if questguy(i).flag(15)=0 then questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(12)).c))
+            if questguy(i).flag(15)<0 then questguy(i).flag(15)=30000 'To prevent overflow
         case qt_biodata 
             if reward(1)>0 then
                 node(3).effekt="BUYBIODATA" 
@@ -447,7 +448,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         if questguy(i).has.type=qt_travel then
             node(4).effekt="PASSENGER"
             node(4).param(0)=i
-            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(2)).c))
+            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(12)).c))
             node(4).statement=questguydialog(questguy(i).has.type,questguy(i).has.motivation,Q_HAS)
 
         endif
@@ -966,7 +967,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         endif
         if word(i)="<TONS>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(1)
         if word(i)="<DEST>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(12)+1
-        if word(i)="<TIME>" and qgindex>0 then word(i)=""&display_time(questguy(qgindex).flag(15))
+        if word(i)="<TIME>" and qgindex>0 then word(i)=""&display_time(questguy(qgindex).flag(15)*10)
         if word(i)="<PAY>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(13)
         
         r=r &word(i)
@@ -1516,7 +1517,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
         i=has_questguy_want(p(0),t)
         if i>0 then 
             if item(i).price>questguy(p(0)).has.price then
-                if askyn("I would trade my "&questguy(p(0)).has.it.desig &" for your "&item(i).desig &".") then
+                if askyn("I would trade my "&questguy(p(0)).has.it.desig &" for your "&item(i).desig &".(y/n)") then
                     placeitem(questguy(p(0)).has.it,,,,-1)
                     item(i)=item(lastitem)
                     lastitem-=1
@@ -2453,6 +2454,21 @@ function communicate(byref e as _monster,mapslot as short,monslot as short) as s
             end select
         endif
     endif
+    
+    if e.lang=41 then
+        if e.aggr=0 then dprint "He growls:'I am going to defend myself!'"
+        if e.aggr=1 then
+            a=rnd_range(1,6)
+            if a=1 then dprint "The tourist says: 'I just arrived here, can't wait to hit the bars.'"
+            if a=2 then dprint "The tourist explains: 'I've been to the arena, some bars, a casino, now I wonder where the zoo is.'"
+            if a=3 then dprint "The tourist recommends visiting the zoo on the lower level:"
+            if a=4 then dprint "The tourist says: 'This is a great place to get some custom surgery done.'"
+            if a=5 then dprint "The tourist asks: 'Have you fought in the Arena? You look familiar.'"
+            if a=6 then dprint "The tourist says: 'This is just what I needed after doublebunking for 2 weeks!'"
+            endif
+        if e.aggr=2 then dprint "He sobs: 'Why did you do this? We only wanted to enjoy ourselfs!"
+    endif
+    
             
     return 0
 end function

@@ -539,13 +539,11 @@ function get_death() as string
     if player.dead=1 then death="Captain forgot to refuel his spaceship"    
     if player.dead=2 then death="Captain became a cook after running out of money"
     if player.dead=3 or player.dead=25 then 
-        key=left(player.killedby,1)
-        player.killedby=add_a_or_an(player.killedby,0)
         if player.dead=3 then
             if player.landed.s>0 then 
-                player.killedby=player.killedby & " under "
+                death=add_a_or_an(player.killedby,0) & " under "
             else
-                player.killedby=player.killedby & " on "
+                death=add_a_or_an(player.killedby,0) & " on "
             endif
         endif
         
@@ -553,9 +551,9 @@ function get_death() as string
             for a=1 to lastdrifting
                 if player.landed.s=drifting(a).m then st=drifting(a).s
             next
-            death="Captain got killed by "&player.killedby &" on "&add_a_or_an(shiptypes(st),0)
+            death="Captain got killed by "&add_a_or_an(player.killedby,0) &" on "&add_a_or_an(shiptypes(st),0)
         else
-            death="Captain got killed by " &player.killedby &"an unknown world"
+            death="Captain got killed by " &add_a_or_an(player.killedby,0) &"an unknown world"
         endif
     endif
     if player.dead=4 then death="Captain started his own Colony"

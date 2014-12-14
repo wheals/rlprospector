@@ -278,7 +278,7 @@ function distance(first as _cords, last as _cords,rollover as byte=1) as single
     dx=first.x-last.x
     dy=first.y-last.y
     if rollover=0 then
-        dx2=60-abs(first.x-last.x)
+        dx2=61-abs(first.x-last.x)
         if abs(dx)>abs(dx2) then dx=dx2
     endif
     dis=sqr(dx*dx+dy*dy)
@@ -464,7 +464,7 @@ end function
 
 function make_vismask(c as _cords, sight as short,m as short,ad as short=0,groundpen as short=0) as short
     dim as short illu
-    dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr,rollover
+    dim as short x,y,x1,y1,x2,y2,mx,my,i,d,grr,rollover,gprange
     dim as byte mask
     dim as _cords p,pts(128)
     x1=c.x
@@ -474,6 +474,7 @@ function make_vismask(c as _cords, sight as short,m as short,ad as short=0,groun
         mx=60
         my=20
         if sight=0 then sight=calc_sight
+        if _debug>0 then dprint "Rollover:"&rollover
     else
         mx=sm_x
         my=sm_y
@@ -492,16 +493,25 @@ function make_vismask(c as _cords, sight as short,m as short,ad as short=0,groun
                 mask=1
                 p.x=x
                 p.y=y
-                d=line_in_points(p,c,pts(),rollover)
+                d=line_in_points(p,c,pts(),1)
+                gprange=groundpen
                 for i=1 to d
                     if distance(c,pts(i),rollover)<=sight then
                         if m>0 then
-                            if pts(i).x>60 then pts(i).x-=61
-                            if pts(i).x<0 then pts(i).x+=61
+                            if rollover=0 then
+                                if pts(i).x>60 then pts(i).x-=61
+                                if pts(i).x<0 then pts(i).x+=61
+                            else
+                                if pts(i).x>60 then pts(i).x=60
+                                if pts(i).x<0 then pts(i).x=0
+                            endif
                             if pts(i).y>=0 and pts(i).y<=20 then
                                 vismask(pts(i).x,pts(i).y)=mask
-                                if tmap(pts(i).x,pts(i).y).seetru>0 then mask=0
-                                if tmap(pts(i).x,pts(i).y).seetru>0 and distance(c,pts(i),rollover)<=groundpen then mask=1    
+                                if tmap(pts(i).x,pts(i).y).seetru>0 then 
+                                    mask=0
+                                    gprange-=1
+                                endif
+                                if tmap(pts(i).x,pts(i).y).seetru>0 and gprange>0 then mask=1    
                             endif
                         else
                             if pts(i).x>=0 and pts(i).x<=mx and pts(i).y>=0 and pts(i).y<=my then
@@ -516,10 +526,10 @@ function make_vismask(c as _cords, sight as short,m as short,ad as short=0,groun
         next
     next
     vismask(c.x,c.y)=1
-    if _debug=2508 then
+    if _debug=1 then
         for x=0 to 60
             for y=0 to 20
-                if vismask(x,y)>0 then pset(x,y)
+                if vismask(x,y)>0 then pset(x+60,y)
             next
         next
     endif

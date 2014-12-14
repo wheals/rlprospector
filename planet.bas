@@ -2242,7 +2242,7 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
             planetmap(p1.x,p1.y,a)=-284
         endif
         
-        if planets(a).depth=0 and rnd_range(1,150)<20-disnbase(player.c) then
+        if planets(a).depth=0 and rnd_range(1,350)<20-disnbase(player.c) then
             p1=rnd_point
             makemudsshop(a,p1.x,p1.y) 'Mud's Bazar
         endif
@@ -3741,6 +3741,11 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_noamax(2)=10
         planets(lastplanet).atmos=4
         planets(lastplanet).temp=20
+        if rnd_range(1,100)<10 then
+            planets(lastplanet).mon_template(3)=makemonster(104,lastplanet)
+            planets(lastplanet).mon_noamin(3)=1
+            planets(lastplanet).mon_noamax(3)=5
+        endif
         
         for x=2 to 58
             for y=2 to 18
@@ -3852,6 +3857,11 @@ function make_special_planet(a as short) as short
         planets(lastplanet).mon_template(2)=makemonster(39,lastplanet)
         planets(lastplanet).mon_noamin(2)=3
         planets(lastplanet).mon_noamax(2)=10
+        if rnd_range(1,100)<10 then
+            planets(lastplanet).mon_template(3)=makemonster(104,lastplanet)
+            planets(lastplanet).mon_noamin(3)=1
+            planets(lastplanet).mon_noamax(3)=5
+        endif
         planets(lastplanet).atmos=4
         planets(lastplanet).temp=20
         
@@ -4562,8 +4572,8 @@ function make_special_planet(a as short) as short
         planets(a).mon_noamin(0)=2
         planets(a).mon_noamax(0)=5
         planets(a).mon_template(1)=makemonster(79,a)
-        planets(a).mon_noamin(1)=2
-        planets(a).mon_noamax(1)=5
+        planets(a).mon_noamin(1)=1
+        planets(a).mon_noamax(1)=3
         
         lastplanet=lastplanet+1
         gc1.m=lastplanet
@@ -4584,6 +4594,9 @@ function make_special_planet(a as short) as short
             next
         next
         
+        for b=1 to rnd_range(1,10)+10
+            placeitem(make_item(99),rnd_range(1,60),rnd_range(0,20),lastplanet)
+        next
         
         planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
         planets(lastplanet).mon_noamin(0)=3
@@ -4637,16 +4650,21 @@ function make_special_planet(a as short) as short
         
         
         planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
-        planets(lastplanet).mon_noamin(0)=6
-        planets(lastplanet).mon_noamax(0)=17
+        planets(lastplanet).mon_noamin(0)=3
+        planets(lastplanet).mon_noamax(0)=9
         
         
         planets(lastplanet).mon_template(1)=makemonster(79,lastplanet)
-        planets(lastplanet).mon_noamin(1)=6
-        planets(lastplanet).mon_noamax(1)=17
+        planets(lastplanet).mon_noamin(1)=8
+        planets(lastplanet).mon_noamax(1)=12
         
         planets(lastplanet).atmos=6
         planets(lastplanet).depth=1
+        
+        
+        for b=1 to rnd_range(1,10)+15
+            placeitem(make_item(96),rnd_range(1,60),rnd_range(0,20),lastplanet)
+        next
         
         gc.m=lastplanet
         p1=rnd_point(lastplanet,0)
@@ -4673,16 +4691,21 @@ function make_special_planet(a as short) as short
         planetmap(30,10,lastplanet)=-187
         
         planets(lastplanet).mon_template(0)=makemonster(36,lastplanet)
-        planets(lastplanet).mon_noamin(0)=13
-        planets(lastplanet).mon_noamax(0)=27
+        planets(lastplanet).mon_noamin(0)=3
+        planets(lastplanet).mon_noamax(0)=9
         
         
         planets(lastplanet).mon_template(1)=makemonster(79,lastplanet)
-        planets(lastplanet).mon_noamin(1)=13
-        planets(lastplanet).mon_noamax(1)=27
+        planets(lastplanet).mon_noamin(1)=10
+        planets(lastplanet).mon_noamax(1)=14
         
         planets(lastplanet).atmos=6
         planets(lastplanet).depth=1
+        
+        
+        for b=1 to rnd_range(1,25)+10
+            placeitem(make_item(96),rnd_range(1,60),rnd_range(0,20),lastplanet)
+        next
         
     endif
     
@@ -4718,7 +4741,7 @@ function make_special_planet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A building still in good condition. "
         portal(lastportal).tile=ASC("#")
-        portal(lastportal).ti_no=3006
+        portal(lastportal).ti_no=3007
         portal(lastportal).col=14
         portal(lastportal).from.m=a
         portal(lastportal).from.x=wx+4
