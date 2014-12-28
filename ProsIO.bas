@@ -221,7 +221,7 @@ function dplanet(p as _planet,orbit as short,scanned as short,slot as short) as 
     draw string(sidebar+_fw2,14*_fh2), p.temp &" "&chr(248)&"C ",,font2,custom,@_col
     draw string(sidebar+_fw2,15*_fh2), c_to_f(p.temp) &" "&chr(248)&"F ",,font2,custom,@_col
     if p.rot>0 then
-        draw string(sidebar,17*_fh2),"Rot.: "&display_time((60*5*10)/(p.rot),3) &" h",,font2,custom,@_col
+        draw string(sidebar,17*_fh2),"Rot.: "&display_time((60*24*p.rot),3) &" h" ,,font2,custom,@_col
     else
         draw string(sidebar,17*_fh2),"Rot.: Nil",,font2,custom,@_col
     endif
@@ -1397,7 +1397,7 @@ function display_monsters(osx as short) as short
                     else
                         set__color( enemy(a).col,0)
                     endif
-                    if enemy(a).invis=0 or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
+                    if enemy(a).invis=0 then 'or (enemy(a).invis=3 and distance(enemy(a).c,awayteam.c)<2) then
                         if configflag(con_tiles)=0 then
                             put ((x2)*_tix,p.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
                         else
@@ -1413,7 +1413,7 @@ function display_monsters(osx as short) as short
                             endif
                         endif
                         if _debug>0 then 
-                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),cords(enemy(a).c),,font2,custom,@_tcol
+                            Draw String ((p.x-osx)*_fw1,P.y*_fh1),cords(enemy(a).c) & " Made:"&enemy(a).made,,font2,custom,@_tcol
                         endif    
                         if show_energy=1 then 
                             set__color(15,0)

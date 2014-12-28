@@ -1669,7 +1669,7 @@ function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as sh
         
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=111
-        portal(lastportal).ti_no=3003
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.s=enter.s
         portal(lastportal).from.m=enter.m
@@ -1765,7 +1765,7 @@ function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as sh
         next
     next
     
-    if (r.h*r.w>15 and rnd_range(1,100)<38) or make_vault=1 then 'realvault
+    if (r.h*r.w>15 and rnd_range(1,100)<38) then 'realvault
         if r.h>3 or r.w>3 then 'really really vault
             sp.x=r.x+r.w/2
             sp.y=r.y+r.h/2
@@ -1774,7 +1774,7 @@ function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as sh
             for a=0 to 20+tumod
                 if distance(seedps(a),sp)<distance(ep,sp) then ep=seedps(a)
             next
-            makevault(r,slot,ep,rnd_range(1,6),0)   
+            make_vault(r,slot,ep,rnd_range(1,6),0,enter)   
         endif
     endif
 
@@ -1795,12 +1795,11 @@ function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as sh
         placeitem(make_item(96,planets(a).depth),rnd_range(0,60),rnd_range(0,20),slot)
     next
     
-    if rnd_range(1,100)<3*planets(slot).depth then
-        p1=rnd_point
-        b=rnd_range(1,3)
-        
+    if rnd_range(1,100)<planets(slot).depth then
         if rnd_range(1,200)<6 then
-            p1=rnd_point
+            do
+                p1=rnd_point
+            loop until distance(p1,enter)>20
             b=rnd_range(1,3)+rnd_range(0,2)
             for x=p1.x-b to p1.x+b
                 for y=p1.y-b to p1.y+b
@@ -1817,9 +1816,15 @@ function makecavemap(enter as _cords,tumod as short,dimod as short, spemap as sh
         endif
     endif
     
-    if rnd_range(1,100)<20*planets(slot).depth or show_portals=1 then
+    if rnd_range(1,100)<2*planets(slot).depth or show_portals=1 then
+        do
         p1=rnd_point
-        b=rnd_range(4,6)
+        loop until distance(p1,enter)>20
+        if rnd_range(1,100)<10 then
+            b=rnd_range(4,6)
+        else
+            b=rnd_range(2,5)
+        endif
         c=rnd_range(1,100)
         select case rnd_range(1,100)
             
@@ -2327,7 +2332,10 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
         if planets(a).life>10 then planets(a).life=10 
         planets(a).rot=(rnd_range(0,10)+rnd_range(0,5)+rnd_range(0,5)-4)/10
         if planets(a).rot<0 then planets(a).rot=0 
-        
+        if planets(a).rot>1 and rnd_range(1,100)>90 then planets(a).rot+=rnd_range(1,10)
+        if planets(a).rot>5 and rnd_range(1,100)>90 then planets(a).rot+=rnd_range(1,10)
+        if planets(a).rot>10 and rnd_range(1,100)>90 then planets(a).rot+=rnd_range(1,10)
+        planets(a).rot=planets(a).rot*planets(a).grav
         'Flowers
         if rnd_range(1,200)<planets(a).atmos+planets(a).life and planets(a).atmos>1 then
             b=rnd_range(0,12)+rnd_range(0,12)+rnd_range(0,12)+1
@@ -2341,15 +2349,13 @@ function makeplanetmap(a as short,orbit as short,spect as short) as short
         'Stranded ship
         if rnd_range(1,300)<15-disnbase(player.c)/10+planets(a).grav*10 or (alwaysstranded=1 and _debug>0) then
             p1=rnd_point
-            b=rnd_range(1,100+player.turn/5000)'!
+            b=rnd_range(1,100+player.turn/50000)'!
             c=rnd_range(1,6)
             if c<4 then c=1
             d=0
             if b>50 then d=4
             if b>75 then d=8
             if b>95 then d=12
-            d=18
-            c=0
             add_stranded_ship(d+c,p,a,1)
         endif
         
@@ -3975,6 +3981,7 @@ function make_special_planet(a as short) as short
         lastportal=lastportal+1
         portal(lastportal).desig="A natural tunnel. "
         portal(lastportal).tile=asc("o")
+        portal(lastportal).ti_no=3001
         portal(lastportal).col=7
         portal(lastportal).from.m=a
         portal(lastportal).from.x=rnd_range(0,60)
@@ -4007,7 +4014,7 @@ function make_special_planet(a as short) as short
         r.h=rnd_range(4,5)
         p1.x=gc.x
         p1.y=gc.y
-        makevault(r,gc.m,p1,99,0)
+        make_vault(r,gc.m,p1,99,0,portal(lastportal).dest)
     endif 
     
     if specialplanet(16)=a then
@@ -5924,7 +5931,7 @@ function makeice(a as short,o as short) as short
 end function
 
 function addportal(from as _cords, dest as _cords, oneway as short, tile as short,desig as string, col as short) as short
-    dim as short e,a
+    dim as short e,a,u
     if from.x<0 then 
         dprint "error. tried to create portal at from.x="&from.x
         dest.x=0
@@ -5958,7 +5965,12 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
         dprint "error. tried to create portal at Dest.y="&dest.y
         dest.y=20
     endif
+    
     lastportal=lastportal+1
+    if lastportal>ubound(portal) then 
+        u=ubound(portal)
+        redim preserve portal(u+100)
+    endif
     portal(lastportal).from=from
     portal(lastportal).dest=dest
     portal(lastportal).oneway=oneway
@@ -5971,7 +5983,7 @@ function addportal(from as _cords, dest as _cords, oneway as short, tile as shor
     if tile=asc("o") and col=14 then portal(lastportal).ti_no=3003
     if tile=asc(">") then portal(lastportal).ti_no=3004
     if tile=asc("^") then portal(lastportal).ti_no=250
-    if tile=asc("@") then portal(lastportal).ti_no=3007
+    if tile=asc("@") then portal(lastportal).ti_no=3008
     if tile=asc("o") and col=7 then portal(lastportal).ti_no=3004
     if tile=asc("O") then portal(lastportal).ti_no=3006
     'dprint chr(tile)&":"&portal(lastportal).ti_no
@@ -6120,12 +6132,19 @@ function findsmartest(slot as short) as short
     return in
 end function
 
-function makevault(r as _rect,slot as short,nsp as _cords, typ as short,ind as short) as short
+function make_vault(r as _rect,slot as short,nsp as _cords, typ as short,ind as short,entr as _cords) as short
     dim as short x,y,a,b,c,d,nodo,best,bx,by
     dim p(31) as _cords
     dim wmap(r.w,r.h) as short
     dim as single rad
-    
+    p(0).x=r.x+r.w/2
+    p(0).y=r.y+r.h/2
+    while distance(p(0),entr)<20
+        r.x=rnd_range(1,60-r.w)
+        r.y=rnd_range(1,20-r.h)
+        p(0).x=r.x+r.w/2
+        p(0).y=r.y+r.h/2
+    wend
     r.wd(16)=typ
     if typ=1 or typ=2 then
         do
@@ -6308,8 +6327,15 @@ function invisiblelabyrinth(xoff as short ,yoff as short, _x as short=11, _y as 
 end function
 
 function makemudsshop(slot as short, x1 as short, y1 as short)  as short
-    dim as short x,y
+    dim as short x,y,sys,i
     dim as _cords p3
+    sys=sysfrommap(slot)
+    if sys>0 then
+        for i=1 to 9
+            if rnd_point(map(sys).planets(i),,262).x>-1 then return -1 'Not more than one mudds shop per system
+        next
+    endif
+        
     if x1<3 then x1=3
     if x1>57 then x1=57
     if y1<3 then y1=3

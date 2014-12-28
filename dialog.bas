@@ -171,7 +171,7 @@ end function
 
 function update_questguy_dialog(i as short,node() as _dialognode,iteration as short) as short
     dim as short debug,j,jj,o
-    dim as string himher(1),heshe(1)
+    dim as string himher(1),heshe(1),jobstring
     dim deletenode as _dialognode
     debug=2
     himher(1)="him"
@@ -264,6 +264,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         node(1).option(o).answer="Have you gotten results with your research yet?"
         node(1).option(o).no=23
         node(23).effekt="SELLOTHER"
+        node(23).param(0)=i
         node(23).param(1)=1010
         node(23).param(2)=i
         node(23).param(3)=0
@@ -371,8 +372,8 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
     endif
     if _debug>0 then node(1).option(o).answer="Bye" & o
     node(1).option(o).no=0
-    
-    node(2).statement="I am "&questguy(i).n &", "&add_a_or_an(questguyjob(questguy(i).job),0) &"."
+    jobstring=questguyjob(questguy(i).job)
+    node(2).statement="I am "&questguy(i).n &", "&add_a_or_an(jobstring,0) &"."
     node(2).option(1).no=1
     node(2).effekt="FRIENDLYCHANGE"
     node(2).param(0)=10
@@ -407,7 +408,7 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
             node(3).option(2).no=1
         case qt_travel
             node(3).effekt="PASSENGER"
-            if questguy(i).flag(15)=0 then questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(12)).c))
+            if questguy(i).flag(15)=0 then questguy(i).flag(15)=(player.turn+(rnd_range(25,45))*distance(player.c,basis(questguy(i).flag(12)).c))
             if questguy(i).flag(15)<0 then questguy(i).flag(15)=30000 'To prevent overflow
         case qt_biodata 
             if reward(1)>0 then
@@ -448,7 +449,8 @@ function update_questguy_dialog(i as short,node() as _dialognode,iteration as sh
         if questguy(i).has.type=qt_travel then
             node(4).effekt="PASSENGER"
             node(4).param(0)=i
-            questguy(i).flag(15)=(player.turn+(rnd_range(45,65))*distance(player.c,basis(questguy(i).flag(12)).c))
+            questguy(i).flag(15)=(player.turn+(rnd_range(25,45))*distance(player.c,basis(questguy(i).flag(12)).c))
+            if questguy(i).flag(15)<0 then questguy(i).flag(15)=30000
             node(4).statement=questguydialog(questguy(i).has.type,questguy(i).has.motivation,Q_HAS)
 
         endif
@@ -707,7 +709,7 @@ function has_questguy_want(i as short,byref t as short) as short
         return il(cc)
     endif
     if cc>1 then
-        text="Offer"&cc
+        text="Offer:"
         for j=1 to cc
             if ic(j)<=1 then
                 text=text &"/" &item(il(j)).desig &" (Est. "&credits(item(il(j)).price) &" Cr.)"
@@ -967,7 +969,7 @@ function adapt_nodetext(t as string, e as _monster,fl as short,qgindex as short=
         endif
         if word(i)="<TONS>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(1)
         if word(i)="<DEST>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(12)+1
-        if word(i)="<TIME>" and qgindex>0 then word(i)=""&display_time(questguy(qgindex).flag(15)*10)
+        if word(i)="<TIME>" and qgindex>0 then word(i)=""&display_time(questguy(qgindex).flag(15)*5)
         if word(i)="<PAY>" and qgindex>0 then word(i)=""&questguy(qgindex).flag(13)
         
         r=r &word(i)
@@ -991,7 +993,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     endif
     
     if effekt="PASSENGER" then
-        if askyn("Do you want to transport "&questguy(p(0)).n &" to station "&questguy(p(0)).flag(12)+1 &" by " &display_time(questguy(p(0)).flag(15)) &" for " &credits(questguy(p(0)).flag(13))& " Cr.? (y/n)") then
+        if askyn("Do you want to transport "&questguy(p(0)).n &" to station "&questguy(p(0)).flag(12)+1 &" by " &display_time(questguy(p(0)).flag(15)*5) &" for " &credits(questguy(p(0)).flag(13))& " Cr.? (y/n)") then
             add_passenger(questguy(p(0)).n,30+p(0),questguy(p(0)).flag(13),questguy(p(0)).flag(14),questguy(p(0)).flag(12)+1,questguy(p(0)).flag(15),questguy(p(0)).gender)
             questguy(p(0)).location=-3
         endif
@@ -1139,7 +1141,7 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
                 return 0
             endif
         case else 'Company report
-            dprint standardphrase(sp_gotreport,rnd_range(0,2))
+            dprint adapt_nodetext(standardphrase(sp_gotreport,rnd_range(0,2)),e,fl,p(0))
             it=make_item(1006,questguy(p(0)).job-9,questguy(p(0)).friendly(0))
             it.price=50*questguy(p(0)).friendly(0)
         end select
@@ -1516,16 +1518,12 @@ function dialog_effekt(effekt as string,p() as short,e as _monster, fl as short)
     if effekt="QGTRADE" then
         i=has_questguy_want(p(0),t)
         if i>0 then 
-            if item(i).price>questguy(p(0)).has.price then
-                if askyn("I would trade my "&questguy(p(0)).has.it.desig &" for your "&item(i).desig &".(y/n)") then
-                    placeitem(questguy(p(0)).has.it,,,,-1)
-                    item(i)=item(lastitem)
-                    lastitem-=1
-                    questguy(p(0)).want.given+=1
-                endif
-            else
-                dprint "You find nothing to trade."
-            endif
+            if askyn("I would trade my "&questguy(p(0)).has.it.desig &" for your "&item(i).desig &".(y/n)") then
+                placeitem(questguy(p(0)).has.it,,,,,-1)
+                item(i)=item(lastitem)
+                lastitem-=1
+                questguy(p(0)).want.given+=1
+            endif        
         else
             dprint "You find nothing to trade."
         endif

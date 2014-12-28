@@ -1,8 +1,8 @@
 function scrap_component() as short
     dim as short w,b
     if askyn("Do you want to cannibalize the "&tmap(awayteam.c.x,awayteam.c.y).desc &" for parts?(y/n)") then
-        if skill_test(st_hard,player.science(0)) then
-            if skill_test(st_veryhard,player.science(0)) then
+        if skill_test(player.science(1),st_hard,"Science:") then
+            if skill_test(player.science(1),st_veryhard,"Science:") then
                 dprint "You found enough parts for a ton of weapons parts"
                 w=6
             else
@@ -341,7 +341,23 @@ function company(st as short) as short
         planetmap(rnd_range(0,60),rnd_range(0,20),abs(player.questflag(10)))=16
         player.questflag(10)=0
     endif
-    if player.questflag(11)=2 then 
+    
+    if player.questflag(11)=2 then
+        dprint "The company rep congratulates you on finding the ship, but needs more information to give you your reward."
+    endif
+    
+    if player.questflag(11)=2 or player.questflag(11)=1 then
+        
+        if player.towed>0 then
+            if rnd_point(player.towed,,226).x>-1 then
+                dprint "The company rep says they will take over the inestigation from here and gives you a reward of 2,500 Cr."
+                addmoney(2500,mt_quest)
+                player.towed=0
+            endif
+        endif
+    endif
+    
+    if player.questflag(11)=3 then 
         addmoney(5000,mt_quest)
         factionadd(0,1,-15)
         dprint "The company rep remarks that these crystal creatures could be a threat to colonizing this sector and pays you your reward of 5,000 Cr.",10
@@ -1081,7 +1097,7 @@ function play_slot_machine() as short
         set__color(11,0)
         cls
         display_ship
-        dprint "How much do you want to bet(0-100)"
+        dprint "How much do you want to bet(0-100, 0 to quit)?"
         bet=getnumber(0,100,0)
         if bet>player.money then bet=0
         if bet>0 then
@@ -1190,7 +1206,8 @@ function is_passenger(i as short) as short
 end function
 
 function check_passenger(st as short) as short
-    dim as short b,t,price
+    dim as short b,price
+    dim as single t
     dim as _crewmember cr
     dim as string heshe(1)
     heshe(0)="She"
@@ -1203,7 +1220,8 @@ function check_passenger(st as short) as short
                     if questguy(crew(b).typ-30).has.type=qt_travel then questguy(crew(b).typ-30).has.given=1 
                     if questguy(crew(b).typ-30).want.type=qt_travel then questguy(crew(b).typ-30).want.given=1 
                 endif
-                t=(crew(b).time*10-player.turn)/(60*24)
+                t=(crew(b).time*5-player.turn)/(60*24)
+                if t>1.5 then t=1.5
                 price=crew(b).price+crew(b).bonus*t
                 if price<0 then price=10
                 if t>1 then dprint crew(b).n &" is very happy that " &lcase(heshe(crew(b).story(10)))& " arrived early.",c_gre

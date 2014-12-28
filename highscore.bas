@@ -4,7 +4,7 @@
 
 function space_mapbmp() as short
     dim as any ptr img
-    dim as short x,y,a,n,ti_no,minx,maxx,miny,maxy
+    dim as short x,y,a,n,ti_no,minx,maxx,miny,maxy,t
     dim as byte debug=1
     if debug=1  and _debug=1 then dprint "configflag(con_tiles)"&configflag(con_tiles)
     minx=-1
@@ -137,7 +137,12 @@ function space_mapbmp() as short
                 set__color(15,0)
                 draw string img,((basis(a).c.x-minx)*_fw1,(basis(a).c.y-miny)*_fh1),"S",,Font1,custom,@_col
             else
-                put img,((basis(a).c.x-minx)*_tix,(basis(a).c.y-miny)*_tiy),gtiles(44),trans
+                if a<3 then
+                    t=a+3*(basis(a).company-1)
+                else
+                    t=2+3*(basis(a).company-1)
+                endif
+                put img,((basis(a).c.x-minx)*_tix,(basis(a).c.y-miny)*_tiy),gtiles(1750+t),trans
             endif
         endif
     next
@@ -553,7 +558,11 @@ function get_death() as string
             next
             death="Captain got killed by "&add_a_or_an(player.killedby,0) &" on "&add_a_or_an(shiptypes(st),0)
         else
-            death="Captain got killed by " &add_a_or_an(player.killedby,0) &"an unknown world"
+            if player.landed.s>0 then 
+                death="Captain got killed by " &add_a_or_an(player.killedby,0) &" under an unknown world"
+            else
+                death="Captain got killed by " &add_a_or_an(player.killedby,0) &" on an unknown world"
+            endif
         endif
     endif
     if player.dead=4 then death="Captain started his own Colony"

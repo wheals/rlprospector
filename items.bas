@@ -540,7 +540,31 @@ function roman(i as integer) as string
     end select
 end function
 
-
+function corrode_item() as short
+    dim a as short
+    a=getrnditem(-2,0)
+        If a>0 Then
+        If rnd_range(1,100)>item(a).res Then
+            item(a).res=item(a).res-25
+            If item(a).res>=0 Then
+                dprint "Your "&item(a).desig &" starts to corrode.",14
+                if (item(a).ty=3 or item(a).ty=103) and item(a).ti_no<2019 then 
+                    item(a).v4+=1
+                    awayteam.leak+=1
+                    dprint "Your "&item(a).desig &" starts to leak.",c_yel
+                endif
+            Else
+                dprint "Your "&item(a).desig &" corrodes and is no longer usable.",c_red
+                destroyitem(a)
+                equip_awayteam(awayteam.slot)
+                make_vismask(awayteam.c,0,awayteam.slot,,awayteam.groundpen)
+                'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
+            EndIf
+        EndIf
+    EndIf
+    return 0
+end function
+    
 
 function destroyitem(b as short) as short     
     if b>=0 and b<=lastitem then
@@ -2793,8 +2817,8 @@ function make_item(a as short, mod1 as short=0,mod2 as short=0,prefmin as short=
         i.desigp=i.desig
         i.icon="*"
         i.bgcol=0  
-        roll=rnd_range(1,100+player.turn/10000+mod1+mod2)
-        if roll>125 and mod1>0 and mod2>0 then i=make_item(99,0,0)
+        roll=rnd_range(1,100+player.turn/250000+mod1+mod2)
+        if (roll>150 and mod1>0 and mod2>0) or roll<minimum(3,player.turn/45000) then i=make_item(99,0,0)
         if make_files=1 then
             f=freefile
             open "artrolls.txt" for append as #f
@@ -3197,6 +3221,7 @@ function modify_item(i as _items,nomod as byte) as _items
     dim as short a,rate
     rate=500-disnbase(player.c)
     if rate<100 then rate=100
+    rate=rate*60*24
     a=i.id
     if i.id>=13 and i.id<=19 and nomod=0 then
         if rnd_range(1,100)<10+player.turn/rate then

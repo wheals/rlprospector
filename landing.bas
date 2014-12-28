@@ -11,7 +11,7 @@ Function target_landing(mapslot As Short,Test As Short=0) As Short
     If mapslot=specialplanet(29) And findbest(89,-1)>0 Then mapslot=specialplanet(30)
     If mapslot=specialplanet(30) And findbest(89,-1)=-1 Then mapslot=specialplanet(29)
     If mapslot=specialplanet(29) Then specialflag(30)=1
-    
+    update_tmap(mapslot)
     dprint "Choose landing site"
     p.x=30
     p.y=10
@@ -784,6 +784,7 @@ Function dock_drifting_ship(a As Short)  As Short
                 p(b).x=x
                 p(b).y=y
             EndIf
+            if player.questflag(11)=1 and abs(planetmap(x,y,m))=226 then player.questflag(11)=2
         Next
     Next
     c=rnd_range(1,b)

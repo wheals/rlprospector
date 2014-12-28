@@ -191,7 +191,6 @@ Function start_new_game() As Short
     Dim i As _items
     Dim debug As Byte
     debug=126
-    make_spacemap()
     
     if _debug>0 then
         for a=1 to 3
@@ -230,6 +229,8 @@ Function start_new_game() As Short
     upgradehull(c,player)
     player.hull=player.h_maxhull
     dprint "Your ship: "&player.h_desig
+    
+    
     d=0
     Do
         d+=1
@@ -247,77 +248,11 @@ Function start_new_game() As Short
         placeitem(i,0,0,0,0,-1) 'Other stuff
     Loop Until equipment_value>1000 And d>2 'At least 3 other stuffs
     
-    if debug=101 and _debug=1 then
-        placeitem(make_item(303),0,0,0,0,-1)
-        dprint item(lastitem).desig &":"& item(lastitem).w.s
-        placeitem(make_item(303),0,0,0,0,-1)
-        placeitem(make_item(47),0,0,0,0,-1)
-        placeitem(make_item(77),0,0,0,0,-1)
-        add_member(20,0)
-        add_member(21,0)
-        add_member(23,0)
-        add_member(22,0)
-        add_member(24,0)
-    endif
     
-    if debug=99 and _debug>0 then
-        add_member(2,5)
-        add_member(3,5)
-        add_member(4,5)
-        add_member(5,5)
-        placeitem(make_item(89),0,0,0,0,-1)
-        placeitem(make_item(29),0,0,0,0,-1)
-        player.bunking=1
-        for d=1 to 100
-            add_member(8,0)
-            placeitem(make_item(97),0,0,0,0,-1)
-            placeitem(make_item(98),0,0,0,0,-1)
-            placeitem(make_item(33),0,0,0,0,-1)
-        next
-    endif
-    
-    If _debug=707 Then
-        placeitem(make_item(48),0,0,0,0,-1)
-        placeitem(make_item(52),0,0,0,0,-1)
-        For c=1 To 10
-            placeitem(make_item(24),0,0,0,0,-1)
-            placeitem(make_item(26),0,0,0,0,-1)
-        Next
-    EndIf
-    if _debug>0 then artflag(13)=1
-    if _debug>0 then artflag(16)=1
-    if _debug>0 then placeitem(make_item(30),0,0,0,0,-1)
-    if _debug>0 then 
-        placeitem(make_item(251),0,0,0,0,-1)
-        placeitem(make_item(252),0,0,0,0,-1)
-        placeitem(make_item(252),0,0,0,0,-1)
-        placeitem(make_item(253),0,0,0,0,-1)
-    endif
     If b=1 Then
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
         placeitem(make_item(100),0,0,0,0,-1)
-        if debug=99 then
-            If _debug>0 Then placeitem(make_item(48),,,,,-1)
-            If _debug>0 Then placeitem(make_item(106),,,,,-1)
-            If _debug>0 Then placeitem(make_item(106),,,,,-1)
-            If _debug>0 Then placeitem(make_item(106),,,,,-1)
-            If _debug>0 Then placeitem(make_item(50),,,,,-1)
-            If _debug>0 Then placeitem(make_item(50),,,,,-1)
-            If _debug>0 Then placeitem(make_item(50),,,,,-1)
-            If _debug>0 Then placeitem(make_item(51),,,,,-1)
-            If _debug>0 Then placeitem(make_item(51),,,,,-1)
-            If _debug>0 Then placeitem(make_item(52),,,,,-1)
-            If _debug>0 Then placeitem(make_item(52),,,,,-1)
-            If _debug=1 Then placeitem(make_item(65),,,,,-1)
-            If _debug=1 Then placeitem(make_item(66),,,,,-1)
-            If _debug=1 Then placeitem(make_item(301),,,,,-1)
-            If _debug=1 Then placeitem(make_item(105),,,,,-1)
-            If _debug=1 Then placeitem(make_item(64),,,,,-1)
-            If _debug=999 Then placeitem(make_item(301),,,,,-1)
-            If _debug=2411 Then placeitem(make_item(301),,,,,-1)
-            If _debug=1211 Then placeitem(make_item(30),,,,,-1)
-        endif
     EndIf
 
     If b=2 Then
@@ -362,12 +297,16 @@ Function start_new_game() As Short
             player.weapons(1)=make_weapon(rnd_range(1,2))
         EndIf
     End Select
+    
+    make_spacemap()
+    
     player.turn=0
     
     set__color(11,0)
     Cls
     set__color( 11,0)
-
+    
+    
     If b<5 Then
         c=2+textbox("An unexplored sector of the galaxy. You are a private Prospector. You can earn money by mapping planets and finding resources. Your goal is to make sure you can live out your life in comfort in your retirement. || But beware of alien lifeforms and pirates. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
@@ -376,6 +315,8 @@ Function start_new_game() As Short
         faction(0).war(3)=0
         faction(0).war(4)=100
         faction(0).war(5)=100
+        player.c.x=drifting(1).x
+        player.c.y=drifting(1).y
     Else
         c=2+textbox("A life of danger and adventure awaits you, harassing the local shipping lanes as a pirate. It won't be easy but if you manage to avoid the company patrols, and get good loot, it will be very profitable! You will be able to spend the rest of your life in luxury. You start your career with a nice little "&player.h_desig &".",5,5,50,11,0)
         draw_string(5*_fw1,5*_fh1+c*_fh2, "You christen the beauty (Enter to autoname):",font2,_col)
@@ -388,10 +329,6 @@ Function start_new_game() As Short
         makeplanetmap(piratebase(0),3,map(sysfrommap(piratebase(0))).spec)
         planets(piratebase(0)).mapstat=1
         player.c=map(sysfrommap(piratebase(0))).c
-        If _debug>0 Then 
-            player.c.x=drifting(1).x
-            player.c.y=drifting(1).y
-        EndIf
         faction(0).war(1)=100
         faction(0).war(2)=0
         faction(0).war(3)=100
@@ -421,81 +358,12 @@ Function start_new_game() As Short
             If player.desig="" Then player.desig=randomname()
         Loop Until fileexists("savegames/"&player.desig &".sav")=0
     EndIf
-    If (debug=3 Or debug=99) And _debug=1 Then
-        fleet(lastfleet+1)=makealienfleet
-        fleet(lastfleet+1).c=basis(0).c
-        fleet(lastfleet+2)=makealienfleet
-        fleet(lastfleet+2).c=basis(1).c
-        fleet(lastfleet+3)=makealienfleet
-        fleet(lastfleet+3).c=basis(2).c
-        dprint "fleettypes"& fleet(lastfleet+1).ty &":" & fleet(lastfleet+2).ty &":"& fleet(lastfleet+3).ty
-        lastfleet+=3
-    EndIf
-    If (debug=127 And _debug>0) Then
-        upgradehull(18,player,0)
-        player.hull=10
-        player.engine=3
-        player.sensors=6
-        player.shieldmax=5
-        player.weapons(1)=make_weapon(66)
-        player.weapons(2)=make_weapon(66)
-        For a=1 To 45
-            add_member(8,0)
-            placeitem(make_item(2),0,0,0,0,-1)
-            placeitem(make_item(97),0,0,0,0,-1)
-            placeitem(make_item(98),0,0,0,0,-1)
-        Next
-        player.money+=10000
-        artflag(16)=1
-
-    EndIf
-
-    If debug=126 And _debug>0 Then
-        upgradehull(9,player,0)
-        player.hull=player.h_maxhull
-        player.engine=3
-        player.sensors=3
-        player.shieldmax=2
-        player.weapons(1)=make_weapon(4)
-        player.weapons(1)=make_weapon(3)
-        For a=1 To 25
-            add_member(8,0)
-            placeitem(make_item(2),0,0,0,0,-1)
-            placeitem(rnd_item(RI_WEAPONS),0,0,0,0,-1)
-            placeitem(rnd_item(RI_WEAPONS),0,0,0,0,-1)
-            placeitem(rnd_item(RI_Armor),0,0,0,0,-1)
-            placeitem(rnd_item(RI_Armor),0,0,0,0,-1)
-        Next
-        player.money+=6000
-    EndIf
-    
-    If debug=2 And _debug=1 Then dprint disnbase(map(sysfrommap(specialplanet(7))).c) &":"& disnbase(map(sysfrommap(specialplanet(46))).c)
     just_run=run_until
     If show_specials>0 Then
         player.c=map(sysfrommap(specialplanet(show_specials))).c
     EndIf
     set__color(11,0)
-    If _debug=2411 Then player.turn=500000
-    If debug=125 And _debug>0 Then player.money=3000
     update_world(2)
-    If _debug=1501 Then
-        For a=1 To 3
-            station_event(drifting(a).m)
-        Next
-    EndIf
-    if _debug>0 then
-        for a=1 to 3
-            dprint a &":"&questguy(a).location
-        next
-    endif
-    if _debug=2000 and debug=823 then 
-        a=4
-        crew(a).disease=12
-        crew(a).oldonship=crew(a).onship
-        crew(a).duration=disease(12).duration
-        crew(a).incubation=disease(12).incubation
-        if 12>player.disease then player.disease=12
-    endif
     Cls
     Return 0
 End Function
@@ -2309,6 +2177,10 @@ EndIf
         else
             awayteam.dark=0
         endif
+        if awayteam.c.x<0 then awayteam.c.x=0
+        if awayteam.c.y<0 then awayteam.c.y=0
+        if awayteam.c.x>60 then awayteam.c.x=60
+        if awayteam.c.y>20 then awayteam.c.y=20
         If awayteam.teleportrange>0 And  awayteam.teleportload<15 Then awayteam.teleportload+=1
         If awayteam.disease>player.disease Then player.disease=awayteam.disease
         If planets(slot).atmos<=1 Or planets(slot).atmos>=7 Then awayteam.helmet=1
@@ -3699,6 +3571,7 @@ Function move_monster(i As short, target As _cords,flee as byte,rollover as byte
                                 If ti>enemy(i).movetype Then addp=1
                             End Select
                         EndIf
+                        if tmap(x1,y1).onopen>0 and enemy(i).pumod+rnd_range(1,12)>st_average then addp=0
                         if addp=0 then
                             j+=1
                             p(j).x=x1
@@ -3734,6 +3607,9 @@ Function move_monster(i As short, target As _cords,flee as byte,rollover as byte
         mapmask(enemy(i).c.x,enemy(i).c.y)=i
         enemy(i).add_move_cost
         enemy(i).attacked=0
+        if tmap(enemy(i).c.x,enemy(i).c.y).onopen>0 then
+            tmap(enemy(i).c.x,enemy(i).c.y)=tiles(tmap(enemy(i).c.x,enemy(i).c.y).onopen)
+        endif
     endif
         
 '    
@@ -3780,6 +3656,7 @@ Function monsterhit(attacker As _monster, defender As _monster,vis As Byte) As _
         if b>attacker.hp/10+15 then b=attacker.hp/10+15
         If b>0 Then
             text=text & dam_awayteam(b,,attacker.disease)
+            if attacker.specialattack=SA_corrodes then corrode_item
             col=12
         Else
             text=text & " no casualties."
@@ -4109,7 +3986,10 @@ End Function
 
 Function error_handler(text as string) As Short
 	dim as string logfile
-	log_error(text)
+    screenset 1,1
+	dprint "Fatal Error: Key to continue",c_red
+    no_key=keyin
+    log_error(text)
 	'
 	Screenset 1,1
 	Cls

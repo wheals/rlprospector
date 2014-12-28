@@ -1,3 +1,202 @@
+function captain_perks(slot as short) as short
+    dim as short cat,i,j,turret,rask,changeap,changemap,newsm_x,newsm_y,newlaststar,newwormhole
+    dim as string text,help
+            crew(slot).hpmax=6
+            crew(slot).hp=6
+            crew(slot).icon="C"
+            crew(slot).typ=1
+            crew(slot).baseskill(0)=captainskill
+            crew(slot).baseskill(1)=captainskill
+            crew(slot).baseskill(2)=captainskill
+            crew(slot).baseskill(3)=captainskill
+            crew(slot).atcost=6
+            cat=2
+            if equipment_value<1150 then cat+=1
+            if player.h_no=2 then cat+=1
+            do
+                help=""
+                if cat>1 then
+                    text="Captain("& player.h_sdesc &") "&crew(slot).n & "s talents (" &cat &")"
+                else
+                    text="Captain("& player.h_sdesc &") " &crew(slot).n & "s talent (" &cat &")"
+                endif
+                text=text &"/No talent, +100 Cr."
+                help=help &"/Start with "& player.money+100 &" Cr. instead of 500||" &list_inventory
+                text=text &"/Additional talent, -100 Cr."
+                help=help &"/Start with "& player.money-100 &" Cr. instead of 500. Choose one more starting talent||"&list_inventory
+                text=text &"/2 Spacesuits"
+                help=help &"/Start with 2 standard issue spacesuits||"&list_inventory
+                text=text &"/Tribble"
+                help=help &"/Start with a pet tribble||"&list_inventory
+                text=text &"/Additional random items"
+                help=help &"/Start with two more random items||"&list_inventory
+                text=text &"/Energy weapon"
+                if startingweapon=1 then text=text &"(x)"
+                help=help &"/Start with an energy weapon for your ship.|(If you change your mind just select this option again)||"&list_inventory
+                if startingweapon=1 then help=help &"|currently selected"
+                text=text &"/Missile weapon"
+                if startingweapon=2 then text=text &"(x)"
+                if startingweapon=2 then help=help &"|currently selected"
+                help=help &"/Start with a missile weapon for your ship.|(If you change your mind just select this option again)||"&list_inventory
+                if player.cursed=0 then
+                    text=text &"/Junk ship"
+                    help=help &"/Your starting ship is in need of an overhaul. +1 points||"&list_inventory
+                else
+                    text=text &"/Decent ship"
+                    help=help &"/Your starting ship is in good condition.||"&list_inventory
+                endif
+                for i=1 to 6
+                    text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
+                    help=help &"/"&talent_desc(i)&"|(2 pts.)||"&list_inventory
+                    'help=help &"Ship:"&player.h_sdesc
+
+                next
+                for i=20 to 26
+                    text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
+                    help=help &"/"&talent_desc(i)&"|(2 pts.)||"&list_inventory
+                    'help=help &"Ship:"&player.h_sdesc
+                next
+                turret=-2
+                rask=22
+                changeap=23
+                if player.h_no=2 then
+                    turret=22
+                    rask=23
+                    changeap=24                    
+                    text=text &"/Additional module(3 pts.)"
+                    help=help &"/Pay 3 pts for a module for your fighter ship."
+                endif
+                changemap=changeap+1
+                text=text &"/Random"
+                help=help &"/Choose one talent at random (1 pt.)"
+                text=text &"/Change captain details"
+                help=help &"/Change the appearance and bio details of your captain"
+                text=text &"/Change mapsize"
+                help=help &"/Mapsize:|Area: "&sm_x &"x"&sm_y &"|Stars: "&laststar &"|Wormholes: "&wormhole
+                i=menu(bg_randompictxt,text,help,,,1)
+                if i=rask then
+                    do
+                        i=rnd_range(9,rask-1)
+                        j=i-7
+                        if j>6 then j+=13
+                    loop until crew(1).talents(j)<=3
+                    cat+=1
+                endif
+                select case i
+                case 1,-1
+                    addmoney(100,mt_startcash)
+                    cat-=1
+                    dprint "Additional money: +100 Cr."
+                case 2
+                    if player.money>=100 then
+                        addmoney(-100,mt_startcash)
+                        cat+=1
+                        dprint "Less money: -100 Cr."
+                    endif
+                case 3
+                    cat-=1
+                    for j=1 to 2
+                        placeitem(make_item(320),0,0,0,0,-1)
+                    next
+                    dprint "Item: 2 Spacesuits"
+                case 4
+                    placeitem(make_item(250),0,0,0,0,-1)
+                    cat-=1
+                    dprint "Item: A tribble"
+                case 5
+                    for j=1 to 2
+                        if rnd_range(1,100)<50 then
+                            item(lastitem+1)=rnd_item(RI_WeakStuff)
+                        else
+                            item(lastitem+1)=rnd_item(RI_WeakWeapons)
+                        endif
+
+                        dprint "Item: "&add_a_or_an(item(lastitem+1).desig,1)
+                        placeitem(item(lastitem+1),0,0,0,0,-1)
+                        item(lastitem+1)=item(lastitem+2)
+                    next
+                    cat-=1
+                case 6
+                    select case startingweapon
+                    case 0
+                        startingweapon=1
+                        cat-=1
+                    case 1
+                        startingweapon=0
+                        cat+=1
+                    case 2
+                        startingweapon=1
+                    end select
+                    dprint "Guaranteed energy weapon"
+                case 7
+                    select case startingweapon
+                    case 0
+                        startingweapon=2
+                        cat-=1
+                    case 1
+                        startingweapon=2
+                    case 2
+                        startingweapon=0
+                        cat+=1
+                    end select
+                    dprint "Guaranteed missile weapon"
+                case 8
+                    if player.cursed=1 then
+                        cat-=1
+                        player.cursed=0
+                        Dprint "Your ship is in decent condition"
+                    else
+                        cat+=1
+                        player.cursed=1
+                        dprint "Your ship is in need of repair and servicing"
+                    endif
+                case turret
+                    
+                    if cat>=3 then
+                        player.weapons(2)=starting_turret
+                        if player.weapons(2).made<>0 then cat-=3
+                    endif
+                case changeap
+                    change_captain_appearance(20,2)
+                case changemap
+                    dprint "X:"
+                    newsm_x=getnumber(50,255,75)
+                    dprint "Y:"
+                    newsm_y=getnumber(50,255,50)
+                    dprint "Number of stars:"
+                    newlaststar=getnumber(50,150,80)
+                    dprint "Number of wormholes:"
+                    newwormhole=getnumber(2,20,8)
+                    if newsm_x<>sm_x or newsm_y<>sm_y then
+                        sm_x=newsm_x
+                        sm_y=newsm_y
+                        redim spacemap(sm_x,sm_y) as short
+                        redim vismask(sm_x,sm_y) as byte
+                    endif
+                    if newlaststar<>laststar or newwormhole<>wormhole then
+                        laststar=newlaststar
+                        if newwormhole mod 2 <>0 then newwormhole+=1
+                        wormhole=newwormhole
+                        redim map(laststar+wormhole+1) as _stars
+                    endif
+                case else
+                    if cat>=2 then 
+                        j=i-8
+    
+                        if j>6 then j+=13
+                        if crew(slot).talents(j)<3 then
+                            dprint gain_talent(slot,j)
+                            cat-=2
+                        endif
+                    endif
+                end select
+
+            loop until cat=0
+            return 0
+
+    return 0
+end function
+
 function gainxp(typ as short,v as short=1) as string
     dim as short a,lowest,slot
     lowest=5000
@@ -475,6 +674,7 @@ function dam_awayteam(dam as short, ap as short=0,disease as short=0,all as shor
     next
     if suitdamage>0 then text=text &suitdamage &" damage to spacesuits."
     awayteam.leak+=suitdamage
+    if awayteam.leak>5 then awayteam.leak=5
     #ifdef _FMODSOUND
     if configflag(con_damscream)=0 then
         FSOUND_PlaySound(FSOUND_FREE, sound(12))
@@ -644,6 +844,15 @@ function levelup(p as _ship,from as short) as _ship
         if crew(a).hp>0 and lev(a)=1 then
             levt(crew(a).typ)+=1
             select case crew(a).typ
+            case 1
+                if crew(a).talents(1)>0 then
+                    if crew(a).baseskill(0)>0 then crew(a).baseskill(0)+=1
+                    if crew(a).baseskill(1)>0 then crew(a).baseskill(1)+=1
+                    if crew(a).baseskill(2)>0 then crew(a).baseskill(2)+=1
+                    if crew(a).baseskill(3)>0 then crew(a).baseskill(3)+=1
+                else
+                    crew(a).baseskill(rnd_range(0,3))+=1
+                endif
             case 2 to 5
                 crew(a).baseskill(crew(a).typ-2)+=1
             case 6,7
@@ -767,7 +976,7 @@ end function
 
 
 function add_member(a as short,skill as short) as short
-    dim as short slot,b,f,c,cc,debug,nameno,i,cat,j,turret,rask,changeap
+    dim as short slot,b,f,c,cc,debug,nameno,i,j
     dim as string text,help
     dim _del as _crewmember
     dim as string n(200,1)
@@ -826,177 +1035,7 @@ function add_member(a as short,skill as short) as short
         'crew(slot).disease=rnd_range(1,17)
 
         if a=1 then 'captain
-
-            crew(slot).hpmax=6
-            crew(slot).hp=6
-            crew(slot).icon="C"
-            crew(slot).typ=1
-            crew(slot).baseskill(0)=captainskill
-            crew(slot).baseskill(1)=captainskill
-            crew(slot).baseskill(2)=captainskill
-            crew(slot).baseskill(3)=captainskill
-            crew(slot).atcost=6
-            cat=2
-            if equipment_value<1150 then cat+=1
-            if player.h_no=2 then cat+=1
-            do
-                help=""
-                if cat>1 then
-                    text="Captain("& player.h_sdesc &") "&crew(slot).n & "s talents (" &cat &")"
-                else
-                    text="Captain("& player.h_sdesc &") " &crew(slot).n & "s talent (" &cat &")"
-                endif
-                text=text &"/No talent, +100 Cr."
-                help=help &"/Start with "& player.money+100 &" Cr. instead of 500||" &list_inventory
-                text=text &"/Additional talent, -100 Cr."
-                help=help &"/Start with "& player.money-100 &" Cr. instead of 500. Choose one more starting talent||"&list_inventory
-                text=text &"/2 Spacesuits"
-                help=help &"/Start with 2 standard issue spacesuits||"&list_inventory
-                text=text &"/Tribble"
-                help=help &"/Start with a pet tribble||"&list_inventory
-                text=text &"/Additional random items"
-                help=help &"/Start with two more random items||"&list_inventory
-                text=text &"/Energy weapon"
-                if startingweapon=1 then text=text &"(x)"
-                help=help &"/Start with an energy weapon for your ship.|(If you change your mind just select this option again)||"&list_inventory
-                if startingweapon=1 then help=help &"|currently selected"
-                text=text &"/Missile weapon"
-                if startingweapon=2 then text=text &"(x)"
-                if startingweapon=2 then help=help &"|currently selected"
-                help=help &"/Start with a missile weapon for your ship.|(If you change your mind just select this option again)||"&list_inventory
-                if player.cursed=0 then
-                    text=text &"/Junk ship"
-                    help=help &"/Your starting ship is in need of an overhaul. +1 points||"&list_inventory
-                else
-                    text=text &"/Decent ship"
-                    help=help &"/Your starting ship is in good condition.||"&list_inventory
-                endif
-                for i=1 to 6
-                    text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)&"|(2 pts.)||"&list_inventory
-                    'help=help &"Ship:"&player.h_sdesc
-
-                next
-                for i=20 to 26
-                    text=text &"/"&talent_desig(i)&"("&crew(slot).talents(i)&")"
-                    help=help &"/"&talent_desc(i)&"|(2 pts.)||"&list_inventory
-                    'help=help &"Ship:"&player.h_sdesc
-                next
-                turret=-2
-                rask=22
-                changeap=23
-                if player.h_no=2 then
-                    turret=22
-                    rask=23
-                    changeap=24                    
-                    text=text &"/Additional module(3 pts.)"
-                    help=help &"/Pay 3 pts for a module for your fighter ship."
-                endif
-                text=text &"/Random"
-                help=help &"/Choose one talent at random (1 pt.)"
-                text=text &"/Change captain details"
-                help=help &"/Change the appearance and bio details of your captain"
-                
-                i=menu(bg_randompictxt,text,help,,,1)
-                if i=rask then
-                    do
-                        i=rnd_range(9,rask-1)
-                        j=i-7
-                        if j>6 then j+=13
-                    loop until crew(1).talents(j)<=3
-                    cat+=1
-                endif
-                select case i
-                case 1,-1
-                    addmoney(100,mt_startcash)
-                    cat-=1
-                    dprint "Additional money: +100 Cr."
-                case 2
-                    if player.money>=100 then
-                        addmoney(-100,mt_startcash)
-                        cat+=1
-                        dprint "Less money: -100 Cr."
-                    endif
-                case 3
-                    cat-=1
-                    for j=1 to 2
-                        placeitem(make_item(320),0,0,0,0,-1)
-                    next
-                    dprint "Item: 2 Spacesuits"
-                case 4
-                    placeitem(make_item(250),0,0,0,0,-1)
-                    cat-=1
-                    dprint "Item: A tribble"
-                case 5
-                    for j=1 to 2
-                        if rnd_range(1,100)<50 then
-                            item(lastitem+1)=rnd_item(RI_WeakStuff)
-                        else
-                            item(lastitem+1)=rnd_item(RI_WeakWeapons)
-                        endif
-
-                        dprint "Item: "&add_a_or_an(item(lastitem+1).desig,1)
-                        placeitem(item(lastitem+1),0,0,0,0,-1)
-                        item(lastitem+1)=item(lastitem+2)
-                    next
-                    cat-=1
-                case 6
-                    select case startingweapon
-                    case 0
-                        startingweapon=1
-                        cat-=1
-                    case 1
-                        startingweapon=0
-                        cat+=1
-                    case 2
-                        startingweapon=1
-                    end select
-                    dprint "Guaranteed energy weapon"
-                case 7
-                    select case startingweapon
-                    case 0
-                        startingweapon=2
-                        cat-=1
-                    case 1
-                        startingweapon=2
-                    case 2
-                        startingweapon=0
-                        cat+=1
-                    end select
-                    dprint "Guaranteed missile weapon"
-                case 8
-                    if player.cursed=1 then
-                        cat-=1
-                        player.cursed=0
-                        Dprint "Your ship is in decent condition"
-                    else
-                        cat+=1
-                        player.cursed=1
-                        dprint "Your ship is in need of repair and servicing"
-                    endif
-                case turret
-                    
-                    if cat>=3 then
-                        player.weapons(2)=starting_turret
-                        if player.weapons(2).made<>0 then cat-=3
-                    endif
-                case changeap
-                    change_captain_appearance(20,2)
-                case else
-                    if cat>=2 then 
-                        j=i-8
-    
-                        if j>6 then j+=13
-                        if crew(slot).talents(j)<3 then
-                            dprint gain_talent(slot,j)
-                            cat-=2
-                        endif
-                    endif
-                end select
-
-            loop until cat=0
-            return 0
-
+            captain_perks(slot)
         endif
         if a=2 then 'Pilot
             crew(slot).hpmax=skill+1

@@ -1922,6 +1922,7 @@ end function
 function add_a_or_an(t as string,beginning as short) as string
     dim as short i
     dim as string t2,t3
+    t=lcase(t)
     i=asc(t,1)
     t2=ucase(chr(i))
     if beginning=1 then

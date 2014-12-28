@@ -33,7 +33,7 @@ function ss_sighting(i as short) as short
     if debug=1 and _debug=1 then dprint fn &":"&fn2
     c=11
     
-    if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
+    'if rnd_range(1,100)>basis(i).lastsightingturn-player.turn then
         if basis(i).lastsightingturn-player.turn<25 then
             text ="There are some rumors about"
             if basis(i).lastsightingturn-player.turn<10 then text="You hear a lot of people talking about"
@@ -70,7 +70,7 @@ function ss_sighting(i as short) as short
             '8 and 9 are GG and asteroid belt monsters. 
             if fleet(fn).ty=10 then text=text &" an entity calling herself eris."
         endif
-    endif
+    'endif
     if fleet(i).mem(1).hull<300 then
         text3="There is some damage from a fight being repaired."
     endif
@@ -82,7 +82,7 @@ function ss_sighting(i as short) as short
         c=c_red
         text3="The station is heavily damaged, barely operational."
     endif
-    if fleet(i+1).con(2)>0 then
+    if fleet(i).con(2)>0 then
         select case fleet(fleet(i+1).con(2)).ty
             case is=2
                 text3=text3 &" Word on the station is pirates have attacked!"

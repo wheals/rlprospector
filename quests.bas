@@ -298,7 +298,7 @@ function give_patrolquest(employer as short) as short
     if j>-1 then
         if askyn("We could use some help with an easy patrol. Are you interested?(y/n)") then
             patrolquest(j).employer=employer
-            patrolquest(j).generate(rnd_range(3,6),rnd_range(15,20),player.turn/(250*60)+10)'!
+            patrolquest(j).generate(rnd_range(4,7),rnd_range(15,20),player.turn/(250*60)+10)'!
             dprint patrolquest(j).show &" Upon completion you will get paid "&Credits(patrolquest(j).reward) &" Cr."
             questroll=999
         endif
@@ -1443,11 +1443,14 @@ function give_quest(st as short) as short
                 drifting(m).s=14
                 drifting(m).x=x
                 drifting(m).y=y
-                drifting(m).p=rnd_range(1,8)
-                if drifting(m).p=5 then drifting(m).p+=1
                 
                 dprint "The company rep tells you about a battleship that has gone missing. It's last known position was " & x &":" &y & ". There is a 5000 Credit reward for finding out what happened to it.",15
-                
+                drifting(m).x=drifting(m).x+rnd_range(1,8)-rnd_range(1,8)
+                drifting(m).y=drifting(m).y+rnd_range(1,8)-rnd_range(1,8)
+                if drifting(m).x<0 then drifting(m).x=0
+                if drifting(m).x<sm_x then drifting(m).x=sm_x
+                if drifting(m).y<0 then drifting(m).y=0
+                if drifting(m).y<sm_y then drifting(m).y=sm_y
                 drifting(m).m=lastplanet+1
                 lastplanet=lastplanet+1
                 load_map(14,lastplanet)
@@ -1461,8 +1464,8 @@ function give_quest(st as short) as short
                 planets(m).atmos=6
         
                 planets(m).mon_template(0)=makemonster(29,m)
-                planets(m).mon_noamin(0)=10
-                planets(m).mon_noamax(0)=20
+                planets(m).mon_noamin(0)=5
+                planets(m).mon_noamax(0)=15
                 planets_flavortext(m)="No hum from the engines is heard as you enter the Battleship. Emergency lighting bathes the corridors in red light, and the air smells stale."
             endif
             

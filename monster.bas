@@ -449,7 +449,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
             enemy.atcost=enemy.atcost-2
             enemy.diet=1
         endif
-        
+        if planets(map).atmos>=14 and enemy.weapon>0 and rnd_range(1,100)=100 then enemy.specialattack=SA_corrodes
         if enemy.weapon>2 then enemy.col=12
         if enemy.hp>9 then 
             enemy.tile=asc(ucase(chr(enemy.tile)))
@@ -1021,6 +1021,7 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
     endif
     
     if a=16 then 'Spitting Critter
+        g=rnd_range(1,5)
         enemy.ti_no=1001+g
         enemy.range=2.5
         enemy.swhat="spits acid"
@@ -1046,7 +1047,6 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.dhurt="hurt"
         enemy.dkill="dies"
         enemy.lang=-1
-        g=rnd_range(0,4)
         enemy.tile=ch(g)
         if enemy.tile=22 then enemy.movetype=mt_climb 'Spinnen klettern
         enemy.col=6
@@ -3058,11 +3058,12 @@ function makemonster(a as short, map as short, forcearms as byte=0) as _monster
         enemy.aggr=0
         enemy.hp=rnd_range(1,10)+20
         enemy.hpmax=enemy.hp
-        enemy.speed=12
+        enemy.speed=5
         enemy.atcost=8
         enemy.weapon=3
+        enemy.specialattack=SA_corrodes
         enemy.armor=0
-        enemy.sight=3
+        enemy.sight=2
         enemy.range=1.5
         enemy.biomod=5
         enemy.hasoxy=1

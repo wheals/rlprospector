@@ -200,7 +200,7 @@ function meet_fleet(f as short)as short
         eris_does
         return 0
     endif
-    if player.turn>lastturncalled+50 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
+    if player.turn>lastturncalled+250 and fleet(f).ty>0 and player.dead=0 and just_run=0 then
         if fleet(f).fighting=0 then
             if faction(0).war(fleet(f).ty)+rnd_range(1,10)>90 and fleet(f).ty<>1 then 'Merchants never attack 
                 q=1

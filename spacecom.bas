@@ -1486,10 +1486,10 @@ function com_hit(target as _ship, w as _weap, dambonus as short, range as short,
                     dprint attn &" fires "&w.desig &". " & text,c
                 endif
             else
-                if w.made=101 then dprint attn &"bites. "&text,c
-                if w.made=102 then dprint attn &"fires a concentrated radiation beam. "&text,c
-                if w.made=103 then dprint attn &"hits with a tentacle. "&text,c
-                if w.made=104 then dprint attn &"fires a lightning bolt. "&text,c
+                if w.made=101 then dprint attn &" bites. "&text,c
+                if w.made=102 then dprint attn &" fires a concentrated radiation beam. "&text,c
+                if w.made=103 then dprint attn &" hits with a tentacle. "&text,c
+                if w.made=104 then dprint attn &" sfires a lightning bolt. "&text,c
             endif
         endif
         text=""

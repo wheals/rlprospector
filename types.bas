@@ -8,6 +8,8 @@ Using cards
 Randomize Timer
 
 #Include "version.bas"
+dim shared as string*5 __lastsavegamechange__="R 197" 'Do not forget to change this when savegames are changed! 
+
 Const c_red=12
 Const c_gre=10
 Const c_yel=14
@@ -57,7 +59,6 @@ Const lstcomty=20 'Last common item
 Const lastspecial=46
 Const _debug_bones=0
 Const _test_disease=0
-Const make_vault=0
 Const addpyramids=0
 Const com_log=0
 Const startingmoney=500
@@ -73,7 +74,7 @@ Const key__esc = Chr(27)
 Const key__enter = Chr(13)
 Const key__space = Chr(32)
 Const lastflag=20
-Const max_maps=2047
+Const max_maps=4096
 Const _clearmap=0
 Const _testspacecombat=0
 Const add_tile_each_map=0
@@ -677,6 +678,7 @@ Type _monster
     End Union
     range As Short
     weapon As Short
+    specialattack as short
     armor As Short
     respawns As Byte
     breedson As Byte
@@ -708,6 +710,11 @@ Type _monster
     items(8) As Short
     itemch(8) As Short
 End Type
+
+enum specialattacks
+    SA_none
+    SA_Corrodes
+end enum
 
 Type _stars
     c As _cords
@@ -828,7 +835,7 @@ Type _goods
     'test as single
     'test2 as single
 End Type
-Dim Shared vismask(sm_x,sm_y) As Byte
+reDim Shared vismask(sm_x,sm_y) As Byte
 Dim Shared As String goodsname(9)
 
 Const lastgood=9
@@ -1743,14 +1750,14 @@ Dim Shared savefrom(16) As _planetsave
 Dim Shared stationroll As Short
 Dim Shared player As _ship
 Dim Shared awayteam As _monster
-Dim Shared map(laststar+wormhole+1) As _stars
+reDim Shared map(laststar+wormhole+1) As _stars
 Dim Shared basis(12) As _basis
 Dim Shared companystats(5) As _company
 Dim Shared companyname(5) As String
 Dim Shared companynameshort(5) As String
 Dim Shared shares(2048) As _share
 Dim Shared lastshare As Short
-Dim Shared spacemap(sm_x,sm_y) As Short
+reDim Shared spacemap(sm_x,sm_y) As Short
 Dim Shared combatmap(60,20) As Byte
 Dim Shared planetmap(60,20,max_maps) As Short
 Dim Shared planets(max_maps) As _planet
@@ -1808,7 +1815,7 @@ Dim Shared empty_fleet As _fleet
 empty_fleet.del=1
 declare function factionadd(a as short,b as short,ad as short) as short
 Dim Shared coms(255) As _comment
-Dim Shared portal(1024) As _transfer
+reDim Shared portal(4096) As _transfer
 Dim Shared lastportal As Short
 Dim Shared lastplanet As Short
 Dim Shared lastcom As Short
@@ -1965,6 +1972,8 @@ Declare Function asteroid_mining(slot As Short) As Short
 Declare Function gasgiant_fueling(t As Short,orbit As Short,sys As Short) As Short
 Declare Function dock_drifting_ship(a As Short) As Short
 Declare Function move_rover(pl As Short) As Short
+declare function captain_perks(slot as short) as short
+
 Declare Function rnd_crewmember(onship As Short=0) As Short
 Declare Function haggle_(way As String) As Single
 Declare Function botsanddrones_shop(si as short) As Short
@@ -2179,6 +2188,7 @@ Declare Function ap_astar(start As _cords,ende As _cords,diff As Short) As Short
 Declare Function has_questguy_want(i As Short,ByRef t As Short) As Short
 declare function sell_towed() as short
 
+declare function corrode_item() as short
 
 Declare Function caged_monster_text() As String
 Declare Function sell_alien(sh As Short) As Short
@@ -2374,7 +2384,7 @@ Declare Function station_event(m As Short) As Short
 Declare Function makewhplanet() As Short
 Declare Function makeoutpost (slot As Short,x1 As Short=0, y1 As Short=0) As Short
 Declare Function makesettlement(p As _cords,slot As Short, typ As Short) As Short
-Declare Function makevault(r As _rect,slot As Short,nsp As _cords, typ As Short,ind As Short) As Short
+Declare Function make_vault(r As _rect,slot As Short,nsp As _cords, typ As Short,ind As Short,entr as _cords) As Short
 Declare Function rndwallpoint(r As _rect, w As Byte) As _cords
 Declare Function rndwall(r As _rect) As Short
 Declare Function digger(ByVal p As _cords,map() As Short,d As Byte,ti As Short=2,stopti As Short=0) As Short

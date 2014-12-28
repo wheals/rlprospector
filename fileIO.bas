@@ -2419,6 +2419,7 @@ function savegame(crash as short=0) as short
         'dat(1)=dat(1)+sizeof(savefrom(a))
     next
     'save maps
+    put #f,,laststar
     put #f,,wormhole
     for a=0 to laststar+wormhole
         put #f,,map(a)
@@ -2457,7 +2458,8 @@ function savegame(crash as short=0) as short
     for a=0 to lastcagedmonster
         put #f,,cagedmonster(a)
     next
-
+    put #f,,sm_x
+    put #f,,sm_y
     for x=0 to sm_x
         for y=0 to sm_y
             put #f,,spacemap(x,y)
@@ -2661,7 +2663,12 @@ function load_game(filename as string) as short
             dprint "checking version"
             if instr(versionstring,"VERSION:")>0 then
                 if versionstring<>"VERSION:"&__version__ then
-                    if not askyn("Savegame from another version then your current version(" & (versionstring) &" and VERSION:" &(__version__)  & "). There might be compatibility issues. Load anyway?(y/n)") then return 0
+                    dprint "Savegame from another version then your current version(" & (versionstring) &" and VERSION:" &(__version__)  & ")."
+                    if val(__version__)>val(__lastsavegamechange__) then
+                        dprint "Should be ok"
+                    else
+                        if not askyn("Versions incompatible. Savegame must be at least v " & __lastsavegamechange__ & "Do you want to try to load anyway?(y/n)") then return 0
+                    endif
                 else
                     dprint "Version Ok."
                 endif
@@ -2696,7 +2703,6 @@ function load_game(filename as string) as short
             put #f,, *dest, dest_len
             close f
         endif
-
         'Ending uncompress
 
 
@@ -2763,7 +2769,9 @@ function load_game(filename as string) as short
             get #f,,savefrom(a).map
             print ".";
         next
+        get #f,,laststar
         get #f,,wormhole
+        redim map(laststar+wormhole+1) as _stars
         for a=0 to laststar+wormhole
             get #f,,map(a)
             print ".";
@@ -2805,7 +2813,10 @@ function load_game(filename as string) as short
         next
 
 
-
+        get #f,,sm_x
+        get #f,,sm_y
+        redim spacemap(sm_x,sm_y) as short
+        redim vismask(sm_x,sm_y) as byte
         for x=0 to sm_x
             for y=0 to sm_y
                 get #f,,spacemap(x,y)
@@ -2819,6 +2830,8 @@ function load_game(filename as string) as short
         next
 
         get #f,,lastportal
+        print "Lastportal:"&lastportal
+        sleep
         for a=0 to lastportal
             get #f,,portal(a)
         next
@@ -2980,7 +2993,7 @@ function load_game(filename as string) as short
         close #f
         dprint "Randombase:"&random_pirate_system
     endif
-
+    
     return 0
 
 end function

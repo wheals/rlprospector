@@ -1,6 +1,6 @@
 function play_poker(st as short) as short
     dim card(52) as integer
-    dim as short i,k,x,y,dealer,curcard,j,l,ci,pli,winner,move,debug,speedup,pot,folded
+    dim as short i,k,x,y,dealer,curcard,j,l,ci,pli,winner,move,debug,speedup,pot,folded,totalrisk,minrisk
     dim p(4) as _pokerplayer
     debug=1
     dim rules as _pokerrules
@@ -10,13 +10,17 @@ function play_poker(st as short) as short
     case is <0
         rules.bet=10
         rules.limit=5
+        minrisk=20
     case 0 to 9
         rules.bet=5
         rules.limit=5
+        minrisk=25
     case 10
         rules.bet=50
         rules.limit=10
+        minrisk=35
     end select
+    minrisk=minrisk-crew(1).talents(5)
     rules.closed=1
     rules.swap=0
     dealer=rnd_range(1,4)
@@ -39,6 +43,13 @@ function play_poker(st as short) as short
             endif
             dprint p(i).name &" joins the game."
         next
+        do
+            totalrisk=0
+            for i=1 to 3
+                totalrisk=totalrisk+p(i).risk
+            next
+            if totalrisk<minrisk then p(rnd_range(1,3)).risk+=rnd_range(1,3)
+        loop until totalrisk>=minrisk
         for i=1 to 4
             p(i).bet=0
             p(i).pot=0

@@ -1,7 +1,7 @@
 function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as short=0) as short
     dim as short a,m,roll,x,y,f,ti,xs,ys,x2,y2,addweap,addcarg,ff,fc,wc,i,j,l
     dim as byte retirementshop,antiques,oneway,lockermap(60,20)
-    dim as short randomshop(10),lastrandomshop
+    dim as short randomshop(14),lastrandomshop,shoptile
     dim s as _ship
     dim pods(6,5,1) as short
     dim as _cords p,p2,bgtiles
@@ -9,7 +9,7 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     dim from as _cords
     dim dest as _cords
     dim lastcrate as short
-    randomshop(1)=262 'Mudds
+    randomshop(1)=113 'Giftshop
     randomshop(2)=270 'Retirement
     randomshop(3)=261 'Hospital
     randomshop(4)=294 'Antiques
@@ -18,8 +18,12 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
     randomshop(7)=286 'Customize item
     randomshop(8)=110 'Zoo
     randomshop(9)=112 'Used ships
-    randomshop(10)=113 'Used ships
-    lastrandomshop=10 '
+    randomshop(10)=262 'mudds
+    randomshop(11)=262 'mudds
+    randomshop(12)=262 'mudds
+    randomshop(13)=262 'mudds
+    randomshop(14)=262 'mudds
+    lastrandomshop=14 '
     if _debug>0 then dprint "DS:"&d.s
     if _debug=18 then d.s=18
     
@@ -133,8 +137,13 @@ function make_drifter(d as _driftingship, bg as short=0,broken as short=0,f2 as 
                     if randomshop(ti)=112 then add_shop(sh_used,p,-1)
                     if randomshop(ti)=113 then add_shop(sh_giftshop,p,-1)
                     if randomshop(ti)=261 then add_shop(sh_sickbay,p,-1)
-                    randomshop(ti)=randomshop(lastrandomshop)
-                    lastrandomshop-=1
+                    shoptile=randomshop(ti)
+                    for i=1 to lastrandomshop
+                        if randomshop(i)=shoptile then
+                            randomshop(i)=randomshop(lastrandomshop)
+                            lastrandomshop-=1
+                        endif
+                    next
                                     
                 endif
             endif

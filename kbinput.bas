@@ -370,6 +370,7 @@ function gettext(x as short, y as short, ml as short, text as string,pixel as sh
     endif
     if len(text)=0 then text=""
     if text=key__enter or text=key__esc or text=chr(8) then text=""
+    dprint text,15
     return text
 end function
 
@@ -605,18 +606,20 @@ function menu(bg as byte,te as string, he as string="", x as short=2, y as short
                 key=keyin(,1)
             endif
         endif
+        if _debug>2112 then dprint key
         if hfl=1 then 
             for a=1 to blen
                 set__color( 0,0)
                 draw string(ofx*_fw1,y*_fh1+(a-1)*_fh2), space(hw),,font2,custom,@_col
             next
         endif
-        if getdirection(key)=8 then loca=loca-1
-        if getdirection(key)=2 then loca=loca+1
-        if help<>"" then
+        if helps(loca)<>"" then
             if key="+" then offset+=1
             if key="-" then offset-=1
         endif
+        if getdirection(key)=8 then loca=loca-1
+        if getdirection(key)=2 then loca=loca+1
+        
         if loca<1 then loca=c
         if loca>c then loca=1
         if key=key__enter then e=loca

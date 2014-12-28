@@ -1336,6 +1336,8 @@ function botsanddrones_shop(si as short) as short
             if c=1 then wreckquestion="You have "&c &" wreck. Do you want to sell it?(y/n)"
             if c>1 then wreckquestion="You have "&c &" wrecks. Do you want to sell them?(y/n)"
             if askyn(wreckquestion) then
+                if c=1 then dprint "You get "&credits(c*price) &" for your wreck."
+                if c>1 then dprint "You get "&credits(c*price) &" for your wrecks."
                 addmoney(c*price,mt_quest2)
                 for b=1 to c
                     item(il(b)).w.s=99

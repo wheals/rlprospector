@@ -5,6 +5,7 @@ function gets_entry(x as short,y as short, slot as short) as short
     if tmap(x,y).gives=66 or tmap(x,y).gives=67 then return -1
     if tmap(x,y).gives=59 or tmap(x,y).gives=60 then return -1
     if tmap(x,y).gives=49 then return -1
+    if tmap(x,y).gives=50 then return -1
     if tmap(x,y).gives=55 then return -1
     if tmap(x,y).gives>=43 and tmap(x,y).gives<=46 then return -1
     if tmap(x,y).gives>=13 and tmap(x,y).gives<=31 then return -1
@@ -571,7 +572,7 @@ Function ep_communicateoffer(Key As String) As Short
 End Function
 
 Function ep_display_clouds(cloudmap() As Byte) As Short
-    Dim As Short x,y,slot,osx,debug,i
+    Dim As Short x,y,slot,osx,debug,i,x2,y2
 
     Dim p As _cords
     debug=1
@@ -591,7 +592,38 @@ Function ep_display_clouds(cloudmap() As Byte) As Short
             If vismask(p.x,p.y)>0 And cloudmap(p.x,p.y)>0 Then
                 If configflag(con_tiles)=0 Then
                     For i=1 To cloudmap(p.x,p.y)/2
-                        Put ((x*_tix)+rnd_range(1,_tix/2)-rnd_range(1,_tix/2),(y*_tiy)+rnd_range(1,_tiy/2)-rnd_range(1,_tiy/2)),gtiles(gt_no(403)),trans
+                        select case i
+                        case 1
+                            x2=2
+                            y2=0
+                        case 2
+                            x2=-2
+                            y2=0
+                        case 3
+                            x2=0
+                            y2=2
+                        case 4
+                            x2=0
+                            y2=-2
+                        case 5
+                            x2=2
+                            y2=2
+                        case 6
+                            x2=-2
+                            y2=2
+                        case 7
+                            x2=2
+                            y2=-2
+                        case 8
+                            x2=-2
+                            y2=-2
+                        case else
+                            x2=0
+                            y2=0
+                        end select
+                        
+                    
+                        Put ((x*_tix)+x2*i,(y*_tiy)+y2*i),gtiles(gt_no(403)),trans
                     Next
                 Else
                     set__color( 15,0)
@@ -1014,6 +1046,12 @@ Function ep_inspect(ByRef localturn As Short) As Short
                 EndIf
             EndIf
         EndIf
+        if distance(awayteam.c,enemy(a).c)<2 and enemy(a).invis=3 then
+            if skill_test(player.science(1),st_average) then
+                dprint "You discover a sleeping animal hiding here."
+                enemy(a).invis=0
+            endif
+        endif
     Next
     If b=0 And tmap(awayteam.c.x,awayteam.c.y).vege>0 And planets(slot).flags(32)<=planets(slot).life+1+add_talent(4,15,3) Then
         If (player.science(1)>0) Or (player.doctor(1)>0) Then
@@ -1369,29 +1407,14 @@ Function ep_planeteffect(shipfire() As _shipfire, ByRef sf As Single,lavapoint()
     EndIf
 
     If planets(slot).atmos>11 And rnd_range(1,100)<planets(slot).atmos*2 And frac(localturn/20)=0 Then
-        a=getrnditem(-2,0)
-        If a>0 Then
-            If rnd_range(1,100)>item(a).res Then
-                item(a).res=item(a).res-25
-                If item(a).res>=0 Then
-                    dprint "Your "&item(a).desig &" starts to corrode.",14
-                    if (item(a).ty=3 or item(a).ty=103) and item(a).ti_no<2019 then 
-                        item(a).v4+=1
-                        awayteam.leak+=1
-                    endif
-                Else
-                    dprint "Your "&item(a).desig &" corrodes and is no longer usable.",14
-                    destroyitem(a)
-                    equip_awayteam(slot)
-                    make_vismask(awayteam.c,0,slot,,awayteam.groundpen)
-                    'displayawayteam(awayteam, slot, lastenemy, deadcounter, ship,nightday(awayteam.c.x,awayteam.c.y))
-                EndIf
-            EndIf
-        EndIf
+        corrode_item()
         For a=1 To itemindex.vlast 'Corrosion need to go through all
             If item(itemindex.value(a)).ty<20 Then
                 If item(itemindex.value(a)).w.s=0 And rnd_range(1,100)>item(itemindex.value(a)).res Then item(itemindex.value(a)).res-=25
-                If item(itemindex.value(a)).res<=0 Then item(itemindex.value(a)).w.p=9999
+                If item(itemindex.value(a)).res<=0 Then 
+                    item(itemindex.value(a)).w.p=9999
+                    if vismask(item(itemindex.value(a)).w.x,item(itemindex.value(a)).w.y)>0 then dprint "The "& item(itemindex.value(a)).desig &" dissolves in the corrosive atmosphere."
+                endif
                 If item(itemindex.value(a)).ty=18 And item(itemindex.value(a)).w.p=9999 Then item(itemindex.value(a))=make_item(65) 'Rover debris
             EndIf
         Next
@@ -1588,7 +1611,7 @@ Function ep_portal() As _cords
 End Function
 
 Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() As _cords, nightday() As Byte, localtemp() As Single,cloudmap() As Byte) As Short
-    Dim As Short a,x,y,dam,slot,orbit
+    Dim As Short a,x,y,dam,slot,orbit,d
     Dim As _cords p,p2
     Dim As Single tempchange
     slot=player.map
@@ -1598,6 +1621,8 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
     Else
         tempchange=11-planets(slot).dens*2/orbit
     EndIf
+    d=rnd_range(1,8)
+    if d>4 then d+=1
     For x=0 To 60
         For y=0 To 20
             If nightday(x)=3 Then localtemp(x,y)=localtemp(x,y)+tempchange'Day
@@ -1643,28 +1668,6 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
                 EndIf
             endif
         
-            If localtemp(x,y)<-10 And tmap(x,y).no=1 Or tmap(x,y).no=2 Then
-                tmap(x,y).gives=tmap(x,y).gives+(localtemp(x,y)/25)
-                If rnd_range(0,100)<Abs(tmap(x,y).gives) And tmap(x,y).gives<-50 Then
-                    If vismask(x,y)>0 Then dprint "The water freezes again."
-                    If tmap(x,y).no=2 Then
-                        tmap(x,y)=tiles(27)
-                        changetile(x ,y ,slot ,27)
-                    Else
-                        tmap(x,y)=tiles(260)
-                        changetile(x ,y ,slot ,260)
-                    EndIf
-                EndIf
-            EndIf
-
-            If localtemp(x)>10 And tmap(x,y).no=27 Or tmap(x,y).no=260 Then
-                tmap(x,y).hp-=localtemp(x,y)/25
-                If tmap(x,y).hp<0 Then
-                    tmap(x,y)=tiles(2)
-                    changetile(x ,y ,slot ,2)
-                    If vismask(x,y)>0 Then dprint "The ice melts."
-                EndIf
-            EndIf
 
             If localtemp(x)>30 And planets(slot).atmos>1 Then
                 If tmap(x,y).walktru=1 Then
@@ -1680,23 +1683,49 @@ Function ep_tileeffects(areaeffect() As _ae, ByRef last_ae As Short,lavapoint() 
                     If planets(slot).dens<3 Then cloudmap(x,y)-=2
                 EndIf
             EndIf
-            If cloudmap(x,y)>0 Then
-                p.x=x
-                p.y=y
-                If rnd_range(1,100)<(1+planets(slot).weat)*5 Then
-                    cloudmap(x,y)-=1
-                    p=movepoint(p,5,1)
-                    cloudmap(p.x,p.y)+=1
+            if player.turn mod 10=0 then
+                
+                If localtemp(x,y)<-10 And tmap(x,y).no=1 Or tmap(x,y).no=2 Then
+                    tmap(x,y).gives=tmap(x,y).gives+(localtemp(x,y)/25)
+                    If rnd_range(0,100)<Abs(tmap(x,y).gives) And tmap(x,y).gives<-50 Then
+                        If vismask(x,y)>0 Then dprint "The water freezes again."
+                        If tmap(x,y).no=2 Then
+                            tmap(x,y)=tiles(27)
+                            changetile(x ,y ,slot ,27)
+                        Else
+                            tmap(x,y)=tiles(260)
+                            changetile(x ,y ,slot ,260)
+                        EndIf
+                    EndIf
                 EndIf
-            EndIf
-
-
-            If tmap(x,y).no=245 And rnd_range(1,100)<9+planets(slot).grav Then
-                p.x=x
-                p.y=y
-                p=movepoint(p,5)
-                lavapoint(rnd_range(1,5))=p
-            EndIf
+    
+                If localtemp(x,y)>10 And tmap(x,y).no=27 Or tmap(x,y).no=260 Then
+                    tmap(x,y).hp-=localtemp(x,y)/25
+                    If tmap(x,y).hp<0 Then
+                        tmap(x,y)=tiles(2)
+                        changetile(x ,y ,slot ,2)
+                        If vismask(x,y)>0 Then dprint "The ice melts."
+                    EndIf
+                EndIf
+                
+                If cloudmap(x,y)>0 Then
+                    p.x=x
+                    p.y=y
+                    If rnd_range(1,100)<(1+planets(slot).weat)*10 Then
+                        cloudmap(x,y)-=1
+                        p=movepoint(p,d,1)
+                        cloudmap(p.x,p.y)+=1
+                    EndIf
+                EndIf
+    
+    
+                If tmap(x,y).no=245 And rnd_range(1,100)<9+planets(slot).grav Then
+                    p.x=x
+                    p.y=y
+                    p=movepoint(p,5)
+                    lavapoint(rnd_range(1,5))=p
+                EndIf
+            endif
         Next
     Next
 
@@ -1783,7 +1812,7 @@ Function ep_updatemasks(watermap() as byte,localtemp() as single, cloudmap() as 
     EndIf
     If planets(slot).depth>0 Then hasnosun=1
     If hasnosun=0 Then
-        dawn=dawn+planets(slot).rot/5
+        dawn=dawn+(1/(10*24*planets(slot).rot))
         If dawn>60 Then dawn=dawn-60
         dawn2=dawn+30
         If dawn2>60 Then dawn2=dawn2-60
@@ -2237,7 +2266,7 @@ Function ep_monstermove(spawnmask() As _cords, lsp As Short, mapmask() As Byte,n
                 If enemy(i).attacked<>0 Then
                     If enemy(i).denemy<=enemy(i).range Then
                         If enemy(i).attacked=-1 Then
-                            if pathblock(awayteam.c,enemy(i).c,awayteam.slot,1)=-1 or enemy(i).denemy<2 then
+                            if (pathblock(awayteam.c,enemy(i).c,awayteam.slot,1)=-1 and enemy(i).range<enemy(i).denemy) or enemy(i).denemy<2 then
                                 awayteam=monsterhit(enemy(i),awayteam,vismask(enemy(i).c.x,enemy(i).c.y))
                             endif
                         Else
@@ -2623,12 +2652,7 @@ Function ep_radio(ByRef nextlanding As _cords,ByRef ship_landing As Short, shipf
                 If slot=specialplanet(27) Then dprint "Can't get her up from this surface. She is stuck."
             Else
                 If askyn("Are you certain? you want to launch on remote and leave everybody behind? (y/n)") Then
-                    If planets(slot).depth=0 Then
-                        if player.dead=0 then player.dead=4
-                    Else
-                        dprint "Good luck then."
-                        player.landed.m=0
-                    EndIf
+                    if player.dead=0 then player.dead=4
                 EndIf
             EndIf
         EndIf
@@ -2973,7 +2997,7 @@ Function ep_playerhitmonster(old As _cords, mapmask() As Byte) As Short
     For a=1 To lastenemy
         If vismask(enemy(a).c.x,enemy(a).c.y)>0 And enemy(a).slot>=0 Then planets(slot).mon_seen(enemy(a).slot)=1
         If enemy(a).hp>0 Then
-            If awayteam.c.x=enemy(a).c.x And awayteam.c.y=enemy(a).c.y Then
+            If awayteam.c.x=enemy(a).c.x And awayteam.c.y=enemy(a).c.y and enemy(a).invis<>3 Then
                 If enemy(a).made<>101 Then
                     awayteam.e.add_action(10-stims.effect)
                     awayteam.c=old
@@ -3371,14 +3395,11 @@ Function ep_examine() As Short
                 
                 For a=1 To lastenemy
                     If enemy(a).c.x=p2.x And enemy(a).c.y=p2.y And enemy(a).hpmax>0 Then
+                        'dprint enemy(a).hpmax &":"&enemy(a).hp &enemy(a).invis & monster_description(enemy(a))
                         If enemy(a).hp>0 Then
                             if enemy(a).invis=0 then
-                                If enemy(a).c.x=p2.x And enemy(a).c.y=p2.y Then
-                                    set__color( enemy(a).col,9)
-                                    text=text &" "& monster_description(enemy(a)) '&"faction"&enemy(a).faction &"aggr" &enemy(a).aggr
-                                Else
-                                    set__color( enemy(a).col,0)
-                                EndIf
+                                set__color( enemy(a).col,9)
+                                text=text &" "& monster_description(enemy(a)) '&"faction"&enemy(a).faction &"aggr" &enemy(a).aggr
                                 If configflag(con_tiles)=0 Then
                                     Put ((enemy(a).c.x-osx)*_tix,enemy(a).c.y*_tiy),gtiles(gt_no(enemy(a).ti_no)),trans
                                 Else
@@ -3927,7 +3948,7 @@ Function ep_gives(awayteam As _monster, ByRef nextmap As _cords, shipfire() As _
 
     If tmap(awayteam.c.x,awayteam.c.y).gives=41 Then
         dprint "A nagging feeling in the back of your head you had since you entered this ship suddenly dissapears."
-        player.questflag(11)=2
+        player.questflag(11)=3
     EndIf
 
 
